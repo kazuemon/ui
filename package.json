@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "scripts": {
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "build-storybook": "storybook build -o ./docs",
+    "lint": "eslint src --ext ts,tsx",
+    "format": "prettier --write src/**/*.{ts,tsx}"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -26,13 +27,22 @@
     "@vitejs/plugin-react": "^4.0.1",
     "autoprefixer": "^10.4.14",
     "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.1",
     "eslint-plugin-storybook": "^0.6.12",
     "postcss": "^8.4.25",
+    "prettier": "^3.0.0",
     "prop-types": "^15.8.1",
     "storybook": "^7.0.26",
     "typescript": "^5.0.2",
     "vite": "^4.4.0"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
   }
 }
