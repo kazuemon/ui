@@ -10,7 +10,7 @@
 ## つかうもの
 
 - ベース: Tailwind CSS
-- フォント: Mulish + IBM Plex Sans JP
+- フォント: Mulish + IBM Plex Sans JP（等幅: Geist Mono）
 - アイコン: [Phosphor Icons](https://phosphoricons.com/)
 
 以下画像は日本語と英語を混ぜた文章を作るために、色んな単語を無理やり英語に置き換えたサンプルテキストです。

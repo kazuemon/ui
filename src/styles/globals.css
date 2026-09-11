@@ -1,1 +1,26 @@
 @import 'tailwindcss';
+
+@import '@fontsource-variable/mulish';
+
+@import '@fontsource/ibm-plex-sans-jp/400.css';
+@import '@fontsource/ibm-plex-sans-jp/500.css';
+@import '@fontsource/ibm-plex-sans-jp/600.css';
+@import '@fontsource/ibm-plex-sans-jp/700.css';
+
+@import '@fontsource-variable/geist-mono';
+
+@theme {
+  --font-sans:
+    'Mulish Variable', 'IBM Plex Sans JP', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    'Geist Mono Variable', 'IBM Plex Sans JP', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+@layer base {
+  html {
+    text-autospace: normal;
+    @apply antialiased;
+  }
+}
