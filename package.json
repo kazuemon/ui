@@ -1,6 +1,7 @@
 {
   "name": "@kazuemon/ui",
   "version": "0.0.1",
+  "packageManager": "pnpm@12.4.1",
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o ./docs",
