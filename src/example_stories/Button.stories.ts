@@ -1,8 +1,9 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import { Button } from './Button';
 
-// More on how to set up stories at: https://storybook.js.org/docs/react/writing-stories/introduction
+// More on how to set up stories at: https://storybook.js.org/docs/writing-stories
 const meta = {
   title: 'Example/Button',
   component: Button,
@@ -10,6 +11,8 @@ const meta = {
   argTypes: {
     backgroundColor: { control: 'color' },
   },
+  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked
+  args: { onClick: fn() },
 } satisfies Meta<typeof Button>;
 
 export default meta;
