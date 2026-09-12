@@ -25,3 +25,6 @@ dist-ssr
 
 # storybook build outputs
 docs
+# design canvas builds (regenerate with design/tools/generate-round.mjs)
+design/rounds/*/build
+design/rounds/*.html

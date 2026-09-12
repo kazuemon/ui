@@ -1,0 +1,130 @@
+/*
+ * @kazuemon/ui design tokens — 現行版
+ *
+ * 2層構成（design/adr/0003）
+ *   値の層   --palette-*  生の色。部品・原則からは直接参照しない
+ *   役割の層 --color-* ほか  部品と原則はこちらだけを参照する
+ * ダークモードは役割の層の対応先を差し替えて足す。
+ *
+ * 色は「面用」と「前景用」の2段（design/adr/0002）。
+ *   面用   元の値。塗り・ロゴ・装飾に使う
+ *   前景用 明度だけ下げて基準を満たした値。文字・枠線に使う
+ *   基準: 本文・ボタン文字 4.5:1 / 大きい文字・アイコン・枠線 3:1
+ *
+ * @theme ブロックは Tailwind v4 の名前空間に沿うもの、:root はそれ以外。
+ * どちらも src/styles/globals.css から @import してそのまま使える。
+ */
+
+@theme {
+  /* ── 値の層: Palette ─────────────────────────────── */
+  --palette-sky-400: #35b9fd; /* ブランド水色。白地 2.21 — 面・ロゴ専用 */
+  --palette-sky-500: #009edf; /* 白地 3.02 — 大きい文字まで */
+  --palette-sky-600: #007eb3; /* 白地 4.5 */
+  --palette-blue-500: #3b8af7; /* 白地 3.41 */
+  --palette-blue-600: #2474df; /* 白地 4.53 */
+  --palette-pink-500: #f53273; /* 白地 3.76 */
+  --palette-pink-600: #e41966; /* 白地 4.54 */
+  --palette-red-600: #d4283f; /* 白地 5.03 */
+
+  --palette-sky-50: #e3f4fe; /* タグの面 */
+  --palette-sky-700: #0075a7; /* sky-50 の上で 4.54 */
+
+  /* 中立色: 無彩色寄り（色相 220・彩度 0.002）— design/adr/0005 */
+  --palette-white: #ffffff;
+  --palette-gray-50: #f2f4f4;
+  --palette-gray-100: #eff0f1;
+  --palette-gray-200: #e1e3e4;
+  --palette-gray-300: #dee0e1;
+  --palette-mint-50: #e2f4f1;
+
+  --palette-ink-900: #1f2f37;
+  --palette-ink-700: #525c60;
+  --palette-ink-500: #6e787d; /* 旧 #788287（白地 3.93）を 4.5 まで下げた値 */
+
+  --palette-success-500: #6bf188;
+  --palette-success-50: #e1fce7;
+  --palette-warning-500: #eff16b;
+  --palette-warning-50: #fcfce1;
+  --palette-info-500: #6b9ff1;
+  --palette-info-50: #e1ecfc;
+
+  /* ── 役割の層: Color ─────────────────────────────── */
+  /* 地と面 */
+  --color-bg: var(--palette-white); /* ページの地 */
+  --color-surface: var(--palette-white); /* カードなど。地より明るいか同じ */
+  --color-field: var(--palette-gray-50); /* 編集できる入力欄の塗り（原則8） */
+  --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix */
+  --color-neutral: var(--palette-gray-100); /* グレーボタンの塗り（コントラスト未決） */
+  --color-line: var(--palette-gray-300); /* 細い境界線・読み取り専用の下線 */
+
+  /* 文字 */
+  --color-fg: var(--palette-ink-900);
+  --color-fg-muted: var(--palette-ink-700);
+  --color-fg-subtle: var(--palette-ink-500); /* キャプション */
+
+  /* ブランド（水色）: 構造 */
+  --color-brand: var(--palette-sky-400); /* 面用: ロゴ・装飾・タグの塗り */
+  --color-fg-brand: var(--palette-sky-500); /* 前景用: 大きい見出しのみ */
+  --color-on-brand: var(--palette-ink-900); /* 水色の面に載せる文字 */
+  --color-tag: var(--palette-sky-50); /* タグ: 淡い水色の面＋濃い水色の文字 — design/adr/0007 */
+  --color-on-tag: var(--palette-sky-700);
+
+  /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
+  --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
+  --color-on-primary: var(--palette-white);
+
+  /* セカンダリ（ピンク）— design/adr/0013
+     用途は限定しない。部品の利用者が primary / secondary から場所に合う色を選ぶ */
+  --color-secondary: var(--palette-pink-500); /* 面用: 文字を載せない塗り（トグル ON など） */
+  --color-fg-secondary: var(--palette-pink-600); /* 前景用: 文字・枠線・白文字を載せる塗り */
+  --color-on-secondary: var(--palette-white);
+
+  /* 注意 */
+  --color-danger: var(--palette-red-600);
+  --color-on-danger: var(--palette-white);
+
+  /* ── 角丸（原則5） ───────────────────────────────── */
+  --radius-control: 12px; /* フォーム部品・ボタン — design/adr/0008 */
+  --radius-card: 16px; /* 標準・入れ子の型とも — design/adr/0016 */
+  --radius-pill: 9999px; /* リンク・タグ・トグル */
+
+  /* ── 影（原則1: 塗りのあるボタンにのみ）— design/adr/0006 ── */
+  /* 輪郭程度のごく薄い影。hover で輪郭だけ残り、押下で消える（接地） */
+  --shadow-raised: 0 1px 2px rgb(31 47 55 / 0.1), 0 0 0 1px rgb(31 47 55 / 0.05);
+  --shadow-raised-hover: 0 0 0 1px rgb(31 47 55 / 0.06);
+
+  /* ── 動き（原則3「一段沈む」） ───────────────────── */
+  --ease-press: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ── 文字 ────────────────────────────────────────── */
+  --font-weight-heading: 700;
+}
+
+:root {
+  /* 押下: 素早く 1px 沈む — design/adr/0009 */
+  --duration-press: 100ms;
+  --press-depth: 1px;
+
+  /* カードの画像の比率 — design/adr/0017 */
+  --card-media-aspect: 16 / 9;
+  /* 入れ子の型のカード: 画像の周りの余白 — design/adr/0014 */
+  --card-nested-inset: 8px;
+
+  /* 密度（design/adr/0004）: 寸法は入力方式で切り替える */
+  --size-control-coarse: 44px; /* 指 — 仮の値 */
+  --size-control-fine: 36px; /* マウス — 仮の値 */
+  --text-control-coarse: 16px;
+  --text-control-fine: 14px;
+
+  /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
+  --label-transform: uppercase;
+  --label-style: normal;
+  --label-size: 20px;
+  --label-weight: 800;
+  --label-tracking: 0.04em;
+
+  /* アイコン（Phosphor）: viewBox 256 に対する線幅 — design/adr/0018
+     テキストと並ぶときは Regular、アイコン単体（アイコンボタンなど）は Bold */
+  --icon-stroke: 16;
+  --icon-stroke-standalone: 24;
+}
