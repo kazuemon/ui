@@ -91,3 +91,7 @@
 | [0028](./0028-default-color.md)                   | 各部品の既定の色                                | Accepted           |
 | [0029](./0029-disabled-refine.md)                 | Disabled の詰め（トグルとグレーの枠線のボタン） | Accepted           |
 | [0030](./0030-text-link.md)                       | 文字のリンクの下線と hover                      | Accepted           |
+| [0031](./0031-focus-visible.md)                   | キーボード操作時のフォーカス                    | Accepted           |
+| [0032](./0032-text-offset.md)                     | 和文の縦位置の補正                              | Accepted           |
+| [0033](./0033-press-edge.md)                      | 塗りのボタンを押したときの縁                    | Accepted           |
+| [0034](./0034-loading.md)                         | ボタンの送信中（loading）                       | Accepted           |

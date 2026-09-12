@@ -128,12 +128,29 @@
   --radius-pill: 9999px; /* リンク・タグ・トグル */
 
   /* ── 影（原則1: 塗りのあるボタンにのみ）— design/adr/0006 ── */
-  /* 輪郭程度のごく薄い影。hover で輪郭だけ残り、押下で消える（接地） */
+  /* 輪郭程度のごく薄い影。hover で落ち影が消えて輪郭の線だけ残る。押下でも輪郭の線は残す（:root の --shadow-raised-press — adr/0033） */
   --shadow-raised: 0 1px 2px rgb(31 47 55 / 0.1), 0 0 0 1px rgb(31 47 55 / 0.05);
   --shadow-raised-hover: 0 0 0 1px rgb(31 47 55 / 0.06);
 
   /* ── 動き（原則3「一段沈む」） ───────────────────── */
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
+  /* 送信中（loading）の印の動き — adr/0034
+     loading-in: 薄くしたラベルに重ねる回る円が、ふわっと出る。loading-bar: 下端の線が左から右へ流れる */
+  --animate-loading-in: loading-in var(--duration-loading) var(--ease-press) both;
+  --animate-loading-bar: loading-bar 1.2s ease-in-out infinite;
+  @keyframes loading-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes loading-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(250%);
+    }
+  }
 
   /* ── 文字 ────────────────────────────────────────── */
   --font-weight-heading: 700;
@@ -143,7 +160,22 @@
   /* 押下: 素早く 1px 沈む — design/adr/0009 */
   --duration-press: 100ms;
   --press-depth: 1px;
+  /* 送信中（loading）— adr/0034
+     押せないボタンと同じ見た目に、押下と同じ緩急で 0.2 秒で切り替わる（出るときも戻るときも）
+     既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる */
+  --duration-loading: 200ms;
+  --loading-label-opacity: 0.55;
   --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
+  /* 塗りのボタンを押したときの影 — adr/0033
+     落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
+  --shadow-raised-press: var(--shadow-raised-hover);
+  /* グレーのボタンの影。ほかの塗りのボタンと同じ。比べた案（輪郭の線を外す）を比較のストーリーで再現するため、トークンにしている — adr/0033 */
+  --shadow-neutral: var(--shadow-raised);
+  --shadow-neutral-hover: var(--shadow-raised-hover);
+  --shadow-neutral-press: var(--shadow-raised-press);
+  /* グレーのボタンの枠線。付けない（比べたが採らなかった — adr/0033）。比較のストーリーで再現するため残す */
+  --neutral-line-width: 0px;
+  --color-neutral-line: var(--color-surface-line);
 
   /* 文字のリンクの下線 — adr/0030
      ふだんは文字の色を 35% に透かした淡い下線。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
@@ -164,8 +196,10 @@
   /* 下線の変化の長さと緩急。下線の色は 200ms で、ゆっくり始めてゆっくり終える — adr/0030 */
   --link-grow-duration: 200ms;
   --link-grow-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  /* 文字のリンクの角丸。背景を敷かないので付けない（付けると背景に描く下線の端が丸く欠ける）— 後半の軸 12 */
-  --link-text-radius: 0px;
+  /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031
+     背景は敷かないので、ほかの見た目には効かない。背景に描く下線の案（adr/0030）を再現するときは 0px に戻す
+     （角丸があると、背景に描く下線の端が丸く欠ける） */
+  --link-text-radius: 6px;
   --color-link-grow: currentColor;
   /* 伸びる線の濃さ（0%〜100%）。濃さを動かすと、太さが 1px 単位でそろえられても、なめらかに太って見える */
   --link-grow-alpha-rest: 100%;
@@ -246,6 +280,17 @@
      枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
   --field-border-width: 2px;
   --duration-field: 100ms;
+
+  /* キーボードで操作したときのフォーカス（focus-visible）— adr/0031
+     ボタン・リンク・トグルの輪郭の外側に、2px の青い線を 2px 離して描く。入力欄は上の枠線のまま（クリックでも出る）
+     離すので、青やピンクのボタンでも線が溶けない。線の色は入力欄の枠線と同じ長さでフェードインし、位置は動かさない
+     --focus-ring-offset-rest は出る前の隙間。--focus-ring-offset と違えると線が外から寄る（比べたが採らなかった） */
+  --focus-ring-style: solid;
+  --focus-ring-width: 2px;
+  --color-focus-ring: var(--color-focus);
+  --focus-ring-offset: 2px;
+  --focus-ring-offset-rest: 2px;
+  --focus-ring-duration: var(--duration-field);
 
   /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
   --surface-line-width: 1px;

@@ -10,7 +10,7 @@ export const fieldStyles = tv({
       'data-invalid:[--color-focus:var(--color-danger)]',
       'data-invalid:[--color-field-focus:var(--color-field-invalid)]',
       'data-invalid:[--color-field-hover:var(--color-field-invalid)]',
-      // Disabled（原則1）: 本体の透明度・塗り・文字の色は後半の軸（未設定なら部品の色のまま）。hover でも変えない
+      // Disabled（原則1、design/adr/0026）: 本体の透明度・塗り・文字の色はトークンで指定する（未設定なら部品の色のまま）。hover でも変えない
       'data-disabled:[--color-field-hover:var(--color-field-disabled,var(--color-field))]',
     ],
     label: [
@@ -26,7 +26,7 @@ export const fieldStyles = tv({
 });
 
 // 編集できる入力欄の本体（原則8）。TextField と Select のボタンで共有する
-// 原則2: 通常はグレーの塗り・枠線なし。フォーカスで塗りと枠線が入れ替わる
+// 原則2: 通常はグレーの塗り・枠線なし。フォーカスでは塗りを変えず、2px の枠線を足す（design/adr/0019）
 // 枠線は通常時も透明で確保しておき、フォーカスで文字がずれないようにする
 export const controlBox = tv({
   base: [
@@ -35,7 +35,8 @@ export const controlBox = tv({
     'px-[calc(var(--space-control-x)-var(--field-border-width))] text-(length:--text-control) leading-(--leading-control) text-fg',
     'transition-[background-color,border-color] duration-(--duration-field) ease-press motion-reduce:transition-none',
     'hover:not-focus-within:bg-field-hover',
-    'focus-within:border-focus focus-within:bg-field-focus',
+    // フォーカスは枠線だけで表す。ブラウザのフォーカスの線は出さない（Select のボタンで枠線と重なっていた）
+    'outline-none focus-within:border-focus focus-within:bg-field-focus',
     'group-data-invalid/field:border-danger group-data-invalid/field:bg-field-invalid',
     'group-data-disabled/field:cursor-not-allowed group-data-disabled/field:opacity-(--field-disabled-opacity)',
     'group-data-disabled/field:bg-[color:var(--color-field-disabled,var(--color-field))]',

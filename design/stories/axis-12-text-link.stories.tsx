@@ -38,6 +38,8 @@ const current = {
   '--link-grow-duration': '0ms',
   '--link-grow-ease': 'var(--ease-press)',
   '--color-link-grow': 'currentColor',
+  // 軸 13 で角丸を 6px にした（ADR-0031）。比べたときの 0px に戻し、背景に描く下線の端が欠けないようにする
+  '--link-text-radius': '0px',
 };
 
 // F1〜F4: 文字の下線をやめ、ふだんの 1px の線を背景に描く。hover で伸びる線を重ねる

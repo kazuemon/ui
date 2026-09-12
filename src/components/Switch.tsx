@@ -3,6 +3,8 @@ import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
+import { focusRing } from './focus-styles';
+
 // OFF のトラックは入力欄と同じグレーで、輪郭を付けない（design/adr/0011）
 // ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
 // 指定しないときはグレー（ON は濃いグレー）— design/adr/0028
@@ -41,7 +43,11 @@ const styles = tv({
       '[--switch-track:var(--color-switch-off)]',
       // OFF のトラックの枠。内側に描き、寸法を変えない — design/adr/0029
       'not-data-checked:shadow-[inset_0_0_0_var(--switch-off-line-width)_var(--color-switch-off-line)]',
-      'bg-(color:--switch-track) transition-[background-color] duration-(--duration-press) ease-press motion-reduce:transition-none',
+      'bg-(color:--switch-track)',
+      // キーボードで操作したときのフォーカス（design/adr/0031）。トラックの外側に描く
+      ...focusRing,
+      '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      'motion-reduce:[transition:none]',
       'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
       'data-disabled:bg-[color:var(--color-disabled,var(--switch-track))]',
       // 押せない OFF。ON（色を残して薄くする）とは別に指定する — design/adr/0029

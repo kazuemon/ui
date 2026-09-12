@@ -7,10 +7,9 @@
 
 @import '@fontsource-variable/mulish';
 
-@import '@fontsource/ibm-plex-sans-jp/400.css';
-@import '@fontsource/ibm-plex-sans-jp/500.css';
-@import '@fontsource/ibm-plex-sans-jp/600.css';
-@import '@fontsource/ibm-plex-sans-jp/700.css';
+/* 和文フォントは、縦の寸法の補正を足した @font-face を読む（scripts/generate-fonts.mjs が作る — design/adr/0032）。
+   400・500・600・700 の4つの太さ */
+@import './ibm-plex-sans-jp.css';
 
 @import '@fontsource-variable/geist-mono';
 

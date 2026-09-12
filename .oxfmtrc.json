@@ -10,5 +10,5 @@
     "stylesheet": "./src/styles/globals.css",
     "functions": ["tv"]
   },
-  "ignorePatterns": []
+  "ignorePatterns": ["src/styles/ibm-plex-sans-jp.css"]
 }

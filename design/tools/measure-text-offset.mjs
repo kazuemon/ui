@@ -5,6 +5,7 @@
 // 高さ 44px の入力欄（input）と、同じ見た目の div（flex で中央揃え。Select の値と同じ組み方）に
 // 同じ文字列を入れて描画し、枠の内側でインクより上の余白と下の余白を数える。
 // 「差」が正なら文字が上に寄っている。フォントの縦メトリクスを補正したら、これで確かめる。
+// 和文フォントは、補正を足した src/styles/ibm-plex-sans-jp.css を読む（design/adr/0032）。
 
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
@@ -32,7 +33,7 @@ const GAP = 20;
 
 const html = `<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="file://${NM}/@fontsource-variable/mulish/wght.css">
-<link rel="stylesheet" href="file://${NM}/@fontsource/ibm-plex-sans-jp/400.css">
+<link rel="stylesheet" href="file://${resolve(import.meta.dirname, '../../src/styles/ibm-plex-sans-jp.css')}">
 <style>
 body { margin: 0; background: #fff; line-height: 1.5; }
 .f { position: absolute; left: 10px; width: 360px; height: ${H}px; border: 2px solid transparent; border-radius: 12px; background: #F2F4F4; color: #000; font: inherit; font-size: 16px; padding: 0 14px; box-sizing: border-box; margin: 0; outline: none; }

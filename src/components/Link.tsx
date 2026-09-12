@@ -1,15 +1,19 @@
 import type { ComponentProps } from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
+import { focusRing } from './focus-styles';
+
 // 原則5: リンクなどの小物は pill。原則7の例外: 密度の高い並び（More、SNS のアカウント一覧）は枠線
 // 影のない平らな要素なので、hover と押下は塗りの濃さで表し、押下で 1px 沈む（原則3、design/adr/0027）
 // 文字のリンクの下線と hover は design/adr/0030。大きさは仮
 const link = tv({
-  base: 'cursor-pointer text-(color:--link-color)',
+  // キーボードで操作したときのフォーカス（design/adr/0031）。線は角丸（文字のリンクは --link-text-radius）に沿う
+  base: ['cursor-pointer text-(color:--link-color)', ...focusRing],
   variants: {
     appearance: {
       // 文字のリンク。hover・押下で背景を敷かず、押下で沈むだけ（design/adr/0027。塗りのトークンは transparent）
-      // 塗りを敷く場合に文字に詰まらないよう左右にはみ出させる。文章の中で折り返せるよう inline のまま沈める
+      // 左右に 4px はみ出させ、フォーカスの線を文字から離す。前後の文字には少しかかる（design/adr/0031）
+      // 文章の中で折り返せるよう inline のまま沈める
       // 下線の有無・太さ・色は、通常と hover でトークンから読む（ふだんは淡く、hover で下線だけ濃く — design/adr/0030）
       // 背景に線を描く仕組みは、比べたが採らなかった動き（F1〜F4）を比較のストーリーで再現するために残している
       text: [
@@ -28,16 +32,17 @@ const link = tv({
         'hover:bg-link-hover active:top-(--flat-press-depth) active:bg-link-press',
         // 下線の変化（伸びる線の大きさと濃さ、文字の下線の色）は --link-grow-duration で動かす
         // 位置は動かさない（離したときに抜ける向きを変えられる）
-        '[transition:background-color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),background-size_var(--link-grow-duration)_var(--link-grow-ease),--link-grow-alpha_var(--link-grow-duration)_var(--link-grow-ease),text-decoration-color_var(--link-grow-duration)_var(--link-grow-ease)]',
+        '[transition:background-color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),background-size_var(--link-grow-duration)_var(--link-grow-ease),--link-grow-alpha_var(--link-grow-duration)_var(--link-grow-ease),text-decoration-color_var(--link-grow-duration)_var(--link-grow-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
       ],
       // 枠線のリンク。枠線のボタンと同じく、文字の色を淡く敷く
       outline: [
-        // pill（原則5）。文字のリンクは背景を敷かないので角丸を付けない（付けると背景に描く下線の端が丸く欠ける）
+        // pill（原則5）。文字のリンクの角丸は --link-text-radius（フォーカスの線が沿う — design/adr/0031）
         'inline-flex h-(--size-control) items-center gap-2 rounded-pill border-[1.5px] border-current px-(--space-control-x) whitespace-nowrap',
         'text-(length:--text-control) leading-(--leading-control) font-bold',
         'hover:bg-flat-hover active:translate-y-(--flat-press-depth) active:bg-flat-press',
-        'transition-[background-color,translate,color] duration-(--duration-press) ease-press motion-reduce:transition-none',
+        '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+        'motion-reduce:[transition:none]',
       ],
     },
     // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028

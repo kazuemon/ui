@@ -12,7 +12,8 @@
     "lint": "oxlint",
     "typecheck": "tsc -b",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "fonts": "node scripts/generate-fonts.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
