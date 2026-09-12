@@ -79,3 +79,11 @@
 | [0016](./0016-card-radius.md)                     | カードの角丸                             | Accepted           |
 | [0017](./0017-card-media-aspect.md)               | カードの画像の比率                       | Accepted           |
 | [0018](./0018-icon-weight-by-context.md)          | アイコンの太さを文脈で分ける             | Accepted           |
+| [0019](./0019-field-focus-change.md)              | 入力欄のフォーカス時の変化量             | Accepted           |
+| [0020](./0020-control-size-fine.md)               | マウス用の寸法                           | Accepted           |
+| [0021](./0021-field-error-fill.md)                | エラー時の入力欄の塗り                   | Accepted           |
+| [0022](./0022-field-hover.md)                     | 入力欄の hover                           | Accepted           |
+| [0023](./0023-danger-color.md)                    | Danger と Secondary の区別               | Accepted           |
+| [0024](./0024-neutral-button.md)                  | グレーのボタンの塗り                     | Accepted           |
+| [0025](./0025-surface-button-line.md)             | 白いボタンの輪郭                         | Accepted           |
+| [0026](./0026-disabled.md)                        | Disabled の表し方                        | Accepted           |

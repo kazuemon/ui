@@ -24,7 +24,8 @@
   --palette-blue-600: #2474df; /* 白地 4.53 */
   --palette-pink-500: #f53273; /* 白地 3.76 */
   --palette-pink-600: #e41966; /* 白地 4.54 */
-  --palette-red-600: #d4283f; /* 白地 5.03 */
+  --palette-red-700: #ba012d; /* 白地 6.71。前景用のピンクとの比 1.48 — adr/0023 */
+  --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 — adr/0021 */
 
   --palette-sky-50: #e3f4fe; /* タグの面 */
   --palette-sky-700: #0075a7; /* sky-50 の上で 4.54 */
@@ -33,8 +34,11 @@
   --palette-white: #ffffff;
   --palette-gray-50: #f2f4f4;
   --palette-gray-100: #eff0f1;
+  --palette-gray-150: #eef0f0; /* gray-50 の明度を 0.011 下げた値（入力欄の hover）— adr/0022 */
   --palette-gray-200: #e1e3e4;
   --palette-gray-300: #dee0e1;
+  --palette-gray-400: #a3a5a6; /* Disabled の文字 — adr/0026 */
+  --palette-gray-500: #939596; /* 白地 3.01。3:1 の輪郭 — adr/0025 */
   --palette-mint-50: #e2f4f1;
 
   --palette-ink-900: #1f2f37;
@@ -53,9 +57,15 @@
   --color-bg: var(--palette-white); /* ページの地 */
   --color-surface: var(--palette-white); /* カードなど。地より明るいか同じ */
   --color-field: var(--palette-gray-50); /* 編集できる入力欄の塗り（原則8） */
+  --color-field-hover: var(--palette-gray-150); /* 入力欄の hover。半段濃く — adr/0022 */
+  --color-field-focus: var(--color-field); /* フォーカス中も塗りは変えない — adr/0019 */
+  --color-field-invalid: var(--palette-red-50); /* エラー中の入力欄の塗り — adr/0021 */
   --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix */
   --color-neutral: var(--palette-gray-100); /* グレーボタンの塗り（コントラスト未決） */
   --color-line: var(--palette-gray-300); /* 細い境界線・読み取り専用の下線 */
+  --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 — adr/0025 */
+  /* 白いボタンの輪郭 — adr/0025。var(--color-line-strong) に差し替えると、はっきりした輪郭になる */
+  --color-surface-line: var(--palette-gray-300);
 
   /* 文字 */
   --color-fg: var(--palette-ink-900);
@@ -72,6 +82,7 @@
   /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
   --color-on-primary: var(--palette-white);
+  --color-focus: var(--color-primary); /* フォーカスの枠線（原則2） */
 
   /* セカンダリ（ピンク）— design/adr/0013
      用途は限定しない。部品の利用者が primary / secondary から場所に合う色を選ぶ */
@@ -80,7 +91,7 @@
   --color-on-secondary: var(--palette-white);
 
   /* 注意 */
-  --color-danger: var(--palette-red-600);
+  --color-danger: var(--palette-red-700); /* ピンクと明度で見分ける — adr/0023 */
   --color-on-danger: var(--palette-white);
 
   /* ── 角丸（原則5） ───────────────────────────────── */
@@ -110,11 +121,60 @@
   /* 入れ子の型のカード: 画像の周りの余白 — design/adr/0014 */
   --card-nested-inset: 8px;
 
-  /* 密度（design/adr/0004）: 寸法は入力方式で切り替える */
-  --size-control-coarse: 44px; /* 指 — 仮の値 */
-  --size-control-fine: 36px; /* マウス — 仮の値 */
+  /* 密度（design/adr/0004）: 寸法は入力方式で切り替える
+     マウス用の高さは design/adr/0020 で決定。ほかは仮（後半の軸）
+     切り替えは src/styles/globals.css が --size-control などに解決する */
+  --size-control-coarse: 44px; /* 指 — 実機で詰める */
+  --size-control-fine: 40px; /* マウス — design/adr/0020 */
   --text-control-coarse: 16px;
   --text-control-fine: 14px;
+  /* 行の高さは整数 px にし、部品の高さとの差を偶数にする（上下の余白が整数になる）。
+     端数が出ると、置かれた位置によって文字が 1px 上下にずれて見える */
+  --leading-control-coarse: 24px; /* 44px の部品で上下 10px */
+  --leading-control-fine: 20px; /* 40px の部品で上下 10px */
+  --leading-label: 20px;
+  --leading-caption: 16px;
+  --text-label-coarse: 14px; /* 部品のラベル（原則4） */
+  --text-label-fine: 13px;
+  --text-caption-coarse: 12px; /* 部品のキャプション（原則4） */
+  --text-caption-fine: 11px;
+  --space-control-x-coarse: 16px; /* 部品の左右の余白 */
+  --space-control-x-fine: 12px;
+  --space-field-gap-coarse: 8px; /* ラベル・本体・キャプションの間 */
+  --space-field-gap-fine: 6px;
+  --size-icon-coarse: 20px;
+  --size-icon-fine: 16px;
+  --switch-w-coarse: 48px; /* トグルのトラック（前半のキャンバスの値） */
+  --switch-h-coarse: 28px;
+  --switch-knob-coarse: 22px;
+  --switch-w-fine: 40px;
+  --switch-h-fine: 22px;
+  --switch-knob-fine: 16px;
+  --switch-inset: 3px; /* トラックとノブの隙間 */
+
+  /* Disabled（原則1）— design/adr/0026。どの部品も影はなくす
+     色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を薄くし、色は残す。
+       --color-disabled（塗り）・--color-on-disabled（塗りの上の文字）・--color-disabled-fg（枠線と文字）は
+       未設定のまま（部品のもとの色）
+     入力欄: 明るいグレーの塗りに薄い文字。テーマの色を持たないので、グレーにしても失うものがない
+     グレーのボタン: 入力欄と同じ。塗りと文字の色が近くなることで、押せないことを伝える
+     ラベルとキャプション: 変えない（説明が読めるように） */
+  --disabled-opacity: 0.4;
+  --field-disabled-opacity: 1;
+  --color-field-disabled: var(--palette-gray-200);
+  --color-on-field-disabled: var(--palette-gray-400);
+  --neutral-disabled-opacity: 1;
+  --color-neutral-disabled: var(--palette-gray-200);
+  --color-on-neutral-disabled: var(--palette-gray-400);
+  --disabled-label-opacity: 1;
+
+  /* 入力欄の状態（原則2）— design/adr/0019: フォーカスは 2px の枠線だけを足し、速く移り変わる
+     枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
+  --field-border-width: 2px;
+  --duration-field: 100ms;
+
+  /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
+  --surface-line-width: 1px;
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

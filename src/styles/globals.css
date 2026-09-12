@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@import '../../design/tokens.css';
+
 @import '@fontsource-variable/mulish';
 
 @import '@fontsource/ibm-plex-sans-jp/400.css';
@@ -22,5 +24,54 @@
   html {
     text-autospace: normal;
     @apply antialiased;
+  }
+
+  /*
+   * 密度（design/adr/0004）: 寸法は入力方式（pointer）で決める。
+   * data-density="coarse" / "fine" を付けた要素の中は、入力方式にかかわらずその密度に固定する。
+   */
+  :root,
+  [data-density='fine'] {
+    --size-control: var(--size-control-fine);
+    --text-control: var(--text-control-fine);
+    --leading-control: var(--leading-control-fine);
+    --text-label: var(--text-label-fine);
+    --text-caption: var(--text-caption-fine);
+    --space-control-x: var(--space-control-x-fine);
+    --space-field-gap: var(--space-field-gap-fine);
+    --size-icon: var(--size-icon-fine);
+    --switch-w: var(--switch-w-fine);
+    --switch-h: var(--switch-h-fine);
+    --switch-knob: var(--switch-knob-fine);
+  }
+
+  @media (pointer: coarse) {
+    :root:not([data-density='fine']) {
+      --size-control: var(--size-control-coarse);
+      --text-control: var(--text-control-coarse);
+      --leading-control: var(--leading-control-coarse);
+      --text-label: var(--text-label-coarse);
+      --text-caption: var(--text-caption-coarse);
+      --space-control-x: var(--space-control-x-coarse);
+      --space-field-gap: var(--space-field-gap-coarse);
+      --size-icon: var(--size-icon-coarse);
+      --switch-w: var(--switch-w-coarse);
+      --switch-h: var(--switch-h-coarse);
+      --switch-knob: var(--switch-knob-coarse);
+    }
+  }
+
+  [data-density='coarse'] {
+    --size-control: var(--size-control-coarse);
+    --text-control: var(--text-control-coarse);
+    --leading-control: var(--leading-control-coarse);
+    --text-label: var(--text-label-coarse);
+    --text-caption: var(--text-caption-coarse);
+    --space-control-x: var(--space-control-x-coarse);
+    --space-field-gap: var(--space-field-gap-coarse);
+    --size-icon: var(--size-icon-coarse);
+    --switch-w: var(--switch-w-coarse);
+    --switch-h: var(--switch-h-coarse);
+    --switch-knob: var(--switch-knob-coarse);
   }
 }

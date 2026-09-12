@@ -34,11 +34,20 @@
 ## 進捗
 
 - **前半: ラウンド4で終了（2026-09-12）**。前半の軸がすべて決まりました。決定は ADR-0005〜0018 にあります。結果は [`rounds/p1-final/`](./rounds/p1-final/) のキャンバスで確認できます
-- **後半: これから**。最初の手順は次のとおりです
-  1. `design/tokens.css` を `src/styles/globals.css` から `@import` します
-  2. 原則の実装方針どおり、最初の部品は Select にします
-  3. 後半の軸を、Storybook のストーリーで1軸ずつ並べて選びます
-  4. ADR の比較画像は、Storybook のストーリーを撮ります。撮影方法は後半の開始時に決めます
+- **後半: 2026-09-12 開始**
+  - `design/tokens.css` を `src/styles/globals.css` から `@import` しました。密度の寸法（`--size-control` など）は、globals.css が入力方式から解決します。`data-density` を付けた要素の中では、その密度に固定されます
+  - 最初の部品として、Select と TextField を `src/components/` に作りました。ヘッドレス UI には Base UI（`@base-ui/react`）を使います。Select の選択肢（浮かぶ部分）の見た目は仮です
+  - 軸 01「フォーカス時の変化量」は、A（塗りはグレーのまま、2px の枠線だけを足す）に決まりました（[ADR-0019](./adr/0019-field-focus-change.md)）
+  - 軸 02「マウス用の寸法」は、B（高さ 40px・文字 14px）に決まりました（[ADR-0020](./adr/0020-control-size-fine.md)）。軸 01 でユーザーが「パソコン版の入力欄の高さが低すぎるかも」と指摘したため、エラー時の塗りより先に扱いました
+  - 軸 03「エラー時の塗り」は、B（淡い赤の塗り＋赤の枠線）に決まりました（[ADR-0021](./adr/0021-field-error-fill.md)）
+  - 軸 04「入力欄の hover」は、B（半段濃く）に決まりました。あわせて「hover は状態ではなく手応えなので、明度で表してよい」を原則にしました（[ADR-0022](./adr/0022-field-hover.md)）
+  - 軸 05「Danger と Secondary の区別」は、A（Danger を `#BA012D` に濃くする）に決まりました（[ADR-0023](./adr/0023-danger-color.md)）。最初のボタン（`src/components/Button.tsx`）も、この軸のために作りました
+  - 軸 06「グレーのボタンの塗り」は、現行版（`#EFF0F1`）のままに決まりました。入力欄の横に付くものは prefix・suffix としてグレーにし、白いボタンは影に輪郭を加えて作ります（[ADR-0024](./adr/0024-neutral-button.md)）
+  - 軸 07「白いボタンの輪郭」は、A（1px の `#DEE0E1`）に決まりました。3:1 の輪郭も選べるようにしました（[ADR-0025](./adr/0025-surface-button-line.md)）
+  - 軸 07 で、行の高さの端数のせいでボタンの文字が 1px ずれることが分かり、行の高さを整数 px にしました（[`principles.md` の「和文の縦位置」](./principles.md#和文の縦位置)）
+  - 軸 08「Disabled の表し方」は、2回の比較で D2（色を持つ部品は薄く、入力欄とグレーのボタンは明るいグレー。ラベルとキャプションは変えない）に決まりました（[ADR-0026](./adr/0026-disabled.md)）。トグル（`src/components/Switch.tsx`）も、この軸のために作りました
+  - ADR の比較画像は、[`tools/capture-story.mjs`](#storybook-のストーリーを撮る後半) でストーリーを撮ります
+  - **次にやること**: 残りの軸は [`principles.md` の「後半の軸」](./principles.md#後半の軸storybook-で1軸ずつ詰める) にあります。次は軸 09「平らなボタン・リンクの hover と押下」をおすすめとして、ユーザーに選んでもらうところです。枠線のボタンの hover と押下は、今は仮の値です。ほかの候補は、各部品の既定の色（primary / secondary）、focus-visible、入力欄の prefix・suffix を部品として作る、和文の縦位置の補正、loading、Warning、Select の選択肢の見た目とボトムシートです
 
 ## 前半の1ラウンド
 
@@ -78,9 +87,15 @@
 
 ## 後半の1ラウンド
 
-- 前半で固めたトークンを `src/styles/globals.css` から `@import` し、Storybook で1軸ずつ候補を並べます
-- 指用とマウス用の密度は、Provider で固定して並べて比較します（[ADR-0004](./adr/0004-density-and-structure-switching.md)）
+- 1軸につき1本のストーリーを `design/stories/axis-NN-*.stories.tsx` に置きます。Storybook では `Design Review/NN 軸の名前` に並びます
+- 現行版と候補を行に、状態（通常・フォーカス中など）を列に並べます。枠は `design/stories/Comparison.tsx` です
+- 候補は、`design/tokens.css` への上書き（CSS 変数）だけで作ります。部品のコードは候補ごとに分けません。前半と同じく、候補の中の一貫性を仕組みで担保するためです。今のトークンで表せない案が必要になったら、先に部品をトークンで表せる形に直します
+- 候補は、全案（現行版を含む）で軸の値を明示します。決まって `tokens.css` を更新した後も、同じ比較を再現するためです。前半の `base-tokens.css` の代わりです
+- 決まったら、ストーリーの `pick` の既定値を採用した案にし、説明の先頭に決定と ADR の番号を書きます。ストーリーは記録として残します
+- hover やフォーカスのように、操作しないと出ない状態は、`storybook-addon-pseudo-states` で固定して並べます。「通常」の列の部品は実際に操作できるので、動きも確かめられます
+- 指用とマウス用の密度は、ツールバーの「密度」で固定して比べます（[ADR-0004](./adr/0004-density-and-structure-switching.md)）
 - 密度の差は実機で指で押して詰めます
+- 選び方は前半と同じです。ユーザーはストーリーを開き、1案を選んで一言添えます
 
 ## ツールの使い方
 
@@ -125,6 +140,23 @@ node design/tools/compare.mjs design/rounds/r02 \
   --title "ADR-0011 スイッチ OFF のトラック" \
   --out design/adr/assets/0011-switch-off-track.png
 ```
+
+### Storybook のストーリーを撮る（後半）
+
+後半の ADR に添える比較画像は、比較のストーリーをそのまま撮ります。
+
+```sh
+node design/tools/capture-story.mjs design-review-01-focus--candidates \
+  --pick A \
+  --out design/adr/assets/NNNN-kebab-title.png
+```
+
+- Storybook をビルドし、ローカルで配信してストーリーだけを撮ります。ビルド済みのディレクトリがあれば、`--static-dir` で渡すとビルドを省きます
+- `--pick` で、採用した案に「採用」の印を付けます（現行版は `current`）
+- `--density coarse|fine` で密度を固定します。`--width`・`--height` で画像の大きさを調整します（既定は 1320×1500px）
+- 動きを止めて撮ります（`prefers-reduced-motion`）。移り変わりの途中で撮られ、状態の見た目が出ないことがあるためです
+- マウスで操作している環境（`hover: hover`、`pointer: fine`）として撮ります。撮影に使う headless Chrome は既定で「マウスなし」になり、hover の見た目が出ないためです。`--density coarse` のときは、指で操作している環境（`hover: none`、`pointer: coarse`）として撮ります
+- 撮ったら、下端が切れていないかを目視で確認します
 
 ### 和文の縦位置を測る
 
