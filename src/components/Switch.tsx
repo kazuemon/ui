@@ -1,12 +1,29 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';
-import { tv } from 'tailwind-variants';
+import { tv, type VariantProps } from 'tailwind-variants';
 
 // OFF のトラックは入力欄と同じグレーで、輪郭を付けない（design/adr/0011）
-// ON は Secondary の面用のピンク（原則6: 文字を載せない塗り）。既定の色は後半の軸で決める
+// ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
+// 指定しないときはグレー（ON は濃いグレー）— design/adr/0028
 // ノブの影は「押せること」の記号（原則1）。Disabled では影をなくす
 const styles = tv({
+  variants: {
+    color: {
+      primary: { track: 'data-checked:[--switch-track:var(--color-primary)]' },
+      secondary: { track: 'data-checked:[--switch-track:var(--color-secondary)]' },
+      // 色を持たないトグル。OFF（入力欄のグレー）と区別できるよう、ON は濃いグレー
+      // 押せないときは色を残せないので、グレーのボタンと同じく薄くせずグレーにできる — design/adr/0029
+      neutral: {
+        track: [
+          'data-checked:[--switch-track:var(--color-fg-muted)]',
+          'data-disabled:data-checked:bg-(color:--color-switch-neutral-on-disabled) data-disabled:data-checked:opacity-(--switch-neutral-disabled-opacity)',
+        ],
+        thumb: 'data-disabled:bg-(color:--color-switch-neutral-disabled-knob)',
+      },
+    },
+  },
+  defaultVariants: { color: 'neutral' },
   slots: {
     // Disabled では、本体（トラック）とラベル・キャプションの透明度を別々に指定する
     root: 'group/field flex min-h-(--size-control) items-center gap-3',
@@ -21,10 +38,14 @@ const styles = tv({
     ],
     track: [
       'group/switch relative inline-flex h-(--switch-h) w-(--switch-w) shrink-0 cursor-pointer items-center rounded-pill p-(--switch-inset)',
-      '[--switch-track:var(--color-field)] data-checked:[--switch-track:var(--color-secondary)]',
+      '[--switch-track:var(--color-switch-off)]',
+      // OFF のトラックの枠。内側に描き、寸法を変えない — design/adr/0029
+      'not-data-checked:shadow-[inset_0_0_0_var(--switch-off-line-width)_var(--color-switch-off-line)]',
       'bg-(color:--switch-track) transition-[background-color] duration-(--duration-press) ease-press motion-reduce:transition-none',
       'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
       'data-disabled:bg-[color:var(--color-disabled,var(--switch-track))]',
+      // 押せない OFF。ON（色を残して薄くする）とは別に指定する — design/adr/0029
+      'data-disabled:not-data-checked:bg-(color:--color-switch-off-disabled) data-disabled:not-data-checked:opacity-(--switch-off-disabled-opacity)',
     ],
     thumb: [
       'block size-(--switch-knob) rounded-pill bg-surface shadow-[0_1px_2px_rgb(31_47_55/0.3)]',
@@ -35,10 +56,10 @@ const styles = tv({
   },
 });
 
-export interface SwitchProps extends Omit<
-  ComponentProps<typeof BaseSwitch.Root>,
-  'className' | 'render'
-> {
+export interface SwitchProps
+  extends
+    Omit<ComponentProps<typeof BaseSwitch.Root>, 'className' | 'render' | 'color'>,
+    VariantProps<typeof styles> {
   label: ReactNode;
   caption?: ReactNode;
   className?: string;
@@ -47,8 +68,8 @@ export interface SwitchProps extends Omit<
 /**
  * トグル。ラベルとキャプションを左に、トラックを右に置く
  */
-export function Switch({ label, caption, className, disabled, ...props }: SwitchProps) {
-  const s = styles();
+export function Switch({ label, caption, className, disabled, color, ...props }: SwitchProps) {
+  const s = styles({ color });
   return (
     <BaseField.Root disabled={disabled} className={s.root({ className })}>
       <div className={s.text()}>

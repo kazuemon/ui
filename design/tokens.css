@@ -15,6 +15,13 @@
  * どちらも src/styles/globals.css から @import してそのまま使える。
  */
 
+/* 文字のリンクの伸びる線の濃さ。値を動かせるよう、型を登録する — 後半の軸 12 */
+@property --link-grow-alpha {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
 @theme {
   /* ── 値の層: Palette ─────────────────────────────── */
   --palette-sky-400: #35b9fd; /* ブランド水色。白地 2.21 — 面・ロゴ専用 */
@@ -24,6 +31,12 @@
   --palette-blue-600: #2474df; /* 白地 4.53 */
   --palette-pink-500: #f53273; /* 白地 3.76 */
   --palette-pink-600: #e41966; /* 白地 4.54 */
+  /* タグの面と文字: sky-50・sky-700 と同じ作り方（面は明度 0.96・彩度 0.02 で色相だけ変える。
+     文字は同じ色相で、面の上で 4.5:1 を満たすまで明度を下げる）— 後半の軸 10 */
+  --palette-blue-50: #e9f2fe;
+  --palette-blue-700: #196bd6; /* blue-50 の上で 4.52 */
+  --palette-pink-50: #ffebee;
+  --palette-pink-700: #d7005d; /* pink-50 の上で 4.54 */
   --palette-red-700: #ba012d; /* 白地 6.71。前景用のピンクとの比 1.48 — adr/0023 */
   --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 — adr/0021 */
 
@@ -66,6 +79,13 @@
   --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 — adr/0025 */
   /* 白いボタンの輪郭 — adr/0025。var(--color-line-strong) に差し替えると、はっきりした輪郭になる */
   --color-surface-line: var(--palette-gray-300);
+  /* 平らな要素（影のない押すもの）の hover と押下（原則3）— adr/0027
+     枠線のボタン・枠線のリンク: 要素の文字の色を淡く敷く。色のない要素は灰色になる */
+  --color-flat-hover: color-mix(in oklab, currentColor 8%, transparent);
+  --color-flat-press: color-mix(in oklab, currentColor 16%, transparent);
+  /* 文字のリンク: 背景を敷かない（押下で沈むだけ）。比較のストーリーで A〜D を再現するため、トークンは残す */
+  --color-link-hover: transparent;
+  --color-link-press: transparent;
 
   /* 文字 */
   --color-fg: var(--palette-ink-900);
@@ -76,8 +96,16 @@
   --color-brand: var(--palette-sky-400); /* 面用: ロゴ・装飾・タグの塗り */
   --color-fg-brand: var(--palette-sky-500); /* 前景用: 大きい見出しのみ */
   --color-on-brand: var(--palette-ink-900); /* 水色の面に載せる文字 */
-  --color-tag: var(--palette-sky-50); /* タグ: 淡い水色の面＋濃い水色の文字 — design/adr/0007 */
+  /* 水色のタグ（淡い面＋同じ色相の濃い文字 — adr/0007）。いまは比較の「採用」の印で使う */
+  --color-tag: var(--palette-sky-50);
   --color-on-tag: var(--palette-sky-700);
+  /* 利用者が選ぶ色のタグ（原則6）。塗り方は上と同じ — 後半の軸 10 */
+  --color-tag-primary: var(--palette-blue-50);
+  --color-on-tag-primary: var(--palette-blue-700);
+  --color-tag-secondary: var(--palette-pink-50);
+  --color-on-tag-secondary: var(--palette-pink-700);
+  --color-tag-neutral: var(--palette-gray-100);
+  --color-on-tag-neutral: var(--color-fg-muted);
 
   /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
@@ -115,6 +143,33 @@
   /* 押下: 素早く 1px 沈む — design/adr/0009 */
   --duration-press: 100ms;
   --press-depth: 1px;
+  --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
+
+  /* 文字のリンクの下線 — adr/0030
+     ふだんは文字の色を 35% に透かした淡い下線。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
+  --link-decoration: underline;
+  --link-decoration-hover: underline;
+  --link-underline-width: 1px;
+  --link-underline-width-hover: 1px;
+  --color-link-underline: color-mix(in oklab, currentColor 35%, transparent);
+  --color-link-underline-hover: color-mix(in oklab, currentColor, black 30%);
+  --link-hover-darken: 0%; /* hover で文字の色に混ぜる黒の割合。文字は濃くしない — adr/0030 */
+  /* 背景に描く下線（動かすため）。採らなかった（描かない）。比較のストーリーで再現するため残す — adr/0030
+     base はふだんの線、grow は hover で伸びる・太くなる線。大きさと位置は background-size・background-position の値 */
+  --link-base-line-size: 100% 0px;
+  --link-grow-size-rest: 100% 0px;
+  --link-grow-size-hover: 100% 0px;
+  --link-grow-pos-rest: 0 100%;
+  --link-grow-pos-hover: 0 100%;
+  /* 下線の変化の長さと緩急。下線の色は 200ms で、ゆっくり始めてゆっくり終える — adr/0030 */
+  --link-grow-duration: 200ms;
+  --link-grow-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 文字のリンクの角丸。背景を敷かないので付けない（付けると背景に描く下線の端が丸く欠ける）— 後半の軸 12 */
+  --link-text-radius: 0px;
+  --color-link-grow: currentColor;
+  /* 伸びる線の濃さ（0%〜100%）。濃さを動かすと、太さが 1px 単位でそろえられても、なめらかに太って見える */
+  --link-grow-alpha-rest: 100%;
+  --link-grow-alpha-hover: 100%;
 
   /* カードの画像の比率 — design/adr/0017 */
   --card-media-aspect: 16 / 9;
@@ -167,6 +222,25 @@
   --color-neutral-disabled: var(--palette-gray-200);
   --color-on-neutral-disabled: var(--palette-gray-400);
   --disabled-label-opacity: 1;
+  /* 押せない OFF のトグルと、押せないグレーの枠線のボタン — adr/0029
+     色を持たない部分は、グレーのボタンと同じく薄くせずグレーにする */
+  --switch-off-disabled-opacity: 1;
+  --color-switch-off-disabled: var(--color-neutral-disabled);
+  --outline-neutral-disabled-opacity: 1;
+  --color-outline-neutral-disabled-line: var(--color-line);
+  --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
+  --color-outline-neutral-disabled-fill: transparent;
+  /* 押せない枠線のボタンの枠線の太さ。通常と同じ（太くする案は採らなかった — adr/0029） */
+  --outline-neutral-disabled-line-width: 1.5px;
+  /* OFF のトグルの枠。比べたが採らなかった（adr/0029）。比較のストーリーで再現するため、トークンは残す */
+  --switch-off-line-width: 0px;
+  --color-switch-off-line: var(--color-line);
+  /* OFF のトグルのトラック（押せるとき）。グレーのボタンの塗りと同じ — adr/0029 */
+  --color-switch-off: var(--color-neutral);
+  /* 押せないグレーのトグル: グレーのボタンの「塗りと文字」を、トラックとノブに写す — adr/0029 */
+  --switch-neutral-disabled-opacity: 1;
+  --color-switch-neutral-on-disabled: var(--color-neutral-disabled);
+  --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
 
   /* 入力欄の状態（原則2）— design/adr/0019: フォーカスは 2px の枠線だけを足し、速く移り変わる
      枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */

@@ -1,4 +1,7 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+/* クラス名を探す場所。自動検出だと design/ の文書や前半のキャンバスまで読み、文書の更新でも CSS が作り直される */
+@source '../../src';
+@source '../../design/stories';
 
 @import '../../design/tokens.css';
 

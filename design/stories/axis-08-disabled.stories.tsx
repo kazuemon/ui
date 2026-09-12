@@ -14,7 +14,16 @@ import { type Candidate, type Column, Comparison } from './Comparison';
 //   ラベルとキャプション: --disabled-label-opacity
 // 1回目の現行版（影をなくすだけ）と C（濃いグレー）は外した
 
+// 軸 11（design/adr/0029）で足したトークン。ADR-0026 のときの見た目を再現する
+// （押せない OFF のトグルは、--color-disabled か入力欄のグレーを、ほかと同じだけ薄くする）
+const adr26 = {
+  '--switch-off-disabled-opacity': 'var(--disabled-opacity)',
+  '--color-switch-off-disabled': 'var(--color-disabled, var(--color-field))',
+  '--color-switch-off': 'var(--color-field)',
+};
+
 const unset = {
+  ...adr26,
   '--color-disabled': 'initial',
   '--color-on-disabled': 'initial',
   '--color-disabled-fg': 'initial',
@@ -55,6 +64,7 @@ const candidates: Candidate[] = [
       ['ラベル・キャプション', 'そのまま'],
     ],
     tokens: {
+      ...adr26,
       '--disabled-opacity': '1',
       '--field-disabled-opacity': '1',
       '--disabled-label-opacity': '1',
@@ -145,8 +155,10 @@ const kinds = [
 const Buttons = () => (
   <div className="flex flex-col gap-3">
     <div className="flex flex-wrap gap-3">
-      <Button>保存する</Button>
-      <Button disabled>保存する</Button>
+      <Button color="primary">保存する</Button>
+      <Button color="primary" disabled>
+        保存する
+      </Button>
     </div>
     <div className="flex flex-wrap gap-3">
       <Button color="neutral" disabled>
@@ -155,7 +167,7 @@ const Buttons = () => (
       <Button color="surface" disabled>
         キャンセル
       </Button>
-      <Button appearance="outline" disabled>
+      <Button appearance="outline" color="primary" disabled>
         下書き
       </Button>
     </div>
@@ -172,10 +184,16 @@ const Fields = () => (
 
 const Switches = () => (
   <div className="flex flex-col">
-    <Switch label="お知らせを受け取る" defaultChecked />
-    <Switch label="返信をメールで受け取る" />
-    <Switch label="自動で保存する" caption="管理者が固定しています" defaultChecked disabled />
-    <Switch label="位置情報を使う" caption="この端末では使えません" disabled />
+    <Switch color="secondary" label="お知らせを受け取る" defaultChecked />
+    <Switch color="secondary" label="返信をメールで受け取る" />
+    <Switch
+      color="secondary"
+      label="自動で保存する"
+      caption="管理者が固定しています"
+      defaultChecked
+      disabled
+    />
+    <Switch color="secondary" label="位置情報を使う" caption="この端末では使えません" disabled />
   </div>
 );
 

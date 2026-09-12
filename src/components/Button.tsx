@@ -20,14 +20,14 @@ const button = tv({
         'shadow-raised enabled:hover:shadow-raised-hover enabled:active:translate-y-(--press-depth) enabled:active:shadow-none',
         'disabled:bg-[color:var(--color-disabled,var(--button-fill))] disabled:text-[color:var(--color-on-disabled,var(--button-text))] disabled:shadow-none',
       ],
-      // 枠線のボタンの hover・押下の変わり方は仮。平らなボタンの軸で決める
+      // 枠線のボタンは平らな要素（原則3）: hover と押下で文字の色を淡く敷き、押下で 1px 沈む（design/adr/0027）
       outline: [
         'border-[1.5px] border-(color:--button-line) bg-transparent text-(color:--button-line)',
-        'enabled:hover:bg-field enabled:active:bg-field-hover',
+        'enabled:hover:bg-flat-hover enabled:active:translate-y-(--flat-press-depth) enabled:active:bg-flat-press',
         'disabled:border-[color:var(--color-disabled-fg,var(--button-line))] disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
       ],
     },
-    // 利用者が選ぶ色（原則6）。既定の色は後半の軸で決める
+    // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028
     // surface は白いボタン。白い地では影だけでは区別がつかないので、輪郭も付ける（design/adr/0024・0025）
     color: { primary: '', secondary: '', danger: '', neutral: '', surface: '' },
   },
@@ -74,13 +74,19 @@ const button = tv({
     },
     { appearance: 'outline', color: 'danger', class: '[--button-line:var(--color-danger)]' },
     // 色を持たない枠線のボタンは、枠線を細い境界線の色に、文字を本文の色にする
+    // Disabled は、色を持つ枠線のボタン（薄くする）とは別に指定する — design/adr/0029
     {
       appearance: 'outline',
       color: ['neutral', 'surface'],
-      class: 'text-fg [--button-line:var(--color-line)]',
+      class: [
+        'text-fg [--button-line:var(--color-line)]',
+        'disabled:bg-(color:--color-outline-neutral-disabled-fill) disabled:opacity-(--outline-neutral-disabled-opacity)',
+        'disabled:border-(color:--color-outline-neutral-disabled-line) disabled:text-(color:--color-outline-neutral-disabled-text)',
+        'disabled:border-(length:--outline-neutral-disabled-line-width)',
+      ],
     },
   ],
-  defaultVariants: { appearance: 'filled', color: 'primary' },
+  defaultVariants: { appearance: 'filled', color: 'neutral' },
 });
 
 export interface ButtonProps

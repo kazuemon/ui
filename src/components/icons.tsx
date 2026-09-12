@@ -24,6 +24,12 @@ export const CaretDownIcon = () => (
   </Icon>
 );
 
+export const CaretRightIcon = () => (
+  <Icon>
+    <polyline points="96 48 176 128 96 208" />
+  </Icon>
+);
+
 export const CheckIcon = () => (
   <Icon>
     <polyline points="40 144 96 200 224 72" />

@@ -31,7 +31,8 @@ interface ComparisonProps {
   children: ReactNode;
   candidates: Candidate[];
   columns: Column[];
-  renderCell: (column: Column) => ReactNode;
+  /** candidate は、トークンではなく部品の指定（props）を行ごとに変える軸で使う */
+  renderCell: (column: Column, candidate: Candidate) => ReactNode;
 }
 
 /**
@@ -98,7 +99,7 @@ export function Comparison({
               </div>
               {columns.map((column) => (
                 <div key={column.label} data-preview={column.preview}>
-                  {renderCell(column)}
+                  {renderCell(column, candidate)}
                 </div>
               ))}
             </div>
