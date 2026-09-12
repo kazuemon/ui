@@ -41,5 +41,8 @@ export const controlBox = tv({
     'group-data-disabled/field:cursor-not-allowed group-data-disabled/field:opacity-(--field-disabled-opacity)',
     'group-data-disabled/field:bg-[color:var(--color-field-disabled,var(--color-field))]',
     'group-data-disabled/field:text-[color:var(--color-on-field-disabled,var(--color-fg))]',
+    // prefix・suffix を内側に浮かせる形（addonShape="floating" — design/adr/0035）。既定は端に接する
+    'data-[addon-shape=floating]:[--field-addon-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
+    'data-[addon-shape=floating]:[--field-addon-button-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-button-round-inner:1]',
   ],
 });

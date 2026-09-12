@@ -95,3 +95,6 @@
 | [0032](./0032-text-offset.md)                     | 和文の縦位置の補正                              | Accepted           |
 | [0033](./0033-press-edge.md)                      | 塗りのボタンを押したときの縁                    | Accepted           |
 | [0034](./0034-loading.md)                         | ボタンの送信中（loading）                       | Accepted           |
+| [0035](./0035-field-addon.md)                     | 入力欄の prefix・suffix                         | Accepted           |
+| [0036](./0036-select-popup.md)                    | Select の浮かぶ選択肢の見た目                   | Accepted           |
+| [0037](./0037-select-sheet.md)                    | Select のボトムシートと、長い選択肢の見せ方     | Accepted           |

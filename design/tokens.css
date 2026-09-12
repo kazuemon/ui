@@ -39,6 +39,8 @@
   --palette-pink-700: #d7005d; /* pink-50 の上で 4.54 */
   --palette-red-700: #ba012d; /* 白地 6.71。前景用のピンクとの比 1.48 — adr/0023 */
   --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 — adr/0021 */
+  /* red-50 から、gray-50 と gray-200 の明度の差（0.05）だけ下げた値。彩度は red-50 の 1.5 倍 — adr/0035 */
+  --palette-red-100: #f1e0de;
 
   --palette-sky-50: #e3f4fe; /* タグの面 */
   --palette-sky-700: #0075a7; /* sky-50 の上で 4.54 */
@@ -73,7 +75,11 @@
   --color-field-hover: var(--palette-gray-150); /* 入力欄の hover。半段濃く — adr/0022 */
   --color-field-focus: var(--color-field); /* フォーカス中も塗りは変えない — adr/0019 */
   --color-field-invalid: var(--palette-red-50); /* エラー中の入力欄の塗り — adr/0021 */
-  --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix */
+  --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix・suffix — adr/0024 */
+  /* エラー中の prefix・suffix の塗り — adr/0035
+     ふだんの「グレーの塊と欄」の関係を、エラーの塗り（--color-field-invalid）に写した赤み。文字の色は変えない
+     （--color-on-field-addon-invalid は未設定。比較のストーリーで赤い文字の案を再現するときに使う） */
+  --color-field-addon-invalid: var(--palette-red-100);
   --color-neutral: var(--palette-gray-100); /* グレーボタンの塗り（コントラスト未決） */
   --color-line: var(--palette-gray-300); /* 細い境界線・読み取り専用の下線 */
   --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 — adr/0025 */
@@ -281,6 +287,20 @@
   --field-border-width: 2px;
   --duration-field: 100ms;
 
+  /* 入力欄の prefix・suffix（原則8）の形 — adr/0035
+     色はグレー（--color-field-addon — adr/0024）。既定は文字もボタンも本体の端に接する（A）。
+     部品の addonShape="floating" で、内側に浮かせる形（B）も選べる（--field-addon-floating-inset）
+     inset: 本体の内側からの距離。-枠線の太さで本体の端に接し、本体の枠線（フォーカス・エラー）の色を同じ場所に描く
+     round-inner: 入力側の角を丸めるか（0 か 1）。外側の角は本体の角丸と同心にする
+     divider: 入力側との間に入れる、地の色の区切りの太さ。入れない（比べたが採らなかった）
+     文字（ラベル）とボタンを別に指定できるのは、比べた案（参照画像の形）を比較のストーリーで再現するため */
+  --field-addon-inset: calc(-1 * var(--field-border-width));
+  --field-addon-round-inner: 0;
+  --field-addon-button-inset: calc(-1 * var(--field-border-width));
+  --field-addon-button-round-inner: 0;
+  --field-addon-floating-inset: 4px;
+  --field-addon-divider: 0px;
+
   /* キーボードで操作したときのフォーカス（focus-visible）— adr/0031
      ボタン・リンク・トグルの輪郭の外側に、2px の青い線を 2px 離して描く。入力欄は上の枠線のまま（クリックでも出る）
      離すので、青やピンクのボタンでも線が溶けない。線の色は入力欄の枠線と同じ長さでフェードインし、位置は動かさない
@@ -291,6 +311,40 @@
   --focus-ring-offset: 2px;
   --focus-ring-offset-rest: 2px;
   --focus-ring-duration: var(--duration-field);
+
+  /* Select の浮かぶ選択肢 — adr/0036
+     白い面に、白いボタンと同じ 1px の輪郭と、やわらかい影を付ける（浮かぶ UI の影は重なりを表す — 原則1の例外）
+     項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は青のタグと同じ淡い青の塗りに青い文字 */
+  --select-popup-padding: 4px;
+  --select-popup-line-width: 1px;
+  --color-select-popup: var(--color-surface);
+  --color-select-popup-line: var(--color-surface-line);
+  --shadow-select-popup: 0 8px 24px rgb(31 47 55 / 0.12);
+  --color-select-item-highlight: var(--color-field);
+  --color-select-item-selected: var(--color-tag-primary);
+  /* 選んだ項目の hover。青を一段濃くする。開いた直後は選んだ項目がこの状態になる */
+  --color-select-item-selected-highlight: color-mix(
+    in oklab,
+    var(--color-tag-primary),
+    var(--color-on-tag-primary) 8%
+  );
+  --color-on-select-item-selected: var(--color-on-tag-primary);
+  --color-select-check: var(--color-on-tag-primary);
+  /* 浮かぶ選択肢の高さの上限 — adr/0037（項目の数の上限は「一旦」）
+     画面の高さの半分のうち、最後の項目が半分見える高さにする（部品が計算して --select-popup-max-height に書く）
+     大きな画面で長くなりすぎないよう、項目の数でも上限をかける。10.5 は「10 項目と、半分だけ見える 1 項目」 */
+  --select-popup-max-rows: 10.5;
+
+  /* Select のボトムシート（指で操作していて画面が狭いときは、選択肢を画面の下から出す）— adr/0037
+     面・輪郭・選んだ項目の見た目は、浮かぶ選択肢（--select-popup-*・--color-select-*）と同じ
+     backdrop: 後ろの画面を暗くする色
+     edge-shadow: 選択肢が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる） */
+  --select-sheet-radius: var(--radius-card);
+  --color-select-sheet-backdrop: rgb(31 47 55 / 0.3);
+  --color-select-sheet-edge-shadow: rgb(31 47 55 / 0.1);
+  --shadow-select-sheet: 0 -8px 24px rgb(31 47 55 / 0.12);
+  --duration-sheet: 250ms;
+  --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
 
   /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
   --surface-line-width: 1px;
