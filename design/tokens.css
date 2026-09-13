@@ -41,6 +41,9 @@
   --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 — adr/0021 */
   /* red-50 から、gray-50 と gray-200 の明度の差（0.05）だけ下げた値。彩度は red-50 の 1.5 倍 — adr/0035 */
   --palette-red-100: #f1e0de;
+  /* 危険のお知らせの淡い面: red-700 と同じ色相で、タグの面と同じ明度 0.96・彩度 0.02。red-700 を載せて 5.93 — adr/0043
+     red-50（入力欄のエラーの塗り、明度 0.97）と red-100（明度 0.92）のあいだ */
+  --palette-red-75: #feeded;
 
   --palette-sky-50: #e3f4fe; /* タグの面 */
   --palette-sky-700: #0075a7; /* sky-50 の上で 4.54 */
@@ -61,9 +64,19 @@
   --palette-ink-500: #6e787d; /* 旧 #788287（白地 3.93）を 4.5 まで下げた値 */
 
   --palette-success-500: #6bf188;
-  --palette-success-50: #e1fce7;
-  --palette-warning-500: #eff16b;
-  --palette-warning-50: #fcfce1;
+  /* 成功の淡い面: ほかのタグの面と同じ明度 0.96（彩度 0.03）に置き換えた値 — adr/0043
+     旧 #E1FCE7 は明度 0.97・彩度 0.04 で、ほかの淡い面より明るく、役割もなかった */
+  --palette-success-50: #e5f8e7;
+  /* 前景用: success-500 と同じ色相（148°）のまま、白地と淡い面の両方で 4.5:1 を満たすまで明度を下げた値 — adr/0043
+     白地 5.02。success-50 の上で 4.52（warning-700 と同じく、1つの値で両方に使う）。白文字を載せる塗りにも使う（5.02） */
+  --palette-success-700: #008132;
+  --palette-warning-500: #eff16b; /* 白地 1.20 — 塗り専用。上に載せる文字は濃紺（11.49）— adr/0038 */
+  /* 前景用: warning-500 と同じ色相のまま、白地で 4.5:1 を満たすまで明度を下げた値 — adr/0038 */
+  --palette-warning-700: #727200; /* 白地 5.09。warning-50 の上で 4.55 */
+  /* タグの面: sky-50・blue-50 などと同じ明度 0.96 — adr/0038
+     旧 #FCFCE1 は白地 1.04 で面が見えず、役割もなかったため置き換えた */
+  --palette-warning-50: #f3f5ce;
+  /* 情報の値。役割は当てない。情報の役割は Primary と同じ色相の blue-* を使う（info-500 は Primary と色相が 1.7° しか違わない）— adr/0043 */
   --palette-info-500: #6b9ff1;
   --palette-info-50: #e1ecfc;
 
@@ -112,6 +125,17 @@
   --color-on-tag-secondary: var(--palette-pink-700);
   --color-tag-neutral: var(--palette-gray-100);
   --color-on-tag-neutral: var(--color-fg-muted);
+  /* 警告のタグ。状態を表す色で、利用者が選ぶ色とは別 — adr/0038 */
+  --color-tag-warning: var(--palette-warning-50);
+  --color-on-tag-warning: var(--palette-warning-700); /* 4.55 */
+  /* 情報・成功・危険のタグ。soft のお知らせの面と題と同じ値 — adr/0043
+     情報は primary のタグと同じ値。危険の面はピンクのタグの面と色の差 0.6（文字どうしは 1.29 で見分ける） */
+  --color-tag-info: var(--color-tag-primary);
+  --color-on-tag-info: var(--color-on-tag-primary); /* 4.52 */
+  --color-tag-success: var(--palette-success-50);
+  --color-on-tag-success: var(--color-fg-success); /* 4.52 */
+  --color-tag-danger: var(--palette-red-75);
+  --color-on-tag-danger: var(--color-danger); /* 5.93 */
 
   /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
@@ -127,6 +151,71 @@
   /* 注意 */
   --color-danger: var(--palette-red-700); /* ピンクと明度で見分ける — adr/0023 */
   --color-on-danger: var(--palette-white);
+  /* 警告（Warning）— adr/0038
+     黄色は塗りにだけ使い、上に載せる文字とアイコンは濃紺にする（原則12）。塗りと白地の比は 1.20 なので、
+     グレーのボタンと同じく影の輪郭（--shadow-raised）で縁を出す。白地に置く文字・枠線・アイコンはオリーブ色
+     いまはタグと、入力欄の下の警告の文（--color-fg-warning — adr/0041）と、塗りのお知らせ（--color-notice-warning-filled — adr/0043）が使う
+     ボタンは、必要になったときにこの役割を使う。お知らせの既定（淡い面）は、下の --color-notice-warning（adr/0043 で ADR-0038 のお知らせを変えた） */
+  --color-warning: var(--palette-warning-500); /* 面用: 塗り */
+  --color-on-warning: var(--color-fg); /* 黄色の塗りに載せる文字・アイコン。11.49 */
+  --color-fg-warning: var(--palette-warning-700); /* 前景用: 白地の文字・枠線・アイコン。5.09 */
+
+  /* 状態の色: 白地に置く文字・枠線・アイコン（前景用）— adr/0043
+     警告は上の --color-fg-warning、危険は --color-danger（白地 6.71）。いまはお知らせの枠線とアイコンが使う
+     情報は Primary と同じ色相（青のタグの文字と同じ値） */
+  --color-fg-info: var(--palette-blue-700); /* 白地 5.10 */
+  --color-fg-success: var(--palette-success-700); /* 白地 5.02 */
+
+  /* お知らせ（Notice）— adr/0043
+     見た目（appearance）は3つ。どれも影は付けない（原則1: お知らせそのものは押せない）
+       soft（既定）: タグと同じ淡い面（adr/0007 の塗り方）。題とアイコンは同じ色相の濃い色、本文は濃紺
+         --color-notice-{tone} 面 / --color-on-notice-{tone} 本文 / -title 題 / -icon アイコン / -ring 中のリンク・ボタン・× のフォーカスの線
+       filled: 白文字が載る濃い塗り。警告だけは黄色の塗りに濃紺（adr/0038）。題・本文・アイコンは同じ色
+         --color-notice-{tone}-filled 面 / --color-on-notice-{tone}-filled 文字とアイコン / -filled-ring フォーカスの線
+         塗りの上ではフォーカスの青い線が見えない（1.00〜1.48:1）ので、線を文字の色にする（adr/0031 の例外）
+       outline: 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺。フォーカスの線は青のまま
+         --color-notice-outline 面 / --color-on-notice-outline 文字 / --color-notice-{tone}-line 枠線とアイコン
+     淡い面の上の濃い色は 4.52〜5.93、本文は 12.20〜12.44。フォーカスの青は淡い面の上で 4.00〜4.08
+     塗りのお知らせの縁（黄色と白地 1.20）は付けない。淡い面（1.11〜1.13）と同じく、面の色だけで置く */
+  --color-notice-info: var(--palette-blue-50);
+  --color-on-notice-info: var(--color-fg); /* 12.23 */
+  --color-notice-info-title: var(--color-fg-info); /* 4.52 */
+  --color-notice-info-icon: var(--color-fg-info);
+  --color-notice-info-line: var(--color-fg-info); /* 白地 5.10 */
+  --color-notice-info-ring: var(--color-focus); /* 4.01 */
+  --color-notice-info-filled: var(--color-primary);
+  --color-on-notice-info-filled: var(--color-on-primary); /* 4.53 */
+  --color-notice-info-filled-ring: var(--color-on-notice-info-filled);
+  --color-notice-success: var(--palette-success-50);
+  --color-on-notice-success: var(--color-fg); /* 12.44 */
+  --color-notice-success-title: var(--color-fg-success); /* 4.52 */
+  --color-notice-success-icon: var(--color-fg-success);
+  --color-notice-success-line: var(--color-fg-success); /* 白地 5.02 */
+  --color-notice-success-ring: var(--color-focus); /* 4.08 */
+  --color-notice-success-filled: var(--palette-success-700);
+  --color-on-notice-success-filled: var(--palette-white); /* 5.02 */
+  --color-notice-success-filled-ring: var(--color-on-notice-success-filled);
+  --color-notice-warning: var(--color-tag-warning);
+  --color-on-notice-warning: var(--color-fg); /* 12.34 */
+  --color-notice-warning-title: var(--color-fg-warning); /* 4.55 */
+  --color-notice-warning-icon: var(--color-fg-warning);
+  --color-notice-warning-line: var(--color-fg-warning); /* 白地 5.09 */
+  --color-notice-warning-ring: var(--color-focus); /* 4.04 */
+  --color-notice-warning-filled: var(--color-warning);
+  --color-on-notice-warning-filled: var(--color-on-warning); /* 11.49 */
+  /* 黄色の上は青でも 3.76 あるが、ほかの塗りとそろえて文字の色にする */
+  --color-notice-warning-filled-ring: var(--color-on-notice-warning-filled);
+  --color-notice-danger: var(--palette-red-75);
+  --color-on-notice-danger: var(--color-fg); /* 12.20 */
+  --color-notice-danger-title: var(--color-danger); /* 5.93 */
+  --color-notice-danger-icon: var(--color-danger);
+  --color-notice-danger-line: var(--color-danger); /* 白地 6.71 */
+  --color-notice-danger-ring: var(--color-focus); /* 4.00 */
+  --color-notice-danger-filled: var(--color-danger);
+  --color-on-notice-danger-filled: var(--color-on-danger); /* 6.71 */
+  --color-notice-danger-filled-ring: var(--color-on-notice-danger-filled);
+  --color-notice-outline: var(--color-surface);
+  --color-on-notice-outline: var(--color-fg); /* 13.82 */
 
   /* ── 角丸（原則5） ───────────────────────────────── */
   --radius-control: 12px; /* フォーム部品・ボタン — design/adr/0008 */
@@ -141,7 +230,8 @@
   /* ── 動き（原則3「一段沈む」） ───────────────────── */
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
   /* 送信中（loading）の印の動き — adr/0034
-     loading-in: 薄くしたラベルに重ねる回る円が、ふわっと出る。loading-bar: 下端の線が左から右へ流れる */
+     loading-in: 薄くしたラベルに重ねる回る円が、ふわっと出る。loading-bar: 下端の線が左から右へ流れる
+     動きを減らす設定では loading-in をなくし、回る円はすぐに出る（下の @media — adr/0042） */
   --animate-loading-in: loading-in var(--duration-loading) var(--ease-press) both;
   --animate-loading-bar: loading-bar 1.2s ease-in-out infinite;
   @keyframes loading-in {
@@ -157,9 +247,32 @@
       transform: translateX(250%);
     }
   }
+  /* 動きを減らす設定（prefers-reduced-motion: reduce）のときの印の動き — adr/0042
+     spin-reduced: 回る円は止めず、3秒で1周にする（ふだんの 1/3 の速さ）
+     loading-bar-reduced: 線は流さず、幅いっぱいに引いて明滅する（濃さ 60% ↔ 20%、1.6 秒で1往復）
+     Button・TextField・Select の印と、開いた選択肢の「読み込んでいます」の行が使う（src/components/Loading.tsx） */
+  --animate-spin-reduced: spin 3s linear infinite;
+  --animate-loading-bar-reduced: loading-bar-pulse 1.6s ease-in-out infinite;
+  @keyframes loading-bar-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.2;
+    }
+  }
 
   /* ── 文字 ────────────────────────────────────────── */
   --font-weight-heading: 700;
+}
+
+/* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
+   @theme の中には @media を書けないので、ここで上書きする。animate-loading-in を使う印は、どれもすぐに出る */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-loading-in: none;
+  }
 }
 
 :root {
@@ -210,6 +323,9 @@
   /* 伸びる線の濃さ（0%〜100%）。濃さを動かすと、太さが 1px 単位でそろえられても、なめらかに太って見える */
   --link-grow-alpha-rest: 100%;
   --link-grow-alpha-hover: 100%;
+  /* 文字のリンクで、新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）— adr/0046
+     下線を ↗ の線の右端まで続ける幅と、線の下端を基線にそろえる量は、部品がこの値から計算する（どの大きさでも成り立つ） */
+  --link-external-icon-size: 0.85em;
 
   /* カードの画像の比率 — design/adr/0017 */
   --card-media-aspect: 16 / 9;
@@ -217,15 +333,17 @@
   --card-nested-inset: 8px;
 
   /* 密度（design/adr/0004）: 寸法は入力方式で切り替える
-     マウス用の高さは design/adr/0020 で決定。ほかは仮（後半の軸）
+     高さは、指用が design/adr/0045、マウス用が design/adr/0020 で決定。ほかは仮（後半の軸）
      切り替えは src/styles/globals.css が --size-control などに解決する */
-  --size-control-coarse: 44px; /* 指 — 実機で詰める */
+  --size-control-coarse: 44px; /* 指 — design/adr/0045 */
+  /* 大きい指用: .coarse-large を付けた要素の中の、指用の高さ（design/adr/0045）。マウス用は変えない */
+  --size-control-coarse-large: 52px;
   --size-control-fine: 40px; /* マウス — design/adr/0020 */
   --text-control-coarse: 16px;
   --text-control-fine: 14px;
   /* 行の高さは整数 px にし、部品の高さとの差を偶数にする（上下の余白が整数になる）。
      端数が出ると、置かれた位置によって文字が 1px 上下にずれて見える */
-  --leading-control-coarse: 24px; /* 44px の部品で上下 10px */
+  --leading-control-coarse: 24px; /* 44px の部品で上下 10px。52px（大きい指用）で上下 14px */
   --leading-control-fine: 20px; /* 40px の部品で上下 10px */
   --leading-label: 20px;
   --leading-caption: 16px;
@@ -242,6 +360,11 @@
   --switch-w-coarse: 48px; /* トグルのトラック（前半のキャンバスの値） */
   --switch-h-coarse: 28px;
   --switch-knob-coarse: 22px;
+  /* 大きい指用のトグル（design/adr/0045）: 高さに比例して ×52/44。56.7×33.1・ノブ 26.0 を、
+     ノブ 26px・隙間 3px のまま整数にした（52px の行で上下 10px ずつ空く） */
+  --switch-w-coarse-large: 56px;
+  --switch-h-coarse-large: 32px;
+  --switch-knob-coarse-large: 26px;
   --switch-w-fine: 40px;
   --switch-h-fine: 22px;
   --switch-knob-fine: 16px;
@@ -258,6 +381,11 @@
   --field-disabled-opacity: 1;
   --color-field-disabled: var(--palette-gray-200);
   --color-on-field-disabled: var(--palette-gray-400);
+  /* 押せない Select の ▼ — design/adr/0042
+     プレースホルダの場所に出す文（理由・「読み込んでいます」— どちらも --color-fg-subtle）と同じ色にする。
+     押せない欄の塗りの上で 3.51:1（アイコンの基準 3:1）。--color-on-field-disabled（1.92:1）は選んだ値・入力した値だけに使い、
+     値が入った押せない欄と、文を出している押せない欄を見分けられるようにする */
+  --color-select-icon-disabled: var(--color-fg-subtle);
   --neutral-disabled-opacity: 1;
   --color-neutral-disabled: var(--palette-gray-200);
   --color-on-neutral-disabled: var(--palette-gray-400);
@@ -286,6 +414,17 @@
      枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
   --field-border-width: 2px;
   --duration-field: 100ms;
+
+  /* 入力欄のエラー・警告の行（本体の下）— adr/0041
+     アイコン＋文。エラーは丸の「!」と --color-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
+     アイコンは文と並ぶので線は Regular（adr/0018）。大きさはキャプションの行の高さと同じで、1行目の中央にそろう
+     キャプションはエラー・警告のあいだも消さない。並びは部品の captionPlacement で決める */
+  --field-message-icon-size: var(--leading-caption);
+  --field-message-gap: 4px;
+  /* 行が出る・消えるときの動き — adr/0044
+     行の高さと濃さを、押下と同じ緩急（--ease-press）でこの長さで動かす。キャプションと本体は動かず、下の内容が滑る
+     動きを減らす設定では動かさない（すぐ切り替える） */
+  --duration-field-message: 200ms;
 
   /* 入力欄の prefix・suffix（原則8）の形 — adr/0035
      色はグレー（--color-field-addon — adr/0024）。既定は文字もボタンも本体の端に接する（A）。
@@ -330,6 +469,13 @@
   );
   --color-on-select-item-selected: var(--color-on-tag-primary);
   --color-select-check: var(--color-on-tag-primary);
+  /* 選択肢に付く文（ラベルの下の2行目）と、選べない選択肢 — adr/0044
+     reason: 選べない理由。キャプションと同じ灰色で、アイコンなし（白地 4.52）
+     選べない選択肢のラベルは、押せない文字の色（#A3A5A6 — adr/0026。白地 2.47）。マウスの hover では塗らない
+     警告の文は、入力欄の下の警告の行と同じ --color-fg-warning（白地 5.09、hover の上 4.61、
+     選んだ項目の上 4.51、選んだ項目の hover の上 4.10。選んだ項目の青い文字 4.11 と同じ程度） */
+  --color-select-item-reason: var(--color-fg-subtle);
+  --color-on-select-item-disabled: var(--color-on-field-disabled);
   /* 浮かぶ選択肢の高さの上限 — adr/0037（項目の数の上限は「一旦」）
      画面の高さの半分のうち、最後の項目が半分見える高さにする（部品が計算して --select-popup-max-height に書く）
      大きな画面で長くなりすぎないよう、項目の数でも上限をかける。10.5 は「10 項目と、半分だけ見える 1 項目」 */
@@ -345,6 +491,11 @@
   --shadow-select-sheet: 0 -8px 24px rgb(31 47 55 / 0.12);
   --duration-sheet: 250ms;
   --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
+
+  /* お知らせ（Notice）の形 — adr/0043
+     角丸は部品と同じ 12px。余白は部品の左右の余白（--space-control-x。指用 16px・マウス用 12px）、
+     アイコンと文の間は --space-control-x から 4px 引いた値（12px・8px）。どちらも密度で変わるので、部品の中で計算する */
+  --notice-radius: var(--radius-control);
 
   /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
   --surface-line-width: 1px;

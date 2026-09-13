@@ -1,7 +1,19 @@
-import type { ComponentProps } from 'react';
+import { useRender } from '@base-ui/react/use-render';
+import type { ComponentProps, ReactElement } from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
 import { focusRing } from './focus-styles';
+import { ArrowUpRightIcon } from './icons';
+import {
+  disabledAnchor,
+  disabledLinkProps,
+  endsWithElement,
+  NewTabNote,
+  opensNewTab,
+  warnOnce,
+  withoutNavigation,
+} from './link-parts';
+import { LoadingBar, Spinner } from './Loading';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
 // 原則3: hover で影が輪郭だけになり、押下で 1px 沈む（design/adr/0009）。押しても輪郭の線は残す（design/adr/0033）
@@ -11,7 +23,11 @@ import { focusRing } from './focus-styles';
 //   印（回る円・線）は薄くしないので、ボタン全体を薄くする opacity は使わず、塗り・文字・枠線の色を
 //   Disabled の薄さ（--disabled-opacity）で混ぜた色にする。白地の上では Disabled と同じ色になる
 //   印の色: 回る円は元の文字の色（--button-ink）、線はボタンの濃い色（--button-accent）
-// hover と押下は、押せるとき（enabled）で送信中でないとき（not-data-loading）だけ
+//   印は src/components/Loading.tsx（入力欄と共有）。動きを減らす設定では、回る円は3秒で1周、線は幅いっぱいで明滅する（design/adr/0042）
+// hover と押下は、押せるとき（:disabled でも data-disabled でもない）で送信中でないとき（not-data-loading）だけ
+//   not-[:disabled,[data-disabled]] は :not(:is(:disabled, [data-disabled]))。:not(:disabled) と詳細度は同じ
+// ボタンの見た目のリンク（render — design/adr/0046）: 下の ButtonLink
+//   押せないリンク（<a> は :disabled にならない）には data-disabled を付け、disabled: と同じ Disabled を data-disabled: で当てる
 const button = tv({
   base: [
     'relative inline-flex h-(--size-control) shrink-0 cursor-pointer items-center justify-center gap-2 rounded-control px-(--space-control-x) whitespace-nowrap',
@@ -25,6 +41,7 @@ const button = tv({
     'motion-reduce:[transition:none]',
     // Disabled（原則1、design/adr/0026）: 影をなくす。塗り・文字の色と透明度はトークンで指定する（未設定なら部品の色のまま）
     'disabled:cursor-not-allowed disabled:opacity-(--disabled-opacity)',
+    'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 送信中: 押せない。下端の線を角丸で切り抜く
     'data-loading:cursor-progress data-loading:overflow-hidden',
   ],
@@ -34,8 +51,9 @@ const button = tv({
         'bg-(color:--button-fill) text-(color:--button-text)',
         '[--button-accent:var(--button-fill)] [--button-ink:var(--button-text)]',
         // 押したときの影は --shadow-raised-press（hover と同じ輪郭の線だけ — design/adr/0033）
-        'shadow-raised enabled:not-data-loading:hover:shadow-raised-hover enabled:not-data-loading:active:translate-y-(--press-depth) enabled:not-data-loading:active:shadow-(--shadow-raised-press)',
+        'shadow-raised not-[:disabled,[data-disabled]]:not-data-loading:hover:shadow-raised-hover not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:shadow-(--shadow-raised-press)',
         'disabled:bg-[color:var(--color-disabled,var(--button-fill))] disabled:text-[color:var(--color-on-disabled,var(--button-text))] disabled:shadow-none',
+        'data-disabled:bg-[color:var(--color-disabled,var(--button-fill))] data-disabled:text-[color:var(--color-on-disabled,var(--button-text))] data-disabled:shadow-none',
         // 送信中: Disabled の「本体を薄くする」を、塗りと文字の色で表す（文字は地の色に混ぜる）
         'data-loading:bg-[color:color-mix(in_oklab,var(--button-fill)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:text-[color:color-mix(in_oklab,var(--button-text)_calc(var(--disabled-opacity)*100%),var(--color-bg))] data-loading:shadow-none',
       ],
@@ -43,8 +61,9 @@ const button = tv({
       outline: [
         'border-[1.5px] border-(color:--button-line) bg-transparent text-(color:--button-line)',
         '[--button-accent:var(--button-line)] [--button-ink:var(--button-line)]',
-        'enabled:not-data-loading:hover:bg-flat-hover enabled:not-data-loading:active:translate-y-(--flat-press-depth) enabled:not-data-loading:active:bg-flat-press',
+        'not-[:disabled,[data-disabled]]:not-data-loading:hover:bg-flat-hover not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--flat-press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:bg-flat-press',
         'disabled:border-[color:var(--color-disabled-fg,var(--button-line))] disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
+        'data-disabled:border-[color:var(--color-disabled-fg,var(--button-line))] data-disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
         'data-loading:border-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:text-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)]',
       ],
     },
@@ -77,9 +96,11 @@ const button = tv({
         '[--button-accent:var(--color-fg)] [--button-fill:var(--color-neutral)] [--button-text:var(--color-fg)]',
         // 枠線（付けない）と影（ほかの塗りのボタンと同じ）。比べた案を比較のストーリーで再現するためトークンにしている — design/adr/0033
         'border-(length:--neutral-line-width) border-(color:--color-neutral-line)',
-        'shadow-(--shadow-neutral) enabled:not-data-loading:hover:shadow-(--shadow-neutral-hover) enabled:not-data-loading:active:shadow-(--shadow-neutral-press)',
+        'shadow-(--shadow-neutral) not-[:disabled,[data-disabled]]:not-data-loading:hover:shadow-(--shadow-neutral-hover) not-[:disabled,[data-disabled]]:not-data-loading:active:shadow-(--shadow-neutral-press)',
         'disabled:opacity-(--neutral-disabled-opacity)',
         'disabled:[--color-disabled:var(--color-neutral-disabled)] disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
+        'data-disabled:opacity-(--neutral-disabled-opacity)',
+        'data-disabled:[--color-disabled:var(--color-neutral-disabled)] data-disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
         'data-loading:bg-(color:--color-neutral-disabled) data-loading:text-(color:--color-on-neutral-disabled)',
       ],
     },
@@ -109,6 +130,9 @@ const button = tv({
         'disabled:bg-(color:--color-outline-neutral-disabled-fill) disabled:opacity-(--outline-neutral-disabled-opacity)',
         'disabled:border-(color:--color-outline-neutral-disabled-line) disabled:text-(color:--color-outline-neutral-disabled-text)',
         'disabled:border-(length:--outline-neutral-disabled-line-width)',
+        'data-disabled:bg-(color:--color-outline-neutral-disabled-fill) data-disabled:opacity-(--outline-neutral-disabled-opacity)',
+        'data-disabled:border-(color:--color-outline-neutral-disabled-line) data-disabled:text-(color:--color-outline-neutral-disabled-text)',
+        'data-disabled:border-(length:--outline-neutral-disabled-line-width)',
         'data-loading:border-(color:--color-outline-neutral-disabled-line) data-loading:bg-(color:--color-outline-neutral-disabled-fill) data-loading:text-(color:--color-outline-neutral-disabled-text)',
         'data-loading:border-(length:--outline-neutral-disabled-line-width)',
       ],
@@ -120,8 +144,16 @@ const button = tv({
 /** 送信中の印。overlay: 薄くしたラベルに回る円を重ねる（既定）、inline: ラベルの左に回る円、bar: 下端に流れる線 */
 export type LoadingIndicator = 'overlay' | 'inline' | 'bar';
 
-export interface ButtonProps
-  extends Omit<ComponentProps<'button'>, 'color'>, VariantProps<typeof button> {
+// Props は、ボタン（render なし — ButtonProps）とリンク（render あり — ButtonLinkProps）の2つの形に分ける（design/adr/0046）
+// リンクは送信中を持たないので、render と一緒には loading・loadingIndicator・type を渡せない（型で止める）
+// ButtonProps は、いままでどおりボタンの props の名前（interface で extends できるよう、2つをまとめた union にはしない）
+type ButtonBaseProps = Omit<ComponentProps<'button'>, 'color' | 'type'> &
+  VariantProps<typeof button>;
+
+/** ボタン（<button>）の props */
+export interface ButtonProps extends ButtonBaseProps {
+  /** 既定は button */
+  type?: ComponentProps<'button'>['type'];
   /**
    * 送信中。押せないボタンと同じ見た目になり、押しても onClick を呼ばない（フォームも送信しない）。
    * disabled と違い、フォーカスは外れない（aria-disabled・aria-busy）
@@ -129,50 +161,91 @@ export interface ButtonProps
   loading?: boolean;
   /** 送信中の印。既定は overlay */
   loadingIndicator?: LoadingIndicator;
+  render?: undefined;
 }
 
-// 回る円。薄い輪の上を、濃い弧が1秒で1周する。色は元の文字の色
-function Spinner() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className="size-(--size-icon) shrink-0 animate-spin text-(color:--button-ink)"
-      aria-hidden
-    >
-      <circle
-        cx="8"
-        cy="8"
-        r="6"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity="0.3"
-        strokeWidth="2"
-      />
-      <path
-        d="M8 2a6 6 0 0 1 6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+/** ボタンの見た目のリンク（render を渡す）の props */
+export interface ButtonLinkProps extends ButtonBaseProps {
+  /**
+   * 描く要素（Base UI の render と同じ）。<a href> や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
+   * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは Button の children に書く。
+   * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
+   */
+  render: ReactElement;
+  /** リンクは送信中を持たない（型で止める。渡されても無視し、開発時に警告する） */
+  loading?: never;
+  loadingIndicator?: never;
+  /** リンクには付けない */
+  type?: never;
 }
 
 /**
- * ボタン
+ * ボタンの見た目のリンク（Button に render を渡したとき — design/adr/0046）
+ * 見た目は Button と同じで、要素だけが渡した要素（<a>）になる。キーボードではリンクのまま（Enter で移り、Space では移らない）
+ * 右上向きの矢印（↗）を必ず最後に付け、ボタンと見分ける。飾りなので読み上げない（aria-hidden）
+ *   利用者が最後に ArrowUpRightIcon を置いたときは、足さない（2つにならない）。ほかのアイコンは、その後ろに ↗ が付く
+ * 新しいタブで開く（渡した要素の target="_blank"）ときは、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
+ * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする
+ *   見た目は <Button disabled> と同じ（data-disabled）。↗ は残す。Tab では止まらず、押しても何もしない（onClick も呼ばない）
+ * リンクは送信中を持たない。loading・loadingIndicator・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
  */
-export function Button({
+function ButtonLink({
   appearance,
   color,
   className,
-  type = 'button',
+  render,
   loading,
-  loadingIndicator = 'overlay',
-  onClick,
+  loadingIndicator,
+  disabled,
+  type,
   children,
+  ref,
   ...props
-}: ButtonProps) {
+}: ButtonLinkProps) {
+  if (loading !== undefined || loadingIndicator !== undefined)
+    warnOnce(
+      'Button: リンク（render）は送信中を持ちません。loading は無視します（design/adr/0046）'
+    );
+  if (type !== undefined)
+    warnOnce('Button: リンク（render）には type を付けません（design/adr/0046）');
+  const newTab = !disabled && opensNewTab(render);
+  return useRender({
+    render: disabled ? disabledAnchor(render) : render,
+    ref,
+    props: {
+      ...(disabled ? { ...withoutNavigation(props), ...disabledLinkProps } : props),
+      rel: newTab ? 'noopener noreferrer' : undefined,
+      className: button({ appearance, color, className }),
+      children: (
+        <>
+          {children}
+          {!endsWithElement(children, ArrowUpRightIcon) && <ArrowUpRightIcon />}
+          {/* sr-only は絶対配置なので、位置の基準（relative）を持つ要素の中に置く（Button は relative） */}
+          {newTab && <NewTabNote />}
+        </>
+      ),
+    },
+  });
+}
+
+/**
+ * ボタン。render を渡すと、同じ見た目のリンクになる（上の ButtonLink）
+ */
+export function Button(allProps: ButtonProps | ButtonLinkProps) {
+  // リンクのときは別の部品で描く。ボタンのときは <button> をそのまま返す（比較のストーリーが class を読むため）
+  if (allProps.render) return <ButtonLink {...allProps} />;
+  const {
+    appearance,
+    color,
+    className,
+    type = 'button',
+    loading,
+    loadingIndicator = 'overlay',
+    onClick,
+    children,
+    render: _render,
+    ...props
+  } = allProps;
   const busy = !!loading;
   return (
     <button
@@ -190,7 +263,7 @@ export function Button({
       }}
       className={button({ appearance, color, className })}
     >
-      {busy && loadingIndicator === 'inline' && <Spinner />}
+      {busy && loadingIndicator === 'inline' && <Spinner className="text-(color:--button-ink)" />}
       {/* loading を使うボタンは、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
       {loading === undefined ? (
         children
@@ -211,17 +284,10 @@ export function Button({
           aria-hidden
           className="absolute inset-0 flex animate-loading-in items-center justify-center"
         >
-          <Spinner />
+          <Spinner className="text-(color:--button-ink)" />
         </span>
       )}
-      {busy && loadingIndicator === 'bar' && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden"
-        >
-          <span className="absolute inset-y-0 left-0 w-2/5 animate-loading-bar bg-(color:--button-accent) opacity-60" />
-        </span>
-      )}
+      {busy && loadingIndicator === 'bar' && <LoadingBar className="bg-(color:--button-accent)" />}
     </button>
   );
 }

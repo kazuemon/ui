@@ -31,6 +31,8 @@ const unset = {
   '--color-on-field-disabled': 'initial',
   '--color-neutral-disabled': 'initial',
   '--color-on-neutral-disabled': 'initial',
+  // Select の押せないときの ▼（ADR-0042）。比べたときの ▼（--color-fg-muted）に戻す
+  '--color-select-icon-disabled': 'initial',
 } as const;
 
 const gray = { fill: '#e1e3e4', text: '#a3a5a6' };

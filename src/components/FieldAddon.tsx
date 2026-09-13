@@ -38,12 +38,16 @@ const fieldAddon = tv({
         '[--addon-inset:var(--field-addon-inset)] [--addon-round-inner:var(--field-addon-round-inner)]',
         'text-fg-muted group-data-invalid/field:text-[color:var(--color-on-field-addon-invalid,var(--color-fg-muted))]',
         'group-data-disabled/field:text-[color:var(--color-on-field-disabled,var(--color-fg-muted))]',
+        // 待っているあいだ止める欄（design/adr/0042）も、押せない欄と同じ文字の色
+        // エラーの色（group-data-invalid）より優先するため、本体の直下という条件を足して強くする
+        '[[data-loading=blocking]_[data-slot=control]>&]:text-[color:var(--color-on-field-disabled,var(--color-fg-muted))]',
       ],
       // ボタン: 平らな要素（原則3）。hover と押下で文字の色を淡く敷き、押下で中身が 1px 沈む（design/adr/0027）
       button: [
         '[--addon-inset:var(--field-addon-button-inset)] [--addon-round-inner:var(--field-addon-button-round-inner)]',
         'group/addon cursor-pointer font-bold text-fg select-none',
         'group-data-invalid/field:text-[color:var(--color-on-field-addon-invalid,var(--color-fg))]',
+        // キーボードでフォーカスしているあいだは、本体の枠線を消してこの線だけにする（controlBox — design/adr/0040）
         ...focusRing,
         '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
@@ -58,6 +62,7 @@ const fieldAddon = tv({
 
 /**
  * 入力欄に付く文字（prefix・suffix）。TextField・Select の prefix・suffix に文字を渡すと、これで包む
+ * TextField では入力欄の説明につなぎ、文字は読み上げから外す（design/adr/0040）。aria-hidden を渡すと、つながない
  */
 export function FieldAddon({ className, ...props }: ComponentProps<'span'>) {
   return (

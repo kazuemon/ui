@@ -31,9 +31,11 @@
   /*
    * 密度（design/adr/0004）: 寸法は入力方式（pointer）で決める。
    * data-density="coarse" / "fine" を付けた要素の中は、入力方式にかかわらずその密度に固定する。
+   * --density-coarse は、いまの密度が指用なら 1、マウス用なら 0。下の .coarse-large が読む（design/adr/0045）
    */
   :root,
   [data-density='fine'] {
+    --density-coarse: 0;
     --size-control: var(--size-control-fine);
     --text-control: var(--text-control-fine);
     --leading-control: var(--leading-control-fine);
@@ -49,6 +51,7 @@
 
   @media (pointer: coarse) {
     :root:not([data-density='fine']) {
+      --density-coarse: 1;
       --size-control: var(--size-control-coarse);
       --text-control: var(--text-control-coarse);
       --leading-control: var(--leading-control-coarse);
@@ -64,6 +67,7 @@
   }
 
   [data-density='coarse'] {
+    --density-coarse: 1;
     --size-control: var(--size-control-coarse);
     --text-control: var(--text-control-coarse);
     --leading-control: var(--leading-control-coarse);
@@ -76,4 +80,36 @@
     --switch-h: var(--switch-h-coarse);
     --switch-knob: var(--switch-knob-coarse);
   }
+}
+
+/*
+ * 大きい指用（design/adr/0045）: class="coarse-large" を付けた要素の中は、指用の高さを 52px にする
+ *   html に付けるとアプリ全体、ほかの要素に付けるとその中だけ。Select の選択肢は body の直下に出るので、全体では html に付ける
+ *   変わるのは --size-control を読むもの（ボタン・入力欄・Select の本体と選択肢・枠線のリンク・トグルの行）の高さと、
+ *   トグルのトラックとノブ（高さに比例して 48×28・ノブ 22px → 56×32・ノブ 26px）。
+ *   文字・行の高さ（24px。52px で上下 14px）・左右の余白・タグ（文字の大きさに従う）は変えない
+ *   マウス用の密度（fine）では何も変わらない。中の data-density="coarse" の要素も 52px になる
+ * --size-control と --switch-* は付けた要素で計算し直す。:root で解決した値は子に引き継がれるだけなので、途中の要素に付けたときに効かせるため。
+ *   いまの密度は --density-coarse（指用 1・マウス用 0）で知る
+ * @layer の外に置く。tokens.css の :root（@layer の外）より後に書き、html に付けたときも --size-control-coarse を上書きする
+ */
+.coarse-large {
+  --size-control-coarse: var(--size-control-coarse-large);
+  --size-control: calc(
+    var(--size-control-fine) + var(--density-coarse) *
+      (var(--size-control-coarse) - var(--size-control-fine))
+  );
+  --switch-w-coarse: var(--switch-w-coarse-large);
+  --switch-h-coarse: var(--switch-h-coarse-large);
+  --switch-knob-coarse: var(--switch-knob-coarse-large);
+  --switch-w: calc(
+    var(--switch-w-fine) + var(--density-coarse) * (var(--switch-w-coarse) - var(--switch-w-fine))
+  );
+  --switch-h: calc(
+    var(--switch-h-fine) + var(--density-coarse) * (var(--switch-h-coarse) - var(--switch-h-fine))
+  );
+  --switch-knob: calc(
+    var(--switch-knob-fine) + var(--density-coarse) *
+      (var(--switch-knob-coarse) - var(--switch-knob-fine))
+  );
 }

@@ -25,7 +25,10 @@ interface ComparisonProps {
   /** 後半の軸の番号 */
   index: number;
   axis: string;
-  /** 採用した案の id（ADR の比較画像用）。URL から渡せるよう、現行版は current でも指定できる */
+  /**
+   * 採用した案の id（ADR の比較画像用）。URL から渡せるよう、現行版は current でも指定できる
+   * 場合によって使い分ける案を2つ以上採るときは、カンマで区切る（例: E,G）
+   */
   pick?: string;
   /** 何を選ぶのか、選ぶときの注意 */
   children: ReactNode;
@@ -47,8 +50,9 @@ export function Comparison({
   columns,
   renderCell,
 }: ComparisonProps) {
+  const picks = pick ? pick.split(',').map((id) => id.trim()) : [];
   const isPicked = (candidate: Candidate, i: number) =>
-    !!pick && (pick === candidate.id || (pick === 'current' && i === 0));
+    picks.some((id) => id === candidate.id || (id === 'current' && i === 0));
   const grid = {
     gridTemplateColumns: `minmax(200px, 240px) repeat(${columns.length}, minmax(260px, 1fr))`,
   };

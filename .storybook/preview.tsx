@@ -11,12 +11,26 @@ const withDensity: Decorator = (Story, { globals }) => {
   } else {
     delete root.dataset.density;
   }
+  // 大きい指用（design/adr/0045）。指用の高さを 52px にする。マウス用では変わらない
+  root.classList.toggle('coarse-large', globals.coarseSize === 'large');
   return <Story />;
 };
 
 const preview: Preview = {
   decorators: [withDensity],
   globalTypes: {
+    coarseSize: {
+      description: '指用の高さ（原則11・ADR-0045）',
+      toolbar: {
+        title: '指用の高さ',
+        icon: 'ruler',
+        items: [
+          { value: 'default', title: '44px（既定）' },
+          { value: 'large', title: '52px（coarse-large）' },
+        ],
+        dynamicTitle: true,
+      },
+    },
     density: {
       description: '密度（原則11）',
       toolbar: {
@@ -31,7 +45,7 @@ const preview: Preview = {
       },
     },
   },
-  initialGlobals: { density: 'auto' },
+  initialGlobals: { density: 'auto', coarseSize: 'default' },
   parameters: {
     controls: {
       matchers: {

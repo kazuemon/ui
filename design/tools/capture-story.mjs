@@ -5,6 +5,11 @@
 //
 // Storybook をビルドしてローカルで配信し、ストーリーだけ（iframe.html）を撮る。
 // --static-dir にビルド済みのディレクトリを渡すと、ビルドを省く。
+//
+// 既定では、動きを減らす設定（prefers-reduced-motion: reduce）をオンにして撮る（--motion reduce）。
+// 移り変わりの途中で撮られて、状態の見た目が出ないことを防ぐため。
+// ただし送信中の印は、この設定で形が変わる（design/adr/0042。線は幅いっぱいの明滅になる）。
+// ふだんの動きの印を撮るときは --motion normal を渡す（移り変わりの途中で撮られないよう、撮る前に待つ時間はそのまま）。
 
 import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
@@ -20,6 +25,7 @@ const { values, positionals } = parseArgs({
     out: { type: 'string' },
     pick: { type: 'string' }, // 採用した案の id。現行版は current
     density: { type: 'string' }, // coarse / fine。省略すると入力方式に合わせる（撮影環境ではマウス）
+    motion: { type: 'string', default: 'reduce' }, // reduce / normal。動きを減らす設定をオンにして撮るか
     width: { type: 'string', default: '1320' },
     height: { type: 'string', default: '1500' },
     'static-dir': { type: 'string' },
@@ -29,8 +35,12 @@ const { values, positionals } = parseArgs({
 const storyId = positionals[0];
 if (!storyId || !values.out) {
   console.error(
-    '使い方: node design/tools/capture-story.mjs <story-id> --out <png> [--pick <id>] [--density coarse|fine] [--width N] [--height N] [--static-dir <dir>]'
+    '使い方: node design/tools/capture-story.mjs <story-id> --out <png> [--pick <id>] [--density coarse|fine] [--motion reduce|normal] [--width N] [--height N] [--static-dir <dir>]'
   );
+  process.exit(1);
+}
+if (values.motion !== 'reduce' && values.motion !== 'normal') {
+  console.error(`--motion は reduce か normal です（${values.motion}）`);
   process.exit(1);
 }
 
@@ -84,8 +94,8 @@ try {
     '--headless',
     '--no-sandbox',
     '--hide-scrollbars',
-    // 移り変わりの途中で撮られると、状態の見た目が出ないことがある
-    '--force-prefers-reduced-motion',
+    // 移り変わりの途中で撮られると、状態の見た目が出ないことがある（--motion normal のときはオンにしない）
+    ...(values.motion === 'reduce' ? ['--force-prefers-reduced-motion'] : []),
     // headless は既定で「マウスなし」（hover: none）で、hover の見た目が出ない。
     // マウスで操作している環境（指の密度では指）として撮る
     values.density === 'coarse'
