@@ -4,6 +4,7 @@ import { Button } from '../../src/components/Button';
 import { Switch } from '../../src/components/Switch';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchAsCompared } from './pins';
 
 // 後半の軸 11: Disabled の詰め（principles.md 原則1、design/adr/0026・0028）。4回目
 // 変えるのは次のトークンだけ
@@ -136,16 +137,23 @@ const columns: Column[] = [
 
 const Switches = () => (
   <div className="flex flex-col">
-    <Switch color="neutral" label="お知らせを受け取る" defaultChecked />
-    <Switch color="neutral" label="返信をメールで受け取る" />
+    <Switch togglePlacement="end" color="neutral" label="お知らせを受け取る" defaultChecked />
+    <Switch togglePlacement="end" color="neutral" label="返信をメールで受け取る" />
     <Switch
+      togglePlacement="end"
       color="neutral"
       label="自動で保存する"
       caption="管理者が固定しています"
       defaultChecked
       disabled
     />
-    <Switch color="neutral" label="位置情報を使う" caption="この端末では使えません" disabled />
+    <Switch
+      togglePlacement="end"
+      color="neutral"
+      label="位置情報を使う"
+      caption="この端末では使えません"
+      disabled
+    />
   </div>
 );
 
@@ -180,13 +188,20 @@ const Form = () => (
   <div className="flex flex-col gap-4">
     <TextField label="会員番号" defaultValue="A-102938" caption="変更できません" disabled />
     <Switch
+      togglePlacement="end"
       color="neutral"
       label="自動で保存する"
       caption="管理者が固定しています"
       defaultChecked
       disabled
     />
-    <Switch color="neutral" label="位置情報を使う" caption="この端末では使えません" disabled />
+    <Switch
+      togglePlacement="end"
+      color="neutral"
+      label="位置情報を使う"
+      caption="この端末では使えません"
+      disabled
+    />
     <div className="flex flex-wrap gap-3">
       <Button appearance="outline" color="neutral" disabled>
         キャンセル
@@ -204,6 +219,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/11 Disabled の詰め',
+  decorators: [keepSwitchAsCompared],
   id: 'design-review-11-disabled-refine',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'H' },

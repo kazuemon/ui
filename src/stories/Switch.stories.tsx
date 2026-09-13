@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 import { fn } from 'storybook/test';
 
 import { Switch } from '../components/Switch';
-import { DensityPair, Matrix } from './story-parts';
+import { DensityPair, Gallery, Matrix, Specimen } from './story-parts';
 import { type MatrixColumn, statePseudo } from './story-states';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
+const placements = ['start', 'end'] as const;
 
 const valueColumns: (MatrixColumn & { checked: boolean; disabled: boolean })[] = [
   { label: 'OFF', checked: false, disabled: false },
@@ -23,11 +24,12 @@ const meta = {
     docs: {
       description: {
         component: [
-          'ON と OFF を切り替えるトグルです。ラベル（とキャプション）を左に、トラックを右に置きます。',
+          'ON と OFF を切り替えるトグルです。トラックとラベル（とキャプション）を横に並べます。ラベルを押しても切り替わります。',
           '',
+          '- `togglePlacement` はトラックの位置です。`start`（既定）は文字の左、`end` は文字の右です。設定の一覧のように、トラックを行の右端にそろえて並べたいときは `end` にします。',
           '- `color` は ON のときの色です。指定しないときは濃いグレー（`neutral`）です。OFF のトラックは、色にかかわらず入力欄と同じグレーです。',
+          '- 押せないときは、トラックを薄くし、ラベルをほかの押せない文字と同じグレーにします。キャプションは説明なので、読めるままです。',
           '- 状態は `defaultChecked` で部品に任せるか、`checked`・`onCheckedChange` で外から持ちます。',
-          '- `caption` はラベルの下に出る補足です。',
         ].join('\n'),
       },
     },
@@ -36,6 +38,7 @@ const meta = {
   args: {
     label: 'お知らせを受け取る',
     color: 'neutral',
+    togglePlacement: 'start',
     disabled: false,
     defaultChecked: false,
     onCheckedChange: fn(),
@@ -49,6 +52,7 @@ const meta = {
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
     },
+    togglePlacement: { control: 'inline-radio', options: placements },
     disabled: { control: 'boolean' },
     defaultChecked: { control: 'boolean' },
     checked: { control: false },
@@ -69,6 +73,49 @@ export const Playground: Story = {
   decorators: [narrow],
 };
 
+export const Placement: Story = {
+  name: 'トラックの位置',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '`start`（既定）はトラックを文字の左に、`end` は右に置きます。`end` は、設定の一覧のように行の右端にトラックをそろえたいときに使います。最後の行は押せないトグルです。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery columnWidth="20rem">
+      {placements.map((placement) => (
+        <Specimen key={placement} label={placement === 'start' ? 'start（既定）' : 'end'}>
+          <div className="flex flex-col gap-2">
+            <Switch
+              {...args}
+              togglePlacement={placement}
+              label="メールで受け取る"
+              caption="週に1回、まとめて届きます"
+              defaultChecked
+            />
+            <Switch
+              {...args}
+              togglePlacement={placement}
+              label="プッシュ通知"
+              caption="コメントがついたときに届きます"
+            />
+            <Switch
+              {...args}
+              togglePlacement={placement}
+              label="位置情報を使う"
+              caption="この端末では使えません"
+              disabled
+            />
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
 export const Colors: Story = {
   name: '色',
   parameters: {
@@ -76,7 +123,7 @@ export const Colors: Story = {
     docs: {
       description: {
         story:
-          '行が ON のときの色（`color`）です。押せないときは、ON は色を残して薄くし、OFF はグレーのままにします。',
+          '行が ON のときの色（`color`）です。押せないときは、ON は色を残して薄くし、OFF はグレーのままにします。ラベルは押せない文字のグレーになります。',
       },
     },
   },
@@ -117,24 +164,6 @@ export const States: Story = {
       columnWidth="13rem"
       renderCell={(checked) => <Switch {...args} defaultChecked={checked} />}
     />
-  ),
-};
-
-export const WithCaption: Story = {
-  name: 'キャプション付き',
-  parameters: { controls: { include: ['color', 'disabled'] } },
-  decorators: [narrow],
-  render: (args) => (
-    <div className="flex flex-col gap-2">
-      <Switch
-        {...args}
-        label="メールで受け取る"
-        caption="週に1回、まとめて届きます"
-        defaultChecked
-      />
-      <Switch {...args} label="プッシュ通知" caption="コメントがついたときに届きます" />
-      <Switch {...args} label="位置情報を使う" />
-    </div>
   ),
 };
 

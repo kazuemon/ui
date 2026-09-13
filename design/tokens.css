@@ -369,6 +369,11 @@
   --switch-h-fine: 22px;
   --switch-knob-fine: 16px;
   --switch-inset: 3px; /* トラックとノブの隙間 */
+  /* トグルの行の並び。トラックの縦の位置（--switch-track-rows）と、トラックと文字の間（--switch-gap）
+     1 / -1 はラベルとキャプションのまとまりの中央、1 / 2 はラベル（1行目）の中央。
+     既定はラベルの行の中央（軸 29 の A）。キャプションが何行あっても、トラックはラベルの横から動かない */
+  --switch-track-rows: 1 / 2;
+  --switch-gap: 12px;
 
   /* Disabled（原則1）— design/adr/0026。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を薄くし、色は残す。
@@ -409,6 +414,9 @@
   --switch-neutral-disabled-opacity: 1;
   --color-switch-neutral-on-disabled: var(--color-neutral-disabled);
   --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
+  /* 押せないトグルのラベル。押すと切り替わる文字は本体の一部なので、ほかの押せない文字（選べない選択肢など）と
+     同じグレーにする（原則1）。キャプションは変えない（--disabled-label-opacity） */
+  --color-switch-label-disabled: var(--color-on-field-disabled);
 
   /* 入力欄の状態（原則2）— design/adr/0019: フォーカスは 2px の枠線だけを足し、速く移り変わる
      枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */

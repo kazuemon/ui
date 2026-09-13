@@ -9,6 +9,10 @@ import { focusRing } from './focus-styles';
 // ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
 // 指定しないときはグレー（ON は濃いグレー）— design/adr/0028
 // ノブの影は「押せること」の記号（原則1）。Disabled では影をなくす
+// ラベル・キャプション・トラックは格子に置く。トラックは左（togglePlacement="start"、既定）か右（end）
+//   トラックの縦の位置は --switch-track-rows（ラベルとキャプションのまとまりの中央か、ラベルの行の中央）、間は --switch-gap
+// ラベルは押しても切り替わるので本体の一部。押せないときは、ほかの押せない文字と同じグレーにする（原則1）
+//   キャプションは説明なので、押せないときも読めるまま
 const styles = tv({
   variants: {
     color: {
@@ -24,22 +28,37 @@ const styles = tv({
         thumb: 'data-disabled:bg-(color:--color-switch-neutral-disabled-knob)',
       },
     },
+    // トラックの位置。start は文字の左（既定）、end は文字の右
+    togglePlacement: {
+      start: {
+        root: 'grid-cols-[auto_minmax(0,1fr)]',
+        track: 'col-start-1',
+        label: 'col-start-2',
+        caption: 'col-start-2',
+      },
+      end: {
+        root: 'grid-cols-[minmax(0,1fr)_auto]',
+        track: 'col-start-2',
+        label: 'col-start-1',
+        caption: 'col-start-1',
+      },
+    },
   },
-  defaultVariants: { color: 'neutral' },
+  defaultVariants: { color: 'neutral', togglePlacement: 'start' },
   slots: {
-    // Disabled では、本体（トラック）とラベル・キャプションの透明度を別々に指定する
-    root: 'group/field flex min-h-(--size-control) items-center gap-3',
-    text: 'flex min-w-0 flex-1 flex-col',
+    // 行の高さは部品の高さ。中身（ラベル・キャプション・トラック）は行の縦の中央に置く
+    root: 'group/field grid min-h-(--size-control) content-center items-center gap-x-(--switch-gap)',
     label: [
-      'text-(length:--text-control) leading-(--leading-control) text-fg',
-      'group-data-disabled/field:opacity-(--disabled-label-opacity)',
+      'row-start-1 text-(length:--text-control) leading-(--leading-control) text-fg',
+      // 薄さ（--disabled-label-opacity、いまは 1）も残す。軸 08 の比較で、ラベルを薄くする案を再現するため
+      'group-data-disabled/field:text-(color:--color-switch-label-disabled) group-data-disabled/field:opacity-(--disabled-label-opacity)',
     ],
     caption: [
-      'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
+      'row-start-2 text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
       'group-data-disabled/field:opacity-(--disabled-label-opacity)',
     ],
     track: [
-      'group/switch relative inline-flex h-(--switch-h) w-(--switch-w) shrink-0 cursor-pointer items-center rounded-pill p-(--switch-inset)',
+      'group/switch relative row-(--switch-track-rows) inline-flex h-(--switch-h) w-(--switch-w) shrink-0 cursor-pointer items-center rounded-pill p-(--switch-inset)',
       '[--switch-track:var(--color-switch-off)]',
       // OFF のトラックの枠。内側に描き、寸法を変えない — design/adr/0029
       'not-data-checked:shadow-[inset_0_0_0_var(--switch-off-line-width)_var(--color-switch-off-line)]',
@@ -75,21 +94,34 @@ export interface SwitchProps
    * @default 'neutral'
    */
   color?: VariantProps<typeof styles>['color'];
+  /**
+   * トラックの位置。start は文字の左、end は文字の右です。
+   * 設定の一覧のように、トラックを行の右端にそろえて並べたいときは end にします
+   * @default 'start'
+   */
+  togglePlacement?: VariantProps<typeof styles>['togglePlacement'];
 }
 
 /**
- * トグル。ラベルとキャプションを左に、トラックを右に置く
+ * トグル。トラックとラベル（とキャプション）を横に並べる。ラベルを押しても切り替わる
  */
-export function Switch({ label, caption, className, disabled, color, ...props }: SwitchProps) {
-  const s = styles({ color });
+export function Switch({
+  label,
+  caption,
+  className,
+  disabled,
+  color,
+  togglePlacement = 'start',
+  ...props
+}: SwitchProps) {
+  const s = styles({ color, togglePlacement });
+  // 行を明示する（キャプションがあれば2行）。--switch-track-rows の -1 は明示した行の最後の線を指すので、
+  // 行を明示しないと 1 / -1（まとまりの中央）が 1行目だけになる
+  const rows = caption ? 'grid-rows-[auto_auto]' : 'grid-rows-[auto]';
   return (
-    <BaseField.Root disabled={disabled} className={s.root({ className })}>
-      <div className={s.text()}>
-        <BaseField.Label className={s.label()}>{label}</BaseField.Label>
-        {caption && (
-          <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>
-        )}
-      </div>
+    <BaseField.Root disabled={disabled} className={s.root({ className: [rows, className] })}>
+      <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+      {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
       <BaseSwitch.Root className={s.track()} disabled={disabled} {...props}>
         <BaseSwitch.Thumb className={s.thumb()} />
       </BaseSwitch.Root>

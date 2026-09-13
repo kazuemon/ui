@@ -9,6 +9,7 @@ import { Switch } from '../../src/components/Switch';
 import { Tag } from '../../src/components/Tag';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchAsCompared } from './pins';
 
 // 後半の軸 28: 指用の高さ（原則11 — 寸法は入力方式で切り替える、ADR-0004）。1回目で決定（ADR-0045）
 // 比べたとき、指用の高さ --size-control-coarse は仮の 44px。マウス用は 40px に決まっている（ADR-0020）
@@ -171,12 +172,13 @@ const Profile = ({ container }: { container?: HTMLElement }) => (
     </div>
     <div data-anchor="switches" className="flex flex-col gap-(--space-field-gap)">
       <Switch
+        togglePlacement="end"
         color="primary"
         label="プロフィールを公開する"
         caption="オフにすると、リンクを知っている人だけが見られます"
         defaultChecked
       />
-      <Switch color="primary" label="新しい記事をメールで知らせる" />
+      <Switch togglePlacement="end" color="primary" label="新しい記事をメールで知らせる" />
     </div>
     <div data-anchor="tags" className="flex flex-col gap-(--space-field-gap)">
       <p className={labelClass}>よく使う技術</p>
@@ -691,6 +693,7 @@ const pickArg = {
 
 const meta = {
   title: 'Design Review/28 指用の高さ（実機）',
+  decorators: [keepSwitchAsCompared],
   id: 'design-review-28-coarse-size',
   parameters: { layout: 'fullscreen' },
   // 決定（ADR-0045）: 指用は 44px（現行版）。C は大きい指用（.coarse-large）として残す

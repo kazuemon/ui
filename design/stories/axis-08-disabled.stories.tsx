@@ -5,6 +5,7 @@ import { Select } from '../../src/components/Select';
 import { Switch } from '../../src/components/Switch';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchAsCompared } from './pins';
 
 // 後半の軸 08: Disabled の表し方（principles.md 原則1）。2回目
 // 影はどの案もなくす（原則1）。変えるのは次のトークンだけ。initial は「未設定」で、部品のもとの色のままになる
@@ -186,16 +187,23 @@ const Fields = () => (
 
 const Switches = () => (
   <div className="flex flex-col">
-    <Switch color="secondary" label="お知らせを受け取る" defaultChecked />
-    <Switch color="secondary" label="返信をメールで受け取る" />
+    <Switch togglePlacement="end" color="secondary" label="お知らせを受け取る" defaultChecked />
+    <Switch togglePlacement="end" color="secondary" label="返信をメールで受け取る" />
     <Switch
+      togglePlacement="end"
       color="secondary"
       label="自動で保存する"
       caption="管理者が固定しています"
       defaultChecked
       disabled
     />
-    <Switch color="secondary" label="位置情報を使う" caption="この端末では使えません" disabled />
+    <Switch
+      togglePlacement="end"
+      color="secondary"
+      label="位置情報を使う"
+      caption="この端末では使えません"
+      disabled
+    />
   </div>
 );
 
@@ -205,6 +213,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/08 Disabled の表し方',
+  decorators: [keepSwitchAsCompared],
   id: 'design-review-08-disabled',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'D2' },

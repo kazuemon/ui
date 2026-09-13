@@ -167,8 +167,8 @@ const Cell = () => (
       をご覧ください。
     </p>
     <div className="flex flex-col">
-      <Switch color="primary" label="お知らせを受け取る" defaultChecked />
-      <Switch label="位置情報を使う" />
+      <Switch togglePlacement="end" color="primary" label="お知らせを受け取る" defaultChecked />
+      <Switch togglePlacement="end" label="位置情報を使う" />
     </div>
     <TextField label="表示名（参考: 入力欄のフォーカス）" defaultValue="かずえもん" />
   </div>

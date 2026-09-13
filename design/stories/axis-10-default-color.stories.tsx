@@ -6,6 +6,7 @@ import { Link } from '../../src/components/Link';
 import { Switch } from '../../src/components/Switch';
 import { Tag } from '../../src/components/Tag';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchAsCompared } from './pins';
 
 // 後半の軸 10: 各部品の既定の色（principles.md 原則6、design/adr/0013）。2回目
 // 利用者が色を指定しないとき、色を持つ部品が primary（青）・secondary（ピンク）・neutral（グレー）のどれになるか
@@ -106,9 +107,14 @@ const columns: Column[] = [
 const Settings = ({ d }: { d: Defaults }) => (
   <div className="flex flex-col gap-4">
     <div className="flex flex-col">
-      <Switch color={d.switch} label="お知らせを受け取る" defaultChecked />
-      <Switch color={d.switch} label="返信をメールで受け取る" defaultChecked />
-      <Switch color={d.switch} label="自動で保存する" />
+      <Switch togglePlacement="end" color={d.switch} label="お知らせを受け取る" defaultChecked />
+      <Switch
+        togglePlacement="end"
+        color={d.switch}
+        label="返信をメールで受け取る"
+        defaultChecked
+      />
+      <Switch togglePlacement="end" color={d.switch} label="自動で保存する" />
     </div>
     <div className="flex flex-wrap gap-3">
       <Button color={d.filled}>保存する</Button>
@@ -173,13 +179,20 @@ const Disabled = ({ d }: { d: Defaults }) => (
     </div>
     <div className="flex flex-col">
       <Switch
+        togglePlacement="end"
         color={d.switch}
         label="自動で保存する"
         caption="管理者が固定しています"
         defaultChecked
         disabled
       />
-      <Switch color={d.switch} label="位置情報を使う" caption="この端末では使えません" disabled />
+      <Switch
+        togglePlacement="end"
+        color={d.switch}
+        label="位置情報を使う"
+        caption="この端末では使えません"
+        disabled
+      />
     </div>
   </div>
 );
@@ -190,6 +203,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/10 各部品の既定の色',
+  decorators: [keepSwitchAsCompared],
   id: 'design-review-10-default-color',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'E' },
