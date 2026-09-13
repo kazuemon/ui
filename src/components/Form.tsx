@@ -95,9 +95,9 @@ export interface FormProps extends ComponentProps<'form'> {
    */
   errorSummaryTitle?: (count: number) => string;
   /**
-   * ブラウザの既定の検証エラー表示（吹き出し）を出すかどうかです。false にすると、欄の下の行（Field）だけで知らせます。
-   * このシステムは自前の form を使うため、既定でブラウザの吹き出しを止めています
-   * @default false
+   * ブラウザの既定の検証（吹き出し）を止めるかどうかです。true（既定）では吹き出しを出さず、欄の下の行（Field）だけで知らせます。
+   * false にすると、required などのブラウザの検証が働き、吹き出しも出ます
+   * @default true
    */
   noValidate?: boolean;
 }

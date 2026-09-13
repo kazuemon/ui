@@ -111,11 +111,11 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
   /**
    * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に Link の見た目を重ねる。
    * href などは渡す要素に書く（例: `render={<NextLink href="/works" />}`）。ラベルは Link の children に書く
-   * 渡さないときは <a> を描く（href は Link に書く）
+   * 渡さないときは `<a>` を描く（href は Link に書く）
    */
   render?: ReactElement;
   /**
-   * 押せないリンク。href を外した <a role="link" aria-disabled="true"> を描く（渡した要素は描かない）。
+   * 押せないリンク。href を外した `<a role="link" aria-disabled="true">` を描く（渡した要素は描かない）。
    * Tab では止まらず、押しても何もしない。読み上げでは「リンク、利用不可」（design/adr/0046）。
    * 文字のリンクは、ただの文字と同じ見た目になる（下線・↗ なし、色は周りの文字）。枠線のリンクは、押せないグレーの枠線のボタンと同じ見た目
    */

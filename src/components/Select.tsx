@@ -114,7 +114,10 @@ export interface SelectProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか。既定は true */
+  /**
+   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
+   * @default true
+   */
   modal?: boolean;
   /**
    * 浮かぶ選択肢（popover）・シート（sheet）を描く場所

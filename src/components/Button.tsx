@@ -183,7 +183,7 @@ export interface ButtonProps extends ButtonBaseProps {
 /** ボタンの見た目のリンク（render を渡す）の props */
 export interface ButtonLinkProps extends ButtonBaseProps {
   /**
-   * 描く要素（Base UI の render と同じ）。<a href> や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
+   * 描く要素（Base UI の render と同じ）。`<a href>` や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
    * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは Button の children に書く。
    * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
    */

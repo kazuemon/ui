@@ -134,7 +134,7 @@ export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role
   title?: ReactNode;
   /** 本文 */
   children?: ReactNode;
-  /** 本文の下に置く操作。白いボタン（<Button color="surface">）か文字のリンク（<Link>）。リンクはお知らせの文字の色の太字になる */
+  /** 本文の下に置く操作。白いボタン（`<Button color="surface">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
   actions?: ReactNode;
   /** 渡すと右上に × を出す（読み上げは「閉じる」）。× は role の箱の外に置く */
   onClose?: () => void;
