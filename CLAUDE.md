@@ -33,6 +33,7 @@ pnpm storybook                # 比較のストーリーを開く（確かめは
 node design/tools/capture-story.mjs <story-id> --pick A --out design/adr/assets/NNNN-title.png
 pnpm run fonts                # 和文フォントの補正 CSS を作り直す
 pnpm typecheck
+pnpm test                     # 全ストーリーを Vitest で描き、play の確かめを走らせる（@storybook/addon-vitest）
 ```
 
 ## ループの進め方
