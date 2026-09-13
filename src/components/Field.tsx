@@ -16,9 +16,6 @@ export type CaptionPlacement = 'top' | 'bottom';
  */
 export type FieldLoadingBehavior = 'blocking' | 'non-blocking';
 
-/** 待っているあいだの印。spinner: 右端に回る円（既定）、bar: 下端（枠線の内側）に流れる線 */
-export type FieldLoadingIndicator = 'spinner' | 'bar';
-
 /** 欄の右端に置く回る円。色は Select の ▼ と同じ（--color-fg-muted）。止めているあいだも薄くしない */
 export function FieldSpinner({ className }: { className?: string }) {
   return (

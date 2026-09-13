@@ -145,7 +145,7 @@ const Cell = () => (
       <Button color="primary">保存する</Button>
       <Button color="secondary">応援する</Button>
       <Button>キャンセル</Button>
-      <Button color="surface">共有</Button>
+      <Button color="white">共有</Button>
     </div>
     <div className="flex flex-wrap gap-3">
       <Button appearance="outline" color="primary">

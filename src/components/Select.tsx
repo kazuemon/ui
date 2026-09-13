@@ -15,7 +15,6 @@ import {
   type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
-  type FieldLoadingIndicator,
   FieldLoadingBar,
   FieldSpinner,
 } from './Field';
@@ -24,7 +23,7 @@ import type { AddonShape } from './field-addon-context';
 import { controlBox, fieldStyles } from './field-styles';
 import { focusRing } from './focus-styles';
 import { CaretDownIcon, CheckIcon, WarningCircleIcon, WarningIcon, XIcon } from './icons';
-import { Spinner } from './Loading';
+import { type LoadingIndicator, Spinner } from './Loading';
 
 /**
  * 選択肢に付く文の種類（design/adr/0044）
@@ -171,7 +170,7 @@ export interface SelectProps {
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
-  loadingIndicator?: FieldLoadingIndicator;
+  loadingIndicator?: LoadingIndicator;
   /**
    * 読み込んでいるあいだの文。blocking ではプレースホルダの場所に（プレースホルダと同じ色）、non-blocking では開いた選択肢の行に出す
    * @default '読み込んでいます'

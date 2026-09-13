@@ -61,7 +61,7 @@ function SignupForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
 
   return (
     <Form {...props} onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
-      {done && <Notice tone="success" title="登録しました" />}
+      {done && <Notice color="success" title="登録しました" />}
       <TextField
         name="email"
         label="メールアドレス"

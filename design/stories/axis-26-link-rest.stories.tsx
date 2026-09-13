@@ -966,7 +966,7 @@ const looks: [Appearance, Color, string][] = [
   ['filled', 'secondary', '塗り・ピンク'],
   ['filled', 'danger', '塗り・赤'],
   ['filled', 'neutral', '塗り・グレー'],
-  ['filled', 'surface', '塗り・白'],
+  ['filled', 'white', '塗り・白'],
   ['outline', 'primary', '枠線・青'],
   ['outline', 'secondary', '枠線・ピンク'],
   ['outline', 'danger', '枠線・赤'],

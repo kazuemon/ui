@@ -106,7 +106,7 @@ const Buttons = () => (
     <div className="flex flex-wrap gap-3">
       <Button color="primary">保存する</Button>
       <Button>キャンセル</Button>
-      <Button color="surface">共有</Button>
+      <Button color="white">共有</Button>
     </div>
     <div className="flex flex-wrap gap-3">
       <Button color="secondary">応援する</Button>
@@ -114,7 +114,7 @@ const Buttons = () => (
     </div>
     <div className="flex flex-wrap gap-3">
       <Button disabled>キャンセル</Button>
-      <Button color="surface" disabled>
+      <Button color="white" disabled>
         共有
       </Button>
     </div>
@@ -125,7 +125,7 @@ const Buttons = () => (
 const Zoomed = () => (
   <div className="flex [zoom:2] flex-col items-start gap-2">
     <Button>キャンセル</Button>
-    <Button color="surface">共有</Button>
+    <Button color="white">共有</Button>
   </div>
 );
 

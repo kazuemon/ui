@@ -6,6 +6,9 @@
 // 回る円がふわっと出る動き（ボタンの overlay の --animate-loading-in、0.2 秒）も、この設定ではなくす（tokens.css で上書き）
 // クラス名 animate-spin・animate-loading-bar は、比較のストーリーが印を探すのに使うので変えない
 
+/** 送信中・読み込み中の印。spinner: 回る円（既定）、bar: 下端に流れる線。Button・TextField・Select で共通 */
+export type LoadingIndicator = 'spinner' | 'bar';
+
 interface IndicatorProps {
   /** 色と置き方。回る円の大きさの既定は --size-icon */
   className?: string;

@@ -62,7 +62,7 @@ const columns: Column[] = [
 const Buttons = () => (
   <div className="flex flex-wrap gap-3">
     <Button color="primary">保存する</Button>
-    <Button color="surface">キャンセル</Button>
+    <Button color="white">キャンセル</Button>
     <Button color="neutral">キャンセル</Button>
     <Button appearance="outline" color="primary">
       下書きに保存

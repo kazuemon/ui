@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 
-import { Button, type ButtonProps, type LoadingIndicator } from '../../src/components/Button';
+import { Button, type ButtonProps } from '../../src/components/Button';
 import { type Candidate, type Column, Comparison } from './Comparison';
 
 // 後半の軸 16: loading 状態（ボタンの送信中）。5回目
@@ -31,7 +31,7 @@ const onFill: Partial<Record<Color, string>> = {
 };
 const inkColor = (appearance: Appearance, color: Color, indicator: Indicator) => {
   if (appearance === 'outline') return fill[color] ?? 'var(--color-fg)';
-  if (color === 'neutral' || color === 'surface') return 'var(--color-fg)';
+  if (color === 'neutral' || color === 'white') return 'var(--color-fg)';
   return indicator === 'bar' ? fill[color] : onFill[color];
 };
 
@@ -241,7 +241,7 @@ const EGroup = () => (
       <LoadingButton indicator="overlay">再読み込み</LoadingButton>
     </div>
     <div className="flex flex-wrap gap-3">
-      <LoadingButton indicator="overlay" color="surface">
+      <LoadingButton indicator="overlay" color="white">
         共有
       </LoadingButton>
       <LoadingButton indicator="overlay" appearance="outline" color="primary">
@@ -341,9 +341,15 @@ export const Candidates: Story = {
 const implementedPause = `
 [data-preview='busy'] .animate-loading-bar { animation-play-state: paused; animation-delay: -0.6s; }
 [data-preview='busy'] .animate-spin { animation-play-state: paused; }`;
-const implemented: [LoadingIndicator, string][] = [
-  ['overlay', 'overlay（既定・E）: 薄くしたラベルに回る円を重ねる'],
-  ['inline', 'inline（B）: ラベルの左に回る円'],
+// 実装した形。loadingIndicator と inlineSpinner の組み合わせで描く
+type Look = 'overlay' | 'inline' | 'bar';
+const lookProps = (look: Look) =>
+  look === 'bar'
+    ? ({ loadingIndicator: 'bar' } as const)
+    : ({ loadingIndicator: 'spinner', inlineSpinner: look === 'inline' } as const);
+const implemented: [Look, string][] = [
+  ['overlay', 'spinner（既定・E）: 薄くしたラベルに回る円を重ねる'],
+  ['inline', 'spinner と inlineSpinner（B）: ラベルの左に回る円'],
   ['bar', 'bar（C）: 下端に流れる線'],
 ];
 
@@ -352,11 +358,11 @@ const RealButtons = ({
   loading,
   onClick,
 }: {
-  indicator: LoadingIndicator;
+  indicator: Look;
   loading: boolean;
   onClick?: () => void;
 }) => {
-  const shared = { loading, loadingIndicator: indicator, onClick };
+  const shared = { loading, ...lookProps(indicator), onClick };
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-3">
@@ -367,7 +373,7 @@ const RealButtons = ({
           応援する
         </Button>
         <Button {...shared}>再読み込み</Button>
-        <Button {...shared} color="surface">
+        <Button {...shared} color="white">
           共有
         </Button>
       </div>
@@ -386,7 +392,7 @@ const RealButtons = ({
   );
 };
 
-const TryButtons = ({ indicator }: { indicator: LoadingIndicator }) => {
+const TryButtons = ({ indicator }: { indicator: Look }) => {
   const [loading, setLoading] = useState(false);
   const start = () => {
     setLoading(true);

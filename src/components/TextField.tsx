@@ -5,13 +5,13 @@ import {
   type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
-  type FieldLoadingIndicator,
   FieldLoadingBar,
   FieldSpinner,
 } from './Field';
 import { FieldAddon } from './FieldAddon';
 import { type AddonShape, FieldAddonDisabled } from './field-addon-context';
 import { controlBox } from './field-styles';
+import type { LoadingIndicator } from './Loading';
 
 // 文字はグレーのラベルで包み、要素（FieldAddonButton など）はそのまま置く
 // 文字（FieldAddon）は入力欄の説明（aria-describedby）につなぎ、文字そのものは読み上げから外す（aria-hidden — design/adr/0040）
@@ -90,7 +90,7 @@ export interface TextFieldProps extends Omit<
    * 待っているあいだの印。spinner は右端（suffix の前）に回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
-  loadingIndicator?: FieldLoadingIndicator;
+  loadingIndicator?: LoadingIndicator;
 }
 
 /**

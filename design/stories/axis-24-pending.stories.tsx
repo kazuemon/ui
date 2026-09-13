@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { Button, type ButtonProps, type LoadingIndicator } from '../../src/components/Button';
+import { Button, type ButtonProps } from '../../src/components/Button';
+import type { LoadingIndicator } from '../../src/components/Loading';
 import { Select, type SelectItem } from '../../src/components/Select';
 import { TextField } from '../../src/components/TextField';
 import { fieldStyles } from '../../src/components/field-styles';
@@ -916,12 +917,14 @@ type Color = NonNullable<ButtonProps['color']>;
 // C の「送信中」の色: 色のボタンは薄い塗りの上なので本文の色、枠線のボタンは枠線の色、グレー・白は元の文字の色
 const busyTone = (appearance: Appearance, color: Color) => {
   if (appearance === 'outline') return 'var(--button-accent)';
-  if (color === 'neutral' || color === 'surface') return 'var(--button-ink)';
+  if (color === 'neutral' || color === 'white') return 'var(--button-ink)';
   return 'var(--color-fg)';
 };
 
 interface BusyButtonProps {
   indicator: LoadingIndicator;
+  /** 回る円をラベルの左に置く（inlineSpinner） */
+  inline?: boolean;
   appearance?: Appearance;
   color?: Color;
   full?: boolean;
@@ -931,6 +934,7 @@ interface BusyButtonProps {
 // 送信中で固定した Button。C のために、ラベルと「送信中」を重ねて渡す（C でないときは「送信中」を描かない）
 const BusyButton = ({
   indicator,
+  inline,
   appearance = 'filled',
   color = 'neutral',
   full,
@@ -939,6 +943,7 @@ const BusyButton = ({
   <Button
     loading
     loadingIndicator={indicator}
+    inlineSpinner={inline}
     appearance={appearance}
     color={color}
     className={full ? 'w-full' : undefined}
@@ -967,25 +972,27 @@ const Group = ({ title, children }: { title: string; children: ReactNode }) => (
 const SpinnerButtons = () => (
   <div className="flex flex-col gap-5">
     <Group title="overlay（既定）">
-      <BusyButton indicator="overlay" color="primary">
+      <BusyButton indicator="spinner" color="primary">
         保存する
       </BusyButton>
-      <BusyButton indicator="overlay" color="secondary">
+      <BusyButton indicator="spinner" color="secondary">
         応援する
       </BusyButton>
-      <BusyButton indicator="overlay">再読み込み</BusyButton>
-      <BusyButton indicator="overlay" color="surface">
+      <BusyButton indicator="spinner">再読み込み</BusyButton>
+      <BusyButton indicator="spinner" color="white">
         共有
       </BusyButton>
-      <BusyButton indicator="overlay" appearance="outline" color="primary">
+      <BusyButton indicator="spinner" appearance="outline" color="primary">
         下書きに保存
       </BusyButton>
     </Group>
     <Group title="inline">
-      <BusyButton indicator="inline" color="primary">
+      <BusyButton indicator="spinner" inline color="primary">
         保存する
       </BusyButton>
-      <BusyButton indicator="inline">再読み込み</BusyButton>
+      <BusyButton indicator="spinner" inline>
+        再読み込み
+      </BusyButton>
     </Group>
   </div>
 );
@@ -1010,16 +1017,18 @@ const BarButtons = () => (
 const FollowButtons = () => (
   <div className="flex flex-col gap-5">
     <Group title="overlay（既定）">
-      <BusyButton indicator="overlay" color="primary">
+      <BusyButton indicator="spinner" color="primary">
         保存する
       </BusyButton>
-      <BusyButton indicator="overlay">再読み込み</BusyButton>
+      <BusyButton indicator="spinner">再読み込み</BusyButton>
     </Group>
     <Group title="inline">
-      <BusyButton indicator="inline" color="primary">
+      <BusyButton indicator="spinner" inline color="primary">
         保存する
       </BusyButton>
-      <BusyButton indicator="inline">再読み込み</BusyButton>
+      <BusyButton indicator="spinner" inline>
+        再読み込み
+      </BusyButton>
     </Group>
     <Group title="bar">
       <BusyButton indicator="bar" color="primary">

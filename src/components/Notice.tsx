@@ -4,8 +4,8 @@ import { tv } from 'tailwind-variants';
 import { focusRing } from './focus-styles';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from './icons';
 
-/** 状態の色。情報・成功・警告・危険 */
-export type NoticeTone = 'info' | 'success' | 'warning' | 'danger';
+/** お知らせの色。状態の色（情報・成功・警告・危険）だけを持つ */
+export type NoticeColor = 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * 見た目（design/adr/0043）
@@ -41,7 +41,7 @@ const notice = tv({
       ],
     },
     // 枠線の色（outline だけが使う）
-    tone: {
+    color: {
       info: '[--notice-line-color:var(--color-notice-info-line)]',
       success: '[--notice-line-color:var(--color-notice-success-line)]',
       warning: '[--notice-line-color:var(--color-notice-warning-line)]',
@@ -51,49 +51,49 @@ const notice = tv({
   compoundVariants: [
     {
       appearance: 'soft',
-      tone: 'info',
+      color: 'info',
       class:
         '[--notice-bg:var(--color-notice-info)] [--notice-fg:var(--color-on-notice-info)] [--notice-icon-color:var(--color-notice-info-icon)] [--notice-ring-color:var(--color-notice-info-ring)] [--notice-title-color:var(--color-notice-info-title)]',
     },
     {
       appearance: 'soft',
-      tone: 'success',
+      color: 'success',
       class:
         '[--notice-bg:var(--color-notice-success)] [--notice-fg:var(--color-on-notice-success)] [--notice-icon-color:var(--color-notice-success-icon)] [--notice-ring-color:var(--color-notice-success-ring)] [--notice-title-color:var(--color-notice-success-title)]',
     },
     {
       appearance: 'soft',
-      tone: 'warning',
+      color: 'warning',
       class:
         '[--notice-bg:var(--color-notice-warning)] [--notice-fg:var(--color-on-notice-warning)] [--notice-icon-color:var(--color-notice-warning-icon)] [--notice-ring-color:var(--color-notice-warning-ring)] [--notice-title-color:var(--color-notice-warning-title)]',
     },
     {
       appearance: 'soft',
-      tone: 'danger',
+      color: 'danger',
       class:
         '[--notice-bg:var(--color-notice-danger)] [--notice-fg:var(--color-on-notice-danger)] [--notice-icon-color:var(--color-notice-danger-icon)] [--notice-ring-color:var(--color-notice-danger-ring)] [--notice-title-color:var(--color-notice-danger-title)]',
     },
     {
       appearance: 'filled',
-      tone: 'info',
+      color: 'info',
       class:
         '[--notice-bg:var(--color-notice-info-filled)] [--notice-fg:var(--color-on-notice-info-filled)] [--notice-ring-color:var(--color-notice-info-filled-ring)]',
     },
     {
       appearance: 'filled',
-      tone: 'success',
+      color: 'success',
       class:
         '[--notice-bg:var(--color-notice-success-filled)] [--notice-fg:var(--color-on-notice-success-filled)] [--notice-ring-color:var(--color-notice-success-filled-ring)]',
     },
     {
       appearance: 'filled',
-      tone: 'warning',
+      color: 'warning',
       class:
         '[--notice-bg:var(--color-notice-warning-filled)] [--notice-fg:var(--color-on-notice-warning-filled)] [--notice-ring-color:var(--color-notice-warning-filled-ring)]',
     },
     {
       appearance: 'filled',
-      tone: 'danger',
+      color: 'danger',
       class:
         '[--notice-bg:var(--color-notice-danger-filled)] [--notice-fg:var(--color-on-notice-danger-filled)] [--notice-ring-color:var(--color-notice-danger-filled-ring)]',
     },
@@ -102,7 +102,7 @@ const notice = tv({
 });
 
 // アイコンは文と並ぶので線は Regular（design/adr/0018）。警告と危険は入力欄の下の行と同じ形（design/adr/0041）
-const iconOf: Record<NoticeTone, (props: { className?: string }) => ReactNode> = {
+const iconOf: Record<NoticeColor, (props: { className?: string }) => ReactNode> = {
   info: InfoIcon,
   success: CheckCircleIcon,
   warning: WarningIcon,
@@ -111,19 +111,22 @@ const iconOf: Record<NoticeTone, (props: { className?: string }) => ReactNode> =
 
 // 読み上げ: 題・本文・操作を role の箱に入れる。危険は alert（割り込む）、ほかは status（区切りを待つ）
 // あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる
-const roleOf: Record<NoticeTone, 'alert' | 'status'> = {
+const roleOf: Record<NoticeColor, 'alert' | 'status'> = {
   info: 'status',
   success: 'status',
   warning: 'status',
   danger: 'alert',
 };
 
-export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role' | 'children'> {
+export interface NoticeProps extends Omit<
+  ComponentProps<'div'>,
+  'title' | 'role' | 'children' | 'color'
+> {
   /**
-   * 状態の色。info・success・warning は role="status"、danger は割り込んで読む role="alert" になります（design/adr/0043）。
-   * 利用者が選ぶ primary・secondary・neutral とは別の、お知らせ専用の色です
+   * 色。状態の色（info・success・warning・danger）から選びます。info・success・warning は role="status"、
+   * danger は割り込んで読む role="alert" になります（design/adr/0043）。利用者が選ぶ primary・secondary・neutral は持ちません
    */
-  tone: NoticeTone;
+  color: NoticeColor;
   /**
    * 見た目。soft はタグと同じ淡い面、filled は白文字が載る濃い塗り（警告だけは黄色地に濃紺）、
    * outline は白い面に状態の色の枠線です。どの場面でどれを使うかは呼び出し側が選びます（design/adr/0043）
@@ -134,7 +137,7 @@ export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role
   title?: ReactNode;
   /** 本文 */
   children?: ReactNode;
-  /** 本文の下に置く操作。白いボタン（`<Button color="surface">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
+  /** 本文の下に置く操作。白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
   actions?: ReactNode;
   /** 渡すと右上に × を出す（読み上げは「閉じる」）。× は role の箱の外に置く */
   onClose?: () => void;
@@ -150,7 +153,7 @@ export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role
  * お知らせ
  */
 export function Notice({
-  tone,
+  color,
   appearance = 'soft',
   title,
   children,
@@ -160,20 +163,20 @@ export function Notice({
   className,
   ...props
 }: NoticeProps) {
-  const Icon = iconOf[tone];
+  const Icon = iconOf[color];
   return (
     <div
       data-slot="notice"
-      data-tone={tone}
+      data-color={color}
       data-appearance={appearance}
       {...props}
-      className={notice({ appearance, tone, className })}
+      className={notice({ appearance, color, className })}
     >
       {/* 1行目の中央にそろえる（行の高さとアイコンの差は、どちらの密度も 4px） */}
       <span className="mt-0.5 flex shrink-0 text-(color:--notice-icon-color)">
         <Icon />
       </span>
-      <div role={live ? roleOf[tone] : undefined} className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div role={live ? roleOf[color] : undefined} className="flex min-w-0 flex-1 flex-col gap-0.5">
         {title ? <p className="font-bold text-(color:--notice-title-color)">{title}</p> : null}
         {children ? <div>{children}</div> : null}
         {/* 文字のリンクの上下の余白（フォーカスの線を離す 2px）は、文の中のリンクと同じく行の高さに数えない */}

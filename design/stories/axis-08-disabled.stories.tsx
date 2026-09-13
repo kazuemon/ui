@@ -166,7 +166,7 @@ const Buttons = () => (
       <Button color="neutral" disabled>
         キャンセル
       </Button>
-      <Button color="surface" disabled>
+      <Button color="white" disabled>
         キャンセル
       </Button>
       <Button appearance="outline" color="primary" disabled>

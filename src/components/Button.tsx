@@ -13,7 +13,7 @@ import {
   warnOnce,
   withoutNavigation,
 } from './link-parts';
-import { LoadingBar, Spinner } from './Loading';
+import { type LoadingIndicator, LoadingBar, Spinner } from './Loading';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
 // 原則3: hover で影が輪郭だけになり、押下で 1px 沈む（design/adr/0009）。押しても輪郭の線は残す（design/adr/0033）
@@ -68,8 +68,8 @@ const button = tv({
       ],
     },
     // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028
-    // surface は白いボタン。白い地では影だけでは区別がつかないので、輪郭も付ける（design/adr/0024・0025）
-    color: { primary: '', secondary: '', danger: '', neutral: '', surface: '' },
+    // white は白いボタン。白い地では影だけでは区別がつかないので、輪郭も付ける（design/adr/0024・0025）
+    color: { primary: '', secondary: '', danger: '', neutral: '', white: '' },
   },
   compoundVariants: [
     {
@@ -106,7 +106,7 @@ const button = tv({
     },
     {
       appearance: 'filled',
-      color: 'surface',
+      color: 'white',
       class: [
         '[--button-accent:var(--color-fg)] [--button-fill:var(--color-surface)] [--button-text:var(--color-fg)]',
         'border-(length:--surface-line-width) border-surface-line',
@@ -124,7 +124,7 @@ const button = tv({
     // Disabled は、色を持つ枠線のボタン（薄くする）とは別に指定する — design/adr/0029
     {
       appearance: 'outline',
-      color: ['neutral', 'surface'],
+      color: ['neutral', 'white'],
       class: [
         'text-fg [--button-accent:var(--color-fg)] [--button-ink:var(--color-fg)] [--button-line:var(--color-line)]',
         'disabled:bg-(color:--color-outline-neutral-disabled-fill) disabled:opacity-(--outline-neutral-disabled-opacity)',
@@ -141,11 +141,8 @@ const button = tv({
   defaultVariants: { appearance: 'filled', color: 'neutral' },
 });
 
-/** 送信中の印。overlay: 薄くしたラベルに回る円を重ねる（既定）、inline: ラベルの左に回る円、bar: 下端に流れる線 */
-export type LoadingIndicator = 'overlay' | 'inline' | 'bar';
-
 // Props は、ボタン（render なし — ButtonProps）とリンク（render あり — ButtonLinkProps）の2つの形に分ける（design/adr/0046）
-// リンクは送信中を持たないので、render と一緒には loading・loadingIndicator・type を渡せない（型で止める）
+// リンクは送信中を持たないので、render と一緒には loading・loadingIndicator・inlineSpinner・type を渡せない（型で止める）
 // ButtonProps は、いままでどおりボタンの props の名前（interface で extends できるよう、2つをまとめた union にはしない）
 type ButtonBaseProps = Omit<ComponentProps<'button'>, 'color' | 'type'> &
   VariantProps<typeof button>;
@@ -160,11 +157,16 @@ export interface ButtonProps extends ButtonBaseProps {
    */
   loading?: boolean;
   /**
-   * 送信中の印。overlay はラベルを55%に薄くして回る円を重ねます。inline はラベルの左に回る円、
-   * bar は下端に流れる線です。印そのものは薄くしません（原則1、design/adr/0034）。
-   * @default 'overlay'
+   * 送信中の印。spinner は回る円、bar は下端に流れる線です。回る円は、ふだんはラベルを55%に薄くして重ね、
+   * inlineSpinner を付けるとラベルの左に置きます。印そのものは薄くしません（原則1、design/adr/0034）。
+   * @default 'spinner'
    */
   loadingIndicator?: LoadingIndicator;
+  /**
+   * 回る円（loadingIndicator="spinner"）を、ラベルに重ねずにラベルの左に置きます。bar のときは使いません
+   * @default false
+   */
+  inlineSpinner?: boolean;
   /**
    * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
    * @default 'filled'
@@ -172,7 +174,7 @@ export interface ButtonProps extends ButtonBaseProps {
   appearance?: VariantProps<typeof button>['appearance'];
   /**
    * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
-   * danger は削除など危険な操作に使います。surface は白いボタンで、枠線と影で押せることを示します
+   * danger は削除など危険な操作に使います。white は白いボタンで、枠線と影で押せることを示します
    * （design/adr/0024・0025）。指定しないときは既定のグレー（neutral）になります。
    * @default 'neutral'
    */
@@ -191,6 +193,7 @@ export interface ButtonLinkProps extends ButtonBaseProps {
   /** リンクは送信中を持たない（型で止める。渡されても無視し、開発時に警告する） */
   loading?: never;
   loadingIndicator?: never;
+  inlineSpinner?: never;
   /** リンクには付けない */
   type?: never;
   /**
@@ -201,7 +204,7 @@ export interface ButtonLinkProps extends ButtonBaseProps {
   appearance?: VariantProps<typeof button>['appearance'];
   /**
    * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
-   * danger は削除など危険な操作に使います。surface は白いボタンで、枠線と影で押せることを示します
+   * danger は削除など危険な操作に使います。white は白いボタンで、枠線と影で押せることを示します
    * （design/adr/0024・0025）。指定しないときは既定のグレー（neutral）になります。
    * @default 'neutral'
    */
@@ -216,7 +219,7 @@ export interface ButtonLinkProps extends ButtonBaseProps {
  * 新しいタブで開く（渡した要素の target="_blank"）ときは、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
  * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする
  *   見た目は <Button disabled> と同じ（data-disabled）。↗ は残す。Tab では止まらず、押しても何もしない（onClick も呼ばない）
- * リンクは送信中を持たない。loading・loadingIndicator・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
+ * リンクは送信中を持たない。loading・loadingIndicator・inlineSpinner・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
  */
 function ButtonLink({
   appearance,
@@ -225,13 +228,14 @@ function ButtonLink({
   render,
   loading,
   loadingIndicator,
+  inlineSpinner,
   disabled,
   type,
   children,
   ref,
   ...props
 }: ButtonLinkProps) {
-  if (loading !== undefined || loadingIndicator !== undefined)
+  if (loading !== undefined || loadingIndicator !== undefined || inlineSpinner !== undefined)
     warnOnce(
       'Button: リンク（render）は送信中を持ちません。loading は無視します（design/adr/0046）'
     );
@@ -269,13 +273,17 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
     className,
     type = 'button',
     loading,
-    loadingIndicator = 'overlay',
+    loadingIndicator = 'spinner',
+    inlineSpinner = false,
     onClick,
     children,
     render: _render,
     ...props
   } = allProps;
   const busy = !!loading;
+  // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない
+  const overlay = busy && loadingIndicator === 'spinner' && !inlineSpinner;
+  const inline = busy && loadingIndicator === 'spinner' && inlineSpinner;
   return (
     <button
       type={type}
@@ -292,7 +300,7 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
       }}
       className={button({ appearance, color, className })}
     >
-      {busy && loadingIndicator === 'inline' && <Spinner className="text-(color:--button-ink)" />}
+      {inline && <Spinner className="text-(color:--button-ink)" />}
       {/* loading を使うボタンは、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
       {loading === undefined ? (
         children
@@ -300,7 +308,7 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
         <span
           className={[
             'inline-flex items-center gap-2 [transition:opacity_var(--duration-loading)_var(--ease-press)] motion-reduce:[transition:none]',
-            busy && loadingIndicator === 'overlay' && 'opacity-(--loading-label-opacity)',
+            overlay && 'opacity-(--loading-label-opacity)',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -308,7 +316,7 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
           {children}
         </span>
       )}
-      {busy && loadingIndicator === 'overlay' && (
+      {overlay && (
         <span
           aria-hidden
           className="absolute inset-0 flex animate-loading-in items-center justify-center"

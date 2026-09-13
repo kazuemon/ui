@@ -202,7 +202,7 @@ export function Form({
             ].join(' ')}
           >
             <Notice
-              tone="danger"
+              color="danger"
               live={false}
               title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
             >

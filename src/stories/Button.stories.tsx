@@ -3,14 +3,21 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent } from 'storybook/test';
 
-import { Button, type ButtonProps, type LoadingIndicator } from '../components/Button';
+import { Button, type ButtonProps } from '../components/Button';
 import { CheckIcon } from '../components/icons';
+import type { LoadingIndicator } from '../components/Loading';
 import { DensityPair, Matrix } from './story-parts';
 import { pressColumns, statePseudo } from './story-states';
 
 const appearances = ['filled', 'outline'] as const;
-const colors = ['primary', 'secondary', 'danger', 'neutral', 'surface'] as const;
-const indicators: LoadingIndicator[] = ['overlay', 'inline', 'bar'];
+const colors = ['primary', 'secondary', 'danger', 'neutral', 'white'] as const;
+const indicators: LoadingIndicator[] = ['spinner', 'bar'];
+// 送信中の形。回る円は、ラベルに重ねる（既定）か、inlineSpinner でラベルの左に置く
+const looks = [
+  { label: 'spinner', loadingIndicator: 'spinner', inlineSpinner: false },
+  { label: 'spinner + inlineSpinner', loadingIndicator: 'spinner', inlineSpinner: true },
+  { label: 'bar', loadingIndicator: 'bar', inlineSpinner: false },
+] as const;
 const colorColumns = colors.map((color) => ({ label: color, color }));
 
 const meta = {
@@ -24,7 +31,7 @@ const meta = {
           '押して操作を実行するボタンです。',
           '',
           '- 画面の中で最も進めたい操作を `appearance="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。',
-          '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`surface` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
+          '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`white` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
           '- 送信中は `loading` を付けます。押せないボタンと同じ見た目になり、押しても `onClick` を呼びません。`disabled` と違い、フォーカスは外れません。',
           '- `render` に `<a href>` やルーターのリンクを渡すと、同じ見た目のリンクになります（「リンクとして使う」）。',
         ].join('\n'),
@@ -38,7 +45,8 @@ const meta = {
     color: 'neutral',
     disabled: false,
     loading: false,
-    loadingIndicator: 'overlay',
+    loadingIndicator: 'spinner',
+    inlineSpinner: false,
     type: 'button',
     onClick: fn(),
   },
@@ -60,8 +68,9 @@ const meta = {
     loadingIndicator: {
       control: 'inline-radio',
       options: indicators,
-      table: { defaultValue: { summary: "'overlay'" } },
+      table: { defaultValue: { summary: "'spinner'" } },
     },
+    inlineSpinner: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     type: {
       control: 'inline-radio',
       options: ['button', 'submit', 'reset'],
@@ -86,7 +95,7 @@ export const Colors: Story = {
     docs: {
       description: {
         story:
-          '行が見た目（`appearance`）、列が色（`color`）です。枠線の `surface` は `neutral` と同じ見た目です。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
+          '行が見た目（`appearance`）、列が色（`color`）です。枠線の `white` は `neutral` と同じ見た目です。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
       },
     },
   },
@@ -130,21 +139,26 @@ export const Loading: Story = {
   name: '送信中',
   args: { children: '送信する', loading: true },
   parameters: {
-    controls: { exclude: ['color', 'loadingIndicator'] },
+    controls: { exclude: ['color', 'loadingIndicator', 'inlineSpinner'] },
     docs: {
       description: {
         story:
-          '行が送信中の印（`loadingIndicator`）、列が色です。`overlay`（既定）はラベルを薄くして回る円を重ね、`inline` はラベルの左に回る円、`bar` は下端に流れる線を出します。印そのものは薄くしません。',
+          '行が送信中の印、列が色です。`loadingIndicator="spinner"`（既定）はラベルを薄くして回る円を重ね、`inlineSpinner` を付けるとラベルの左に回る円を置きます。`bar` は下端に流れる線です（`inlineSpinner` は使いません）。印そのものは薄くしません。',
       },
     },
   },
   render: (args) => (
     <Matrix
-      rows={indicators}
-      rowLabel={(indicator) => indicator}
+      rows={looks}
+      rowLabel={(look) => look.label}
       columns={colorColumns}
-      renderCell={(indicator, { color }) => (
-        <Button {...args} color={color} loadingIndicator={indicator} />
+      renderCell={(look, { color }) => (
+        <Button
+          {...args}
+          color={color}
+          loadingIndicator={look.loadingIndicator}
+          inlineSpinner={look.inlineSpinner}
+        />
       )}
     />
   ),

@@ -8,15 +8,15 @@ import { Link } from '../components/Link';
 import {
   Notice,
   type NoticeAppearance,
+  type NoticeColor,
   type NoticeProps,
-  type NoticeTone,
 } from '../components/Notice';
 import { Gallery, Matrix, Specimen } from './story-parts';
 
-const tones: NoticeTone[] = ['info', 'success', 'warning', 'danger'];
+const colors: NoticeColor[] = ['info', 'success', 'warning', 'danger'];
 const appearances: NoticeAppearance[] = ['soft', 'filled', 'outline'];
 
-const samples: Record<NoticeTone, { title: string; body: string }> = {
+const samples: Record<NoticeColor, { title: string; body: string }> = {
   info: { title: 'メンテナンスのお知らせ', body: '9月20日 2:00〜4:00 は、サービスを使えません。' },
   success: { title: '保存しました', body: '変更は、すぐにプロフィールに反映されます。' },
   warning: {
@@ -31,7 +31,7 @@ const samples: Record<NoticeTone, { title: string; body: string }> = {
 
 const SampleActions = () => (
   <>
-    <Button color="surface">もう一度試す</Button>
+    <Button color="white">もう一度試す</Button>
     <Link href="#detail">くわしく見る</Link>
   </>
 );
@@ -49,17 +49,17 @@ const meta = {
         component: [
           '情報・成功・警告・危険を知らせる帯です。お知らせそのものは押せず、押せるのは中の操作だけです。',
           '',
-          '- `tone` は状態の色です。利用者が選ぶ `primary` などとは別の、お知らせ専用の色です。',
+          '- `color` は状態の色（`info`・`success`・`warning`・`danger`）から選びます。利用者が選ぶ `primary`・`secondary`・`neutral` は持ちません。',
           '- 題・本文・操作は読み上げの箱に入ります。`info`・`success`・`warning` は `role="status"`（区切りを待って読む）、`danger` は `role="alert"`（割り込んで読む）です。',
           '- `appearance` は見た目です。`soft`（既定）は淡い面、`filled` は濃い塗り、`outline` は白い面に状態の色の枠線です。',
-          '- 操作は `actions` に、白いボタン（`<Button color="surface">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
+          '- 操作は `actions` に、白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
           '- `onClose` を渡すと、右上に閉じるボタン（×）が出ます。',
         ].join('\n'),
       },
     },
   },
   args: {
-    tone: 'info',
+    color: 'info',
     appearance: 'soft',
     title: samples.info.title,
     children: samples.info.body,
@@ -69,7 +69,7 @@ const meta = {
     onClose: fn(),
   },
   argTypes: {
-    tone: { control: 'inline-radio', options: tones },
+    color: { control: 'inline-radio', options: colors },
     appearance: { control: 'inline-radio', options: appearances },
     title: { control: 'text' },
     children: { control: 'text' },
@@ -110,31 +110,31 @@ export const Playground: Story = {
   ],
 };
 
-export const TonesAndAppearances: Story = {
-  name: '状態の色と見た目',
+export const ColorsAndAppearances: Story = {
+  name: '色と見た目',
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
         story:
-          '行が状態の色（`tone`）、列が見た目（`appearance`）です。`filled` の警告だけは、黄色の塗りに濃い文字です。',
+          '行が色（`color`）、列が見た目（`appearance`）です。`filled` の警告だけは、黄色の塗りに濃い文字です。',
       },
     },
   },
   render: () => (
     <Matrix
-      rows={tones}
-      rowLabel={(tone) => tone}
+      rows={colors}
+      rowLabel={(color) => color}
       columns={appearances.map((appearance) => ({ label: appearance, appearance }))}
       columnWidth="20rem"
-      renderCell={(tone, { appearance }) => (
+      renderCell={(color, { appearance }) => (
         <Notice
-          tone={tone}
+          color={color}
           appearance={appearance}
-          title={samples[tone].title}
+          title={samples[color].title}
           actions={<SampleActions />}
         >
-          {samples[tone].body}
+          {samples[color].body}
         </Notice>
       )}
     />
@@ -144,7 +144,7 @@ export const TonesAndAppearances: Story = {
 export const WithClose: Story = {
   name: '操作と閉じるボタン',
   args: {
-    tone: 'danger',
+    color: 'danger',
     title: samples.danger.title,
     children: samples.danger.body,
     showActions: true,
@@ -177,10 +177,10 @@ export const TextOnly: Story = {
   render: ({ appearance }) => (
     <Gallery columnWidth="20rem">
       <Specimen label="題だけ">
-        <Notice tone="success" appearance={appearance} title={samples.success.title} />
+        <Notice color="success" appearance={appearance} title={samples.success.title} />
       </Specimen>
       <Specimen label="本文だけ">
-        <Notice tone="info" appearance={appearance}>
+        <Notice color="info" appearance={appearance}>
           {samples.info.body}
         </Notice>
       </Specimen>

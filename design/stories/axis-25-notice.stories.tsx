@@ -454,7 +454,7 @@ function Notice({
         {children && <p>{children}</p>}
         {showAction && layout === 'card' && (
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <Button color="surface">{action}</Button>
+            <Button color="white">{action}</Button>
           </div>
         )}
         {showAction && layout !== 'card' && <p className="mt-1">{link}</p>}
@@ -518,7 +518,7 @@ const ToneNotices = ({ has, real }: ToneCellProps) => (
     {tones.map((t) =>
       has.includes(t) ? (
         real ? (
-          <RealNotice key={t} tone={t} appearance={real} title={noticeSamples[t].title}>
+          <RealNotice key={t} color={t} appearance={real} title={noticeSamples[t].title}>
             {noticeSamples[t].body}
           </RealNotice>
         ) : (
@@ -633,7 +633,7 @@ const PageContext = ({ has, real }: ToneCellProps) => (
     </div>
     {has.includes('info') ? (
       real ? (
-        <RealNotice tone="info" appearance={real}>
+        <RealNotice color="info" appearance={real}>
           パスワードは、半年ごとに変えることをおすすめします。
         </RealNotice>
       ) : (
@@ -651,7 +651,7 @@ const PageContext = ({ has, real }: ToneCellProps) => (
     </div>
     {has.includes('success') ? (
       real ? (
-        <RealNotice tone="success" appearance={real} title="招待を送りました" />
+        <RealNotice color="success" appearance={real} title="招待を送りました" />
       ) : (
         <Notice tone="success" title="招待を送りました" />
       )
@@ -660,7 +660,7 @@ const PageContext = ({ has, real }: ToneCellProps) => (
     )}
     {has.includes('danger') ? (
       real ? (
-        <RealNotice tone="danger" appearance={real} title="記事を削除できませんでした" />
+        <RealNotice color="danger" appearance={real} title="記事を削除できませんでした" />
       ) : (
         <Notice tone="danger" title="記事を削除できませんでした" />
       )
@@ -801,7 +801,7 @@ function ShapeNotice({
     );
   return (
     <RealNotice
-      tone={props.tone}
+      color={props.tone}
       appearance={real}
       title={props.title}
       actions={
@@ -1147,13 +1147,13 @@ function ImplementedNotice({ tone, appearance }: { tone: Tone; appearance: Notic
     );
   return (
     <RealNotice
-      tone={tone}
+      color={tone}
       appearance={appearance}
       title={sample.title}
       onClose={() => setClosed(true)}
       actions={
         <>
-          {sample.button && <Button color="surface">{sample.button}</Button>}
+          {sample.button && <Button color="white">{sample.button}</Button>}
           <Link href="#" onClick={(e) => e.preventDefault()}>
             {sample.link}
           </Link>
