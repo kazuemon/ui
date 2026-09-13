@@ -192,8 +192,12 @@ export function Notice({
           aria-label="閉じる"
           onClick={onClose}
           className={[
-            // 押せる範囲は行の高さ＋8px（指用 32px・マウス用 28px）。上と右に 4px はみ出させ、1行目の中央にそろえる
-            '-my-1 -mr-1 grid size-[calc(var(--leading-control)+8px)] shrink-0 cursor-pointer place-items-center rounded-pill',
+            // 大きさ（押せる範囲）は --notice-close-to-control で決める。0 は行の高さ＋8px（指用 32px・マウス用 28px）、
+            // 1 は部品の高さ（--size-control）。密度で変わる値から、この要素で計算する。角丸は --notice-close-radius
+            // 1行目の中央にそろえ、上と右にはみ出させる
+            '[--notice-close-size:calc(var(--notice-close-to-control)_*_var(--size-control)_+_(1_-_var(--notice-close-to-control))_*_(var(--leading-control)_+_8px))]',
+            '-my-[calc((var(--notice-close-size)_-_var(--leading-control))_/_2)] -mr-[calc((var(--notice-close-size)_-_var(--leading-control))_/_2)]',
+            'grid size-(--notice-close-size) shrink-0 cursor-pointer place-items-center rounded-(--notice-close-radius)',
             // 平らな要素（原則3、design/adr/0027）: 文字の色を淡く敷き、押下で 1px 沈む
             'hover:bg-flat-hover active:translate-y-(--flat-press-depth) active:bg-flat-press',
             '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',

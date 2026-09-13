@@ -504,6 +504,12 @@
      角丸は部品と同じ 12px。余白は部品の左右の余白（--space-control-x。指用 16px・マウス用 12px）、
      アイコンと文の間は --space-control-x から 4px 引いた値（12px・8px）。どちらも密度で変わるので、部品の中で計算する */
   --notice-radius: var(--radius-control);
+  /* お知らせの ×（onClose）の大きさと角丸 — adr/0043、軸 30 の B
+     --notice-close-to-control: 0 は行の高さ＋8px（指用 32px・マウス用 28px）、1 は部品の高さ（--size-control。大きい指用で 52px）。
+     大きさは密度で変わる値から部品の中で計算するので、ここには切り替えだけを置く。
+     既定は部品の高さの角丸の四角（押せる範囲を見た目と一致させ、大きい指用でも大きくする） */
+  --notice-close-to-control: 1;
+  --notice-close-radius: var(--radius-control);
 
   /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
   --surface-line-width: 1px;

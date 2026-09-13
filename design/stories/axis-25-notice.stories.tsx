@@ -10,6 +10,7 @@ import { type NoticeAppearance, Notice as RealNotice } from '../../src/component
 import { Tag } from '../../src/components/Tag';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepNoticeCloseAsCompared } from './pins';
 
 // 後半の軸 25: お知らせと状態の色（原則6・原則12）。1回目
 // 決定（adr/0043）: 状態の色は C（淡い面）を既定にし、D（濃い塗り）も選べる。形は A（縦に積む）で、E（枠線）も選べる
@@ -931,6 +932,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/25 お知らせと状態の色',
+  decorators: [keepNoticeCloseAsCompared],
   id: 'design-review-25-notice',
   parameters: { layout: 'fullscreen' },
   args: { pick: '' },

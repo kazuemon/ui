@@ -17,3 +17,17 @@ export const keepSwitchAsCompared = (Story: () => ReactNode) => (
     <Story />
   </div>
 );
+
+// お知らせの ×（軸 30 より前に比べたもの）
+//   いまは部品の高さの角丸の四角。比べたときは行の高さ＋8px の丸
+const noticeCloseAsCompared: CSSProperties & Record<`--${string}`, string> = {
+  '--notice-close-to-control': '0',
+  '--notice-close-radius': 'var(--radius-pill)',
+};
+
+/** お知らせの × を、比べたときの見た目（行の高さ＋8px の丸）に戻す */
+export const keepNoticeCloseAsCompared = (Story: () => ReactNode) => (
+  <div style={noticeCloseAsCompared}>
+    <Story />
+  </div>
+);
