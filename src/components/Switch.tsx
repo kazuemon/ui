@@ -69,6 +69,12 @@ export interface SwitchProps
   label: ReactNode;
   caption?: ReactNode;
   className?: string;
+  /**
+   * ON のときの色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（濃いグレー）を選べます（原則6）。
+   * OFF のトラックは、色を指定していても常に入力欄と同じグレーです。指定しないときは既定のグレー（neutral）になります
+   * @default 'neutral'
+   */
+  color?: VariantProps<typeof styles>['color'];
 }
 
 /**

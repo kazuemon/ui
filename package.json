@@ -13,7 +13,8 @@
     "typecheck": "tsc -b",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "fonts": "node scripts/generate-fonts.mjs"
+    "fonts": "node scripts/generate-fonts.mjs",
+    "check:principles": "node design/tools/check-principles.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -84,12 +84,22 @@ function focusField(form: HTMLFormElement, messageId: string, select: boolean) {
 export interface FormProps extends ComponentProps<'form'> {
   /**
    * 送信したときのエラーの知らせ方（design/adr/0044）
-   * false（既定）: エラーのある最初の欄へフォーカスを移し、入力した文字を選ぶ。その欄の名前と説明（キャプション → エラー）が読まれる
+   * false: エラーのある最初の欄へフォーカスを移し、入力した文字を選ぶ。その欄の名前と説明（キャプション → エラー）が読まれる
    * true: フォームの上にエラーの一覧（危険のお知らせ。題と、各欄へのリンク「欄の名前: エラーの文」）を出し、一覧へフォーカスを移す。長いフォーム向け
+   * @default false
    */
   errorSummary?: boolean;
-  /** エラーの一覧の題。既定は「入力を確かめてください（N件）」 */
+  /**
+   * エラーの一覧の題です。errorSummary が true のときだけ使います
+   * @default (count) => `入力を確かめてください（${count}件）`
+   */
   errorSummaryTitle?: (count: number) => string;
+  /**
+   * ブラウザの既定の検証エラー表示（吹き出し）を出すかどうかです。false にすると、欄の下の行（Field）だけで知らせます。
+   * このシステムは自前の form を使うため、既定でブラウザの吹き出しを止めています
+   * @default false
+   */
+  noValidate?: boolean;
 }
 
 /**

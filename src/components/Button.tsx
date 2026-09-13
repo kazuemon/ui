@@ -152,15 +152,31 @@ type ButtonBaseProps = Omit<ComponentProps<'button'>, 'color' | 'type'> &
 
 /** ボタン（<button>）の props */
 export interface ButtonProps extends ButtonBaseProps {
-  /** 既定は button */
+  /** @default 'button' */
   type?: ComponentProps<'button'>['type'];
   /**
    * 送信中。押せないボタンと同じ見た目になり、押しても onClick を呼ばない（フォームも送信しない）。
    * disabled と違い、フォーカスは外れない（aria-disabled・aria-busy）
    */
   loading?: boolean;
-  /** 送信中の印。既定は overlay */
+  /**
+   * 送信中の印。overlay はラベルを55%に薄くして回る円を重ねます。inline はラベルの左に回る円、
+   * bar は下端に流れる線です。印そのものは薄くしません（原則1、design/adr/0034）。
+   * @default 'overlay'
+   */
   loadingIndicator?: LoadingIndicator;
+  /**
+   * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
+   * @default 'filled'
+   */
+  appearance?: VariantProps<typeof button>['appearance'];
+  /**
+   * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
+   * danger は削除など危険な操作に使います。surface は白いボタンで、枠線と影で押せることを示します
+   * （design/adr/0024・0025）。指定しないときは既定のグレー（neutral）になります。
+   * @default 'neutral'
+   */
+  color?: VariantProps<typeof button>['color'];
   render?: undefined;
 }
 
@@ -177,6 +193,19 @@ export interface ButtonLinkProps extends ButtonBaseProps {
   loadingIndicator?: never;
   /** リンクには付けない */
   type?: never;
+  /**
+   * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
+   * ボタンの見た目のリンクでも角丸は 12px のままで、リンクは pill という規則の例外にはなりません（design/adr/0046）。
+   * @default 'filled'
+   */
+  appearance?: VariantProps<typeof button>['appearance'];
+  /**
+   * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
+   * danger は削除など危険な操作に使います。surface は白いボタンで、枠線と影で押せることを示します
+   * （design/adr/0024・0025）。指定しないときは既定のグレー（neutral）になります。
+   * @default 'neutral'
+   */
+  color?: VariantProps<typeof button>['color'];
 }
 
 /**

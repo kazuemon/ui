@@ -102,6 +102,13 @@ export type LinkContentAlign = NonNullable<VariantProps<typeof link>['contentAli
 
 export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantProps<typeof link> {
   /**
+   * 幅いっぱいに広げた枠線のリンクで、文字とアイコンをどう寄せるか（design/adr/0046）。枠線のリンクだけに効き、文字のリンクには効きません。
+   * center は文字とアイコンをまとめて中央に寄せます。between は文字を左、最後のアイコンを右端に置きます（並べて縦にそろえたいとき）。
+   * center-end は文字を箱全体の中央、最後のアイコンを右端に置きます（1本をボタンのように中央に見せたいとき）。
+   * @default 'center'
+   */
+  contentAlign?: VariantProps<typeof link>['contentAlign'];
+  /**
    * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に Link の見た目を重ねる。
    * href などは渡す要素に書く（例: `render={<NextLink href="/works" />}`）。ラベルは Link の children に書く
    * 渡さないときは <a> を描く（href は Link に書く）

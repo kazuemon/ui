@@ -22,7 +22,14 @@ const tag = tv({
   defaultVariants: { color: 'neutral' },
 });
 
-export interface TagProps extends Omit<ComponentProps<'span'>, 'color'>, VariantProps<typeof tag> {}
+export interface TagProps extends Omit<ComponentProps<'span'>, 'color'>, VariantProps<typeof tag> {
+  /**
+   * 色。primary・secondary・neutral は利用者が選ぶ色（原則6）で、指定しないときは既定のグレー（neutral）になります。
+   * info・success・warning・danger は状態を表す色で、淡い面のお知らせ（soft）の面と題と同じ値です（design/adr/0038・0043）
+   * @default 'neutral'
+   */
+  color?: VariantProps<typeof tag>['color'];
+}
 
 /**
  * タグ

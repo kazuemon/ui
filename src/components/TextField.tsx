@@ -50,7 +50,10 @@ export interface TextFieldProps extends Omit<
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
-  /** キャプションの場所。既定は top（ラベルと本体のあいだ）。bottom は本体の下（design/adr/0041） */
+  /**
+   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
+   * @default 'top'
+   */
   captionPlacement?: CaptionPlacement;
   /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
   error?: ReactNode;
@@ -59,18 +62,34 @@ export interface TextFieldProps extends Omit<
   className?: string;
   /** 入力欄の前に付くもの。文字を渡すとグレーのラベルになる。ボタンは FieldAddonButton を渡す */
   prefix?: ReactNode;
-  /** 入力欄の後ろに付くもの。文字を渡すとグレーのラベルになる。ボタンは FieldAddonButton を渡す */
+  /**
+   * 入力欄の後ろに付くもの。文字を渡すとグレーのラベルになる。ボタンは FieldAddonButton を渡す。
+   * suffix のボタンは、パスワードの表示・非表示のように入力欄そのものを操作するものに限ります。
+   * 検索のように値を送るボタンは、欄の外に色付き・枠線のボタンとして置きます（design/adr/0024）
+   */
   suffix?: ReactNode;
-  /** prefix・suffix の形。既定は attached（本体の端に接する）、floating は本体の内側に浮かせる */
+  /**
+   * prefix・suffix の形。attached は本体の端に接する塊、floating は本体の内側に 4px 浮かせます。
+   * floating は、欄の外形を入力欄だけのときと同じにしたいときや、グレーを軽く見せたいときに使います（design/adr/0035）
+   * @default 'attached'
+   */
   addonShape?: AddonShape;
-  /** 待っている（値を確かめているなど）。印を出し、aria-busy を付ける（design/adr/0042） */
+  /**
+   * 待っている（値を確かめている・送っているなど）。印を出し、aria-busy を付けます（design/adr/0042）
+   * @default false
+   */
   loading?: boolean;
   /**
-   * 待っているあいだの欄の扱い。既定は non-blocking（書き換えられる）
-   * blocking: 押せない欄と同じ見た目にし、書き換えられない（readOnly・aria-disabled）。フォーカスは外さず、枠線と印は薄くしない
+   * 待っているあいだの欄の扱い（design/adr/0042）
+   * non-blocking は書き換えられたままにします。blocking は押せない欄と同じ見た目にし、
+   * 書き換えられなくします（readOnly・aria-disabled）。どちらもフォーカスは外さず、枠線と印は薄くしません
+   * @default 'non-blocking'
    */
   loadingBehavior?: FieldLoadingBehavior;
-  /** 待っているあいだの印。既定は spinner（右端に回る円。suffix の前）。bar は下端に流れる線 */
+  /**
+   * 待っているあいだの印。spinner は右端（suffix の前）に回る円、bar は下端に流れる線です
+   * @default 'spinner'
+   */
   loadingIndicator?: FieldLoadingIndicator;
 }
 

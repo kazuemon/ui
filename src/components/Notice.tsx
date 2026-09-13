@@ -119,9 +119,16 @@ const roleOf: Record<NoticeTone, 'alert' | 'status'> = {
 };
 
 export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role' | 'children'> {
-  /** 状態の色 */
+  /**
+   * 状態の色。info・success・warning は role="status"、danger は割り込んで読む role="alert" になります（design/adr/0043）。
+   * 利用者が選ぶ primary・secondary・neutral とは別の、お知らせ専用の色です
+   */
   tone: NoticeTone;
-  /** 見た目。既定は soft */
+  /**
+   * 見た目。soft はタグと同じ淡い面、filled は白文字が載る濃い塗り（警告だけは黄色地に濃紺）、
+   * outline は白い面に状態の色の枠線です。どの場面でどれを使うかは呼び出し側が選びます（design/adr/0043）
+   * @default 'soft'
+   */
   appearance?: NoticeAppearance;
   /** 太字の題。soft では状態の色、filled・outline では本文と同じ色 */
   title?: ReactNode;
@@ -132,8 +139,9 @@ export interface NoticeProps extends Omit<ComponentProps<'div'>, 'title' | 'role
   /** 渡すと右上に × を出す（読み上げは「閉じる」）。× は role の箱の外に置く */
   onClose?: () => void;
   /**
-   * 題・本文・操作を role の箱（危険は alert、ほかは status）に入れるか。既定は true
+   * 題・本文・操作を role の箱（危険は alert、ほかは status）に入れるか
    * false は、出したお知らせにフォーカスを移して読ませるときに使う（Form のエラーの一覧 — design/adr/0044）。箱に入れたままだと、出たときとフォーカスが移ったときの2回読まれる
+   * @default true
    */
   live?: boolean;
 }

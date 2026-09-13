@@ -77,7 +77,10 @@ export interface SelectProps {
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。シートでは見出しのラベルの下にも出す */
   caption?: ReactNode;
-  /** キャプションの場所。既定は top（ラベルと本体のあいだ）。bottom は本体の下（design/adr/0041） */
+  /**
+   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
+   * @default 'top'
+   */
   captionPlacement?: CaptionPlacement;
   /**
    * エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする
@@ -99,7 +102,10 @@ export interface SelectProps {
   placeholder?: string;
   /** 本体の前に付く文字（グレーのラベル）。例: 都道府県を選んだあとの市区町村の欄に「東京都」 */
   prefix?: ReactNode;
-  /** prefix の形。既定は attached（本体の端に接する）、floating は本体の内側に浮かせる */
+  /**
+   * prefix の形。attached は本体の端に接する塊、floating は本体の内側に 4px 浮かせます（design/adr/0035）
+   * @default 'attached'
+   */
   addonShape?: AddonShape;
   defaultValue?: string;
   value?: string | null;
@@ -110,39 +116,68 @@ export interface SelectProps {
   onOpenChange?: (open: boolean) => void;
   /** 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか。既定は true */
   modal?: boolean;
-  /** 浮かぶ選択肢を描く場所。既定は body */
+  /**
+   * 浮かぶ選択肢（popover）・シート（sheet）を描く場所
+   * @default document.body
+   */
   container?: HTMLElement | null;
   /** 画面の端に当たったとき、選択肢を反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
   collisionAvoidance?: ComponentProps<typeof BaseSelect.Positioner>['collisionAvoidance'];
-  /** 選択肢の出し方。既定は auto（指で操作していて画面が狭いときはシート） */
+  /**
+   * 選択肢の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
+   * sheet はいつもシートにします。シートにするのは指の動きを減らすためで、狭さそのものが理由ではありません（design/adr/0037）
+   * @default 'auto'
+   */
   presentation?: SelectPresentation;
-  /** シートを開いたときの高さ。既定は half */
+  /**
+   * シートを開いたときの高さ。half は選択肢が長いときに半分の高さで開き、つまみを出します。full は高さいっぱいで開きます
+   * @default 'half'
+   */
   sheetDetent?: SheetDetent;
-  /** シートで、選択肢の上下に続きがあることの見せ方。既定は divider-always-shadow */
+  /**
+   * シートで、選択肢の上下に続きがあることの見せ方。下の端はどれも内側の影です。上の端は、shadow は内側の影、
+   * divider は区切り線（スクロールすると出る）、divider-always はいつも出す区切り線、
+   * divider-shadow・divider-always-shadow は区切り線と内側の影の組み合わせです
+   * @default 'divider-always-shadow'
+   */
   sheetMoreCue?: SheetMoreCue;
-  /** 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。既定は shadow */
+  /**
+   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
+   * @default 'shadow'
+   */
   popoverMoreCue?: 'none' | 'shadow';
   /**
-   * 浮かぶ選択肢の高さの上限。既定は screen
+   * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
+   * @default 'screen'
    */
   popoverMaxHeight?: 'none' | 'screen';
-  /** 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける */
+  /**
+   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * @default false
+   */
   loading?: boolean;
   /**
-   * 読み込んでいるあいだの欄の扱い。既定は non-blocking
+   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
    * non-blocking: 止めない。プレースホルダはそのまま出し、開ける。開くと、選択肢の最後に loadingText の行（role="status"）を出す。回る円は ▼ の左
    * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し（回る円は ▼ のあった場所）、開けない
+   * @default 'non-blocking'
    */
   loadingBehavior?: FieldLoadingBehavior;
-  /** 読み込んでいるあいだの印。既定は spinner（回る円）。bar は下端に流れる線 */
+  /**
+   * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
+   * @default 'spinner'
+   */
   loadingIndicator?: FieldLoadingIndicator;
   /**
    * 読み込んでいるあいだの文。blocking ではプレースホルダの場所に（プレースホルダと同じ色）、non-blocking では開いた選択肢の行に出す
-   * 既定は「読み込んでいます」
+   * @default '読み込んでいます'
    */
   loadingText?: string;
-  /** Disabled のときの ▼。show: プレースホルダの場所の文と同じ色で出す（既定。--color-select-icon-disabled）、hide: 隠す */
+  /**
+   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色（--color-select-icon-disabled）で出し、hide は隠します
+   * @default 'show'
+   */
   disabledIcon?: 'show' | 'hide';
   className?: string;
 }
