@@ -19,46 +19,92 @@
 
 ## つくりたいコンポーネント
 
-以下はまず最初に作りたいものです。
+### 文字
 
-- [ ] Button
-- [ ] Checkbox
-- [ ] TextField
-- [ ] Textarea
-- [ ] Radio
-- [ ] Select
-- [ ] Alert
-- [ ] Switch
-- [ ] Pagination
-- [ ] Menu
+- [ ] Heading
+- [ ] Text
+- [ ] Code
+- [ ] Kbd
+
+### 本文
+
+- [ ] Prose
+- [ ] CodeBlock
+- [ ] Blockquote
+- [ ] Figure
+- [ ] Callout
+- [ ] LinkCard
+- [ ] Footnote
+- [ ] Steps
+- [ ] FileTree
+
+### ページの枠
+
+- [ ] Container
+- [ ] Navbar
+- [ ] Footer
+- [ ] Sidebar
+
+### ナビゲーション
+
+- [ ] TableOfContents
+- [ ] Pager
 - [ ] Breadcrumb
 - [ ] Tab
-- [ ] Navbar
-- [ ] Badge
+- [ ] Pagination
+- [ ] Menu
+- [ ] Stepper
+
+### 表示
+
+- [x] Tag
 - [ ] Card
-- [ ] Chip
-- [ ] Divider
 - [ ] List
-
----
-
-以下は優先度は低めですが最終的には作りたいものです。
-
+- [ ] Table
+- [ ] Divider
+- [ ] Time
+- [ ] Avatar
+- [ ] Badge・Chip
+- [ ] Timeline
 - [ ] Accordion
-- [ ] Dropdown
+
+### 操作
+
+- [x] Button
+- [x] Link
+
+### 入力
+
+- [x] TextField
+- [x] Select
+- [x] Switch
+- [x] Form
+- [ ] Textarea
+- [ ] Checkbox
+- [ ] Radio
+- [ ] Fieldset
+- [ ] Combobox
+- [ ] Segmented Control
+- [ ] Slider
+- [ ] NumberField
 - [ ] DatePicker
 - [ ] Dropzone
-- [ ] Calendar
-- [ ] Step
-- [ ] Dialog
-- [ ] Modal
-- [ ] Spinner
-- [ ] Skeleton
+
+### 通知
+
+- [x] Notice
+- [x] Loading
+- [ ] Toast
 - [ ] Progress
+- [ ] Skeleton
+- [ ] Empty
+
+### 重なるもの
+
+- [ ] Dialog
 - [ ] Drawer
 - [ ] Popover
 - [ ] Tooltip
-- [ ] Table (with react-table)
 
 ## Figma
 
