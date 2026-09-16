@@ -4,7 +4,8 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from '../button/Button';
-import { Checkbox, CheckboxGroup } from './Checkbox';
+import { Checkbox } from './Checkbox';
+import { CheckboxGroup } from './CheckboxGroup';
 import { Form } from '../form/Form';
 import { DensityPair } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';

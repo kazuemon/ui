@@ -5,7 +5,8 @@ import { type FormEvent, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '../button/Button';
-import { Checkbox, CheckboxGroup } from '../checkbox/Checkbox';
+import { Checkbox } from '../checkbox/Checkbox';
+import { CheckboxGroup } from '../checkbox/CheckboxGroup';
 import { Form, type FormProps } from './Form';
 import { Notice } from '../notice/Notice';
 import { Select, type SelectItem } from '../select/Select';

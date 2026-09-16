@@ -10,7 +10,8 @@ import {
 } from 'react';
 
 import { Button, type ButtonProps } from '../components/button/Button';
-import { Checkbox, CheckboxGroup, type ChoiceColor } from '../components/checkbox/Checkbox';
+import { Checkbox, type ChoiceColor } from '../components/checkbox/Checkbox';
+import { CheckboxGroup } from '../components/checkbox/CheckboxGroup';
 import { FieldAddonButton } from '../components/field-addon/FieldAddon';
 import { Form } from '../components/form/Form';
 import { EyeIcon } from '../components/icons/icons';

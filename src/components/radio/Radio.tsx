@@ -3,16 +3,12 @@ import { Radio as BaseRadio } from '@base-ui/react/radio';
 import { RadioGroup as BaseRadioGroup } from '@base-ui/react/radio-group';
 import { type ComponentProps, type ReactNode, useContext, useMemo } from 'react';
 
-import {
-  type ChoiceColor,
-  ChoiceGroupContext,
-  choiceRows,
-  choiceStyles,
-} from '../checkbox/Checkbox';
+import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
+import { type ChoiceColor, choiceRows, choiceStyles } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import { useChoiceLock } from '../../internal/form-context';
 
-// ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（Checkbox.tsx の choiceStyles）で、形だけが完全な丸
+// ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
 // 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio）
 
 export interface RadioProps extends Omit<
