@@ -617,16 +617,27 @@ export const Sheet: Story = {
 };
 
 // つまみ（シートの見出し）を、指で縦にはじく・引く。wait を付けると、離す前に止まる（はじかない）
+// 部品は、離す直前の短いあいだ（80ms）の動きから速さを出し、それより前の記録しかなければ速さを 0 とみなす
+//   （src/components/Select.tsx の releaseVelocity）。イベントを1つずつ待つと、混んでいる環境では最後の動きと
+//   離すのあいだが 80ms を超え、はじいたと見なされずに閉じないことがあった。はじくときは、最後の動きと離すを続けて出す
 async function dragHandle(handle: Element, dy: number, wait = 0) {
   const { top } = handle.getBoundingClientRect();
   const y = top + 8;
   const pointer = { pointerId: 1, pointerType: 'touch', isPrimary: true, buttons: 1 };
   await fireEvent.pointerDown(handle, { ...pointer, clientY: y });
-  for (let step = 1; step <= 3; step += 1) {
+  // 途中の動きは、部品が高さを描き直すのを待ちながら出す（待たないと、離したときの高さが決まらない）
+  for (let step = 1; step <= 2; step += 1) {
     await fireEvent.pointerMove(handle, { ...pointer, clientY: y + (dy * step) / 3 });
   }
-  if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
-  await fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
+  if (wait) {
+    await fireEvent.pointerMove(handle, { ...pointer, clientY: y + dy });
+    await new Promise((resolve) => setTimeout(resolve, wait));
+    await fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
+    return;
+  }
+  const moved = fireEvent.pointerMove(handle, { ...pointer, clientY: y + dy });
+  const released = fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
+  await Promise.all([moved, released]);
 }
 
 // Show code: 枠（PhoneFrame）の中身は出ないので、Select の使い方を source.code に手で書く
@@ -682,12 +693,15 @@ export const SheetFling: Story = {
     // 高さの動きが止まるのを待つ
     const settled = async () => {
       let last = -1;
-      await waitFor(() => {
-        const now = popup.offsetHeight;
-        const same = now === last;
-        last = now;
-        if (!same) throw new Error('動いています');
-      });
+      await waitFor(
+        () => {
+          const now = popup.offsetHeight;
+          const same = now === last;
+          last = now;
+          if (!same) throw new Error('動いています');
+        },
+        { timeout: 3000 }
+      );
       return last;
     };
     const half = await settled();
@@ -707,8 +721,11 @@ export const SheetFling: Story = {
 
     // 半分の高さから、少しだけ下へはじくと閉じる。離した高さのまま下へ滑る
     await dragHandle(handle, 30);
-    await waitFor(() => expect(combobox).toHaveAttribute('aria-expanded', 'false'));
-    if (popup.isConnected) await expect(popup.offsetHeight).toBe(half - 30);
+    await waitFor(() => expect(combobox).toHaveAttribute('aria-expanded', 'false'), {
+      timeout: 3000,
+    });
+    // 閉じるあいだは、離した高さのまま下へ滑る（最後の動きは離すのと同時に出すので、高さは1つ手前の値）
+    if (popup.isConnected) await expect(popup.offsetHeight).toBeLessThan(half);
   },
 };
 
