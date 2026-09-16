@@ -23,7 +23,6 @@ jobs:
       id-token: write
     env:
       PR: ${{ github.event.pull_request.number }}
-      REVIEW_DIR: ${{ runner.temp }}/review
     steps:
       - name: Checkout the PR branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -47,7 +46,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 1 CHECKS: ${{ env.REVIEW_DIR }}/checks-1.txt FINDINGS: ${{ env.REVIEW_DIR }}/findings-1.md'
+          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 1 CHECKS: ${{ runner.temp }}/review/checks-1.txt FINDINGS: ${{ runner.temp }}/review/findings-1.md'
           claude_args: |
             --model claude-sonnet-5
             --max-turns 40
@@ -56,7 +55,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: '/ui-fix PR: ${{ env.PR }} FINDINGS: ${{ env.REVIEW_DIR }}/findings-1.md'
+          prompt: '/ui-fix PR: ${{ env.PR }} FINDINGS: ${{ runner.temp }}/review/findings-1.md'
           claude_args: |
             --model claude-opus-5
             --max-turns 80
@@ -69,7 +68,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 2 CHECKS: ${{ env.REVIEW_DIR }}/checks-2.txt FINDINGS: ${{ env.REVIEW_DIR }}/findings-2.md'
+          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 2 CHECKS: ${{ runner.temp }}/review/checks-2.txt FINDINGS: ${{ runner.temp }}/review/findings-2.md'
           claude_args: |
             --model claude-sonnet-5
             --max-turns 40
