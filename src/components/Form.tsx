@@ -307,7 +307,7 @@ export function Form({
             aria-labelledby={titleId}
             data-slot="form-error-summary"
             className={[
-              'rounded-(--notice-radius)',
+              'rounded-control',
               ...focusRing,
               '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
             ].join(' ')}

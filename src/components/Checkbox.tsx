@@ -27,7 +27,7 @@ import { useChoiceLock } from './form-context';
 // 行の高さはトグルと同じ部品の高さ。箱はラベルの行の縦の中央
 // フォーカスはキーボードのときだけ、箱から離した線（design/adr/0031）
 // 押しているあいだ（原則3。ADR-0063 の E）: 箱か横の文字を押しているあいだ、箱が沈み、塗りが濃くなる
-//   量はトークン（--choice-press-depth・--choice-press-darken・--choice-on-press-darken）
+//   深さは平らな要素の押下と同じ（--flat-press-depth）。濃さはトークン（--choice-press-darken・--choice-on-press-darken）
 
 // 箱の大きさは密度（--density-coarse）から計算する。候補の上書き（-fine・-coarse）もここで効く
 const choiceSize =
@@ -62,7 +62,7 @@ export const choiceStyles = tv({
       'data-disabled:data-indeterminate:opacity-[var(--choice-disabled-opacity,var(--disabled-opacity))]',
       // 押しているあいだ（箱か横の文字）。押せないときは変えない
       //   --choice-press（0 か 1）で沈む深さを掛ける。塗りは、選んでいない箱は hover の塗りに本文の色を、選んだ箱は部品の色に黒を混ぜる
-      '[translate:0_calc(var(--choice-press)*var(--choice-press-depth))] [--choice-press:0]',
+      '[translate:0_calc(var(--choice-press)*var(--flat-press-depth))] [--choice-press:0]',
       'not-data-disabled:group-has-[label:active]/choice:[--choice-press:1] not-data-disabled:active:[--choice-press:1]',
       'not-data-disabled:active:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
       'not-data-disabled:group-has-[label:active]/choice:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
@@ -81,7 +81,7 @@ export const choiceStyles = tv({
     // 間（--choice-gap）は文字の側に持たせ、箱と文字のあいだも押せるようにする
     label: [
       'col-start-2 cursor-pointer justify-self-start pl-(--choice-gap) text-(length:--text-control) leading-(--leading-control) text-fg',
-      'peer-data-disabled/box:cursor-not-allowed peer-data-disabled/box:text-(color:--color-choice-label-disabled)',
+      'peer-data-disabled/box:cursor-not-allowed peer-data-disabled/box:text-(color:--color-on-field-disabled)',
     ],
     caption:
       'col-start-2 justify-self-start pl-(--choice-gap) text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
@@ -146,15 +146,14 @@ export type ChoiceFrame = 'none' | 'options' | 'notched' | 'all';
 
 // 「すべて選ぶ」のグループの枠（後半の軸 43 で比べている途中。既定は枠なし）
 // カードのような薄いフチ: 線は細い境界線、角はカードの角（原則5: 包むものは部品より一段大きい角）、影なし（原則1: ページと同じレイヤー）
-// 見た目はトークン（--choice-frame-*・--color-choice-frame-line）。枠と中の選択肢の左右のあいだは密度で変わるので、ここで計算する
-const framePadX =
-  '[--choice-frame-pad-x:calc(var(--choice-frame-pad-x-fine)_+_var(--density-coarse)_*_(var(--choice-frame-pad-x-coarse)_-_var(--choice-frame-pad-x-fine)))]';
-const frameLine = 'border-(color:--color-choice-frame-line)';
+// 見た目はトークン（--choice-frame-*）。枠と中の選択肢の左右のあいだは部品の左右の余白（密度で変わる）
+const framePadX = '[--choice-frame-pad-x:var(--space-control-x)]';
+const frameLine = 'border-line';
 const frameStyles = tv({
   slots: {
     // options（子の選択肢だけ）と all（「すべて選ぶ」も含めて）の四辺の枠
     box: [
-      'flex flex-col rounded-(--choice-frame-radius) border-(length:--choice-frame-line-width) px-(--choice-frame-pad-x) py-(--choice-frame-pad-y)',
+      'flex flex-col rounded-card border-(length:--border-width-thin) px-(--choice-frame-pad-x) py-(--choice-frame-pad-y)',
       frameLine,
       framePadX,
     ],
@@ -173,11 +172,11 @@ const frameStyles = tv({
       '[&_[role=checkbox]]:pointer-events-auto',
     ],
     body: [
-      '-mt-[calc(var(--size-control)/2)] ml-[calc(var(--choice-size)/2_-_var(--choice-frame-line-width)/2)] flex flex-col',
-      'rounded-(--choice-frame-radius) rounded-tl-none border-(length:--choice-frame-line-width)',
+      '-mt-[calc(var(--size-control)/2)] ml-[calc(var(--choice-size)/2_-_var(--border-width-thin)/2)] flex flex-col',
+      'rounded-card rounded-tl-none border-(length:--border-width-thin)',
       '[--choice-frame-pad-row:max(0px,calc(var(--choice-frame-pad-x)_-_(var(--size-control)_-_var(--choice-size))/2))]',
       // 上の線（太さの分）は箱の中央から下にあるので、その分を引く
-      '[--choice-frame-pad-top:calc(var(--choice-frame-pad-row)_+_var(--choice-size)/2_-_var(--choice-frame-line-width))]',
+      '[--choice-frame-pad-top:calc(var(--choice-frame-pad-row)_+_var(--choice-size)/2_-_var(--border-width-thin))]',
       'pt-(--choice-frame-pad-top) pr-(--choice-frame-pad-x) pb-(--choice-frame-pad-row) pl-(--choice-frame-pad-x)',
       frameLine,
       choiceSize,

@@ -32,9 +32,9 @@ import { useChoiceLock } from './form-context';
 const rowBase = [
   'relative cursor-pointer data-disabled:cursor-not-allowed',
   // 1行の高さから引く線の太さ（上下の線の内側で1行を作る）
-  '[--switch-line-inset:var(--switch-row-line-width)]',
+  '[--switch-line-inset:var(--border-width-thin)]',
   // 押しているあいだも hover と同じ塗り。指で操作するとき（hover なし）は、押した瞬間に塗る
-  'not-data-disabled:hover:bg-(color:--color-switch-row-hover) not-data-disabled:active:bg-(color:--color-switch-row-hover)',
+  'not-data-disabled:hover:bg-field not-data-disabled:active:bg-field',
   // 塗りの動きの長さ。hover の入り・抜けと、離して戻るときは入力欄と同じ長さ、押して塗りが変わるときは 0ms
   //   CSS の transition は移った先の状態の長さを使うので、hover の入りと離したときの戻りは同じ長さになる
   '[transition:background-color_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -50,15 +50,15 @@ const rowBase = [
 const rowFocusInside =
   '[--switch-row-focus-offset:calc(-1*(var(--focus-ring-width)+var(--focus-ring-offset)))]';
 // ラベルの ::after を、行の線の上まで広げる（押せる範囲 = 見えている行の範囲）
-const rowLabel = 'after:absolute after:-inset-(--switch-row-line-width)';
+const rowLabel = 'after:absolute after:-inset-(--border-width-thin)';
 // キャプションの下に、1行の上の余白と同じだけあける（線を含む）
 const rowCaption =
-  'mb-[calc((var(--size-control)-2*var(--switch-row-line-width)-var(--leading-control))/2)]';
+  'mb-[calc((var(--size-control)-2*var(--border-width-thin)-var(--leading-control))/2)]';
 // 囲みがあるときは、トラックを行（囲み）の縦の中央に置く。囲みなし（none）はラベルの行の中央のまま
 //   「46 で区切り線か囲みがあるときは、トグルが縦中央に来るようにしてほしいです（囲みなしではそのまま）」
 //   トラックは1行の margin を付けたまま中央にそろえるので、キャプションがなければ囲みなしと同じ位置
 const rowTrack = 'row-[1/-1] self-center';
-const rowLine = 'border-(color:--color-switch-row-line)';
+const rowLine = 'border-line';
 
 // 1行の高さ（部品の高さ。frame があるときは線の内側）から、中身の高さを引いた上下の余白
 //   Tailwind がクラスを拾えるよう、ラベルとトラックの分を文字列のまま書く
@@ -108,7 +108,7 @@ const styles = tv({
         root: [
           rowBase,
           rowLine,
-          'rounded-(--switch-row-radius) border-(length:--switch-row-line-width) px-[calc(var(--space-control-x)-var(--switch-row-line-width))]',
+          'rounded-control border-(length:--border-width-thin) px-[calc(var(--space-control-x)-var(--border-width-thin))]',
           '[--switch-row-focus-offset:var(--focus-ring-offset)]',
           '[[data-switch-frame=card]+&]:mt-(--switch-row-gap)',
         ],
@@ -122,8 +122,8 @@ const styles = tv({
           rowBase,
           rowLine,
           rowFocusInside,
-          'border-y-(length:--switch-row-line-width) px-(--space-control-x)',
-          '[[data-switch-frame=divided]+&]:-mt-(--switch-row-line-width)',
+          'border-y-(length:--border-width-thin) px-(--space-control-x)',
+          '[[data-switch-frame=divided]+&]:-mt-(--border-width-thin)',
         ],
         label: rowLabel,
         caption: rowCaption,
@@ -172,7 +172,7 @@ const styles = tv({
       'self-baseline',
       labelLineMargin,
       'group-data-disabled/field:cursor-not-allowed',
-      'group-data-disabled/field:text-(color:--color-switch-label-disabled)',
+      'group-data-disabled/field:text-(color:--color-on-field-disabled)',
     ],
     // 2行目のラベルの列。上の間と面は captionAppearance で決める
     caption: [

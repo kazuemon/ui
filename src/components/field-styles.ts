@@ -26,7 +26,7 @@ export const fieldStyles = tv({
     // エラー・警告の行（design/adr/0041）。色は呼び出し側で足す（エラーは text-danger、警告は text-fg-warning）
     message:
       'flex items-start gap-(--field-message-gap) text-(length:--text-caption) leading-(--leading-caption)',
-    messageIcon: 'size-(--field-message-icon-size) shrink-0',
+    messageIcon: 'size-(--leading-caption) shrink-0',
     // エラー・警告の行を包む箱（design/adr/0044）。文がなくてもいつも置き、読み上げの live region（polite）にする
     // 箱そのものは隠さない（隠した live region に文を入れると、読み上げソフトによっては知らせないため）
     // 行の高さ（grid の行 0fr ↔ 1fr）と濃さを、押下と同じ緩急で --duration-field-message の長さで動かす

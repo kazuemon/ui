@@ -19,7 +19,7 @@ export type NoticeAppearance = 'soft' | 'filled' | 'outline';
 
 // お知らせ（design/adr/0043）
 // 原則1: 影は付けない。お知らせそのものは押せない。押せるのは中のリンクとボタンだけ（白いボタンは、ボタンなので影がある）
-// 形: アイコン → 題・本文・操作を縦に積み、× は右上。角丸は部品と同じ（--notice-radius）。余白と文字は部品の寸法（密度で変わる）
+// 形: アイコン → 題・本文・操作を縦に積み、× は右上。角丸は部品と同じ（--radius-control）。余白と文字は部品の寸法（密度で変わる）
 //   余白は --space-control-x、アイコンと文の間は --space-control-x から 4px 引いた値
 // 色は状態の役割（--color-{状態}・--color-on-{状態}・--color-fg-{状態}・--color-{状態}-subtle）を color で受け取り、
 //   見た目（appearance）で --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-ring-color に割り当てる
@@ -28,7 +28,7 @@ export type NoticeAppearance = 'soft' | 'filled' | 'outline';
 // 中のリンクは、お知らせの文字の色にする（塗りの上でも読めるように）。操作の場所のリンクは太字
 const notice = tv({
   base: [
-    'flex items-start gap-x-[calc(var(--space-control-x)-var(--spacing))] rounded-(--notice-radius) p-(--space-control-x)',
+    'flex items-start gap-x-[calc(var(--space-control-x)-var(--spacing))] rounded-control p-(--space-control-x)',
     'text-(length:--text-control) leading-(--leading-control)',
     'bg-(color:--notice-bg) text-(color:--notice-fg)',
     '[--color-focus-ring:var(--notice-ring-color)] [&_a]:[--link-color:currentColor]',
@@ -189,10 +189,10 @@ export function Notice({
           aria-labelledby={title ? `${closeId} ${titleId}` : undefined}
           onClick={onClose}
           className={[
-            // 大きさ（押せる範囲）は部品の高さ（--size-control。大きい指用で 52px — ADR-0050 の B）。角丸は --notice-close-radius
+            // 大きさ（押せる範囲）は部品の高さ（--size-control。大きい指用で 52px — ADR-0050 の B）。角丸は部品と同じ
             // 1行目の中央にそろえ、上と右にはみ出させる
             '-my-[calc((var(--size-control)_-_var(--leading-control))_/_2)] -mr-[calc((var(--size-control)_-_var(--leading-control))_/_2)]',
-            'grid size-(--size-control) shrink-0 cursor-pointer place-items-center rounded-(--notice-close-radius)',
+            'grid size-(--size-control) shrink-0 cursor-pointer place-items-center rounded-control',
             // 平らな要素（原則3、design/adr/0027）: 文字の色を淡く敷き、押下で 1px 沈む
             'hover:bg-flat-hover active:translate-y-(--flat-press-depth) active:bg-flat-press',
             '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',

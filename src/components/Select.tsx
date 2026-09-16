@@ -211,7 +211,7 @@ export interface SelectProps {
    */
   loadedText?: (count: number) => string;
   /**
-   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色（--color-select-icon-disabled）で出し、hide は隠します
+   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色（--color-fg-subtle）で出し、hide は隠します
    * @default 'show'
    */
   disabledIcon?: 'show' | 'hide';
@@ -355,7 +355,7 @@ interface LoadingAnnouncement {
 }
 
 // 選択肢の2行目（design/adr/0044）。文の大きさと行の高さはキャプションと同じ
-//   reason: 選べない理由。キャプションと同じ灰色（--color-select-item-reason）の文字だけ
+//   reason: 選べない理由。キャプションと同じ灰色（--color-fg-subtle）の文字だけ
 //   warning: 本体の下の警告の行と同じ形（三角＋ --color-fg-warning）。選んだ項目の青い文字の中でも、警告の色のまま
 function SelectItemNoteLine({ note, id }: { note: SelectItemNote; id: string }) {
   if (note.kind === 'reason')
@@ -364,7 +364,7 @@ function SelectItemNoteLine({ note, id }: { note: SelectItemNote; id: string }) 
         id={id}
         data-slot="select-item-note"
         data-kind="reason"
-        className="text-(length:--text-caption) leading-(--leading-caption) text-(color:--color-select-item-reason)"
+        className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
       >
         {note.text}
       </span>
@@ -403,14 +403,14 @@ function SelectOption({ item }: { item: SelectItem }) {
         'group/option flex min-h-(--size-control) cursor-pointer items-center gap-(--space-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--space-control-x)-var(--select-popup-padding))] outline-none select-none',
         note && 'py-1.5',
         // hover（キーボードで選んでいるときも同じ）は、選んだ項目の見た目より優先する
-        'data-highlighted:bg-(color:--color-select-item-highlight)',
+        'data-highlighted:bg-field',
         'data-selected:text-(color:--color-on-select-item-selected) data-selected:not-data-highlighted:bg-(color:--color-select-item-selected)',
         // 選んだ項目の hover（開いた直後は、選んだ項目が hover と同じ状態になる）
         'data-selected:data-highlighted:bg-(color:--color-select-item-selected-highlight)',
         // 選べない項目: hover の塗りを消し、キーボードで止まったとき（focus-visible）だけ付け直す
         // :not(:focus-visible) の形は使わない（Storybook の pseudo-states アドオンが書き換え、いつも塗りが消えていた）
-        'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-on-select-item-disabled) data-disabled:data-highlighted:bg-transparent',
-        'data-disabled:data-highlighted:focus-visible:bg-(color:--color-select-item-highlight)',
+        'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-on-field-disabled) data-disabled:data-highlighted:bg-transparent',
+        'data-disabled:data-highlighted:focus-visible:bg-field',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -855,7 +855,7 @@ export function Select({
         )}
         {divider && (
           <div
-            className="absolute -inset-x-(--select-popup-padding) top-0 h-px bg-(color:--color-select-popup-line)"
+            className="absolute -inset-x-(--select-popup-padding) top-0 h-px bg-surface-line"
             style={{ opacity: dividerAlways ? 1 : level }}
           />
         )}
@@ -940,13 +940,13 @@ export function Select({
             {success && successMark && !error && !loading && (
               <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--space-control-x))]" />
             )}
-            {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-select-icon-disabled。disabledIcon="hide" で隠す）
+            {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。disabledIcon="hide" で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
               止めて読み込んでいるあいだは隠す */}
             <BaseSelect.Icon
               className={[
-                'flex text-fg-muted group-data-disabled/field:text-[color:var(--color-select-icon-disabled,var(--color-fg-muted))]',
-                'group-data-[loading=blocking]/field:text-[color:var(--color-select-icon-disabled,var(--color-fg-muted))]',
+                'flex text-fg-muted group-data-disabled/field:text-fg-subtle',
+                'group-data-[loading=blocking]/field:text-fg-subtle',
                 (loadingBlocking || (disabled && disabledIcon === 'hide')) && 'hidden',
               ]
                 .filter(Boolean)
@@ -987,12 +987,12 @@ export function Select({
                 style={sheetHeight !== undefined ? { ...selected, height: sheetHeight } : selected}
                 className={[
                   'p-(--select-popup-padding) text-(length:--text-control) leading-(--leading-control) text-fg outline-none',
-                  'border-(length:--select-popup-line-width) border-(color:--color-select-popup-line) bg-(color:--color-select-popup)',
+                  'border-(length:--border-width-thin) border-surface-line bg-surface',
                   sheet
                     ? [
                         // シート: 上の角だけ丸め、下から滑り出る。高さはつまみに合わせて動く（引いているあいだは動きを止める）
                         // 下端は端末の安全領域の分だけ空ける
-                        'flex min-h-0 w-full flex-col rounded-t-(--select-sheet-radius) border-x-0 border-b-0 [box-shadow:var(--shadow-select-sheet)]',
+                        'flex min-h-0 w-full flex-col rounded-t-card border-x-0 border-b-0 [box-shadow:var(--shadow-select-sheet)]',
                         // 下端の余白（端末の安全領域の分）は選択肢の内側に持たせ、続きの印がシートの下端に接するようにする
                         'py-0',
                         '[transition:translate_var(--duration-sheet)_var(--ease-sheet),height_var(--duration-sheet)_var(--ease-sheet)] data-dragging:[transition:none] motion-reduce:[transition:none]',

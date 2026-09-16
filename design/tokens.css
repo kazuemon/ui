@@ -319,17 +319,12 @@
   /* 行全体を押せるトグル（Switch の frame）— ADR-0066。部品の既定は囲みなし（none）、選べるのは card（A）と divided（B）
      押せる範囲を見せるため、行の範囲を囲み（card）か区切り線（divided）で描き、その内側を全部押せるようにする
      線はカードのような細い境界線、影なし（原則1: ページと同じレイヤー）。囲みがあるときは、トラックを行（囲み）の縦の中央に置く
-     --switch-row-radius: 1行ずつ囲む（card）角。行そのものが押す本体なので部品の角（原則5）
+     1行ずつ囲む（card）角は部品の角（行そのものが押す本体。原則5）。行の hover の塗りは、一覧の項目の hover と同じ入力欄の塗り（原則3）
      --switch-row-gap: card を続けて置いたときの間
-     --color-switch-row-hover: 行の hover の塗り。一覧の項目の hover と同じ（原則3）
      塗りの動きはADR-0067 の A: 押しているあいだも行を濃くせず、hover と同じ塗りのまま。押したことはノブの縮みで伝える
        指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms。離して戻るときは入力欄と同じ長さ）
      行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-switch-off。ADR-0067 の D）。hover の塗りに溶けない（1.17:1） */
-  --switch-row-line-width: var(--border-width-thin);
-  --color-switch-row-line: var(--color-line);
-  --switch-row-radius: var(--radius-control);
   --switch-row-gap: calc(var(--spacing) * 2);
-  --color-switch-row-hover: var(--color-select-item-highlight);
 
   /* チェックボックスとラジオ（原則8・原則5・原則1）— ADR-0062（現行版を採用）
      入力欄の仲間: ふだんは選んでいない箱の塗り（--color-choice）で、枠線・影なし。hover で塗りが半段濃くなる
@@ -363,28 +358,19 @@
      押せる選んでいない箱（#E1E3E4）と紛れないよう、押せないものは選んでも選ばなくても同じ地にし、状態は印のあるなしで見せる */
   --color-choice-neutral-on-disabled: var(--color-choice-disabled);
   --color-choice-neutral-mark-disabled: var(--color-switch-neutral-disabled-knob);
-  /* 押せない横の文字。押せないトグルのラベルと同じグレー。キャプションは変えない（原則1） */
-  --color-choice-label-disabled: var(--color-switch-label-disabled);
   /* 押しているあいだの箱（原則3）— ADR-0063（E: 沈んで塗りが濃くなる。平らなボタンと同じ組み合わせ）
-     箱か横の文字を押しているあいだ、箱に効く。押せないときは変えない。長さと緩急はボタンの押下と同じ（--duration-press・--ease-press）
-     --choice-press-depth: 下へ沈む深さ
+     箱か横の文字を押しているあいだ、箱に効く。押せないときは変えない。深さ・長さ・緩急は平らな要素の押下と同じ（--flat-press-depth・--duration-press・--ease-press）
      --choice-press-darken: 選んでいない箱の塗り（hover の塗り）に混ぜる本文の色の割合
      --choice-on-press-darken: 選んだ箱の塗り（部品の色）に混ぜる黒の割合 */
-  --choice-press-depth: var(--flat-press-depth);
   --choice-press-darken: 8%;
   --choice-on-press-darken: 15%;
   /* 「すべて選ぶ」のグループの枠（CheckboxGroup の selectAllFrame）— ADR-0064 では現行版（枠なし）だけを採用した。見た目を練り直すまで、枠の形は使わない
      カードのような薄いフチ: 線は細い境界線、角はカードの角（原則5: 包むものは部品より一段大きい角）、影なし（原則1: ページと同じレイヤー）
-     --choice-frame-pad-x-fine・-coarse: 枠の左右の線と中の選択肢のあいだ。部品の左右の余白と同じ（部品が --density-coarse から計算する）
+     枠の左右の線と中の選択肢のあいだは、部品の左右の余白と同じ
      --choice-frame-pad-y: 枠の上下の線と中の選択肢の行のあいだ。行は部品の高さで、箱の上下にすでに間があるので小さくする
      --choice-frame-notch-gap: 「すべて選ぶ」の箱が枠の角を隠す形（notched）で、「すべて選ぶ」の文字のうしろの線の切れ目
      --color-choice-frame-notch-bg: notched で、線を切るために「すべて選ぶ」の文字の下に塗る色。置く面の色にする */
-  --choice-frame-line-width: var(--border-width-thin);
   --color-choice-frame-notch-bg: var(--color-surface);
-  --color-choice-frame-line: var(--color-line);
-  --choice-frame-radius: var(--radius-card);
-  --choice-frame-pad-x-fine: var(--space-control-x-fine);
-  --choice-frame-pad-x-coarse: var(--space-control-x-coarse);
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
 
@@ -410,11 +396,6 @@
   --disabled-opacity: 0.4;
   --color-field-disabled: var(--palette-gray-200);
   --color-on-field-disabled: var(--palette-gray-400);
-  /* 押せない Select の ▼ — design/adr/0042
-     プレースホルダの場所に出す文（理由・「読み込んでいます」— どちらも --color-fg-subtle）と同じ色にする。
-     押せない欄の塗りの上で 3.51:1（アイコンの基準 3:1）。--color-on-field-disabled（1.92:1）は選んだ値・入力した値だけに使い、
-     値が入った押せない欄と、文を出している押せない欄を見分けられるようにする */
-  --color-select-icon-disabled: var(--color-fg-subtle);
   --color-neutral-disabled: var(--palette-gray-200);
   --color-on-neutral-disabled: var(--palette-gray-400);
   /* 押せない OFF のトグルと、押せないグレーの枠線のボタン — adr/0029
@@ -438,9 +419,6 @@
        白いノブ（押せる OFF と同じ）は地 #F2F4F4 の上で 1.10:1 で、ほぼ見えなかった
      色なし（neutral）の押せないノブは、ON も OFF も上の --color-switch-neutral-disabled-knob */
   --color-switch-off-disabled-knob: var(--color-switch-neutral-disabled-knob);
-  /* 押せないトグルのラベル。押すと切り替わる文字は本体の一部なので、ほかの押せない文字（選べない選択肢など）と
-     同じグレーにする（原則1）。キャプションは変えない（--disabled-label-opacity） */
-  --color-switch-label-disabled: var(--color-on-field-disabled);
 
   /* 入力欄の状態（原則2）— design/adr/0019: フォーカスは 2px の枠線だけを足し、速く移り変わる
      枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
@@ -449,9 +427,8 @@
 
   /* 入力欄のエラー・警告の行（本体の下）— adr/0041
      アイコン＋文。エラーは丸の「!」と --color-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
-     アイコンは文と並ぶので線は Regular（adr/0018）。大きさはキャプションの行の高さと同じで、1行目の中央にそろう
+     アイコンは文と並ぶので線は Regular（adr/0018）。大きさはキャプションの行の高さ（--leading-caption）と同じで、1行目の中央にそろう
      キャプションはエラー・警告のあいだも消さない。並びは部品の captionPlacement で決める */
-  --field-message-icon-size: var(--leading-caption);
   --field-message-gap: var(--spacing);
   /* 行が出る・消えるときの動き — adr/0044
      行の高さと濃さを、押下と同じ緩急（--ease-press）でこの長さで動かす。キャプションと本体は動かず、下の内容が滑る
@@ -486,13 +463,11 @@
 
   /* Select の浮かぶ選択肢 — adr/0036
      白い面に、白いボタンと同じ 1px の輪郭と、やわらかい影を付ける（浮かぶ UI の影は重なりを表す — 原則1の例外）
-     項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色に従う（下の --select-item-selected-weight など） */
+     項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色に従う（下の --select-item-selected-weight など）
+     押せない ▼ と、選べない理由の文は、プレースホルダの場所の文と同じ --color-fg-subtle（押せない欄の塗りの上で 3.51:1）。
+     --color-on-field-disabled（1.92:1）は、選んだ値と選べない選択肢のラベルだけに使う（値が入った押せない欄と、文を出している押せない欄を見分ける） */
   --select-popup-padding: var(--spacing);
-  --select-popup-line-width: var(--border-width-thin);
-  --color-select-popup: var(--color-surface);
-  --color-select-popup-line: var(--color-surface-line);
   --shadow-select-popup: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
-  --color-select-item-highlight: var(--color-field);
   /* 選んだ項目の印は、部品の色（color。primary・secondary・neutral、既定 neutral）に従う — adr/0047、ADR-0053
      色から面・文字・チェックを部品が作る。面は色のタグの面（neutral は --color-select-neutral-selected）、文字とチェックはタグの文字（neutral は濃紺）
      選んだ項目の hover は、面に文字の色を 8% 混ぜて一段濃くする。weight: ラベルの太さ */
@@ -503,8 +478,6 @@
      選べない選択肢のラベルは、押せない文字の色（#A3A5A6 — adr/0026。白地 2.47）。マウスの hover では塗らない
      警告の文は、入力欄の下の警告の行と同じ --color-fg-warning（白地 5.09、hover の上 4.61、
      選んだ項目の上 4.51、選んだ項目の hover の上 4.10。選んだ項目の青い文字 4.11 と同じ程度） */
-  --color-select-item-reason: var(--color-fg-subtle);
-  --color-on-select-item-disabled: var(--color-on-field-disabled);
   /* 浮かぶ選択肢の高さの上限 — adr/0037（項目の数の上限は「一旦」）
      画面の高さの半分のうち、最後の項目が半分見える高さにする（部品が計算して --select-popup-max-height に書く）
      大きな画面で長くなりすぎないよう、項目の数でも上限をかける。10.5 は「10 項目と、半分だけ見える 1 項目」 */
@@ -518,36 +491,14 @@
   --select-popup-shift: calc(var(--spacing) * 2);
 
   /* Select のボトムシート（指で操作していて画面が狭いときは、選択肢を画面の下から出す）— adr/0037
-     面・輪郭・選んだ項目の見た目は、浮かぶ選択肢（--select-popup-*・--color-select-*）と同じ
+     面・輪郭・選んだ項目の見た目は浮かぶ選択肢と同じ。上の角はカードの角
      backdrop: 後ろの画面を暗くする色
      edge-shadow: 選択肢が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる） */
-  --select-sheet-radius: var(--radius-card);
   --color-select-sheet-backdrop: rgb(from var(--color-shadow) r g b / 0.3);
   --color-select-sheet-edge-shadow: rgb(from var(--color-shadow) r g b / 0.1);
   --shadow-select-sheet: 0 -8px 24px rgb(from var(--color-shadow) r g b / 0.12);
   --duration-sheet: var(--duration-slow);
   --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
-
-  /* お知らせ（Notice）の形 — adr/0043
-     角丸は部品と同じ 12px。余白は部品の左右の余白（--space-control-x。指用 16px・マウス用 12px）、
-     アイコンと文の間は --space-control-x から 4px 引いた値（12px・8px）。どちらも密度で変わるので、部品の中で計算する */
-  --notice-radius: var(--radius-control);
-  /* お知らせの ×（onClose）の角丸 — adr/0043、ADR-0050 の B
-     大きさは部品の高さ（--size-control。大きい指用で 52px）の角丸の四角（押せる範囲を見た目と一致させ、大きい指用でも大きくする） */
-  --notice-close-radius: var(--radius-control);
-
-  /* 白いボタンの輪郭の太さ（原則1: 白い地では影だけでは区別がつかない）— adr/0025 */
-  --surface-line-width: var(--border-width-thin);
-
-  /* ボタンのキャプション（原則4: 本体の下に中央寄せで、小さくグレー）— ADR-0052（入力欄のキャプションと同じ値）
-     間と文字の大きさは密度で変わるので、指用（-coarse）とマウス用（-fine）を持ち、部品が --density-coarse で選ぶ
-     押せないとき・送信中も薄くしない（原則1） */
-  --button-caption-gap-fine: var(--space-field-gap-fine); /* ボタンとキャプションの間 */
-  --button-caption-gap-coarse: var(--space-field-gap-coarse);
-  --text-button-caption-fine: var(--text-caption-fine);
-  --text-button-caption-coarse: var(--text-caption-coarse);
-  --leading-button-caption: var(--leading-caption);
-  --color-button-caption: var(--color-fg-subtle);
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

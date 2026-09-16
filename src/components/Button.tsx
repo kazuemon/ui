@@ -126,7 +126,7 @@ const button = tv({
       color: 'white',
       class: [
         '[--button-accent:var(--color-fg)] [--button-fill:var(--color-surface)] [--button-text:var(--color-fg)]',
-        'border-(length:--surface-line-width) border-surface-line',
+        'border-(length:--border-width-thin) border-surface-line',
         'data-loading:border-[color:color-mix(in_oklab,var(--color-surface-line)_calc(var(--disabled-opacity)*100%),transparent)]',
       ],
     },
@@ -160,22 +160,17 @@ const button = tv({
 // ボタンとキャプションを包み（root）、className は包みに付ける（Switch・TextField と同じく、いちばん外の要素に付く）
 //   ボタンは包みの幅いっぱいに伸ばす（items-stretch）。包みに w-full を付けると、幅いっぱいのボタンになる
 //   キャプションは包みの幅を広げない（w-0 min-w-full）。包みの幅はボタンの幅で決まり、長いキャプションは折り返す
-// 間と文字の大きさは密度で変わる。指用（-coarse）とマウス用（-fine）のトークンを、--density-coarse（src/styles/globals.css。
-//   指用 1・マウス用 0）でこの要素の中で選ぶ。:root で密度の値を var() で受けると、中の data-density に従わないため
+// 間と文字の大きさは入力欄のキャプションと同じ（ADR-0052）。どちらも密度で変わる
 // 押せないとき・送信中も、キャプションは薄くしない（原則1）。ボタンの外にあるので、ボタンの薄さを受けない
 // 読み上げでは、キャプションをボタン（リンクのときは <a>）の説明（aria-describedby）につなぐ
 //   渡された説明があるときは、その後ろに足す（TextField と同じく、渡された説明 → キャプションの順）
 // ref は包みではなくボタン（<a>）に付く。className だけを包みに付けるのは、包みの幅（w-full など）を決められるようにするため
 const captioned = tv({
   slots: {
-    root: [
-      'inline-flex flex-col items-stretch',
-      'gap-[calc(var(--button-caption-gap-fine)_+_var(--density-coarse)_*_(var(--button-caption-gap-coarse)_-_var(--button-caption-gap-fine)))]',
-    ],
+    root: ['inline-flex flex-col items-stretch', 'gap-(--space-field-gap)'],
     caption: [
       'w-0 min-w-full text-center font-normal',
-      'text-[length:calc(var(--text-button-caption-fine)_+_var(--density-coarse)_*_(var(--text-button-caption-coarse)_-_var(--text-button-caption-fine)))]',
-      'leading-(--leading-button-caption) text-(color:--color-button-caption)',
+      'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     ],
   },
 });
