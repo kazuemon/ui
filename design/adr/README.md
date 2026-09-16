@@ -114,3 +114,31 @@
 | [0045](./0045-coarse-size.md)                     | 指用の高さ                                                             | Accepted           |
 | [0046](./0046-link-rest.md)                       | リンクの残り（幅いっぱいの枠線のリンクと、ボタンの見た目のリンク）     | Accepted           |
 | [0047](./0047-principles-probe.md)                | 原則の読まれ方の検証と、一覧の項目・チェックボックスの決まり           | Accepted           |
+| [0048](./0048-hit-area.md) | 押せる範囲は見た目の範囲と一致させる | Accepted |
+| [0049](./0049-toggle-layout.md) | トグルの並びと置き場所 | Accepted |
+| [0050](./0050-notice-close.md) | お知らせの閉じるボタンの形 | Accepted |
+| [0051](./0051-prop-names.md) | 色と送信中の印の props の名前 | Accepted |
+| [0052](./0052-button-caption.md) | ボタンのキャプション | Accepted |
+| [0053](./0053-select-selected-item.md) | Select の選んだ項目の見た目 | Accepted |
+| [0054](./0054-select-popup-motion.md) | 浮かぶ選択肢の開閉の動き | Accepted |
+| [0055](./0055-sheet-loading-row.md) | ボトムシートの読み込み中の行と、読み込みの読み上げ | Accepted |
+| [0056](./0056-link-lead-icon.md) | 幅いっぱいの枠線のリンクの前のアイコン | Accepted |
+| [0057](./0057-notice-warning-filled.md) | 黄色の塗りのお知らせ | Accepted |
+| [0058](./0058-field-success.md) | 入力欄の下の成功・情報の行 | Accepted |
+| [0059](./0059-form-submitting.md) | フォーム全体を送っているあいだ | Accepted |
+| [0060](./0060-server-error-focus.md) | 送信のあとのサーバーのエラーとフォーカス | Accepted |
+| [0061](./0061-badge.md) | Badge（数と小さな状態の点） | Accepted |
+| [0062](./0062-checkbox-radio.md) | チェックボックスとラジオ | Accepted |
+| [0063](./0063-choice-press.md) | チェックボックス・ラジオを押したときの動き | Accepted |
+| [0064](./0064-choice-group-frame.md) | 「すべて選ぶ」のグループの枠 | Accepted |
+| [0065](./0065-switch-coarse-size.md) | 指用と大きい指用のトグルの大きさ | Accepted |
+| [0066](./0066-switch-row-frame.md) | トグルの行の形と押せる範囲 | Accepted |
+| [0067](./0067-switch-row-press.md) | トグルの行を押したときの塗りと、OFF・箱の色 | Accepted |
+| [0068](./0068-switch-caption.md) | トグルとキャプションの置き方 | Accepted |
+| [0069](./0069-switch-disabled-knob.md) | 押せない OFF のノブ | Accepted |
+| [0070](./0070-choice-error-box.md) | チェックボックス・ラジオのエラーの箱 | Accepted |
+| [0071](./0071-focus-color.md) | フォーカスの色と部品の色 | Accepted |
+| [0072](./0072-disabled-over-error.md) | エラーかつ押せないときは、押せない見た目を優先する | Accepted |
+| [0073](./0073-link-or-button.md) | リンクの作り分け（移動は Link、実行は Button）と押せないリンク | Accepted |
+| [0074](./0074-a11y-review-deferred.md) | 2026-09-14 の a11y レビューのうち、据え置き・backlog にしたもの | Accepted |
+| [0075](./0075-notice-region.md) | あとから出すお知らせの領域と、閉じるボタンの名前 | Accepted |
