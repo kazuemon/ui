@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 import { Button, type ButtonProps } from './Button';
-import { CheckIcon } from '../icons/icons';
+import { CheckIcon } from '../../internal/icons';
 import type { LoadingIndicator } from '../loading/Loading';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';

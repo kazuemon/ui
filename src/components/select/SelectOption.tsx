@@ -2,7 +2,7 @@ import { Select as BaseSelect } from '@base-ui/react/select';
 import { type ReactNode, useId } from 'react';
 
 import { fieldStyles } from '../../internal/field/field-styles';
-import { CheckIcon, WarningIcon } from '../icons/icons';
+import { CheckIcon, WarningIcon } from '../../internal/icons';
 
 /**
  * 選択肢に付く文の種類（design/adr/0044）

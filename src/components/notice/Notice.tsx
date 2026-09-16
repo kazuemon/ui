@@ -3,7 +3,13 @@ import { createPortal } from 'react-dom';
 import { tv } from '../../internal/tv';
 
 import { focusRing } from '../../internal/focus-styles';
-import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from '../icons/icons';
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  WarningCircleIcon,
+  WarningIcon,
+  XIcon,
+} from '../../internal/icons';
 import { NoticeRegionContext } from './notice-region-context';
 
 /** お知らせの色。状態の色（情報・成功・警告・危険）だけを持つ */

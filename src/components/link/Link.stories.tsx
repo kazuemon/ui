@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps } from 'react';
 import { expect } from 'storybook/test';
 
-import { CaretRightIcon, InfoIcon } from '../icons/icons';
+import { CaretRightIcon, InfoIcon } from '../../internal/icons';
 import { Link } from './Link';
 import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';

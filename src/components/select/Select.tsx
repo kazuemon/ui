@@ -22,7 +22,7 @@ import { controlBox } from '../../internal/field/field-styles';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddon } from '../field-addon/FieldAddon';
-import { CaretDownIcon } from '../icons/icons';
+import { CaretDownIcon } from '../../internal/icons';
 import { type LoadingIndicator, Spinner } from '../loading/Loading';
 import { OWN_FOCUS, type SelectColor, selectedTokens } from './select-colors';
 import { SelectMoreCue, type SheetMoreCue } from './SelectMoreCue';

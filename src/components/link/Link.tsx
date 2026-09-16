@@ -10,7 +10,7 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { Button } from '../button/Button';
 import { focusRing } from '../../internal/focus-styles';
-import { ArrowUpRightIcon } from '../icons/icons';
+import { ArrowUpRightIcon } from '../../internal/icons';
 import {
   disabledAnchor,
   disabledLinkProps,

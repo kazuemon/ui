@@ -2,7 +2,7 @@ import type { PointerEventHandler, ReactNode, Ref } from 'react';
 
 import { fieldStyles } from '../../internal/field/field-styles';
 import { focusRing } from '../../internal/focus-styles';
-import { WarningCircleIcon, WarningIcon, XIcon } from '../icons/icons';
+import { WarningCircleIcon, WarningIcon, XIcon } from '../../internal/icons';
 
 /** シートの見出しに出す欄のエラー・警告の行 */
 export interface SheetMessage {

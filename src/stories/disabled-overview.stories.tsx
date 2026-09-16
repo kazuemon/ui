@@ -14,7 +14,7 @@ import { Checkbox, type ChoiceColor } from '../components/checkbox/Checkbox';
 import { CheckboxGroup } from '../components/checkbox/CheckboxGroup';
 import { FieldAddonButton } from '../components/field-addon/FieldAddon';
 import { Form } from '../components/form/Form';
-import { EyeIcon } from '../components/icons/icons';
+import { EyeIcon } from '../internal/icons';
 import { Link, type LinkProps } from '../components/link/Link';
 import { Radio, RadioGroup } from '../components/radio/Radio';
 import { Select, type SelectItem, type SelectProps } from '../components/select/Select';

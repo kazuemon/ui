@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { expect, userEvent } from 'storybook/test';
 
 import { FieldAddonButton } from '../field-addon/FieldAddon';
-import { EyeIcon, EyeSlashIcon } from '../icons/icons';
+import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 import { TextField, type TextFieldProps } from './TextField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';

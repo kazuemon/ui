@@ -13,8 +13,8 @@ import {
   WarningCircleIcon,
   WarningIcon,
   XIcon,
-} from './icons';
-import { labelClass, sourceCode } from '../../stories/story-states';
+} from '../internal/icons';
+import { labelClass, sourceCode } from './story-states';
 
 interface Entry {
   name: string;
@@ -59,15 +59,16 @@ const entries: Entry[] = [
 ];
 
 const meta = {
-  title: 'Components/Icons',
+  title: 'Overview/アイコン',
+  id: 'overview-icons',
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component: [
-          '部品の中で使うアイコンです（Phosphor の形）。`src/components/icons` から読み込みます。',
+          '@kazuemon/ui の部品の中で使っているアイコンの一覧です（形は [Phosphor Icons](https://phosphoricons.com/)）。これらは公開していません。',
           '',
-          '- 文字と並べるときは細い線（Regular）、アイコンだけで置くとき（アイコンだけのボタンなど）は `standalone` を付けて太い線（Bold）にします。',
+          '- 部品にアイコンを渡すときは、`@phosphor-icons/react` を使います。文字と並べるときは `weight="regular"`、アイコンだけで置くとき（アイコンだけのボタンなど）は `weight="bold"` にすると、部品の中のアイコンと同じ線の太さになります。',
           '- 大きさは部品の中の文字に合わせ、密度で切り替わります。色は周りの文字の色を受け継ぎます。',
           '- 飾りなので読み上げません。アイコンだけのボタンには、ボタンに `aria-label` を付けます。',
         ].join('\n'),
@@ -86,14 +87,16 @@ export const All: Story = {
   parameters: {
     docs: {
       source: sourceCode(`
+        import { CheckIcon, EyeIcon } from '@phosphor-icons/react';
+
         {/* 文字と並べるとき（細い線） */}
         <Button>
-          <CheckIcon />
+          <CheckIcon weight="regular" />
           完了にする
         </Button>
         {/* アイコンだけで置くとき（太い線）。名前はボタンに付ける */}
         <FieldAddonButton aria-label="パスワードを表示">
-          <EyeIcon standalone />
+          <EyeIcon weight="bold" />
         </FieldAddonButton>
       `),
     },

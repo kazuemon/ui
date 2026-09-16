@@ -3,13 +3,7 @@ import { type ReactNode, useContext, useId, useState } from 'react';
 
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useFormSubmittingLock } from '../form-context';
-import {
-  CheckCircleIcon,
-  CheckIcon,
-  InfoIcon,
-  WarningCircleIcon,
-  WarningIcon,
-} from '../../components/icons/icons';
+import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
 import { LoadingBar, Spinner } from '../../components/loading/Loading';
 
 /** キャプション（ヘルプテキスト）の場所。top: ラベルと本体のあいだ（既定）、bottom: 本体の下 */

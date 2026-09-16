@@ -12,19 +12,6 @@ export {
 export { FieldAddonButton, type FieldAddonButtonProps } from './components/field-addon/FieldAddon';
 export type { AddonShape } from './components/field-addon/field-addon-context';
 export { Form, type FormProps } from './components/form/Form';
-export {
-  ArrowUpRightIcon,
-  CaretDownIcon,
-  CaretRightIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  InfoIcon,
-  WarningCircleIcon,
-  WarningIcon,
-  XIcon,
-} from './components/icons/icons';
 export { Link, type LinkContentAlign, type LinkProps } from './components/link/Link';
 export { LoadingBar, type LoadingIndicator, Spinner } from './components/loading/Loading';
 export {

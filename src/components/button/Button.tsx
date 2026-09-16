@@ -12,7 +12,7 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
 import { FormSubmitContext } from '../../internal/form-context';
-import { ArrowUpRightIcon } from '../icons/icons';
+import { ArrowUpRightIcon } from '../../internal/icons';
 import {
   disabledAnchor,
   disabledLinkProps,
