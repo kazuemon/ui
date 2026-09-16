@@ -2,7 +2,7 @@ import { addons } from 'storybook/preview-api';
 import { afterEach, expect } from 'vitest';
 import { page } from 'vitest/browser';
 
-// 見た目の回帰（visual regression）— plans/visual-testing.md
+// 見た目の回帰（visual regression）— .storybook/visual-testing.md
 // tags: ['visual'] の付いたストーリーを、play が終わったあとの姿で撮り、基準の画像とくらべる。
 // 基準は <ストーリーのある場所>/__screenshots__/ に置く。作り直しは `pnpm test -u`
 

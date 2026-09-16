@@ -10,6 +10,7 @@
 | `adr/assets/`   | ADR に添える比較画像。決めた時点の記録                                                  |
 | `backlog.md`    | 決めていないこと・作っていないこと                                                      |
 | `references/`   | 原則の出どころになった参照画像（一覧は [`principles.md`](./principles.md#参照画像)）    |
+| `plans/`        | まだ始めていない計画（ドキュメントサイトなど）                                          |
 | `stories/`      | 決めている途中の軸の比較ストーリー。`Design Review/NN 軸の名前` に並ぶ。決まったら消す  |
 | `tools/`        | 比較画像の撮影と、原則の書き方の確かめ。使い方は [`tools/README.md`](./tools/README.md) |
 
