@@ -5,6 +5,23 @@ import type { ReactNode } from 'react';
 /** 行・列の見出しの文字 */
 export const labelClass = 'text-xs font-bold text-fg-subtle';
 
+/**
+ * Show code に出すコード（parameters.docs.source）。状態を持つ例や、枠（Matrix など）の中身は
+ * Storybook が作るコードに出ないので、写して使える形を手で書く。
+ * 部分ごとに前後の空行と共通の字下げを除き、空行をはさんでつなぐ
+ */
+export function sourceCode(...parts: string[]) {
+  return { code: parts.map(dedent).join('\n\n'), language: 'tsx' };
+}
+
+function dedent(text: string) {
+  const lines = text.replace(/^\n+/, '').trimEnd().split('\n');
+  const indent = Math.min(
+    ...lines.filter((line) => line.trim()).map((line) => line.length - line.trimStart().length)
+  );
+  return lines.map((line) => line.slice(indent)).join('\n');
+}
+
 /** 状態を固定する列。parameters.pseudo のセレクタが [data-preview="…"] で参照する */
 export type PreviewState = 'hover' | 'active' | 'focus';
 

@@ -3,6 +3,7 @@ import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 
 import { Switch } from '../../src/components/Switch';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchCaptionAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 29: トグルの並び
 // トラックを文字の左に置く形（togglePlacement="start"）を既定にした。左に置いたときの並びを比べる
@@ -172,8 +173,9 @@ interface ComparisonArgs {
 const meta = {
   title: 'Design Review/29 トグルの並び',
   id: 'design-review-29-toggle-layout',
+  decorators: [keepSwitchCaptionAsCompared, keepToggleColorAsCompared],
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -200,8 +202,8 @@ export const Candidates: Story = {
         renderCell={(column) => <Cell column={column} />}
       >
         <p>
-          <strong className="text-fg">決まったこと</strong>
-          。トラックの左右は <code>togglePlacement</code>{' '}
+          <strong className="text-fg">決まったこと</strong>（ADR-0049）。トラックの左右は{' '}
+          <code>togglePlacement</code>{' '}
           で選べるようにし、既定はトラック左（start）にしました。押せないときは、ラベルをほかの押せない文字と同じグレーにし、キャプションは読めるままにします（右の列）。
         </p>
         <p>

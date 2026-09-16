@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-// タグ（ユーザーの呼び方は「チップ」）。原則5: 小物は pill
+// タグ（分類や「公開中」などの状態を表す、押せない文字のラベル）。原則5: 小物は pill
+// 数と小さな状態の点は Badge、押せる・消せる小物は Chip（まだない）として分ける
 // 淡い面に、同じ色相の濃い文字を載せる（design/adr/0007 の塗り方）。色は利用者が選ぶ（原則6）
 // 指定しないときはグレー（neutral）— design/adr/0028。大きさは仮
 // 状態を表す色（info・success・warning・danger）は、利用者が選ぶ色とは別。お知らせの soft と同じ面と文字

@@ -99,7 +99,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: { hover: ['[data-preview="hover"] button[aria-label="閉じる"]'] },
   },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -125,7 +125,7 @@ export const Candidates: Story = {
     >
       <p>
         <strong className="text-fg">決まったこと</strong>
-        。押せる範囲は、見た目の範囲と一致させます。お知らせの ×
+        （ADR-0050）。押せる範囲は、見た目の範囲と一致させます。お知らせの ×
         は、大きい指用（coarse-large）でも大きくならず、指用の部品の高さ（44px）にも届いていないので直します。
       </p>
       <p>

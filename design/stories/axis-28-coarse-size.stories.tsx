@@ -9,7 +9,7 @@ import { Switch } from '../../src/components/Switch';
 import { Tag } from '../../src/components/Tag';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { keepSwitchAsCompared } from './pins';
+import { keepSwitchAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 28: 指用の高さ（原則11 — 寸法は入力方式で切り替える、ADR-0004）。1回目で決定（ADR-0045）
 // 比べたとき、指用の高さ --size-control-coarse は仮の 44px。マウス用は 40px に決まっている（ADR-0020）
@@ -693,7 +693,7 @@ const pickArg = {
 
 const meta = {
   title: 'Design Review/28 指用の高さ（実機）',
-  decorators: [keepSwitchAsCompared],
+  decorators: [keepSwitchAsCompared, keepToggleColorAsCompared],
   id: 'design-review-28-coarse-size',
   parameters: { layout: 'fullscreen' },
   // 決定（ADR-0045）: 指用は 44px（現行版）。C は大きい指用（.coarse-large）として残す

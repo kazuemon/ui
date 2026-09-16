@@ -1,8 +1,10 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { tv } from 'tailwind-variants';
 
 import { focusRing } from './focus-styles';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from './icons';
+import { NoticeRegionContext } from './notice-region-context';
 
 /** お知らせの色。状態の色（情報・成功・警告・危険）だけを持つ */
 export type NoticeColor = 'info' | 'success' | 'warning' | 'danger';
@@ -29,11 +31,17 @@ const notice = tv({
     'text-(length:--text-control) leading-(--leading-control)',
     'bg-(color:--notice-bg) text-(color:--notice-fg)',
     '[--color-focus-ring:var(--notice-ring-color)] [&_a]:[--link-color:currentColor]',
+    // 中の線は、部品の色に従わせる設定（--focus-follow-color — 後半の軸 41）でも、お知らせの線の色のまま
+    '[--focus-follow-color:initial]',
   ],
   variants: {
     appearance: {
       soft: '',
-      filled: '[--notice-icon-color:var(--notice-fg)] [--notice-title-color:var(--notice-fg)]',
+      // 縁の線（軸 36）: 太さは --notice-filled-line-width（0 は線なし）、色は --notice-filled-line（いまは警告だけ。ほかは透明）
+      filled: [
+        '[--notice-icon-color:var(--notice-fg)] [--notice-title-color:var(--notice-fg)]',
+        'border-(length:--notice-filled-line-width) border-[color:var(--notice-filled-line,transparent)]',
+      ],
       outline: [
         'border border-(color:--notice-line-color)',
         '[--notice-bg:var(--color-notice-outline)] [--notice-fg:var(--color-on-notice-outline)]',
@@ -89,7 +97,7 @@ const notice = tv({
       appearance: 'filled',
       color: 'warning',
       class:
-        '[--notice-bg:var(--color-notice-warning-filled)] [--notice-fg:var(--color-on-notice-warning-filled)] [--notice-ring-color:var(--color-notice-warning-filled-ring)]',
+        '[--notice-bg:var(--color-notice-warning-filled)] [--notice-fg:var(--color-on-notice-warning-filled)] [--notice-filled-line:var(--color-notice-warning-filled-line)] [--notice-ring-color:var(--color-notice-warning-filled-ring)]',
     },
     {
       appearance: 'filled',
@@ -110,7 +118,8 @@ const iconOf: Record<NoticeColor, (props: { className?: string }) => ReactNode> 
 };
 
 // 読み上げ: 題・本文・操作を role の箱に入れる。危険は alert（割り込む）、ほかは status（区切りを待つ）
-// あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる
+// あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる。
+// そのため領域（NoticeRegion）の中では、自分では箱を出さず、領域が先に置いた同じ role の箱の中へ描く（二重に読まない）
 const roleOf: Record<NoticeColor, 'alert' | 'status'> = {
   info: 'status',
   success: 'status',
@@ -139,11 +148,23 @@ export interface NoticeProps extends Omit<
   children?: ReactNode;
   /** 本文の下に置く操作。白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
   actions?: ReactNode;
-  /** 渡すと右上に × を出す（読み上げは「閉じる」）。× は role の箱の外に置く */
+  /**
+   * 渡すと右上に × を出す。読み上げの名前は `closeLabel`。× は role の箱の外に置く
+   * （お知らせの領域 `NoticeRegion` の中では、お知らせ全体が領域の箱の中に入るので、× も箱の中になります）
+   */
   onClose?: () => void;
+  /**
+   * × の読み上げの名前。題（`title`）があるときは、この名前のあとに題を続けて「閉じる メンテナンスのお知らせ」のように読みます。
+   * ページに × が並んでも、どれを閉じるのかが分かります。題がないときは、この名前だけです
+   * @default '閉じる'
+   */
+  closeLabel?: string;
   /**
    * 題・本文・操作を role の箱（危険は alert、ほかは status）に入れるか
    * false は、出したお知らせにフォーカスを移して読ませるときに使う（Form のエラーの一覧 — design/adr/0044）。箱に入れたままだと、出たときとフォーカスが移ったときの2回読まれる
+   *
+   * お知らせの領域（`NoticeRegion`）の中では、自分では箱を出さず、領域が先に置いた箱（危険は alert、ほかは status）の中に描かれます。
+   * あとから出すお知らせは、領域の中に入れます。ページを開いたときからあるお知らせは、領域の外にそのまま置きます
    * @default true
    */
   live?: boolean;
@@ -159,12 +180,18 @@ export function Notice({
   children,
   actions,
   onClose,
+  closeLabel = '閉じる',
   live = true,
   className,
   ...props
 }: NoticeProps) {
   const Icon = iconOf[color];
-  return (
+  const titleId = useId();
+  const closeId = useId();
+  // 領域の中では、領域が先に置いた箱へ描く。live={false} は箱に入れない（その場に描く）
+  const region = useContext(NoticeRegionContext);
+  const inRegion = region !== null && live;
+  const element = (
     <div
       data-slot="notice"
       data-color={color}
@@ -176,12 +203,20 @@ export function Notice({
       <span className="mt-0.5 flex shrink-0 text-(color:--notice-icon-color)">
         <Icon />
       </span>
-      <div role={live ? roleOf[color] : undefined} className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {title ? <p className="font-bold text-(color:--notice-title-color)">{title}</p> : null}
+      <div
+        role={live && !inRegion ? roleOf[color] : undefined}
+        className="flex min-w-0 flex-1 flex-col gap-0.5"
+      >
+        {title ? (
+          <p id={titleId} className="font-bold text-(color:--notice-title-color)">
+            {title}
+          </p>
+        ) : null}
         {children ? <div>{children}</div> : null}
-        {/* 文字のリンクの上下の余白（フォーカスの線を離す 2px）は、文の中のリンクと同じく行の高さに数えない */}
+        {/* 文字のリンクの上下の余白（フォーカスの線を離す 2px）は、文の中のリンクと同じく行の高さに数えない
+            枠線のリンクとボタンの見た目のリンク（どちらも inline-flex で高さを持つ）には当てない。当てると本文との間が 2px 詰まる */}
         {actions ? (
-          <div className="mt-1 flex flex-wrap items-center gap-2 [&_a]:font-bold [&>a]:-my-0.5">
+          <div className="mt-1 flex flex-wrap items-center gap-2 [&_a]:font-bold [&>a:not(.inline-flex)]:-my-0.5">
             {actions}
           </div>
         ) : null}
@@ -189,7 +224,11 @@ export function Notice({
       {onClose && (
         <button
           type="button"
-          aria-label="閉じる"
+          id={closeId}
+          // 名前は「× の名前 題」。自分を先に指すと、自分の分は aria-label が使われる（accname の aria-labelledby の決まり）
+          // 操作の名前を先にする: Tab で移ったとき、何をするボタンかが先に聞こえる。音声操作で「閉じる」と言ったときも名前の頭で当たる
+          aria-label={closeLabel}
+          aria-labelledby={title ? `${closeId} ${titleId}` : undefined}
           onClick={onClose}
           className={[
             // 大きさ（押せる範囲）は --notice-close-to-control で決める。0 は行の高さ＋8px（指用 32px・マウス用 28px）、
@@ -210,4 +249,8 @@ export function Notice({
       )}
     </div>
   );
+  if (!inRegion) return element;
+  // 箱は領域を描いたあとに決まる。決まるまでは描かない（領域はページを開いたときから置くので、出すころには決まっている）
+  const box = region[roleOf[color]];
+  return box ? createPortal(element, box) : null;
 }

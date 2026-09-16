@@ -5,7 +5,7 @@ import { Select } from '../../src/components/Select';
 import { Switch } from '../../src/components/Switch';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { keepSwitchAsCompared } from './pins';
+import { keepSwitchAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 08: Disabled の表し方（principles.md 原則1）。2回目
 // 影はどの案もなくす（原則1）。変えるのは次のトークンだけ。initial は「未設定」で、部品のもとの色のままになる
@@ -213,7 +213,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/08 Disabled の表し方',
-  decorators: [keepSwitchAsCompared],
+  decorators: [keepSwitchAsCompared, keepToggleColorAsCompared],
   id: 'design-review-08-disabled',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'D2' },

@@ -1,5 +1,6 @@
 import {
   type ComponentProps,
+  type FormEvent,
   useCallback,
   useEffect,
   useId,
@@ -10,7 +11,7 @@ import {
 } from 'react';
 
 import { focusRing } from './focus-styles';
-import { FormSubmitContext } from './form-context';
+import { FormSubmitContext, type FormSubmittingBehavior } from './form-context';
 import { Link } from './Link';
 import { Notice } from './Notice';
 
@@ -68,17 +69,63 @@ const sameEntries = (a: ErrorEntry[], b: ErrorEntry[]) =>
       entry.text === b[i].text
   );
 
+// フォーカスを移す先。チェックボックス・ラジオのグループ（role="group"・"radiogroup"）は、グループそのものは
+// フォーカスを受けないので、中の最初の選んだ項目（なければ最初の押せる項目）にする
+function focusTargetOf(control: HTMLElement) {
+  const role = control.getAttribute('role');
+  if (role !== 'group' && role !== 'radiogroup') return control;
+  const items = [
+    ...control.querySelectorAll<HTMLElement>('[role="checkbox"], [role="radio"]'),
+  ].filter(
+    (item) =>
+      // 「すべて選ぶ」の親の箱（Base UI の data-parent）には移さない。エラーは子を選ぶことについてなので
+      !item.hasAttribute('data-parent') &&
+      !item.hasAttribute('data-disabled') &&
+      item.getAttribute('aria-disabled') !== 'true'
+  );
+  return items.find((item) => item.getAttribute('aria-checked') === 'true') ?? items[0] ?? control;
+}
+
 // 欄へフォーカスを移し、欄全体（ラベルからエラーの行まで）が見えるようにスクロールする
 // select: 入力した文字を選ぶ（Base UI の Form と同じ。送信したときだけ）
 function focusField(form: HTMLFormElement, messageId: string, select: boolean) {
   const control = controlOf(form, messageId);
   if (!control) return;
-  control.focus({ preventScroll: true });
+  focusTargetOf(control).focus({ preventScroll: true });
   if (select && control instanceof HTMLInputElement) control.select();
   const region = form
     .querySelector(`#${CSS.escape(messageId)}`)
     ?.closest('[data-slot="field-message"]');
   region?.parentElement?.scrollIntoView({ block: 'nearest' });
+}
+
+// フォームの最初の送信のボタン（<button type="submit">・<input type="submit">）。Enter で送ったときにブラウザが押したことにするボタン
+function defaultSubmitButton(form: HTMLFormElement): Element | null {
+  return (
+    [...form.elements].find(
+      (element) =>
+        (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
+        element.type === 'submit'
+    ) ?? null
+  );
+}
+
+// 送信中が終わったとき、送ったときの場所（押した送信のボタン、Enter を押した欄、body）にフォーカスが残っているか
+// origin が null（送信なしに submitting になった）ときは残っていないとみなす。フォーカスがどこにもない（body）ときは、奪うものがないので残っているとみなす
+function focusStayedAt(origin: Element | null) {
+  if (!origin) return false;
+  const doc = origin.ownerDocument;
+  const active = doc.activeElement;
+  return active === origin || active === null || active === doc.body;
+}
+
+// 押した送信のボタン（SubmitEvent.submitter）。Enter で送ったときは、ブラウザが最初の送信のボタンを入れる
+// ボタンなしに送ったとき（requestSubmit() など）は、Enter と同じく最初の送信のボタンにする
+function submitterOf(event: FormEvent<HTMLFormElement>) {
+  const native = event.nativeEvent;
+  const pressed =
+    'submitter' in native && native.submitter instanceof Element ? native.submitter : null;
+  return pressed ?? defaultSubmitButton(event.currentTarget);
 }
 
 export interface FormProps extends ComponentProps<'form'> {
@@ -100,18 +147,41 @@ export interface FormProps extends ComponentProps<'form'> {
    * @default true
    */
   noValidate?: boolean;
+  /**
+   * フォーム全体を送っている（返事を待っている）。中の欄に配り、submittingBehavior の形で止めます。
+   * 送っているあいだの送信（Enter など）は、onSubmit を呼ばずに止めます。
+   * 中の送信のボタン（type="submit" の Button）は、loading を渡さなくても送信中になります。
+   * 回る円は押したボタンにだけ出し、ほかの送信のボタンは押せない見た目にするだけです。
+   * Enter で送ったときは、フォームの最初の送信のボタンに出します（ブラウザの既定と同じ）。
+   * true から false に戻した描画でエラーの行があれば、送信したときと同じく、最初のエラーの欄（errorSummary のときはエラーの一覧）へフォーカスを移します。
+   * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡してください。先に渡すと、送っているあいだに読み上げられ、フォーカスが移った先でもう一度読まれます。あとに渡すと、フォーカスは移りません。
+   * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡します。
+   * 送ったときの場所（押した送信のボタン、Enter を押した欄）にフォーカスが残っているときだけ移し、送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます
+   * @default false
+   */
+  submitting?: boolean;
+  /**
+   * 送っているあいだの欄の扱い（後半の軸 38）。
+   * blocking は、押せない欄の見た目にし、書き換えを止めます（印は出さず、フォーカスは外さず、値も送られます）。
+   * none は欄を何も変えません。下書きの自動保存のように、送っているあいだに書き換えても困らないフォームで使います
+   * @default 'blocking'
+   */
+  submittingBehavior?: FormSubmittingBehavior;
 }
 
 /**
  * フォーム（design/adr/0044）
  * 値を確かめるのはアプリ（onSubmit の中で、各欄の error・warning を決める）。Form は、その描画のあとでフォーカスを移す
- * 中の欄の行は、欄を離れたときやあとから確かめたときに出ると、polite で知らせる。送信で出たときは知らせない（移った先で読むため）
+ * 送信中（submitting）が終わった描画でも、送ったときの場所にフォーカスが残っていれば、同じくフォーカスを移す（サーバーから返ってきたエラー）
+ * 中の欄の行は、欄を離れたときやあとから確かめたときに出ると、polite で知らせる。送信で出たとき（送信中が終わってフォーカスを移したときも）は知らせない（移った先で読むため）
  * 既定では noValidate（ブラウザの吹き出しを出さず、欄の下の行で知らせる）
  */
 export function Form({
   errorSummary = false,
   errorSummaryTitle = defaultSummaryTitle,
   noValidate = true,
+  submitting = false,
+  submittingBehavior = 'blocking',
   onSubmit,
   ref,
   children,
@@ -137,23 +207,56 @@ export function Form({
   );
 
   // アプリの onSubmit（各欄のエラーを決める）と送信の回数を、同じ描画で反映する
+  // 送っているあいだの送信（Enter など）は、onSubmit を呼ばずに止める（二重に送らない）
+  // 押した送信のボタン。送っているあいだ、中の送信のボタン（Button）に配る。印はこのボタンにだけ出る
+  const [submitter, setSubmitter] = useState<Element | null>(null);
+  const wasSubmitting = useRef(submitting);
+  // 送ったときにフォーカスのあった場所（押した送信のボタン、Enter を押した欄、body）。送信中が終わったときに比べる
+  const [origin, setOrigin] = useState<Element | null>(null);
   const handleSubmit: NonNullable<FormProps['onSubmit']> = (event) => {
+    if (submitting) {
+      event.preventDefault();
+      return;
+    }
+    setSubmitter(submitterOf(event));
+    setOrigin(event.currentTarget.ownerDocument.activeElement);
     onSubmit?.(event);
     setSubmitCount((count) => count + 1);
   };
 
-  // 送信で出たエラーが描かれたあと: 最初のエラーの欄か、エラーの一覧へフォーカスを移す
+  // 送信中が終わった描画（submitting が true から false）: 送ったときの場所にフォーカスが残っていれば、エラーへフォーカスを移す回数を増やす
+  // 欄の行が、同じ描画で「送信で出た」と分かるように、描画の中で決める（アプリがエラーを渡すのと submitting を false にするのが同じ描画のとき）
+  // 送っているあいだに別の欄へ移っていたら増やさない。フォーカスを奪わず、行は polite で知らせる
+  const [settle, setSettle] = useState({ submitting, count: 0 });
+  if (settle.submitting !== submitting) {
+    const stayed = !submitting && focusStayedAt(origin);
+    setSettle({ submitting, count: stayed ? settle.count + 1 : settle.count });
+    if (!submitting) setOrigin(null);
+  }
+  const focusCount = submitCount + settle.count;
+
+  // 送信なしに submitting になったとき（アプリが直に切り替えたとき）は、最初の送信のボタンに印を出す
+  // 送り終えたら忘れる。次に送信なしで submitting になったとき、前に押したボタンに出さないため
+  //   送り終えるまでは忘れない（押してから、アプリが待ったあとで submitting にしても、押したボタンに出す）
   useLayoutEffect(() => {
     const form = formRef.current;
-    if (!submitCount || !form) return;
+    if (submitting && !submitter && form) setSubmitter(defaultSubmitButton(form));
+    else if (!submitting && wasSubmitting.current) setSubmitter(null);
+    wasSubmitting.current = submitting;
+  }, [submitting, submitter]);
+
+  // 送信で出たエラー（送信中が終わったときに出たエラーも）が描かれたあと: 最初のエラーの欄か、エラーの一覧へフォーカスを移す
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (!focusCount || !form) return;
     const entries = collectErrors(form);
     if (errorSummaryRef.current) {
-      setSummary(entries.length ? { entries, focus: submitCount } : null);
+      setSummary(entries.length ? { entries, focus: focusCount } : null);
       return;
     }
     setSummary(null);
     if (entries[0]) focusField(form, entries[0].messageId, true);
-  }, [submitCount]);
+  }, [focusCount]);
 
   const summaryFocus = summary?.focus;
   useLayoutEffect(() => {
@@ -182,7 +285,15 @@ export function Form({
     return () => observer.disconnect();
   }, [summaryShown]);
 
-  const context = useMemo(() => ({ submitCount }), [submitCount]);
+  const context = useMemo(
+    () => ({
+      focusCount,
+      submitting,
+      submittingBehavior,
+      submitter: submitting ? submitter : null,
+    }),
+    [focusCount, submitting, submittingBehavior, submitter]
+  );
   return (
     <FormSubmitContext.Provider value={context}>
       <form {...props} ref={setRefs} noValidate={noValidate} onSubmit={handleSubmit}>

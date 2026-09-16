@@ -1,17 +1,28 @@
 import { useRender } from '@base-ui/react/use-render';
-import type { ComponentProps, ReactElement } from 'react';
+import {
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+  use,
+  useCallback,
+  useId,
+  useState,
+} from 'react';
 import { tv, type VariantProps } from 'tailwind-variants';
 
 import { focusRing } from './focus-styles';
+import { FormSubmitContext } from './form-context';
 import { ArrowUpRightIcon } from './icons';
 import {
   disabledAnchor,
   disabledLinkProps,
   endsWithElement,
-  NewTabNote,
+  newTabNaming,
   opensNewTab,
+  renderPropOf,
   warnOnce,
   withoutNavigation,
+  withRenderOverrides,
 } from './link-parts';
 import { type LoadingIndicator, LoadingBar, Spinner } from './Loading';
 
@@ -69,7 +80,15 @@ const button = tv({
     },
     // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028
     // white は白いボタン。白い地では影だけでは区別がつかないので、輪郭も付ける（design/adr/0024・0025）
-    color: { primary: '', secondary: '', danger: '', neutral: '', white: '' },
+    // --color-own-focus: フォーカスの線を部品の色に従わせるとき（--focus-follow-color: 1 — 後半の軸 41）の線の色。ピンクは前景用
+    //   neutral・white は置かない（線は --color-focus-ring のまま）
+    color: {
+      primary: '[--color-own-focus:var(--color-primary)]',
+      secondary: '[--color-own-focus:var(--color-fg-secondary)]',
+      danger: '[--color-own-focus:var(--color-danger)]',
+      neutral: '',
+      white: '',
+    },
   },
   compoundVariants: [
     {
@@ -141,19 +160,89 @@ const button = tv({
   defaultVariants: { appearance: 'filled', color: 'neutral' },
 });
 
+// キャプション（原則4）: ボタンの下に中央寄せで、小さくグレーの文字。間・大きさ・色は比べている途中（後半の軸 31）
+// ボタンとキャプションを包み（root）、className は包みに付ける（Switch・TextField と同じく、いちばん外の要素に付く）
+//   ボタンは包みの幅いっぱいに伸ばす（items-stretch）。包みに w-full を付けると、幅いっぱいのボタンになる
+//   キャプションは包みの幅を広げない（w-0 min-w-full）。包みの幅はボタンの幅で決まり、長いキャプションは折り返す
+// 間と文字の大きさは密度で変わる。指用（-coarse）とマウス用（-fine）のトークンを、--density-coarse（src/styles/globals.css。
+//   指用 1・マウス用 0）でこの要素の中で選ぶ。:root で密度の値を var() で受けると、中の data-density に従わないため
+// 押せないとき・送信中も、キャプションは薄くしない（原則1）。ボタンの外にあるので、ボタンの薄さを受けない
+// 読み上げでは、キャプションをボタン（リンクのときは <a>）の説明（aria-describedby）につなぐ
+//   渡された説明があるときは、その後ろに足す（TextField と同じく、渡された説明 → キャプションの順）
+// ref は包みではなくボタン（<a>）に付く。className だけを包みに付けるのは、包みの幅（w-full など）を決められるようにするため
+const captioned = tv({
+  slots: {
+    root: [
+      'inline-flex flex-col items-stretch',
+      'gap-[calc(var(--button-caption-gap-fine)_+_var(--density-coarse)_*_(var(--button-caption-gap-coarse)_-_var(--button-caption-gap-fine)))]',
+    ],
+    caption: [
+      'w-0 min-w-full text-center font-normal',
+      'text-[length:calc(var(--text-button-caption-fine)_+_var(--density-coarse)_*_(var(--text-button-caption-coarse)_-_var(--text-button-caption-fine)))]',
+      'leading-(--leading-button-caption) text-(color:--color-button-caption)',
+    ],
+  },
+});
+
+/** ボタンとキャプションを包む。キャプションがないときは、ボタンをそのまま返す */
+function withCaption(
+  element: ReactElement,
+  caption: ReactNode,
+  className: string | undefined,
+  captionId: string
+) {
+  if (!caption) return element;
+  const s = captioned();
+  return (
+    <span data-slot="button-root" className={s.root({ className })}>
+      {element}
+      <span id={captionId} data-slot="button-caption" className={s.caption()}>
+        {caption}
+      </span>
+    </span>
+  );
+}
+
+/** id の並び（aria-describedby）をつなぐ。空のものは除き、同じ id は1回だけにする */
+function joinIds(...lists: unknown[]) {
+  const ids = lists.flatMap((list) =>
+    typeof list === 'string' ? list.split(/\s+/).filter(Boolean) : []
+  );
+  return [...new Set(ids)].join(' ') || undefined;
+}
+
 // Props は、ボタン（render なし — ButtonProps）とリンク（render あり — ButtonLinkProps）の2つの形に分ける（design/adr/0046）
 // リンクは送信中を持たないので、render と一緒には loading・loadingIndicator・inlineSpinner・type を渡せない（型で止める）
 // ButtonProps は、いままでどおりボタンの props の名前（interface で extends できるよう、2つをまとめた union にはしない）
+// ButtonLinkProps は、リンク（<a>）の属性をもとにする。form・name などボタンだけの属性は通さず、onClick の要素は HTMLAnchorElement
 type ButtonBaseProps = Omit<ComponentProps<'button'>, 'color' | 'type'> &
   VariantProps<typeof button>;
+type ButtonLinkBaseProps = Omit<ComponentProps<'a'>, 'color' | 'type'> &
+  VariantProps<typeof button>;
+
+/** ボタンとボタンの見た目のリンクで共通の props */
+interface ButtonCaptionProps {
+  /**
+   * キャプション（原則4）。ボタンの下に中央寄せで、小さくグレーの文字で出します。
+   * 押せないとき・送信中も薄くしません（原則1）。「変更できません」などの理由を読めるままにするためです。
+   * 読み上げでは、ボタンの説明（aria-describedby）になります。aria-describedby を渡したときは、その後ろにつなぎます。
+   * 渡すと、ボタンとキャプションを包む要素ができ、className はその包みに付きます。包みの幅を決められるようにするためで、
+   * 幅いっぱいにするときは className="w-full" を渡します。ref は包みではなく、ボタン（リンクのときは `<a>`）に付きます。
+   * キャプションはボタンの幅に収め、長いときは折り返します
+   */
+  caption?: ReactNode;
+}
 
 /** ボタン（<button>）の props */
-export interface ButtonProps extends ButtonBaseProps {
+export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
   /** @default 'button' */
   type?: ComponentProps<'button'>['type'];
   /**
    * 送信中。押せないボタンと同じ見た目になり、押しても onClick を呼ばない（フォームも送信しない）。
-   * disabled と違い、フォーカスは外れない（aria-disabled・aria-busy）
+   * disabled と違い、フォーカスは外れない（aria-disabled・aria-busy）。
+   * Form の中の送信のボタン（type="submit"）は、渡さなければ Form の submitting を受け取ります。
+   * 送信中の印は押したボタン（Enter で送ったときはフォームの最初の送信のボタン）にだけ出し、ほかの送信のボタンは押せない見た目にするだけです。
+   * 渡したときは、Form の submitting よりその値を優先します
    */
   loading?: boolean;
   /**
@@ -183,13 +272,21 @@ export interface ButtonProps extends ButtonBaseProps {
 }
 
 /** ボタンの見た目のリンク（render を渡す）の props */
-export interface ButtonLinkProps extends ButtonBaseProps {
+export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps {
   /**
    * 描く要素（Base UI の render と同じ）。`<a href>` や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
    * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは Button の children に書く。
    * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
+   *
+   * @deprecated 移動するものは Link で作ります（`<Link appearance="button">`）。この形は、Link が中で使うのと、
+   * 過去の比較のストーリーを比べたときの見た目のまま描くために残しています
    */
   render: ReactElement;
+  /**
+   * 押せないリンクにする。href のない `<a role="link" aria-disabled="true">` になり、Tab で止まらず、押しても何もしない。
+   * 見た目は押せないボタンと同じ（design/adr/0046）
+   */
+  disabled?: boolean;
   /** リンクは送信中を持たない（型で止める。渡されても無視し、開発時に警告する） */
   loading?: never;
   loadingIndicator?: never;
@@ -217,9 +314,11 @@ export interface ButtonLinkProps extends ButtonBaseProps {
  * 右上向きの矢印（↗）を必ず最後に付け、ボタンと見分ける。飾りなので読み上げない（aria-hidden）
  *   利用者が最後に ArrowUpRightIcon を置いたときは、足さない（2つにならない）。ほかのアイコンは、その後ろに ↗ が付く
  * 新しいタブで開く（渡した要素の target="_blank"）ときは、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
- * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする
+ *   名前を aria-label・aria-labelledby で付けたときは、名前そのものに足す（Link と同じ。link-parts の newTabNaming）
+ * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする。読み上げでは「リンク、利用不可」
  *   見た目は <Button disabled> と同じ（data-disabled）。↗ は残す。Tab では止まらず、押しても何もしない（onClick も呼ばない）
  * リンクは送信中を持たない。loading・loadingIndicator・inlineSpinner・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
+ * キャプション（caption）はボタンと同じく、リンクの下に出し、リンクの説明（aria-describedby）につなぐ（包みは withCaption）
  */
 function ButtonLink({
   appearance,
@@ -231,6 +330,7 @@ function ButtonLink({
   inlineSpinner,
   disabled,
   type,
+  caption,
   children,
   ref,
   ...props
@@ -241,55 +341,109 @@ function ButtonLink({
     );
   if (type !== undefined)
     warnOnce('Button: リンク（render）には type を付けません（design/adr/0046）');
-  const newTab = !disabled && opensNewTab(render);
-  return useRender({
-    render: disabled ? disabledAnchor(render) : render,
+  const captionId = useId();
+  const noteId = useId();
+  // 新しいタブで開くかは、渡した要素（render）と、部品に渡された props の両方で見る
+  // （Link の appearance="button" は、href・target を props で受けて、ここに渡す）
+  const newTab = !disabled && (opensNewTab(render) || props.target === '_blank');
+  // 新しいタブで開くときの名前と、読み上げだけの文（Link と同じ）
+  const naming = newTab ? newTabNaming(props, render, noteId) : null;
+  // 説明は、渡された説明（部品の props と渡した要素の両方）→ キャプションの順
+  const overrides = {
+    ...naming?.props,
+    'aria-describedby': joinIds(
+      props['aria-describedby'],
+      renderPropOf(render, 'aria-describedby'),
+      caption ? captionId : undefined
+    ),
+  };
+  const element = useRender({
+    // 渡した要素にも名前・説明があるときは、要素の側を書き換える（要素の props が勝つため）
+    render: withRenderOverrides(disabled ? disabledAnchor(render) : render, overrides),
     ref,
     props: {
       ...(disabled ? { ...withoutNavigation(props), ...disabledLinkProps } : props),
+      ...overrides,
       rel: newTab ? 'noopener noreferrer' : undefined,
-      className: button({ appearance, color, className }),
+      // キャプションがあるときは、className は包みに付ける
+      className: button({ appearance, color, className: caption ? undefined : className }),
       children: (
         <>
           {children}
           {!endsWithElement(children, ArrowUpRightIcon) && <ArrowUpRightIcon />}
           {/* sr-only は絶対配置なので、位置の基準（relative）を持つ要素の中に置く（Button は relative） */}
-          {newTab && <NewTabNote />}
+          {naming?.note}
         </>
       ),
     },
   });
+  return withCaption(element, caption, className, captionId);
 }
 
 /**
  * ボタン。render を渡すと、同じ見た目のリンクになる（上の ButtonLink）
+ * 型はボタンとリンクの2つの形で重ねる（overload）。props を union 1つにすると、render に要素（JSX）を渡したときに
+ * どちらの形か決まらず、onClick={(e) => …} の e が any になる（JSX の要素は union を見分ける値にならない）
  */
+export function Button(props: ButtonProps): ReactElement;
+export function Button(props: ButtonLinkProps): ReactElement;
 export function Button(allProps: ButtonProps | ButtonLinkProps) {
-  // リンクのときは別の部品で描く。ボタンのときは <button> をそのまま返す（比較のストーリーが class を読むため）
+  // リンクのときは別の部品で描く。ボタンのときは、キャプションがなければ <button> をそのまま返す（比較のストーリーが class を読むため）
   if (allProps.render) return <ButtonLink {...allProps} />;
-  const {
-    appearance,
-    color,
-    className,
-    type = 'button',
-    loading,
-    loadingIndicator = 'spinner',
-    inlineSpinner = false,
-    onClick,
-    children,
-    render: _render,
-    ...props
-  } = allProps;
-  const busy = !!loading;
+  return <NativeButton {...allProps} />;
+}
+
+/**
+ * ボタン（<button>）。Button に render を渡さないとき
+ * Form の中の送信のボタン（type="submit"）は、loading を渡さなければ Form の送信中（submitting）を受け取る
+ *   押したボタン（Form が配る submitter）は送信中そのもの（印・aria-busy）。ほかの送信のボタンは、送信中と同じ押せない見た目にし、
+ *   押しても送らない（aria-disabled）が、印は出さない。どのボタンが押されたかは、自分の要素と submitter を比べて決める
+ *   loading を渡したときは、その値を優先する（false なら Form が送っていても押せる）
+ */
+function NativeButton({
+  appearance,
+  color,
+  className,
+  type = 'button',
+  loading,
+  loadingIndicator = 'spinner',
+  inlineSpinner = false,
+  caption,
+  onClick,
+  children,
+  ref,
+  render: _render,
+  'aria-describedby': ariaDescribedBy,
+  ...props
+}: ButtonProps) {
+  const captionId = useId();
+  const form = use(FormSubmitContext);
+  const submit = form !== null && type === 'submit';
+  // 送信のボタンは、自分の要素を覚えて、Form の submitter と比べる（ref は利用者のものにもつなぐ）
+  const [self, setSelf] = useState<HTMLButtonElement | null>(null);
+  const setRefs = useCallback(
+    (node: HTMLButtonElement | null) => {
+      setSelf(node);
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
+  const formBusy = submit && loading === undefined && form.submitting;
+  // busy: 押せない見た目にし、押しても何もしない。marked: 送信中の印（回る円・線）を出す
+  const busy = loading ?? formBusy;
+  const marked = loading ?? (formBusy && self !== null && form.submitter === self);
   // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない
-  const overlay = busy && loadingIndicator === 'spinner' && !inlineSpinner;
-  const inline = busy && loadingIndicator === 'spinner' && inlineSpinner;
-  return (
+  const overlay = marked && loadingIndicator === 'spinner' && !inlineSpinner;
+  const inline = marked && loadingIndicator === 'spinner' && inlineSpinner;
+  const element = (
     <button
       type={type}
       {...props}
+      ref={submit ? setRefs : ref}
+      aria-describedby={joinIds(ariaDescribedBy, caption ? captionId : undefined)}
       data-loading={busy || undefined}
-      aria-busy={busy || undefined}
+      aria-busy={marked || undefined}
       aria-disabled={busy || props['aria-disabled']}
       onClick={(event) => {
         if (busy) {
@@ -298,11 +452,12 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
         }
         onClick?.(event);
       }}
-      className={button({ appearance, color, className })}
+      // キャプションがあるときは、className は包みに付ける
+      className={button({ appearance, color, className: caption ? undefined : className })}
     >
       {inline && <Spinner className="text-(color:--button-ink)" />}
-      {/* loading を使うボタンは、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
-      {loading === undefined ? (
+      {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
+      {loading === undefined && !submit ? (
         children
       ) : (
         <span
@@ -324,7 +479,10 @@ export function Button(allProps: ButtonProps | ButtonLinkProps) {
           <Spinner className="text-(color:--button-ink)" />
         </span>
       )}
-      {busy && loadingIndicator === 'bar' && <LoadingBar className="bg-(color:--button-accent)" />}
+      {marked && loadingIndicator === 'bar' && (
+        <LoadingBar className="bg-(color:--button-accent)" />
+      )}
     </button>
   );
+  return withCaption(element, caption, className, captionId);
 }

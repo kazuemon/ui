@@ -14,7 +14,7 @@ import {
   WarningIcon,
   XIcon,
 } from '../components/icons';
-import { labelClass } from './story-states';
+import { labelClass, sourceCode } from './story-states';
 
 interface Entry {
   name: string;
@@ -79,8 +79,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// Show code: 一覧の表は写しても使えないので、置き方を source.code に手で書く
 export const All: Story = {
   name: '一覧',
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        {/* 文字と並べるとき（細い線） */}
+        <Button>
+          <CheckIcon />
+          完了にする
+        </Button>
+        {/* アイコンだけで置くとき（太い線）。名前はボタンに付ける */}
+        <FieldAddonButton aria-label="パスワードを表示">
+          <EyeIcon standalone />
+        </FieldAddonButton>
+      `),
+    },
+  },
   render: () => (
     <div className="overflow-x-auto">
       <table className="text-sm text-fg">

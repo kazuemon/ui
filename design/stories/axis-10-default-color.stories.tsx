@@ -6,7 +6,7 @@ import { Link } from '../../src/components/Link';
 import { Switch } from '../../src/components/Switch';
 import { Tag } from '../../src/components/Tag';
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { keepSwitchAsCompared } from './pins';
+import { keepSwitchAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 10: 各部品の既定の色（principles.md 原則6、design/adr/0013）。2回目
 // 利用者が色を指定しないとき、色を持つ部品が primary（青）・secondary（ピンク）・neutral（グレー）のどれになるか
@@ -203,7 +203,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/10 各部品の既定の色',
-  decorators: [keepSwitchAsCompared],
+  decorators: [keepSwitchAsCompared, keepToggleColorAsCompared],
   id: 'design-review-10-default-color',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'E' },

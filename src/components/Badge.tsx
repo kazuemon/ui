@@ -1,0 +1,124 @@
+import type { ComponentProps, ReactNode } from 'react';
+import { tv, type VariantProps } from 'tailwind-variants';
+
+// Badge（数と小さな状態の点）— 後半の軸 39 で A 案（高さ 16px の濃い塗り、重ねるときは縁 2px）に決めた。値は design/tokens.css の --badge-* にある
+// タグ（src/components/Tag.tsx）とは別の、素の要素で作る部品。押せない
+//   数: 高さ --badge-size の pill。1桁で丸になり、2桁以上は横に伸びる（左右の余白 --badge-pad-x）。max を超えると「99+」
+//   点: 数を渡さないとき。直径 --badge-dot
+// 色は濃い塗りに白い文字（--color-badge-*）。淡い面に濃い文字のタグと見分ける
+//   警告の点だけは、白地の文字・アイコンと同じオリーブ（--color-badge-warning-dot）。黄色の点は白地で 1.20:1 しかない（原則6）
+//   警告の数の丸は、黄色に濃紺の文字のまま
+// children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色の縁（--badge-ring-width）で相手と切り離す
+//   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
+// 読み上げ: label を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）で label を読ませる
+//   sr-only は絶対配置なので、Badge 自身を位置の基準にする（重ねるときは absolute、置くだけのときは relative）
+const badge = tv({
+  base: 'inline-flex shrink-0 items-center justify-center rounded-pill font-bold whitespace-nowrap tabular-nums',
+  variants: {
+    color: {
+      primary: 'bg-badge-primary text-on-badge-primary',
+      secondary: 'bg-badge-secondary text-on-badge-secondary',
+      neutral: 'bg-badge-neutral text-on-badge-neutral',
+      info: 'bg-badge-info text-on-badge-info',
+      success: 'bg-badge-success text-on-badge-success',
+      warning: 'bg-badge-warning text-on-badge-warning',
+      danger: 'bg-badge-danger text-on-badge-danger',
+    },
+    shape: {
+      count:
+        'h-(--badge-size) min-w-(--badge-size) px-(--badge-pad-x) text-(length:--text-caption) leading-(--badge-size)',
+      dot: 'size-(--badge-dot)',
+    },
+    overlay: {
+      true: 'pointer-events-none absolute top-(--badge-overlay-inset) right-(--badge-overlay-inset) translate-x-1/2 -translate-y-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-badge-ring)]',
+      false: 'relative',
+    },
+  },
+  compoundVariants: [{ color: 'warning', shape: 'dot', class: 'bg-badge-warning-dot' }],
+  defaultVariants: { color: 'neutral', shape: 'dot', overlay: false },
+});
+
+export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'children'> {
+  /**
+   * 数。渡さないと、数のない点になります。0 以下のときは出しません（仮）
+   */
+  count?: number;
+  /**
+   * これを超える数は「99+」のように出します
+   * @default 99
+   */
+  max?: number;
+  /**
+   * 色。primary・secondary・neutral は利用者が選ぶ色（原則6）で、指定しないときは既定のグレー（neutral）になります。
+   * info・success・warning・danger は状態を表す色で、塗りのお知らせ（filled）と同じ値です。通知の件数は danger が慣例です。
+   * warning の数の丸は黄色に濃紺の文字です。warning の点だけは、白地で見えるよう、白地の警告の文字やアイコンと同じオリーブ色になります
+   * @default 'neutral'
+   */
+  color?: VariantProps<typeof badge>['color'];
+  /**
+   * 読み上げの文です。渡すと、見えている数字の代わりにこの文を読み上げます（画面には出ない文字です）。
+   * 文字の横やボタンの中に置いて、数字だけでは意味が伝わらないときに使います（例: label={(count) => `（未読 ${count} 件）`}）。
+   * 関数を渡すと、数を受け取って文を返します。数は max で丸める前の値です。点（count なし）には文字列を渡します（関数は使いません）。
+   * 渡さないときは、見えている数字（「3」「99+」）をそのまま読み、点は何も読みません。
+   * 重ねるとき（children）は label ではなく、相手の名前に数を含めます
+   */
+  label?: string | ((count: number) => string);
+  /**
+   * 重ねる相手（アイコンのボタン、アバターなど）。渡すと、その右上の角に重ねます。
+   * 重ねるときは Badge に aria-hidden="true" を付けて読ませず、相手の名前に数を含めます
+   * （例: <Badge count={3} aria-hidden="true"><Button aria-label="通知（未読 3 件）">…</Button></Badge>）。
+   * 数が点のときも、相手の名前に意味を含めます（例: aria-label="通知（未読あり）"）
+   */
+  children?: ReactNode;
+}
+
+/**
+ * 数と小さな状態の点を出します。文字のラベル（分類や「公開中」などの状態）には Tag を使います。
+ *
+ * - 数（通知の件数など）は count で渡します。点は count を渡さないときに出ます
+ * - 点は色だけで意味を伝えないよう、隣に文字（「稼働中」など）を置くか、label で読み上げの文を付けます
+ * - 重ねるとき（children）は、Badge を aria-hidden にして、相手の名前に数を含めます
+ * - 文字の横やボタンの中に置くときは、label で数の意味を読み上げます
+ */
+export function Badge({
+  count,
+  max = 99,
+  color,
+  label,
+  children,
+  className,
+  ...props
+}: BadgeProps) {
+  const overlay = children !== undefined && children !== null;
+  const shown = count === undefined || count > 0;
+  const text = count === undefined ? null : count > max ? `${max}+` : count;
+  const spoken =
+    typeof label === 'function' ? (count === undefined ? undefined : label(count)) : label;
+  const mark = shown ? (
+    <span
+      className={badge({
+        color,
+        shape: count === undefined ? 'dot' : 'count',
+        overlay,
+        className,
+      })}
+      {...props}
+    >
+      {spoken === undefined ? (
+        text
+      ) : (
+        <>
+          {text !== null && <span aria-hidden="true">{text}</span>}
+          <span className="sr-only">{spoken}</span>
+        </>
+      )}
+    </span>
+  ) : null;
+  if (!overlay) return mark;
+  return (
+    <span className="relative inline-flex shrink-0">
+      {children}
+      {mark}
+    </span>
+  );
+}

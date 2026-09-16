@@ -6,6 +6,7 @@ import { Link } from '../../src/components/Link';
 import { Switch } from '../../src/components/Switch';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import { keepSwitchCaptionAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 13: キーボードで操作したときのフォーカス（focus-visible）。ボタン・リンク・トグルが対象
 // 変えるのは次のトークンだけ（src/components/focus-styles.ts が読む）
@@ -181,6 +182,7 @@ interface ComparisonArgs {
 const meta = {
   title: 'Design Review/13 キーボード操作時のフォーカス',
   id: 'design-review-13-focus-visible',
+  decorators: [keepSwitchCaptionAsCompared, keepToggleColorAsCompared],
   parameters: {
     layout: 'fullscreen',
     pseudo: {

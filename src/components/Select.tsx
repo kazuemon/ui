@@ -1,11 +1,13 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
 import {
   type ComponentProps,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -17,11 +19,13 @@ import {
   type FieldLoadingBehavior,
   FieldLoadingBar,
   FieldSpinner,
+  FieldSuccessMark,
 } from './Field';
 import { FieldAddon } from './FieldAddon';
 import type { AddonShape } from './field-addon-context';
 import { controlBox, fieldStyles } from './field-styles';
 import { focusRing } from './focus-styles';
+import { useFormSubmittingLock } from './form-context';
 import { CaretDownIcon, CheckIcon, WarningCircleIcon, WarningIcon, XIcon } from './icons';
 import { type LoadingIndicator, Spinner } from './Loading';
 
@@ -52,6 +56,9 @@ export interface SelectItem {
    */
   note?: SelectItemNote;
 }
+
+/** 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047 */
+export type SelectColor = 'primary' | 'secondary' | 'neutral';
 
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
 export type SelectPresentation = 'popover' | 'sheet' | 'auto';
@@ -92,7 +99,25 @@ export interface SelectProps {
    * シートでは、見出しのヘルプテキストの下にも同じ行を出す（error と同じ。両方あるときはエラー → 警告）
    */
   warning?: ReactNode;
+  /**
+   * 成功の内容（「お届けできます」など）。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   */
+  success?: ReactNode;
+  /**
+   * 成功のとき、本体の ▼ の左にチェックを置くか。false では下の行だけを出します
+   * @default true
+   */
+  successMark?: boolean;
+  /** 情報の内容（「前回と同じ時間帯を選んでいます」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
+  info?: ReactNode;
   disabled?: boolean;
+  /**
+   * 選んだ項目の印（面・文字・チェック）の色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（グレー）を選べます（原則6）。
+   * hover とキーボードの選択は、色を指定していても入力欄と同じグレーです。指定しないときは既定のグレー（neutral）になります
+   * @default 'neutral'
+   */
+  color?: SelectColor;
   /**
    * 選択肢。各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
    * 選べない理由や警告の文は、呼び出し側が組み立てて渡す（書き方は実装ガイドラインで決める）。部品は渡された文をそのまま出す
@@ -120,6 +145,7 @@ export interface SelectProps {
   modal?: boolean;
   /**
    * 浮かぶ選択肢（popover）・シート（sheet）を描く場所
+   * 本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも、浮かぶ選択肢とシートに写します
    * @default document.body
    */
   container?: HTMLElement | null;
@@ -133,6 +159,7 @@ export interface SelectProps {
   presentation?: SelectPresentation;
   /**
    * シートを開いたときの高さ。half は選択肢が長いときに半分の高さで開き、つまみを出します。full は高さいっぱいで開きます
+   * つまみを引くと高さが変わります。上へはじくと高さいっぱいに広がり、下へはじくと、引いた距離が短くても一段下がります（半分からは閉じる）
    * @default 'half'
    */
   sheetDetent?: SheetDetent;
@@ -156,12 +183,13 @@ export interface SelectProps {
   popoverMaxHeight?: 'none' | 'screen';
   /**
    * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
    * @default false
    */
   loading?: boolean;
   /**
    * 読み込んでいるあいだの欄の扱い（design/adr/0042）
-   * non-blocking: 止めない。プレースホルダはそのまま出し、開ける。開くと、選択肢の最後に loadingText の行（role="status"）を出す。回る円は ▼ の左
+   * non-blocking: 止めない。プレースホルダはそのまま出し、開ける。開くと、選択肢の最後に loadingText の行を出す。回る円は ▼ の左
    * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し（回る円は ▼ のあった場所）、開けない
    * @default 'non-blocking'
    */
@@ -173,9 +201,15 @@ export interface SelectProps {
   loadingIndicator?: LoadingIndicator;
   /**
    * 読み込んでいるあいだの文。blocking ではプレースホルダの場所に（プレースホルダと同じ色）、non-blocking では開いた選択肢の行に出す
+   * non-blocking で読み込んでいるあいだに開いたときは、この文を読み上げでも知らせる
    * @default '読み込んでいます'
    */
   loadingText?: string;
+  /**
+   * 読み込みが終わったときに、読み上げで知らせる文です。読み込んでいるあいだに開き、開いたまま読み込みが終わったときに、選択肢の数を受け取って返します
+   * @default (count) => `${count} 件の選択肢`
+   */
+  loadedText?: (count: number) => string;
   /**
    * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色（--color-select-icon-disabled）で出し、hide は隠します
    * @default 'show'
@@ -196,6 +230,20 @@ const SHEET_QUERY = [
 // シートの高さの上限と、半分で開くときの目安（画面の高さに対する割合）
 const SHEET_FULL = 0.85;
 const SHEET_HALF = 0.5;
+// シートのつまみを引く操作のしきい値。値は実機で詰める
+// iOS・Android のシートと、vaul・Base UI の Drawer にならい、離す直前の速さで「はじいた」かを見る
+//   flingVelocity: はじいたとみなす速さ（px/ms）。Base UI の Drawer は 0.5、vaul は 0.4、Android は 500px/s
+//   velocityWindow: 離す直前のこの時間（ms）の動きから速さを出す。それより前から止まっていたら、はじいていない（Base UI は 80ms）
+//   minVelocityDuration: 速さを出すときの時間の下限（ms）。動きの記録が1つしかないときに、速さが大きくなりすぎないようにする（Base UI は 16ms）
+//   closeRatio: はじかずに離したとき、半分の高さのこの割合より低ければ閉じる
+//   moveSlop: 動いた量がこれ以下（px）なら、引かずに押したとみなす
+const SHEET_DRAG = {
+  flingVelocity: 0.5,
+  velocityWindow: 80,
+  minVelocityDuration: 16,
+  closeRatio: 0.6,
+  moveSlop: 4,
+} as const;
 // 続きの印が最も濃くなるまでのスクロールの量（px）
 const CUE_RAMP = 24;
 // 浮かぶ選択肢の高さの上限（画面の高さに対する割合）。popoverMaxHeight="screen" のとき
@@ -238,7 +286,86 @@ function peekLength(heights: number[], avail: number, halfInside: boolean) {
   return used + at(rows) / 2;
 }
 
+// 一覧の中身の高さ（項目の高さの合計＋上下の余白）。scrollHeight は一覧が引き伸ばされると中身より大きくなるので使わない
+function listContentLength(list: HTMLElement) {
+  const style = getComputedStyle(list);
+  let length = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  for (const el of list.querySelectorAll<HTMLElement>('[role="option"]')) length += el.offsetHeight;
+  return length;
+}
+
+// 一覧の下に置いた「読み込んでいます」の行の高さ（下の余白を含む）。高さの上限の計算に入れる（design/adr/0042）
+function loadingRowLength(list: HTMLElement) {
+  const row = list.parentElement?.querySelector<HTMLElement>('[data-slot="select-loading"]');
+  if (!row) return 0;
+  return row.offsetHeight + parseFloat(getComputedStyle(row).marginBottom);
+}
+
+// 選んだ項目の印の色（design/adr/0047）。face は淡い面、ink は文字とチェック
+// neutral の面は、hover のグレー（入力欄の塗り）と見分けられる濃さのグレー（--color-select-neutral-selected）
+// focus は、フォーカスの枠線と線を部品の色に従わせるとき（--focus-follow-color: 1 — 後半の軸 41）の色。線なので、ピンクは前景用
+//   neutral は持たない（--color-focus のまま）。本体には OWN_FOCUS のクラスで、浮かぶ部分（シートの × など）には style で置く
+const TONES: Record<SelectColor, { face: string; ink: string; focus?: string }> = {
+  primary: {
+    face: 'var(--color-tag-primary)',
+    ink: 'var(--color-on-tag-primary)',
+    focus: 'var(--color-primary)',
+  },
+  secondary: {
+    face: 'var(--color-tag-secondary)',
+    ink: 'var(--color-on-tag-secondary)',
+    focus: 'var(--color-fg-secondary)',
+  },
+  neutral: { face: 'var(--color-select-neutral-selected)', ink: 'var(--color-fg)' },
+};
+
+// 本体（Trigger）に置く --color-own-focus。TONES の focus と同じ値（Tailwind が読めるよう、クラスは文字列のまま書く）
+const OWN_FOCUS: Record<SelectColor, string> = {
+  primary: '[--color-own-focus:var(--color-primary)]',
+  secondary: '[--color-own-focus:var(--color-fg-secondary)]',
+  neutral: '',
+};
+
+// 選んだ項目の見た目を、部品の色と design/tokens.css の切り替え（--select-item-selected-fill・-ink）から作る
+// --color-select-item-selected などの4つのトークンは、ふだんは未設定。外（比較のストーリーの行など）で指定したときだけ、それを使う
+// 浮かぶ部分（Popup）で解決し、一覧（List）で同じ名前に書き戻す。項目のクラスと、比較のストーリーの固定用の CSS は、この名前を読む
+type TokenStyle = CSSProperties & Record<`--${string}`, string>;
+
+function selectedTokens(color: SelectColor): { popup: TokenStyle; list: TokenStyle } {
+  const { face, ink, focus } = TONES[color];
+  const fill = 'calc(var(--select-item-selected-fill) * 100%)';
+  return {
+    popup: {
+      ...(focus ? { '--color-own-focus': focus } : {}),
+      '--select-face': face,
+      '--select-ink': ink,
+      '--select-selected': `var(--color-select-item-selected, color-mix(in oklab, var(--select-face) ${fill}, transparent))`,
+      // 選んだ項目の hover。面を敷くときは面を一段濃く（文字の色を 8% 混ぜる）、敷かないときはほかの項目と同じグレー
+      '--select-selected-highlight': `var(--color-select-item-selected-highlight, color-mix(in oklab, color-mix(in oklab, var(--select-face), var(--select-ink) 8%) ${fill}, var(--color-select-item-highlight)))`,
+      '--select-on-selected': `var(--color-on-select-item-selected, color-mix(in oklab, var(--select-ink) calc(var(--select-item-selected-ink) * 100%), var(--color-fg)))`,
+      '--select-check': 'var(--color-select-check, var(--select-ink))',
+    },
+    list: {
+      '--color-select-item-selected': 'var(--select-selected)',
+      '--color-select-item-selected-highlight': 'var(--select-selected-highlight)',
+      '--color-on-select-item-selected': 'var(--select-on-selected)',
+      '--color-select-check': 'var(--select-check)',
+    },
+  };
+}
+
 const styles = fieldStyles();
+
+const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
+
+// 読み込みの知らせ（design/adr/0042）。本体のそばにいつも置く、見えない status の箱の中身
+//   読み込んでいるあいだに開いた（開いているあいだに読み込みを始めた）: loadingText
+//   開いたまま読み込みが終わった: loadedText（選択肢の数）。閉じたら空に戻す
+interface LoadingAnnouncement {
+  open: boolean;
+  loading: boolean;
+  text: string;
+}
 
 // 選択肢の2行目（design/adr/0044）。文の大きさと行の高さはキャプションと同じ
 //   reason: 選べない理由。キャプションと同じ灰色（--color-select-item-reason）の文字だけ
@@ -286,7 +413,7 @@ function SelectOption({ item }: { item: SelectItem }) {
       aria-labelledby={note ? labelId : undefined}
       aria-describedby={note ? noteId : undefined}
       className={[
-        'flex min-h-(--size-control) cursor-pointer items-center gap-(--space-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--space-control-x)-var(--select-popup-padding))] outline-none select-none',
+        'group/option flex min-h-(--size-control) cursor-pointer items-center gap-(--space-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--space-control-x)-var(--select-popup-padding))] outline-none select-none',
         note && 'py-1.5',
         // hover（キーボードで選んでいるときも同じ）は、選んだ項目の見た目より優先する
         'data-highlighted:bg-(color:--color-select-item-highlight)',
@@ -302,7 +429,13 @@ function SelectOption({ item }: { item: SelectItem }) {
         .join(' ')}
     >
       <div className="flex min-w-0 flex-1 flex-col">
-        <BaseSelect.ItemText id={note ? labelId : undefined}>{item.label}</BaseSelect.ItemText>
+        {/* 選んだ項目のラベルの太さ（--select-item-selected-weight）。2行目（note）は変えない */}
+        <BaseSelect.ItemText
+          id={note ? labelId : undefined}
+          className="group-data-selected/option:[font-weight:var(--select-item-selected-weight)]"
+        >
+          {item.label}
+        </BaseSelect.ItemText>
         {note && <SelectItemNoteLine note={note} id={noteId} />}
       </div>
       <BaseSelect.ItemIndicator className="flex text-(color:--color-select-check)">
@@ -324,6 +457,36 @@ function useNarrowScreen() {
   );
 }
 
+interface DragSample {
+  y: number;
+  t: number;
+}
+
+// 離したときの縦の速さ（px/ms。下向きが正）。離す直前 velocityWindow の間の動きから出す
+function releaseVelocity(samples: DragSample[], y: number, t: number) {
+  const first = samples.find((sample) => t - sample.t <= SHEET_DRAG.velocityWindow);
+  if (!first) return 0;
+  return (y - first.y) / Math.max(t - first.t, SHEET_DRAG.minVelocityDuration);
+}
+
+// 本体の祖先に付いた密度（data-density）と大きい指用（coarse-large）。浮かぶ部分とシートは body の直下に出て、
+// 途中の要素から引き継がないので、浮かぶ部分に写す。html に付いたものは body の直下にも効くので写さない
+interface DensityScope {
+  density?: string;
+  large: boolean;
+}
+
+function readDensityScope(el: Element | null): DensityScope {
+  if (!el) return { large: false };
+  const root = el.ownerDocument.documentElement;
+  const density = el.closest<HTMLElement>('[data-density]');
+  const large = el.closest('.coarse-large');
+  return {
+    density: density && density !== root ? density.dataset.density : undefined,
+    large: !!large && large !== root,
+  };
+}
+
 interface SheetMetrics {
   /** 中身をすべて出したときの高さ */
   content: number;
@@ -342,7 +505,11 @@ export function Select({
   captionPlacement,
   error,
   warning,
+  success,
+  successMark = true,
+  info,
   disabled,
+  color = 'neutral',
   items,
   placeholder,
   prefix,
@@ -361,6 +528,7 @@ export function Select({
   loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
+  loadedText = defaultLoadedText,
   disabledIcon = 'show',
   className,
   ...rootProps
@@ -369,8 +537,12 @@ export function Select({
   const sheet = presentation === 'sheet' || (presentation === 'auto' && narrow);
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない（readOnly）。フォーカスは外さない
   // non-blocking は、開いた選択肢の最後に「読み込んでいます」の行を出す
-  const blocking = loading && loadingBehavior === 'blocking';
-  const loadingRow = loading && !blocking;
+  const loadingBlocking = loading && loadingBehavior === 'blocking';
+  const loadingRow = loading && !loadingBlocking;
+  // Form の送信中（後半の軸 38）も、同じく開けず値も変えられない。見た目は Field の data-loading="blocking"（押せない欄）
+  // 読み込みと違い、選んだ値はそのまま出し（loadingText に置き換えない）、回る円は出さず、▼ は押せない Select と同じ色で残す
+  const formLock = useFormSubmittingLock();
+  const blocking = loadingBlocking || formLock.blocking;
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときは両方、エラー → 警告の順（design/adr/0041 の追記）
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
@@ -382,6 +554,16 @@ export function Select({
   const [openState, setOpenState] = useState(defaultOpen);
   const open = blocking ? false : (openProp ?? openState);
   const [detent, setDetent] = useState<SheetDetent>(sheetDetent);
+  // つまみを引いているあいだの高さ。はじいて・引いて閉じたときは、閉じる動きが終わるまで残し、離した高さのまま下へ滑らせる
+  const [dragHeight, setDragHeight] = useState<number | null>(null);
+  // 引いているあいだは、高さの動き（transition）を止める
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<{
+    y: number;
+    height: number;
+    moved: boolean;
+    samples: DragSample[];
+  } | null>(null);
   // 選んだ・Esc・×・つまみで閉じたときは、フォーカスが本体に戻るまで、開いているときと同じ見た目を保つ（data-closing）
   // Base UI は閉じる動きが終わってからフォーカスを本体に戻すので、そのあいだ本体の青い枠線が一瞬消えていた
   // 外を押して閉じたときは、押した先にフォーカスが移るので保たない
@@ -393,11 +575,52 @@ export function Select({
   }, [closing]);
   const changeOpen = (next: boolean, reason?: string) => {
     if (next && blocking) return;
-    if (next) setDetent(sheetDetent);
+    if (next) {
+      setDetent(sheetDetent);
+      setDragHeight(null);
+    }
     setOpenState(next);
     onOpenChange?.(next);
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
   };
+
+  // 読み込みの知らせ（design/adr/0042）。開くと同時に DOM に入る箱は、読み上げソフトによっては読まれない。
+  // aria-busy も多くの読み上げソフトで読まれない。そこで、閉じていても消えない見えない status の箱を本体のそばに置き、中身だけを入れ替える
+  // 見える読み込み中の行は role の箱にしない（二重に読まないため）
+  const [announcement, setAnnouncement] = useState<LoadingAnnouncement>(() => ({
+    open,
+    loading: loadingRow,
+    text: open && loadingRow ? loadingText : '',
+  }));
+  if (announcement.open !== open || announcement.loading !== loadingRow) {
+    let { text } = announcement;
+    if (!open) text = '';
+    else if (loadingRow) text = loadingText;
+    else if (announcement.open && announcement.loading) text = loadedText(items.length);
+    setAnnouncement({ open, loading: loadingRow, text });
+  }
+
+  // 本体の祖先に付いた data-density・coarse-large を、開くたびに読み、浮かぶ部分（Positioner）に写す
+  // 描く前（layout effect）に読むので、開いた最初の描画から同じ高さになる
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // 浮かぶ選択肢と本体の間（4px）。エラーの欄は、開いているあいだも本体の外に離した線を引くので（後半の軸 41 の M）、線の外側から同じ間をあける
+  // 線の太さと離し方は、描いている線（outline）から読む。線を引かない設定（--field-invalid-focus-ring: 0）では本体から 4px のまま
+  const popupSideOffset = () => {
+    const gap = 4;
+    const el = triggerRef.current;
+    if (el?.closest('[data-invalid]') == null) return gap;
+    const style = getComputedStyle(el);
+    const width = parseFloat(style.outlineWidth);
+    return width > 0 ? gap + width + parseFloat(style.outlineOffset) : gap;
+  };
+  const [densityScope, setDensityScope] = useState<DensityScope>({ large: false });
+  useLayoutEffect(() => {
+    if (!open) return;
+    const next = readDensityScope(triggerRef.current);
+    setDensityScope((prev) =>
+      prev.density === next.density && prev.large === next.large ? prev : next
+    );
+  }, [open]);
 
   // シートの高さ: 開いたときに見出しと選択肢の高さを測る
   const headerRef = useRef<HTMLDivElement>(null);
@@ -419,29 +642,49 @@ export function Select({
     popup.style.setProperty('--cue-right', scrollbar > 0 ? `${scrollbar}px` : bleed);
   }, []);
   const observer = useRef<ResizeObserver | null>(null);
+  // いま開いている浮かぶ部分。画面の大きさが変わったときに測り直すため
+  const popupEl = useRef<HTMLDivElement | null>(null);
+  // シートの高さを測る。開いたとき・選択肢の大きさが変わったとき・画面の大きさが変わったときに呼ぶ
+  // 読み込み中の行（一覧の下）も中身に入れる（design/adr/0042）
+  const readSheetMetrics = useCallback(() => {
+    const popup = popupEl.current;
+    const list = listRef.current;
+    if (!popup || !headerRef.current || !list) return;
+    const style = getComputedStyle(popup);
+    const frame =
+      parseFloat(style.paddingTop) +
+      parseFloat(style.paddingBottom) +
+      parseFloat(style.borderTopWidth) +
+      loadingRowLength(list);
+    const header = headerRef.current.offsetHeight;
+    const heights = optionHeights(list, 44);
+    const screen = screenHeight(container);
+    const next = {
+      content: frame + header + listContentLength(list),
+      half: Math.round(
+        frame + header + peekLength(heights, screen * SHEET_HALF - frame - header, false)
+      ),
+      full: Math.round(screen * SHEET_FULL),
+    };
+    setMetrics((prev) =>
+      prev && prev.content === next.content && prev.half === next.half && prev.full === next.full
+        ? prev
+        : next
+    );
+  }, [container]);
   const measure = useCallback(
     (popup: HTMLDivElement | null) => {
       observer.current?.disconnect();
-      if (!popup || !headerRef.current || !listRef.current) return;
-      const style = getComputedStyle(popup);
-      const frame =
-        parseFloat(style.paddingTop) +
-        parseFloat(style.paddingBottom) +
-        parseFloat(style.borderTopWidth);
-      const header = headerRef.current.offsetHeight;
-      const heights = optionHeights(listRef.current, 44);
-      const screen = screenHeight(container);
-      setMetrics({
-        content: frame + header + listRef.current.scrollHeight,
-        half: Math.round(
-          frame + header + peekLength(heights, screen * SHEET_HALF - frame - header, false)
-        ),
-        full: Math.round(screen * SHEET_FULL),
+      popupEl.current = popup;
+      if (!popup || !listRef.current) return;
+      readSheetMetrics();
+      observer.current = new ResizeObserver(() => {
+        readSheetMetrics();
+        updateCues();
       });
-      observer.current = new ResizeObserver(updateCues);
       observer.current.observe(listRef.current);
     },
-    [container, updateCues]
+    [readSheetMetrics, updateCues]
   );
 
   // 浮かぶ選択肢: 続きの影を出すときは、高さの変化を見て影の濃さを直す
@@ -457,10 +700,10 @@ export function Select({
     const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
     // 項目の数の上限（--select-popup-max-rows）。大きな画面で長くなりすぎないようにする
     const maxRows = parseFloat(style.getPropertyValue('--select-popup-max-rows')) || Infinity;
-    const limit = Math.min(
-      screenHeight(container) * POPOVER_MAX,
-      rowsLength(heights, maxRows) + padding
-    );
+    // 読み込み中の行は一覧の外にあるので、その分を一覧の上限から引く（行を含めた浮かぶ部分の高さを上限に収める）
+    const limit =
+      Math.min(screenHeight(container) * POPOVER_MAX, rowsLength(heights, maxRows) + padding) -
+      loadingRowLength(list);
     if (list.scrollHeight > limit) {
       list.style.setProperty(
         '--select-popup-max-height',
@@ -473,8 +716,12 @@ export function Select({
   const observeCues = useCallback(
     (popup: HTMLDivElement | null) => {
       observer.current?.disconnect();
+      popupEl.current = popup;
       if (!popup || !listRef.current) return;
       const update = () => {
+        const list = listRef.current;
+        // 本体の下の空き（--available-height）での上限にも、読み込み中の行の分を入れる
+        if (list) list.style.setProperty('--select-popup-extra', `${loadingRowLength(list)}px`);
         if (popoverFit) fitPopover();
         updateCues();
       };
@@ -485,10 +732,26 @@ export function Select({
     [fitPopover, popoverFit, updateCues]
   );
 
-  // 選択肢が長いときだけ、半分の高さで開いてつまみを出す。つまみを引くと高さが変わり、下まで引くと閉じる
+  // 開いたまま画面の大きさが変わったら、シートの半分の高さと、浮かぶ選択肢の高さの上限を測り直す
+  useEffect(() => {
+    if (!open) return undefined;
+    const onResize = () => {
+      if (!popupEl.current) return;
+      if (sheet) {
+        readSheetMetrics();
+      } else if (popoverFit) {
+        fitPopover();
+      }
+      updateCues();
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [open, sheet, popoverFit, readSheetMetrics, fitPopover, updateCues]);
+
+  const selected = selectedTokens(color);
+
+  // 選択肢が長いときだけ、半分の高さで開いてつまみを出す。つまみを引くと高さが変わり、下へはじくか下まで引くと閉じる
   const long = sheet && sheetDetent === 'half' && !!metrics && metrics.content > metrics.half + 1;
-  const [dragHeight, setDragHeight] = useState<number | null>(null);
-  const dragStart = useRef<{ y: number; height: number; moved: boolean } | null>(null);
   const restingHeight =
     long && metrics
       ? detent === 'half'
@@ -501,32 +764,73 @@ export function Select({
     if (restingHeight === undefined) return;
     if (event.target instanceof Element && event.target.closest('button')) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragStart.current = { y: event.clientY, height: restingHeight, moved: false };
+    dragStart.current = {
+      y: event.clientY,
+      height: restingHeight,
+      moved: false,
+      samples: [{ y: event.clientY, t: event.timeStamp }],
+    };
   };
   const onHandleMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = dragStart.current;
     if (!start || !metrics) return;
+    // 速さを出すための動きの記録。離す直前 velocityWindow の分だけ残す
+    start.samples.push({ y: event.clientY, t: event.timeStamp });
+    while (
+      start.samples.length > 1 &&
+      event.timeStamp - start.samples[0].t > SHEET_DRAG.velocityWindow
+    ) {
+      start.samples.shift();
+    }
     const dy = event.clientY - start.y;
-    if (Math.abs(dy) > 4) start.moved = true;
+    if (!start.moved && Math.abs(dy) > SHEET_DRAG.moveSlop) {
+      start.moved = true;
+      setDragging(true);
+    }
     if (start.moved) setDragHeight(Math.min(metrics.full, Math.max(0, start.height - dy)));
   };
-  const onHandleUp = () => {
+  // 離したとき: はじいた（速さが flingVelocity 以上）ときは、その向きで、いまの高さの次の段へ動かす
+  //   下へ: 半分より高ければ半分、半分以下なら閉じる（引いた距離が短くても閉じる）
+  //   上へ: 半分より低ければ半分、半分以上なら高さいっぱい
+  // はじかずに離したときは、半分の closeRatio より低ければ閉じ、それ以外は近い方の段に戻す
+  // 閉じるときは、離した高さのまま、シートの閉じる動き（--duration-sheet・--ease-sheet）で下へ滑らせる
+  // 動きを減らす設定では動きがない（motion-reduce）ので、すぐに閉じる
+  const onHandleUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = dragStart.current;
     dragStart.current = null;
     const height = dragHeight;
-    setDragHeight(null);
-    if (!start || !metrics) return;
+    setDragging(false);
+    if (!start || !metrics) {
+      setDragHeight(null);
+      return;
+    }
     // 引かずに押したときは、半分と高さいっぱいを切り替える
     if (!start.moved || height === null) {
+      setDragHeight(null);
       setDetent(detent === 'half' ? 'full' : 'half');
       return;
     }
-    if (height < metrics.half * 0.6) {
+    const full = Math.min(metrics.content, metrics.full);
+    const velocity =
+      event.type === 'pointercancel'
+        ? 0
+        : releaseVelocity(start.samples, event.clientY, event.timeStamp);
+    let target: SheetDetent | 'close';
+    if (velocity >= SHEET_DRAG.flingVelocity) {
+      target = height > metrics.half ? 'half' : 'close';
+    } else if (velocity <= -SHEET_DRAG.flingVelocity) {
+      target = height < metrics.half ? 'half' : 'full';
+    } else if (height < metrics.half * SHEET_DRAG.closeRatio) {
+      target = 'close';
+    } else {
+      target = Math.abs(height - metrics.half) <= Math.abs(height - full) ? 'half' : 'full';
+    }
+    if (target === 'close') {
       changeOpen(false);
       return;
     }
-    const full = Math.min(metrics.content, metrics.full);
-    setDetent(Math.abs(height - metrics.half) <= Math.abs(height - full) ? 'half' : 'full');
+    setDragHeight(null);
+    setDetent(target);
   };
 
   // 選択肢が長いとき、上下に続きがあることを見せる印（sheetMoreCue）。濃さはスクロールした量に合わせる（updateCues）
@@ -579,6 +883,8 @@ export function Select({
       captionPlacement={captionPlacement}
       error={error}
       warning={warning}
+      success={success}
+      info={info}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -592,6 +898,10 @@ export function Select({
           readOnly={blocking || undefined}
           open={open}
           onOpenChange={(next, details) => changeOpen(next, details.reason)}
+          // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
+          onOpenChangeComplete={(next) => {
+            if (!next) setDragHeight(null);
+          }}
           {...rootProps}
         >
           {/* 選択肢を開いているあいだも、フォーカス中と同じ見た目にする */}
@@ -603,6 +913,7 @@ export function Select({
             プレースホルダの場所の文（ふだんの文・押せないときの理由・止めるときの loadingText）は、どれも --color-fg-subtle
             押せない文字の色（--color-on-field-disabled）は選んだ値だけ。値が入った押せない欄と、文を出している欄を見分けるため */}
           <BaseSelect.Trigger
+            ref={triggerRef}
             aria-describedby={messageIds}
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
@@ -612,10 +923,19 @@ export function Select({
             data-addon-shape={addonShape}
             className={controlBox({
               className: [
-                'text-left data-popup-open:border-focus data-popup-open:bg-field-focus',
+                'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:bg-field-focus',
                 blocking ? 'cursor-progress' : 'cursor-pointer',
                 loading && 'relative',
-                'data-closing:border-focus data-closing:bg-field-focus',
+                'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:bg-field-focus',
+                // 成功の枠線（controlBox）を使うときも、開いているあいだは青い枠線を優先する
+                'group-data-success/field:data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))]',
+                'group-data-success/field:data-closing:border-[color:var(--control-focus-line,var(--color-focus))]',
+                // 入力欄にも離した線を引くとき（--field-focus-ring: 1 — 後半の軸 41）も、開いているあいだはフォーカス中と同じ線（controlBox）
+                '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
+                '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
+                '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
+                // フォーカスの枠線を部品の色に従わせるときの色（--focus-follow-color: 1 — 後半の軸 41）
+                OWN_FOCUS[color],
                 '[--field-addon-pad:calc(var(--space-control-x)-var(--field-border-width))]',
               ],
             })}
@@ -623,19 +943,25 @@ export function Select({
             {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
             <BaseSelect.Value
               className="min-w-0 flex-1 truncate data-placeholder:text-fg-subtle"
-              placeholder={blocking ? loadingText : placeholder}
+              placeholder={loadingBlocking ? loadingText : placeholder}
             />
             {loading && loadingIndicator === 'spinner' && (
               <FieldSpinner
-                className={blocking ? undefined : 'me-[calc(8px-var(--space-control-x))]'}
+                className={loadingBlocking ? undefined : 'me-[calc(8px-var(--space-control-x))]'}
               />
             )}
+            {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
+            {success && successMark && !error && !loading && (
+              <FieldSuccessMark className="me-[calc(8px-var(--space-control-x))]" />
+            )}
             {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-select-icon-disabled。disabledIcon="hide" で隠す）
+              Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
               止めて読み込んでいるあいだは隠す */}
             <BaseSelect.Icon
               className={[
                 'flex text-fg-muted group-data-disabled/field:text-[color:var(--color-select-icon-disabled,var(--color-fg-muted))]',
-                (blocking || (disabled && disabledIcon === 'hide')) && 'hidden',
+                'group-data-[loading=blocking]/field:text-[color:var(--color-select-icon-disabled,var(--color-fg-muted))]',
+                (loadingBlocking || (disabled && disabledIcon === 'hide')) && 'hidden',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -650,15 +976,18 @@ export function Select({
               <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-(color:--color-select-sheet-backdrop) transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
             )}
             {/* 浮かぶ部分は、白い面に細い境界線とやわらかい影（浮かぶ UI の影は重なりを表す — design/adr/0036）
-              選んだ項目は淡い青。見た目は design/tokens.css の --select-popup-*・--color-select-* で決める
-              シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する */}
+              選んだ項目は部品の色（color — selectedTokens）。見た目は design/tokens.css の --select-popup-*・--select-item-selected-*・--color-select-* で決める
+              シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
+              本体の祖先に付いた data-density・coarse-large を写し、項目の高さと文字を本体とそろえる（readDensityScope） */}
             <BaseSelect.Positioner
               alignItemWithTrigger={false}
               collisionAvoidance={collisionAvoidance}
-              sideOffset={4}
+              sideOffset={popupSideOffset}
               data-presentation={sheet ? 'sheet' : 'popover'}
+              data-density={densityScope.density}
               className={[
                 'z-10 outline-none',
+                densityScope.large && 'coarse-large',
                 sheet &&
                   'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
               ]
@@ -668,8 +997,12 @@ export function Select({
               <BaseSelect.Popup
                 ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
                 data-slot="select-popup"
-                data-dragging={dragHeight !== null || undefined}
-                style={sheetHeight !== undefined ? { height: sheetHeight } : undefined}
+                data-dragging={dragging || undefined}
+                style={
+                  sheetHeight !== undefined
+                    ? { ...selected.popup, height: sheetHeight }
+                    : selected.popup
+                }
                 className={[
                   'p-(--select-popup-padding) text-(length:--text-control) leading-(--leading-control) text-fg outline-none',
                   'border-(length:--select-popup-line-width) border-(color:--color-select-popup-line) bg-(color:--color-select-popup)',
@@ -686,7 +1019,15 @@ export function Select({
                     : [
                         // 上下の余白は選択肢の内側に持たせ、続きの影が面の上下の端に接するようにする。角丸で切り抜く
                         'min-w-(--anchor-width) origin-(--transform-origin) overflow-clip rounded-control py-0 [box-shadow:var(--shadow-select-popup)]',
-                        'transition-[opacity,scale] duration-(--duration-press) ease-press data-ending-style:scale-98 data-ending-style:opacity-0 data-starting-style:scale-98 data-starting-style:opacity-0',
+                        // 開閉の動き（--select-popup-duration-in・-out・-ease・-scale-x・-scale-y・-shift）
+                        // 大きさは本体の側（--transform-origin。開く向きで変わる）を起点に広がり、ずれは本体の側から離れる向きに動く
+                        // 動きを減らす設定では動かさず、すぐに出す・消す（原則3）
+                        'transition-[opacity,scale,translate] duration-(--select-popup-duration-in) ease-(--select-popup-ease) data-ending-style:duration-(--select-popup-duration-out)',
+                        'data-ending-style:opacity-0 data-starting-style:opacity-0',
+                        'data-ending-style:[scale:var(--select-popup-scale-x)_var(--select-popup-scale-y)] data-starting-style:[scale:var(--select-popup-scale-x)_var(--select-popup-scale-y)]',
+                        'data-ending-style:[translate:0_calc(var(--select-popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--select-popup-shift)*-1)]',
+                        'data-[side=top]:data-ending-style:[translate:0_var(--select-popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--select-popup-shift)]',
+                        'motion-reduce:[transition:none]',
                       ].join(' '),
                 ].join(' ')}
               >
@@ -786,6 +1127,7 @@ export function Select({
                   選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
                 <BaseSelect.List
                   ref={listRef}
+                  style={selected.list}
                   aria-describedby={
                     sheet
                       ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
@@ -806,7 +1148,8 @@ export function Select({
                           .join(' ')
                       : // 浮かぶ選択肢の高さの上限（--select-popup-max-height）。未設定なら画面の端まで伸ばす
                         [
-                          'max-h-[min(var(--available-height),var(--select-popup-max-height,var(--available-height)))] overflow-y-auto',
+                          // --select-popup-extra は読み込み中の行の高さ（一覧の外にあるので、本体の下の空きから引く）
+                          'max-h-[min(calc(var(--available-height)-var(--select-popup-extra,0px)),var(--select-popup-max-height,var(--available-height)))] overflow-y-auto',
                           loadingRow
                             ? 'pt-(--select-popup-padding)'
                             : 'py-(--select-popup-padding)',
@@ -819,18 +1162,26 @@ export function Select({
                 </BaseSelect.List>
                 {(long || popoverCue) && moreCue('bottom')}
                 {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
-                  選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置き、読み上げには role="status" で伝える */}
+                  選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置く
+                  読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため）
+                  シートでは、並び（--select-sheet-loading-justify）・足す高さ（--select-sheet-loading-extra）・
+                  上の区切り線（--select-sheet-loading-line-width。シートの幅いっぱい）をトークンで変えられる（後半の軸 34） */}
                 {loadingRow && (
                   <div
-                    role="status"
                     data-slot="select-loading"
                     className={[
-                      'flex h-(--size-control) shrink-0 items-center gap-2 px-[calc(var(--space-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
+                      'flex shrink-0 items-center gap-2 px-[calc(var(--space-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
                       sheet
-                        ? 'mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]'
-                        : 'mb-(--select-popup-padding)',
+                        ? 'relative h-[calc(var(--size-control)+var(--select-sheet-loading-extra))] mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))] [justify-content:var(--select-sheet-loading-justify)]'
+                        : 'h-(--size-control) mb-(--select-popup-padding)',
                     ].join(' ')}
                   >
+                    {sheet && (
+                      <div
+                        aria-hidden
+                        className="absolute -inset-x-(--select-popup-padding) top-0 h-(--select-sheet-loading-line-width) bg-(color:--color-select-popup-line)"
+                      />
+                    )}
                     <Spinner />
                     {loadingText}
                   </div>
@@ -838,6 +1189,11 @@ export function Select({
               </BaseSelect.Popup>
             </BaseSelect.Positioner>
           </BaseSelect.Portal>
+          {/* 読み込みの知らせ（design/adr/0042）。Select を描いているあいだずっと置く、見えない status の箱（本体のすぐ後ろ）
+              絶対配置なので、欄の並び（flex の間）には入らない。浮かぶ部分の外にあるが、Select は外を読み上げから隠さない（modal でも） */}
+          <span role="status" data-slot="select-status" className="sr-only">
+            {announcement.text}
+          </span>
         </BaseSelect.Root>
       )}
     </Field>

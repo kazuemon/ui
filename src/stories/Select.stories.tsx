@@ -2,12 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Select, type SelectItem } from '../components/Select';
+import { Select, type SelectItem, type SelectProps } from '../components/Select';
 import { TextField } from '../components/TextField';
 import { Gallery, Matrix, Specimen } from './story-parts';
-import { labelClass } from './story-states';
+import { labelClass, sourceCode } from './story-states';
 
 const wards: SelectItem[] = [
   '千代田区',
@@ -57,6 +57,14 @@ const areas: SelectItem[] = [
   },
   { label: '港区', value: 'minato' },
 ];
+
+// Show code に出す選択肢の並び（先頭の数件だけ）
+const wardsSource = `const wards: SelectItem[] = [
+  { label: '千代田区', value: 'ward-1' },
+  { label: '中央区', value: 'ward-2' },
+  { label: '港区', value: 'ward-3' },
+  // …
+];`;
 
 const behaviors = ['non-blocking', 'blocking'] as const;
 const indicators = ['spinner', 'bar'] as const;
@@ -108,7 +116,7 @@ const meta = {
           '- 選択肢は `items`（`label`・`value`）で渡します。選べない選択肢には `disabled` を、ラベルの下の2行目には `note` を付けます。`note` の `kind` は、選べない理由なら `reason`、選べるが選ぶ前に知っておいてほしいことなら `warning` です。文は呼び出し側で組み立てて渡します。',
           '- 選択肢の出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。それ以外では本体の下に浮かべます。',
           '- `prefix` には文字を渡せます（例: 都道府県を選んだあとの市区町村の欄に「東京都」）。',
-          '- 選択肢を読み込んでいるあいだは `loading` を付けます。',
+          '- 選択肢を読み込んでいるあいだは `loading` を付けます。読み込んでいるあいだに開くと、読み上げで `loadingText` を知らせ、開いたまま読み込みが終わると選択肢の数（`loadedText`）を知らせます。',
           '- 値は `defaultValue` か、`value`・`onValueChange` で持ちます。',
           '',
           '「開いた状態」などのストーリーは、ストーリーの画面では開いて表示します。このページでは閉じているので、本体を押して開いてください。',
@@ -151,6 +159,9 @@ const meta = {
     placeholder: { control: 'text' },
     error: { control: 'text' },
     warning: { control: 'text' },
+    success: { control: 'text' },
+    successMark: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
+    info: { control: 'text' },
     prefix: { control: 'text' },
     addonShape: { control: 'inline-radio', options: ['attached', 'floating'] },
     disabled: { control: 'boolean' },
@@ -167,6 +178,7 @@ const meta = {
     loadingBehavior: { control: 'inline-radio', options: behaviors },
     loadingIndicator: { control: 'inline-radio', options: indicators },
     loadingText: { control: 'text' },
+    loadedText: { control: false },
     modal: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
     items: { control: false },
     value: { control: false },
@@ -214,6 +226,7 @@ export const Choose: Story = {
   },
 };
 
+// Show code: 枠（PopoverFrame）の中身は出ないので、Select の使い方を source.code に手で書く
 export const Open: Story = {
   name: '開いた状態',
   parameters: {
@@ -223,6 +236,22 @@ export const Open: Story = {
         story:
           '本体の下に浮かべた選択肢です。`popoverMaxHeight="screen"`（既定）では画面の高さの半分までに収め、最後の項目を半分だけ見せて、続きがあることを示します。上下に続きがあるときは、内側に影を出します（`popoverMoreCue`）。',
       },
+      source: sourceCode(
+        wardsSource,
+        `
+        <Select
+          label="住所"
+          prefix="東京都"
+          placeholder="選んでください"
+          items={wards}
+          defaultValue="ward-3"
+          presentation="popover"
+          // 画面の高さの半分までに収め、上下に続きがあれば内側に影を出す（どちらも既定）
+          popoverMaxHeight="screen"
+          popoverMoreCue="shadow"
+        />
+        `
+      ),
     },
   },
   render: (args, { viewMode }) => (
@@ -244,6 +273,7 @@ export const Open: Story = {
   ),
 };
 
+// Show code: 枠（PopoverFrame）の中身は出ないので、Select の使い方を source.code に手で書く
 export const ItemNotes: Story = {
   name: '選べない選択肢と2行目',
   args: { label: '市区町村', items: areas },
@@ -254,6 +284,20 @@ export const ItemNotes: Story = {
         story:
           '`disabled` の選択肢は押せない文字の色になり、押しても選ばれません。矢印キーでは止まり、選べないことと理由が読まれます。`note` の `reason` は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある選択肢だけ高くなります。',
       },
+      source: sourceCode(`
+        const areas: SelectItem[] = [
+          { label: '千代田区', value: 'chiyoda' },
+          { label: '中央区', value: 'chuo' },
+          // 選べるが、選ぶ前に知っておいてほしいこと
+          { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
+          // 選べない理由
+          { label: '八王子市', value: 'hachioji', disabled: true, note: { kind: 'reason', text: 'お届けできません' } },
+          { label: '町田市', value: 'machida', disabled: true, note: { kind: 'reason', text: 'お届けできません' } },
+          { label: '港区', value: 'minato' },
+        ];
+
+        <Select label="市区町村" prefix="東京都" placeholder="選んでください" items={areas} defaultValue="chiyoda" />
+      `),
     },
   },
   render: (args, { viewMode }) => (
@@ -299,6 +343,39 @@ export const Messages: Story = {
   ),
 };
 
+export const SuccessInfo: Story = {
+  name: '成功・情報',
+  args: { label: 'お届けの時間帯', prefix: undefined, items: times, defaultValue: 'time-2' },
+  parameters: {
+    controls: { exclude: ['success', 'successMark', 'info'] },
+    docs: {
+      description: {
+        story:
+          '`success` は本体の下に丸のチェックと緑の文字で出し、▼ の左にもチェックを置きます。下の行だけにするときは `successMark={false}` を付けます。`info` は丸の「i」と青い文字の行です。どちらも欄の枠線は変えません。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="success">
+        <Select {...args} success="この時間帯にお届けできます" />
+      </Specimen>
+      <Specimen label="successMark={false}">
+        <Select {...args} success="この時間帯にお届けできます" successMark={false} />
+      </Specimen>
+      <Specimen label="info">
+        <Select {...args} info="前回と同じ時間帯を選んでいます" />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    // チェックは success の欄にだけ出る（successMark={false} と info では出ない）
+    const marks = canvasElement.querySelectorAll('[data-slot="field-success-mark"]');
+    await expect(marks).toHaveLength(1);
+    await expect(marks[0]).toBeVisible();
+  },
+};
+
 export const Disabled: Story = {
   name: '押せない',
   parameters: {
@@ -325,6 +402,7 @@ export const Disabled: Story = {
   ),
 };
 
+// Show code: 表（Matrix）と枠（PopoverFrame）の中身は出ないので、使い方を source.code に手で書く
 export const Loading: Story = {
   name: '読み込んでいるあいだ',
   args: { loading: true },
@@ -339,6 +417,14 @@ export const Loading: Story = {
           '- `blocking`: 押せない欄と同じ見た目にし、開けなくします。プレースホルダの場所に `loadingText` を出し、▼ の場所に回る円を出します。',
         ].join('\n'),
       },
+      source: sourceCode(
+        wardsSource,
+        `
+        <Select label="住所" prefix="東京都" items={wards} loading />
+        <Select label="住所" prefix="東京都" items={wards} loading loadingBehavior="blocking" />
+        <Select label="住所" prefix="東京都" items={wards} loading loadingIndicator="bar" />
+        `
+      ),
     },
   },
   render: (args, { viewMode }) => (
@@ -372,6 +458,110 @@ export const Loading: Story = {
   ),
 };
 
+// はじめて開いたときに選択肢を読み込み、1.5 秒で終わる
+function LoadOnOpenSelect({ onOpenChange, ...props }: Omit<SelectProps, 'items' | 'loading'>) {
+  const [items, setItems] = useState<SelectItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  return (
+    <Select
+      {...props}
+      items={items}
+      loading={loading}
+      onOpenChange={(next) => {
+        onOpenChange?.(next);
+        if (!next || loading || items.length) return;
+        setLoading(true);
+        setTimeout(() => {
+          setItems(times);
+          setLoading(false);
+        }, 1500);
+      }}
+    />
+  );
+}
+
+// Show code: 状態を持ち、ハンドラーが要の例なので、写して使える部品の形を source.code に手で書く
+export const LoadOnOpen: Story = {
+  name: '開いてから読み込みが終わる',
+  args: { label: 'お届けの時間帯', prefix: undefined },
+  parameters: {
+    controls: { include: ['loadingText', 'loadingIndicator'] },
+    docs: {
+      description: {
+        story: [
+          'はじめて開いたときに選択肢を読み込み、1.5 秒で終わる例です。',
+          '',
+          '- 読み込んでいるあいだに開くと、読み上げで `loadingText`（「読み込んでいます」）を知らせます。開いたまま読み込みが終わると、選択肢の数（`loadedText`。既定は「5 件の選択肢」の形）を知らせます。閉じると知らせる文は空に戻ります。',
+          '- 知らせるのは、本体のそばにいつも置いた見えない `role="status"` の箱です。開くと同時に現れる箱は、読み上げソフトによっては読まれないためです。見える読み込み中の行は、二重に読まないよう role の箱にしません。',
+          '',
+          'もう一度試すときは、ストーリーを描き直してください。',
+        ].join('\n'),
+      },
+      source: sourceCode(`
+        const times: SelectItem[] = [
+          { label: '午前中', value: 'time-1' },
+          { label: '14〜16時', value: 'time-2' },
+          { label: '16〜18時', value: 'time-3' },
+          { label: '18〜20時', value: 'time-4' },
+          { label: '19〜21時', value: 'time-5' },
+        ];
+
+        // はじめて開いたときに選択肢を読み込む
+        function DeliveryTimeSelect() {
+          const [items, setItems] = useState<SelectItem[]>([]);
+          const [loading, setLoading] = useState(false);
+          return (
+            <Select
+              label="お届けの時間帯"
+              placeholder="選んでください"
+              items={items}
+              loading={loading}
+              onOpenChange={(open) => {
+                if (!open || loading || items.length) return;
+                setLoading(true);
+                // 読み込みの代わり。1.5 秒で終わる
+                setTimeout(() => {
+                  setItems(times);
+                  setLoading(false);
+                }, 1500);
+              }}
+            />
+          );
+        }
+      `),
+    },
+  },
+  render: (args) => (
+    <PopoverFrame height="h-[22rem]">
+      {(container) => (
+        <LoadOnOpenSelect
+          {...args}
+          presentation="popover"
+          container={container}
+          collisionAvoidance={{ side: 'none', align: 'none' }}
+        />
+      )}
+    </PopoverFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const status = canvasElement.querySelector<HTMLElement>('[data-slot="select-status"]');
+    if (!status) throw new Error('status の箱がありません');
+    await expect(status).toHaveAttribute('role', 'status');
+    await expect(status.textContent).toBe('');
+    await userEvent.click(canvas.getByRole('combobox'));
+    await waitFor(() => expect(status).toHaveTextContent('読み込んでいます'));
+    // 見える読み込み中の行は role の箱にしない。status の箱は、開いているあいだも読み上げから隠されない（modal でも）
+    const row = canvasElement.querySelector('[data-slot="select-loading"]');
+    await expect(row).not.toBeNull();
+    await expect(row).not.toHaveAttribute('role');
+    await expect(status.closest('[aria-hidden="true"], [inert]')).toBeNull();
+    await waitFor(() => expect(status).toHaveTextContent('5 件の選択肢'), { timeout: 3000 });
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(status.textContent).toBe(''));
+  },
+};
+
+// Show code: 枠（PhoneFrame）の中身は出ないので、Select の使い方を source.code に手で書く
 export const Sheet: Story = {
   name: 'シート',
   args: { caption: 'お届けは23区内だけです', sheetDetent: 'half' },
@@ -383,10 +573,26 @@ export const Sheet: Story = {
           '`presentation="sheet"` のとき、または `auto` で指で操作していて画面が狭いときは、選択肢を画面の下から出すシートにします。ここでは画面の代わりの枠の中に描いています。',
           '',
           '- 見出しに、ラベル・キャプション・エラー・警告と、閉じるボタン（×）を出します。',
-          '- 選択肢が長いときは半分の高さで開き（`sheetDetent="half"`、既定）、つまみを引くと高さが変わります。下まで引くと閉じます。`full` は高さいっぱいで開きます。',
+          '- 選択肢が長いときは半分の高さで開き（`sheetDetent="half"`、既定）、つまみを引くと高さが変わります。上へはじくと高さいっぱいに広がり、下へはじくか下まで引くと閉じます。`full` は高さいっぱいで開きます。',
           '- `sheetMoreCue` で、上下に続きがあることの見せ方を選びます。',
         ].join('\n'),
       },
+      source: sourceCode(
+        wardsSource,
+        `
+        <Select
+          label="住所"
+          prefix="東京都"
+          caption="お届けは23区内だけです"
+          placeholder="選んでください"
+          items={wards}
+          defaultValue="ward-3"
+          // 既定の auto は、指で操作していて画面が狭いときだけシートにする
+          presentation="sheet"
+          sheetDetent="half"
+        />
+        `
+      ),
     },
   },
   render: (args, { viewMode }) => (
@@ -408,4 +614,134 @@ export const Sheet: Story = {
       )}
     </PhoneFrame>
   ),
+};
+
+// つまみ（シートの見出し）を、指で縦にはじく・引く。wait を付けると、離す前に止まる（はじかない）
+async function dragHandle(handle: Element, dy: number, wait = 0) {
+  const { top } = handle.getBoundingClientRect();
+  const y = top + 8;
+  const pointer = { pointerId: 1, pointerType: 'touch', isPrimary: true, buttons: 1 };
+  await fireEvent.pointerDown(handle, { ...pointer, clientY: y });
+  for (let step = 1; step <= 3; step += 1) {
+    await fireEvent.pointerMove(handle, { ...pointer, clientY: y + (dy * step) / 3 });
+  }
+  if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+  await fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
+}
+
+// Show code: 枠（PhoneFrame）の中身は出ないので、Select の使い方を source.code に手で書く
+export const SheetFling: Story = {
+  name: 'シートをはじく',
+  args: { label: '住所', caption: undefined },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'つまみを上へはじくと、半分の高さから高さいっぱいに広がります。下へはじくと、引いた距離が短くても一段下がり、半分の高さからは閉じます。はじかずにゆっくり引いて離したときは、近い方の高さに戻ります。Interactions のパネルで再生できます。',
+      },
+      source: sourceCode(
+        wardsSource,
+        `
+        <Select
+          label="住所"
+          prefix="東京都"
+          placeholder="選んでください"
+          items={wards}
+          defaultValue="ward-3"
+          presentation="sheet"
+        />
+        `
+      ),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <Select
+          {...args}
+          presentation="sheet"
+          defaultValue="ward-3"
+          defaultOpen={openOnLoad(viewMode)}
+          modal={false}
+          container={frame}
+        />
+      )}
+    </PhoneFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const popup = await waitFor(() => {
+      const el = canvasElement.querySelector<HTMLElement>('[data-slot="select-popup"]');
+      if (!el) throw new Error('シートが開いていません');
+      return el;
+    });
+    // つまみを含む見出しは、シートの最初の子
+    const handle = popup.firstElementChild;
+    if (!handle) throw new Error('見出しがありません');
+    const combobox = canvas.getByRole('combobox');
+    // 高さの動きが止まるのを待つ
+    const settled = async () => {
+      let last = -1;
+      await waitFor(() => {
+        const now = popup.offsetHeight;
+        const same = now === last;
+        last = now;
+        if (!same) throw new Error('動いています');
+      });
+      return last;
+    };
+    const half = await settled();
+
+    // ゆっくり少し下へ引いて止めてから離すと、半分の高さに戻る
+    await dragHandle(handle, 40, 150);
+    await expect(await settled()).toBe(half);
+    await expect(combobox).toHaveAttribute('aria-expanded', 'true');
+
+    // 上へはじくと、高さいっぱいに広がる
+    await dragHandle(handle, -30);
+    await expect(await settled()).toBeGreaterThan(half);
+
+    // 高さいっぱいから下へはじくと、半分の高さに戻る
+    await dragHandle(handle, 30);
+    await expect(await settled()).toBe(half);
+
+    // 半分の高さから、少しだけ下へはじくと閉じる。離した高さのまま下へ滑る
+    await dragHandle(handle, 30);
+    await waitFor(() => expect(combobox).toHaveAttribute('aria-expanded', 'false'));
+    if (popup.isConnected) await expect(popup.offsetHeight).toBe(half - 30);
+  },
+};
+
+export const DensityScope: Story = {
+  name: 'ページの一部で密度を変える',
+  args: { label: '住所', caption: undefined },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'ページの一部だけ密度や指用の高さを変えるときは、その要素に `data-density` や `coarse-large` のクラスを付けます。浮かぶ選択肢とシートは `body` の直下に描きますが、本体の祖先に付いたものを写すので、`container` を指定しなくても、選択肢の項目は本体と同じ高さになります。ここでは `data-density="coarse"` と `coarse-large` を付けています（本体と項目は 52px）。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <div data-density="coarse" className="coarse-large h-[26rem] max-w-sm">
+      <Select
+        {...args}
+        presentation="popover"
+        defaultValue="ward-3"
+        defaultOpen={openOnLoad(viewMode)}
+        modal={false}
+        collisionAvoidance={{ side: 'none', align: 'none' }}
+      />
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    const option = await page.findByRole('option', { name: '港区' });
+    // 選択肢は canvas の外（body の直下）に描かれている
+    await expect(canvasElement.contains(option)).toBe(false);
+    await expect(canvas.getByRole('combobox').offsetHeight).toBe(52);
+    await expect(option.offsetHeight).toBe(52);
+  },
 };

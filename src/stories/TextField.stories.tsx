@@ -8,7 +8,7 @@ import { FieldAddonButton } from '../components/FieldAddon';
 import { EyeIcon, EyeSlashIcon } from '../components/icons';
 import { TextField, type TextFieldProps } from '../components/TextField';
 import { DensityPair, Gallery, Matrix, Specimen } from './story-parts';
-import { type MatrixColumn, statePseudo } from './story-states';
+import { type MatrixColumn, sourceCode, statePseudo } from './story-states';
 
 type Sample = MatrixColumn & { props: Partial<TextFieldProps> };
 
@@ -142,6 +142,7 @@ export const Playground: Story = {
   ],
 };
 
+// Show code: 表（Matrix）の中身は出ないので、行ごとの使い方を source.code に手で書く
 export const States: Story = {
   name: '状態',
   parameters: {
@@ -151,6 +152,18 @@ export const States: Story = {
         story:
           '通常はグレーの塗りで枠線がなく、フォーカスで青い枠線が付きます（クリックでもキーボードでも）。エラーのあいだは赤い枠線のまま、hover でも塗りを変えません。',
       },
+      source: sourceCode(`
+        {/* hover・フォーカスの見た目は部品が受け持つ */}
+        <TextField label="表示名" placeholder="かずえもん" />
+        <TextField label="表示名" defaultValue="かずえもん" />
+        <TextField label="表示名" error="表示名を入力してください" />
+        <TextField
+          label="表示名"
+          defaultValue="かずえもん（Kazuya Miyamoto）"
+          warning="20文字を超えると、一覧では途中で切れます"
+        />
+        <TextField label="表示名" defaultValue="かずえもん" disabled />
+      `),
     },
   },
   render: (args) => (
@@ -211,6 +224,7 @@ export const Messages: Story = {
   ),
 };
 
+// Show code: 表（Matrix）の中身は出ないので、列ごとの使い方を source.code に手で書く
 export const Addons: Story = {
   name: 'prefix・suffix',
   parameters: {
@@ -220,6 +234,21 @@ export const Addons: Story = {
         story:
           '行が形（`addonShape`）です。`attached`（既定）は本体の端に接する塊、`floating` は本体の内側に少し浮かせます。`floating` は、欄の外形を入力欄だけのときと同じにしたいときや、グレーを軽く見せたいときに使います。文字の prefix・suffix を押しても、入力欄にフォーカスが移ります。',
       },
+      source: sourceCode(`
+        <TextField label="Web サイト" prefix="https://" placeholder="example.com" />
+        <TextField label="価格" suffix="円" defaultValue="1200" inputMode="numeric" />
+        {/* 本体の内側に少し浮かせる */}
+        <TextField label="Web サイト" prefix="https://" addonShape="floating" />
+        <TextField
+          label="パスワード"
+          type="password"
+          suffix={
+            <FieldAddonButton aria-label="パスワードを表示">
+              <EyeIcon standalone />
+            </FieldAddonButton>
+          }
+        />
+      `),
     },
   },
   render: (args) => (
@@ -256,6 +285,7 @@ function PasswordField() {
   );
 }
 
+// Show code: 状態を持ち、ハンドラーが要の例なので、写して使える部品の形を source.code に手で書く
 export const PasswordToggle: Story = {
   name: 'パスワードの表示を切り替える',
   parameters: {
@@ -265,6 +295,29 @@ export const PasswordToggle: Story = {
         story:
           '`suffix` に `FieldAddonButton` を渡した例です。アイコンだけのボタンには `aria-label` を付けます。欄が押せないときは、ボタンも押せなくなります。',
       },
+      source: sourceCode(`
+        // ボタンの名前は変えず、押しているかを aria-pressed で伝える
+        function PasswordField() {
+          const [visible, setVisible] = useState(false);
+          return (
+            <TextField
+              label="パスワード"
+              caption="8文字以上で入力してください"
+              autoComplete="new-password"
+              type={visible ? 'text' : 'password'}
+              suffix={
+                <FieldAddonButton
+                  aria-label="パスワードを表示"
+                  aria-pressed={visible}
+                  onClick={() => setVisible((current) => !current)}
+                >
+                  {visible ? <EyeSlashIcon standalone /> : <EyeIcon standalone />}
+                </FieldAddonButton>
+              }
+            />
+          );
+        }
+      `),
     },
   },
   decorators: [
@@ -287,6 +340,7 @@ export const PasswordToggle: Story = {
   },
 };
 
+// Show code: 表（Matrix）の中身は出ないので、行と列の使い方を source.code に手で書く
 export const Loading: Story = {
   name: '待っているあいだ',
   args: { label: 'ユーザー名', defaultValue: 'kazuemon', loading: true },
@@ -302,6 +356,11 @@ export const Loading: Story = {
           '- `spinner`（既定）は右端に回る円、`bar` は下端に流れる線です。',
         ].join('\n'),
       },
+      source: sourceCode(`
+        <TextField label="ユーザー名" defaultValue="kazuemon" loading />
+        <TextField label="ユーザー名" defaultValue="kazuemon" loading loadingBehavior="blocking" />
+        <TextField label="ユーザー名" defaultValue="kazuemon" loading loadingIndicator="bar" />
+      `),
     },
   },
   render: (args) => (

@@ -4,7 +4,7 @@ import { Button } from '../../src/components/Button';
 import { Switch } from '../../src/components/Switch';
 import { TextField } from '../../src/components/TextField';
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { keepSwitchAsCompared } from './pins';
+import { keepSwitchAsCompared, keepToggleColorAsCompared } from './pins';
 
 // 後半の軸 11: Disabled の詰め（principles.md 原則1、design/adr/0026・0028）。4回目
 // 変えるのは次のトークンだけ
@@ -219,7 +219,7 @@ interface ComparisonArgs {
 
 const meta = {
   title: 'Design Review/11 Disabled の詰め',
-  decorators: [keepSwitchAsCompared],
+  decorators: [keepSwitchAsCompared, keepToggleColorAsCompared],
   id: 'design-review-11-disabled-refine',
   parameters: { layout: 'fullscreen' },
   args: { pick: 'H' },
