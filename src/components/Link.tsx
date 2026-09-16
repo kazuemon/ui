@@ -68,29 +68,20 @@ const link = tv({
       // 文字のリンク。hover・押下で背景を敷かず、押下で沈むだけ（design/adr/0027。塗りのトークンは transparent）
       // 左右に 4px はみ出させ、フォーカスの線を文字から離す。前後の文字には少しかかる（design/adr/0031）
       // 文章の中で折り返せるよう inline のまま沈める
-      // 下線の有無・太さ・色は、通常と hover でトークンから読む（ふだんは淡く、hover で下線だけ濃く — design/adr/0030）
-      // 背景に線を描く仕組みは、比べたが採らなかった動き（F1〜F4）を比較のストーリーで再現するために残している
+      // 下線はふだん淡く、hover で下線だけ濃くする。文字の色と下線の太さは変えない（design/adr/0030）
       text: [
         // group/link: 新しいタブの ↗ の下線のつなぎ目を、hover のあいだだけ重ねる（下の TextNewTabArrow）
         'group/link relative -mx-1 rounded-(--link-text-radius) box-decoration-clone px-1 py-0.5 underline-offset-4',
-        '[text-decoration-line:var(--link-decoration)] [text-decoration-color:var(--color-link-underline)] [text-decoration-thickness:var(--link-underline-width)]',
-        'not-data-disabled:hover:[text-decoration-line:var(--link-decoration-hover)] not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)] not-data-disabled:hover:[text-decoration-thickness:var(--link-underline-width-hover)]',
-        // hover で文字（と下線）を濃くする。リンクの色に黒を --link-hover-darken だけ混ぜる
-        'not-data-disabled:hover:text-[color:color-mix(in_oklab,var(--link-color),black_var(--link-hover-darken))]',
-        // 下線を動かすときは、背景に線を2本描く（上: hover で伸びる線、下: ふだんの線）。文字の幅だけに引く
-        // 文字の下線の太さは、1 倍の画面では 1px から 2px へ一段で切り替わり、なめらかに動かせないため
-        '[background-image:linear-gradient(color-mix(in_oklab,var(--color-link-grow)_var(--link-grow-alpha),transparent),color-mix(in_oklab,var(--color-link-grow)_var(--link-grow-alpha),transparent)),linear-gradient(var(--color-link-underline),var(--color-link-underline))]',
-        '[--link-grow-alpha:var(--link-grow-alpha-rest)] not-data-disabled:hover:[--link-grow-alpha:var(--link-grow-alpha-hover)]',
-        'bg-no-repeat bg-origin-content',
-        '[background-size:var(--link-grow-size-rest),var(--link-base-line-size)] [background-position:var(--link-grow-pos-rest),0_100%]',
-        'not-data-disabled:hover:[background-size:var(--link-grow-size-hover),var(--link-base-line-size)] not-data-disabled:hover:[background-position:var(--link-grow-pos-hover),0_100%]',
-        'not-data-disabled:hover:bg-link-hover not-data-disabled:active:top-(--flat-press-depth) not-data-disabled:active:bg-link-press',
-        // 下線の変化（伸びる線の大きさと濃さ、文字の下線の色）は --link-grow-duration で動かす
+        // 色は [text-decoration-color:…] で書く。decoration-(color:…) は tailwind-merge が太さ（decoration-1）と同じ種類とみなして消す
+        'underline decoration-1 [text-decoration-color:var(--color-link-underline)]',
+        'not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)]',
+        'not-data-disabled:active:top-(--flat-press-depth)',
+        // 下線の色の変化は --link-underline-duration で動かす
         // 位置は動かさない（離したときに抜ける向きを変えられる）
-        '[transition:background-color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),background-size_var(--link-grow-duration)_var(--link-grow-ease),--link-grow-alpha_var(--link-grow-duration)_var(--link-grow-ease),text-decoration-color_var(--link-grow-duration)_var(--link-grow-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+        '[transition:top_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
-        // 押せないとき: ただの文字と同じ見た目（下線も、背景に描く線もなし。色とカーソルは周りの文字のまま）
-        'data-disabled:cursor-auto data-disabled:bg-none data-disabled:text-inherit data-disabled:no-underline',
+        // 押せないとき: ただの文字と同じ見た目（下線なし。色とカーソルは周りの文字のまま）
+        'data-disabled:cursor-auto data-disabled:text-inherit data-disabled:no-underline',
       ],
       // 枠線のリンク。枠線のボタンと同じく、文字の色を淡く敷く
       outline: [
@@ -100,10 +91,9 @@ const link = tv({
         'not-data-disabled:hover:bg-flat-hover not-data-disabled:active:translate-y-(--flat-press-depth) not-data-disabled:active:bg-flat-press',
         '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
-        // 押せないとき: 押せないグレーの枠線のボタンと同じ文字・枠線・塗り・薄さ（design/adr/0029）
+        // 押せないとき: 押せないグレーの枠線のボタンと同じ文字と枠線（design/adr/0029）
         'data-disabled:cursor-not-allowed data-disabled:[--link-color:var(--color-outline-neutral-disabled-text)]',
-        'data-disabled:border-(length:--outline-neutral-disabled-line-width) data-disabled:border-(color:--color-outline-neutral-disabled-line)',
-        'data-disabled:bg-(color:--color-outline-neutral-disabled-fill) data-disabled:opacity-(--outline-neutral-disabled-opacity)',
+        'data-disabled:border-(color:--color-outline-neutral-disabled-line)',
       ],
       // ボタンの見た目のリンク。見た目は Button（塗り）に任せるので、ここには置かない（下の Link が Button を描く）
       button: '',
@@ -190,11 +180,11 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
 // \u3064\u306a\u304e\u76ee: \u6587\u5b57\u306e\u4e0b\u7dda\u3068\u300c0\u300d\u306e\u4e0b\u7dda\u306f\u5225\u3005\u306b\u63cf\u304b\u308c\u3001\u3064\u306a\u304e\u76ee\u304c\u753b\u7d20\u306e\u9014\u4e2d\u306b\u6765\u308b\u3068\u3001\u305d\u306e\u753b\u7d20\u306f\u4e21\u65b9\u304c\u534a\u7aef\u306b\u5857\u3063\u3066\u5c11\u3057\u660e\u308b\u304f\u306a\u308b
 //   hover \u306e\u4e0b\u7dda\u306f\u4e0d\u900f\u660e\u306a\u306e\u3067\u3001\u305d\u3053\u3060\u3051\u76ee\u7acb\u3064\u3002hover \u306e\u3042\u3044\u3060\u306f\u300c0\u300d\u3092 1px \u5de6\u3078\u51fa\u3057\u3066\uff08\u5b57\u9593\u3092 1px \u8db3\u3057\u3001\u7d42\u308f\u308a\u306e\u4f4d\u7f6e\u306f\u5909\u3048\u306a\u3044\uff09\u3001
 //   \u6587\u5b57\u306e\u4e0b\u7dda\u306b\u91cd\u306d\u308b\u3002\u3075\u3060\u3093\u306e\u4e0b\u7dda\u306f\u534a\u900f\u660e\u3067\u3001\u91cd\u306d\u308b\u3068\u6fc3\u304f\u306a\u308b\u306e\u3067\u91cd\u306d\u306a\u3044
-//   \u91cd\u306d\u308b\u306e\u306f\u3001\u4e0b\u7dda\u304c\u6fc3\u304f\u306a\u308a\u304d\u3063\u3066\u304b\u3089\uff08--link-grow-duration \u306e\u3042\u3068\uff09\u3002\u6fc3\u304f\u306a\u308b\u9014\u4e2d\u3067\u91cd\u306d\u308b\u3068\u3001\u91cd\u306a\u308a\u304c\u6fc3\u304f\u898b\u3048\u308b\u305f\u3081
+//   \u91cd\u306d\u308b\u306e\u306f\u3001\u4e0b\u7dda\u304c\u6fc3\u304f\u306a\u308a\u304d\u3063\u3066\u304b\u3089\uff08--link-underline-duration \u306e\u3042\u3068\uff09\u3002\u6fc3\u304f\u306a\u308b\u9014\u4e2d\u3067\u91cd\u306d\u308b\u3068\u3001\u91cd\u306a\u308a\u304c\u6fc3\u304f\u898b\u3048\u308b\u305f\u3081
 const TextNewTabArrow = () => (
   <span aria-hidden="true" className="whitespace-nowrap">
     {'\u2060'}
-    <span className="[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch)] text-transparent normal-nums group-hover/link:-ms-px group-hover/link:[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch_+_1px)] group-hover/link:[transition:margin-inline-start_0s_linear_var(--link-grow-duration),letter-spacing_0s_linear_var(--link-grow-duration)] before:content-['0'] motion-reduce:group-hover/link:[transition:none]" />
+    <span className="[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch)] text-transparent normal-nums group-hover/link:-ms-px group-hover/link:[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch_+_1px)] group-hover/link:[transition:margin-inline-start_0s_linear_var(--link-underline-duration),letter-spacing_0s_linear_var(--link-underline-duration)] before:content-['0'] motion-reduce:group-hover/link:[transition:none]" />
     <ArrowUpRightIcon className="-ms-[calc(var(--link-external-icon-size)*200/256)] inline-block size-(--link-external-icon-size) align-[calc(var(--link-external-icon-size)*-56/256)]" />
   </span>
 );

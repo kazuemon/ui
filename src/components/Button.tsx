@@ -113,12 +113,10 @@ const button = tv({
       // グレーのボタンの Disabled は、薄くせず、塗りと文字の色を近づける（design/adr/0026）
       class: [
         '[--button-accent:var(--color-fg)] [--button-fill:var(--color-neutral)] [--button-text:var(--color-fg)]',
-        // 枠線（付けない）と影（ほかの塗りのボタンと同じ）。比べた案を比較のストーリーで再現するためトークンにしている — design/adr/0033
-        'border-(length:--neutral-line-width) border-(color:--color-neutral-line)',
-        'shadow-(--shadow-neutral) not-[:disabled,[data-disabled]]:not-data-loading:hover:shadow-(--shadow-neutral-hover) not-[:disabled,[data-disabled]]:not-data-loading:active:shadow-(--shadow-neutral-press)',
-        'disabled:opacity-(--neutral-disabled-opacity)',
+        // 枠線は付けず、影はほかの塗りのボタンと同じ — design/adr/0033
+        'disabled:opacity-100',
         'disabled:[--color-disabled:var(--color-neutral-disabled)] disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
-        'data-disabled:opacity-(--neutral-disabled-opacity)',
+        'data-disabled:opacity-100',
         'data-disabled:[--color-disabled:var(--color-neutral-disabled)] data-disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
         'data-loading:bg-(color:--color-neutral-disabled) data-loading:text-(color:--color-on-neutral-disabled)',
       ],
@@ -146,14 +144,12 @@ const button = tv({
       color: ['neutral', 'white'],
       class: [
         'text-fg [--button-accent:var(--color-fg)] [--button-ink:var(--color-fg)] [--button-line:var(--color-line)]',
-        'disabled:bg-(color:--color-outline-neutral-disabled-fill) disabled:opacity-(--outline-neutral-disabled-opacity)',
+        // 薄くせず、枠線と文字をグレーにする。枠線の太さと塗り（なし）は押せるときと同じ
+        'disabled:opacity-100',
         'disabled:border-(color:--color-outline-neutral-disabled-line) disabled:text-(color:--color-outline-neutral-disabled-text)',
-        'disabled:border-(length:--outline-neutral-disabled-line-width)',
-        'data-disabled:bg-(color:--color-outline-neutral-disabled-fill) data-disabled:opacity-(--outline-neutral-disabled-opacity)',
+        'data-disabled:opacity-100',
         'data-disabled:border-(color:--color-outline-neutral-disabled-line) data-disabled:text-(color:--color-outline-neutral-disabled-text)',
-        'data-disabled:border-(length:--outline-neutral-disabled-line-width)',
-        'data-loading:border-(color:--color-outline-neutral-disabled-line) data-loading:bg-(color:--color-outline-neutral-disabled-fill) data-loading:text-(color:--color-outline-neutral-disabled-text)',
-        'data-loading:border-(length:--outline-neutral-disabled-line-width)',
+        'data-loading:border-(color:--color-outline-neutral-disabled-line) data-loading:text-(color:--color-outline-neutral-disabled-text)',
       ],
     },
   ],

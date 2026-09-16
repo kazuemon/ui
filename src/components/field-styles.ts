@@ -19,14 +19,9 @@ export const fieldStyles = tv({
       'data-disabled:[--color-field-invalid:var(--color-field-disabled,var(--color-field))]',
       'data-disabled:[--color-field-addon-invalid:var(--color-field-addon)] data-disabled:[--color-on-field-addon-invalid:var(--color-on-field-disabled)]',
     ],
-    label: [
-      'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
-      'group-data-disabled/field:opacity-(--disabled-label-opacity)',
-    ],
-    caption: [
-      'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
-      'group-data-disabled/field:opacity-(--disabled-label-opacity)',
-    ],
+    // ラベルとキャプションは、押せないときも薄くしない（原則1: 説明が読めるように）
+    label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
+    caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-danger',
     // エラー・警告の行（design/adr/0041）。色は呼び出し側で足す（エラーは text-danger、警告は text-fg-warning）
     message:

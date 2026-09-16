@@ -15,13 +15,6 @@
  * どちらも src/styles/globals.css から @import してそのまま使える。
  */
 
-/* 文字のリンクの伸びる線の濃さ。値を動かせるよう、型を登録する — ADR-0030 */
-@property --link-grow-alpha {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: 100%;
-}
-
 @theme {
   /* ── 値の層: Palette ─────────────────────────────── */
   --palette-sky-400: #35b9fd; /* ブランド水色。白地 2.21 — 面・ロゴ専用 */
@@ -102,9 +95,6 @@
      枠線のボタン・枠線のリンク: 要素の文字の色を淡く敷く。色のない要素は灰色になる */
   --color-flat-hover: color-mix(in oklab, currentColor 8%, transparent);
   --color-flat-press: color-mix(in oklab, currentColor 16%, transparent);
-  /* 文字のリンク: 背景を敷かない（押下で沈むだけ）。比較のストーリーで A〜D を再現するため、トークンは残す */
-  --color-link-hover: transparent;
-  --color-link-press: transparent;
 
   /* 文字 */
   --color-fg: var(--palette-ink-900);
@@ -313,41 +303,16 @@
   /* 塗りのボタンを押したときの影 — adr/0033
      落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
   --shadow-raised-press: var(--shadow-raised-hover);
-  /* グレーのボタンの影。ほかの塗りのボタンと同じ。比べた案（輪郭の線を外す）を比較のストーリーで再現するため、トークンにしている — adr/0033 */
-  --shadow-neutral: var(--shadow-raised);
-  --shadow-neutral-hover: var(--shadow-raised-hover);
-  --shadow-neutral-press: var(--shadow-raised-press);
-  /* グレーのボタンの枠線。付けない（比べたが採らなかった — adr/0033）。比較のストーリーで再現するため残す */
-  --neutral-line-width: 0px;
-  --color-neutral-line: var(--color-surface-line);
 
   /* 文字のリンクの下線 — adr/0030
-     ふだんは文字の色を 35% に透かした淡い下線。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
-  --link-decoration: underline;
-  --link-decoration-hover: underline;
-  --link-underline-width: 1px;
-  --link-underline-width-hover: 1px;
+     ふだんは文字の色を 35% に透かした淡い下線（太さ 1px）。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
   --color-link-underline: color-mix(in oklab, currentColor 35%, transparent);
   --color-link-underline-hover: color-mix(in oklab, currentColor, black 30%);
-  --link-hover-darken: 0%; /* hover で文字の色に混ぜる黒の割合。文字は濃くしない — adr/0030 */
-  /* 背景に描く下線（動かすため）。採らなかった（描かない）。比較のストーリーで再現するため残す — adr/0030
-     base はふだんの線、grow は hover で伸びる・太くなる線。大きさと位置は background-size・background-position の値 */
-  --link-base-line-size: 100% 0px;
-  --link-grow-size-rest: 100% 0px;
-  --link-grow-size-hover: 100% 0px;
-  --link-grow-pos-rest: 0 100%;
-  --link-grow-pos-hover: 0 100%;
-  /* 下線の変化の長さと緩急。下線の色は 200ms で、ゆっくり始めてゆっくり終える — adr/0030 */
-  --link-grow-duration: 200ms;
-  --link-grow-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031
-     背景は敷かないので、ほかの見た目には効かない。背景に描く下線の案（adr/0030）を再現するときは 0px に戻す
-     （角丸があると、背景に描く下線の端が丸く欠ける） */
+  /* 下線の色の変化の長さと緩急。200ms で、ゆっくり始めてゆっくり終える — adr/0030 */
+  --link-underline-duration: 200ms;
+  --link-underline-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031 */
   --link-text-radius: 6px;
-  --color-link-grow: currentColor;
-  /* 伸びる線の濃さ（0%〜100%）。濃さを動かすと、太さが 1px 単位でそろえられても、なめらかに太って見える */
-  --link-grow-alpha-rest: 100%;
-  --link-grow-alpha-hover: 100%;
   /* 文字のリンクで、新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）— adr/0046
      下線を ↗ の線の右端まで続ける幅と、線の下端を基線にそろえる量は、部品がこの値から計算する（どの大きさでも成り立つ） */
   --link-external-icon-size: 0.85em;
@@ -400,74 +365,27 @@
   --switch-h-fine: 22px;
   --switch-knob-fine: 16px;
   --switch-inset: 3px; /* トラックとノブの隙間 */
-  /* トグルの行の並び。トラックの縦の位置（--switch-track-rows）と、トラックと文字の間（--switch-gap）
-     1 / -1 はラベルとキャプションのまとまりの中央、1 / 2 はラベル（1行目）の中央。
-     既定はラベルの行の中央（ADR-0049 の A）。キャプションが何行あっても、トラックはラベルの横から動かない */
-  --switch-track-rows: 1 / 2;
+  /* トグルの行の並び。トラックと文字の間（--switch-gap）と、格子の列（トラックが左・右）
+     列は線の名前 track・label・row で指す。トラックはラベルの行の中央（ADR-0049 の A）。キャプションが何行あっても、トラックはラベルの横から動かない
+     キャプションの置き方は ADR-0068。トラックとラベルは部品の高さの1行に置き、キャプションはその外（2行目のラベルの列）に置く
+       captionAppearance="surface"（ADR-0068 の E）は、ラベルの列に入力欄の塗りの面を敷く（角は部品の角、余白は左右 12px・上下 8px） */
   --switch-gap: 12px;
-  /* キャプションの置き方 — ADR-0068 の A（既定）。キャプションを面に出す形（captionAppearance="surface"）はADR-0068 の E（下）
-     トラックとラベルは部品の高さの1行に置き、その行の縦の中央に固定する（--switch-line: 1）。
-       キャプションはこの行の外、ラベルの列に置くので、有無や長さでトラックとラベルは動かない。
-       0 は1行に固定せず、ラベルとキャプションのまとまりを部品の高さの中央に置く（ADR-0068 より前の形。比較の再現用）
-     --switch-track-align・--switch-label-align: 1行の中のそろえ方。1行に固定するときは start と baseline
-       （行の上から測る。ラベルとキャプションを同じ行に置くときは文字の並びをそろえる）。固定しないときは center
-     --switch-columns-start・-end: 格子の列（トラックが左・右）。線の名前 track・label・row（案によって aside）で列を指す
-     --switch-caption-column: キャプションの列。label はラベルの列、row は幅いっぱい（トラックの下から）、aside はラベルの右
-     --switch-caption-row: キャプションの行。2 はラベルの下、1 はラベルと同じ行
-     --switch-caption-gap: キャプションの上の間（1行の下端から）。--switch-caption-hug: 1 にすると、1行の下の余白を詰めてラベルの下端から測る。
-       既定はラベルの下端から 0（ラベルとキャプションの間はADR-0068 より前と同じ）
-     --color-switch-caption-surface・--switch-caption-pad-x・-pad-y・--switch-caption-radius: キャプションの面（既定は面なし）
-     --switch-row-track-rows・--switch-row-track-align: 行全体を押せる形（frame）のときの、トラックの縦の位置とそろえ方。
-       囲みがあるときは、行（囲み）の縦の中央。キャプションが長くても行の中央。ラベルとキャプションの並びは囲みなしと同じ */
-  --switch-line: 1;
-  --switch-track-align: start;
-  --switch-label-align: baseline;
   --switch-columns-start: [row-start track-start] auto [track-end label-start] minmax(0, 1fr) [label-end row-end];
   --switch-columns-end: [row-start label-start] minmax(0, 1fr) [label-end track-start] auto [track-end row-end];
-  --switch-caption-column: label;
-  --switch-caption-row: 2;
-  --switch-caption-gap: 0px;
-  --switch-caption-hug: 1;
-  --color-switch-caption-surface: transparent;
-  --switch-caption-pad-x: 0px;
-  --switch-caption-pad-y: 0px;
-  --switch-caption-radius: 0px;
-  --switch-row-track-rows: 1 / -1;
-  --switch-row-track-align: center;
-  /* キャプションを面に出すとき（Switch の captionAppearance="surface"）— ADR-0068 の E
-     ラベルの列だけに、入力欄の塗りの面を敷く。角は部品の角、影・線なし。面は1行の下端から始める（1行の下の余白は詰めない）
-     部品が、上のキャプションの上の間（-gap・-hug）と面の4つを、これらの値で置き換える */
-  --switch-caption-surface-gap: 0px;
-  --switch-caption-surface-hug: 0;
-  --color-switch-caption-surface-fill: var(--color-field);
-  --switch-caption-surface-pad-x: 12px;
-  --switch-caption-surface-pad-y: 8px;
-  --switch-caption-surface-radius: var(--radius-control);
   /* 行全体を押せるトグル（Switch の frame）— ADR-0066。部品の既定は囲みなし（none）、選べるのは card（A）と divided（B）
      押せる範囲を見せるため、行の範囲を囲み（card）か区切り線（divided）で描き、その内側を全部押せるようにする
-     線はカードのような細い境界線、影なし（原則1: ページと同じレイヤー）
+     線はカードのような細い境界線、影なし（原則1: ページと同じレイヤー）。囲みがあるときは、トラックを行（囲み）の縦の中央に置く
      --switch-row-radius: 1行ずつ囲む（card）角。行そのものが押す本体なので部品の角（原則5）
      --switch-row-gap: card を続けて置いたときの間
-     --switch-row-pad-y: 行の上下の余白（線を含む）。左右は部品の左右の余白（--space-control-x）。行の高さは部品の高さ以上
      --color-switch-row-hover: 行の hover の塗り。一覧の項目の hover と同じ（原則3）
-     --switch-row-press-darken: 押しているあいだ、hover の塗りに混ぜる本文の色の割合。0% なら hover と同じ塗り
-     --switch-row-duration: 行の塗りが hover で入る・抜ける長さと、離して戻る長さ（CSS では同じ長さになる）
-     --switch-row-press-duration: 押して塗りが変わる長さ
-     --color-switch-row-off: 行の中の OFF のトラック。既定は行の外と同じ（--color-switch-off）
      塗りの動きはADR-0067 の A: 押しているあいだも行を濃くせず、hover と同じ塗りのまま。押したことはノブの縮みで伝える
-       指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms）
-     行の中の OFF のトラックは、ADR-0067 の D の一段濃いグレーを行の外でも既定にした（下の --color-switch-off）ので、行の外と同じ。
-       hover の塗りに溶けない（1.17:1） */
+       指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms。離して戻るときは入力欄と同じ長さ）
+     行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-switch-off。ADR-0067 の D）。hover の塗りに溶けない（1.17:1） */
   --switch-row-line-width: 1px;
   --color-switch-row-line: var(--color-line);
   --switch-row-radius: var(--radius-control);
   --switch-row-gap: 8px;
-  --switch-row-pad-y: 8px;
   --color-switch-row-hover: var(--color-select-item-highlight);
-  --switch-row-press-darken: 0%;
-  --switch-row-duration: var(--duration-field);
-  --switch-row-press-duration: 0ms;
-  --color-switch-row-off: var(--color-switch-off);
 
   /* チェックボックスとラジオ（原則8・原則5・原則1）— ADR-0062（現行版を採用）
      入力欄の仲間: ふだんは選んでいない箱の塗り（--color-choice）で、枠線・影なし。hover で塗りが半段濃くなる
@@ -549,25 +467,15 @@
      押せない欄の塗りの上で 3.51:1（アイコンの基準 3:1）。--color-on-field-disabled（1.92:1）は選んだ値・入力した値だけに使い、
      値が入った押せない欄と、文を出している押せない欄を見分けられるようにする */
   --color-select-icon-disabled: var(--color-fg-subtle);
-  --neutral-disabled-opacity: 1;
   --color-neutral-disabled: var(--palette-gray-200);
   --color-on-neutral-disabled: var(--palette-gray-400);
-  --disabled-label-opacity: 1;
   /* 押せない OFF のトグルと、押せないグレーの枠線のボタン — adr/0029
      色を持たない部分は、グレーのボタンと同じく薄くせずグレーにする */
-  --switch-off-disabled-opacity: 1;
   /* 押せない OFF のトラックは、押せない箱（--color-choice-disabled）と同じく、ふだんより薄い入力欄の塗りのグレー
      押せる OFF を一段濃いグレー（下の --color-switch-off）にしたので、押せないグレーのままでは押せる OFF と同じ色になる */
   --color-switch-off-disabled: var(--color-field);
-  --outline-neutral-disabled-opacity: 1;
   --color-outline-neutral-disabled-line: var(--color-line);
   --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
-  --color-outline-neutral-disabled-fill: transparent;
-  /* 押せない枠線のボタンの枠線の太さ。通常と同じ（太くする案は採らなかった — adr/0029） */
-  --outline-neutral-disabled-line-width: 1.5px;
-  /* OFF のトグルの枠。比べたが採らなかった（adr/0029）。比較のストーリーで再現するため、トークンは残す */
-  --switch-off-line-width: 0px;
-  --color-switch-off-line: var(--color-line);
   /* OFF のトグルのトラック（押せるとき）。入力欄の prefix・suffix と同じ一段濃いグレー — ADR-0067 の D
      行全体を押せるトグルの hover の塗り（入力欄の塗り）に溶けないよう、ADR-0067 の D で行の中だけに付けた色を、どこでも既定にした。
      チェックボックス・ラジオの選んでいない箱（--color-choice）も同じ色にそろえる */
@@ -575,16 +483,13 @@
   /* 押せないグレーのトグル: 薄くせず、ノブをグレーの文字の色にする — adr/0029
      ON のトラックは押せない OFF と同じ地（#F2F4F4）。押せないものは ON も OFF も同じ地で、状態はノブの位置で見せる
      （押せる OFF と同じ #E1E3E4 では、押せない ON が押せる OFF と紛れるため） */
-  --switch-neutral-disabled-opacity: 1;
   --color-switch-neutral-on-disabled: var(--color-switch-off-disabled);
   --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
   /* 色つき（primary・secondary）の押せない OFF のノブ — ADR-0069 の A
      --color-switch-off-disabled-knob: ノブの色。色によらず、色なしの押せないノブと同じグレー（地 #F2F4F4 の上で 2.24:1）
        白いノブ（押せる OFF と同じ）は地 #F2F4F4 の上で 1.10:1 で、ほぼ見えなかった
-     --switch-off-disabled-knob-own: ノブに混ぜる部品の色の割合（srgb）。0% は混ぜない。40% で押せない ON のトラックと同じ薄さ（ADR-0069 の C。採らなかった）
      色なし（neutral）の押せないノブは、ON も OFF も上の --color-switch-neutral-disabled-knob */
   --color-switch-off-disabled-knob: var(--color-switch-neutral-disabled-knob);
-  --switch-off-disabled-knob-own: 0%;
   /* 押せないトグルのラベル。押すと切り替わる文字は本体の一部なので、ほかの押せない文字（選べない選択肢など）と
      同じグレーにする（原則1）。キャプションは変えない（--disabled-label-opacity） */
   --color-switch-label-disabled: var(--color-on-field-disabled);
