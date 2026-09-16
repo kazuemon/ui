@@ -228,6 +228,7 @@ export const Choose: Story = {
 
 // Show code: 枠（PopoverFrame）の中身は出ないので、Select の使い方を source.code に手で書く
 export const Open: Story = {
+  tags: ['visual'],
   name: '開いた状態',
   parameters: {
     controls: { include: ['popoverMaxHeight', 'popoverMoreCue', 'addonShape'] },
@@ -318,6 +319,7 @@ export const ItemNotes: Story = {
 };
 
 export const Messages: Story = {
+  tags: ['visual'],
   name: 'キャプション・エラー・警告',
   args: { label: '市区町村', items: areas },
   render: (args) => (
@@ -377,6 +379,7 @@ export const SuccessInfo: Story = {
 };
 
 export const Disabled: Story = {
+  tags: ['visual'],
   name: '押せない',
   parameters: {
     controls: { exclude: ['disabled', 'disabledIcon'] },
@@ -404,6 +407,7 @@ export const Disabled: Story = {
 
 // Show code: 表（Matrix）と枠（PopoverFrame）の中身は出ないので、使い方を source.code に手で書く
 export const Loading: Story = {
+  tags: ['visual'],
   name: '読み込んでいるあいだ',
   args: { loading: true },
   parameters: {
@@ -563,6 +567,7 @@ export const LoadOnOpen: Story = {
 
 // Show code: 枠（PhoneFrame）の中身は出ないので、Select の使い方を source.code に手で書く
 export const Sheet: Story = {
+  tags: ['visual'],
   name: 'シート',
   args: { caption: 'お届けは23区内だけです', sheetDetent: 'half' },
   parameters: {

@@ -73,6 +73,7 @@ export const Playground: Story = {
 };
 
 export const Group: Story = {
+  tags: ['visual'],
   name: 'グループ',
   parameters: {
     controls: { include: ['color'] },
@@ -232,6 +233,7 @@ export const Consent: Story = {
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
 export const Messages: Story = {
+  tags: ['visual'],
   name: 'エラーと警告',
   parameters: {
     controls: { disable: true },
@@ -251,6 +253,7 @@ export const Messages: Story = {
 };
 
 export const Densities: Story = {
+  tags: ['visual'],
   name: '密度',
   parameters: {
     docs: {

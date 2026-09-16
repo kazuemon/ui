@@ -108,6 +108,7 @@ export const InText: Story = {
 };
 
 export const Outline: Story = {
+  tags: ['visual'],
   name: '枠線のリンク',
   parameters: {
     controls: { exclude: ['appearance', 'color'] },
@@ -278,6 +279,7 @@ export const Disabled: Story = {
 
 // Show code: 表（Matrix）の中身は出ないので、行ごとの使い方を source.code に手で書く
 export const States: Story = {
+  tags: ['visual'],
   name: '状態',
   parameters: {
     pseudo: statePseudo({ hover: 'a', active: 'a', focusVisible: 'a' }),
@@ -319,6 +321,7 @@ export const States: Story = {
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
 export const ButtonLook: Story = {
+  tags: ['visual'],
   name: 'ボタンの見た目',
   parameters: {
     controls: { disable: true },

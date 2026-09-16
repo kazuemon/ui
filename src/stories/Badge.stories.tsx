@@ -112,6 +112,7 @@ export const Counts: Story = {
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
 export const Dots: Story = {
+  tags: ['visual'],
   name: '点',
   parameters: {
     controls: { disable: true },
@@ -145,6 +146,7 @@ export const Dots: Story = {
 
 // Show code: 色の一覧の枠が長く出るので、代表の使い方を source.code に手で書く
 export const Colors: Story = {
+  tags: ['visual'],
   name: '色',
   parameters: {
     controls: { disable: true },
@@ -297,6 +299,7 @@ export const Label: Story = {
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
 export const Densities: Story = {
+  tags: ['visual'],
   name: '密度',
   parameters: {
     controls: { disable: true },

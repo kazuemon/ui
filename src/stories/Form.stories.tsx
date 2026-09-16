@@ -281,6 +281,7 @@ export const FocusFirstError: Story = {
 
 // Show code: 状態を持ち、ハンドラーが要の例なので、写して使える部品の形を source.code に手で書く
 export const ErrorSummary: Story = {
+  tags: ['visual'],
   name: 'エラーの一覧',
   args: { errorSummary: true },
   parameters: { docs: { source: signupFormCode(' errorSummary') } },
@@ -345,6 +346,7 @@ export const FocusGroup: Story = {
 };
 
 export const Submitting: Story = {
+  tags: ['visual'],
   name: '送っているあいだ',
   args: { submitting: true },
   parameters: {

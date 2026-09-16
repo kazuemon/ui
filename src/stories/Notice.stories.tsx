@@ -119,6 +119,7 @@ export const Playground: Story = {
 
 // Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
 export const ColorsAndAppearances: Story = {
+  tags: ['visual'],
   name: '色と見た目',
   parameters: {
     controls: { disable: true },

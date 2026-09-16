@@ -928,6 +928,7 @@ export default meta;
 type Story = StoryObj<OverviewArgs>;
 
 export const Overview: Story = {
+  tags: ['visual'],
   name: '一覧',
   render: ({ showMeasurements, density }) => (
     <MeasureContext.Provider value={{ show: showMeasurements, density }}>

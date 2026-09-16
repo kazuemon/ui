@@ -144,6 +144,7 @@ export const Playground: Story = {
 
 // Show code: 表（Matrix）の中身は出ないので、行ごとの使い方を source.code に手で書く
 export const States: Story = {
+  tags: ['visual'],
   name: '状態',
   parameters: {
     pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
@@ -178,6 +179,7 @@ export const States: Story = {
 };
 
 export const Messages: Story = {
+  tags: ['visual'],
   name: 'キャプション・エラー・警告',
   parameters: {
     docs: {
@@ -377,6 +379,7 @@ export const Loading: Story = {
 };
 
 export const Densities: Story = {
+  tags: ['visual'],
   name: '密度',
   args: { caption: '一覧とプロフィールに出ます' },
   parameters: {

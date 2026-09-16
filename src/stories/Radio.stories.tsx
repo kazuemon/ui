@@ -82,6 +82,7 @@ export const Required: Story = {
 };
 
 export const Messages: Story = {
+  tags: ['visual'],
   name: 'エラー',
   args: { required: true, error: '配送の時間を選んでください' },
   parameters: {

@@ -43,6 +43,7 @@ export const Playground: Story = {
 };
 
 export const Colors: Story = {
+  tags: ['visual'],
   name: '色',
   parameters: { controls: { exclude: ['color'] } },
   render: (args) => (
@@ -70,6 +71,7 @@ export const Colors: Story = {
 };
 
 export const Densities: Story = {
+  tags: ['visual'],
   name: '密度',
   parameters: {
     docs: {

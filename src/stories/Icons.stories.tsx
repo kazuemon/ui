@@ -81,6 +81,7 @@ type Story = StoryObj<typeof meta>;
 
 // Show code: 一覧の表は写しても使えないので、置き方を source.code に手で書く
 export const All: Story = {
+  tags: ['visual'],
   name: '一覧',
   parameters: {
     docs: {
