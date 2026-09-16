@@ -1,0 +1,55 @@
+# 土台: Issue に「build」のラベルを付けると、Issue の決定に沿って部品を作り、PR を開く
+# 自動モードの Action はブランチを作らないので、ここで切ってから Claude に渡す
+name: UI build
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: ui-build-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event.label.name == 'build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          chromium: 'true'
+      - name: Create the branch
+        id: branch
+        env:
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          git config user.name 'claude[bot]'
+          git config user.email '41898282+claude[bot]@users.noreply.github.com'
+          BRANCH="claude/issue-${ISSUE}-${RUN_ID}"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
+      - name: Build the component
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-build ISSUE: ${{ github.event.issue.number }} BRANCH: ${{ steps.branch.outputs.name }}'
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 120
+      - name: Remove the label
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --remove-label build

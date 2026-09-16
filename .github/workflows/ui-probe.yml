@@ -1,0 +1,65 @@
+# 検証: Issue に「probe」のラベルを付けると、原則と tokens.css だけを読んだ Haiku 2 体が部品を設計し、
+# 3 体目が答えを比べて「決めてほしいこと」を Issue に書く（design/adr/0047 の手順）
+name: UI probe
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: ui-probe-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.event.label.name == 'probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        seat: [A, B]
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Design from the principles only
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-probe ISSUE: ${{ github.event.issue.number }} SEAT: ${{ matrix.seat }}'
+          claude_args: |
+            --model claude-haiku-4-5-20251001
+            --max-turns 20
+
+  compare:
+    needs: probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Compare the two answers
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-probe-compare ISSUE: ${{ github.event.issue.number }}'
+          claude_args: |
+            --model claude-haiku-4-5-20251001
+            --max-turns 30
+      - name: Remove the label
+        # もう一度付ければ、もう一度走る
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --remove-label probe

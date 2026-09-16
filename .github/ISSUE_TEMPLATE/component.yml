@@ -1,0 +1,43 @@
+name: 部品を作る
+description: 新しい部品 1 つの Issue。検証（probe）→ 決める → 土台（build）→ レビュー（review）→ 記録（record）を、ラベルで進める
+title: '[部品] '
+labels: [component]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        1 部品 1 Issue です。書いたら「probe」のラベルを付けると、原則だけを読んだ 2 体が設計し、割れた点が質問として付きます。
+        質問にコメントで答えたら「build」を付けます。PR が開いたら PR に「review」、マージしたらこの Issue に「record」を付けます。
+  - type: input
+    id: name
+    attributes:
+      label: 部品の名前
+      description: README の一覧の名前（PascalCase）
+      placeholder: Menu
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: どこで要るか
+      description: 使う場面と、その画面で何をする部品か。ポートフォリオやドキュメントサイトのどのページか
+      placeholder: 記事のヘッダーの「…」から、共有・目次・編集を選ぶ
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 振る舞い
+      description: 開閉・選択・入力など、部品がすること。Base UI に土台があれば名前を書く
+      placeholder: 押すと選択肢が浮かぶ。指用の狭い画面ではボトムシート。Base UI の Menu
+  - type: textarea
+    id: refs
+    attributes:
+      label: 関わる原則・ADR・参考
+      description: 番号だけでよい。参考の画像やサイトがあれば URL
+      placeholder: 原則 1・3・11、ADR-0036・0037・0047
+  - type: textarea
+    id: notes
+    attributes:
+      label: 先に決めていること
+      description: 検証に問わず、こうすると決めていること（あれば）

@@ -1,0 +1,53 @@
+# 記録: 部品の PR をマージしたあと、Issue に「record」のラベルを付けると、
+# Issue と PR から ADR・原則・backlog・索引を書いて PR を開く
+name: UI record
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: ui-record-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: github.event.label.name == 'record'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Create the branch
+        id: branch
+        env:
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          git config user.name 'claude[bot]'
+          git config user.email '41898282+claude[bot]@users.noreply.github.com'
+          BRANCH="claude/record-${ISSUE}-${RUN_ID}"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
+      - name: Write the records
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-record ISSUE: ${{ github.event.issue.number }} BRANCH: ${{ steps.branch.outputs.name }}'
+          claude_args: |
+            --model claude-haiku-4-5-20251001
+            --max-turns 60
+      - name: Remove the label
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --remove-label record
