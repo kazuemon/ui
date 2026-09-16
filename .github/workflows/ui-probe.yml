@@ -32,9 +32,11 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/ui-probe ISSUE: ${{ github.event.issue.number }} SEAT: ${{ matrix.seat }}'
+          show_full_output: true # 最初の数回の様子見。落ち着いたら消す
           claude_args: |
             --model claude-haiku-4-5-20251001
             --max-turns 20
+            --allowedTools "Read,Write,Bash(gh issue view:*),Bash(gh issue comment:*)"
 
   compare:
     needs: probe
@@ -54,9 +56,11 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/ui-probe-compare ISSUE: ${{ github.event.issue.number }}'
+          show_full_output: true # 最初の数回の様子見。落ち着いたら消す
           claude_args: |
             --model claude-haiku-4-5-20251001
             --max-turns 30
+            --allowedTools "Read,Glob,Grep,Write,Bash(gh issue view:*),Bash(gh issue comment:*)"
       - name: Remove the label
         # もう一度付ければ、もう一度走る
         if: always()

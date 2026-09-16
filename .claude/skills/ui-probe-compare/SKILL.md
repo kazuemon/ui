@@ -1,7 +1,7 @@
 ---
 name: ui-probe-compare
 description: 検証 A・B の答えを並べ、割れた点を「原則の空白」「原則の読み違い」「トークンで済む」に分けて Issue に質問を書く（`/ui-probe-compare ISSUE: 12`）
-allowed-tools: Read, Glob, Grep, Bash(gh issue view:*), Bash(gh issue comment:*)
+allowed-tools: Read, Glob, Grep, Write, Bash(gh issue view:*), Bash(gh issue comment:*)
 ---
 
 # 検証の比較
@@ -55,8 +55,10 @@ backlog にすでにある未決事項は、質問に「backlog にあり」と�
 
 ## 出し方
 
+本文を Write で `/tmp/probe-compare.md` に書き、Issue にコメントとして投稿します。
+
 ```sh
-gh issue comment <番号> --body-file <書いたファイル>
+gh issue comment <番号> --body-file /tmp/probe-compare.md
 ```
 
-コメントは 1 回だけです。
+ファイルに書けないときは、`--body` に本文をそのまま渡します。コメントは 1 回だけです。最後の返事に本文を書いても Issue には届きません。

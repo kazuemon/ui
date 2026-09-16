@@ -1,7 +1,7 @@
 ---
 name: ui-probe
 description: 原則と tokens.css だけを読んで部品を設計し、Issue にメモを書く。原則の空白を見つける検証の 1 体分（GitHub の自動化から呼ぶ。手元では `/ui-probe ISSUE: 12 SEAT: A`）
-allowed-tools: Read, Bash(gh issue view:*), Bash(gh issue comment:*)
+allowed-tools: Read, Write, Bash(gh issue view:*), Bash(gh issue comment:*)
 ---
 
 # 検証（1 体分）
@@ -58,10 +58,10 @@ allowed-tools: Read, Bash(gh issue view:*), Bash(gh issue comment:*)
 
 ## 出し方
 
-Issue にコメントとして投稿します。
+メモを Write で `/tmp/probe-<SEAT>.md` に書き、Issue にコメントとして投稿します。
 
 ```sh
-gh issue comment <番号> --body-file <書いたファイル>
+gh issue comment <番号> --body-file /tmp/probe-<SEAT>.md
 ```
 
-コメントは 1 回だけです。投稿したら終わります。まとめの文や挨拶は書きません。
+ファイルに書けないときは、`--body` に本文をそのまま渡します。コメントは 1 回だけです。投稿したら終わります。まとめの文や挨拶は書きません。最後の返事に本文を書いても Issue には届きません。
