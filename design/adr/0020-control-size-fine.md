@@ -24,7 +24,7 @@
 | C      | 40px | 15px | 4px                |
 | D      | 42px | 14px | 2px                |
 
-比較は Storybook の `Design Review/02 マウス用の寸法`（[`stories/axis-02-control-size.stories.tsx`](../stories/axis-02-control-size.stories.tsx)）です。フォーム（縦に並べる）と絞り込み（横に並べる）の2つの場面で、各行の密度をマウス用に固定して比べました。指用の 44px の行を、参考として並べています。
+比較は Storybook の `Design Review/02 マウス用の寸法`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。フォーム（縦に並べる）と絞り込み（横に並べる）の2つの場面で、各行の密度をマウス用に固定して比べました。指用の 44px の行を、参考として並べています。
 
 ## 決定
 

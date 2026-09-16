@@ -15,7 +15,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/22 prefix・suffix の残り`（[`stories/axis-22-field-addon-rest.stories.tsx`](../stories/axis-22-field-addon-rest.stories.tsx)）です。ストーリーは2つあります。部品にはまだ切り替えの仕組みがなかったので、案はストーリーの中の CSS と props で作りました。
+比較は Storybook の `Design Review/22 prefix・suffix の残り`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。ストーリーは2つあります。部品にはまだ切り替えの仕組みがなかったので、案はストーリーの中の CSS と props で作りました。
 
 ### suffix のボタンのフォーカス（ストーリー「suffix のボタンのフォーカス」）
 

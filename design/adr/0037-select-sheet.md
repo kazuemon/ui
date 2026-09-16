@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/19 Select のボトムシート`（[`stories/axis-19-select-sheet.stories.tsx`](../stories/axis-19-select-sheet.stories.tsx)）です。ストーリーは3つあります。
+比較は Storybook の `Design Review/19 Select のボトムシート`（決めた時点のコミット `a1aadd1`。`git checkout a1aadd1 && pnpm storybook` で開けます）です。ストーリーは3つあります。
 
 - **候補**: シートの比較。各セルは幅 375px のスマートフォンの枠で、指で操作する寸法です
 - **浮かぶ選択肢の続きの印**: 浮かぶ選択肢の比較。高さの違う画面（640px・900px・1200px）の枠に入れています

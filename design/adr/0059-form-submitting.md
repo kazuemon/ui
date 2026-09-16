@@ -10,7 +10,7 @@
 
 `<Form>` に `submitting`（送っている）と `submittingBehavior`（欄の扱い）を足し、`FormSubmitContext`（`src/components/form-context.ts`）で中の欄に配るようにしました。案は欄の扱いです。見た目だけでなく振る舞い（書き換え・フォーカス・送る値）も違うため、トークンではなく props で行ごとに変えます。
 
-比較は Storybook の `Design Review/38 フォーム全体を送っているあいだ`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。印は、どの案でも送信のボタン（`Button` の `loading`）だけで、欄には回る円を出しません。
+比較は Storybook の `Design Review/38 フォーム全体を送っているあいだ`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。印は、どの案でも送信のボタン（`Button` の `loading`）だけで、欄には回る円を出しません。
 
 ## 候補
 

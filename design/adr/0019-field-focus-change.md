@@ -24,7 +24,7 @@
 | C      | グレーのまま | 1px  | 100ms      |
 | D      | グレー → 白  | 2px  | 250ms      |
 
-比較は Storybook の `Design Review/01 フォーカスの変化量`（[`stories/axis-01-focus.stories.tsx`](../stories/axis-01-focus.stories.tsx)）です。TextField と Select を並べ、通常の状態と、フォーカスした見た目を固定したものを比べました。通常の列の部品は実際に操作でき、動きも確かめられます。
+比較は Storybook の `Design Review/01 フォーカスの変化量`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。TextField と Select を並べ、通常の状態と、フォーカスした見た目を固定したものを比べました。通常の列の部品は実際に操作でき、動きも確かめられます。
 
 ## 決定
 

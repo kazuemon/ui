@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/47 行の背景の押したときの変わり方`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。
+比較は Storybook の `Design Review/47 行の背景の押したときの変わり方`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。
 
 | 案     | 内容                                                                          |
 | ------ | ------------------------------------------------------------------------------ |
@@ -64,7 +64,7 @@ OFF の色については、次のやりとりで決まりました。
 - `src/components/Switch.tsx`: 行の塗りの動き（`rowBase`）はトークンをそのまま読むので、コードの変更はありません
 - 押せない OFF のトラック（`--color-switch-off-disabled`）は、押せる OFF（`#E1E3E4`）と紛れないよう、ふだんより薄い入力欄の塗り（`#F2F4F4`）のままにしました。押せない箱（`--color-choice-disabled`）も同じです
 - **ADR-0011・軸40の決まりの書き換え**: OFF のトラックの色は、ADR-0011 が決めたグレーのボタンの塗り（`#EFF0F1`）から、この決定の `#E1E3E4` に変わります。チェックボックス・ラジオの選んでいない箱の色（軸40 の現行版で決めた入力欄の塗り `#F2F4F4`）も、この決定の `#E1E3E4` に変わります。ADR-0011・軸40 の記録は値の履歴として残し、この ADR がそのあとの値を上書きします
-- 比較のストーリー: 過去の比較（`Design Review` の各軸）は、`design/stories/pins.tsx` の `keepToggleColorAsCompared` で、比べたときの色（OFF `#EFF0F1`・箱 `#F2F4F4`）に固定して再現します
+- 比較のストーリー: 過去の比較（`Design Review` の各軸）は、決めた時点のコミット `5de918a` の design/stories/pins.tsx の `keepToggleColorAsCompared` で、比べたときの色（OFF `#EFF0F1`・箱 `#F2F4F4`）に固定して再現します
 - 押しているあいだの塗りの動きについて、動きを減らす設定・行の中の OFF の色以外は比べていません
 
 ## 原則への反映

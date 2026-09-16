@@ -20,7 +20,7 @@
 
 A〜C は中立色の明度だけを下げた案、D は塗りを白にして影の輪郭だけで浮かせる案です。
 
-比較は Storybook の `Design Review/06 グレーのボタンの塗り`（[`stories/axis-06-neutral.stories.tsx`](../stories/axis-06-neutral.stories.tsx)）です。青いボタンの隣と、グレーの入力欄のすぐ横に並べて比べました。
+比較は Storybook の `Design Review/06 グレーのボタンの塗り`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。青いボタンの隣と、グレーの入力欄のすぐ横に並べて比べました。
 
 ## 決定
 

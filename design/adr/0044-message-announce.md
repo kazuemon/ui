@@ -18,7 +18,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/27 エラー・警告の知らせ方`（[`stories/axis-27-message-announce.stories.tsx`](../stories/axis-27-message-announce.stories.tsx)）です。部品にない形は、ストーリーの中で組みました。
+比較は Storybook の `Design Review/27 エラー・警告の知らせ方`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。部品にない形は、ストーリーの中で組みました。
 
 ### 出たときの知らせ方
 

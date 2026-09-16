@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/50 チェックボックスとラジオのエラーの箱`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。選んだ箱は、どの案も部品の色のまま（線も引かない）で、寸法は変えません。
+比較は Storybook の `Design Review/50 チェックボックスとラジオのエラーの箱`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。選んだ箱は、どの案も部品の色のまま（線も引かない）で、寸法は変えません。
 
 | 案     | 塗り                                | 線                                     |
 | ------ | ------------------------------------ | ---------------------------------------- |
@@ -44,7 +44,7 @@
 
 - `tokens.css`: `--choice-invalid-line-width: 1.5px`・`--color-choice-invalid-line: var(--color-danger)` にしました。`--color-choice-invalid` は `var(--color-field-addon-invalid)`（`#F1E0DE`）のままです
 - `src/components/Checkbox.tsx`・`src/components/Radio.tsx`: 選んでいない、押せる箱だけに、`--choice-invalid-line-width` の inset の影で線を引きます（寸法は変えません）。押せなくてエラーでもある箱は、押せない箱の色を優先し、線も引きません
-- 比較のストーリー: 過去の比較は `design/stories/pins.tsx` の `keepToggleColorAsCompared` で、塗りだけ（線なし）に固定して再現します
+- 比較のストーリー: 過去の比較は 決めた時点のコミット `5de918a` の design/stories/pins.tsx の `keepToggleColorAsCompared` で、塗りだけ（線なし）に固定して再現します
 
 ## 原則への反映
 

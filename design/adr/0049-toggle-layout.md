@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/29 トグルの並び`（[`stories/axis-29-toggle-layout.stories.tsx`](../stories/axis-29-toggle-layout.stories.tsx)）です。トラックを左に置いたとき（`togglePlacement="start"`）の並びを、右にも同じ値が効く前提で比べました。
+比較は Storybook の `Design Review/29 トグルの並び`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。トラックを左に置いたとき（`togglePlacement="start"`）の並びを、右にも同じ値が効く前提で比べました。
 
 | 案     | トラックの縦の位置                       | トラックと文字の間 | 内容                                                                             |
 | ------ | ----------------------------------------- | ------------------- | -------------------------------------------------------------------------------- |
@@ -55,7 +55,7 @@
 
 - `tokens.css`: トラックの縦の位置 `--switch-track-rows`（`1 / 2`。ラベルの行の中央）とトラックと文字の間 `--switch-gap`（12px）を、A の値にしました。トラックの列の並び `--switch-columns-start`・`--switch-columns-end`（`togglePlacement` の start・end それぞれの格子の列）を足しました
 - `src/components/Switch.tsx`: `togglePlacement`（`start`・`end`。既定 `start`）を足しました。押せないときのラベルの色を、本文の色から `--color-switch-label-disabled`（ほかの押せない文字と同じグレー）に変えました。キャプションは変えていません（押せないときも読めるまま）
-- 比較のストーリー（軸08・10・11・13・28）: `design/stories/pins.tsx` の `keepSwitchAsCompared` で、比べたときの形（トラックの縦の位置はまとまりの中央、押せないラベルは本文の色）に固定し、各ストーリーで `togglePlacement="end"` を明示して、トラック右の並びのまま再現しています
+- 比較のストーリー（軸08・10・11・13・28）: 決めた時点のコミット `5de918a` の design/stories/pins.tsx の `keepSwitchAsCompared` で、比べたときの形（トラックの縦の位置はまとまりの中央、押せないラベルは本文の色）に固定し、各ストーリーで `togglePlacement="end"` を明示して、トラック右の並びのまま再現しています
 - **分かっていること**: トラックを右に置いたとき（`togglePlacement="end"`）の押せる範囲・区切り線での並びは、後半の軸46 で別に扱います
 
 ## 原則への反映

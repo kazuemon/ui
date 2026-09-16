@@ -1,18 +1,7 @@
 import type { Decorator, Preview } from '@storybook/react-vite';
 import { create } from 'storybook/theming';
 
-import { focusComparedThrough, keepFocusAsCompared } from '../design/stories/pins';
 import '../src/styles/globals.css';
-
-// 比較のストーリー（Design Review/NN）のうち、フォーカスの色（後半の軸 41）を決める前に比べたものは、比べたときの色に戻す
-const withFocusAsCompared: Decorator = (Story, { title }) => {
-  const axis = /^Design Review\/(\d+) /.exec(title);
-  return axis != null && Number(axis[1]) <= focusComparedThrough ? (
-    keepFocusAsCompared(Story)
-  ) : (
-    <Story />
-  );
-};
 
 // 密度（原則11）をツールバーから固定する。Select の選択肢は body の直下に出るので、html に付ける
 const withDensity: Decorator = (Story, { globals }) => {
@@ -28,7 +17,7 @@ const withDensity: Decorator = (Story, { globals }) => {
 };
 
 const preview: Preview = {
-  decorators: [withDensity, withFocusAsCompared],
+  decorators: [withDensity],
   globalTypes: {
     coarseSize: {
       description: '指用の高さ（原則11・ADR-0045）',

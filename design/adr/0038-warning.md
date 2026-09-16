@@ -12,7 +12,7 @@
 
 ## 候補
 
-1回で比べました。比較は Storybook の `Design Review/20 Warning の扱い`（[`stories/axis-20-warning.stories.tsx`](../stories/axis-20-warning.stories.tsx)）です。
+1回で比べました。比較は Storybook の `Design Review/20 Warning の扱い`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。
 
 警告が出てきそうな場所を並べました。Danger の隣のボタンとタグ、入力欄の下の文言、ページの上に出すお知らせです。入力欄の文言とお知らせは部品がないので、ストーリーの中で仮に組みました。現行版を除き、どの案も文字は 4.5:1、アイコンと枠線は 3:1 を満たします。
 

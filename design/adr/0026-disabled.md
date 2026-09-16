@@ -41,7 +41,7 @@
 | D   | 薄く（40%）    | グレー | そのまま             |
 | E   | 薄く（40%）    | 薄く   | そのまま             |
 
-比較は Storybook の `Design Review/08 Disabled の表し方`（[`stories/axis-08-disabled.stories.tsx`](../stories/axis-08-disabled.stories.tsx)）です。押せる部品と押せない部品を、ボタン・入力欄・トグルごとに並べました。
+比較は Storybook の `Design Review/08 Disabled の表し方`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。押せる部品と押せない部品を、ボタン・入力欄・トグルごとに並べました。
 
 ## 決定
 

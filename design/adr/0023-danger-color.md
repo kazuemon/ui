@@ -24,7 +24,7 @@
 
 A・B は色相を保ったまま明度を下げる案、C・D は色相をピンクから遠ざける（朱色に寄せる）案です。エラーの入力欄の赤い枠線と淡い赤の塗り（[ADR-0021](./0021-field-error-fill.md)）も Danger から作るので、一緒に変えて比べました。
 
-比較は Storybook の `Design Review/05 Danger と Secondary の区別`（[`stories/axis-05-danger.stories.tsx`](../stories/axis-05-danger.stories.tsx)）です。ピンクと Danger のボタンを塗りと枠線で隣に並べ、エラーの入力欄と一緒に比べました。
+比較は Storybook の `Design Review/05 Danger と Secondary の区別`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。ピンクと Danger のボタンを塗りと枠線で隣に並べ、エラーの入力欄と一緒に比べました。
 
 ## 決定
 

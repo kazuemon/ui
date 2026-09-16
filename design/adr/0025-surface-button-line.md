@@ -19,7 +19,7 @@
 
 輪郭の色は、どれも中立色の明度だけを下げたものです。A は細い境界線（`--color-line`）と同じ色、C は太さを枠線のボタンと揃えた案、D は入力欄の枠線と同じ 3:1 を満たす案です。新しい種類なので、現行版はありません。
 
-比較は Storybook の `Design Review/07 白いボタンの輪郭`（[`stories/axis-07-surface-button.stories.tsx`](../stories/axis-07-surface-button.stories.tsx)）です。白いボタンを、グレーのボタン・枠線のボタンと並べ、白い地の上とグレーの面の上で比べました。
+比較は Storybook の `Design Review/07 白いボタンの輪郭`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。白いボタンを、グレーのボタン・枠線のボタンと並べ、白い地の上とグレーの面の上で比べました。
 
 ## 決定
 

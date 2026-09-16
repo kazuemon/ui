@@ -40,7 +40,7 @@
 
 Primary の青（`#2474DF`）は、淡い青の面の上では 4.01:1 しかありません。そのため、タグの文字は少し濃い青にしました。
 
-比較は Storybook の `Design Review/10 各部品の既定の色`（[`stories/axis-10-default-color.stories.tsx`](../stories/axis-10-default-color.stories.tsx)）です。「設定の画面」「プロフィールの画面」「Disabled」の3列に並べました。この軸は、トークンではなく部品の `color` の指定を行ごとに変えて比べています。
+比較は Storybook の `Design Review/10 各部品の既定の色`（決めた時点のコミット `fa9a622`。`git checkout fa9a622 && pnpm storybook` で開けます）です。「設定の画面」「プロフィールの画面」「Disabled」の3列に並べました。この軸は、トークンではなく部品の `color` の指定を行ごとに変えて比べています。
 
 ## 決定
 

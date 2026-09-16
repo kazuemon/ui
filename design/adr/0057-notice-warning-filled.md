@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/36 黄色の塗りのお知らせと操作の場所`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。1列目は塗りの4色、2列目は警告の3つの見た目（`soft`・`filled`・`outline`）、3列目と4列目は操作の場所に枠線のリンクを置いたとき（4列目は hover で固定）です。変えたのは次のトークンだけです（`src/components/Notice.tsx` が読む）。
+比較は Storybook の `Design Review/36 黄色の塗りのお知らせと操作の場所`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。1列目は塗りの4色、2列目は警告の3つの見た目（`soft`・`filled`・`outline`）、3列目と4列目は操作の場所に枠線のリンクを置いたとき（4列目は hover で固定）です。変えたのは次のトークンだけです（`src/components/Notice.tsx` が読む）。
 
 - `--notice-filled-line-width`: 塗りのお知らせの縁の線の太さ（0 は線なし）
 - `--color-notice-warning-filled-line`: 黄色の塗りの縁の線の色（ほかの塗りの線は透明）

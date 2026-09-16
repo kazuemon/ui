@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/48 トグルとキャプションの置き方`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。A〜E は共通のルールとして、トラックとラベルを部品の高さの1行（マウス用 40px・指用 44px・大きい指用 52px）の縦の中央にそろえ、キャプションはこの行の外に置きます。囲み（区切り線・囲み）があっても、トラックはこの1行の中です。
+比較は Storybook の `Design Review/48 トグルとキャプションの置き方`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。A〜E は共通のルールとして、トラックとラベルを部品の高さの1行（マウス用 40px・指用 44px・大きい指用 52px）の縦の中央にそろえ、キャプションはこの行の外に置きます。囲み（区切り線・囲み）があっても、トラックはこの1行の中です。
 
 | 案     | 内容                                                                         |
 | ------ | ------------------------------------------------------------------------------ |
@@ -55,7 +55,7 @@ E を足して見せたあとの、最終の答えです。
 - `src/components/Switch.tsx`: `SwitchCaptionAppearance` は `'plain' | 'surface'` です。`plain`（A）は面なし、`surface`（E）はラベルの列に入力欄の塗りの面を敷きます
 - `tokens.css`: `--switch-line: 1`・`--switch-track-align: start`・`--switch-label-align: baseline` で1行に固定し、`--switch-columns-start`・`-end`・`--switch-caption-column: label`・`-row: 2`・`-gap: 0px`・`-hug: 1` でキャプションをラベルの列の下に置きます。`--switch-row-track-rows: 1 / -1`・`--switch-row-track-align: center` で、囲みがあるときのトラックを行全体の縦の中央にします。`surface`（E）の面は `--switch-caption-surface-*` に持たせ、`captionAppearance="surface"` のときに置き換えます
 - 軸44（指用のトグルの縦の位置）は、この決定に置き換わり、決めなくてよくなりました
-- 比較のストーリー: 過去の比較（軸48より前のもの）は、`design/stories/pins.tsx` の `keepSwitchCaptionAsCompared` で、比べたときの形（1行に固定しない、まとまりを部品の高さの中央に置く）に固定して再現します
+- 比較のストーリー: 過去の比較（軸48より前のもの）は、決めた時点のコミット `5de918a` の design/stories/pins.tsx の `keepSwitchCaptionAsCompared` で、比べたときの形（1行に固定しない、まとまりを部品の高さの中央に置く）に固定して再現します
 - **分かっていること**: A〜E では、キャプションの有無・長さでトラックとラベルが動かないことを測って確かめました。囲みなしと囲みありで、キャプションのある行とない行を混在させたときの見え方の細部は、この軸では比べていません
 
 ## 原則への反映

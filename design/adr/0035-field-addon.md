@@ -12,7 +12,7 @@
 
 ## 候補
 
-3回に分けて比べました。比較は Storybook の `Design Review/17 入力欄の prefix・suffix`（[`stories/axis-17-field-addon.stories.tsx`](../stories/axis-17-field-addon.stories.tsx)）です。部品（`FieldAddon`）を先に作り、形と色をトークンで切り替えて比べました。
+3回に分けて比べました。比較は Storybook の `Design Review/17 入力欄の prefix・suffix`（決めた時点のコミット `a1aadd1`。`git checkout a1aadd1 && pnpm storybook` で開けます）です。部品（`FieldAddon`）を先に作り、形と色をトークンで切り替えて比べました。
 
 | 回  | 比べたもの                                         | 案                                                                                                                                                 |
 | --- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |

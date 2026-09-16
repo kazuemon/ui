@@ -15,7 +15,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/24 入力欄と Select の送信中`（[`stories/axis-24-pending.stories.tsx`](../stories/axis-24-pending.stories.tsx)）です。ストーリーは2つあります。比べたときは部品に入力欄の待っているあいだがなかったので、印と押せない見た目はストーリーの中で組み立てました。
+比較は Storybook の `Design Review/24 入力欄と Select の送信中`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。ストーリーは2つあります。比べたときは部品に入力欄の待っているあいだがなかったので、印と押せない見た目はストーリーの中で組み立てました。
 
 ### 入力欄と Select の送信中
 

@@ -20,7 +20,7 @@
 
 淡い赤は、Danger（`#D4283F`）と同じ色相（20.6°）で、明度と彩度だけを変えた色です（OKLCH で明度 0.97・彩度 0.015）。
 
-比較は Storybook の `Design Review/03 エラー時の塗り`（[`stories/axis-03-error-fill.stories.tsx`](../stories/axis-03-error-fill.stories.tsx)）です。エラーの TextField と Select を、通常の欄と並べて比べました。
+比較は Storybook の `Design Review/03 エラー時の塗り`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。エラーの TextField と Select を、通常の欄と並べて比べました。
 
 ## 決定
 

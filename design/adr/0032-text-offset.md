@@ -21,7 +21,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/14 和文の縦位置`（[`stories/axis-14-text-offset.stories.tsx`](../stories/axis-14-text-offset.stories.tsx)）です。「いつもの大きさ」と「2倍＋中心線」（2倍に拡大し、部品の上下の中心に線を引いたもの）の2列に並べました。
+比較は Storybook の `Design Review/14 和文の縦位置`（決めた時点のコミット `016d041`。`git checkout 016d041 && pnpm storybook` で開けます）です。「いつもの大きさ」と「2倍＋中心線」（2倍に拡大し、部品の上下の中心に線を引いたもの）の2列に並べました。
 
 変えるのは、フォントの縦の寸法（`@font-face` の `ascent-override`・`descent-override`）だけです。差は「下の余白 − 上の余白」（正 = 上寄り）で、文字のインクを画素で測りました。値は「指用（16px）／マウス用（14px）」です。
 

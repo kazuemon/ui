@@ -21,7 +21,7 @@
 
 どの色も、入力欄の塗り（`--color-field`、`#F2F4F4`）の明度だけを下げたものです。hover に枠線は使いません（原則3で固定）。
 
-比較は Storybook の `Design Review/04 入力欄の hover`（[`stories/axis-04-field-hover.stories.tsx`](../stories/axis-04-field-hover.stories.tsx)）です。TextField と Select を、通常の状態と、マウスを載せた見た目を固定したもので比べました。
+比較は Storybook の `Design Review/04 入力欄の hover`（決めた時点のコミット `d91655c`。`git checkout d91655c && pnpm storybook` で開けます）です。TextField と Select を、通常の状態と、マウスを載せた見た目を固定したもので比べました。
 
 ## 決定
 

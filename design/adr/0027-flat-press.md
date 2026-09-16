@@ -32,7 +32,7 @@ A〜D は、「塗りの色」と「押下で沈むか」の2つの問いの組�
 - C・D は、要素の文字の色を淡く敷きます。青いボタンは淡い青、ピンクの More は淡いピンクになります。色のない要素（グレーの枠線のボタン、GitHub）は、文字が濃紺グレーなので灰色になります
 - 沈む深さは、塗りのボタンの押下（[ADR-0009](./0009-press-motion.md)）と同じ 1px です
 
-比較は Storybook の `Design Review/09 平らなボタン・リンクの hover と押下`（[`stories/axis-09-flat-press.stories.tsx`](../stories/axis-09-flat-press.stories.tsx)）です。「通常」「hover 中」「押下中」の3列に並べました。
+比較は Storybook の `Design Review/09 平らなボタン・リンクの hover と押下`（決めた時点のコミット `fa9a622`。`git checkout fa9a622 && pnpm storybook` で開けます）です。「通常」「hover 中」「押下中」の3列に並べました。
 
 ## 決定
 

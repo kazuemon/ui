@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/30 お知らせの閉じるボタン`（[`stories/axis-30-notice-close.stories.tsx`](../stories/axis-30-notice-close.stories.tsx)）です。マウス用・指用・大きい指用の3つの密度で、× の大きさが部品の高さについてくるかを見ました。
+比較は Storybook の `Design Review/30 お知らせの閉じるボタン`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。マウス用・指用・大きい指用の3つの密度で、× の大きさが部品の高さについてくるかを見ました。
 
 | 案     | 内容                                                                                                                       | 大きさ                                       | 形                             |
 | ------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------ |
@@ -39,7 +39,7 @@
 
 - `tokens.css`: `--notice-close-to-control` を `0`（行の高さ＋8px）から `1`（部品の高さ）にしました。`--notice-close-radius` を `var(--radius-pill)` から `var(--radius-control)` にしました
 - `src/components/Notice.tsx`: 変えていません。× の大きさは、もともと `--notice-close-to-control` で「行の高さ＋8px」と「部品の高さ」を計算で切り替える形でした
-- 比較のストーリー（軸25）: `design/stories/pins.tsx` の `keepNoticeCloseAsCompared` で、比べたときの見た目（行の高さ＋8px の丸）に固定し、そのまま再現しています
+- 比較のストーリー（軸25）: 決めた時点のコミット `5de918a` の design/stories/pins.tsx の `keepNoticeCloseAsCompared` で、比べたときの見た目（行の高さ＋8px の丸）に固定し、そのまま再現しています
 
 ## 原則への反映
 

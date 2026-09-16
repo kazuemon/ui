@@ -14,7 +14,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/25 お知らせと状態の色`（[`stories/axis-25-notice.stories.tsx`](../stories/axis-25-notice.stories.tsx)）です。ストーリーは2つあります。比べたときはお知らせの部品がなかったので、ストーリーの中で組みました。色は、役割のトークンを行ごとに上書きして作りました。
+比較は Storybook の `Design Review/25 お知らせと状態の色`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。ストーリーは2つあります。比べたときはお知らせの部品がなかったので、ストーリーの中で組みました。色は、役割のトークンを行ごとに上書きして作りました。
 
 ### 状態の色
 

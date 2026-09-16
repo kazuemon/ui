@@ -14,7 +14,7 @@ Select に、利用者が選ぶ色（`primary`・`secondary`）と、色を持�
 
 ## 候補
 
-比較は Storybook の `Design Review/32 Select の選んだ項目の色`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。列は色なし（neutral）・青（primary）・ピンク（secondary）のそれぞれで「選んだ項目に hover」「別の項目に hover」、行は現行版と4案です。変えたのは次のトークンだけです（`src/components/Select.tsx` の `selectedTokens` が読む）。
+比較は Storybook の `Design Review/32 Select の選んだ項目の色`（決めた時点のコミット `5de918a`。`git checkout 5de918a && pnpm storybook` で開けます）です。列は色なし（neutral）・青（primary）・ピンク（secondary）のそれぞれで「選んだ項目に hover」「別の項目に hover」、行は現行版と4案です。変えたのは次のトークンだけです（`src/components/Select.tsx` の `selectedTokens` が読む）。
 
 - `--select-item-selected-fill`: 部品の色の淡い面を敷くか
 - `--select-item-selected-ink`: ラベルを部品の色にするか（0 はほかの項目と同じ濃紺）

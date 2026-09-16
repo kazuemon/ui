@@ -15,7 +15,7 @@
 
 ## 候補
 
-4回に分けて比べました。比較は Storybook の `Design Review/11 Disabled の詰め`（[`stories/axis-11-disabled-refine.stories.tsx`](../stories/axis-11-disabled-refine.stories.tsx)）で、「トグル」「ボタン」「フォームで並べる」の3列に並べました。
+4回に分けて比べました。比較は Storybook の `Design Review/11 Disabled の詰め`（決めた時点のコミット `fa9a622`。`git checkout fa9a622 && pnpm storybook` で開けます）で、「トグル」「ボタン」「フォームで並べる」の3列に並べました。
 
 | 回  | 案     | 内容                                                                                                                         |
 | --- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |

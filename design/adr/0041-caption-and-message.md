@@ -14,7 +14,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/23 ヘルプテキストとエラー`（[`stories/axis-23-caption-error.stories.tsx`](../stories/axis-23-caption-error.stories.tsx)）です。列は3つです。
+比較は Storybook の `Design Review/23 ヘルプテキストとエラー`（決めた時点のコミット `c206648`。`git checkout c206648 && pnpm storybook` で開けます）です。列は3つです。
 
 - **パスワード**: キャプションに入力の決まりがある欄。suffix にボタン
 - **短いキャプション**: prefix 付きの TextField と Select
