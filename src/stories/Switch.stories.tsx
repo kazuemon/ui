@@ -105,6 +105,7 @@ export const Playground: Story = {
 
 export const Placement: Story = {
   name: 'トラックの位置',
+  tags: ['visual'],
   parameters: {
     controls: { include: ['color'] },
     docs: {
@@ -270,6 +271,7 @@ export const Frame: Story = {
 // Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
 export const Colors: Story = {
   name: '色',
+  tags: ['visual'],
   parameters: {
     controls: { exclude: ['color', 'disabled', 'defaultChecked'] },
     docs: {
@@ -300,6 +302,7 @@ export const Colors: Story = {
 // Show code: 表（Matrix）の中身は出ないので、行ごとの使い方を source.code に手で書く
 export const States: Story = {
   name: '状態',
+  tags: ['visual'],
   parameters: {
     pseudo: statePseudo({ active: '[role="switch"]', focusVisible: '[role="switch"]' }),
     controls: { exclude: ['defaultChecked'] },
@@ -332,6 +335,7 @@ export const States: Story = {
 
 export const Densities: Story = {
   name: '密度',
+  tags: ['visual'],
   parameters: {
     docs: {
       description: {

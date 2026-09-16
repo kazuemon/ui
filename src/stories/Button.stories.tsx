@@ -93,6 +93,7 @@ export const Playground: Story = {
 // Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
 export const Colors: Story = {
   name: '色と見た目',
+  tags: ['visual'],
   parameters: {
     controls: { exclude: ['appearance', 'color'] },
     docs: {
@@ -123,6 +124,7 @@ export const Colors: Story = {
 // Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
 export const States: Story = {
   name: '状態',
+  tags: ['visual'],
   parameters: {
     pseudo: statePseudo({ hover: 'button', active: 'button', focusVisible: 'button' }),
     controls: { exclude: ['appearance', 'color', 'disabled'] },
@@ -156,6 +158,7 @@ export const States: Story = {
 // Show code: 表（Matrix）の中身は出ないので、行ごとの使い方を source.code に手で書く
 export const Loading: Story = {
   name: '送信中',
+  tags: ['visual'],
   args: { children: '送信する', loading: true },
   parameters: {
     controls: { exclude: ['color', 'loadingIndicator', 'inlineSpinner'] },
@@ -256,6 +259,7 @@ export const WithIcon: Story = {
 
 export const Densities: Story = {
   name: '密度',
+  tags: ['visual'],
   parameters: {
     docs: {
       description: {

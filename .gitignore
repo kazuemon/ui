@@ -28,3 +28,7 @@ docs
 # design canvas builds (regenerate with design/tools/generate-round.mjs)
 design/rounds/*/build
 design/rounds/*.html
+
+# visual regression: the reference images (__screenshots__) are committed,
+# the actual/diff images written on failure are not
+.vitest-attachments

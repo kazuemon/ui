@@ -57,6 +57,9 @@ interface PseudoTargets {
 export function statePseudo({ hover, active, focusVisible, focusWithin }: PseudoTargets) {
   const at = (state: PreviewState, target: string) => `[data-preview="${state}"] ${target}`;
   return {
+    // 状態を当てる要素を探し始める場所。既定（#storybook-root）は Vitest のテストには無いので、
+    // どちらの環境にもある body から探す（plans/visual-testing.md）
+    rootSelector: 'body',
     ...(hover && { hover: [at('hover', hover), ...(active ? [at('active', hover)] : [])] }),
     ...(active && { active: [at('active', active)] }),
     ...(focusVisible && { focusVisible: [at('focus', focusVisible)] }),

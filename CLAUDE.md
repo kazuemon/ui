@@ -33,6 +33,7 @@ node design/tools/capture-story.mjs <story-id> --pick A --out design/adr/assets/
 pnpm run fonts                # 和文フォントの補正 CSS を作り直す
 pnpm typecheck
 pnpm test                     # 全ストーリーを Vitest で描き、play の確かめを走らせる（@storybook/addon-vitest）
+pnpm test -u                  # 見た目の基準画像を撮り直す（tags: ['visual'] のストーリー — plans/visual-testing.md）
 ```
 
 ## ループの進め方
