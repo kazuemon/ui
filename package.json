@@ -2,6 +2,13 @@
   "name": "@kazuemon/ui",
   "version": "0.0.1",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "files": [
+    "dist"
+  ],
   "packageManager": "pnpm@12.4.1",
   "engines": {
     "node": ">=22.12.0"
@@ -11,10 +18,15 @@
     "build-storybook": "storybook build -o ./docs",
     "lint": "oxlint",
     "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "fonts": "node scripts/generate-fonts.mjs",
+    "check:principles": "node design/tools/check-principles.mjs"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/mulish": "^5.3.0",
     "@fontsource/ibm-plex-sans-jp": "^5.3.0",
@@ -26,18 +38,24 @@
   "devDependencies": {
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-links": "^10.6.0",
+    "@storybook/addon-vitest": "^10.6.0",
     "@storybook/react-vite": "^10.6.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser": "4.1.11",
+    "@vitest/browser-playwright": "^4.1.11",
     "oxfmt": "^0.67.0",
     "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "playwright": "^1.63.0",
     "storybook": "^10.6.0",
+    "storybook-addon-pseudo-states": "^10.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11"
   }
 }

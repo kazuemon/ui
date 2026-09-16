@@ -1,0 +1,88 @@
+# レビュー: PR に「review」のラベルを付けると、1 回の実行の中で「レビュー → 直す → レビュー」を回す
+# 1 周目の指摘はファイルに書いて修正役に渡し、2 周目の残りをインラインのコメントにする
+# 周回を 1 回の実行に閉じ込めているので、Claude の push が次の実行を呼ぶことはない
+name: UI review
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: ui-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.event.label.name == 'review' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    env:
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout the PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          chromium: 'true'
+      - name: Git identity
+        run: |
+          git config user.name 'claude[bot]'
+          git config user.email '41898282+claude[bot]@users.noreply.github.com'
+
+      - name: Checks (round 1)
+        uses: ./.github/actions/checks
+        with:
+          out: ${{ runner.temp }}/review/checks-1.txt
+      - name: Review (round 1)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 1 CHECKS: ${{ runner.temp }}/review/checks-1.txt FINDINGS: ${{ runner.temp }}/review/findings-1.md'
+          claude_args: |
+            --model claude-sonnet-5
+            --max-turns 40
+
+      - name: Fix
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-fix PR: ${{ env.PR }} FINDINGS: ${{ runner.temp }}/review/findings-1.md'
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 80
+
+      - name: Checks (round 2)
+        uses: ./.github/actions/checks
+        with:
+          out: ${{ runner.temp }}/review/checks-2.txt
+      - name: Review (round 2)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/ui-review PR: ${{ env.PR }} ROUND: 2 CHECKS: ${{ runner.temp }}/review/checks-2.txt FINDINGS: ${{ runner.temp }}/review/findings-2.md'
+          claude_args: |
+            --model claude-sonnet-5
+            --max-turns 40
+            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+
+      - name: Keep the findings
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: review-${{ env.PR }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/review
+          if-no-files-found: ignore
+      - name: Remove the label
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr edit ${{ env.PR }} --repo ${{ github.repository }} --remove-label review

@@ -1,0 +1,28 @@
+# typecheck・lint・format:check・test を全部流し、出力を 1 つのファイルにまとめる（落ちても止めない）
+# レビュー役の Claude がこのファイルを読む
+name: Checks to file
+description: typecheck・lint・format:check・test の出力を out に書く。どれかが落ちても続ける
+inputs:
+  out:
+    description: 出力先のファイル
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Run checks
+      shell: bash
+      env:
+        OUT: ${{ inputs.out }}
+      run: |
+        mkdir -p "$(dirname "$OUT")"
+        : > "$OUT"
+        for step in typecheck lint format:check test; do
+          echo "## pnpm $step" >> "$OUT"
+          set +e
+          pnpm "$step" >> "$OUT" 2>&1
+          code=$?
+          set -e
+          echo "exit: $code" >> "$OUT"
+          echo >> "$OUT"
+        done
+        tail -c 4000 "$OUT"

@@ -1,26 +1,15 @@
-@import 'tailwindcss';
+/* Storybook 用の CSS（.storybook/preview.tsx）。利用者向けの index.css に、比較ストーリーと既定の色・影の打ち消しを足す */
+@import 'tailwindcss' source(none);
+/* クラス名を探す場所。自動検出だと design/ の文書まで読み、文書の更新でも CSS が作り直される
+   部品とストーリーに加え、決めている途中の軸の比較ストーリー（design/stories）も拾う */
+@source '../../src';
+@source '../../design/stories';
 
-@import '@fontsource-variable/mulish';
-
-@import '@fontsource/ibm-plex-sans-jp/400.css';
-@import '@fontsource/ibm-plex-sans-jp/500.css';
-@import '@fontsource/ibm-plex-sans-jp/600.css';
-@import '@fontsource/ibm-plex-sans-jp/700.css';
-
-@import '@fontsource-variable/geist-mono';
-
+/* Tailwind の既定の色と影は使わない。部品は、tokens.css の役割の色と影だけで書く（ここで消して、使っていないことを確かめる）
+   角丸・余白・緩急・文字の大きさは、Tailwind の既定の尺度に乗る（tokens.css の尺度の層） */
 @theme {
-  --font-sans:
-    'Mulish Variable', 'IBM Plex Sans JP', ui-sans-serif, system-ui, sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono:
-    'Geist Mono Variable', 'IBM Plex Sans JP', ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --color-*: initial;
+  --shadow-*: initial;
 }
 
-@layer base {
-  html {
-    text-autospace: normal;
-    @apply antialiased;
-  }
-}
+@import './theme.css';
