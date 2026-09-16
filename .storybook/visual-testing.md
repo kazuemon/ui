@@ -17,7 +17,7 @@ Storybook のストーリーをそのままテストにしている仕組み（`
 - `vitest.config.ts`: 撮影の条件（下記）と、食い違いを 1px も許さない設定
 - `src/stories/story-states.ts`: `statePseudo` に `rootSelector: 'body'`
 - `.storybook/main.ts`: stories の指定を、それぞれのディレクトリの直下だけに絞る
-- 基準画像: `src/stories/__screenshots__/<テストファイル名>/<ストーリーID>-chromium-linux.png`
+- 基準画像: ストーリーの隣の `__screenshots__/<テストファイル名>/<ストーリーID>-chromium-linux.png`（例: `src/components/button/__screenshots__/Button.stories.tsx/`）
 - 撮っているストーリー: 33 本（下表）。画像は合わせて約 2MB。ほとんどは 1200×900 ですが、縦に長いストーリーはその高さのまま撮れます（「押せない状態の一覧」は 1200×11458・348KB）
 
 使い方:

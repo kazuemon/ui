@@ -5,6 +5,8 @@ const config: StorybookConfig = {
     '../src/**/*.mdx',
     // ストーリーはそれぞれのディレクトリの直下だけを見る（** にしない）。見た目の基準画像が入る
     // __screenshots__/Button.stories.tsx はディレクトリなので、** だと索引作りが EISDIR で落ちる
+    '../src/components/*/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // 部品をまたぐ一覧（押せない状態の一覧など）
     '../src/stories/*.stories.@(js|jsx|mjs|ts|tsx)',
     // デザイン原則の後半の比較（design/README.md）
     '../design/stories/*.stories.@(ts|tsx)',

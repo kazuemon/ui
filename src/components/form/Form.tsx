@@ -1,0 +1,344 @@
+import {
+  type ComponentProps,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { focusRing } from '../../internal/focus-styles';
+import { FormSubmitContext, type FormSubmittingBehavior } from '../../internal/form-context';
+import { Link } from '../link/Link';
+import { Notice } from '../notice/Notice';
+
+/** エラーの一覧の1行 */
+interface ErrorEntry {
+  /** エラーの行の id。本体の説明（aria-describedby）に入っている */
+  messageId: string;
+  /** 本体（入力欄・Select のボタン）の id。リンクの先 */
+  controlId: string;
+  /** 欄の名前（ラベルの文字）。一覧のリンクで、エラーの文の前に置く */
+  label: string;
+  /** エラーの文。一覧のリンクの文にする（欄の下の文と同じ言葉） */
+  text: string;
+}
+
+// 一覧のリンクの文（design/adr/0044 の追記）: 「欄の名前: エラーの文」。名前もエラーの文も同じ太さ
+// 名前は、欄の下の文には書かれていないことが多い（「数字が入っていません」）ため、一覧でどの欄か分かるように足す
+const entryText = ({ label, text }: ErrorEntry) => (label ? `${label}: ${text}` : text);
+
+const defaultSummaryTitle = (count: number) => `入力を確かめてください（${count}件）`;
+
+// 本体は、エラーの行を説明（aria-describedby）に持つ要素（TextField の入力欄、Select のボタン）
+const controlOf = (form: HTMLFormElement, messageId: string) =>
+  form.querySelector<HTMLElement>(`[aria-describedby~="${CSS.escape(messageId)}"]`);
+
+// 開いているエラーの行（Field の data-slot="field-message"）を、見た目の順（DOM の順）に集める
+// 警告は送信を止めないので入れない（エラーと警告が両方ある欄も、エラーの行だけ）
+// 欄の名前は、同じ欄（行の箱の親）のラベル（data-slot="field-label"）の文字
+function collectErrors(form: HTMLFormElement): ErrorEntry[] {
+  const entries: ErrorEntry[] = [];
+  for (const region of form.querySelectorAll(
+    '[data-slot="field-message"][data-open][data-kind="error"]'
+  )) {
+    const line = region.querySelector<HTMLElement>('[id]');
+    const control = line && controlOf(form, line.id);
+    if (!line || !control) continue;
+    const label = region.parentElement?.querySelector(':scope > [data-slot="field-label"]');
+    entries.push({
+      messageId: line.id,
+      controlId: control.id,
+      label: (label?.textContent ?? '').trim(),
+      text: (line.textContent ?? '').trim(),
+    });
+  }
+  return entries;
+}
+
+const sameEntries = (a: ErrorEntry[], b: ErrorEntry[]) =>
+  a.length === b.length &&
+  a.every(
+    (entry, i) =>
+      entry.messageId === b[i].messageId &&
+      entry.controlId === b[i].controlId &&
+      entry.label === b[i].label &&
+      entry.text === b[i].text
+  );
+
+// フォーカスを移す先。チェックボックス・ラジオのグループ（role="group"・"radiogroup"）は、グループそのものは
+// フォーカスを受けないので、中の最初の選んだ項目（なければ最初の押せる項目）にする
+function focusTargetOf(control: HTMLElement) {
+  const role = control.getAttribute('role');
+  if (role !== 'group' && role !== 'radiogroup') return control;
+  const items = [
+    ...control.querySelectorAll<HTMLElement>('[role="checkbox"], [role="radio"]'),
+  ].filter(
+    (item) =>
+      // 「すべて選ぶ」の親の箱（Base UI の data-parent）には移さない。エラーは子を選ぶことについてなので
+      !item.hasAttribute('data-parent') &&
+      !item.hasAttribute('data-disabled') &&
+      item.getAttribute('aria-disabled') !== 'true'
+  );
+  return items.find((item) => item.getAttribute('aria-checked') === 'true') ?? items[0] ?? control;
+}
+
+// 欄へフォーカスを移し、欄全体（ラベルからエラーの行まで）が見えるようにスクロールする
+// select: 入力した文字を選ぶ（Base UI の Form と同じ。送信したときだけ）
+function focusField(form: HTMLFormElement, messageId: string, select: boolean) {
+  const control = controlOf(form, messageId);
+  if (!control) return;
+  focusTargetOf(control).focus({ preventScroll: true });
+  if (select && control instanceof HTMLInputElement) control.select();
+  const region = form
+    .querySelector(`#${CSS.escape(messageId)}`)
+    ?.closest('[data-slot="field-message"]');
+  region?.parentElement?.scrollIntoView({ block: 'nearest' });
+}
+
+// フォームの最初の送信のボタン（<button type="submit">・<input type="submit">）。Enter で送ったときにブラウザが押したことにするボタン
+function defaultSubmitButton(form: HTMLFormElement): Element | null {
+  return (
+    [...form.elements].find(
+      (element) =>
+        (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
+        element.type === 'submit'
+    ) ?? null
+  );
+}
+
+// 送信中が終わったとき、送ったときの場所（押した送信のボタン、Enter を押した欄、body）にフォーカスが残っているか
+// origin が null（送信なしに submitting になった）ときは残っていないとみなす。フォーカスがどこにもない（body）ときは、奪うものがないので残っているとみなす
+function focusStayedAt(origin: Element | null) {
+  if (!origin) return false;
+  const doc = origin.ownerDocument;
+  const active = doc.activeElement;
+  return active === origin || active === null || active === doc.body;
+}
+
+// 押した送信のボタン（SubmitEvent.submitter）。Enter で送ったときは、ブラウザが最初の送信のボタンを入れる
+// ボタンなしに送ったとき（requestSubmit() など）は、Enter と同じく最初の送信のボタンにする
+function submitterOf(event: FormEvent<HTMLFormElement>) {
+  const native = event.nativeEvent;
+  const pressed =
+    'submitter' in native && native.submitter instanceof Element ? native.submitter : null;
+  return pressed ?? defaultSubmitButton(event.currentTarget);
+}
+
+export interface FormProps extends ComponentProps<'form'> {
+  /**
+   * 送信したときのエラーの知らせ方（design/adr/0044）
+   * false: エラーのある最初の欄へフォーカスを移し、入力した文字を選ぶ。その欄の名前と説明（キャプション → エラー）が読まれる
+   * true: フォームの上にエラーの一覧（危険のお知らせ。題と、各欄へのリンク「欄の名前: エラーの文」）を出し、一覧へフォーカスを移す。長いフォーム向け
+   * @default false
+   */
+  errorSummary?: boolean;
+  /**
+   * エラーの一覧の題です。errorSummary が true のときだけ使います
+   * @default (count) => `入力を確かめてください（${count}件）`
+   */
+  errorSummaryTitle?: (count: number) => string;
+  /**
+   * ブラウザの既定の検証（吹き出し）を止めるかどうかです。true（既定）では吹き出しを出さず、欄の下の行（Field）だけで知らせます。
+   * false にすると、required などのブラウザの検証が働き、吹き出しも出ます
+   * @default true
+   */
+  noValidate?: boolean;
+  /**
+   * フォーム全体を送っている（返事を待っている）。中の欄に配り、submittingBehavior の形で止めます。
+   * 送っているあいだの送信（Enter など）は、onSubmit を呼ばずに止めます。
+   * 中の送信のボタン（type="submit" の Button）は、loading を渡さなくても送信中になります。
+   * 回る円は押したボタンにだけ出し、ほかの送信のボタンは押せない見た目にするだけです。
+   * Enter で送ったときは、フォームの最初の送信のボタンに出します（ブラウザの既定と同じ）。
+   * true から false に戻した描画でエラーの行があれば、送信したときと同じく、最初のエラーの欄（errorSummary のときはエラーの一覧）へフォーカスを移します。
+   * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡してください。先に渡すと、送っているあいだに読み上げられ、フォーカスが移った先でもう一度読まれます。あとに渡すと、フォーカスは移りません。
+   * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡します。
+   * 送ったときの場所（押した送信のボタン、Enter を押した欄）にフォーカスが残っているときだけ移し、送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます
+   * @default false
+   */
+  submitting?: boolean;
+  /**
+   * 送っているあいだの欄の扱い（後半の軸 38）。
+   * blocking は、押せない欄の見た目にし、書き換えを止めます（印は出さず、フォーカスは外さず、値も送られます）。
+   * none は欄を何も変えません。下書きの自動保存のように、送っているあいだに書き換えても困らないフォームで使います
+   * @default 'blocking'
+   */
+  submittingBehavior?: FormSubmittingBehavior;
+}
+
+/**
+ * フォーム（design/adr/0044）
+ * 値を確かめるのはアプリ（onSubmit の中で、各欄の error・warning を決める）。Form は、その描画のあとでフォーカスを移す
+ * 送信中（submitting）が終わった描画でも、送ったときの場所にフォーカスが残っていれば、同じくフォーカスを移す（サーバーから返ってきたエラー）
+ * 中の欄の行は、欄を離れたときやあとから確かめたときに出ると、polite で知らせる。送信で出たとき（送信中が終わってフォーカスを移したときも）は知らせない（移った先で読むため）
+ * 既定では noValidate（ブラウザの吹き出しを出さず、欄の下の行で知らせる）
+ */
+export function Form({
+  errorSummary = false,
+  errorSummaryTitle = defaultSummaryTitle,
+  noValidate = true,
+  submitting = false,
+  submittingBehavior = 'blocking',
+  onSubmit,
+  ref,
+  children,
+  ...props
+}: FormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const [submitCount, setSubmitCount] = useState(0);
+  // エラーの一覧。focus は、一覧へフォーカスを移した送信の回数（送信のたびに移す。中身が変わっただけでは移さない）
+  const [summary, setSummary] = useState<{ entries: ErrorEntry[]; focus: number } | null>(null);
+  const errorSummaryRef = useRef(errorSummary);
+  useLayoutEffect(() => {
+    errorSummaryRef.current = errorSummary;
+  });
+  const setRefs = useCallback(
+    (node: HTMLFormElement | null) => {
+      formRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
+
+  // アプリの onSubmit（各欄のエラーを決める）と送信の回数を、同じ描画で反映する
+  // 送っているあいだの送信（Enter など）は、onSubmit を呼ばずに止める（二重に送らない）
+  // 押した送信のボタン。送っているあいだ、中の送信のボタン（Button）に配る。印はこのボタンにだけ出る
+  const [submitter, setSubmitter] = useState<Element | null>(null);
+  const wasSubmitting = useRef(submitting);
+  // 送ったときにフォーカスのあった場所（押した送信のボタン、Enter を押した欄、body）。送信中が終わったときに比べる
+  const [origin, setOrigin] = useState<Element | null>(null);
+  const handleSubmit: NonNullable<FormProps['onSubmit']> = (event) => {
+    if (submitting) {
+      event.preventDefault();
+      return;
+    }
+    setSubmitter(submitterOf(event));
+    setOrigin(event.currentTarget.ownerDocument.activeElement);
+    onSubmit?.(event);
+    setSubmitCount((count) => count + 1);
+  };
+
+  // 送信中が終わった描画（submitting が true から false）: 送ったときの場所にフォーカスが残っていれば、エラーへフォーカスを移す回数を増やす
+  // 欄の行が、同じ描画で「送信で出た」と分かるように、描画の中で決める（アプリがエラーを渡すのと submitting を false にするのが同じ描画のとき）
+  // 送っているあいだに別の欄へ移っていたら増やさない。フォーカスを奪わず、行は polite で知らせる
+  const [settle, setSettle] = useState({ submitting, count: 0 });
+  if (settle.submitting !== submitting) {
+    const stayed = !submitting && focusStayedAt(origin);
+    setSettle({ submitting, count: stayed ? settle.count + 1 : settle.count });
+    if (!submitting) setOrigin(null);
+  }
+  const focusCount = submitCount + settle.count;
+
+  // 送信なしに submitting になったとき（アプリが直に切り替えたとき）は、最初の送信のボタンに印を出す
+  // 送り終えたら忘れる。次に送信なしで submitting になったとき、前に押したボタンに出さないため
+  //   送り終えるまでは忘れない（押してから、アプリが待ったあとで submitting にしても、押したボタンに出す）
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (submitting && !submitter && form) setSubmitter(defaultSubmitButton(form));
+    else if (!submitting && wasSubmitting.current) setSubmitter(null);
+    wasSubmitting.current = submitting;
+  }, [submitting, submitter]);
+
+  // 送信で出たエラー（送信中が終わったときに出たエラーも）が描かれたあと: 最初のエラーの欄か、エラーの一覧へフォーカスを移す
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (!focusCount || !form) return;
+    const entries = collectErrors(form);
+    if (errorSummaryRef.current) {
+      setSummary(entries.length ? { entries, focus: focusCount } : null);
+      return;
+    }
+    setSummary(null);
+    if (entries[0]) focusField(form, entries[0].messageId, true);
+  }, [focusCount]);
+
+  const summaryFocus = summary?.focus;
+  useLayoutEffect(() => {
+    if (summaryFocus) summaryRef.current?.focus();
+  }, [summaryFocus]);
+
+  // 一覧を出しているあいだは、欄のエラーの変化に合わせて一覧を直す。直した欄は一覧から消え、なくなると一覧を閉じる
+  const summaryShown = summary !== null;
+  useEffect(() => {
+    const form = formRef.current;
+    if (!summaryShown || !form) return undefined;
+    const observer = new MutationObserver(() => {
+      const entries = collectErrors(form);
+      setSummary((current) => {
+        if (!current || sameEntries(current.entries, entries)) return current;
+        return entries.length ? { ...current, entries } : null;
+      });
+    });
+    observer.observe(form, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['data-open', 'data-kind', 'aria-describedby'],
+    });
+    return () => observer.disconnect();
+  }, [summaryShown]);
+
+  const context = useMemo(
+    () => ({
+      focusCount,
+      submitting,
+      submittingBehavior,
+      submitter: submitting ? submitter : null,
+    }),
+    [focusCount, submitting, submittingBehavior, submitter]
+  );
+  return (
+    <FormSubmitContext.Provider value={context}>
+      <form {...props} ref={setRefs} noValidate={noValidate} onSubmit={handleSubmit}>
+        {summary && (
+          // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く
+          // フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない。移ると「題、グループ」と中身が読まれる
+          <div
+            ref={summaryRef}
+            tabIndex={-1}
+            role="group"
+            aria-labelledby={titleId}
+            data-slot="form-error-summary"
+            className={[
+              'rounded-control',
+              ...focusRing,
+              '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
+            ].join(' ')}
+          >
+            <Notice
+              color="danger"
+              live={false}
+              title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
+            >
+              {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
+                題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
+              <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">
+                {summary.entries.map((entry) => (
+                  <li key={entry.messageId}>
+                    <Link
+                      href={entry.controlId ? `#${entry.controlId}` : '#'}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (formRef.current) focusField(formRef.current, entry.messageId, false);
+                      }}
+                    >
+                      {entryText(entry)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Notice>
+          </div>
+        )}
+        {children}
+      </form>
+    </FormSubmitContext.Provider>
+  );
+}

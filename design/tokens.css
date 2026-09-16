@@ -261,7 +261,7 @@
   /* 動きを減らす設定（prefers-reduced-motion: reduce）のときの印の動き — adr/0042
      spin-reduced: 回る円は止めず、3秒で1周にする（ふだんの 1/3 の速さ）
      loading-bar-reduced: 線は流さず、幅いっぱいに引いて明滅する（濃さ 60% ↔ 20%、1.6 秒で1往復）
-     Button・TextField・Select の印と、開いた選択肢の「読み込んでいます」の行が使う（src/components/Loading.tsx） */
+     Button・TextField・Select の印と、開いた選択肢の「読み込んでいます」の行が使う（src/components/loading/Loading.tsx） */
   --animate-spin-reduced: spin 3s linear infinite;
   --animate-loading-bar-reduced: loading-bar-pulse 1.6s ease-in-out infinite;
   @keyframes loading-bar-pulse {
