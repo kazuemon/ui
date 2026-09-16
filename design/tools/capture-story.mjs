@@ -17,7 +17,8 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 import { parseArgs, promisify, styleText } from 'node:util';
-import { CHROME } from './render.mjs';
+// 撮影に使う Chrome。Playwright が入れた headless shell を直に呼ぶ
+const CHROME = `${process.env.HOME}/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,

@@ -15,7 +15,7 @@
 | 現行版（ラウンド4まで） | 2:1        |
 | A                       | 16:9       |
 
-比較は [`rounds/r04/adr-0017-aspect.mjs`](../rounds/r04/adr-0017-aspect.mjs) で作りました。
+比較は `rounds/r04/adr-0017-aspect.mjs`（前半の候補定義。消す前のコミット bcec65c に残っています）で作りました。
 
 ## 決定
 

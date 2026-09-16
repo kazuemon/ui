@@ -17,7 +17,7 @@
 | 現行版（ADR-0015） | Regular（線幅 16）     | Regular（線幅 16） |
 | A                  | Regular（線幅 16）     | Bold（線幅 24）    |
 
-線幅は viewBox 256 に対する値です。比較は [`rounds/r04/adr-0018-icon.mjs`](../rounds/r04/adr-0018-icon.mjs) で作りました（検索のアイコンボタンだけが変わります）。
+線幅は viewBox 256 に対する値です。比較は `rounds/r04/adr-0018-icon.mjs`（前半の候補定義。消す前のコミット bcec65c に残っています）で作りました（検索のアイコンボタンだけが変わります）。
 
 ## 決定
 

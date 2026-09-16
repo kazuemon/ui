@@ -10,9 +10,8 @@
 | `adr/assets/`   | ADR に添える比較画像。決めた時点の記録                                                          |
 | `backlog.md`    | 決めていないこと・作っていないこと                                                              |
 | `references/`   | 原則の出どころになった参照画像（一覧は [`principles.md`](./principles.md#参照画像)）            |
-| `rounds/rNN/`   | 前半（design キャンバス）の候補定義。`rounds/p1-final/` は前半の最終版                          |
-| `stories/`      | 後半（Storybook）の比較ストーリー。`Design Review/NN 軸の名前` に並ぶ                           |
-| `tools/`        | 候補の生成、比較画像の撮影、文字の縦位置の測定。使い方は [`tools/README.md`](./tools/README.md) |
+| `stories/`      | 決めている途中の軸の比較ストーリー。`Design Review/NN 軸の名前` に並ぶ。決まったら消す          |
+| `tools/`        | 比較画像の撮影と、原則の書き方の確かめ。使い方は [`tools/README.md`](./tools/README.md)         |
 
 値は `tokens.css` の 1 か所だけに書きます。`principles.md` と ADR は、値ではなく役割トークン名で参照します。
 

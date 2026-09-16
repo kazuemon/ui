@@ -20,7 +20,6 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                    |
 | `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                       |
 | `design/references/`                   | 原則の出どころの参照画像                                                                    |
-| `design/rounds/rNN/`                   | 前半（design キャンバス）の候補定義。`p1-final/` は前半の最終版                             |
 | `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す      |
 | `design/tools/`                        | 生成・撮影・測定のスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md) |
 | `src/components/`                      | 部品。props の説明は JSDoc に書く                                                           |
