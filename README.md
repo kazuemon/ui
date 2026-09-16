@@ -64,7 +64,8 @@
 - [ ] Divider
 - [ ] Time
 - [ ] Avatar
-- [ ] Badge・Chip
+- [x] Badge
+- [ ] Chip
 - [ ] Timeline
 - [ ] Accordion
 
@@ -80,8 +81,8 @@
 - [x] Switch
 - [x] Form
 - [ ] Textarea
-- [ ] Checkbox
-- [ ] Radio
+- [x] Checkbox
+- [x] Radio
 - [ ] Fieldset
 - [ ] Combobox
 - [ ] Segmented Control
