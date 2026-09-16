@@ -6,7 +6,7 @@ import { tv } from 'tailwind-variants';
 export const fieldStyles = tv({
   slots: {
     root: [
-      'group/field flex flex-col gap-(--space-field-gap)',
+      'group/field flex flex-col gap-(--spacing-field-gap)',
       'data-invalid:[--color-focus:var(--color-fg-danger)]',
       'data-invalid:[--color-field-focus:var(--color-field-invalid)]',
       'data-invalid:[--color-field-hover:var(--color-field-invalid)]',
@@ -31,17 +31,17 @@ export const fieldStyles = tv({
     // 箱そのものは隠さない（隠した live region に文を入れると、読み上げソフトによっては知らせないため）
     // 行の高さ（grid の行 0fr ↔ 1fr）と濃さを、押下と同じ緩急で --duration-field-message の長さで動かす
     // 見えなくする（visibility）のは中身で、閉じ終えたとき。動きを減らす設定では、すぐ切り替える
-    // 空のときに間（--space-field-gap）が増えないよう、箱の上の間を打ち消す。間は行の上に持たせる（messageLine）
-    // 箱はエラー・警告で1つずつ続けて置く。両方開くと、エラーの行と警告の行の間も --space-field-gap になる（design/adr/0041 の追記）
+    // 空のときに間（--spacing-field-gap）が増えないよう、箱の上の間を打ち消す。間は行の上に持たせる（messageLine）
+    // 箱はエラー・警告で1つずつ続けて置く。両方開くと、エラーの行と警告の行の間も --spacing-field-gap になる（design/adr/0041 の追記）
     messageRegion: [
-      'group/message -mt-(--space-field-gap) grid grid-rows-[0fr] data-open:grid-rows-[1fr]',
+      'group/message -mt-(--spacing-field-gap) grid grid-rows-[0fr] data-open:grid-rows-[1fr]',
       'transition-[grid-template-rows] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
     ],
     messageClip: [
       'invisible min-h-0 overflow-hidden opacity-0 group-data-open/message:visible group-data-open/message:opacity-100',
       'transition-[opacity,visibility] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
     ],
-    messageLine: 'pt-(--space-field-gap)',
+    messageLine: 'pt-(--spacing-field-gap)',
   },
 });
 
@@ -50,9 +50,9 @@ export const fieldStyles = tv({
 // 枠線は通常時も透明で確保しておき、フォーカスで文字がずれないようにする
 export const controlBox = tv({
   base: [
-    'flex h-(--size-control) w-full min-w-0 items-center gap-(--space-control-x) rounded-control',
+    'flex h-(--spacing-control) w-full min-w-0 items-center gap-(--spacing-control-x) rounded-control',
     'border-(length:--field-border-width) border-transparent bg-field',
-    'px-[calc(var(--space-control-x)-var(--field-border-width))] text-(length:--text-control) leading-(--leading-control) text-fg',
+    'px-[calc(var(--spacing-control-x)-var(--field-border-width))] text-(length:--text-control) leading-(--leading-control) text-fg',
     'transition-[background-color,border-color,outline-color,outline-offset,box-shadow] duration-(--duration-field) ease-press motion-reduce:transition-none',
     'hover:not-focus-within:bg-field-hover',
     // フォーカスは枠線だけで表す。ブラウザのフォーカスの線は出さない（Select のボタンで枠線と重なっていた）

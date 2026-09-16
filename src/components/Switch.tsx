@@ -53,7 +53,7 @@ const rowFocusInside =
 const rowLabel = 'after:absolute after:-inset-(--border-width-thin)';
 // キャプションの下に、1行の上の余白と同じだけあける（線を含む）
 const rowCaption =
-  'mb-[calc((var(--size-control)-2*var(--border-width-thin)-var(--leading-control))/2)]';
+  'mb-[calc((var(--spacing-control)-2*var(--border-width-thin)-var(--leading-control))/2)]';
 // 囲みがあるときは、トラックを行（囲み）の縦の中央に置く。囲みなし（none）はラベルの行の中央のまま
 //   「46 で区切り線か囲みがあるときは、トグルが縦中央に来るようにしてほしいです（囲みなしではそのまま）」
 //   トラックは1行の margin を付けたまま中央にそろえるので、キャプションがなければ囲みなしと同じ位置
@@ -63,9 +63,9 @@ const rowLine = 'border-line';
 // 1行の高さ（部品の高さ。frame があるときは線の内側）から、中身の高さを引いた上下の余白
 //   Tailwind がクラスを拾えるよう、ラベルとトラックの分を文字列のまま書く
 const labelLineMargin =
-  'my-[calc((var(--size-control)-2*var(--switch-line-inset,0px)-var(--leading-control))/2)]';
+  'my-[calc((var(--spacing-control)-2*var(--switch-line-inset,0px)-var(--leading-control))/2)]';
 const trackLineMargin =
-  'my-[calc((var(--size-control)-2*var(--switch-line-inset,0px)-var(--switch-h))/2)]';
+  'my-[calc((var(--spacing-control)-2*var(--switch-line-inset,0px)-var(--switch-h))/2)]';
 
 const styles = tv({
   variants: {
@@ -108,7 +108,7 @@ const styles = tv({
         root: [
           rowBase,
           rowLine,
-          'rounded-control border-(length:--border-width-thin) px-[calc(var(--space-control-x)-var(--border-width-thin))]',
+          'rounded-control border-(length:--border-width-thin) px-[calc(var(--spacing-control-x)-var(--border-width-thin))]',
           '[--switch-row-focus-offset:var(--focus-ring-offset)]',
           '[[data-switch-frame=card]+&]:mt-(--switch-row-gap)',
         ],
@@ -122,7 +122,7 @@ const styles = tv({
           rowBase,
           rowLine,
           rowFocusInside,
-          'border-y-(length:--border-width-thin) px-(--space-control-x)',
+          'border-y-(length:--border-width-thin) px-(--spacing-control-x)',
           '[[data-switch-frame=divided]+&]:-mt-(--border-width-thin)',
         ],
         label: rowLabel,
@@ -136,7 +136,7 @@ const styles = tv({
     captionAppearance: {
       plain: {
         caption:
-          '-mt-[calc((var(--size-control)-2*var(--switch-line-inset,0px)-var(--leading-control))/2)]',
+          '-mt-[calc((var(--spacing-control)-2*var(--switch-line-inset,0px)-var(--leading-control))/2)]',
       },
       surface: { caption: 'mt-0 rounded-control bg-field px-3 py-2' },
     },
@@ -163,7 +163,7 @@ const styles = tv({
   slots: {
     // 行の高さは部品の高さ。中身（ラベル・キャプション・トラック）は行の縦の中央に置く
     //   group/field group/toggle: ラベルを押しているか（ノブの縮み）を、このトグルの中だけで見る。外の Field のラベルには反応させない
-    root: 'group/field group/toggle grid min-h-(--size-control) content-center items-center gap-x-(--switch-gap)',
+    root: 'group/field group/toggle grid min-h-(--spacing-control) content-center items-center gap-x-(--switch-gap)',
     // 押せる範囲は文字の幅だけ（justify-self-start）。列いっぱいに広げると、文字の右の空白を押しても切り替わる（見えない広がり）
     //   チェックボックス・ラジオの横の文字と同じ。Web のフォームの <label> の既定（inline）とも同じ
     label: [

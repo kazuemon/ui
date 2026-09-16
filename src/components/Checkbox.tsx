@@ -40,7 +40,7 @@ export const choiceStyles = tv({
     // 1つだけ置くチェックボックスで、箱・横の文字・キャプションのまとまりの高さを部品の高さにする見えない柱
     // まとまりの上下の行（1fr）が残りを分けるので、まとまりは部品の高さの中で縦の中央になる
     // 下に足すエラー・警告の行は柱の外なので、出ても箱と文字は動かない
-    pillar: 'col-start-1 row-[1/-1] min-h-(--size-control) w-0',
+    pillar: 'col-start-1 row-[1/-1] min-h-(--spacing-control) w-0',
     box: [
       'group/box peer/box col-start-1 inline-flex size-(--choice-size) shrink-0 cursor-pointer items-center justify-center',
       'bg-(color:--color-choice) [--choice-mark:var(--color-surface)]',
@@ -87,7 +87,7 @@ export const choiceStyles = tv({
       'col-start-2 justify-self-start pl-(--choice-gap) text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     // 1つだけ置くチェックボックスのエラー・警告の行。柱の下の行に置き、キャプションと同じく横の文字の始まりにそろえて字下げする
     //   列は2列ともまたぐ（2列目だけに置くと、柱の横の空いた1行目に入ってしまう）。字下げは1列目の幅（箱）と文字の側の間
-    // 格子には行の間がないので、行の箱の上の間の打ち消し（Field の中で使うとき）をやめる。間は行の上に持つ（--space-field-gap）
+    // 格子には行の間がないので、行の箱の上の間の打ち消し（Field の中で使うとき）をやめる。間は行の上に持つ（--spacing-field-gap）
     message: 'col-span-full mt-0 pl-[calc(var(--choice-size)_+_var(--choice-gap))]',
     // 「すべて選ぶ」の箱の下に並べる子の箱。字下げして、箱の左端を「すべて選ぶ」の横の文字の始まりにそろえる
     children: ['flex flex-col pl-[calc(var(--choice-size)+var(--choice-gap))]', choiceSize],
@@ -116,7 +116,7 @@ export const choiceStyles = tv({
     //   solo: 1つだけ置くチェックボックス。柱（pillar）が高さを持ち、箱と文字は2行目（上下は 1fr の行）
     layout: {
       item: {
-        item: 'min-h-(--size-control) content-center',
+        item: 'min-h-(--spacing-control) content-center',
         box: 'row-start-1',
         label: 'row-start-1',
         caption: 'row-start-2',
@@ -147,7 +147,7 @@ export type ChoiceFrame = 'none' | 'options' | 'notched' | 'all';
 // 「すべて選ぶ」のグループの枠（後半の軸 43 で比べている途中。既定は枠なし）
 // カードのような薄いフチ: 線は細い境界線、角はカードの角（原則5: 包むものは部品より一段大きい角）、影なし（原則1: ページと同じレイヤー）
 // 見た目はトークン（--choice-frame-*）。枠と中の選択肢の左右のあいだは部品の左右の余白（密度で変わる）
-const framePadX = '[--choice-frame-pad-x:var(--space-control-x)]';
+const framePadX = '[--choice-frame-pad-x:var(--spacing-control-x)]';
 const frameLine = 'border-line';
 const frameStyles = tv({
   slots: {
@@ -172,9 +172,9 @@ const frameStyles = tv({
       '[&_[role=checkbox]]:pointer-events-auto',
     ],
     body: [
-      '-mt-[calc(var(--size-control)/2)] ml-[calc(var(--choice-size)/2_-_var(--border-width-thin)/2)] flex flex-col',
+      '-mt-[calc(var(--spacing-control)/2)] ml-[calc(var(--choice-size)/2_-_var(--border-width-thin)/2)] flex flex-col',
       'rounded-card rounded-tl-none border-(length:--border-width-thin)',
-      '[--choice-frame-pad-row:max(0px,calc(var(--choice-frame-pad-x)_-_(var(--size-control)_-_var(--choice-size))/2))]',
+      '[--choice-frame-pad-row:max(0px,calc(var(--choice-frame-pad-x)_-_(var(--spacing-control)_-_var(--choice-size))/2))]',
       // 上の線（太さの分）は箱の中央から下にあるので、その分を引く
       '[--choice-frame-pad-top:calc(var(--choice-frame-pad-row)_+_var(--choice-size)/2_-_var(--border-width-thin))]',
       'pt-(--choice-frame-pad-top) pr-(--choice-frame-pad-x) pb-(--choice-frame-pad-row) pl-(--choice-frame-pad-x)',

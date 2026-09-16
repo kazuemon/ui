@@ -3,6 +3,13 @@
 @source '../../src';
 @source '../../design/stories';
 
+/* Tailwind の既定の色と影は使わない。部品と利用者は、tokens.css の役割の色と影だけで書く
+   角丸・余白・緩急・文字の大きさは、Tailwind の既定の尺度に乗る（tokens.css の尺度の層） */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+}
+
 @import '../../design/tokens.css';
 
 @import '@fontsource-variable/mulish';
@@ -36,14 +43,14 @@
   :root,
   [data-density='fine'] {
     --density-coarse: 0;
-    --size-control: var(--size-control-fine);
+    --spacing-control: var(--spacing-control-fine);
     --text-control: var(--text-control-fine);
     --leading-control: var(--leading-control-fine);
     --text-label: var(--text-label-fine);
     --text-caption: var(--text-caption-fine);
-    --space-control-x: var(--space-control-x-fine);
-    --space-field-gap: var(--space-field-gap-fine);
-    --size-icon: var(--size-icon-fine);
+    --spacing-control-x: var(--spacing-control-x-fine);
+    --spacing-field-gap: var(--spacing-field-gap-fine);
+    --spacing-icon: var(--spacing-icon-fine);
     --switch-w: var(--switch-w-fine);
     --switch-h: var(--switch-h-fine);
     --switch-knob: var(--switch-knob-fine);
@@ -52,14 +59,14 @@
   @media (pointer: coarse) {
     :root:not([data-density='fine']) {
       --density-coarse: 1;
-      --size-control: var(--size-control-coarse);
+      --spacing-control: var(--spacing-control-coarse);
       --text-control: var(--text-control-coarse);
       --leading-control: var(--leading-control-coarse);
       --text-label: var(--text-label-coarse);
       --text-caption: var(--text-caption-coarse);
-      --space-control-x: var(--space-control-x-coarse);
-      --space-field-gap: var(--space-field-gap-coarse);
-      --size-icon: var(--size-icon-coarse);
+      --spacing-control-x: var(--spacing-control-x-coarse);
+      --spacing-field-gap: var(--spacing-field-gap-coarse);
+      --spacing-icon: var(--spacing-icon-coarse);
       --switch-w: var(--switch-w-coarse);
       --switch-h: var(--switch-h-coarse);
       --switch-knob: var(--switch-knob-coarse);
@@ -68,14 +75,14 @@
 
   [data-density='coarse'] {
     --density-coarse: 1;
-    --size-control: var(--size-control-coarse);
+    --spacing-control: var(--spacing-control-coarse);
     --text-control: var(--text-control-coarse);
     --leading-control: var(--leading-control-coarse);
     --text-label: var(--text-label-coarse);
     --text-caption: var(--text-caption-coarse);
-    --space-control-x: var(--space-control-x-coarse);
-    --space-field-gap: var(--space-field-gap-coarse);
-    --size-icon: var(--size-icon-coarse);
+    --spacing-control-x: var(--spacing-control-x-coarse);
+    --spacing-field-gap: var(--spacing-field-gap-coarse);
+    --spacing-icon: var(--spacing-icon-coarse);
     --switch-w: var(--switch-w-coarse);
     --switch-h: var(--switch-h-coarse);
     --switch-knob: var(--switch-knob-coarse);
@@ -85,19 +92,19 @@
 /*
  * 大きい指用（design/adr/0045）: class="coarse-large" を付けた要素の中は、指用の高さを 52px にする
  *   html に付けるとアプリ全体、ほかの要素に付けるとその中だけ。Select の選択肢は body の直下に出るが、開くときに本体の祖先のクラスを写すので、その中だけでも効く
- *   変わるのは --size-control を読むもの（ボタン・入力欄・Select の本体と選択肢・枠線のリンク・トグルの行）の高さと、
+ *   変わるのは --spacing-control を読むもの（ボタン・入力欄・Select の本体と選択肢・枠線のリンク・トグルの行）の高さと、
  *   トグルのトラックとノブ（高さに比例して 48×28・ノブ 22px → 56×32・ノブ 26px）。
  *   文字・行の高さ（24px。52px で上下 14px）・左右の余白・タグ（文字の大きさに従う）は変えない
  *   マウス用の密度（fine）では何も変わらない。中の data-density="coarse" の要素も 52px になる
- * --size-control と --switch-* は付けた要素で計算し直す。:root で解決した値は子に引き継がれるだけなので、途中の要素に付けたときに効かせるため。
+ * --spacing-control と --switch-* は付けた要素で計算し直す。:root で解決した値は子に引き継がれるだけなので、途中の要素に付けたときに効かせるため。
  *   いまの密度は --density-coarse（指用 1・マウス用 0）で知る
- * @layer の外に置く。tokens.css の :root（@layer の外）より後に書き、html に付けたときも --size-control-coarse を上書きする
+ * @layer の外に置く。tokens.css の :root（@layer の外）より後に書き、html に付けたときも --spacing-control-coarse を上書きする
  */
 .coarse-large {
-  --size-control-coarse: var(--size-control-coarse-large);
-  --size-control: calc(
-    var(--size-control-fine) + var(--density-coarse) *
-      (var(--size-control-coarse) - var(--size-control-fine))
+  --spacing-control-coarse: var(--spacing-control-coarse-large);
+  --spacing-control: calc(
+    var(--spacing-control-fine) + var(--density-coarse) *
+      (var(--spacing-control-coarse) - var(--spacing-control-fine))
   );
   --switch-w-coarse: var(--switch-w-coarse-large);
   --switch-h-coarse: var(--switch-h-coarse-large);

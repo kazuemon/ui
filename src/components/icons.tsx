@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 interface IconProps {
   /** アイコン単体で置くとき（アイコンだけのボタンなど）。線を Bold の太さにする */
   standalone?: boolean;
-  /** 大きさと置き方。既定は --size-icon（部品の中の文字と並ぶ大きさ） */
+  /** 大きさと置き方。既定は --spacing-icon（部品の中の文字と並ぶ大きさ） */
   className?: string;
 }
 
@@ -11,7 +11,7 @@ interface IconProps {
 function Icon({
   children,
   standalone,
-  className = 'size-(--size-icon) shrink-0',
+  className = 'size-(--spacing-icon) shrink-0',
 }: IconProps & { children: ReactNode }) {
   return (
     <svg

@@ -1,18 +1,22 @@
 /*
  * @kazuemon/ui design tokens — 現行版
  *
- * 2層構成（design/adr/0003）
- *   値の層   --palette-*  生の色。部品・原則からは直接参照しない
- *   役割の層 --color-* ほか  部品と原則はこちらだけを参照する
+ * 層（design/adr/0003・ADR-0076）
+ *   値の層   --palette-*                 生の色。部品・原則からは直接参照しない
+ *   尺度の層 --border-width-*・--duration-* ほか  役割と部品が共通で使う値。角丸・余白・緩急は Tailwind の既定の尺度を使う
+ *   役割の層 --color-*・--radius-* ほか   部品と原則はこちらを参照する
+ *   部品の層 --switch-*・--choice-* ほか  部品の中だけで使う値
  * ダークモードは役割の層の対応先を差し替えて足す。
+ *
+ * 公開するもの（利用者が Tailwind のクラスで使い、上書きしてよいもの）は @theme に置く。
+ *   値・尺度・役割。名前はこの先変えない。Tailwind の名前空間に沿う名前は、そのままクラスになる（bg-primary・rounded-control・h-control）
+ *   密度で変わる値は @theme reference に置く。クラスは作るが、値は src/styles/globals.css の密度の規則が入れる
+ * :root は部品の層。部品の中だけで使い、名前も値も予告なく変える。
  *
  * 色は「面用」と「前景用」の2段（design/adr/0002）。
  *   面用   元の値。塗り・ロゴ・装飾に使う
  *   前景用 明度だけ下げて基準を満たした値。文字・枠線に使う
  *   基準: 本文・ボタン文字 4.5:1 / 大きい文字・アイコン・枠線 3:1
- *
- * @theme ブロックは Tailwind v4 の名前空間に沿うもの、:root はそれ以外。
- * どちらも src/styles/globals.css から @import してそのまま使える。
  */
 
 @theme {
@@ -84,23 +88,24 @@
   --duration-slow: 250ms; /* シート */
   --color-shadow: var(--palette-ink-900); /* 影と、後ろの画面を暗くする色。濃さは使う側で決める */
 
-  /* ── 役割の層: Color ─────────────────────────────── */
+  /* ── 役割の層: 色 ─────────────────────────────────── */
   /* 地と面 */
   --color-bg: var(--palette-white); /* ページの地 */
   --color-surface: var(--palette-white); /* カードなど。地より明るいか同じ */
-  --color-field: var(--palette-gray-50); /* 編集できる入力欄の塗り（原則8） */
+  /* 編集できる入力欄の塗り（原則8）。一覧の項目の hover もこの色 */
+  --color-field: var(--palette-gray-50);
   --color-field-hover: var(--palette-gray-150); /* 入力欄の hover。半段濃く — adr/0022 */
   --color-field-focus: var(--color-field); /* フォーカス中も塗りは変えない — adr/0019 */
   --color-field-invalid: var(--palette-red-50); /* エラー中の入力欄の塗り — adr/0021 */
   --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix・suffix — adr/0024 */
   /* エラー中の prefix・suffix の塗り — adr/0035
-     ふだんの「グレーの塊と欄」の関係を、エラーの塗り（--color-field-invalid）に写した赤み。文字の色は変えない
-     （--color-on-field-addon-invalid は未設定。比較のストーリーで赤い文字の案を再現するときに使う） */
+     ふだんの「グレーの塊と欄」の関係を、エラーの塗り（--color-field-invalid）に写した赤み。文字の色は変えない */
   --color-field-addon-invalid: var(--palette-red-100);
-  --color-neutral: var(--palette-gray-100); /* グレーボタンの塗り（コントラスト未決） */
+  /* グレーボタン・グレーのタグの塗り（コントラスト未決） */
+  --color-neutral: var(--palette-gray-100);
   --color-line: var(--palette-gray-300); /* 細い境界線・読み取り専用の下線 */
   --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 — adr/0025 */
-  /* 白いボタンの輪郭 — adr/0025。var(--color-line-strong) に差し替えると、はっきりした輪郭になる */
+  /* 白いボタンと浮かぶ選択肢の輪郭 — adr/0025。var(--color-line-strong) に差し替えると、はっきりした輪郭になる */
   --color-surface-line: var(--palette-gray-300);
   /* 平らな要素（影のない押すもの）の hover と押下（原則3）— adr/0027
      枠線のボタン・枠線のリンク: 要素の文字の色を淡く敷く。色のない要素は灰色になる */
@@ -110,7 +115,8 @@
   /* 文字 */
   --color-fg: var(--palette-ink-900);
   --color-fg-muted: var(--palette-ink-700);
-  --color-fg-subtle: var(--palette-ink-500); /* キャプション */
+  /* キャプション・プレースホルダ。白地 4.52、押せない欄の塗りの上 3.51 */
+  --color-fg-subtle: var(--palette-ink-500);
 
   /* ブランド（水色）: 構造 */
   --color-brand: var(--palette-sky-400); /* 面用: ロゴ・装飾・タグの塗り */
@@ -123,9 +129,6 @@
   /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
   --color-on-primary: var(--palette-white);
-  /* フォーカスの枠線（原則2）と、キーボードの線（--color-focus-ring）の色 — ADR-0071 の M
-     色を持つ部品は部品の色（下の --focus-follow-color）。これは色を持たない部品（色なしの Select・ボタン、TextField）の色で、本文の濃紺 */
-  --color-focus: var(--color-fg);
 
   /* セカンダリ（ピンク）— design/adr/0013
      用途は限定しない。部品の利用者が primary / secondary から場所に合う色を選ぶ */
@@ -170,20 +173,63 @@
   --color-fg-danger: var(--palette-red-700); /* 白地 6.71。淡い面の上 5.93 */
   --color-danger-subtle: var(--palette-red-75);
 
-  /* ── 角丸（原則5） ───────────────────────────────── */
-  --radius-control: var(--radius-xl); /* 12px。フォーム部品・ボタン — design/adr/0008 */
-  --radius-card: var(--radius-2xl); /* 16px。標準・入れ子の型とも — design/adr/0016 */
+  /* 押せないとき（原則1）— design/adr/0026。どの部品も影はなくす
+     色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す
+     入力欄: 明るいグレーの塗りに薄い文字。テーマの色を持たないので、グレーにしても失うものがない
+     グレーのボタン: 入力欄と同じ。塗りと文字の色が近くなることで、押せないことを伝える
+     ラベルとキャプション: 変えない（説明が読めるように） */
+  --color-field-disabled: var(--palette-gray-200);
+  --color-on-field-disabled: var(--palette-gray-400); /* 押せない文字・選べない選択肢。白地 2.47 */
+  --color-neutral-disabled: var(--palette-gray-200);
+  --color-on-neutral-disabled: var(--palette-gray-400);
+
+  /* フォーカス（原則2）— ADR-0071 の M
+     --color-focus: 入力欄の枠線の色。--color-focus-ring: キーボードで操作したときの線の色
+     色を持つ部品は部品の色にする。これは色を持たない部品（色なしの Select・ボタン、TextField）の色で、本文の濃紺
+     --color-focus-ring-inner: エラーの欄で、赤い枠線と離した線のあいだを埋める色 */
+  --color-focus: var(--color-fg);
+  --color-focus-ring: var(--color-focus);
+  --color-focus-ring-inner: var(--palette-white);
+
+  /* ── 役割の層: 角丸（原則5） ───────────────────────── */
+  --radius-control: var(--radius-xl); /* 12px。フォーム部品・ボタン・お知らせ — design/adr/0008 */
+  /* 16px。カード（標準・入れ子の型とも）・シート — design/adr/0016 */
+  --radius-card: var(--radius-2xl);
   --radius-pill: 9999px; /* リンク・タグ・トグル */
 
-  /* ── 影（原則1: 塗りのあるボタンにのみ）— design/adr/0006 ── */
-  /* 輪郭程度のごく薄い影。hover で落ち影が消えて輪郭の線だけ残る。押下でも輪郭の線は残す（:root の --shadow-raised-press — adr/0033） */
+  /* ── 役割の層: 影（原則1: 塗りのあるボタンにのみ）— design/adr/0006 ── */
+  /* 輪郭程度のごく薄い影。hover で落ち影が消えて輪郭の線だけ残る */
   --shadow-raised:
     0 1px 2px rgb(from var(--color-shadow) r g b / 0.1),
     0 0 0 1px rgb(from var(--color-shadow) r g b / 0.05);
   --shadow-raised-hover: 0 0 0 1px rgb(from var(--color-shadow) r g b / 0.06);
+  /* 押したとき — adr/0033
+     落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
+  --shadow-raised-press: var(--shadow-raised-hover);
 
-  /* ── 動き（原則3「一段沈む」） ───────────────────── */
+  /* ── 役割の層: 線の太さ・離し方・薄さ ───────────────── */
+  /* 入力欄の枠線（原則2）— design/adr/0019: フォーカスは枠線だけを足す。枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
+  --field-border-width: var(--border-width-thick);
+  /* キーボードで操作したときのフォーカス（focus-visible）— adr/0031
+     ボタン・リンク・トグルの輪郭の外側に、この太さの線をこの幅だけ離して描く。入力欄は上の枠線のまま（クリックでも出る）
+     離すので、青やピンクのボタンでも線が溶けない */
+  --focus-ring-width: var(--border-width-thick);
+  --focus-ring-offset: 2px;
+  --disabled-opacity: 0.4; /* 色を持つ押すものを押せないときの薄さ — design/adr/0026 */
+  --press-depth: 1px; /* 押下で沈む深さ — design/adr/0009 */
+  --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
+
+  /* ── 役割の層: 動き（原則3「一段沈む」） ─────────────── */
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
+  --duration-press: var(--duration-fast); /* 押下 — design/adr/0009 */
+  /* 入力欄の状態の移り変わり（原則2）。フォーカスの線もこの長さでフェードインし、位置は動かさない */
+  --duration-field: var(--duration-fast);
+  --focus-ring-duration: var(--duration-field);
+  /* 送信中（loading）— adr/0034。押せないボタンと同じ見た目に、押下と同じ緩急でこの長さで切り替わる（出るときも戻るときも） */
+  --duration-loading: var(--duration-normal);
+  /* シート（画面の下から出る面）と、浮かぶ選択肢の緩急 — adr/0037・ADR-0054 */
+  --duration-sheet: var(--duration-slow);
+  --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
   /* 送信中（loading）の印の動き — adr/0034
      loading-in: 薄くしたラベルに重ねる回る円が、ふわっと出る。loading-bar: 下端の線が左から右へ流れる
      動きを減らす設定では loading-in をなくし、回る円はすぐに出る（下の @media — adr/0042） */
@@ -218,8 +264,36 @@
     }
   }
 
-  /* ── 文字 ────────────────────────────────────────── */
+  /* ── 役割の層: 文字 ─────────────────────────────── */
   --font-weight-heading: 700;
+  /* 行の高さは整数 px にし、部品の高さとの差を偶数にする（上下の余白が整数になる）。
+     端数が出ると、置かれた位置によって文字が 1px 上下にずれて見える */
+  --leading-label: 20px;
+  --leading-caption: 16px;
+}
+
+/* ── 役割の層: 密度で変わる寸法（原則11）— design/adr/0004 ───────
+   値は入力方式で切り替わる。src/styles/globals.css が、下の :root の指用（-coarse）とマウス用（-fine）から、
+   ページ全体と data-density を付けた要素の中で入れる。ここはクラス（h-control・px-control-x・text-label など）を作るだけで、
+   CSS 変数は書き出さない（密度の規則がないところでは、クラスはマウス用の値になる）
+     --spacing-control     部品の高さ（ボタン・入力欄・Select の選択肢・トグルの行）
+     --spacing-control-x   部品の左右の余白
+     --spacing-field-gap   ラベル・本体・キャプションの間
+     --spacing-icon        部品の中の文字と並ぶアイコン
+     --text-control・--leading-control  部品の中の文字
+     --text-label・--text-caption       部品のラベルとキャプション（原則4） */
+@theme reference {
+  --spacing-control: var(--spacing-control-fine);
+  --spacing-control-x: var(--spacing-control-x-fine);
+  --spacing-field-gap: var(--spacing-field-gap-fine);
+  --spacing-icon: var(--spacing-icon-fine);
+  --leading-control: var(--leading-control-fine);
+  --text-control: var(--text-control-fine);
+  --text-control--line-height: var(--leading-control);
+  --text-label: var(--text-label-fine);
+  --text-label--line-height: var(--leading-label);
+  --text-caption: var(--text-caption-fine);
+  --text-caption--line-height: var(--leading-caption);
 }
 
 /* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
@@ -230,25 +304,48 @@
   }
 }
 
+/* ── 部品の層（部品の中だけで使う。名前も値も予告なく変える） ─── */
 :root {
-  /* 押下: 素早く 1px 沈む — design/adr/0009 */
-  --duration-press: var(--duration-fast);
-  --press-depth: 1px;
-  /* 送信中（loading）— adr/0034
-     押せないボタンと同じ見た目に、押下と同じ緩急で 0.2 秒で切り替わる（出るときも戻るときも）
-     既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる */
-  --duration-loading: var(--duration-normal);
+  /* 密度（design/adr/0004）: 寸法は入力方式で切り替える
+     高さは、指用が design/adr/0045、マウス用が design/adr/0020 で決定。ほかは仮（後半の軸）
+     切り替えは src/styles/globals.css が --spacing-control などに解決する */
+  --spacing-control-coarse: 44px; /* 指 — design/adr/0045 */
+  /* 大きい指用: .coarse-large を付けた要素の中の、指用の高さ（design/adr/0045）。マウス用は変えない */
+  --spacing-control-coarse-large: 52px;
+  --spacing-control-fine: 40px; /* マウス — design/adr/0020 */
+  --text-control-coarse: 16px;
+  --text-control-fine: 14px;
+  --leading-control-coarse: 24px; /* 44px の部品で上下 10px。52px（大きい指用）で上下 14px */
+  --leading-control-fine: 20px; /* 40px の部品で上下 10px */
+  --text-label-coarse: 14px;
+  --text-label-fine: 13px;
+  --text-caption-coarse: 12px;
+  --text-caption-fine: 11px;
+  --spacing-control-x-coarse: calc(var(--spacing) * 4); /* 16px */
+  --spacing-control-x-fine: calc(var(--spacing) * 3); /* 12px */
+  --spacing-field-gap-coarse: calc(var(--spacing) * 2); /* 8px */
+  --spacing-field-gap-fine: calc(var(--spacing) * 1.5); /* 6px */
+  --spacing-icon-coarse: 20px;
+  --spacing-icon-fine: 16px;
+
+  /* 送信中（loading）の既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる — adr/0034 */
   --loading-label-opacity: 0.55;
-  --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
-  /* 塗りのボタンを押したときの影 — adr/0033
-     落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
-  --shadow-raised-press: var(--shadow-raised-hover);
+
+  /* フォーカスの色を部品の色に従わせる — ADR-0071 の M
+     色を持つ部品（Select・ボタン・リンク・トグル・チェックボックス・ラジオ）は、入力欄の枠線と線を部品の色にする
+       部品は color ごとに自分の色を --color-own-focus に置く（青 --color-primary、ピンク --color-fg-secondary、
+       赤いボタン --color-fg-danger）。色を指定しない部品と TextField は置かないので、1色（--color-focus・--color-focus-ring）のまま
+     1 と 0 は、部品が srgb で混ぜて色を決める。お知らせの中は未設定（initial）にし、混ぜずに線の色をそのまま使う（adr/0043） */
+  --focus-follow-color: 1;
+  /* エラーの欄（TextField・Select の本体）にフォーカスしたときだけ、赤い枠線の外にボタンと同じ離した線を引く — ADR-0071 の M
+     赤い枠線と線のあいだ（線を離した幅）を、--color-focus-ring-inner で埋める。suffix のボタンにフォーカスしているあいだは、ほかの線と同じく消す */
+  --field-invalid-focus-ring-inner-width: var(--focus-ring-offset);
 
   /* 文字のリンクの下線 — adr/0030
      ふだんは文字の色を 35% に透かした淡い下線（太さ 1px）。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
   --color-link-underline: color-mix(in oklab, currentColor 35%, transparent);
   --color-link-underline-hover: color-mix(in oklab, currentColor, black 30%);
-  /* 下線の色の変化の長さと緩急。200ms で、ゆっくり始めてゆっくり終える — adr/0030 */
+  /* 下線の色の変化の長さと緩急。ゆっくり始めてゆっくり終える — adr/0030 */
   --link-underline-duration: var(--duration-normal);
   --link-underline-ease: var(--ease-in-out);
   /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031 */
@@ -261,42 +358,19 @@
      0 は部品の leadIconPlacement="start" で選ぶ
      between では、どちらでも前のアイコンは左端、文字はそのすぐ後ろ */
   --link-lead-icon-follow: 1;
+  /* 押せない枠線のグレーのボタンと枠線のリンク: 薄くせず、枠線と文字をグレーにする — adr/0029 */
+  --color-outline-neutral-disabled-line: var(--color-line);
+  --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
 
   /* カードの画像の比率 — design/adr/0017 */
   --card-media-aspect: 16 / 9;
   /* 入れ子の型のカード: 画像の周りの余白 — design/adr/0014 */
   --card-nested-inset: calc(var(--spacing) * 2);
 
-  /* 密度（design/adr/0004）: 寸法は入力方式で切り替える
-     高さは、指用が design/adr/0045、マウス用が design/adr/0020 で決定。ほかは仮（後半の軸）
-     切り替えは src/styles/globals.css が --size-control などに解決する */
-  --size-control-coarse: 44px; /* 指 — design/adr/0045 */
-  /* 大きい指用: .coarse-large を付けた要素の中の、指用の高さ（design/adr/0045）。マウス用は変えない */
-  --size-control-coarse-large: 52px;
-  --size-control-fine: 40px; /* マウス — design/adr/0020 */
-  --text-control-coarse: 16px;
-  --text-control-fine: 14px;
-  /* 行の高さは整数 px にし、部品の高さとの差を偶数にする（上下の余白が整数になる）。
-     端数が出ると、置かれた位置によって文字が 1px 上下にずれて見える */
-  --leading-control-coarse: 24px; /* 44px の部品で上下 10px。52px（大きい指用）で上下 14px */
-  --leading-control-fine: 20px; /* 40px の部品で上下 10px */
-  --leading-label: 20px;
-  --leading-caption: 16px;
-  --text-label-coarse: 14px; /* 部品のラベル（原則4） */
-  --text-label-fine: 13px;
-  --text-caption-coarse: 12px; /* 部品のキャプション（原則4） */
-  --text-caption-fine: 11px;
-  --space-control-x-coarse: calc(var(--spacing) * 4); /* 部品の左右の余白。16px */
-  --space-control-x-fine: calc(var(--spacing) * 3); /* 12px */
-  --space-field-gap-coarse: calc(var(--spacing) * 2); /* ラベル・本体・キャプションの間。8px */
-  --space-field-gap-fine: calc(var(--spacing) * 1.5); /* 6px */
-  --size-icon-coarse: 20px;
-  --size-icon-fine: 16px;
-  --switch-w-coarse: 48px; /* トグルのトラック（前半のキャンバスの値） */
+  /* トグルのトラック。高さは密度で変わる（切り替えは src/styles/globals.css） */
+  --switch-w-coarse: 48px; /* 前半のキャンバスの値 */
   --switch-h-coarse: 28px;
   --switch-knob-coarse: 22px;
-  /* 大きい指用のトグル（design/adr/0045）: 高さに比例して ×52/44。56.7×33.1・ノブ 26.0 を、
-     ノブ 26px・隙間 3px のまま整数にした（52px の行で上下 10px ずつ空く） */
   /* 大きい指用 — ADR-0065 の B（部品の高さ 52px に合わせて 1.3 倍。前は 56×32・ノブ 26）。指用（上）は現行版のまま */
   --switch-w-coarse-large: 52px;
   --switch-h-coarse-large: 28px;
@@ -325,19 +399,34 @@
        指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms。離して戻るときは入力欄と同じ長さ）
      行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-switch-off。ADR-0067 の D）。hover の塗りに溶けない（1.17:1） */
   --switch-row-gap: calc(var(--spacing) * 2);
+  /* OFF のトグルのトラック（押せるとき）。入力欄の prefix・suffix と同じ一段濃いグレー — ADR-0067 の D
+     行全体を押せるトグルの hover の塗り（入力欄の塗り）に溶けないよう、ADR-0067 の D で行の中だけに付けた色を、どこでも既定にした。
+     チェックボックス・ラジオの選んでいない箱（--color-choice）も同じ色にそろえる */
+  --color-switch-off: var(--color-field-addon);
+  /* 押せない OFF のトラックは、押せない箱（--color-choice-disabled）と同じく、ふだんより薄い入力欄の塗りのグレー — adr/0029
+     押せる OFF を一段濃いグレーにしたので、押せないグレーのままでは押せる OFF と同じ色になる */
+  --color-switch-off-disabled: var(--color-field);
+  /* 押せないグレーのトグル: 薄くせず、ノブをグレーの文字の色にする — adr/0029
+     ON のトラックは押せない OFF と同じ地（#F2F4F4）。押せないものは ON も OFF も同じ地で、状態はノブの位置で見せる
+     （押せる OFF と同じ #E1E3E4 では、押せない ON が押せる OFF と紛れるため） */
+  --color-switch-neutral-on-disabled: var(--color-switch-off-disabled);
+  --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
+  /* 色つき（primary・secondary）の押せない OFF のノブ — ADR-0069 の A
+     色によらず、色なしの押せないノブと同じグレー（地 #F2F4F4 の上で 2.24:1）
+     白いノブ（押せる OFF と同じ）は地 #F2F4F4 の上で 1.10:1 で、ほぼ見えなかった */
+  --color-switch-off-disabled-knob: var(--color-switch-neutral-disabled-knob);
 
   /* チェックボックスとラジオ（原則8・原則5・原則1）— ADR-0062（現行版を採用）
      入力欄の仲間: ふだんは選んでいない箱の塗り（--color-choice）で、枠線・影なし。hover で塗りが半段濃くなる
      選ぶと部品の色の塗りに白い印。色を指定しないときは、トグルの ON と同じ濃いグレー（部品の color）
      箱の大きさは密度で変わる。部品が --density-coarse（指用 1・マウス用 0）から --choice-size を計算する
-     行の高さはトグルと同じ部品の高さ（--size-control）。箱はラベルの行の縦の中央
+     行の高さはトグルと同じ部品の高さ（--spacing-control）。箱はラベルの行の縦の中央
      押せる範囲は箱と横の文字（間の --choice-gap は文字の側に持たせて含める）。見えない広がりは付けない */
   --choice-size-fine: 18px;
   --choice-size-coarse: 22px;
   --checkbox-radius: 5px; /* チェックボックスの角。ラジオは完全な丸（--radius-pill） */
-  --checkbox-mark-width: var(
-    --border-width-thick
-  ); /* チェックと中間の横線の太さ。画面の px で、箱の大きさによらない */
+  /* チェックと中間の横線の太さ。画面の px で、箱の大きさによらない */
+  --checkbox-mark-width: var(--border-width-thick);
   --radio-dot-ratio: 0.4; /* ラジオの白い丸の直径。箱に対する比 */
   --choice-gap: calc(var(--spacing) * 2); /* 箱と横の文字の間 */
   /* 選んでいない箱の塗り — ADR-0062 の C の色の組。トグルの OFF をADR-0067 の D の色にしたとき、箱も同じ濃さにそろえた
@@ -349,7 +438,7 @@
      押せなくてエラーでもある箱は、押せないほうを優先する（下の押せない箱の色。枠線も引かない） */
   --color-choice-invalid: var(--color-field-addon-invalid);
   /* エラーの箱の内側の線 — ADR-0070 の A（入力欄と同じく、エラーは塗りと線の2つで表す。塗りだけでは通常の箱との明るさの比が 1.01）
-     選んでいない、押せる箱だけに、inset の影で引く（寸法を変えない）。0px は引かない */
+     選んでいない、押せる箱だけに、inset の影で引く（寸法を変えない） */
   --choice-invalid-line-width: var(--border-width-medium);
   --color-choice-invalid-line: var(--color-fg-danger);
   /* 押せない箱。ふだんの箱より薄い、入力欄の塗りのグレー。押せない OFF のトラックと同じ */
@@ -379,54 +468,13 @@
   --badge-size: 16px; /* 数の丸の高さ（1桁で丸） */
   --badge-pad-x: var(--spacing); /* 2桁以上で横に伸びるときの左右の余白 */
   --badge-dot: 8px; /* 状態の点の直径 */
-  --badge-ring-width: var(
-    --border-width-thick
-  ); /* 重ねるときの縁（置く面の色 --color-surface）の太さ */
-  --badge-overlay-inset: var(
-    --spacing
-  ); /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */
-
-  /* Disabled（原則1）— design/adr/0026。どの部品も影はなくす
-     色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を薄くし、色は残す。
-       --color-disabled（塗り）・--color-on-disabled（塗りの上の文字）・--color-disabled-fg（枠線と文字）は
-       未設定のまま（部品のもとの色）
-     入力欄: 明るいグレーの塗りに薄い文字。テーマの色を持たないので、グレーにしても失うものがない
-     グレーのボタン: 入力欄と同じ。塗りと文字の色が近くなることで、押せないことを伝える
-     ラベルとキャプション: 変えない（説明が読めるように） */
-  --disabled-opacity: 0.4;
-  --color-field-disabled: var(--palette-gray-200);
-  --color-on-field-disabled: var(--palette-gray-400);
-  --color-neutral-disabled: var(--palette-gray-200);
-  --color-on-neutral-disabled: var(--palette-gray-400);
-  /* 押せない OFF のトグルと、押せないグレーの枠線のボタン — adr/0029
-     色を持たない部分は、グレーのボタンと同じく薄くせずグレーにする */
-  /* 押せない OFF のトラックは、押せない箱（--color-choice-disabled）と同じく、ふだんより薄い入力欄の塗りのグレー
-     押せる OFF を一段濃いグレー（下の --color-switch-off）にしたので、押せないグレーのままでは押せる OFF と同じ色になる */
-  --color-switch-off-disabled: var(--color-field);
-  --color-outline-neutral-disabled-line: var(--color-line);
-  --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
-  /* OFF のトグルのトラック（押せるとき）。入力欄の prefix・suffix と同じ一段濃いグレー — ADR-0067 の D
-     行全体を押せるトグルの hover の塗り（入力欄の塗り）に溶けないよう、ADR-0067 の D で行の中だけに付けた色を、どこでも既定にした。
-     チェックボックス・ラジオの選んでいない箱（--color-choice）も同じ色にそろえる */
-  --color-switch-off: var(--color-field-addon);
-  /* 押せないグレーのトグル: 薄くせず、ノブをグレーの文字の色にする — adr/0029
-     ON のトラックは押せない OFF と同じ地（#F2F4F4）。押せないものは ON も OFF も同じ地で、状態はノブの位置で見せる
-     （押せる OFF と同じ #E1E3E4 では、押せない ON が押せる OFF と紛れるため） */
-  --color-switch-neutral-on-disabled: var(--color-switch-off-disabled);
-  --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
-  /* 色つき（primary・secondary）の押せない OFF のノブ — ADR-0069 の A
-     --color-switch-off-disabled-knob: ノブの色。色によらず、色なしの押せないノブと同じグレー（地 #F2F4F4 の上で 2.24:1）
-       白いノブ（押せる OFF と同じ）は地 #F2F4F4 の上で 1.10:1 で、ほぼ見えなかった
-     色なし（neutral）の押せないノブは、ON も OFF も上の --color-switch-neutral-disabled-knob */
-  --color-switch-off-disabled-knob: var(--color-switch-neutral-disabled-knob);
-
-  /* 入力欄の状態（原則2）— design/adr/0019: フォーカスは 2px の枠線だけを足し、速く移り変わる
-     枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
-  --field-border-width: var(--border-width-thick);
-  --duration-field: var(--duration-fast);
+  /* 重ねるときの縁（置く面の色 --color-surface）の太さ */
+  --badge-ring-width: var(--border-width-thick);
+  /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */
+  --badge-overlay-inset: var(--spacing);
 
   /* 入力欄のエラー・警告の行（本体の下）— adr/0041
-     アイコン＋文。エラーは丸の「!」と --color-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
+     アイコン＋文。エラーは丸の「!」と --color-fg-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
      アイコンは文と並ぶので線は Regular（adr/0018）。大きさはキャプションの行の高さ（--leading-caption）と同じで、1行目の中央にそろう
      キャプションはエラー・警告のあいだも消さない。並びは部品の captionPlacement で決める */
   --field-message-gap: var(--spacing);
@@ -443,34 +491,16 @@
   --field-addon-round-inner: 0;
   --field-addon-floating-inset: var(--spacing);
 
-  /* キーボードで操作したときのフォーカス（focus-visible）— adr/0031
-     ボタン・リンク・トグルの輪郭の外側に、2px の線を 2px 離して描く。入力欄は上の枠線のまま（クリックでも出る）
-     離すので、青やピンクのボタンでも線が溶けない。線の色は入力欄の枠線と同じ長さでフェードインし、位置は動かさない */
-  --focus-ring-width: var(--border-width-thick);
-  --color-focus-ring: var(--color-focus);
-  --focus-ring-offset: 2px;
-  --focus-ring-duration: var(--duration-field);
-  /* フォーカスの色を部品の色に従わせる — ADR-0071 の M
-     色を持つ部品（Select・ボタン・リンク・トグル・チェックボックス・ラジオ）は、入力欄の枠線と線を部品の色にする
-       部品は color ごとに自分の色を --color-own-focus に置く（青 --color-primary、ピンク --color-fg-secondary、
-       赤いボタン --color-danger）。色を指定しない部品と TextField は置かないので、1色（--color-focus・--color-focus-ring）のまま
-     1 と 0 は、部品が srgb で混ぜて色を決める。お知らせの中は未設定（initial）にし、混ぜずに線の色をそのまま使う（adr/0043） */
-  --focus-follow-color: 1;
-  /* エラーの欄（TextField・Select の本体）にフォーカスしたときだけ、赤い枠線の外にボタンと同じ離した線を引く — ADR-0071 の M
-     赤い枠線と線のあいだ（線を離した幅）を、--color-focus-ring-inner で埋める。suffix のボタンにフォーカスしているあいだは、ほかの線と同じく消す */
-  --field-invalid-focus-ring-inner-width: var(--focus-ring-offset);
-  --color-focus-ring-inner: var(--palette-white);
-
   /* Select の浮かぶ選択肢 — adr/0036
      白い面に、白いボタンと同じ 1px の輪郭と、やわらかい影を付ける（浮かぶ UI の影は重なりを表す — 原則1の例外）
-     項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色に従う（下の --select-item-selected-weight など）
+     項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色に従う
      押せない ▼ と、選べない理由の文は、プレースホルダの場所の文と同じ --color-fg-subtle（押せない欄の塗りの上で 3.51:1）。
      --color-on-field-disabled（1.92:1）は、選んだ値と選べない選択肢のラベルだけに使う（値が入った押せない欄と、文を出している押せない欄を見分ける） */
   --select-popup-padding: var(--spacing);
   --shadow-select-popup: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
   /* 選んだ項目の印は、部品の色（color。primary・secondary・neutral、既定 neutral）に従う — adr/0047、ADR-0053
-     色から面・文字・チェックを部品が作る。面は色のタグの面（neutral は --color-select-neutral-selected）、文字とチェックはタグの文字（neutral は濃紺）
-     選んだ項目の hover は、面に文字の色を 8% 混ぜて一段濃くする。weight: ラベルの太さ */
+     色から面・文字・チェックを部品が作る。面は利用者が選ぶ色の淡い面（neutral は --color-select-neutral-selected）、
+     文字とチェックはその上の文字（neutral は濃紺）。選んだ項目の hover は、面に文字の色を 8% 混ぜて一段濃くする */
   --select-item-selected-weight: 700; /* ADR-0053: B（淡い面＋チェック）に太字を足す */
   --color-select-neutral-selected: var(--palette-gray-200);
   /* 選択肢に付く文（ラベルの下の2行目）と、選べない選択肢 — adr/0044
@@ -489,7 +519,6 @@
   --select-popup-duration-out: 150ms;
   --select-popup-ease: var(--ease-sheet);
   --select-popup-shift: calc(var(--spacing) * 2);
-
   /* Select のボトムシート（指で操作していて画面が狭いときは、選択肢を画面の下から出す）— adr/0037
      面・輪郭・選んだ項目の見た目は浮かぶ選択肢と同じ。上の角はカードの角
      backdrop: 後ろの画面を暗くする色
@@ -497,8 +526,6 @@
   --color-select-sheet-backdrop: rgb(from var(--color-shadow) r g b / 0.3);
   --color-select-sheet-edge-shadow: rgb(from var(--color-shadow) r g b / 0.1);
   --shadow-select-sheet: 0 -8px 24px rgb(from var(--color-shadow) r g b / 0.12);
-  --duration-sheet: var(--duration-slow);
-  --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

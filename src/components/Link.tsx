@@ -28,7 +28,7 @@ import {
 // 原則5: リンクなどの小物は pill。原則7の例外: 密度の高い並び（More、SNS のアカウント一覧）は枠線
 // 影のない平らな要素なので、hover と押下は塗りの濃さで表し、押下で 1px 沈む（原則3、design/adr/0027）
 // 文字のリンクの下線と hover は design/adr/0030
-// 大きさ（design/adr/0039）: 枠線のリンクは、枠線のボタンと同じ寸法（--size-control ほか。密度で切り替わる）
+// 大きさ（design/adr/0039）: 枠線のリンクは、枠線のボタンと同じ寸法（--spacing-control ほか。密度で切り替わる）
 //   文字のリンクは大きさを持たず、周りの文字のまま。押せる範囲も文字の行だけで、見えない広がりは付けない
 //   広い範囲が要るときは、文字のリンクを広げずに、ボタンの見た目（appearance="button"）にする
 // ボタンの見た目のリンク（appearance="button" — design/adr/0046）: 見た目は Button（塗り）に任せ、要素は <a> のまま
@@ -86,7 +86,7 @@ const link = tv({
       // 枠線のリンク。枠線のボタンと同じく、文字の色を淡く敷く
       outline: [
         // pill（原則5）。文字のリンクの角丸は --link-text-radius（フォーカスの線が沿う — design/adr/0031）
-        'inline-flex h-(--size-control) items-center gap-2 rounded-pill border-(length:--border-width-medium) border-current px-(--space-control-x) whitespace-nowrap',
+        'inline-flex h-(--spacing-control) items-center gap-2 rounded-pill border-(length:--border-width-medium) border-current px-(--spacing-control-x) whitespace-nowrap',
         'text-(length:--text-control) leading-(--leading-control) font-bold',
         'not-data-disabled:hover:bg-flat-hover not-data-disabled:active:translate-y-(--flat-press-depth) not-data-disabled:active:bg-flat-press',
         '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -289,12 +289,12 @@ function PlainLink({
     if (centerEnd && trailing !== null) {
       // 右端のアイコンの分を左に足す。前のアイコンが左端に残るとき（--link-lead-icon-follow: 0）は、それがつり合うので足さない
       balance = leadIcon
-        ? 'ps-[calc(var(--space-control-x)+var(--link-lead-icon-follow)*(var(--size-icon)+var(--spacing)*2))]'
-        : 'ps-[calc(var(--space-control-x)+var(--size-icon)+var(--spacing)*2)]';
+        ? 'ps-[calc(var(--spacing-control-x)+var(--link-lead-icon-follow)*(var(--spacing-icon)+var(--spacing)*2))]'
+        : 'ps-[calc(var(--spacing-control-x)+var(--spacing-icon)+var(--spacing)*2)]';
     } else if (centerEnd && leadIcon) {
       // 前のアイコンだけのとき。左端に残るなら、その分を右に足す
       balance =
-        'pe-[calc(var(--space-control-x)+(1-var(--link-lead-icon-follow))*(var(--size-icon)+var(--spacing)*2))]';
+        'pe-[calc(var(--spacing-control-x)+(1-var(--link-lead-icon-follow))*(var(--spacing-icon)+var(--spacing)*2))]';
     }
     content = (
       <>

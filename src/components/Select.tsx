@@ -383,7 +383,7 @@ function SelectItemNoteLine({ note, id }: { note: SelectItemNote; id: string }) 
 }
 
 // 選択肢の1項目。見た目は design/tokens.css の --select-popup-*・--color-select-* で決める（design/adr/0036）
-// note のある項目だけ、ラベルの下に2行目を出して高さを伸ばす（上下 6px。1行の項目は --size-control のまま）
+// note のある項目だけ、ラベルの下に2行目を出して高さを伸ばす（上下 6px。1行の項目は --spacing-control のまま）
 //   読み上げの名前はラベルだけ（aria-labelledby）、2行目は説明（aria-describedby）
 // 選べない項目（disabled — design/adr/0044）: ラベルは押せない文字の色。押しても選ばれない
 //   マウスの hover では塗らない（押せないため）。矢印キーでは止まるので、キーボードで止まったとき（focus-visible）だけ、
@@ -400,7 +400,7 @@ function SelectOption({ item }: { item: SelectItem }) {
       aria-labelledby={note ? labelId : undefined}
       aria-describedby={note ? noteId : undefined}
       className={[
-        'group/option flex min-h-(--size-control) cursor-pointer items-center gap-(--space-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--space-control-x)-var(--select-popup-padding))] outline-none select-none',
+        'group/option flex min-h-(--spacing-control) cursor-pointer items-center gap-(--spacing-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] outline-none select-none',
         note && 'py-1.5',
         // hover（キーボードで選んでいるときも同じ）は、選んだ項目の見た目より優先する
         'data-highlighted:bg-field',
@@ -920,7 +920,7 @@ export function Select({
                 '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
                 // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
                 OWN_FOCUS[color],
-                '[--field-addon-pad:calc(var(--space-control-x)-var(--field-border-width))]',
+                '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
               ],
             })}
           >
@@ -932,13 +932,15 @@ export function Select({
             {loading && loadingIndicator === 'spinner' && (
               <FieldSpinner
                 className={
-                  loadingBlocking ? undefined : 'me-[calc(var(--spacing)*2-var(--space-control-x))]'
+                  loadingBlocking
+                    ? undefined
+                    : 'me-[calc(var(--spacing)*2-var(--spacing-control-x))]'
                 }
               />
             )}
             {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
             {success && successMark && !error && !loading && (
-              <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--space-control-x))]" />
+              <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
             )}
             {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。disabledIcon="hide" で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
@@ -1049,7 +1051,7 @@ export function Select({
                     <div className="relative">
                       <div
                         aria-hidden
-                        className="flex flex-col gap-0.5 py-[calc((var(--size-control)-var(--leading-label))/2)] pr-(--size-control) pl-[calc(var(--space-control-x)-var(--select-popup-padding))]"
+                        className="flex flex-col gap-0.5 py-[calc((var(--spacing-control)-var(--leading-label))/2)] pr-(--spacing-control) pl-[calc(var(--spacing-control-x)-var(--select-popup-padding))]"
                       >
                         <div className="text-(length:--text-label) leading-(--leading-label) font-bold">
                           {label}
@@ -1091,7 +1093,7 @@ export function Select({
                         aria-label="閉じる"
                         onClick={() => changeOpen(false)}
                         className={[
-                          'absolute top-0 right-0 flex size-(--size-control) cursor-pointer items-center justify-center rounded-[calc(var(--radius-control)-var(--select-popup-padding))] text-fg-muted',
+                          'absolute top-0 right-0 flex size-(--spacing-control) cursor-pointer items-center justify-center rounded-[calc(var(--radius-control)-var(--select-popup-padding))] text-fg-muted',
                           ...focusRing,
                           '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press)]',
                           'hover:bg-flat-hover active:bg-flat-press motion-reduce:[transition:none]',
@@ -1149,7 +1151,7 @@ export function Select({
                   <div
                     data-slot="select-loading"
                     className={[
-                      'flex h-(--size-control) shrink-0 items-center gap-2 px-[calc(var(--space-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
+                      'flex h-(--spacing-control) shrink-0 items-center gap-2 px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
                       sheet
                         ? 'mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]'
                         : 'mb-(--select-popup-padding)',

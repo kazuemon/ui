@@ -184,7 +184,7 @@ export function TextField({
             {before.addon}
             <BaseField.Control
               className={[
-                'h-full w-full min-w-0 bg-transparent px-[calc(var(--space-control-x)-var(--field-border-width))] outline-none placeholder:text-fg-subtle disabled:cursor-not-allowed',
+                'h-full w-full min-w-0 bg-transparent px-[calc(var(--spacing-control-x)-var(--field-border-width))] outline-none placeholder:text-fg-subtle disabled:cursor-not-allowed',
                 blocking && 'cursor-progress',
               ]
                 .filter(Boolean)
@@ -197,11 +197,11 @@ export function TextField({
               {...props}
             />
             {loading && loadingIndicator === 'spinner' && (
-              <FieldSpinner className="pr-[calc(var(--space-control-x)-var(--field-border-width))]" />
+              <FieldSpinner className="pr-[calc(var(--spacing-control-x)-var(--field-border-width))]" />
             )}
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
             {success && successMark && !error && !loading && (
-              <FieldSuccessMark className="pr-[calc(var(--space-control-x)-var(--field-border-width))]" />
+              <FieldSuccessMark className="pr-[calc(var(--spacing-control-x)-var(--field-border-width))]" />
             )}
             {after.addon}
           </FieldAddonDisabled>

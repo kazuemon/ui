@@ -41,7 +41,7 @@ import { type LoadingIndicator, LoadingBar, Spinner } from './Loading';
 //   押せないリンク（<a> は :disabled にならない）には data-disabled を付け、disabled: と同じ Disabled を data-disabled: で当てる
 const button = tv({
   base: [
-    'relative inline-flex h-(--size-control) shrink-0 cursor-pointer items-center justify-center gap-2 rounded-control px-(--space-control-x) whitespace-nowrap',
+    'relative inline-flex h-(--spacing-control) shrink-0 cursor-pointer items-center justify-center gap-2 rounded-control px-(--spacing-control-x) whitespace-nowrap',
     'text-(length:--text-control) leading-(--leading-control) font-bold select-none',
     // キーボードで操作したときのフォーカス（design/adr/0031）。線の隙間と色は --focus-ring-duration で動かす
     ...focusRing,
@@ -167,7 +167,7 @@ const button = tv({
 // ref は包みではなくボタン（<a>）に付く。className だけを包みに付けるのは、包みの幅（w-full など）を決められるようにするため
 const captioned = tv({
   slots: {
-    root: ['inline-flex flex-col items-stretch', 'gap-(--space-field-gap)'],
+    root: ['inline-flex flex-col items-stretch', 'gap-(--spacing-field-gap)'],
     caption: [
       'w-0 min-w-full text-center font-normal',
       'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',

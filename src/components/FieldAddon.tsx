@@ -11,7 +11,7 @@ import { focusRing } from './focus-styles';
 //   外側の角は本体の角丸と同心。Select のボタンのように本体に左右の余白があるときは --field-addon-pad で打ち消す
 const fieldAddon = tv({
   base: [
-    'flex shrink-0 items-center self-stretch px-(--space-control-x) whitespace-nowrap',
+    'flex shrink-0 items-center self-stretch px-(--spacing-control-x) whitespace-nowrap',
     // 塗り。エラーのときは --color-field-addon-invalid に差し替える
     'bg-(color:--addon-fill) [--addon-fill:var(--color-field-addon)] group-data-invalid/field:[--addon-fill:var(--color-field-addon-invalid)]',
     '[--addon-inset:var(--field-addon-inset)] [--addon-round-inner:var(--field-addon-round-inner)]',

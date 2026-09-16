@@ -10,7 +10,7 @@
 export type LoadingIndicator = 'spinner' | 'bar';
 
 interface IndicatorProps {
-  /** 色と置き方。回る円の大きさの既定は --size-icon */
+  /** 色と置き方。回る円の大きさの既定は --spacing-icon */
   className?: string;
 }
 
@@ -20,7 +20,7 @@ export function Spinner({ className }: IndicatorProps) {
     <svg
       viewBox="0 0 16 16"
       className={[
-        'size-(--size-icon) shrink-0 animate-spin motion-reduce:animate-spin-reduced',
+        'size-(--spacing-icon) shrink-0 animate-spin motion-reduce:animate-spin-reduced',
         className,
       ]
         .filter(Boolean)

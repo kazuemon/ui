@@ -63,7 +63,7 @@ const BellIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
-    className="size-(--size-icon) shrink-0"
+    className="size-(--spacing-icon) shrink-0"
     style={{ strokeWidth: 'var(--icon-stroke-standalone)' }}
   >
     <path d="M96,192a32,32,0,0,0,64,0" />
@@ -72,7 +72,7 @@ const BellIcon = () => (
 );
 
 const Avatar = () => (
-  <span className="grid size-(--size-control) place-items-center rounded-pill bg-neutral text-xs font-bold text-fg-muted">
+  <span className="grid size-(--spacing-control) place-items-center rounded-pill bg-neutral text-xs font-bold text-fg-muted">
     KZ
   </span>
 );
@@ -197,7 +197,7 @@ export const Overlay: Story = {
         <Button
           appearance="outline"
           aria-label="通知（未読 3 件）"
-          className="w-(--size-control) px-0"
+          className="w-(--spacing-control) px-0"
         >
           <BellIcon />
         </Button>
@@ -206,7 +206,7 @@ export const Overlay: Story = {
         <Button
           appearance="outline"
           aria-label="通知（未読 120 件）"
-          className="w-(--size-control) px-0"
+          className="w-(--spacing-control) px-0"
         >
           <BellIcon />
         </Button>
@@ -215,7 +215,7 @@ export const Overlay: Story = {
         <Button
           appearance="outline"
           aria-label="通知（未読あり）"
-          className="w-(--size-control) px-0"
+          className="w-(--spacing-control) px-0"
         >
           <BellIcon />
         </Button>
@@ -316,7 +316,7 @@ export const Densities: Story = {
           <Button
             appearance="outline"
             aria-label="通知（未読 3 件）"
-            className="w-(--size-control) px-0"
+            className="w-(--spacing-control) px-0"
           >
             <BellIcon />
           </Button>
