@@ -19,42 +19,42 @@
 
 比較の候補はありません。計画（層の分け方、Tailwind への載せ方、進め方）を示し、決めてほしいことに答えてもらいました。
 
-| 項目                         | 示した形                                                                                                   |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 層                           | 値・尺度・役割・部品の4つ                                                                                  |
-| 比べるための切り替え         | 消す                                                                                                       |
-| 状態の色                     | 状態ごとに役割を置き、タグ・お知らせ・Badge がそれを指す                                                  |
-| 公開するもの                 | 値・尺度・役割を `@theme` に置き、Tailwind のクラスで使えるようにする。部品のトークンは公開しない         |
-| 場所ごとの色の差し替え       | CSS 変数の上書きではなく、パターンごとの data 属性の入口を用意する                                         |
-| 余白と角丸の単位             | px に戻す（Tailwind の既定の rem に乗せたままにする／余白だけ rem、とも比べた）                              |
+| 項目                   | 示した形                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| 層                     | 値・尺度・役割・部品の4つ                                                                         |
+| 比べるための切り替え   | 消す                                                                                              |
+| 状態の色               | 状態ごとに役割を置き、タグ・お知らせ・Badge がそれを指す                                          |
+| 公開するもの           | 値・尺度・役割を `@theme` に置き、Tailwind のクラスで使えるようにする。部品のトークンは公開しない |
+| 場所ごとの色の差し替え | CSS 変数の上書きではなく、パターンごとの data 属性の入口を用意する                                |
+| 余白と角丸の単位       | px に戻す（Tailwind の既定の rem に乗せたままにする／余白だけ rem、とも比べた）                   |
 
 ## 決定
 
 **示した形をすべて採用します。** 場所ごとの色の差し替え（data 属性の入口）は、あとで作ります。
 
-| 項目                   | 決定                                                                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 層                     | 値（`--palette-*`）、尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`・`--color-shadow`）、役割（`--color-*`・`--radius-control` など）、部品（`--switch-*`・`--choice-*` など）                                                                                                 |
-| 尺度                   | 余白（`--spacing: 4px`）と角丸（`--radius-xs`〜`-4xl`）は、Tailwind と同じ名前・同じ値を px で持つ。線の太さは thin 1px・medium 1.5px・thick 2px、時間は fast 100ms・normal 200ms・slow 250ms。影と後ろを暗くする色は `rgb(from var(--color-shadow) r g b / 濃さ)`。緩急の `--ease-in-out` は Tailwind の既定を使う |
-| 状態の色               | 状態（info・success・warning・danger）ごとに、濃い塗り `--color-{状態}`、その上の文字 `--color-on-{状態}`、白地と淡い面の上の文字・線 `--color-fg-{状態}`、淡い面 `--color-{状態}-subtle` の4つ。利用者が選ぶ色にも淡い面と文字（`--color-primary-subtle`・`--color-on-primary-subtle`、secondary も同じ）、色を持たない濃いグレー（`--color-neutral-strong`）を置く |
-| 公開と内部             | `@theme` に置いたもの（値・尺度・役割）を公開し、名前を変えない。`:root` は部品の層で、名前も値も予告なく変える                                                                                                                                                                                    |
-| 密度で変わる寸法       | Tailwind の名前空間の名前にし（下の表）、`@theme reference` に登録する。利用者は `h-control`・`px-control-x`・`gap-field-gap`・`size-icon`・`text-control`・`text-label`・`text-caption`・`leading-control` を使える。値は `src/styles/globals.css` の密度の規則が入れる                          |
-| 部品の中の書き方       | `h-(--spacing-control)` のまま。tailwind-merge が `h-control`・`text-caption` のような名前を知らず、`className` の上書きや色のクラスとの見分けが崩れるため                                                                                                                                         |
-| Tailwind の既定のテーマ | このリポジトリ（`globals.css`）では、既定の色と影（`--color-*`・`--shadow-*`）を消す。部品が役割の色と影だけで書かれていることを保つ。利用者に渡すテーマでは消さない                                                                                                                              |
-| 比べるための切り替え   | 消し、部品では決まった値に畳む。これからも、比べるためだけに足した切り替えは、決まったら畳む                                                                                                                                                                                                         |
+| 項目                    | 決定                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 層                      | 値（`--palette-*`）、尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`・`--color-shadow`）、役割（`--color-*`・`--radius-control` など）、部品（`--switch-*`・`--choice-*` など）                                                                                                                                                                  |
+| 尺度                    | 余白（`--spacing: 4px`）と角丸（`--radius-xs`〜`-4xl`）は、Tailwind と同じ名前・同じ値を px で持つ。線の太さは thin 1px・medium 1.5px・thick 2px、時間は fast 100ms・normal 200ms・slow 250ms。影と後ろを暗くする色は `rgb(from var(--color-shadow) r g b / 濃さ)`。緩急の `--ease-in-out` は Tailwind の既定を使う                                                  |
+| 状態の色                | 状態（info・success・warning・danger）ごとに、濃い塗り `--color-{状態}`、その上の文字 `--color-on-{状態}`、白地と淡い面の上の文字・線 `--color-fg-{状態}`、淡い面 `--color-{状態}-subtle` の4つ。利用者が選ぶ色にも淡い面と文字（`--color-primary-subtle`・`--color-on-primary-subtle`、secondary も同じ）、色を持たない濃いグレー（`--color-neutral-strong`）を置く |
+| 公開と内部              | `@theme` に置いたもの（値・尺度・役割）を公開し、名前を変えない。`:root` は部品の層で、名前も値も予告なく変える                                                                                                                                                                                                                                                      |
+| 密度で変わる寸法        | Tailwind の名前空間の名前にし（下の表）、`@theme reference` に登録する。利用者は `h-control`・`px-control-x`・`gap-field-gap`・`size-icon`・`text-control`・`text-label`・`text-caption`・`leading-control` を使える。値は `src/styles/globals.css` の密度の規則が入れる                                                                                             |
+| 部品の中の書き方        | `h-(--spacing-control)` のまま。tailwind-merge が `h-control`・`text-caption` のような名前を知らず、`className` の上書きや色のクラスとの見分けが崩れるため                                                                                                                                                                                                           |
+| Tailwind の既定のテーマ | このリポジトリ（`globals.css`）では、既定の色と影（`--color-*`・`--shadow-*`）を消す。部品が役割の色と影だけで書かれていることを保つ。利用者に渡すテーマでは消さない                                                                                                                                                                                                 |
+| 比べるための切り替え    | 消し、部品では決まった値に畳む。これからも、比べるためだけに足した切り替えは、決まったら畳む                                                                                                                                                                                                                                                                         |
 
 名前を変えたトークン:
 
-| 前                                                  | 後                                                                              |
-| --------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `--size-control`（`-fine`・`-coarse`・`-coarse-large`） | `--spacing-control`（同じ）                                                     |
-| `--space-control-x`（`-fine`・`-coarse`）             | `--spacing-control-x`（同じ）                                                   |
-| `--space-field-gap`（`-fine`・`-coarse`）             | `--spacing-field-gap`（同じ）                                                   |
-| `--size-icon`（`-fine`・`-coarse`）                   | `--spacing-icon`（同じ）                                                        |
-| `--link-grow-duration`・`--link-grow-ease`            | `--link-underline-duration`・`--link-underline-ease`                            |
-| `--color-tag-{色}`・`--color-on-tag-{色}`             | `--color-{色}-subtle`・`--color-on-{色}-subtle`（状態の色は `--color-fg-{状態}`） |
-| `--color-notice-{状態}-filled`・`--color-badge-{状態}` | `--color-{状態}`                                                                |
-| `--color-danger`（文字と線に使うところ）            | `--color-fg-danger`                                                             |
+| 前                                                      | 後                                                                                |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `--size-control`（`-fine`・`-coarse`・`-coarse-large`） | `--spacing-control`（同じ）                                                       |
+| `--space-control-x`（`-fine`・`-coarse`）               | `--spacing-control-x`（同じ）                                                     |
+| `--space-field-gap`（`-fine`・`-coarse`）               | `--spacing-field-gap`（同じ）                                                     |
+| `--size-icon`（`-fine`・`-coarse`）                     | `--spacing-icon`（同じ）                                                          |
+| `--link-grow-duration`・`--link-grow-ease`              | `--link-underline-duration`・`--link-underline-ease`                              |
+| `--color-tag-{色}`・`--color-on-tag-{色}`               | `--color-{色}-subtle`・`--color-on-{色}-subtle`（状態の色は `--color-fg-{状態}`） |
+| `--color-notice-{状態}-filled`・`--color-badge-{状態}`  | `--color-{状態}`                                                                  |
+| `--color-danger`（文字と線に使うところ）                | `--color-fg-danger`                                                               |
 
 消したトークン（役割と同じ値を指すだけだったもの。部品は役割を直接使う）: `--notice-radius`・`--notice-close-radius`・`--switch-row-radius`・`--choice-frame-radius`・`--select-sheet-radius`、`--switch-row-line-width`・`--choice-frame-line-width`・`--select-popup-line-width`・`--surface-line-width`、`--color-switch-row-line`・`--color-choice-frame-line`・`--color-select-popup`・`--color-select-popup-line`・`--color-select-item-highlight`・`--color-switch-row-hover`、`--color-select-item-reason`・`--color-select-icon-disabled`・`--color-button-caption`・`--color-on-select-item-disabled`・`--color-switch-label-disabled`・`--color-choice-label-disabled`、`--button-caption-gap-*`・`--text-button-caption-*`・`--leading-button-caption`・`--choice-frame-pad-x-*`・`--field-message-icon-size`・`--choice-press-depth`、`--color-badge-ring`・`--color-badge-warning-dot`。
 

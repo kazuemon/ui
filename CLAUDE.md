@@ -13,17 +13,17 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 
 ## ファイルの地図
 
-| 場所                                   | 中身                                                                                        |
-| -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `design/principles.md`                 | 原則（考えと現れ方）                                                                        |
-| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076） |
-| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                    |
-| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                       |
-| `design/references/`                   | 原則の出どころの参照画像                                                                    |
-| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す      |
-| `design/tools/`                        | 生成・撮影・測定のスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md) |
-| `src/components/`                      | 部品。props の説明は JSDoc に書く。`tv` は `./tv` から読む（tailwind-merge にクラスの名前を知らせた設定 — ADR-0077） |
-| `src/styles/globals.css`               | tokens.css を読み込み、密度を入力方式から解決する                                           |
+| 場所                                   | 中身                                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `design/principles.md`                 | 原則（考えと現れ方）                                                                                                      |
+| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                |
+| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                  |
+| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                     |
+| `design/references/`                   | 原則の出どころの参照画像                                                                                                  |
+| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す |
+| `design/tools/`                        | 生成・撮影・測定のスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md)                               |
+| `src/components/`                      | 部品。props の説明は JSDoc に書く。`tv` は `./tv` から読む（tailwind-merge にクラスの名前を知らせた設定 — ADR-0077）      |
+| `src/styles/globals.css`               | tokens.css を読み込み、密度を入力方式から解決する                                                                         |
 
 よく使うコマンド:
 
