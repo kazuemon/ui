@@ -30,19 +30,15 @@ export function FieldSpinner({ className }: { className?: string }) {
 }
 
 /**
- * 成功のとき欄の右端に置くチェック（後半の軸 37 の C）。回る円と同じ場所に置く
- * 出すかどうかは、部品の successMark と、トークン（--field-success-mark: none か flex。比較のストーリーで行ごとに変える）で決める。
- * 読み上げは下の成功の行が担うので、読ませない
+ * 成功のとき欄の右端に置くチェック（ADR-0058 の C）。回る円と同じ場所に置く
+ * 出すかどうかは、部品の successMark で決める。読み上げは下の成功の行が担うので、読ませない
  */
 export function FieldSuccessMark({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
       data-slot="field-success-mark"
-      className={[
-        'shrink-0 items-center text-fg-success [display:var(--field-success-mark,none)]',
-        className,
-      ]
+      className={['flex shrink-0 items-center text-fg-success', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -180,8 +176,8 @@ export interface FieldProps {
    */
   warning?: ReactNode;
   /**
-   * 成功の内容（「使えるユーザー名です」など）。本体の下に丸のチェックと緑の文字で出す（後半の軸 37）
-   * 欄の見た目は、トークン（--color-field-success-line・--field-success-mark）で変える。エラーがあるときは、エラーの見た目を優先する
+   * 成功の内容（「使えるユーザー名です」など）。本体の下に丸のチェックと緑の文字で出す（ADR-0058）
+   * 欄の枠線は変えない。エラーがあるときは、エラーの見た目を優先する
    */
   success?: ReactNode;
   /** 情報の内容（「全角の数字を半角に直しました」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない（後半の軸 37） */

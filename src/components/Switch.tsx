@@ -40,15 +40,15 @@ const rowBase = [
   '[transition:background-color_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
   'not-data-disabled:active:[transition-duration:0ms,var(--focus-ring-duration),var(--focus-ring-duration)]',
   'motion-reduce:[transition:none]',
-  // フォーカスの線（focusRing と同じトークン）。トラックではなく行に描く。離し方は各形で --switch-row-focus-offset(-rest) に置く
-  '[outline-color:transparent] [outline-offset:var(--switch-row-focus-offset-rest)]',
-  '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-ring-follow-color,var(--focus-follow-color))*100%),var(--color-focus-ring))]',
-  'has-[[role=switch]:focus-visible]:[outline-style:var(--focus-ring-style)] has-[[role=switch]:focus-visible]:[outline-width:var(--focus-ring-width)]',
-  'has-[[role=switch]:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))] has-[[role=switch]:focus-visible]:[outline-offset:var(--switch-row-focus-offset)]',
+  // フォーカスの線（focusRing と同じトークン）。トラックではなく行に描く。離し方は各形で --switch-row-focus-offset に置く
+  '[outline-color:transparent] [outline-offset:var(--switch-row-focus-offset)]',
+  '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
+  'has-[[role=switch]:focus-visible]:[outline-style:solid] has-[[role=switch]:focus-visible]:[outline-width:var(--focus-ring-width)]',
+  'has-[[role=switch]:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
 ];
 // 隣の行と接する形（divided）: 線の内側に、外側の線と同じだけ（--focus-ring-offset）離して描く
 const rowFocusInside =
-  '[--switch-row-focus-offset:calc(-1*(var(--focus-ring-width)+var(--focus-ring-offset)))] [--switch-row-focus-offset-rest:calc(-1*(var(--focus-ring-width)+var(--focus-ring-offset-rest)))]';
+  '[--switch-row-focus-offset:calc(-1*(var(--focus-ring-width)+var(--focus-ring-offset)))]';
 // ラベルの ::after を、行の線の上まで広げる（押せる範囲 = 見えている行の範囲）
 const rowLabel = 'after:absolute after:-inset-(--switch-row-line-width)';
 // キャプションの下に、1行の上の余白と同じだけあける（線を含む）
@@ -109,7 +109,7 @@ const styles = tv({
           rowBase,
           rowLine,
           'rounded-(--switch-row-radius) border-(length:--switch-row-line-width) px-[calc(var(--space-control-x)-var(--switch-row-line-width))]',
-          '[--switch-row-focus-offset-rest:var(--focus-ring-offset-rest)] [--switch-row-focus-offset:var(--focus-ring-offset)]',
+          '[--switch-row-focus-offset:var(--focus-ring-offset)]',
           '[[data-switch-frame=card]+&]:mt-(--switch-row-gap)',
         ],
         label: rowLabel,

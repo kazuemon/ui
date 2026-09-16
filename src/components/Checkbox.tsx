@@ -26,8 +26,8 @@ import { useChoiceLock } from './form-context';
 // 押せる範囲は箱と横の文字（間を含む）。文字は幅いっぱいに広げず、見えない広がりは付けない
 // 行の高さはトグルと同じ部品の高さ。箱はラベルの行の縦の中央
 // フォーカスはキーボードのときだけ、箱から離した線（design/adr/0031）
-// 押しているあいだ（原則3。後半の軸 42 で比べている途中）: 箱か横の文字を押しているあいだ、箱が沈む・縮む・塗りが濃くなる
-//   量はトークン（--choice-press-depth・--choice-press-scale・--choice-press-darken・--choice-on-press-darken）。既定は変えない
+// 押しているあいだ（原則3。ADR-0063 の E）: 箱か横の文字を押しているあいだ、箱が沈み、塗りが濃くなる
+//   量はトークン（--choice-press-depth・--choice-press-darken・--choice-on-press-darken）
 
 // 箱の大きさは密度（--density-coarse）から計算する。候補の上書き（-fine・-coarse）もここで効く
 const choiceSize =
@@ -61,18 +61,18 @@ export const choiceStyles = tv({
       'data-disabled:data-checked:opacity-[var(--choice-disabled-opacity,var(--disabled-opacity))]',
       'data-disabled:data-indeterminate:opacity-[var(--choice-disabled-opacity,var(--disabled-opacity))]',
       // 押しているあいだ（箱か横の文字）。押せないときは変えない
-      //   --choice-press（0 か 1）で沈む深さと縮みを掛ける。塗りは、選んでいない箱は hover の塗りに本文の色を、選んだ箱は部品の色に黒を混ぜる
-      '[translate:0_calc(var(--choice-press)*var(--choice-press-depth))] [scale:calc(1-var(--choice-press)*(1-var(--choice-press-scale)))] [--choice-press:0]',
+      //   --choice-press（0 か 1）で沈む深さを掛ける。塗りは、選んでいない箱は hover の塗りに本文の色を、選んだ箱は部品の色に黒を混ぜる
+      '[translate:0_calc(var(--choice-press)*var(--choice-press-depth))] [--choice-press:0]',
       'not-data-disabled:group-has-[label:active]/choice:[--choice-press:1] not-data-disabled:active:[--choice-press:1]',
       'not-data-disabled:active:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
       'not-data-disabled:group-has-[label:active]/choice:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
       'not-data-disabled:active:[--choice-on-pressed:color-mix(in_oklab,var(--choice-on),black_var(--choice-on-press-darken))]',
       'not-data-disabled:group-has-[label:active]/choice:[--choice-on-pressed:color-mix(in_oklab,var(--choice-on),black_var(--choice-on-press-darken))]',
       ...focusRing,
-      // 塗りは入力欄と同じ長さ、沈む・縮むはボタンの押下と同じ長さ（どちらも押下の緩急）
+      // 沈む動きはボタンの押下と同じ長さと緩急
       // 塗りは動かさない。印（チェック・点）はすぐ出入りするので、塗りだけが遅れると、印のない濃い箱や、薄い箱の上の白い印が一瞬見えてちらつく
-      //   状態の移り変わりは速くする（原則2）。押したときに沈む動き（translate・scale）とフォーカスの線は動かす
-      '[transition:translate_var(--duration-press)_var(--ease-press),scale_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      //   状態の移り変わりは速くする（原則2）。押したときに沈む動きとフォーカスの線は動かす
+      '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     // 印は、箱が選んでいない状態になった描画で隠す。Base UI の Indicator は外れてから1フレーム残るので、そのままだと薄い箱の上に白い印が一瞬見える

@@ -14,6 +14,7 @@ const fieldAddon = tv({
     'flex shrink-0 items-center self-stretch px-(--space-control-x) whitespace-nowrap',
     // 塗り。エラーのときは --color-field-addon-invalid に差し替える
     'bg-(color:--addon-fill) [--addon-fill:var(--color-field-addon)] group-data-invalid/field:[--addon-fill:var(--color-field-addon-invalid)]',
+    '[--addon-inset:var(--field-addon-inset)] [--addon-round-inner:var(--field-addon-round-inner)]',
     '[--addon-radius:calc(var(--radius-control)-var(--field-border-width)-var(--addon-inset))]',
     '[--addon-radius-inner:calc(var(--addon-radius)*var(--addon-round-inner))]',
     '[--addon-edge:max(0px,calc(-1*var(--addon-inset)))]',
@@ -21,13 +22,11 @@ const fieldAddon = tv({
     // prefix（本体の最初の子）
     'first:[margin-inline-start:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
     'first:[border-inline-start-width:var(--addon-edge)] first:[border-inline-start-color:inherit]',
-    'first:[border-inline-end:var(--field-addon-divider)_solid_var(--color-bg)]',
     'first:[border-start-start-radius:var(--addon-radius)] first:[border-end-start-radius:var(--addon-radius)]',
     'first:[border-start-end-radius:var(--addon-radius-inner)] first:[border-end-end-radius:var(--addon-radius-inner)]',
     // suffix（本体の最後の子）
     'last:[margin-inline-end:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
     'last:[border-inline-end-width:var(--addon-edge)] last:[border-inline-end-color:inherit]',
-    'last:[border-inline-start:var(--field-addon-divider)_solid_var(--color-bg)]',
     'last:[border-start-end-radius:var(--addon-radius)] last:[border-end-end-radius:var(--addon-radius)]',
     'last:[border-start-start-radius:var(--addon-radius-inner)] last:[border-end-start-radius:var(--addon-radius-inner)]',
   ],
@@ -35,7 +34,6 @@ const fieldAddon = tv({
     kind: {
       // 文字（ラベル）: 本文より一段淡い文字。押しても入力欄にフォーカスが移る（TextField）
       text: [
-        '[--addon-inset:var(--field-addon-inset)] [--addon-round-inner:var(--field-addon-round-inner)]',
         'text-fg-muted group-data-invalid/field:text-[color:var(--color-on-field-addon-invalid,var(--color-fg-muted))]',
         'group-data-disabled/field:text-[color:var(--color-on-field-disabled,var(--color-fg-muted))]',
         // 待っているあいだ止める欄（design/adr/0042）も、押せない欄と同じ文字の色
@@ -44,7 +42,6 @@ const fieldAddon = tv({
       ],
       // ボタン: 平らな要素（原則3）。hover と押下で文字の色を淡く敷き、押下で中身が 1px 沈む（design/adr/0027）
       button: [
-        '[--addon-inset:var(--field-addon-button-inset)] [--addon-round-inner:var(--field-addon-button-round-inner)]',
         'group/addon cursor-pointer font-bold text-fg select-none',
         'group-data-invalid/field:text-[color:var(--color-on-field-addon-invalid,var(--color-fg))]',
         // キーボードでフォーカスしているあいだは、本体の枠線を消してこの線だけにする（controlBox — design/adr/0040）

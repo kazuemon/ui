@@ -326,31 +326,18 @@ const OWN_FOCUS: Record<SelectColor, string> = {
   neutral: '',
 };
 
-// 選んだ項目の見た目を、部品の色と design/tokens.css の切り替え（--select-item-selected-fill・-ink）から作る
-// --color-select-item-selected などの4つのトークンは、ふだんは未設定。外（比較のストーリーの行など）で指定したときだけ、それを使う
-// 浮かぶ部分（Popup）で解決し、一覧（List）で同じ名前に書き戻す。項目のクラスと、比較のストーリーの固定用の CSS は、この名前を読む
+// 選んだ項目の見た目を、部品の色から作る（ADR-0053: 淡い面＋部品の色の文字とチェック）。浮かぶ部分（Popup）に置き、項目のクラスが読む
 type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
-function selectedTokens(color: SelectColor): { popup: TokenStyle; list: TokenStyle } {
+function selectedTokens(color: SelectColor): TokenStyle {
   const { face, ink, focus } = TONES[color];
-  const fill = 'calc(var(--select-item-selected-fill) * 100%)';
   return {
-    popup: {
-      ...(focus ? { '--color-own-focus': focus } : {}),
-      '--select-face': face,
-      '--select-ink': ink,
-      '--select-selected': `var(--color-select-item-selected, color-mix(in oklab, var(--select-face) ${fill}, transparent))`,
-      // 選んだ項目の hover。面を敷くときは面を一段濃く（文字の色を 8% 混ぜる）、敷かないときはほかの項目と同じグレー
-      '--select-selected-highlight': `var(--color-select-item-selected-highlight, color-mix(in oklab, color-mix(in oklab, var(--select-face), var(--select-ink) 8%) ${fill}, var(--color-select-item-highlight)))`,
-      '--select-on-selected': `var(--color-on-select-item-selected, color-mix(in oklab, var(--select-ink) calc(var(--select-item-selected-ink) * 100%), var(--color-fg)))`,
-      '--select-check': 'var(--color-select-check, var(--select-ink))',
-    },
-    list: {
-      '--color-select-item-selected': 'var(--select-selected)',
-      '--color-select-item-selected-highlight': 'var(--select-selected-highlight)',
-      '--color-on-select-item-selected': 'var(--select-on-selected)',
-      '--color-select-check': 'var(--select-check)',
-    },
+    ...(focus ? { '--color-own-focus': focus } : {}),
+    '--color-select-item-selected': face,
+    // 選んだ項目の hover。面を一段濃く（文字の色を 8% 混ぜる）
+    '--color-select-item-selected-highlight': `color-mix(in oklab, ${face}, ${ink} 8%)`,
+    '--color-on-select-item-selected': ink,
+    '--color-select-check': ink,
   };
 }
 
@@ -604,7 +591,7 @@ export function Select({
   // 描く前（layout effect）に読むので、開いた最初の描画から同じ高さになる
   const triggerRef = useRef<HTMLButtonElement>(null);
   // 浮かぶ選択肢と本体の間（4px）。エラーの欄は、開いているあいだも本体の外に離した線を引くので（後半の軸 41 の M）、線の外側から同じ間をあける
-  // 線の太さと離し方は、描いている線（outline）から読む。線を引かない設定（--field-invalid-focus-ring: 0）では本体から 4px のまま
+  // 線の太さと離し方は、描いている線（outline）から読む
   const popupSideOffset = () => {
     const gap = 4;
     const el = triggerRef.current;
@@ -927,14 +914,11 @@ export function Select({
                 blocking ? 'cursor-progress' : 'cursor-pointer',
                 loading && 'relative',
                 'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:bg-field-focus',
-                // 成功の枠線（controlBox）を使うときも、開いているあいだは青い枠線を優先する
-                'group-data-success/field:data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))]',
-                'group-data-success/field:data-closing:border-[color:var(--control-focus-line,var(--color-focus))]',
-                // 入力欄にも離した線を引くとき（--field-focus-ring: 1 — 後半の軸 41）も、開いているあいだはフォーカス中と同じ線（controlBox）
+                // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
                 '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
                 '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
                 '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
-                // フォーカスの枠線を部品の色に従わせるときの色（--focus-follow-color: 1 — 後半の軸 41）
+                // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
                 OWN_FOCUS[color],
                 '[--field-addon-pad:calc(var(--space-control-x)-var(--field-border-width))]',
               ],
@@ -998,11 +982,7 @@ export function Select({
                 ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
                 data-slot="select-popup"
                 data-dragging={dragging || undefined}
-                style={
-                  sheetHeight !== undefined
-                    ? { ...selected.popup, height: sheetHeight }
-                    : selected.popup
-                }
+                style={sheetHeight !== undefined ? { ...selected, height: sheetHeight } : selected}
                 className={[
                   'p-(--select-popup-padding) text-(length:--text-control) leading-(--leading-control) text-fg outline-none',
                   'border-(length:--select-popup-line-width) border-(color:--color-select-popup-line) bg-(color:--color-select-popup)',
@@ -1018,13 +998,12 @@ export function Select({
                       ].join(' ')
                     : [
                         // 上下の余白は選択肢の内側に持たせ、続きの影が面の上下の端に接するようにする。角丸で切り抜く
-                        'min-w-(--anchor-width) origin-(--transform-origin) overflow-clip rounded-control py-0 [box-shadow:var(--shadow-select-popup)]',
-                        // 開閉の動き（--select-popup-duration-in・-out・-ease・-scale-x・-scale-y・-shift）
-                        // 大きさは本体の側（--transform-origin。開く向きで変わる）を起点に広がり、ずれは本体の側から離れる向きに動く
+                        'min-w-(--anchor-width) overflow-clip rounded-control py-0 [box-shadow:var(--shadow-select-popup)]',
+                        // 開閉の動き（--select-popup-duration-in・-out・-ease・-shift — ADR-0054 の D）
+                        // 本体の側から離れる向きにずれた位置から、濃さと一緒に滑る
                         // 動きを減らす設定では動かさず、すぐに出す・消す（原則3）
-                        'transition-[opacity,scale,translate] duration-(--select-popup-duration-in) ease-(--select-popup-ease) data-ending-style:duration-(--select-popup-duration-out)',
+                        'transition-[opacity,translate] duration-(--select-popup-duration-in) ease-(--select-popup-ease) data-ending-style:duration-(--select-popup-duration-out)',
                         'data-ending-style:opacity-0 data-starting-style:opacity-0',
-                        'data-ending-style:[scale:var(--select-popup-scale-x)_var(--select-popup-scale-y)] data-starting-style:[scale:var(--select-popup-scale-x)_var(--select-popup-scale-y)]',
                         'data-ending-style:[translate:0_calc(var(--select-popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--select-popup-shift)*-1)]',
                         'data-[side=top]:data-ending-style:[translate:0_var(--select-popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--select-popup-shift)]',
                         'motion-reduce:[transition:none]',
@@ -1127,7 +1106,6 @@ export function Select({
                   選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
                 <BaseSelect.List
                   ref={listRef}
-                  style={selected.list}
                   aria-describedby={
                     sheet
                       ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
@@ -1164,24 +1142,17 @@ export function Select({
                 {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
                   選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置く
                   読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため）
-                  シートでは、並び（--select-sheet-loading-justify）・足す高さ（--select-sheet-loading-extra）・
-                  上の区切り線（--select-sheet-loading-line-width。シートの幅いっぱい）をトークンで変えられる（後半の軸 34） */}
+                  シートでも浮かぶ選択肢と同じ行（ADR-0055）。下の余白だけ、端末の安全領域の分を空ける */}
                 {loadingRow && (
                   <div
                     data-slot="select-loading"
                     className={[
-                      'flex shrink-0 items-center gap-2 px-[calc(var(--space-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
+                      'flex h-(--size-control) shrink-0 items-center gap-2 px-[calc(var(--space-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
                       sheet
-                        ? 'relative h-[calc(var(--size-control)+var(--select-sheet-loading-extra))] mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))] [justify-content:var(--select-sheet-loading-justify)]'
-                        : 'h-(--size-control) mb-(--select-popup-padding)',
+                        ? 'mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]'
+                        : 'mb-(--select-popup-padding)',
                     ].join(' ')}
                   >
-                    {sheet && (
-                      <div
-                        aria-hidden
-                        className="absolute -inset-x-(--select-popup-padding) top-0 h-(--select-sheet-loading-line-width) bg-(color:--color-select-popup-line)"
-                      />
-                    )}
                     <Spinner />
                     {loadingText}
                   </div>

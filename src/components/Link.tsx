@@ -73,7 +73,7 @@ const link = tv({
         // group/link: 新しいタブの ↗ の下線のつなぎ目を、hover のあいだだけ重ねる（下の TextNewTabArrow）
         'group/link relative -mx-1 rounded-(--link-text-radius) box-decoration-clone px-1 py-0.5 underline-offset-4',
         // 色は [text-decoration-color:…] で書く。decoration-(color:…) は tailwind-merge が太さ（decoration-1）と同じ種類とみなして消す
-        'underline decoration-1 [text-decoration-color:var(--color-link-underline)]',
+        'underline [text-decoration-color:var(--color-link-underline)] decoration-1',
         'not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)]',
         'not-data-disabled:active:top-(--flat-press-depth)',
         // 下線の色の変化は --link-underline-duration で動かす
