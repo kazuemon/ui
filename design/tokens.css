@@ -78,8 +78,18 @@
   --palette-info-50: #e1ecfc;
 
   /* ── 尺度の層 ─────────────────────────────────────
-     役割と部品が共通で使う値。角丸（--radius-md・-xl・-2xl）、余白（--spacing。4px 刻み）、緩急（--ease-in-out）は、
-     Tailwind の既定の尺度をそのまま使うので、ここには書かない（利用者の rounded-xl・p-2 と部品が同じ値になる） */
+     役割と部品が共通で使う値。余白と角丸は Tailwind と同じ名前・同じ値で、px で持つ（利用者の p-2・rounded-xl と部品が同じ値になる）
+     Tailwind の既定は rem。部品の高さと文字は px なので、ブラウザの文字の大きさを変えたときに余白と角丸だけが大きくならないよう、px にそろえる
+     （rem にするかは、高さと文字と一緒に backlog の「全体の倍率」で決める）。緩急（--ease-in-out）は Tailwind の既定をそのまま使う */
+  --spacing: 4px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
   --border-width-thin: 1px; /* 細い境界線・白いボタンの輪郭・浮かぶ選択肢の輪郭 */
   --border-width-medium: 1.5px; /* 枠線のボタン・枠線のリンク・エラーの箱の線 */
   --border-width-thick: 2px; /* 入力欄の枠線・フォーカスの線 */
