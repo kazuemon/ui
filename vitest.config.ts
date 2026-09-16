@@ -11,6 +11,7 @@ import viteConfig from './vite.config.ts';
 // 対象は .storybook/main.ts の stories と同じ。ブラウザは `pnpm exec playwright install --only-shell chromium` で入れる
 // vite.config.ts（React と Tailwind）を重ねる。重ねないと、テストでは CSS が Tailwind を通らない
 // tags: ['visual'] の付いたストーリーは、見た目もくらべる（.storybook/visual.setup.ts）
+// src の *.test.ts は、ブラウザを使わない unit のプロジェクトで動かす
 export default mergeConfig(
   viteConfig,
   defineConfig({
@@ -58,6 +59,16 @@ export default mergeConfig(
               },
               instances: [{ browser: 'chromium' }],
             },
+          },
+        },
+        // ストーリーではない、部品の設定の確かめ（*.test.ts）。Node で動かす
+        {
+          test: {
+            name: 'unit',
+            include: ['src/**/*.test.ts'],
+            environment: 'node',
+            // Vitest は既定で CSS を空にするので、tokens.css の中身（?raw）を読むテストのために通す
+            css: { include: [/design\/tokens\.css/] },
           },
         },
       ],

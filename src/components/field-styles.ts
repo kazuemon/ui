@@ -1,4 +1,4 @@
-import { tv } from 'tailwind-variants';
+import { tv } from './tv';
 
 // 原則4: ラベル / 本体 / キャプションの3層。エラー・警告は本体の下の行に、アイコン＋文で出す（design/adr/0041）
 // エラーのときは、状態の枠線（--color-focus）を赤に、塗りをエラーの塗りに差し替える（原則2）

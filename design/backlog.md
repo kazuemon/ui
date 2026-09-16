@@ -100,7 +100,8 @@
 
 - 色のばらつきを整える軸は、あとでやります（「色のばらつきは後からやりましょう」— [ADR-0076](./adr/0076-token-structure.md)）。パレットを OKLCH で測ると、同じ番号でも明度がそろわない（50 は 0.940〜0.970、700 は 0.499〜0.564）、番号の意味が族ごとに違う（pink-500 は中くらい、warning-500 は明るい）、ほぼ同じ色が別の名前で並ぶ（gray-100 と gray-150、gray-200 と gray-300）、薄い赤が 3 段で間が不ぞろい（red-50・red-75・red-100。色相も 23°・17°・26°）、グレーの色相が 197° と 229° で混ざる、が分かっています。ストーリーでパレットの表と部品の見本を候補ごとに並べ、グレー → 赤・ピンク → 青・水色 → 状態の色の順に1軸ずつ決める計画です
 - パッケージとしてテーマの CSS を出すときは、tokens.css に加えて、密度の規則（いまは `src/styles/globals.css`）も含めます。Tailwind の既定の色と影を消す `@theme` は、利用者に渡すテーマには入れません
-- 利用者が tailwind-merge（`cn()` など）を使うとき、`h-control`・`text-caption`・`rounded-control` などの名前を知らせる設定（`extendTailwindMerge` の theme）を、ライブラリから出すかは決めていません。知らせないと、`text-caption` が色のクラスとみなされて消えます。部品の中は `h-(--spacing-control)` の書き方で避けています
+- 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
+- tailwind-merge の設定（`twMergeConfig`）は、パッケージの入口（`src/index.ts`）を作るときに export します（ADR-0077）
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
 - 使っていないトークンがあります: ブランドの色（`--color-brand`・`--color-fg-brand`・`--color-on-brand`）、カード（`--card-*`）、セクションラベル（`--label-*`）、`--font-weight-heading`、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
 

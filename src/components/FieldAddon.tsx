@@ -1,5 +1,5 @@
 import { type ComponentProps, type ReactNode, use } from 'react';
-import { tv } from 'tailwind-variants';
+import { tv } from './tv';
 
 import { FieldAddonDisabled } from './field-addon-context';
 import { focusRing } from './focus-styles';

@@ -6,7 +6,7 @@ import {
   type ReactNode,
   useId,
 } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
 
 import { Button } from './Button';
 import { focusRing } from './focus-styles';
@@ -24,6 +24,7 @@ import {
   withoutNavigation,
   withRenderOverrides,
 } from './link-parts';
+import { tv } from './tv';
 
 // 原則5: リンクなどの小物は pill。原則7の例外: 密度の高い並び（More、SNS のアカウント一覧）は枠線
 // 影のない平らな要素なので、hover と押下は塗りの濃さで表し、押下で 1px 沈む（原則3、design/adr/0027）

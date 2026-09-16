@@ -1,5 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
+
+import { tv } from './tv';
 
 // Badge（数と小さな状態の点）— 後半の軸 39 で A 案（高さ 16px の濃い塗り、重ねるときは縁 2px）に決めた。値は design/tokens.css の --badge-* にある
 // タグ（src/components/Tag.tsx）とは別の、素の要素で作る部品。押せない

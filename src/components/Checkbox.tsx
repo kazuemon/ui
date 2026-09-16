@@ -9,11 +9,12 @@ import {
   useId,
   useMemo,
 } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
 
 import { type CaptionPlacement, Field, FieldMessageLine } from './Field';
 import { focusRing } from './focus-styles';
 import { useChoiceLock } from './form-context';
+import { tv } from './tv';
 
 // チェックボックスとラジオ（原則8・原則5）— 後半の軸 40。Radio.tsx もこの見た目を使う
 // 入力欄の仲間: ふだんは選んでいない箱の塗り（--color-choice、トグルの OFF と同じグレー）で、枠線・影なし。hover で半段濃くなる

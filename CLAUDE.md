@@ -22,7 +22,7 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `design/references/`                   | 原則の出どころの参照画像                                                                    |
 | `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す      |
 | `design/tools/`                        | 生成・撮影・測定のスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md) |
-| `src/components/`                      | 部品。props の説明は JSDoc に書く                                                           |
+| `src/components/`                      | 部品。props の説明は JSDoc に書く。`tv` は `./tv` から読む（tailwind-merge にクラスの名前を知らせた設定 — ADR-0077） |
 | `src/styles/globals.css`               | tokens.css を読み込み、密度を入力方式から解決する                                           |
 
 よく使うコマンド:

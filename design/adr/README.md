@@ -144,3 +144,4 @@
 | [0074](./0074-a11y-review-deferred.md) | 2026-09-14 の a11y レビューのうち、据え置き・backlog にしたもの | Accepted |
 | [0075](./0075-notice-region.md) | あとから出すお知らせの領域と、閉じるボタンの名前 | Accepted |
 | [0076](./0076-token-structure.md) | トークンを尺度・役割・部品に分け、Tailwind の名前空間で公開する | Accepted |
+| [0077](./0077-tailwind-merge-config.md) | tailwind-merge にライブラリのクラスの名前を知らせる | Accepted |

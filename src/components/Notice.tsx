@@ -1,6 +1,6 @@
 import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
 import { createPortal } from 'react-dom';
-import { tv } from 'tailwind-variants';
+import { tv } from './tv';
 
 import { focusRing } from './focus-styles';
 import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon, XIcon } from './icons';

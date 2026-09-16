@@ -1,5 +1,7 @@
 import type { ComponentProps } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
+
+import { tv } from './tv';
 
 // タグ（分類や「公開中」などの状態を表す、押せない文字のラベル）。原則5: 小物は pill
 // 数と小さな状態の点は Badge、押せる・消せる小物は Chip（まだない）として分ける

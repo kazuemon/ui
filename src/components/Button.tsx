@@ -8,7 +8,7 @@ import {
   useId,
   useState,
 } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from './focus-styles';
 import { FormSubmitContext } from './form-context';
@@ -25,6 +25,7 @@ import {
   withRenderOverrides,
 } from './link-parts';
 import { type LoadingIndicator, LoadingBar, Spinner } from './Loading';
+import { tv } from './tv';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
 // 原則3: hover で影が輪郭だけになり、押下で 1px 沈む（design/adr/0009）。押しても輪郭の線は残す（design/adr/0033）

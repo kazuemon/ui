@@ -1,10 +1,11 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';
-import { tv, type VariantProps } from 'tailwind-variants';
+import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from './focus-styles';
 import { useChoiceLock } from './form-context';
+import { tv } from './tv';
 
 // OFF のトラックはグレー（チェックボックスの選んでいない箱と同じ色。--color-switch-off）で、輪郭を付けない（design/adr/0011）
 // ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
