@@ -51,6 +51,8 @@
 
 ## フェーズ 0：ライブラリの入口を作る
 
+> **状態（2026-09-17）**: 1〜3 は済みました（`src/index.ts`、`package.json` の `exports`・`files`、`src/styles/index.css`・`theme.css`・`globals.css` の分割）。`index.css` はストーリーのクラスを拾いません。残りは 4 と「確かめること」です。
+
 docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`src/` を直接読ませないのは、公開している export だけで組めるかも同時に確かめるためです。
 
 1. `src/index.ts` を作り、部品を export する

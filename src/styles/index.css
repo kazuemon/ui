@@ -1,0 +1,8 @@
+/* 利用者向けの CSS（package.json の exports の ./styles.css）。Tailwind・トークン・フォント・密度 */
+@import 'tailwindcss' source(none);
+/* クラス名を探す場所は部品だけ。ストーリーのクラスは利用者に渡さない */
+@source '../../src';
+@source not '../../src/**/*.stories.tsx';
+@source not '../../src/stories';
+
+@import './theme.css';
