@@ -87,7 +87,7 @@
 | [0017](./0017-card-media-aspect.md)               | カードの画像の比率                                                     | Accepted           |
 | [0018](./0018-icon-weight-by-context.md)          | アイコンの太さを文脈で分ける                                           | Accepted           |
 | [0019](./0019-field-focus-change.md)              | 入力欄のフォーカス時の変化量                                           | Accepted           |
-| [0020](./0020-control-size-fine.md)               | マウス用の寸法                                                         | Accepted           |
+| [0020](./0020-control-size-fine.md)               | マウス用の寸法                                                         | Superseded by 0079 |
 | [0021](./0021-field-error-fill.md)                | エラー時の入力欄の塗り                                                 | Accepted           |
 | [0022](./0022-field-hover.md)                     | 入力欄の hover                                                         | Accepted           |
 | [0023](./0023-danger-color.md)                    | Danger と Secondary の区別                                             | Accepted           |
@@ -145,3 +145,6 @@
 | [0075](./0075-notice-region.md)                   | あとから出すお知らせの領域と、閉じるボタンの名前                       | Accepted           |
 | [0076](./0076-token-structure.md)                 | トークンを尺度・役割・部品に分け、Tailwind の名前空間で公開する        | Accepted           |
 | [0077](./0077-tailwind-merge-config.md)           | tailwind-merge にライブラリのクラスの名前を知らせる                    | Accepted           |
+| [0078](./0078-reading-type.md)                    | 読む文字の大きさ                                                       | Accepted           |
+| [0079](./0079-control-type-and-height.md)         | 部品の文字と高さ・余白（入力方式で文字だけを変える）                   | Accepted           |
+| [0080](./0080-icon-size.md)                       | アイコンの大きさ                                                       | Accepted           |

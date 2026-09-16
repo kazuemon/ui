@@ -46,13 +46,16 @@ export const fieldStyles = tv({
 });
 
 // 編集できる入力欄の本体（原則8）。TextField と Select のボタンで共有する
+// 文字は文字を打つ欄の大きさ（指でも 16px）。TextField と Select の値の大きさをそろえる（prefix・suffix の文字も同じ）
 // 原則2: 通常はグレーの塗り・枠線なし。フォーカスでは塗りを変えず、2px の枠線を足す（design/adr/0019）
 // 枠線は通常時も透明で確保しておき、フォーカスで文字がずれないようにする
 export const controlBox = tv({
   base: [
     'flex h-(--spacing-control) w-full min-w-0 items-center gap-(--spacing-control-x) rounded-control',
     'border-(length:--field-border-width) border-transparent bg-field',
-    'px-[calc(var(--spacing-control-x)-var(--field-border-width))] text-(length:--text-control) leading-(--leading-control) text-fg',
+    'px-[calc(var(--spacing-control-x)-var(--field-border-width))] text-input text-fg',
+    // 中のアイコン（▼・suffix のボタン・回る印・成功の印）は入力欄のアイコンの大きさ
+    '[--spacing-icon:var(--spacing-icon-input)]',
     'transition-[background-color,border-color,outline-color,outline-offset,box-shadow] duration-(--duration-field) ease-press motion-reduce:transition-none',
     'hover:not-focus-within:bg-field-hover',
     // フォーカスは枠線だけで表す。ブラウザのフォーカスの線は出さない（Select のボタンで枠線と重なっていた）

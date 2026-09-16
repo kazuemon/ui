@@ -291,6 +291,7 @@
      --spacing-field-gap   ラベル・本体・キャプションの間
      --spacing-icon        部品の中の文字と並ぶアイコン
      --text-control・--leading-control  部品の中の文字
+     --text-input・--leading-input      文字を打つ欄の値（指でも 16px）
      --text-label・--text-caption       部品のラベルとキャプション（原則4） */
 @theme reference {
   --spacing-control: var(--spacing-control-fine);
@@ -300,10 +301,34 @@
   --leading-control: var(--leading-control-fine);
   --text-control: var(--text-control-fine);
   --text-control--line-height: var(--leading-control);
+  --text-input: var(--text-input-fine);
+  --text-input--line-height: var(--leading-input);
+  --leading-input: var(--leading-input-fine);
   --text-label: var(--text-label-fine);
   --text-label--line-height: var(--leading-label);
   --text-caption: var(--text-caption-fine);
   --text-caption--line-height: var(--leading-caption);
+  /* 読む文字（Text・Heading）。部品の中の文字とは別に持つ — 軸 51
+     --text-body・--text-body-sm          本文と、本文より小さい注記
+     --text-heading-1〜4                  見出しの 4 段（h5・h6 は 4 段目） */
+  --text-body: var(--text-body-fine);
+  --text-body--line-height: var(--leading-body);
+  --leading-body: var(--leading-body-fine);
+  --text-body-sm: var(--text-body-sm-fine);
+  --text-body-sm--line-height: var(--leading-body-sm);
+  --leading-body-sm: var(--leading-body-sm-fine);
+  --text-heading-1: var(--text-heading-1-fine);
+  --text-heading-1--line-height: var(--leading-heading-1);
+  --leading-heading-1: var(--leading-heading-1-fine);
+  --text-heading-2: var(--text-heading-2-fine);
+  --text-heading-2--line-height: var(--leading-heading-2);
+  --leading-heading-2: var(--leading-heading-2-fine);
+  --text-heading-3: var(--text-heading-3-fine);
+  --text-heading-3--line-height: var(--leading-heading-3);
+  --leading-heading-3: var(--leading-heading-3-fine);
+  --text-heading-4: var(--text-heading-4-fine);
+  --text-heading-4--line-height: var(--leading-heading-4);
+  --leading-heading-4: var(--leading-heading-4-fine);
 }
 
 /* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
@@ -317,26 +342,71 @@
 /* ── 部品の層（部品の中だけで使う。名前も値も予告なく変える） ─── */
 :root {
   /* 密度（design/adr/0004）: 寸法は入力方式で切り替える
-     高さは、指用が design/adr/0045、マウス用が design/adr/0020 で決定。ほかは仮（後半の軸）
+     高さは、マウスも指も 44px（design/adr/0045。マウスの 40px — design/adr/0020 — は、文字を 16px にしたときに詰まって見えたのでそろえた）。大きい指用だけ 52px
      切り替えは src/styles/globals.css が --spacing-control などに解決する */
   --spacing-control-coarse: 44px; /* 指 — design/adr/0045 */
   /* 大きい指用: .coarse-large を付けた要素の中の、指用の高さ（design/adr/0045）。マウス用は変えない */
   --spacing-control-coarse-large: 52px;
-  --spacing-control-fine: 40px; /* マウス — design/adr/0020 */
-  --text-control-coarse: 16px;
-  --text-control-fine: 14px;
-  --leading-control-coarse: 24px; /* 44px の部品で上下 10px。52px（大きい指用）で上下 14px */
-  --leading-control-fine: 20px; /* 40px の部品で上下 10px */
+  --spacing-control-fine: 44px; /* マウスも指と同じ高さ（design/adr/0020 の 40px から変えた）。16px の文字で上下 10px */
+  /* 部品の文字 — 読む文字（軸 51）と一緒に、マウスと指を入れ替えた。マウスで大きく、指で小さく
+     行の高さは部品の高さとの差を偶数にする: マウス 44 − 24 = 20（上下 10px）、指 44 − 20 = 24（上下 12px）、大きい指 52 − 20 = 32（上下 16px） */
+  --text-control-coarse: 14px;
+  --text-control-fine: 16px;
+  --leading-control-coarse: 20px;
+  --leading-control-fine: 24px;
+  /* 入力欄の本体（TextField・Select の値とプレースホルダ、prefix・suffix の文字）は、指でも 16px。iPhone の Safari は 16px より小さい欄にフォーカスすると画面を拡大するため。
+     Select も TextField と同じ見た目なので、値の大きさをそろえる
+     行の高さは 24px（指 44 − 24 = 20、大きい指 52 − 24 = 28。どれも差が偶数） */
+  --text-input-coarse: 16px;
+  --text-input-fine: 16px;
+  --leading-input-coarse: 24px;
+  --leading-input-fine: 24px;
+  /* ラベルとキャプションは、マウスと指で同じ大きさ（大きいほうにそろえた） */
   --text-label-coarse: 14px;
-  --text-label-fine: 13px;
+  --text-label-fine: 14px;
   --text-caption-coarse: 12px;
-  --text-caption-fine: 11px;
+  --text-caption-fine: 12px;
   --spacing-control-x-coarse: calc(var(--spacing) * 4); /* 16px */
-  --spacing-control-x-fine: calc(var(--spacing) * 3); /* 12px */
+  /* 左右の余白は、指と同じ 16px（操作方法で余白を変えない） */
+  --spacing-control-x-fine: calc(var(--spacing) * 4);
   --spacing-field-gap-coarse: calc(var(--spacing) * 2); /* 8px */
-  --spacing-field-gap-fine: calc(var(--spacing) * 1.5); /* 6px */
-  --spacing-icon-coarse: 20px;
-  --spacing-icon-fine: 16px;
+  --spacing-field-gap-fine: calc(var(--spacing) * 2); /* 8px。指と同じ */
+  /* アイコン — 軸 56 の A。文字とアイコンの比を「16px の文字に 20px」にそろえる
+     部品の文字はマウス 16・指 14 なので、アイコンはマウス 20・指 16 */
+  --spacing-icon-coarse: 16px;
+  --spacing-icon-fine: 20px;
+  /* 入力欄（TextField・Select の本体と選択肢）の中のアイコン（▼・表示の切り替え・回る印・チェック）
+     入力欄の文字は指でもマウスでも 16px なので、アイコンもどちらも 20px */
+  --spacing-icon-input-coarse: 20px;
+  --spacing-icon-input-fine: 20px;
+  /* 読む文字の大きさと行の高さ — 軸 51 の E
+     マウスでは本文 16px。指では、機能の画面（設定・SNS など）の本文を 14px にし、部品の文字と同じ大きさにする
+     読みもの（Prose の中。data-reading を付けた要素）では、指でもマウスと同じ大きさ（本文 16px）を保つ（src/styles/theme.css）
+     見出しは B の段の付け方（4 段目は本文と同じ大きさの太字）。大きさはどれも偶数、行の高さとの差も偶数（上下の余白が 0.5px にならない） */
+  --text-body-fine: 16px;
+  --text-body-coarse: 14px;
+  --leading-body-fine: 28px;
+  --leading-body-coarse: 24px;
+  --text-body-sm-fine: 14px;
+  --text-body-sm-coarse: 12px;
+  --leading-body-sm-fine: 24px;
+  --leading-body-sm-coarse: 20px;
+  --text-heading-1-fine: 28px;
+  --text-heading-1-coarse: 24px;
+  --leading-heading-1-fine: 40px;
+  --leading-heading-1-coarse: 34px;
+  --text-heading-2-fine: 22px;
+  --text-heading-2-coarse: 20px;
+  --leading-heading-2-fine: 32px;
+  --leading-heading-2-coarse: 30px;
+  --text-heading-3-fine: 18px;
+  --text-heading-3-coarse: 16px;
+  --leading-heading-3-fine: 28px;
+  --leading-heading-3-coarse: 26px;
+  --text-heading-4-fine: 16px;
+  --text-heading-4-coarse: 14px;
+  --leading-heading-4-fine: 28px;
+  --leading-heading-4-coarse: 24px;
 
   /* 送信中（loading）の既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる — adr/0034 */
   --loading-label-opacity: 0.55;

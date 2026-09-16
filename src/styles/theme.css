@@ -36,11 +36,26 @@
     --spacing-control: var(--spacing-control-fine);
     --text-control: var(--text-control-fine);
     --leading-control: var(--leading-control-fine);
+    --text-input: var(--text-input-fine);
+    --leading-input: var(--leading-input-fine);
     --text-label: var(--text-label-fine);
     --text-caption: var(--text-caption-fine);
     --spacing-control-x: var(--spacing-control-x-fine);
     --spacing-field-gap: var(--spacing-field-gap-fine);
     --spacing-icon: var(--spacing-icon-fine);
+    --spacing-icon-input: var(--spacing-icon-input-fine);
+    --text-body: var(--text-body-fine);
+    --leading-body: var(--leading-body-fine);
+    --text-body-sm: var(--text-body-sm-fine);
+    --leading-body-sm: var(--leading-body-sm-fine);
+    --text-heading-1: var(--text-heading-1-fine);
+    --leading-heading-1: var(--leading-heading-1-fine);
+    --text-heading-2: var(--text-heading-2-fine);
+    --leading-heading-2: var(--leading-heading-2-fine);
+    --text-heading-3: var(--text-heading-3-fine);
+    --leading-heading-3: var(--leading-heading-3-fine);
+    --text-heading-4: var(--text-heading-4-fine);
+    --leading-heading-4: var(--leading-heading-4-fine);
     --switch-w: var(--switch-w-fine);
     --switch-h: var(--switch-h-fine);
     --switch-knob: var(--switch-knob-fine);
@@ -52,11 +67,26 @@
       --spacing-control: var(--spacing-control-coarse);
       --text-control: var(--text-control-coarse);
       --leading-control: var(--leading-control-coarse);
+      --text-input: var(--text-input-coarse);
+      --leading-input: var(--leading-input-coarse);
       --text-label: var(--text-label-coarse);
       --text-caption: var(--text-caption-coarse);
       --spacing-control-x: var(--spacing-control-x-coarse);
       --spacing-field-gap: var(--spacing-field-gap-coarse);
       --spacing-icon: var(--spacing-icon-coarse);
+      --spacing-icon-input: var(--spacing-icon-input-coarse);
+      --text-body: var(--text-body-coarse);
+      --leading-body: var(--leading-body-coarse);
+      --text-body-sm: var(--text-body-sm-coarse);
+      --leading-body-sm: var(--leading-body-sm-coarse);
+      --text-heading-1: var(--text-heading-1-coarse);
+      --leading-heading-1: var(--leading-heading-1-coarse);
+      --text-heading-2: var(--text-heading-2-coarse);
+      --leading-heading-2: var(--leading-heading-2-coarse);
+      --text-heading-3: var(--text-heading-3-coarse);
+      --leading-heading-3: var(--leading-heading-3-coarse);
+      --text-heading-4: var(--text-heading-4-coarse);
+      --leading-heading-4: var(--leading-heading-4-coarse);
       --switch-w: var(--switch-w-coarse);
       --switch-h: var(--switch-h-coarse);
       --switch-knob: var(--switch-knob-coarse);
@@ -68,14 +98,49 @@
     --spacing-control: var(--spacing-control-coarse);
     --text-control: var(--text-control-coarse);
     --leading-control: var(--leading-control-coarse);
+    --text-input: var(--text-input-coarse);
+    --leading-input: var(--leading-input-coarse);
     --text-label: var(--text-label-coarse);
     --text-caption: var(--text-caption-coarse);
     --spacing-control-x: var(--spacing-control-x-coarse);
     --spacing-field-gap: var(--spacing-field-gap-coarse);
     --spacing-icon: var(--spacing-icon-coarse);
+    --spacing-icon-input: var(--spacing-icon-input-coarse);
+    --text-body: var(--text-body-coarse);
+    --leading-body: var(--leading-body-coarse);
+    --text-body-sm: var(--text-body-sm-coarse);
+    --leading-body-sm: var(--leading-body-sm-coarse);
+    --text-heading-1: var(--text-heading-1-coarse);
+    --leading-heading-1: var(--leading-heading-1-coarse);
+    --text-heading-2: var(--text-heading-2-coarse);
+    --leading-heading-2: var(--leading-heading-2-coarse);
+    --text-heading-3: var(--text-heading-3-coarse);
+    --leading-heading-3: var(--leading-heading-3-coarse);
+    --text-heading-4: var(--text-heading-4-coarse);
+    --leading-heading-4: var(--leading-heading-4-coarse);
     --switch-w: var(--switch-w-coarse);
     --switch-h: var(--switch-h-coarse);
     --switch-knob: var(--switch-knob-coarse);
+  }
+
+  /*
+   * 読みもの（記事。Prose が付ける data-reading）: 指で操作していても、読む文字はマウスと同じ大きさにする — 軸 51
+   * 機能の画面では、指のときに本文を部品の文字と同じ 14px にし、読みものでは読みやすさを優先して大きさを保つ
+   * 密度の規則より後に書く（同じ要素に data-density が付いていても、読む文字はこちらが勝つ）
+   */
+  [data-reading] {
+    --text-body: var(--text-body-fine);
+    --leading-body: var(--leading-body-fine);
+    --text-body-sm: var(--text-body-sm-fine);
+    --leading-body-sm: var(--leading-body-sm-fine);
+    --text-heading-1: var(--text-heading-1-fine);
+    --leading-heading-1: var(--leading-heading-1-fine);
+    --text-heading-2: var(--text-heading-2-fine);
+    --leading-heading-2: var(--leading-heading-2-fine);
+    --text-heading-3: var(--text-heading-3-fine);
+    --leading-heading-3: var(--leading-heading-3-fine);
+    --text-heading-4: var(--text-heading-4-fine);
+    --leading-heading-4: var(--leading-heading-4-fine);
   }
 }
 
