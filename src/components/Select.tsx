@@ -931,12 +931,14 @@ export function Select({
             />
             {loading && loadingIndicator === 'spinner' && (
               <FieldSpinner
-                className={loadingBlocking ? undefined : 'me-[calc(8px-var(--space-control-x))]'}
+                className={
+                  loadingBlocking ? undefined : 'me-[calc(var(--spacing)*2-var(--space-control-x))]'
+                }
               />
             )}
             {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
             {success && successMark && !error && !loading && (
-              <FieldSuccessMark className="me-[calc(8px-var(--space-control-x))]" />
+              <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--space-control-x))]" />
             )}
             {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-select-icon-disabled。disabledIcon="hide" で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す

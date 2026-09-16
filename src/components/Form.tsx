@@ -319,7 +319,7 @@ export function Form({
             >
               {/* 項目の間は、欄の中の行の間と同じ --space-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
                 題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
-              <ul className="mt-[calc(var(--space-field-gap)-2px)] flex flex-col gap-(--space-field-gap)">
+              <ul className="mt-[calc(var(--space-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--space-field-gap)">
                 {summary.entries.map((entry) => (
                   <li key={entry.messageId}>
                     <Link

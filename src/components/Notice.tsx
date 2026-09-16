@@ -27,7 +27,7 @@ export type NoticeAppearance = 'soft' | 'filled' | 'outline';
 // 中のリンクは、お知らせの文字の色にする（塗りの上でも読めるように）。操作の場所のリンクは太字
 const notice = tv({
   base: [
-    'flex items-start gap-x-[calc(var(--space-control-x)-4px)] rounded-(--notice-radius) p-(--space-control-x)',
+    'flex items-start gap-x-[calc(var(--space-control-x)-var(--spacing))] rounded-(--notice-radius) p-(--space-control-x)',
     'text-(length:--text-control) leading-(--leading-control)',
     'bg-(color:--notice-bg) text-(color:--notice-fg)',
     '[--color-focus-ring:var(--notice-ring-color)] [&_a]:[--link-color:currentColor]',

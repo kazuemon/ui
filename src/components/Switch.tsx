@@ -196,7 +196,7 @@ const styles = tv({
       'data-disabled:not-data-checked:bg-(color:--color-switch-off-disabled) data-disabled:not-data-checked:opacity-100',
     ],
     thumb: [
-      'block size-(--switch-knob) rounded-pill bg-surface shadow-[0_1px_2px_rgb(31_47_55/0.3)]',
+      'block size-(--switch-knob) rounded-pill bg-surface shadow-(--shadow-switch-knob)',
       'transition-[translate,scale] duration-(--duration-press) ease-press motion-reduce:transition-none',
       'data-checked:translate-x-[calc(var(--switch-w)-var(--switch-knob)-var(--switch-inset)*2)]',
       // 押しているあいだ（トラックかラベル）は縮む。押せないときは縮まない

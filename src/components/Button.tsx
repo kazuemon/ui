@@ -70,7 +70,7 @@ const button = tv({
       ],
       // 枠線のボタンは平らな要素（原則3）: hover と押下で文字の色を淡く敷き、押下で 1px 沈む（design/adr/0027）
       outline: [
-        'border-[1.5px] border-(color:--button-line) bg-transparent text-(color:--button-line)',
+        'border-(length:--border-width-medium) border-(color:--button-line) bg-transparent text-(color:--button-line)',
         '[--button-accent:var(--button-line)] [--button-ink:var(--button-line)]',
         'not-[:disabled,[data-disabled]]:not-data-loading:hover:bg-flat-hover not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--flat-press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:bg-flat-press',
         'disabled:border-[color:var(--color-disabled-fg,var(--button-line))] disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',

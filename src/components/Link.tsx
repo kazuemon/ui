@@ -86,7 +86,7 @@ const link = tv({
       // 枠線のリンク。枠線のボタンと同じく、文字の色を淡く敷く
       outline: [
         // pill（原則5）。文字のリンクの角丸は --link-text-radius（フォーカスの線が沿う — design/adr/0031）
-        'inline-flex h-(--size-control) items-center gap-2 rounded-pill border-[1.5px] border-current px-(--space-control-x) whitespace-nowrap',
+        'inline-flex h-(--size-control) items-center gap-2 rounded-pill border-(length:--border-width-medium) border-current px-(--space-control-x) whitespace-nowrap',
         'text-(length:--text-control) leading-(--leading-control) font-bold',
         'not-data-disabled:hover:bg-flat-hover not-data-disabled:active:translate-y-(--flat-press-depth) not-data-disabled:active:bg-flat-press',
         '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -289,12 +289,12 @@ function PlainLink({
     if (centerEnd && trailing !== null) {
       // 右端のアイコンの分を左に足す。前のアイコンが左端に残るとき（--link-lead-icon-follow: 0）は、それがつり合うので足さない
       balance = leadIcon
-        ? 'ps-[calc(var(--space-control-x)+var(--link-lead-icon-follow)*(var(--size-icon)+0.5rem))]'
-        : 'ps-[calc(var(--space-control-x)+var(--size-icon)+0.5rem)]';
+        ? 'ps-[calc(var(--space-control-x)+var(--link-lead-icon-follow)*(var(--size-icon)+var(--spacing)*2))]'
+        : 'ps-[calc(var(--space-control-x)+var(--size-icon)+var(--spacing)*2)]';
     } else if (centerEnd && leadIcon) {
       // 前のアイコンだけのとき。左端に残るなら、その分を右に足す
       balance =
-        'pe-[calc(var(--space-control-x)+(1-var(--link-lead-icon-follow))*(var(--size-icon)+0.5rem))]';
+        'pe-[calc(var(--space-control-x)+(1-var(--link-lead-icon-follow))*(var(--size-icon)+var(--spacing)*2))]';
     }
     content = (
       <>
