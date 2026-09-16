@@ -307,13 +307,13 @@ function loadingRowLength(list: HTMLElement) {
 //   neutral は持たない（--color-focus のまま）。本体には OWN_FOCUS のクラスで、浮かぶ部分（シートの × など）には style で置く
 const TONES: Record<SelectColor, { face: string; ink: string; focus?: string }> = {
   primary: {
-    face: 'var(--color-tag-primary)',
-    ink: 'var(--color-on-tag-primary)',
+    face: 'var(--color-primary-subtle)',
+    ink: 'var(--color-on-primary-subtle)',
     focus: 'var(--color-primary)',
   },
   secondary: {
-    face: 'var(--color-tag-secondary)',
-    ink: 'var(--color-on-tag-secondary)',
+    face: 'var(--color-secondary-subtle)',
+    ink: 'var(--color-on-secondary-subtle)',
     focus: 'var(--color-fg-secondary)',
   },
   neutral: { face: 'var(--color-select-neutral-selected)', ink: 'var(--color-fg)' },
@@ -1073,7 +1073,7 @@ export function Select({
                               className={styles.message({
                                 className: [
                                   'mt-0.5',
-                                  kind === 'error' ? 'text-danger' : 'text-fg-warning',
+                                  kind === 'error' ? 'text-fg-danger' : 'text-fg-warning',
                                 ].join(' '),
                               })}
                             >

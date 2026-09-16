@@ -21,8 +21,9 @@ export type NoticeAppearance = 'soft' | 'filled' | 'outline';
 // 原則1: 影は付けない。お知らせそのものは押せない。押せるのは中のリンクとボタンだけ（白いボタンは、ボタンなので影がある）
 // 形: アイコン → 題・本文・操作を縦に積み、× は右上。角丸は部品と同じ（--notice-radius）。余白と文字は部品の寸法（密度で変わる）
 //   余白は --space-control-x、アイコンと文の間は --space-control-x から 4px 引いた値
-// 色は --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-line-color・--notice-ring-color に入れる
-// フォーカスの線（design/adr/0031）: soft と outline は青のまま。filled は塗りの上で青が見えない（1.00〜1.48:1）ので、
+// 色は状態の役割（--color-{状態}・--color-on-{状態}・--color-fg-{状態}・--color-{状態}-subtle）を color で受け取り、
+//   見た目（appearance）で --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-ring-color に割り当てる
+// フォーカスの線（design/adr/0031）: soft と outline は濃紺（--color-focus）。filled は塗りの上で青が見えない（1.00〜1.48:1）ので、
 //   中のリンク・ボタン・× の線を文字の色（白か濃紺）にする（ADR-0031 の例外）
 // 中のリンクは、お知らせの文字の色にする（塗りの上でも読めるように）。操作の場所のリンクは太字
 const notice = tv({
@@ -31,78 +32,38 @@ const notice = tv({
     'text-(length:--text-control) leading-(--leading-control)',
     'bg-(color:--notice-bg) text-(color:--notice-fg)',
     '[--color-focus-ring:var(--notice-ring-color)] [&_a]:[--link-color:currentColor]',
-    // 中の線は、部品の色に従わせる設定（--focus-follow-color — 後半の軸 41）でも、お知らせの線の色のまま
+    // 中の線は、部品の色に従わせない。お知らせの線の色のまま
     '[--focus-follow-color:initial]',
   ],
   variants: {
     appearance: {
-      soft: '',
-      // 縁の線は付けない（ADR-0057）。黄色の塗りも、面の色だけで置く
-      filled: '[--notice-icon-color:var(--notice-fg)] [--notice-title-color:var(--notice-fg)]',
+      // 淡い面に、状態の色の題とアイコン、濃紺の本文（淡い面の上の濃い色は 4.52〜5.93、本文は 12.20〜12.44）
+      soft: [
+        '[--notice-bg:var(--notice-subtle)] [--notice-fg:var(--color-fg)]',
+        '[--notice-icon-color:var(--notice-ink)] [--notice-ring-color:var(--color-focus)] [--notice-title-color:var(--notice-ink)]',
+      ],
+      // 濃い塗りに、同じ色の題・本文・アイコン。縁の線は付けない（ADR-0057）。黄色の上は青でも 3.76 あるが、ほかの塗りとそろえて文字の色の線にする
+      filled: [
+        '[--notice-bg:var(--notice-fill)] [--notice-fg:var(--notice-on-fill)]',
+        '[--notice-icon-color:var(--notice-fg)] [--notice-ring-color:var(--notice-fg)] [--notice-title-color:var(--notice-fg)]',
+      ],
+      // 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺
       outline: [
-        'border border-(color:--notice-line-color)',
-        '[--notice-bg:var(--color-notice-outline)] [--notice-fg:var(--color-on-notice-outline)]',
-        '[--notice-icon-color:var(--notice-line-color)] [--notice-ring-color:var(--color-focus)] [--notice-title-color:var(--notice-fg)]',
+        'border border-(color:--notice-ink)',
+        '[--notice-bg:var(--color-surface)] [--notice-fg:var(--color-fg)]',
+        '[--notice-icon-color:var(--notice-ink)] [--notice-ring-color:var(--color-focus)] [--notice-title-color:var(--notice-fg)]',
       ],
     },
-    // 枠線の色（outline だけが使う）
     color: {
-      info: '[--notice-line-color:var(--color-notice-info-line)]',
-      success: '[--notice-line-color:var(--color-notice-success-line)]',
-      warning: '[--notice-line-color:var(--color-notice-warning-line)]',
-      danger: '[--notice-line-color:var(--color-notice-danger-line)]',
+      info: '[--notice-fill:var(--color-info)] [--notice-ink:var(--color-fg-info)] [--notice-on-fill:var(--color-on-info)] [--notice-subtle:var(--color-info-subtle)]',
+      success:
+        '[--notice-fill:var(--color-success)] [--notice-ink:var(--color-fg-success)] [--notice-on-fill:var(--color-on-success)] [--notice-subtle:var(--color-success-subtle)]',
+      warning:
+        '[--notice-fill:var(--color-warning)] [--notice-ink:var(--color-fg-warning)] [--notice-on-fill:var(--color-on-warning)] [--notice-subtle:var(--color-warning-subtle)]',
+      danger:
+        '[--notice-fill:var(--color-danger)] [--notice-ink:var(--color-fg-danger)] [--notice-on-fill:var(--color-on-danger)] [--notice-subtle:var(--color-danger-subtle)]',
     },
   },
-  compoundVariants: [
-    {
-      appearance: 'soft',
-      color: 'info',
-      class:
-        '[--notice-bg:var(--color-notice-info)] [--notice-fg:var(--color-on-notice-info)] [--notice-icon-color:var(--color-notice-info-icon)] [--notice-ring-color:var(--color-notice-info-ring)] [--notice-title-color:var(--color-notice-info-title)]',
-    },
-    {
-      appearance: 'soft',
-      color: 'success',
-      class:
-        '[--notice-bg:var(--color-notice-success)] [--notice-fg:var(--color-on-notice-success)] [--notice-icon-color:var(--color-notice-success-icon)] [--notice-ring-color:var(--color-notice-success-ring)] [--notice-title-color:var(--color-notice-success-title)]',
-    },
-    {
-      appearance: 'soft',
-      color: 'warning',
-      class:
-        '[--notice-bg:var(--color-notice-warning)] [--notice-fg:var(--color-on-notice-warning)] [--notice-icon-color:var(--color-notice-warning-icon)] [--notice-ring-color:var(--color-notice-warning-ring)] [--notice-title-color:var(--color-notice-warning-title)]',
-    },
-    {
-      appearance: 'soft',
-      color: 'danger',
-      class:
-        '[--notice-bg:var(--color-notice-danger)] [--notice-fg:var(--color-on-notice-danger)] [--notice-icon-color:var(--color-notice-danger-icon)] [--notice-ring-color:var(--color-notice-danger-ring)] [--notice-title-color:var(--color-notice-danger-title)]',
-    },
-    {
-      appearance: 'filled',
-      color: 'info',
-      class:
-        '[--notice-bg:var(--color-notice-info-filled)] [--notice-fg:var(--color-on-notice-info-filled)] [--notice-ring-color:var(--color-notice-info-filled-ring)]',
-    },
-    {
-      appearance: 'filled',
-      color: 'success',
-      class:
-        '[--notice-bg:var(--color-notice-success-filled)] [--notice-fg:var(--color-on-notice-success-filled)] [--notice-ring-color:var(--color-notice-success-filled-ring)]',
-    },
-    {
-      appearance: 'filled',
-      color: 'warning',
-      class:
-        '[--notice-bg:var(--color-notice-warning-filled)] [--notice-fg:var(--color-on-notice-warning-filled)] [--notice-ring-color:var(--color-notice-warning-filled-ring)]',
-    },
-    {
-      appearance: 'filled',
-      color: 'danger',
-      class:
-        '[--notice-bg:var(--color-notice-danger-filled)] [--notice-fg:var(--color-on-notice-danger-filled)] [--notice-ring-color:var(--color-notice-danger-filled-ring)]',
-    },
-  ],
   defaultVariants: { appearance: 'soft' },
 });
 

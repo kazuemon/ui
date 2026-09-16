@@ -85,7 +85,7 @@ const button = tv({
     color: {
       primary: '[--color-own-focus:var(--color-primary)]',
       secondary: '[--color-own-focus:var(--color-fg-secondary)]',
-      danger: '[--color-own-focus:var(--color-danger)]',
+      danger: '[--color-own-focus:var(--color-fg-danger)]',
       neutral: '',
       white: '',
     },
@@ -136,7 +136,7 @@ const button = tv({
       color: 'secondary',
       class: '[--button-line:var(--color-fg-secondary)]',
     },
-    { appearance: 'outline', color: 'danger', class: '[--button-line:var(--color-danger)]' },
+    { appearance: 'outline', color: 'danger', class: '[--button-line:var(--color-fg-danger)]' },
     // 色を持たない枠線のボタンは、枠線を細い境界線の色に、文字を本文の色にする
     // Disabled は、色を持つ枠線のボタン（薄くする）とは別に指定する — design/adr/0029
     {

@@ -7,7 +7,7 @@ export const fieldStyles = tv({
   slots: {
     root: [
       'group/field flex flex-col gap-(--space-field-gap)',
-      'data-invalid:[--color-focus:var(--color-danger)]',
+      'data-invalid:[--color-focus:var(--color-fg-danger)]',
       'data-invalid:[--color-field-focus:var(--color-field-invalid)]',
       'data-invalid:[--color-field-hover:var(--color-field-invalid)]',
       // Disabled（原則1、design/adr/0026）: 本体の透明度・塗り・文字の色はトークンで指定する（未設定なら部品の色のまま）。hover でも変えない
@@ -15,14 +15,14 @@ export const fieldStyles = tv({
       // エラーかつ押せない欄は、押せない見た目を優先する（チェックボックス・ラジオと同じ）。エラー・警告の行（文）はそのまま出す
       //   赤い枠線は、押せないときは引かない（controlBox が --field-invalid-border を読む）
       //   エラーの塗り・prefix・suffix の赤みと文字の色は、押せないときの値に差し替える（読む側の規則はエラーのまま）
-      'data-invalid:not-data-disabled:[--field-invalid-border:var(--color-danger)]',
+      'data-invalid:not-data-disabled:[--field-invalid-border:var(--color-fg-danger)]',
       'data-disabled:[--color-field-invalid:var(--color-field-disabled,var(--color-field))]',
       'data-disabled:[--color-field-addon-invalid:var(--color-field-addon)] data-disabled:[--color-on-field-addon-invalid:var(--color-on-field-disabled)]',
     ],
     // ラベルとキャプションは、押せないときも薄くしない（原則1: 説明が読めるように）
     label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
-    error: 'text-(length:--text-caption) leading-(--leading-caption) text-danger',
+    error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     // エラー・警告の行（design/adr/0041）。色は呼び出し側で足す（エラーは text-danger、警告は text-fg-warning）
     message:
       'flex items-start gap-(--field-message-gap) text-(length:--text-caption) leading-(--leading-caption)',

@@ -68,7 +68,7 @@ export type MessageKind = 'error' | 'warning' | 'success' | 'info';
 // 行のアイコンと文字の色（原則6: 情報は丸の「i」、成功は丸のチェック、警告は三角、危険は丸の「!」）
 // 白地の文字: エラー --color-danger（6.71）、警告 --color-fg-warning（5.09）、成功 --color-fg-success（5.02）、情報 --color-fg-info（5.10）
 const messageLook: Record<MessageKind, { Icon: typeof WarningIcon; tone: string }> = {
-  error: { Icon: WarningCircleIcon, tone: 'text-danger' },
+  error: { Icon: WarningCircleIcon, tone: 'text-fg-danger' },
   warning: { Icon: WarningIcon, tone: 'text-fg-warning' },
   success: { Icon: CheckCircleIcon, tone: 'text-fg-success' },
   info: { Icon: InfoIcon, tone: 'text-fg-info' },

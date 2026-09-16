@@ -119,45 +119,6 @@
   /* 水色のタグ（淡い面＋同じ色相の濃い文字 — adr/0007）。いまは比較の「採用」の印で使う */
   --color-tag: var(--palette-sky-50);
   --color-on-tag: var(--palette-sky-700);
-  /* 利用者が選ぶ色のタグ（原則6）。塗り方は上と同じ — ADR-0028 */
-  --color-tag-primary: var(--palette-blue-50);
-  --color-on-tag-primary: var(--palette-blue-700);
-  --color-tag-secondary: var(--palette-pink-50);
-  --color-on-tag-secondary: var(--palette-pink-700);
-  --color-tag-neutral: var(--palette-gray-100);
-  --color-on-tag-neutral: var(--color-fg-muted);
-  /* 警告のタグ。状態を表す色で、利用者が選ぶ色とは別 — adr/0038 */
-  --color-tag-warning: var(--palette-warning-50);
-  --color-on-tag-warning: var(--palette-warning-700); /* 4.55 */
-  /* 情報・成功・危険のタグ。soft のお知らせの面と題と同じ値 — adr/0043
-     情報は primary のタグと同じ値。危険の面はピンクのタグの面と色の差 0.6（文字どうしは 1.29 で見分ける） */
-  --color-tag-info: var(--color-tag-primary);
-  --color-on-tag-info: var(--color-on-tag-primary); /* 4.52 */
-  --color-tag-success: var(--palette-success-50);
-  --color-on-tag-success: var(--color-fg-success); /* 4.52 */
-  --color-tag-danger: var(--palette-red-75);
-  --color-on-tag-danger: var(--color-danger); /* 5.93 */
-  /* Badge（数と小さな状態の点）— ADR-0061 で A 案に決めた
-     淡い面のタグと見分けるため、濃い塗りに白い文字を載せる。状態の色は塗りのお知らせ（filled）と同じ値。
-     グレー（neutral）はトグルの ON と同じ濃いグレー（原則6）。警告の数の丸だけ黄色に濃紺の文字 */
-  --color-badge-primary: var(--color-primary);
-  --color-on-badge-primary: var(--color-on-primary); /* 4.53 */
-  --color-badge-secondary: var(--color-fg-secondary);
-  --color-on-badge-secondary: var(--color-on-secondary);
-  --color-badge-neutral: var(--color-fg-muted);
-  --color-on-badge-neutral: var(--palette-white);
-  --color-badge-info: var(--color-notice-info-filled);
-  --color-on-badge-info: var(--color-on-notice-info-filled);
-  --color-badge-success: var(--color-notice-success-filled);
-  --color-on-badge-success: var(--color-on-notice-success-filled);
-  --color-badge-warning: var(--color-notice-warning-filled);
-  --color-on-badge-warning: var(--color-on-notice-warning-filled);
-  --color-badge-danger: var(--color-notice-danger-filled);
-  --color-on-badge-danger: var(--color-on-notice-danger-filled);
-  /* 警告の点だけは、白地の文字・アイコンと同じオリーブにする（原則6）。黄色の点は白地で 1.20:1 しかない */
-  --color-badge-warning-dot: var(--color-fg-warning); /* 白地 5.09 */
-  /* 重ねるときの縁。置く面の色にして、重ねた相手と切り離す */
-  --color-badge-ring: var(--color-surface);
 
   /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
@@ -172,74 +133,42 @@
   --color-fg-secondary: var(--palette-pink-600); /* 前景用: 文字・枠線・白文字を載せる塗り */
   --color-on-secondary: var(--palette-white);
 
-  /* 注意 */
-  --color-danger: var(--palette-red-700); /* ピンクと明度で見分ける — adr/0023 */
-  --color-on-danger: var(--palette-white);
-  /* 警告（Warning）— adr/0038
-     黄色は塗りにだけ使い、上に載せる文字とアイコンは濃紺にする（原則12）。塗りと白地の比は 1.20 なので、
-     グレーのボタンと同じく影の輪郭（--shadow-raised）で縁を出す。白地に置く文字・枠線・アイコンはオリーブ色
-     いまはタグと、入力欄の下の警告の文（--color-fg-warning — adr/0041）と、塗りのお知らせ（--color-notice-warning-filled — adr/0043）が使う
-     ボタンは、必要になったときにこの役割を使う。お知らせの既定（淡い面）は、下の --color-notice-warning（adr/0043 で ADR-0038 のお知らせを変えた） */
-  --color-warning: var(--palette-warning-500); /* 面用: 塗り */
-  --color-on-warning: var(--color-fg); /* 黄色の塗りに載せる文字・アイコン。11.49 */
-  --color-fg-warning: var(--palette-warning-700); /* 前景用: 白地の文字・枠線・アイコン。5.09 */
+  /* 利用者が選ぶ色の淡い面と、その上の文字（原則6。タグ・選んだ選択肢）— adr/0007・ADR-0028
+     面は明度 0.96 前後で色相だけ変え、文字は同じ色相で面の上の 4.5:1 を満たすまで明度を下げる */
+  --color-primary-subtle: var(--palette-blue-50);
+  --color-on-primary-subtle: var(--palette-blue-700); /* 4.52 */
+  --color-secondary-subtle: var(--palette-pink-50);
+  --color-on-secondary-subtle: var(--palette-pink-700); /* 4.54 */
 
-  /* 状態の色: 白地に置く文字・枠線・アイコン（前景用）— adr/0043
-     警告は上の --color-fg-warning、危険は --color-danger（白地 6.71）。いまはお知らせの枠線とアイコンが使う
-     情報は Primary と同じ色相（青のタグの文字と同じ値） */
-  --color-fg-info: var(--palette-blue-700); /* 白地 5.10 */
-  --color-fg-success: var(--palette-success-700); /* 白地 5.02 */
+  /* 色を持たない濃いグレー（原則6）。トグルの ON・選んだ箱・Badge の塗り */
+  --color-neutral-strong: var(--palette-ink-700);
+  --color-on-neutral-strong: var(--palette-white);
 
-  /* お知らせ（Notice）— adr/0043
-     見た目（appearance）は3つ。どれも影は付けない（原則1: お知らせそのものは押せない）
-       soft（既定）: タグと同じ淡い面（adr/0007 の塗り方）。題とアイコンは同じ色相の濃い色、本文は濃紺
-         --color-notice-{tone} 面 / --color-on-notice-{tone} 本文 / -title 題 / -icon アイコン / -ring 中のリンク・ボタン・× のフォーカスの線
-       filled: 白文字が載る濃い塗り。警告だけは黄色の塗りに濃紺（adr/0038）。題・本文・アイコンは同じ色
-         --color-notice-{tone}-filled 面 / --color-on-notice-{tone}-filled 文字とアイコン / -filled-ring フォーカスの線
-         塗りの上ではフォーカスの青い線が見えない（1.00〜1.48:1）ので、線を文字の色にする（adr/0031 の例外）
-       outline: 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺。フォーカスの線はほかの部品と同じ（--color-focus-ring）
-         --color-notice-outline 面 / --color-on-notice-outline 文字 / --color-notice-{tone}-line 枠線とアイコン
-     淡い面の上の濃い色は 4.52〜5.93、本文は 12.20〜12.44。フォーカスの線（濃紺 — ADR-0071 の M。お知らせの中は部品の色に従わせない）は本文と同じ 12.20〜12.44
-     塗りのお知らせの縁（黄色と白地 1.20）は付けない（ADR-0057）。淡い面（1.11〜1.13）と同じく、面の色だけで置く */
-  --color-notice-info: var(--palette-blue-50);
-  --color-on-notice-info: var(--color-fg); /* 12.23 */
-  --color-notice-info-title: var(--color-fg-info); /* 4.52 */
-  --color-notice-info-icon: var(--color-fg-info);
-  --color-notice-info-line: var(--color-fg-info); /* 白地 5.10 */
-  --color-notice-info-ring: var(--color-focus); /* 12.23 */
-  --color-notice-info-filled: var(--color-primary);
-  --color-on-notice-info-filled: var(--color-on-primary); /* 4.53 */
-  --color-notice-info-filled-ring: var(--color-on-notice-info-filled);
-  --color-notice-success: var(--palette-success-50);
-  --color-on-notice-success: var(--color-fg); /* 12.44 */
-  --color-notice-success-title: var(--color-fg-success); /* 4.52 */
-  --color-notice-success-icon: var(--color-fg-success);
-  --color-notice-success-line: var(--color-fg-success); /* 白地 5.02 */
-  --color-notice-success-ring: var(--color-focus); /* 12.44 */
-  --color-notice-success-filled: var(--palette-success-700);
-  --color-on-notice-success-filled: var(--palette-white); /* 5.02 */
-  --color-notice-success-filled-ring: var(--color-on-notice-success-filled);
-  --color-notice-warning: var(--color-tag-warning);
-  --color-on-notice-warning: var(--color-fg); /* 12.34 */
-  --color-notice-warning-title: var(--color-fg-warning); /* 4.55 */
-  --color-notice-warning-icon: var(--color-fg-warning);
-  --color-notice-warning-line: var(--color-fg-warning); /* 白地 5.09 */
-  --color-notice-warning-ring: var(--color-focus); /* 12.34 */
-  --color-notice-warning-filled: var(--color-warning);
-  --color-on-notice-warning-filled: var(--color-on-warning); /* 11.49 */
-  /* 黄色の上は青でも 3.76 あるが、ほかの塗りとそろえて文字の色にする */
-  --color-notice-warning-filled-ring: var(--color-on-notice-warning-filled);
-  --color-notice-danger: var(--palette-red-75);
-  --color-on-notice-danger: var(--color-fg); /* 12.20 */
-  --color-notice-danger-title: var(--color-danger); /* 5.93 */
-  --color-notice-danger-icon: var(--color-danger);
-  --color-notice-danger-line: var(--color-danger); /* 白地 6.71 */
-  --color-notice-danger-ring: var(--color-focus); /* 12.20 */
-  --color-notice-danger-filled: var(--color-danger);
-  --color-on-notice-danger-filled: var(--color-on-danger); /* 6.71 */
-  --color-notice-danger-filled-ring: var(--color-on-notice-danger-filled);
-  --color-notice-outline: var(--color-surface);
-  --color-on-notice-outline: var(--color-fg); /* 13.82 */
+  /* 状態の色（情報・成功・警告・危険）— adr/0038・adr/0043
+     状態ごとに4つの役割を持つ。部品（タグ・お知らせ・Badge・入力欄の下の行）は、この役割だけを使う
+       --color-{状態}         濃い塗り（塗りのお知らせ・Badge）
+       --color-on-{状態}      濃い塗りに載せる文字・アイコン
+       --color-fg-{状態}      白地と淡い面に置く文字・枠線・アイコン（前景用。どちらの上でも 4.5:1 を満たす）
+       --color-{状態}-subtle  淡い面（タグ・淡い面のお知らせ）。明度 0.96 前後
+     情報は Primary と同じ色相（塗りは Primary、淡い面と文字は Primary の淡い面と文字）
+     危険はピンクと明度で見分ける（adr/0023）。淡い面はピンクの淡い面と色の差 0.6（文字どうしは 1.29 で見分ける）
+     警告の黄色は塗りにだけ使い、上に載せる文字とアイコンは濃紺にする（原則12）。白地に置く文字・枠線・アイコンはオリーブ色 */
+  --color-info: var(--color-primary);
+  --color-on-info: var(--color-on-primary); /* 4.53 */
+  --color-fg-info: var(--color-on-primary-subtle); /* 白地 5.10。淡い面の上 4.52 */
+  --color-info-subtle: var(--color-primary-subtle);
+  --color-success: var(--palette-success-700);
+  --color-on-success: var(--palette-white); /* 5.02 */
+  --color-fg-success: var(--palette-success-700); /* 白地 5.02。淡い面の上 4.52 */
+  --color-success-subtle: var(--palette-success-50);
+  --color-warning: var(--palette-warning-500); /* 白地 1.20。塗り専用 */
+  --color-on-warning: var(--color-fg); /* 11.49 */
+  --color-fg-warning: var(--palette-warning-700); /* 白地 5.09。淡い面の上 4.55 */
+  --color-warning-subtle: var(--palette-warning-50);
+  --color-danger: var(--palette-red-700); /* 白地 6.71 */
+  --color-on-danger: var(--palette-white); /* 6.71 */
+  --color-fg-danger: var(--palette-red-700); /* 白地 6.71。淡い面の上 5.93 */
+  --color-danger-subtle: var(--palette-red-75);
 
   /* ── 角丸（原則5） ───────────────────────────────── */
   --radius-control: var(--radius-xl); /* 12px。フォーム部品・ボタン — design/adr/0008 */
@@ -427,7 +356,7 @@
   /* エラーの箱の内側の線 — ADR-0070 の A（入力欄と同じく、エラーは塗りと線の2つで表す。塗りだけでは通常の箱との明るさの比が 1.01）
      選んでいない、押せる箱だけに、inset の影で引く（寸法を変えない）。0px は引かない */
   --choice-invalid-line-width: var(--border-width-medium);
-  --color-choice-invalid-line: var(--color-danger);
+  --color-choice-invalid-line: var(--color-fg-danger);
   /* 押せない箱。ふだんの箱より薄い、入力欄の塗りのグレー。押せない OFF のトラックと同じ */
   --color-choice-disabled: var(--color-field);
   /* 押せない、色を指定しない選んだ箱: 押せない箱と同じ地に、グレーの印（押せないグレーのトグルと同じ考え方）— adr/0029
@@ -464,7 +393,9 @@
   --badge-size: 16px; /* 数の丸の高さ（1桁で丸） */
   --badge-pad-x: var(--spacing); /* 2桁以上で横に伸びるときの左右の余白 */
   --badge-dot: 8px; /* 状態の点の直径 */
-  --badge-ring-width: var(--border-width-thick); /* 重ねるときの縁（--color-badge-ring）の太さ */
+  --badge-ring-width: var(
+    --border-width-thick
+  ); /* 重ねるときの縁（置く面の色 --color-surface）の太さ */
   --badge-overlay-inset: var(
     --spacing
   ); /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */

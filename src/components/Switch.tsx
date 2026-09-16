@@ -88,7 +88,7 @@ const styles = tv({
       //   ON のトラックは押せない OFF と同じ地（--color-switch-neutral-on-disabled）、ノブはグレー。状態はノブの位置で見せる
       neutral: {
         track: [
-          'data-checked:[--switch-track:var(--color-fg-muted)]',
+          'data-checked:[--switch-track:var(--color-neutral-strong)]',
           'data-disabled:data-checked:bg-(color:--color-switch-neutral-on-disabled) data-disabled:data-checked:opacity-100',
         ],
         thumb: 'data-disabled:bg-(color:--color-switch-neutral-disabled-knob)',

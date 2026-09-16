@@ -106,7 +106,7 @@ export const choiceStyles = tv({
       // 色を持たない箱。選ぶとトグルの ON と同じ濃いグレー。押せないときは、押せないグレーのトグルと同じ塗りと印（薄くしない）
       neutral: {
         box: [
-          '[--choice-disabled-opacity:1] [--choice-on:var(--color-fg-muted)]',
+          '[--choice-disabled-opacity:1] [--choice-on:var(--color-neutral-strong)]',
           'data-disabled:[--choice-mark:var(--color-choice-neutral-mark-disabled)] data-disabled:[--choice-on:var(--color-choice-neutral-on-disabled)]',
         ],
       },

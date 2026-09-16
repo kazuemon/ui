@@ -5,10 +5,10 @@ import { tv, type VariantProps } from 'tailwind-variants';
 // タグ（src/components/Tag.tsx）とは別の、素の要素で作る部品。押せない
 //   数: 高さ --badge-size の pill。1桁で丸になり、2桁以上は横に伸びる（左右の余白 --badge-pad-x）。max を超えると「99+」
 //   点: 数を渡さないとき。直径 --badge-dot
-// 色は濃い塗りに白い文字（--color-badge-*）。淡い面に濃い文字のタグと見分ける
-//   警告の点だけは、白地の文字・アイコンと同じオリーブ（--color-badge-warning-dot）。黄色の点は白地で 1.20:1 しかない（原則6）
+// 色は濃い塗りに白い文字。状態の色は塗りのお知らせ（filled）と同じ、グレーはトグルの ON と同じ濃いグレー。淡い面に濃い文字のタグと見分ける
+//   警告の点だけは、白地の文字・アイコンと同じオリーブ（--color-fg-warning）。黄色の点は白地で 1.20:1 しかない（原則6）
 //   警告の数の丸は、黄色に濃紺の文字のまま
-// children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色の縁（--badge-ring-width）で相手と切り離す
+// children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--badge-ring-width）で相手と切り離す
 //   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
 // 読み上げ: label を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）で label を読ませる
 //   sr-only は絶対配置なので、Badge 自身を位置の基準にする（重ねるときは absolute、置くだけのときは relative）
@@ -16,13 +16,13 @@ const badge = tv({
   base: 'inline-flex shrink-0 items-center justify-center rounded-pill font-bold whitespace-nowrap tabular-nums',
   variants: {
     color: {
-      primary: 'bg-badge-primary text-on-badge-primary',
-      secondary: 'bg-badge-secondary text-on-badge-secondary',
-      neutral: 'bg-badge-neutral text-on-badge-neutral',
-      info: 'bg-badge-info text-on-badge-info',
-      success: 'bg-badge-success text-on-badge-success',
-      warning: 'bg-badge-warning text-on-badge-warning',
-      danger: 'bg-badge-danger text-on-badge-danger',
+      primary: 'bg-primary text-on-primary',
+      secondary: 'bg-fg-secondary text-on-secondary',
+      neutral: 'bg-neutral-strong text-on-neutral-strong',
+      info: 'bg-info text-on-info',
+      success: 'bg-success text-on-success',
+      warning: 'bg-warning text-on-warning',
+      danger: 'bg-danger text-on-danger',
     },
     shape: {
       count:
@@ -30,11 +30,11 @@ const badge = tv({
       dot: 'size-(--badge-dot)',
     },
     overlay: {
-      true: 'pointer-events-none absolute top-(--badge-overlay-inset) right-(--badge-overlay-inset) translate-x-1/2 -translate-y-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-badge-ring)]',
+      true: 'pointer-events-none absolute top-(--badge-overlay-inset) right-(--badge-overlay-inset) translate-x-1/2 -translate-y-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-surface)]',
       false: 'relative',
     },
   },
-  compoundVariants: [{ color: 'warning', shape: 'dot', class: 'bg-badge-warning-dot' }],
+  compoundVariants: [{ color: 'warning', shape: 'dot', class: 'bg-fg-warning' }],
   defaultVariants: { color: 'neutral', shape: 'dot', overlay: false },
 });
 
