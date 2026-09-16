@@ -54,7 +54,8 @@ export function Comparison({
   const isPicked = (candidate: Candidate, i: number) =>
     picks.some((id) => id === candidate.id || (id === 'current' && i === 0));
   const grid = {
-    gridTemplateColumns: `minmax(200px, 240px) repeat(${columns.length}, minmax(260px, 1fr))`,
+    // 列は中身（幅を決めた見本）より狭くしない。狭い画面では横にスクロールする
+    gridTemplateColumns: `minmax(200px, 240px) repeat(${columns.length}, minmax(min-content, 1fr))`,
   };
   return (
     <div className="flex min-h-screen flex-col gap-8 bg-bg px-6 py-8 text-fg">
@@ -69,7 +70,7 @@ export function Comparison({
         <div className="grid gap-x-8" style={grid}>
           <div />
           {columns.map((column) => (
-            <div key={column.label} className="flex flex-col gap-0.5 pb-4">
+            <div key={column.label} className="flex min-w-[260px] flex-col gap-0.5 pb-4">
               <span className="text-sm font-bold">{column.label}</span>
               {column.note && <span className="text-xs text-fg-subtle">{column.note}</span>}
             </div>
