@@ -91,8 +91,7 @@
   - 一部（section など）だけを大きくすることは、rem ではできません（rem はいつも html の文字の大きさが基準）。残すなら、倍率の変数を別に持ちます
   - 決めること: この形で進めるか、一部だけ大きくする仕組みを残すか、何を大きくするか（角丸と線はそのままでよいか）
 - 余白（`gap-2`・`mt-1` など）と角丸のクラスは、tokens.css で Tailwind と同じ名前の px にしたので、部品のトークンと同じく px です（[ADR-0076](./adr/0076-token-structure.md)。前はクラスが rem で、html 20px のとき、お知らせの操作の間が 8→10px、上の余白が 4→5px になっていました）。文字の大きさのクラス（`text-xs` など）は Tailwind の既定の rem のままです
-- 密度で文字の大きさを変える決まり（指用 16px・マウス用 14px）は、[ADR-0004](./adr/0004-density-and-structure-switching.md) の決定1「寸法は全部品で切り替える」から来ていて、文字の大きさそのものは比べていません（[ADR-0020](./adr/0020-control-size-fine.md) でマウス用 14px のまま、ADR-0045 で大きい指用も 16px のまま）。「スマホ用になったときに文字サイズが変わるのは想定外でした」。見直すかは決めていません
-- 大きい指用（`coarse-large`）で、文字・左右の余白・並べる間を変えるかは比べていません。いまは高さだけが変わります（ADR-0045。上の全体の倍率で扱う）
+- 大きい指用（`coarse-large`）で、左右の余白・並べる間を変えるかは比べていません。高さと余白をそろえたあとも、トグルのトラック（マウス 40×22px・指 48×28px）とチェックボックス・ラジオの箱（マウス 18px・指 22px）は入力方式で変わります。そろえるかは決めていません（[ADR-0079](./adr/0079-control-type-and-height.md)）
 - どんな場面で大きい指用を使うかは決めていません（[ADR-0045](./adr/0045-coarse-size.md)）
 - 寸法を Provider で固定する仕組みがまだありません。クラス（`coarse-large` など）は `html` か要素に直接付けます（[ADR-0045](./adr/0045-coarse-size.md)）
 
@@ -103,6 +102,10 @@
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
 - 使っていないトークンがあります: ブランドの色（`--color-brand`・`--color-fg-brand`・`--color-on-brand`）、カード（`--card-*`）、セクションラベル（`--label-*`）、`--font-weight-heading`、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
+
+## Heading・Text
+
+- 見出しの途中での折り返し: 日本語はどの文字のあいだでも折れ、見出しの `text-wrap: balance` が早めに折ることもあります。文節で折る `word-break: auto-phrase`（Chrome・Edge のみ。`lang="ja"` が要り、Storybook の `html` は `lang="en"` です）と、ブログのビルドで BudouX を使う形、`balance` を外すかを、あとで決めます（[ADR-0078](./adr/0078-reading-type.md)）。ユーザーのメモ:「自動改行は一旦後で考えましょう。」
 
 ## 本文（Prose・CodeBlock など）
 

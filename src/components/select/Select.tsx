@@ -447,7 +447,8 @@ export function Select({
                     : selected
                 }
                 className={[
-                  'p-(--select-popup-padding) text-(length:--text-control) leading-(--leading-control) text-fg outline-none',
+                  // 選択肢の文字は欄の値と同じ大きさ（指でも 16px）。選んだ値が欄に入っても大きさが変わらない
+                  'p-(--select-popup-padding) text-input text-fg outline-none [--spacing-icon:var(--spacing-icon-input)]',
                   'border-(length:--border-width-thin) border-surface-line bg-surface',
                   sheet
                     ? [
