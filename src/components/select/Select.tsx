@@ -1,18 +1,15 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
 import {
   type ComponentProps,
-  type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 
+import { type DensityScope, readDensityScope } from '../../internal/density-scope';
 import {
   type CaptionPlacement,
   Field,
@@ -21,63 +18,27 @@ import {
   FieldSpinner,
   FieldSuccessMark,
 } from '../../internal/field/Field';
-import { FieldAddon } from '../field-addon/FieldAddon';
-import type { AddonShape } from '../field-addon/field-addon-context';
-import { controlBox, fieldStyles } from '../../internal/field/field-styles';
-import { focusRing } from '../../internal/focus-styles';
+import { controlBox } from '../../internal/field/field-styles';
 import { useFormSubmittingLock } from '../../internal/form-context';
-import { CaretDownIcon, CheckIcon, WarningCircleIcon, WarningIcon, XIcon } from '../icons/icons';
+import type { AddonShape } from '../field-addon/field-addon-context';
+import { FieldAddon } from '../field-addon/FieldAddon';
+import { CaretDownIcon } from '../icons/icons';
 import { type LoadingIndicator, Spinner } from '../loading/Loading';
+import { OWN_FOCUS, type SelectColor, selectedTokens } from './select-colors';
+import { SelectMoreCue, type SheetMoreCue } from './SelectMoreCue';
+import { SelectOption, type SelectItem } from './SelectOption';
+import { type SheetMessage, SelectSheetHeader } from './SelectSheetHeader';
+import { usePopupLayout } from './use-popup-layout';
+import { useNarrowScreen } from './use-narrow-screen';
+import { type SheetDetent, useSheetDrag } from './use-sheet-drag';
 
-/**
- * 選択肢に付く文の種類（design/adr/0044）
- * reason: 選べない理由。キャプションと同じ灰色の文字だけ（アイコンなし）。disabled の選択肢に付ける
- * warning: 選べるが、選ぶ前に知っておくこと。本体の下の警告の行と同じ三角とオリーブ色の文字
- */
-export type SelectItemNoteKind = 'reason' | 'warning';
-
-/** 選択肢に付く文（ラベルの下の2行目）。文は呼び出し側が渡す。部品は文を組み立てない */
-export interface SelectItemNote {
-  kind: SelectItemNoteKind;
-  text: ReactNode;
-}
-
-export interface SelectItem {
-  label: string;
-  value: string;
-  /**
-   * 選べない（design/adr/0044）。ラベルを押せない文字の色にし、押しても選ばれない
-   * 矢印キーでは止まり、選べないこと（disabled）と note が読まれる。文字を打って探すときは飛ばす（Base UI のまま）
-   */
-  disabled?: boolean;
-  /**
-   * ラベルの下の2行目（design/adr/0044）。読み上げの名前はラベルだけで、この文は説明になる
-   * 2行目のある選択肢だけ高くなる（指用 52px・マウス用 48px）
-   */
-  note?: SelectItemNote;
-}
-
-/** 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047 */
-export type SelectColor = 'primary' | 'secondary' | 'neutral';
+export type { SelectColor } from './select-colors';
+export type { SheetMoreCue } from './SelectMoreCue';
+export type { SelectItem, SelectItemNote, SelectItemNoteKind } from './SelectOption';
+export type { SheetDetent } from './use-sheet-drag';
 
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
 export type SelectPresentation = 'popover' | 'sheet' | 'auto';
-
-/** シートを開いたときの高さ。half: 選択肢が長いときは半分の高さで開き、つまみを出す。full: 高さいっぱいで開く */
-export type SheetDetent = 'half' | 'full';
-
-/**
- * シートで、選択肢の上下に続きがあることの見せ方。下の端はどれも内側の影
- * shadow: 上も内側の影。divider: 上は区切り線（スクロールすると出る）
- * divider-always: 上は区切り線（いつも出す）。divider-shadow: 上は区切り線と内側の影（スクロールすると出る）
- * divider-always-shadow: 上は区切り線（いつも出す）と内側の影（スクロールすると出る）
- */
-export type SheetMoreCue =
-  | 'shadow'
-  | 'divider'
-  | 'divider-always'
-  | 'divider-shadow'
-  | 'divider-always-shadow';
 
 export interface SelectProps {
   label: ReactNode;
@@ -218,131 +179,6 @@ export interface SelectProps {
   className?: string;
 }
 
-// auto では、指で操作していて、画面が狭いときにシートにする（design/adr/0037）
-// シートにする理由は指の動きを減らすことなので、入力方式を見る。狭さは Tailwind のブレイクポイントで決める
-//   縦長: md（768px）より狭い — スマートフォン、iPad mini
-//   横長: lg（1024px）より狭い — スマートフォンの横持ち
-// それより広い画面（タブレット）では浮かべたまま
-const SHEET_QUERY = [
-  '(pointer: coarse) and (orientation: portrait) and (max-width: 767.98px)',
-  '(pointer: coarse) and (orientation: landscape) and (max-width: 1023.98px)',
-].join(', ');
-// シートの高さの上限と、半分で開くときの目安（画面の高さに対する割合）
-const SHEET_FULL = 0.85;
-const SHEET_HALF = 0.5;
-// シートのつまみを引く操作のしきい値。値は実機で詰める
-// iOS・Android のシートと、vaul・Base UI の Drawer にならい、離す直前の速さで「はじいた」かを見る
-//   flingVelocity: はじいたとみなす速さ（px/ms）。Base UI の Drawer は 0.5、vaul は 0.4、Android は 500px/s
-//   velocityWindow: 離す直前のこの時間（ms）の動きから速さを出す。それより前から止まっていたら、はじいていない（Base UI は 80ms）
-//   minVelocityDuration: 速さを出すときの時間の下限（ms）。動きの記録が1つしかないときに、速さが大きくなりすぎないようにする（Base UI は 16ms）
-//   closeRatio: はじかずに離したとき、半分の高さのこの割合より低ければ閉じる
-//   moveSlop: 動いた量がこれ以下（px）なら、引かずに押したとみなす
-const SHEET_DRAG = {
-  flingVelocity: 0.5,
-  velocityWindow: 80,
-  minVelocityDuration: 16,
-  closeRatio: 0.6,
-  moveSlop: 4,
-} as const;
-// 続きの印が最も濃くなるまでのスクロールの量（px）
-const CUE_RAMP = 24;
-// 浮かぶ選択肢の高さの上限（画面の高さに対する割合）。popoverMaxHeight="screen" のとき
-const POPOVER_MAX = 0.5;
-
-// 画面の高さ。浮かぶ部分を描く場所（container）が画面より低いときは、その高さ（比較のストーリーの枠）
-function screenHeight(container: HTMLElement | null | undefined) {
-  return Math.min(container?.clientHeight ?? Infinity, window.innerHeight);
-}
-
-// 選択肢の各項目の高さ。note のある項目は高いので、項目ごとに測る（design/adr/0044）。隠れた項目（高さ 0）は数えない
-function optionHeights(list: HTMLElement, fallback: number) {
-  const heights = [...list.querySelectorAll<HTMLElement>('[role="option"]')]
-    .map((el) => el.offsetHeight)
-    .filter((height) => height > 0);
-  return heights.length ? heights : [fallback];
-}
-
-// 項目 rows 個分の高さ（小数のときは、最後の項目のその割合）。項目が足りないときは、最後の項目の高さで数える
-function rowsLength(heights: number[], rows: number) {
-  if (!Number.isFinite(rows)) return Infinity;
-  const at = (i: number) => heights[Math.min(i, heights.length - 1)];
-  const whole = Math.floor(rows);
-  let length = 0;
-  for (let i = 0; i < whole; i += 1) length += at(i);
-  return length + (rows - whole) * at(whole);
-}
-
-// 高さ avail の中に入る項目を上から数え、次の項目を半分だけ見せる高さを返す（「まだ続きがある」ことを見せる）
-// halfInside: true は、半分の項目まで avail に収める（浮かぶ選択肢）。false は、収まる項目のあとに半分を足す（シート）
-// 少なくとも1項目は出す。項目の高さがすべて同じときは、これまでの計算（（項目の数 ＋ 0.5）× 高さ）と同じになる
-function peekLength(heights: number[], avail: number, halfInside: boolean) {
-  const at = (i: number) => heights[Math.min(i, heights.length - 1)];
-  let rows = 1;
-  let used = at(0);
-  while (used + at(rows) + (halfInside ? at(rows + 1) / 2 : 0) <= avail) {
-    used += at(rows);
-    rows += 1;
-  }
-  return used + at(rows) / 2;
-}
-
-// 一覧の中身の高さ（項目の高さの合計＋上下の余白）。scrollHeight は一覧が引き伸ばされると中身より大きくなるので使わない
-function listContentLength(list: HTMLElement) {
-  const style = getComputedStyle(list);
-  let length = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-  for (const el of list.querySelectorAll<HTMLElement>('[role="option"]')) length += el.offsetHeight;
-  return length;
-}
-
-// 一覧の下に置いた「読み込んでいます」の行の高さ（下の余白を含む）。高さの上限の計算に入れる（design/adr/0042）
-function loadingRowLength(list: HTMLElement) {
-  const row = list.parentElement?.querySelector<HTMLElement>('[data-slot="select-loading"]');
-  if (!row) return 0;
-  return row.offsetHeight + parseFloat(getComputedStyle(row).marginBottom);
-}
-
-// 選んだ項目の印の色（design/adr/0047）。face は淡い面、ink は文字とチェック
-// neutral の面は、hover のグレー（入力欄の塗り）と見分けられる濃さのグレー（--color-select-neutral-selected）
-// focus は、フォーカスの枠線と線を部品の色に従わせるとき（--focus-follow-color: 1 — 後半の軸 41）の色。線なので、ピンクは前景用
-//   neutral は持たない（--color-focus のまま）。本体には OWN_FOCUS のクラスで、浮かぶ部分（シートの × など）には style で置く
-const TONES: Record<SelectColor, { face: string; ink: string; focus?: string }> = {
-  primary: {
-    face: 'var(--color-primary-subtle)',
-    ink: 'var(--color-on-primary-subtle)',
-    focus: 'var(--color-primary)',
-  },
-  secondary: {
-    face: 'var(--color-secondary-subtle)',
-    ink: 'var(--color-on-secondary-subtle)',
-    focus: 'var(--color-fg-secondary)',
-  },
-  neutral: { face: 'var(--color-select-neutral-selected)', ink: 'var(--color-fg)' },
-};
-
-// 本体（Trigger）に置く --color-own-focus。TONES の focus と同じ値（Tailwind が読めるよう、クラスは文字列のまま書く）
-const OWN_FOCUS: Record<SelectColor, string> = {
-  primary: '[--color-own-focus:var(--color-primary)]',
-  secondary: '[--color-own-focus:var(--color-fg-secondary)]',
-  neutral: '',
-};
-
-// 選んだ項目の見た目を、部品の色から作る（ADR-0053: 淡い面＋部品の色の文字とチェック）。浮かぶ部分（Popup）に置き、項目のクラスが読む
-type TokenStyle = CSSProperties & Record<`--${string}`, string>;
-
-function selectedTokens(color: SelectColor): TokenStyle {
-  const { face, ink, focus } = TONES[color];
-  return {
-    ...(focus ? { '--color-own-focus': focus } : {}),
-    '--color-select-item-selected': face,
-    // 選んだ項目の hover。面を一段濃く（文字の色を 8% 混ぜる）
-    '--color-select-item-selected-highlight': `color-mix(in oklab, ${face}, ${ink} 8%)`,
-    '--color-on-select-item-selected': ink,
-    '--color-select-check': ink,
-  };
-}
-
-const styles = fieldStyles();
-
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
 // 読み込みの知らせ（design/adr/0042）。本体のそばにいつも置く、見えない status の箱の中身
@@ -352,135 +188,6 @@ interface LoadingAnnouncement {
   open: boolean;
   loading: boolean;
   text: string;
-}
-
-// 選択肢の2行目（design/adr/0044）。文の大きさと行の高さはキャプションと同じ
-//   reason: 選べない理由。キャプションと同じ灰色（--color-fg-subtle）の文字だけ
-//   warning: 本体の下の警告の行と同じ形（三角＋ --color-fg-warning）。選んだ項目の青い文字の中でも、警告の色のまま
-function SelectItemNoteLine({ note, id }: { note: SelectItemNote; id: string }) {
-  if (note.kind === 'reason')
-    return (
-      <span
-        id={id}
-        data-slot="select-item-note"
-        data-kind="reason"
-        className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
-      >
-        {note.text}
-      </span>
-    );
-  return (
-    <span
-      id={id}
-      data-slot="select-item-note"
-      data-kind="warning"
-      className={styles.message({ className: 'text-fg-warning' })}
-    >
-      <WarningIcon className={styles.messageIcon()} />
-      <span className="min-w-0">{note.text}</span>
-    </span>
-  );
-}
-
-// 選択肢の1項目。見た目は design/tokens.css の --select-popup-*・--color-select-* で決める（design/adr/0036）
-// note のある項目だけ、ラベルの下に2行目を出して高さを伸ばす（上下 6px。1行の項目は --spacing-control のまま）
-//   読み上げの名前はラベルだけ（aria-labelledby）、2行目は説明（aria-describedby）
-// 選べない項目（disabled — design/adr/0044）: ラベルは押せない文字の色。押しても選ばれない
-//   マウスの hover では塗らない（押せないため）。矢印キーでは止まるので、キーボードで止まったとき（focus-visible）だけ、
-//   ほかの項目と同じ hover の塗りで、いまの場所を見せる
-function SelectOption({ item }: { item: SelectItem }) {
-  const id = useId();
-  const { note } = item;
-  const labelId = `${id}label`;
-  const noteId = `${id}note`;
-  return (
-    <BaseSelect.Item
-      value={item.value}
-      disabled={item.disabled}
-      aria-labelledby={note ? labelId : undefined}
-      aria-describedby={note ? noteId : undefined}
-      className={[
-        'group/option flex min-h-(--spacing-control) cursor-pointer items-center gap-(--spacing-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] outline-none select-none',
-        note && 'py-1.5',
-        // hover（キーボードで選んでいるときも同じ）は、選んだ項目の見た目より優先する
-        'data-highlighted:bg-field',
-        'data-selected:text-(color:--color-on-select-item-selected) data-selected:not-data-highlighted:bg-(color:--color-select-item-selected)',
-        // 選んだ項目の hover（開いた直後は、選んだ項目が hover と同じ状態になる）
-        'data-selected:data-highlighted:bg-(color:--color-select-item-selected-highlight)',
-        // 選べない項目: hover の塗りを消し、キーボードで止まったとき（focus-visible）だけ付け直す
-        // :not(:focus-visible) の形は使わない（Storybook の pseudo-states アドオンが書き換え、いつも塗りが消えていた）
-        'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-on-field-disabled) data-disabled:data-highlighted:bg-transparent',
-        'data-disabled:data-highlighted:focus-visible:bg-field',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* 選んだ項目のラベルの太さ（--select-item-selected-weight）。2行目（note）は変えない */}
-        <BaseSelect.ItemText
-          id={note ? labelId : undefined}
-          className="group-data-selected/option:[font-weight:var(--select-item-selected-weight)]"
-        >
-          {item.label}
-        </BaseSelect.ItemText>
-        {note && <SelectItemNoteLine note={note} id={noteId} />}
-      </div>
-      <BaseSelect.ItemIndicator className="flex text-(color:--color-select-check)">
-        <CheckIcon />
-      </BaseSelect.ItemIndicator>
-    </BaseSelect.Item>
-  );
-}
-
-function useNarrowScreen() {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia(SHEET_QUERY);
-      query.addEventListener('change', onChange);
-      return () => query.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia(SHEET_QUERY).matches,
-    () => false
-  );
-}
-
-interface DragSample {
-  y: number;
-  t: number;
-}
-
-// 離したときの縦の速さ（px/ms。下向きが正）。離す直前 velocityWindow の間の動きから出す
-function releaseVelocity(samples: DragSample[], y: number, t: number) {
-  const first = samples.find((sample) => t - sample.t <= SHEET_DRAG.velocityWindow);
-  if (!first) return 0;
-  return (y - first.y) / Math.max(t - first.t, SHEET_DRAG.minVelocityDuration);
-}
-
-// 本体の祖先に付いた密度（data-density）と大きい指用（coarse-large）。浮かぶ部分とシートは body の直下に出て、
-// 途中の要素から引き継がないので、浮かぶ部分に写す。html に付いたものは body の直下にも効くので写さない
-interface DensityScope {
-  density?: string;
-  large: boolean;
-}
-
-function readDensityScope(el: Element | null): DensityScope {
-  if (!el) return { large: false };
-  const root = el.ownerDocument.documentElement;
-  const density = el.closest<HTMLElement>('[data-density]');
-  const large = el.closest('.coarse-large');
-  return {
-    density: density && density !== root ? density.dataset.density : undefined,
-    large: !!large && large !== root,
-  };
-}
-
-interface SheetMetrics {
-  /** 中身をすべて出したときの高さ */
-  content: number;
-  /** 半分で開くときの高さ。最後の項目が半分だけ見えるところで切る（「まだ続きがある」ことを見せる） */
-  half: number;
-  /** 高さの上限 */
-  full: number;
 }
 
 /**
@@ -533,24 +240,13 @@ export function Select({
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときは両方、エラー → 警告の順（design/adr/0041 の追記）
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
-  const sheetMessages: { kind: 'error' | 'warning'; content: ReactNode; id: string }[] = [];
+  const sheetMessages: SheetMessage[] = [];
   if (error) sheetMessages.push({ kind: 'error', content: error, id: `${sheetId}error` });
   if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
 
   // 開閉は部品の中でも持つ（シートの × とつまみで閉じるため）
   const [openState, setOpenState] = useState(defaultOpen);
   const open = blocking ? false : (openProp ?? openState);
-  const [detent, setDetent] = useState<SheetDetent>(sheetDetent);
-  // つまみを引いているあいだの高さ。はじいて・引いて閉じたときは、閉じる動きが終わるまで残し、離した高さのまま下へ滑らせる
-  const [dragHeight, setDragHeight] = useState<number | null>(null);
-  // 引いているあいだは、高さの動き（transition）を止める
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef<{
-    y: number;
-    height: number;
-    moved: boolean;
-    samples: DragSample[];
-  } | null>(null);
   // 選んだ・Esc・×・つまみで閉じたときは、フォーカスが本体に戻るまで、開いているときと同じ見た目を保つ（data-closing）
   // Base UI は閉じる動きが終わってからフォーカスを本体に戻すので、そのあいだ本体の青い枠線が一瞬消えていた
   // 外を押して閉じたときは、押した先にフォーカスが移るので保たない
@@ -560,12 +256,23 @@ export function Select({
     const id = setTimeout(() => setClosing(false), 600);
     return () => clearTimeout(id);
   }, [closing]);
+
+  const popoverCue = !sheet && popoverMoreCue === 'shadow';
+  const popoverFit = !sheet && popoverMaxHeight === 'screen';
+  const { headerRef, listRef, metrics, updateCues, measure, observeCues } = usePopupLayout({
+    open,
+    sheet,
+    popoverFit,
+    container,
+  });
+
+  // 選択肢が長いときだけ、半分の高さで開いてつまみを出す
+  const long = sheet && sheetDetent === 'half' && !!metrics && metrics.content > metrics.half + 1;
+  const drag = useSheetDrag({ sheetDetent, metrics, long, onClose: () => changeOpen(false) });
+
   const changeOpen = (next: boolean, reason?: string) => {
     if (next && blocking) return;
-    if (next) {
-      setDetent(sheetDetent);
-      setDragHeight(null);
-    }
+    if (next) drag.reset();
     setOpenState(next);
     onOpenChange?.(next);
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
@@ -609,259 +316,7 @@ export function Select({
     );
   }, [open]);
 
-  // シートの高さ: 開いたときに見出しと選択肢の高さを測る
-  const headerRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const [metrics, setMetrics] = useState<SheetMetrics | null>(null);
-  // 上下に続きがあることの印の濃さ（--cue-top・--cue-bottom、0〜1）。スクロールした量に合わせて濃くし、急に出さない
-  // 印の左右の位置（--cue-left・--cue-right）: シートでは端から描き（内側の余白の分だけ外へ出す）、
-  // スクロールバーがあるときはその手前で止める。スクロールと高さの変化のたびに、要素の style に直接書く
-  const updateCues = useCallback(() => {
-    const list = listRef.current;
-    const popup = list?.parentElement;
-    if (!list || !popup) return;
-    const rest = Math.max(0, list.scrollHeight - list.scrollTop - list.clientHeight);
-    popup.style.setProperty('--cue-top', String(Math.min(1, list.scrollTop / CUE_RAMP)));
-    popup.style.setProperty('--cue-bottom', String(Math.min(1, rest / CUE_RAMP)));
-    const scrollbar = list.offsetWidth - list.clientWidth;
-    const bleed = 'calc(var(--select-popup-padding) * -1)';
-    popup.style.setProperty('--cue-left', bleed);
-    popup.style.setProperty('--cue-right', scrollbar > 0 ? `${scrollbar}px` : bleed);
-  }, []);
-  const observer = useRef<ResizeObserver | null>(null);
-  // いま開いている浮かぶ部分。画面の大きさが変わったときに測り直すため
-  const popupEl = useRef<HTMLDivElement | null>(null);
-  // シートの高さを測る。開いたとき・選択肢の大きさが変わったとき・画面の大きさが変わったときに呼ぶ
-  // 読み込み中の行（一覧の下）も中身に入れる（design/adr/0042）
-  const readSheetMetrics = useCallback(() => {
-    const popup = popupEl.current;
-    const list = listRef.current;
-    if (!popup || !headerRef.current || !list) return;
-    const style = getComputedStyle(popup);
-    const frame =
-      parseFloat(style.paddingTop) +
-      parseFloat(style.paddingBottom) +
-      parseFloat(style.borderTopWidth) +
-      loadingRowLength(list);
-    const header = headerRef.current.offsetHeight;
-    const heights = optionHeights(list, 44);
-    const screen = screenHeight(container);
-    const next = {
-      content: frame + header + listContentLength(list),
-      half: Math.round(
-        frame + header + peekLength(heights, screen * SHEET_HALF - frame - header, false)
-      ),
-      full: Math.round(screen * SHEET_FULL),
-    };
-    setMetrics((prev) =>
-      prev && prev.content === next.content && prev.half === next.half && prev.full === next.full
-        ? prev
-        : next
-    );
-  }, [container]);
-  const measure = useCallback(
-    (popup: HTMLDivElement | null) => {
-      observer.current?.disconnect();
-      popupEl.current = popup;
-      if (!popup || !listRef.current) return;
-      readSheetMetrics();
-      observer.current = new ResizeObserver(() => {
-        readSheetMetrics();
-        updateCues();
-      });
-      observer.current.observe(listRef.current);
-    },
-    [readSheetMetrics, updateCues]
-  );
-
-  // 浮かぶ選択肢: 続きの影を出すときは、高さの変化を見て影の濃さを直す
-  // popoverMaxHeight="screen" のときは、高さの上限（--select-popup-max-height）を、画面の高さの半分のうち
-  // 最後の項目が半分見える高さにする。本体の下の空き（--available-height）での上限は、選択肢の CSS がかける
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
-  const popoverFit = !sheet && popoverMaxHeight === 'screen';
-  const fitPopover = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const heights = optionHeights(list, 40);
-    const style = getComputedStyle(list);
-    const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-    // 項目の数の上限（--select-popup-max-rows）。大きな画面で長くなりすぎないようにする
-    const maxRows = parseFloat(style.getPropertyValue('--select-popup-max-rows')) || Infinity;
-    // 読み込み中の行は一覧の外にあるので、その分を一覧の上限から引く（行を含めた浮かぶ部分の高さを上限に収める）
-    const limit =
-      Math.min(screenHeight(container) * POPOVER_MAX, rowsLength(heights, maxRows) + padding) -
-      loadingRowLength(list);
-    if (list.scrollHeight > limit) {
-      list.style.setProperty(
-        '--select-popup-max-height',
-        `${Math.round(padding + peekLength(heights, limit - padding, true))}px`
-      );
-    } else {
-      list.style.removeProperty('--select-popup-max-height');
-    }
-  }, [container]);
-  const observeCues = useCallback(
-    (popup: HTMLDivElement | null) => {
-      observer.current?.disconnect();
-      popupEl.current = popup;
-      if (!popup || !listRef.current) return;
-      const update = () => {
-        const list = listRef.current;
-        // 本体の下の空き（--available-height）での上限にも、読み込み中の行の分を入れる
-        if (list) list.style.setProperty('--select-popup-extra', `${loadingRowLength(list)}px`);
-        if (popoverFit) fitPopover();
-        updateCues();
-      };
-      requestAnimationFrame(update);
-      observer.current = new ResizeObserver(update);
-      observer.current.observe(listRef.current);
-    },
-    [fitPopover, popoverFit, updateCues]
-  );
-
-  // 開いたまま画面の大きさが変わったら、シートの半分の高さと、浮かぶ選択肢の高さの上限を測り直す
-  useEffect(() => {
-    if (!open) return undefined;
-    const onResize = () => {
-      if (!popupEl.current) return;
-      if (sheet) {
-        readSheetMetrics();
-      } else if (popoverFit) {
-        fitPopover();
-      }
-      updateCues();
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [open, sheet, popoverFit, readSheetMetrics, fitPopover, updateCues]);
-
   const selected = selectedTokens(color);
-
-  // 選択肢が長いときだけ、半分の高さで開いてつまみを出す。つまみを引くと高さが変わり、下へはじくか下まで引くと閉じる
-  const long = sheet && sheetDetent === 'half' && !!metrics && metrics.content > metrics.half + 1;
-  const restingHeight =
-    long && metrics
-      ? detent === 'half'
-        ? metrics.half
-        : Math.min(metrics.content, metrics.full)
-      : undefined;
-  const sheetHeight = dragHeight ?? restingHeight;
-
-  const onHandleDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (restingHeight === undefined) return;
-    if (event.target instanceof Element && event.target.closest('button')) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dragStart.current = {
-      y: event.clientY,
-      height: restingHeight,
-      moved: false,
-      samples: [{ y: event.clientY, t: event.timeStamp }],
-    };
-  };
-  const onHandleMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const start = dragStart.current;
-    if (!start || !metrics) return;
-    // 速さを出すための動きの記録。離す直前 velocityWindow の分だけ残す
-    start.samples.push({ y: event.clientY, t: event.timeStamp });
-    while (
-      start.samples.length > 1 &&
-      event.timeStamp - start.samples[0].t > SHEET_DRAG.velocityWindow
-    ) {
-      start.samples.shift();
-    }
-    const dy = event.clientY - start.y;
-    if (!start.moved && Math.abs(dy) > SHEET_DRAG.moveSlop) {
-      start.moved = true;
-      setDragging(true);
-    }
-    if (start.moved) setDragHeight(Math.min(metrics.full, Math.max(0, start.height - dy)));
-  };
-  // 離したとき: はじいた（速さが flingVelocity 以上）ときは、その向きで、いまの高さの次の段へ動かす
-  //   下へ: 半分より高ければ半分、半分以下なら閉じる（引いた距離が短くても閉じる）
-  //   上へ: 半分より低ければ半分、半分以上なら高さいっぱい
-  // はじかずに離したときは、半分の closeRatio より低ければ閉じ、それ以外は近い方の段に戻す
-  // 閉じるときは、離した高さのまま、シートの閉じる動き（--duration-sheet・--ease-sheet）で下へ滑らせる
-  // 動きを減らす設定では動きがない（motion-reduce）ので、すぐに閉じる
-  const onHandleUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const start = dragStart.current;
-    dragStart.current = null;
-    const height = dragHeight;
-    setDragging(false);
-    if (!start || !metrics) {
-      setDragHeight(null);
-      return;
-    }
-    // 引かずに押したときは、半分と高さいっぱいを切り替える
-    if (!start.moved || height === null) {
-      setDragHeight(null);
-      setDetent(detent === 'half' ? 'full' : 'half');
-      return;
-    }
-    const full = Math.min(metrics.content, metrics.full);
-    const velocity =
-      event.type === 'pointercancel'
-        ? 0
-        : releaseVelocity(start.samples, event.clientY, event.timeStamp);
-    let target: SheetDetent | 'close';
-    if (velocity >= SHEET_DRAG.flingVelocity) {
-      target = height > metrics.half ? 'half' : 'close';
-    } else if (velocity <= -SHEET_DRAG.flingVelocity) {
-      target = height < metrics.half ? 'half' : 'full';
-    } else if (height < metrics.half * SHEET_DRAG.closeRatio) {
-      target = 'close';
-    } else {
-      target = Math.abs(height - metrics.half) <= Math.abs(height - full) ? 'half' : 'full';
-    }
-    if (target === 'close') {
-      changeOpen(false);
-      return;
-    }
-    setDragHeight(null);
-    setDetent(target);
-  };
-
-  // 選択肢が長いとき、上下に続きがあることを見せる印（sheetMoreCue）。濃さはスクロールした量に合わせる（updateCues）
-  //   下の端はどれも内側の影（--color-select-sheet-edge-shadow）。上の端は、shadow: 内側の影、divider: 区切り線
-  //   divider-always: いつも出す区切り線、divider-shadow: 区切り線と内側の影
-  //   区切り線はシートの幅いっぱいに引き、影はスクロールバーの手前で止める
-  const moreCue = (edge: 'top' | 'bottom') => {
-    const top = edge === 'top';
-    const level = top ? 'var(--cue-top, 0)' : 'var(--cue-bottom, 0)';
-    // 浮かぶ選択肢は見出しがないので、上も影だけ
-    const shadow =
-      !top ||
-      !sheet ||
-      sheetMoreCue === 'shadow' ||
-      sheetMoreCue === 'divider-shadow' ||
-      sheetMoreCue === 'divider-always-shadow';
-    const divider = sheet && top && sheetMoreCue !== 'shadow';
-    const dividerAlways =
-      sheetMoreCue === 'divider-always' || sheetMoreCue === 'divider-always-shadow';
-    return (
-      <div
-        aria-hidden
-        className={['pointer-events-none relative z-1 h-3 shrink-0', top ? '-mb-3' : '-mt-3'].join(
-          ' '
-        )}
-      >
-        {shadow && (
-          <div
-            className={[
-              'absolute inset-y-0 right-[var(--cue-right,0px)] left-[var(--cue-left,0px)] from-(color:--color-select-sheet-edge-shadow) to-transparent',
-              top ? 'bg-linear-to-b' : 'bg-linear-to-t',
-            ].join(' ')}
-            style={{ opacity: level }}
-          />
-        )}
-        {divider && (
-          <div
-            className="absolute -inset-x-(--select-popup-padding) top-0 h-px bg-surface-line"
-            style={{ opacity: dividerAlways ? 1 : level }}
-          />
-        )}
-      </div>
-    );
-  };
 
   return (
     <Field
@@ -887,7 +342,7 @@ export function Select({
           onOpenChange={(next, details) => changeOpen(next, details.reason)}
           // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
           onOpenChangeComplete={(next) => {
-            if (!next) setDragHeight(null);
+            if (!next) drag.clearDragHeight();
           }}
           {...rootProps}
         >
@@ -985,8 +440,12 @@ export function Select({
               <BaseSelect.Popup
                 ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
                 data-slot="select-popup"
-                data-dragging={dragging || undefined}
-                style={sheetHeight !== undefined ? { ...selected, height: sheetHeight } : selected}
+                data-dragging={drag.dragging || undefined}
+                style={
+                  drag.sheetHeight !== undefined
+                    ? { ...selected, height: drag.sheetHeight }
+                    : selected
+                }
                 className={[
                   'p-(--select-popup-padding) text-(length:--text-control) leading-(--leading-control) text-fg outline-none',
                   'border-(length:--border-width-thin) border-surface-line bg-surface',
@@ -1014,97 +473,21 @@ export function Select({
                       ].join(' '),
                 ].join(' ')}
               >
-                {/* シートの見出し: つまみ・ラベル・閉じるボタン・ヘルプテキスト・欄のエラー・警告
-                  ラベル・ヘルプテキスト・エラー・警告は、本体に付いているので読み上げでは隠す
-                  ヘルプテキストとエラー・警告は、選択肢の一覧（listbox）の説明にもつなぐ（design/adr/0044） */}
                 {sheet && (
-                  <div
+                  <SelectSheetHeader
                     ref={headerRef}
-                    onPointerDown={onHandleDown}
-                    onPointerMove={onHandleMove}
-                    onPointerUp={onHandleUp}
-                    onPointerCancel={onHandleUp}
-                    className={[
-                      'flex shrink-0 flex-col select-none',
-                      long && 'cursor-grab touch-none',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    {/* つまみ: 選択肢が長いときだけ出す。場所はいつも取っておく（高さを測るため） */}
-                    <div aria-hidden className="flex h-4 items-center justify-center">
-                      <div
-                        className={[
-                          'h-1 w-9 rounded-pill bg-(color:--color-line)',
-                          !long && 'invisible',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      />
-                    </div>
-                    {/* ラベルとヘルプテキストは1つのまとまりにし、× とは切り離す
-                      × は右上に固定する（ヘルプテキストが長くなっても動かない）。ラベルの行は × の中央にそろえる
-                      ヘルプテキストは、本体のどちら（captionPlacement）に置いていても、ラベルの下に出す
-                      欄のエラー・警告は、ヘルプテキストの下に、本体の下と同じ行（アイコン＋文）で出す（design/adr/0044）
-                      シートが本体の下の行を隠すことがあるため。浮かぶ選択肢には出さない
-                      両方あるときはエラー → 警告。行の間は、ヘルプテキストとの間と同じ 4px（design/adr/0041 の追記） */}
-                    <div className="relative">
-                      <div
-                        aria-hidden
-                        className="flex flex-col gap-0.5 py-[calc((var(--spacing-control)-var(--leading-label))/2)] pr-(--spacing-control) pl-[calc(var(--spacing-control-x)-var(--select-popup-padding))]"
-                      >
-                        <div className="text-(length:--text-label) leading-(--leading-label) font-bold">
-                          {label}
-                        </div>
-                        {caption && (
-                          <div
-                            id={sheetCaptionId}
-                            className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
-                          >
-                            {caption}
-                          </div>
-                        )}
-                        {sheetMessages.map(({ kind, content, id }) => {
-                          const Icon = kind === 'error' ? WarningCircleIcon : WarningIcon;
-                          return (
-                            <div
-                              key={kind}
-                              id={id}
-                              data-slot="select-sheet-message"
-                              data-kind={kind}
-                              className={styles.message({
-                                className: [
-                                  'mt-0.5',
-                                  kind === 'error' ? 'text-fg-danger' : 'text-fg-warning',
-                                ].join(' '),
-                              })}
-                            >
-                              <Icon className={styles.messageIcon()} />
-                              <span className="min-w-0">{content}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {/* 選ばずに閉じる。アイコンだけのボタンなので線は Bold（design/adr/0018）
-                        Tab では止まらない（開いた直後のフォーカスを選んだ項目に置くため）。キーボードでは Esc で閉じる */}
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        aria-label="閉じる"
-                        onClick={() => changeOpen(false)}
-                        className={[
-                          'absolute top-0 right-0 flex size-(--spacing-control) cursor-pointer items-center justify-center rounded-[calc(var(--radius-control)-var(--select-popup-padding))] text-fg-muted',
-                          ...focusRing,
-                          '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press)]',
-                          'hover:bg-flat-hover active:bg-flat-press motion-reduce:[transition:none]',
-                        ].join(' ')}
-                      >
-                        <XIcon standalone />
-                      </button>
-                    </div>
-                  </div>
+                    long={long}
+                    label={label}
+                    caption={caption}
+                    captionId={sheetCaptionId}
+                    messages={sheetMessages}
+                    onClose={() => changeOpen(false)}
+                    {...drag.handlers}
+                  />
                 )}
-                {(long || popoverCue) && moreCue('top')}
+                {(long || popoverCue) && (
+                  <SelectMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
                 {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                   シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す
                   選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
@@ -1142,7 +525,9 @@ export function Select({
                     <SelectOption key={item.value} item={item} />
                   ))}
                 </BaseSelect.List>
-                {(long || popoverCue) && moreCue('bottom')}
+                {(long || popoverCue) && (
+                  <SelectMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
                 {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
                   選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置く
                   読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため）
