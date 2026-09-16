@@ -14,7 +14,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/35 幅いっぱいの枠線のリンクの前のアイコン`（[`stories/axis-35-link-leading-icon.stories.tsx`](../stories/axis-35-link-leading-icon.stories.tsx)）です。ストーリーは2つあります。
+比較は Storybook の `Design Review/35 幅いっぱいの枠線のリンクの前のアイコン`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。ストーリーは2つあります。
 
 ### 1. 前のアイコン（`Candidates`）
 

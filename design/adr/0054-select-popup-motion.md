@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/33 浮かぶ選択肢の開閉の動き`（[`stories/axis-33-select-motion.stories.tsx`](../stories/axis-33-select-motion.stories.tsx)）です。行ごとに本物の Select を置き、開く向き（下に開く・上に開く）を列にしました。変えたのは次のトークンだけです（`src/components/Select.tsx` の浮かぶ部分が読む）。
+比較は Storybook の `Design Review/33 浮かぶ選択肢の開閉の動き`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。行ごとに本物の Select を置き、開く向き（下に開く・上に開く）を列にしました。変えたのは次のトークンだけです（`src/components/Select.tsx` の浮かぶ部分が読む）。
 
 - `--select-popup-duration-in`・`-out`: 開く・閉じる長さ
 - `--select-popup-ease`: 緩急

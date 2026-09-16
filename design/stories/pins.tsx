@@ -108,41 +108,6 @@ export const keepSwitchAsCompared = (Story: () => ReactNode) => (
   </div>
 );
 
-// トグルの行の形 grouped（軸 46 の C。採らなかったので部品から消した）
-//   比べたときは、続けて置いた行を角丸の囲み1つにまとめ、行のあいだの区切り線の左を文字の始まりまで下げていた
-//   部品の frame="divided"（上下の線。続けて置くと線を1本に重ねる）の行を並べ、この CSS で左右の線・角・区切り線を足して戻す
-//   角と線は、比較のストーリーが明示している --switch-group-radius・--switch-row-line-width・--color-switch-row-line
-//   行の hover・押下の塗りと、フォーカスの線（行の内側）は divided と同じなので、部品のまま
-//   使い方: 行を並べる箱に data-switch-grouped-as-compared を付け、ストーリーの <style> にこの CSS を入れる
-//   @layer の外に置くので、部品の Tailwind のクラスより強い
-export const switchGroupedAsComparedCss = `
-[data-switch-grouped-as-compared] > [data-switch-frame] {
-  border-inline-width: var(--switch-row-line-width);
-  padding-inline: calc(var(--space-control-x) - var(--switch-row-line-width));
-  border-radius: var(--switch-group-radius);
-}
-[data-switch-grouped-as-compared] > [data-switch-frame] + [data-switch-frame] {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-color: transparent;
-}
-[data-switch-grouped-as-compared] > [data-switch-frame]:has(+ [data-switch-frame]) {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-color: transparent;
-}
-[data-switch-grouped-as-compared] > [data-switch-frame] + [data-switch-frame]::before {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  top: calc(-1 * var(--switch-row-line-width));
-  right: 0;
-  left: calc(var(--space-control-x) - var(--switch-row-line-width));
-  height: var(--switch-row-line-width);
-  background-color: var(--color-switch-row-line);
-}
-`;
-
 // お知らせの ×（軸 30 より前に比べたもの）
 //   いまは部品の高さの角丸の四角。比べたときは行の高さ＋8px の丸
 const noticeCloseAsCompared: CSSProperties & Record<`--${string}`, string> = {

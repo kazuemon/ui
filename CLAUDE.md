@@ -21,7 +21,7 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                       |
 | `design/references/`                   | 原則の出どころの参照画像                                                                    |
 | `design/rounds/rNN/`                   | 前半（design キャンバス）の候補定義。`p1-final/` は前半の最終版                             |
-| `design/stories/axis-NN-*.stories.tsx` | 後半の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可） |
+| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す      |
 | `design/tools/`                        | 生成・撮影・測定のスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md) |
 | `src/components/`                      | 部品。props の説明は JSDoc に書く                                                           |
 | `src/styles/globals.css`               | tokens.css を読み込み、密度を入力方式から解決する                                           |
@@ -49,7 +49,7 @@ pnpm test                     # 全ストーリーを Vitest で描き、play �
 - 操作しないと出ない状態（hover、フォーカス）は `storybook-addon-pseudo-states` で固定する
 - 密度はツールバーの「密度」で固定して比べる。密度の差は実機で指で押して詰める
 - ユーザーはストーリーを開き、1 案を選んで一言添える。「X を既定にして、Y も選べる」という決め方が多いので、案を出すときはどれを既定にするかを尋ねる
-- 決まったら、ストーリーの `pick` の既定値を採用した案にし、説明の先頭に決定と ADR の番号を書く。ストーリーは記録として残す
+- 決まったら、ストーリーの `pick` の既定値を採用した案にし、説明の先頭に決定と ADR の番号を書く。比較画像を撮り、ADR に決めた時点のコミット（sha）を書いたら、そのストーリーは消す。Storybook の Design Review には、まだ決めていない軸だけを残す
 
 決まったあとに更新するもの（この順で、コミットの前にまとめて 1 回）:
 
@@ -59,6 +59,7 @@ pnpm test                     # 全ストーリーを Vitest で描き、play �
 4. backlog.md から決まったものを消し、新しく分かった未決事項を足す
 5. ADR の索引（`design/adr/README.md`）に行を足す
 6. 比較画像を撮る。ADR の画像は決めた時点の記録なので、あとで撮り直さない
+7. 比較のストーリーを消し、ADR に決めた時点のコミット（sha）を書く。部品が変わると残したストーリーでは比較を再現できないので、記録は画像とコミットで残す（`git checkout <sha> && pnpm storybook` で、決めたときの部品のまま開ける）
 
 ## 作業ルール
 

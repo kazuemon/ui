@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/47 行の背景の押したときの変わり方`（[`stories/axis-47-switch-row-press.stories.tsx`](../stories/axis-47-switch-row-press.stories.tsx)）です。
+比較は Storybook の `Design Review/47 行の背景の押したときの変わり方`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。
 
 | 案     | 内容                                                                          |
 | ------ | ------------------------------------------------------------------------------ |

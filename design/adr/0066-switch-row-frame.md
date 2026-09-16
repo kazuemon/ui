@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/46 トグルを右に置いた行の押せる範囲`（[`stories/axis-46-switch-row.stories.tsx`](../stories/axis-46-switch-row.stories.tsx)）です。
+比較は Storybook の `Design Review/46 トグルを右に置いた行の押せる範囲`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。
 
 | 案     | 内容                                                                 |
 | ------ | --------------------------------------------------------------------- |
@@ -58,7 +58,7 @@ A・B・C はどれも、囲みの内側全部（線を含む）を押せるよ�
 
 ## 影響
 
-- `src/components/Switch.tsx`: `SwitchFrame` は `'none' | 'card' | 'divided'` です。`grouped` は候補にはありましたが実装せず、比較のストーリーでは `frame="divided"` の行に `design/stories/pins.tsx` の `switchGroupedAsComparedCss` を当てて、比べたときの見た目を再現しています
+- `src/components/Switch.tsx`: `SwitchFrame` は `'none' | 'card' | 'divided'` です。`grouped` は候補にはありましたが実装せず、比較のストーリーでは `frame="divided"` の行に CSS を当てて、比べたときの見た目を再現していました（そのストーリーと、CSS を持っていた `design/stories/pins.tsx` の節は、決めたあとに消しました。決めた時点のコミット `5de918a` に残っています）
 - `tokens.css`: `--switch-row-line-width`・`--color-switch-row-line`・`--switch-row-radius`（card）・`--switch-group-radius`（grouped。部品からは未使用）・`--switch-row-gap`・`--switch-row-pad-y` を、行の形の見た目として持ちます
 - 囲み（`card`・`divided`）があるとき、トラックの縦の位置は `--switch-row-track-rows`・`--switch-row-track-align` で行（ラベルとキャプションのまとまり）の縦の中央に決まります。囲みなしはラベルの行の中央（`--switch-track-rows`）のままです
 - **残った問題**:

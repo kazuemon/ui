@@ -12,7 +12,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/42 チェックボックスとラジオを押したときの動き`（[`stories/axis-42-choice-press.stories.tsx`](../stories/axis-42-choice-press.stories.tsx)）です。どの案も、動きの長さと緩急はボタンの押下と同じ（`--duration-press`・`--ease-press`）です。
+比較は Storybook の `Design Review/42 チェックボックスとラジオを押したときの動き`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。どの案も、動きの長さと緩急はボタンの押下と同じ（`--duration-press`・`--ease-press`）です。
 
 | 案     | 内容                                                                                                             |
 | ------ | ------------------------------------------------------------------------------------------------------------------ |

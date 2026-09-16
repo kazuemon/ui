@@ -8,7 +8,7 @@
 
 数（通知の件数など）と小さな状態の点を出す部品がありませんでした。タグ（`src/components/Tag.tsx`。淡い面・文字はキャプションの大きさ・高さ 20px・pill）は文字のラベル用で、数や点を出すと形や色の使い分けがあいまいになります。
 
-比較は Storybook の `Design Review/39 Badge（数と小さな状態の点）`（[`stories/axis-39-badge.stories.tsx`](../stories/axis-39-badge.stories.tsx)）です。Badge はタグとは別の、押せない素の要素の部品として作りました。ここで選ぶのは Badge の形（塗り・大きさ・重ねるときの縁）です。
+比較は Storybook の `Design Review/39 Badge（数と小さな状態の点）`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。Badge はタグとは別の、押せない素の要素の部品として作りました。ここで選ぶのは Badge の形（塗り・大きさ・重ねるときの縁）です。
 
 ## 候補
 

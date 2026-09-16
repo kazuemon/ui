@@ -14,7 +14,7 @@
 
 ### 見た目（軸34）
 
-比較は Storybook の `Design Review/34 ボトムシートの読み込み中の行`（[`stories/axis-34-select-sheet-loading.stories.tsx`](../stories/axis-34-select-sheet-loading.stories.tsx)）です。列は選択肢の数（0件・3件・23件）、行は現行版と2案です。変えたのは次のトークンだけです（`src/components/Select.tsx` のシートの読み込み中の行が読む）。
+比較は Storybook の `Design Review/34 ボトムシートの読み込み中の行`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。列は選択肢の数（0件・3件・23件）、行は現行版と2案です。変えたのは次のトークンだけです（`src/components/Select.tsx` のシートの読み込み中の行が読む）。
 
 - `--select-sheet-loading-justify`: 並び（左寄せか中央か）
 - `--select-sheet-loading-extra`: 項目の高さに足す高さ

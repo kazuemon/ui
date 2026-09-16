@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は Storybook の `Design Review/50 チェックボックスとラジオのエラーの箱`（[`stories/axis-50-choice-error-box.stories.tsx`](../stories/axis-50-choice-error-box.stories.tsx)）です。選んだ箱は、どの案も部品の色のまま（線も引かない）で、寸法は変えません。
+比較は Storybook の `Design Review/50 チェックボックスとラジオのエラーの箱`（決めた時点のコミット `5de918a`（`git checkout 5de918a && pnpm storybook` で開けます））です。選んだ箱は、どの案も部品の色のまま（線も引かない）で、寸法は変えません。
 
 | 案     | 塗り                                | 線                                     |
 | ------ | ------------------------------------ | ---------------------------------------- |
