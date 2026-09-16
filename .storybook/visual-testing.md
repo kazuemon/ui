@@ -38,6 +38,9 @@ pnpm test -u     # 基準画像を撮り直す（意図して見た目を変え�
 
 ## 撮影の条件（`vitest.config.ts`）
 
+- **文字の描き方を Chromium のフラグで固定する。** `--font-render-hinting=none` と `--disable-lcd-text`。Linux の Chromium はヒンティングとサブピクセルの描き方を OS の fontconfig から読むので、手元（Debian）と GitHub Actions（Ubuntu）で字形全体が 1px 未満ずれ、文字のある画像がすべて数百〜数千画素の差分になった（2026-09-17、CI の初回）。フラグで固定すると、Debian で撮った基準に Ubuntu が 1 画素の差もなく一致する。fontconfig の設定ファイルを `FONTCONFIG_FILE` で指す形でもそろうが、OS の設定を取り込む分だけ依存が残るので、フラグにした
+- **同梱していない文字を使わない。** 「↗」のような同梱フォント（IBM Plex Sans JP・Mulish・Geist Mono）にない文字は、OS の代替フォント（DejaVu など）で描かれ、OS ごとに違う。ストーリーの文でも避ける
+
 - **hover とポインタを固定する。** headless の既定は「マウスなし」で、`hover:` の見た目（Tailwind が `@media (hover: hover)` で包む）も、`@media (pointer: coarse)` で決まる密度も出ません。`--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4`
 - **動きを減らす設定で撮る。** `--force-prefers-reduced-motion`
 - **動きそのものを止める。** 動きを減らす設定でも、回る円は3秒で1周し、流れる線は明滅し続けます。撮る直前に `animation: none; transition: none` を当てます（動きは回帰テストの対象外）
@@ -74,7 +77,7 @@ pnpm test -u     # 基準画像を撮り直す（意図して見た目を変え�
 
 ## 残る決めごと
 
-- 許す幅の締め方（いまは 1px も許さない。CI で揺れたら見直す）
+- 許す幅の締め方（いまは 1px も許さない。CI で揺れたら見直す）。CI と同じ環境で流すには `docker run --rm --user $(id -u):$(id -g) -e HOME=/tmp -v "$PWD":/work -w /work mcr.microsoft.com/playwright:v1.63.0-noble node_modules/.bin/vitest run`（root で流すと node_modules が root 所有になるので `--user` を付ける）
 - macOS から触るようになったときの基準（ファイル名に platform が入るので、いまは Linux だけ）
 
 ## やらないこと

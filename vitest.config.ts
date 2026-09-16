@@ -39,6 +39,11 @@ export default mergeConfig(
                 },
                 launchOptions: {
                   args: [
+                    // 文字の描き方を OS の設定（fontconfig）によらず固定する。ヒンティングなし、LCD（サブピクセル）なし。
+                    // これがないと、Debian の手元と Ubuntu の CI で字形全体が 1px 未満ずれて描かれ、
+                    // 文字のある画像がすべて数百〜数千画素の差分になる（.storybook/visual-testing.md）
+                    '--font-render-hinting=none',
+                    '--disable-lcd-text',
                     // 動きを減らす設定（prefers-reduced-motion: reduce）で撮る
                     '--force-prefers-reduced-motion',
                     // headless の既定は「マウスなし」で、hover の見た目（@media (hover: hover)）も

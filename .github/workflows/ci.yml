@@ -49,3 +49,5 @@ jobs:
           name: screenshot-diffs
           path: .vitest-attachments
           if-no-files-found: ignore
+          # .vitest-attachments は隠しディレクトリなので、これがないと空になる
+          include-hidden-files: true

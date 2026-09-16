@@ -40,7 +40,11 @@ const entries: Entry[] = [
   },
   { name: 'CaretDownIcon', regular: <CaretDownIcon />, use: 'Select の ▼' },
   { name: 'CaretRightIcon', regular: <CaretRightIcon />, use: '枠線のリンクの「›」' },
-  { name: 'ArrowUpRightIcon', regular: <ArrowUpRightIcon />, use: '外へのリンク（↗）' },
+  {
+    name: 'ArrowUpRightIcon',
+    regular: <ArrowUpRightIcon />,
+    use: '外へのリンク（右上向きの矢印）',
+  },
   { name: 'CheckIcon', regular: <CheckIcon />, use: '選んだ選択肢の印' },
   {
     name: 'WarningCircleIcon',
