@@ -18,6 +18,7 @@ interface SheetHeaderProps extends Omit<ComponentProps<'div'>, 'children'> {
 // シートの見出し: つまみ・題のまとまり・右上の × — adr/0037
 // Select のシート・Drawer・狭い画面の Dialog と Popover で共有する
 // 題のまとまりは × とは切り離す。× は右上に固定し、説明が長くなっても動かない。題の行は × の中央にそろえる
+// 題も説明もないとき（Popover の文だけのシート）も、× の分の高さは取り、× が中身に重ならないようにする
 // 位置は面の内側の余白（--sheet-inset。Select は選択肢の余白、Drawer は 0）から逆算する
 // 題の行の高さは --sheet-title-leading（既定はラベルの行の高さ）。× はその行の中央にそろう
 //   題の左: 面の端から --sheet-padding-x。× : 面の端から --sheet-close-inset
@@ -43,7 +44,7 @@ export function SheetHeader({ handle, close, children, className, ...props }: Sh
             'flex flex-col gap-0.5 py-[calc((var(--spacing-control)-var(--sheet-title-leading,var(--leading-label)))/2)] pl-[calc(var(--sheet-padding-x)-var(--sheet-inset,0px))]',
             close == null
               ? 'pr-[calc(var(--sheet-padding-x)-var(--sheet-inset,0px))]'
-              : 'pr-[calc(var(--spacing-control)+var(--sheet-close-inset)-var(--sheet-inset,0px))]',
+              : 'min-h-(--spacing-control) pr-[calc(var(--spacing-control)+var(--sheet-close-inset)-var(--sheet-inset,0px))]',
           ].join(' ')}
         >
           {children}
