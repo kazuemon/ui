@@ -66,7 +66,7 @@ export const choiceStyles = tv({
     ],
     // 印は、箱が選んでいない状態になった描画で隠す。Base UI の Indicator は外れてから1フレーム残るので、そのままだと薄い箱の上に白い印が一瞬見える
     mark: 'flex size-full items-center justify-center text-(color:--choice-mark) group-data-unchecked/box:invisible',
-    dot: 'block size-[calc(var(--choice-size)*var(--radio-dot-ratio))] rounded-pill bg-(color:--choice-mark) group-data-unchecked/box:invisible',
+    dot: 'block size-[round(var(--choice-size)*var(--radio-dot-ratio),2px)] rounded-pill bg-(color:--choice-mark) group-data-unchecked/box:invisible',
     // 間（--choice-gap）は文字の側に持たせ、箱と文字のあいだも押せるようにする
     label: [
       'col-start-2 cursor-pointer justify-self-start pl-(--choice-gap) text-(length:--text-control) leading-(--leading-control) text-fg',

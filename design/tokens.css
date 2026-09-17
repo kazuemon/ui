@@ -676,7 +676,7 @@
   --checkbox-radius: 5px; /* チェックボックスの角。ラジオは完全な丸（--radius-pill） */
   /* チェックと中間の横線の太さ。画面の px で、箱の大きさによらない */
   --checkbox-mark-width: var(--border-width-thick);
-  --radio-dot-ratio: 0.4; /* ラジオの白い丸の直径。箱に対する比 */
+  --radio-dot-ratio: 0.4; /* ラジオの白い丸の直径。箱に対する比。部品が 2px 単位に丸め、箱と同じ偶数にして中央に置く（端数だとふちのぼかしが偏る） */
   --choice-gap: calc(var(--spacing) * 2); /* 箱と横の文字の間 */
   /* 選んでいない箱の塗り — ADR-0062 の C の色の組。トグルの OFF をADR-0067 の D の色にしたとき、箱も同じ濃さにそろえた
      ふだんは入力欄の prefix・suffix と同じ一段濃いグレーで、トグルの OFF のトラックと同じ色（小さい箱でも白地で見える）

@@ -9,7 +9,7 @@ import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import { useChoiceLock } from '../../internal/form-context';
 
 // ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
-// 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio）
+// 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio を 2px 単位に丸めたもの。箱と同じ偶数にし、ふちのぼかしが偏らないようにする）
 
 export interface RadioProps extends Omit<
   ComponentProps<typeof BaseRadio.Root>,
