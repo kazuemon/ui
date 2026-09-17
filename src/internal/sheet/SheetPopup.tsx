@@ -1,7 +1,7 @@
 import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 
-import { type OverlayInitialFocus, initialFocusOf } from '../overlay/initial-focus';
+import { initialFocusOf } from '../overlay/initial-focus';
 
 import type { DensityScope } from '../density-scope';
 import { SheetCloseButton, SheetHeader } from './SheetHeader';
@@ -35,8 +35,6 @@ interface SheetPopupProps {
   closeLabel?: string;
   /** 右上に閉じる × を置くか */
   closeButton?: boolean;
-  /** 開いた直後にフォーカスを置く場所 */
-  initialFocus?: OverlayInitialFocus;
   container?: HTMLElement | null;
   densityScope: DensityScope;
   popupRef?: Ref<HTMLDivElement>;
@@ -62,7 +60,6 @@ export function SheetPopup({
   handle = false,
   closeLabel,
   closeButton = true,
-  initialFocus = 'first',
   container,
   densityScope,
   popupRef,
@@ -97,7 +94,7 @@ export function SheetPopup({
         <BaseDrawer.Popup
           ref={popupRef}
           data-overlay-id={overlayId}
-          initialFocus={initialFocusOf(initialFocus, overlayId, 'sheet-close', 'drawer')}
+          initialFocus={initialFocusOf(overlayId, 'drawer')}
           data-slot="sheet"
           data-side={side}
           data-density={densityScope.density}
@@ -190,7 +187,7 @@ export function SheetPopup({
             <div
               data-slot="sheet-footer"
               data-layout={layout}
-              className="flex shrink-0 [flex-direction:var(--sheet-actions-direction)] flex-wrap [justify-content:var(--sheet-actions-justify)] gap-2 px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))] *:[flex:var(--sheet-actions-grow)] data-[layout='stack-reverse']:[--sheet-actions-direction:column-reverse] data-[layout=fill]:[--sheet-actions-grow:1_1_0] data-[layout=stack]:[--sheet-actions-direction:column]"
+              className="flex shrink-0 flex-wrap justify-end gap-2 px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))] data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col"
             >
               {footer}
             </div>

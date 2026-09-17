@@ -156,8 +156,8 @@ export function Tooltip({
           <BaseTooltip.Popup
             data-slot="tooltip"
             className={[
-              // 面・文字・輪郭の色は --color-tooltip・--color-on-tooltip・--color-tooltip-line。角は浮かぶ面なので部品の角（原則5）
-              'rounded-control border-(length:--border-width-thin) border-(color:--color-tooltip-line) bg-(color:--color-tooltip) text-(color:--color-on-tooltip) outline-none',
+              // 面はほかの浮かぶ面と同じ白に細い輪郭（原則1）。角は浮かぶ面なので部品の角（原則5）— ADR-0106
+              'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
               popupMotionClass,
               !shadow && '[--shadow-tooltip:none]',
               '[box-shadow:var(--shadow-tooltip)] max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption)',

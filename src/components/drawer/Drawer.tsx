@@ -2,7 +2,6 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactElement, type ReactNode, useCallback, useRef, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
-import type { OverlayInitialFocus } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import {
   type OverlayActionsLayout,
@@ -69,12 +68,6 @@ export interface DrawerProps {
    */
   closeButton?: boolean;
   /**
-   * 開いた直後にフォーカスを置く場所。first は最初に Tab で止まるもの（右上の × があれば ×）、
-   * content は × を飛ばして中身と下の操作のうち最初のもの、popup は面そのもの
-   * @default 'first'
-   */
-  initialFocus?: OverlayInitialFocus;
-  /**
    * 閉じる × の読み上げの名前
    * @default '閉じる'
    */
@@ -113,7 +106,6 @@ export function Drawer({
   actionsLayout = 'auto',
   closeOnEscape = true,
   closeButton = true,
-  initialFocus = 'first',
   closeLabel,
   container,
   className,
@@ -185,7 +177,6 @@ export function Drawer({
           handle={snap}
           closeLabel={closeLabel}
           closeButton={closeButton}
-          initialFocus={initialFocus}
           container={container}
           densityScope={scope}
           popupRef={measure}

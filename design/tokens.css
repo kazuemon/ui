@@ -244,7 +244,7 @@
   /* 押したとき — adr/0033
      落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
   --shadow-raised-press: var(--shadow-raised-hover);
-  /* 重なるレイヤー（原則1）— adr/0036・adr/0037
+  /* 重なるレイヤー（原則1）— adr/0036・adr/0037・ADR-0102
      ページの上に重なる面（浮かぶ選択肢・Popover・Tooltip・Dialog）の、やわらかく広い影。輪郭は白いボタンと同じ細い線（--color-surface-line）
      sheet は画面の下から出る面（Select のシート・Drawer）の上向きの影。左右から出る Drawer は、影を開く向きに回す
      backdrop は、後ろの画面を暗くする色（シート・Dialog・Drawer） */
@@ -776,7 +776,7 @@
   --popup-duration-out: 150ms;
   --popup-ease: var(--ease-sheet);
   --popup-shift: calc(var(--spacing) * 2);
-  /* シート（画面の下から出る面。Select のシート・Drawer・狭い画面の Dialog と Popover）— adr/0037
+  /* シート（画面の下から出る面。Select のシート・Drawer・狭い画面の Dialog と Popover）— adr/0037・ADR-0102
      面・輪郭は浮かぶ面と同じ。上の角はカードの角。影は --shadow-sheet、後ろの画面は --color-backdrop
      edge-shadow: 中身が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる）
      padding-x: 見出しと中身の左右の余白。Select のシートの見出し（ラベルが選択肢の文字とそろう位置）と同じ
@@ -790,60 +790,40 @@
   /* 閉じる向きと反対へ引いたときに、面の外側に伸ばしておく面の長さ（隙間を見せない） */
   --sheet-bleed: calc(var(--spacing) * 12);
   --sheet-side-width: min(calc(var(--spacing) * 90), calc(100vw - var(--spacing) * 12));
-  /* 横から出すときの影 — 軸 86 の A。下から出すシートと同じく、影を開く向き（画面の内側）に向ける
+  /* 横から出すときの影 — ADR-0108。下から出すシートと同じく、影を開く向き（画面の内側）に向ける
      left は左から出すパネル、right は右から出すパネル */
   --shadow-sheet-left: 8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
   --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
-  /* シートの下の操作の並べ方（比べている途中 — 軸 83）
-     direction: row（横に並べる）か column-reverse（縦に積み、最後に渡した主な操作を上にする）
-     justify: 横に並べるときの寄せ方。grow: 各ボタンの flex（0 0 auto は文字の幅、1 1 0 は幅を等分） */
-  --sheet-actions-direction: row;
-  --sheet-actions-justify: flex-end;
-  --sheet-actions-grow: 0 0 auto;
 
-  /* Dialog・Drawer・Popover の題と説明の大きさ — 軸 81 の B
-     題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。Select のシートの見出しは欄のラベルのまま
+  /* Dialog・Drawer・Popover の題と説明の大きさ
+     題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。ADR-0103。Select のシートの見出しは欄のラベルのまま
      --overlay-title-size・--overlay-title-leading・--overlay-description-size・--overlay-description-leading は、
      密度で変わる役割を指すので、src/styles/theme.css の密度の規則が入れる */
 
-  /* Popover（原則にない判断: 余白・幅）
+  /* Popover — ADR-0107
      面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay）。角は浮かぶ面なので部品の角（原則5）
-     padding: 内側の余白。max-width: 幅の上限。本体との間は浮かぶ選択肢と同じ 4px */
+     padding: 内側の余白。max-width: 幅の上限。本体との間は浮かぶ選択肢と同じ 4px
+     本体を指す矢印は既定では出さない（部品の arrow で出す） */
   --popover-padding: calc(var(--spacing) * 4);
   --popover-max-width: calc(var(--spacing) * 80);
   --popover-offset: var(--spacing);
-  /* 本体を指す矢印と、右上の閉じる ×（比べている途中 — 軸 85）
-     arrow-display・close-display: 出すか（none で出さない）。close-space: × の分だけ題の右を空ける */
-  --popover-arrow-display: none;
-  --popover-close-display: none;
-  --popover-close-space: 0px;
 
-  /* Tooltip（原則にない判断: 面の色・余白）
-     面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip。文字は部品のキャプションと同じ大きさ
-     出るまでの時間と長押しの時間は、部品の props（delay・longPressDelay）で持つ */
+  /* Tooltip — ADR-0106
+     面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（shadow={false} で外せる）
+     文字は部品のキャプションと同じ大きさ。出るまでの時間と長押しの時間は、部品の props（delay・longPressDelay）で持つ */
   --tooltip-padding-x: calc(var(--spacing) * 2);
   --tooltip-padding-y: var(--spacing);
   --tooltip-max-width: calc(var(--spacing) * 60);
   --tooltip-offset: calc(var(--spacing) * 2);
   /* Tooltip は小さいので、ほかの浮かぶ面より影を小さく淡くする */
   --shadow-tooltip: 0 2px 8px rgb(from var(--color-shadow) r g b / 0.08);
-  /* 面・文字・輪郭の色（比べている途中 — 軸 84） */
-  --color-tooltip: var(--color-surface);
-  --color-on-tooltip: var(--color-fg);
-  --color-tooltip-line: var(--color-surface-line);
 
-  /* Dialog（原則にない判断: 幅・余白・角）
+  /* Dialog — ADR-0104
      中央に浮かべる。部品（ボタン）を包むので、角はカードの角（原則5）。面・輪郭・影は浮かぶ面と同じ
      width: 既定の幅。画面が狭いときは左右に margin を残して縮む */
   --dialog-width: calc(var(--spacing) * 120);
   --dialog-padding: calc(var(--spacing) * 6);
   --dialog-margin: calc(var(--spacing) * 4);
-  /* 角（比べている途中 — 軸 82） */
-  --dialog-radius: var(--radius-card);
-  /* 下の操作の並べ方。シートと同じ作り（--sheet-actions-*。比べている途中 — 軸 83） */
-  --dialog-actions-direction: row;
-  --dialog-actions-justify: flex-end;
-  --dialog-actions-grow: 0 0 auto;
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

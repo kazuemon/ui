@@ -8,7 +8,6 @@ import {
   popupSurfaceClass,
   readTokenLength,
 } from '../../internal/overlay/popup-styles';
-import { SheetCloseButton } from '../../internal/sheet/SheetHeader';
 import {
   overlayTitleLeading,
   sheetDescriptionClass,
@@ -145,7 +144,6 @@ function FloatingPopover({
               className={[
                 popupSurfaceClass,
                 popupMotionClass,
-                arrow && '[--popover-arrow-display:block]',
                 'relative shadow-overlay max-w-[min(var(--popover-max-width),var(--available-width))] p-(--popover-padding) text-(length:--text-control) leading-(--leading-control)',
                 overlayTitleLeading,
                 className,
@@ -153,45 +151,32 @@ function FloatingPopover({
                 .filter(Boolean)
                 .join(' ')}
             >
-              {/* 本体を指す矢印（--popover-arrow-display）。面と同じ白に、外側の2辺だけ輪郭を引いた四角を 45 度回す */}
-              <BasePopover.Arrow
-                data-slot="popover-arrow"
-                className={[
-                  '[display:var(--popover-arrow-display)] size-3 rotate-45 border-surface-line bg-surface',
-                  'data-[side=bottom]:-top-1.5 data-[side=bottom]:border-t-(length:--border-width-thin) data-[side=bottom]:border-l-(length:--border-width-thin)',
-                  'data-[side=top]:-bottom-1.5 data-[side=top]:border-r-(length:--border-width-thin) data-[side=top]:border-b-(length:--border-width-thin)',
-                  'data-[side=left]:-right-1.5 data-[side=left]:border-t-(length:--border-width-thin) data-[side=left]:border-r-(length:--border-width-thin)',
-                  'data-[side=right]:-left-1.5 data-[side=right]:border-b-(length:--border-width-thin) data-[side=right]:border-l-(length:--border-width-thin)',
-                ].join(' ')}
-              />
-              {/* 右上の閉じる ×（--popover-close-display）。題の行の中央にそろえ、右の端からも上と同じだけ離す */}
-              <div className="absolute top-[calc(var(--popover-padding)-(var(--spacing-control)-var(--overlay-title-leading))/2)] right-[calc(var(--popover-padding)-(var(--spacing-control)-var(--overlay-title-leading))/2)] [display:var(--popover-close-display)]">
-                <BasePopover.Close render={<SheetCloseButton />} data-slot="popover-close" />
-              </div>
+              {/* 本体を指す矢印（arrow）。面と同じ白に、外側の2辺だけ輪郭を引いた四角を 45 度回す */}
+              {arrow && (
+                <BasePopover.Arrow
+                  data-slot="popover-arrow"
+                  className={[
+                    'size-3 rotate-45 border-surface-line bg-surface',
+                    'data-[side=bottom]:-top-1.5 data-[side=bottom]:border-t-(length:--border-width-thin) data-[side=bottom]:border-l-(length:--border-width-thin)',
+                    'data-[side=top]:-bottom-1.5 data-[side=top]:border-r-(length:--border-width-thin) data-[side=top]:border-b-(length:--border-width-thin)',
+                    'data-[side=left]:-right-1.5 data-[side=left]:border-t-(length:--border-width-thin) data-[side=left]:border-r-(length:--border-width-thin)',
+                    'data-[side=right]:-left-1.5 data-[side=right]:border-b-(length:--border-width-thin) data-[side=right]:border-l-(length:--border-width-thin)',
+                  ].join(' ')}
+                />
+              )}
               {title != null && (
-                <BasePopover.Title
-                  className={[sheetTitleClass, 'pr-(--popover-close-space)'].join(' ')}
-                >
-                  {title}
-                </BasePopover.Title>
+                <BasePopover.Title className={sheetTitleClass}>{title}</BasePopover.Title>
               )}
               {description != null && (
                 <BasePopover.Description
-                  className={[
-                    sheetDescriptionClass,
-                    'pr-(--popover-close-space)',
-                    title != null && 'mt-0.5',
-                  ]
+                  className={[sheetDescriptionClass, title != null && 'mt-0.5']
                     .filter(Boolean)
                     .join(' ')}
                 >
                   {description}
                 </BasePopover.Description>
               )}
-              {/* 題も説明もないときは、中身の右を × の分だけ空ける */}
-              {children != null && (
-                <div className={heading ? 'mt-3' : 'pr-(--popover-close-space)'}>{children}</div>
-              )}
+              {children != null && <div className={heading ? 'mt-3' : undefined}>{children}</div>}
             </BasePopover.Popup>
           </BasePopover.Positioner>
         </BasePopover.Portal>

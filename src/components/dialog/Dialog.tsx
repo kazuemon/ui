@@ -2,7 +2,7 @@ import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
-import { type OverlayInitialFocus, initialFocusOf } from '../../internal/overlay/initial-focus';
+import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import {
@@ -65,12 +65,6 @@ export interface DialogProps {
    */
   closeButton?: boolean;
   /**
-   * 開いた直後にフォーカスを置く場所。first は最初に Tab で止まるもの（右上の × があれば ×）、
-   * content は × を飛ばして中身と下の操作のうち最初のもの、popup は面そのもの
-   * @default 'first'
-   */
-  initialFocus?: OverlayInitialFocus;
-  /**
    * 閉じる × の読み上げの名前
    * @default '閉じる'
    */
@@ -116,7 +110,6 @@ function CenteredDialog({
   dismissible,
   closeOnEscape = true,
   closeButton = true,
-  initialFocus = 'first',
   closeLabel,
   container,
   className,
@@ -146,11 +139,11 @@ function CenteredDialog({
           <BaseDialog.Viewport className="fixed inset-0 z-10 grid place-items-center overflow-y-auto p-(--dialog-margin)">
             <BaseDialog.Popup
               data-overlay-id={overlayId}
-              initialFocus={initialFocusOf(initialFocus, overlayId, 'dialog-close', 'dialog')}
+              initialFocus={initialFocusOf(overlayId, 'dialog')}
               data-slot="dialog"
               data-density={scope.density}
               className={[
-                'relative flex w-(--dialog-width) max-w-full flex-col rounded-(--dialog-radius) pb-(--dialog-padding) border-(length:--border-width-thin) border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg shadow-overlay outline-none',
+                'relative flex w-(--dialog-width) max-w-full flex-col rounded-card pb-(--dialog-padding) border-(length:--border-width-thin) border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg shadow-overlay outline-none',
                 overlayTitleLeading,
                 '[--sheet-close-inset:calc(var(--dialog-padding)-(var(--spacing-control)-var(--overlay-title-leading))/2)] [--sheet-inset:0px] [--sheet-padding-x:var(--dialog-padding)]',
                 'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
@@ -192,7 +185,7 @@ function CenteredDialog({
               {actions != null && (
                 <div
                   data-slot="dialog-footer"
-                  className="flex [flex-direction:var(--dialog-actions-direction)] flex-wrap [justify-content:var(--dialog-actions-justify)] gap-2 px-(--dialog-padding) pt-(--dialog-padding) *:[flex:var(--dialog-actions-grow)]"
+                  className="flex flex-wrap justify-end gap-2 px-(--dialog-padding) pt-(--dialog-padding)"
                 >
                   {actions}
                 </div>

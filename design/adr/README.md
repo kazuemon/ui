@@ -169,3 +169,11 @@
 | [0099](./0099-reading-round-deferred.md)          | 後半ラウンド（本文の部品）で据え置きにしたこと                         | Accepted           |
 | [0100](./0100-prose-after-heading.md)             | Prose の見出しのすぐ後ろの余白                                         | Accepted           |
 | [0101](./0101-choice-message-gap.md)              | 選択肢とエラーの行のあいだ                                             | Accepted           |
+| [0102](./0102-overlay-components.md)              | 重なる面の作り（Dialog・Drawer・Popover・Tooltip）                     | Accepted           |
+| [0103](./0103-overlay-title.md)                   | 重なる面の題と説明の大きさ                                             | Accepted           |
+| [0104](./0104-dialog-shape.md)                    | Dialog の角と大きさ                                                    | Accepted           |
+| [0105](./0105-overlay-actions.md)                 | 重なる面の下の操作の並べ方                                             | Accepted           |
+| [0106](./0106-tooltip-surface.md)                 | Tooltip の面と、出るまでの時間                                         | Accepted           |
+| [0107](./0107-popover-close-arrow.md)             | Popover の × と矢印                                                    | Accepted           |
+| [0108](./0108-drawer-side.md)                     | 横から出す Drawer の幅と影                                             | Accepted           |
+| [0109](./0109-overlay-initial-focus.md)           | 重なる面を開いた直後のフォーカス                                       | Accepted           |
