@@ -178,3 +178,4 @@
 | [0108](./0108-drawer-side.md)                      | 横から出す Drawer の幅と影                                             | Accepted           |
 | [0109](./0109-overlay-initial-focus.md)            | 重なる面を開いた直後のフォーカス                                       | Accepted           |
 | [0110](./0110-sheet-handle-and-long-press-side.md) | シートのつまみは引ける印、Tooltip は長押しで上に出す                   | Accepted           |
+| [0111](./0111-sheet-swipe-lock-and-close-fixes.md) | シートの引く操作を止める仕組みと、閉じるときの影・× の場所             | Accepted           |
