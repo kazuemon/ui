@@ -83,19 +83,42 @@ export interface DialogProps {
 /**
  * ページの上に重ねて、ほかの操作を止めて答えや入力を求める面
  */
-export function Dialog({ presentation = 'auto', dismissible = true, ...props }: DialogProps) {
+export function Dialog({
+  presentation = 'auto',
+  dismissible = true,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  ...props
+}: DialogProps) {
+  // 開閉はここで持つ。出し方（シート・中央）が開いたまま切り替わっても（画面を回すなど）、閉じないようにするため
+  const [openState, setOpenState] = useState(defaultOpen);
+  const open = openProp ?? openState;
+  const changeOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   // シートは中身の高さで開く（半分で止めない）。Dialog の中身は、上から順に読んで答えるものなので
   // 下へはじいて閉じるのは、後ろの画面を押して閉じるのと同じ扱い（dismissible）
   if (sheet) {
     return (
-      <Drawer {...props} dismissible={dismissible} closeOnSwipe={dismissible} detent="full" />
+      <Drawer
+        {...props}
+        open={open}
+        onOpenChange={changeOpen}
+        dismissible={dismissible}
+        closeOnSwipe={dismissible}
+        detent="full"
+      />
     );
   }
   // 中央に浮かべるときは、下の操作をいつも右に寄せる（actionsLayout はシートのときだけ）
   const { actionsLayout: _actionsLayout, ...centered } = props;
-  return <CenteredDialog {...centered} dismissible={dismissible} />;
+  return (
+    <CenteredDialog {...centered} open={open} onOpenChange={changeOpen} dismissible={dismissible} />
+  );
 }
 
 // 中央に浮かべる形
@@ -110,9 +133,8 @@ function CenteredDialog({
   children,
   actions,
   trigger,
-  open: openProp,
-  defaultOpen = false,
-  onOpenChange,
+  open,
+  onOpenChange: changeOpen,
   modal = true,
   dismissible,
   closeOnEscape = true,
@@ -120,15 +142,12 @@ function CenteredDialog({
   closeLabel,
   container,
   className,
-}: Omit<DialogProps, 'presentation'>) {
-  const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
+}: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange'> & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { anchorRef, scope } = useDensityScope(open);
   const overlayId = useId();
-  const changeOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
   return (
     <BaseDialog.Root
       open={open}

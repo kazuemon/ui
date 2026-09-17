@@ -73,19 +73,31 @@ export interface PopoverProps {
  * 押して開く、本体のそばに浮かぶ面。補足の説明や、小さな設定をその場で見せます。
  * ほかの操作は止めず、外を押すか Esc で閉じます
  */
-export function Popover({ presentation = 'auto', ...props }: PopoverProps) {
+export function Popover({
+  presentation = 'auto',
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  ...props
+}: PopoverProps) {
+  // 開閉はここで持つ。出し方（シート・浮かべる）が開いたまま切り替わっても（画面を回すなど）、閉じないようにするため
+  const [openState, setOpenState] = useState(defaultOpen);
+  const open = openProp ?? openState;
+  const changeOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   if (sheet) {
-    const { trigger, title, description, children, open, defaultOpen, onOpenChange } = props;
+    const { trigger, title, description, children } = props;
     return (
       <Drawer
         trigger={trigger}
         title={title}
         description={description}
         open={open}
-        defaultOpen={defaultOpen}
-        onOpenChange={onOpenChange}
+        onOpenChange={changeOpen}
         closeLabel={props.closeLabel}
         container={props.container}
         className={props.className}
@@ -95,7 +107,7 @@ export function Popover({ presentation = 'auto', ...props }: PopoverProps) {
       </Drawer>
     );
   }
-  return <FloatingPopover {...props} />;
+  return <FloatingPopover {...props} open={open} onOpenChange={changeOpen} />;
 }
 
 // 本体のそばに浮かべる形
@@ -110,19 +122,15 @@ function FloatingPopover({
   side = 'bottom',
   align = 'center',
   arrow = false,
-  open: openProp,
-  defaultOpen = false,
-  onOpenChange,
+  open,
+  onOpenChange: changeOpen,
   container,
   className,
-}: Omit<PopoverProps, 'presentation' | 'closeLabel'>) {
-  const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
+}: Omit<PopoverProps, 'presentation' | 'closeLabel' | 'defaultOpen' | 'open' | 'onOpenChange'> & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { anchorRef, scope } = useDensityScope(open);
-  const changeOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
   const heading = title != null || description != null;
   return (
     <BasePopover.Root open={open} onOpenChange={changeOpen}>
