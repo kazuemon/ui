@@ -127,33 +127,35 @@ export const Open: Story = {
 export const TextOnly: Story = {
   tags: ['visual'],
   name: '文だけ',
-  args: { title: undefined, description: undefined },
+  args: { title: undefined, description: undefined, presentation: 'popover' },
   parameters: {
-    controls: { include: ['side', 'align'] },
+    controls: { include: ['presentation', 'title', 'description', 'side', 'align'] },
     docs: {
       description: {
         story:
-          '題を省いて、文だけを見せる形です。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。',
+          '題を省いて、文だけを見せる形です。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。シートで出すと、見出しには閉じる × だけが並びます。',
       },
     },
   },
-  render: (args, { viewMode }) => (
-    <ScreenFrame height="h-[240px]">
-      {(frame) => (
-        <div className="flex w-full justify-center pt-4">
-          <Popover
-            {...args}
-            presentation="popover"
-            trigger={<Button appearance="outline">送料について</Button>}
-            defaultOpen={openOnLoad(viewMode)}
-            container={frame}
-          >
-            3,000円以上のご注文で送料が無料になります。沖縄県と離島は別の料金です。
-          </Popover>
-        </div>
-      )}
-    </ScreenFrame>
-  ),
+  render: (args, { viewMode }) => {
+    const popover = (frame: HTMLElement) => (
+      <Popover
+        {...args}
+        trigger={<Button appearance="outline">送料について</Button>}
+        defaultOpen={openOnLoad(viewMode)}
+        container={frame}
+      >
+        3,000円以上のご注文で送料が無料になります。沖縄県と離島は別の料金です。
+      </Popover>
+    );
+    // シートで出すときはスマートフォンの枠で描く
+    if (args.presentation === 'sheet') return <PhoneFrame>{popover}</PhoneFrame>;
+    return (
+      <ScreenFrame height="h-[240px]">
+        {(frame) => <div className="flex w-full justify-center pt-4">{popover(frame)}</div>}
+      </ScreenFrame>
+    );
+  },
 };
 
 export const Sheet: Story = {
