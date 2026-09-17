@@ -24,6 +24,9 @@ const codeBlock = tv({
     root: [
       '[--cb-head-h:calc(var(--spacing-control)+var(--spacing)*2)]',
       'group/code-block relative flex min-w-0 flex-col',
+      // 横のスクロールバーが場所を取るとき（data-scrollbar）は、下の角を丸めない。丸めると、スクロールバーの端が角で切られてなじまない
+      //   重ねて出るスクロールバー（macOS の既定など）は場所を取らないので、角は丸いまま
+      'data-scrollbar:rounded-b-none',
       ...codeBlockStyles.surface,
     ],
     head: [
@@ -168,6 +171,7 @@ export function CodeBlock({
   const { copied, copy } = useCopy(2000);
 
   // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
+  // 横のスクロールバーが場所を取っているか（pre の高さと中身の高さの差）を、外枠の data-scrollbar に書く
   // 中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
   useEffect(() => {
     const pre = bodyRef.current?.querySelector('pre');
@@ -175,6 +179,9 @@ export function CodeBlock({
     const measure = () => {
       if (pre.scrollWidth > pre.clientWidth + 1) pre.setAttribute('tabindex', '0');
       else pre.removeAttribute('tabindex');
+      const root = pre.closest('[data-slot="code-block"]');
+      if (pre.offsetHeight - pre.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
+      else root?.removeAttribute('data-scrollbar');
     };
     measure();
     const observer = new ResizeObserver(measure);

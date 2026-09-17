@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ComponentProps } from 'react';
 import { expect } from 'storybook/test';
 
 import { Figure } from './Figure';
@@ -13,6 +14,11 @@ const landscape = svg(
 const whiteScreen = svg(
   '<rect width="640" height="360" fill="#ffffff"/><rect x="48" y="48" width="200" height="20" rx="6" fill="#eef0f1"/><rect x="48" y="96" width="544" height="10" rx="5" fill="#eef0f1"/><rect x="48" y="120" width="440" height="10" rx="5" fill="#eef0f1"/><rect x="48" y="176" width="260" height="130" rx="12" fill="#f4f5f6"/><rect x="332" y="176" width="260" height="130" rx="12" fill="#f4f5f6"/>'
 );
+
+// Next.js の Image の代わり。src などを受け取り、渡された className を img に付ける
+function FrameworkImage(props: ComponentProps<'img'> & { src: string; alt: string }) {
+  return <img data-framework-image="" loading="lazy" decoding="async" {...props} />;
+}
 
 const meta = {
   title: 'Components/Figure',
@@ -72,6 +78,31 @@ export const Outline: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const FrameworkImages: Story = {
+  name: 'フレームワークの画像',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '`render` に Next.js の `Image` などを渡すと、その要素に Figure の画像の見た目を重ねます。`src`・`alt`・`width` などは渡す要素に書きます（例: `render={<Image src={photo} alt="空と山" />}`）。',
+          '',
+          'Astro の `<Image />` は React の中に置けないので、`getImage()` で作った値を Figure に渡します（例: `<Figure src={image.src} srcSet={image.srcSet.attribute} {...image.attributes} alt="空と山" />`）。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <Figure render={<FrameworkImage src={landscape} alt="空と山の絵" />} caption="図 1. 空と山" />
+  ),
+  play: async ({ canvas }) => {
+    const image = canvas.getByRole('img', { name: '空と山の絵' });
+    await expect(image).toHaveAttribute('data-framework-image');
+    await expect(image.className).toContain('rounded-card');
+    await expect(image.closest('figure')).toContainElement(canvas.getByText('図 1. 空と山'));
+  },
 };
 
 export const Accessibility: Story = {

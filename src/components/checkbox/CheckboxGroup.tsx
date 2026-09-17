@@ -2,7 +2,12 @@ import { CheckboxGroup as BaseCheckboxGroup } from '@base-ui/react/checkbox-grou
 import { type ComponentProps, type ReactNode, useMemo } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
-import { type ChoiceColor, choiceSize, choiceStyles } from '../../internal/choice/choice-styles';
+import {
+  type ChoiceColor,
+  choiceGroupMessagePull,
+  choiceSize,
+  choiceStyles,
+} from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import { tv } from '../../internal/tv';
 import { CheckboxBase } from './Checkbox';
@@ -146,7 +151,9 @@ export function CheckboxGroup({
         error={error}
         warning={warning}
         disabled={disabled}
-        className={className}
+        className={[...choiceGroupMessagePull(captionPlacement), className]
+          .filter(Boolean)
+          .join(' ')}
         nativeLabel={false}
       >
         {(describedBy) => (
@@ -189,19 +196,21 @@ function SelectAllItems({
       return (
         <>
           <CheckboxBase parent label={selectAll} />
-          <div className={f.box()}>{children}</div>
+          <div data-choice-frame="" className={f.box()}>
+            {children}
+          </div>
         </>
       );
     case 'all':
       return (
-        <div className={f.box()}>
+        <div data-choice-frame="" className={f.box()}>
           <CheckboxBase parent label={selectAll} />
           {indented}
         </div>
       );
     case 'notched':
       return (
-        <div className={f.notched()}>
+        <div data-choice-frame="" className={f.notched()}>
           <CheckboxBase parent label={selectAll} className={f.legend()} />
           <div className={f.body()}>{children}</div>
         </div>

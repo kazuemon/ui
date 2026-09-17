@@ -4,12 +4,17 @@ import { RadioGroup as BaseRadioGroup } from '@base-ui/react/radio-group';
 import { type ComponentProps, type ReactNode, useContext, useMemo } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
-import { type ChoiceColor, choiceRows, choiceStyles } from '../../internal/choice/choice-styles';
+import {
+  type ChoiceColor,
+  choiceGroupMessagePull,
+  choiceRows,
+  choiceStyles,
+} from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import { useChoiceLock } from '../../internal/form-context';
 
 // ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
-// 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio）
+// 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio を 2px 単位に丸めたもの。箱と同じ偶数にし、ふちのぼかしが偏らないようにする）
 
 export interface RadioProps extends Omit<
   ComponentProps<typeof BaseRadio.Root>,
@@ -121,7 +126,9 @@ export function RadioGroup<Value>({
         error={error}
         warning={warning}
         disabled={disabled}
-        className={className}
+        className={[...choiceGroupMessagePull(captionPlacement), className]
+          .filter(Boolean)
+          .join(' ')}
         nativeLabel={false}
       >
         {(describedBy) => (
