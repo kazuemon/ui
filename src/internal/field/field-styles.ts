@@ -33,7 +33,7 @@ export const fieldStyles = tv({
     // 見えなくする（visibility）のは中身で、閉じ終えたとき。動きを減らす設定では、すぐ切り替える
     // 空のときに間（--spacing-field-gap）が増えないよう、箱の上の間を打ち消す。間は行の上に持たせる（messageLine）
     // 箱はエラー・警告で1つずつ続けて置く。両方開くと、エラーの行と警告の行の間も --spacing-field-gap になる（design/adr/0041 の追記）
-    // --field-message-pull: すぐ上の部品の下に余りがあるとき、行の上の間から引く長さ（チェックボックスとラジオが入れる — 軸 80）
+    // --field-message-pull: すぐ上の部品の下に余りがあるとき、行の上の間から引く長さ（チェックボックスとラジオが入れる — design/adr/0101）
     //   間（--spacing-field-gap）までは行の上の間を減らし、超えた分（--field-message-overlap）は開いているあいだだけ箱を上に寄せる
     //   開いた行のあとに続く行（エラーのあとの警告）は、ふつうの間に戻す
     messageRegion: [

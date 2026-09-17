@@ -14,12 +14,12 @@ import { useChoiceLock } from '../../internal/form-context';
 
 export type { ChoiceColor } from '../../internal/choice/choice-styles';
 
-// 1つだけ置くチェックボックスの行。上下の 1fr の行が、柱の高さ（部品の高さ）の残りを分ける。エラー・警告の行は、その下に足す行
-//   上下の行は、行の上下の余白（--choice-row-pad-y。軸 80）より狭くしない
+// 1つだけ置くチェックボックスの行。上下の行が行の余白（--choice-row-pad-y — design/adr/0101）。最後の2行がエラー・警告の行
+//   エラー・警告の行は、最後の2行に置く（位置を決めないと、上の余白の空いた行に入ってしまう）
 const soloRows = (caption: ReactNode) =>
   caption
-    ? 'grid-rows-[minmax(var(--choice-row-pad-y),1fr)_auto_auto_minmax(var(--choice-row-pad-y),1fr)]'
-    : 'grid-rows-[minmax(var(--choice-row-pad-y),1fr)_auto_minmax(var(--choice-row-pad-y),1fr)]';
+    ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto]'
+    : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto]';
 
 // チェック（✓）と中間の横線。線の太さは画面の px（--checkbox-mark-width）で、箱の大きさによらない
 function CheckboxMark() {
@@ -136,16 +136,13 @@ export function CheckboxBase({
   if (!solo) {
     return (
       <BaseField.Item
-        data-choice-item=""
         disabled={disabled}
         className={s.item({ className: [choiceRows(caption), className] })}
       >
         {box(ariaDescribedBy)}
         <BaseField.Label className={s.label()}>{label}</BaseField.Label>
         {caption && (
-          <BaseField.Description data-choice-caption="" className={s.caption()}>
-            {caption}
-          </BaseField.Description>
+          <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>
         )}
       </BaseField.Item>
     );
@@ -163,15 +160,9 @@ export function CheckboxBase({
       disabled={disabled}
       invalid={error ? true : undefined}
       className={s.item({
-        className: [
-          soloRows(caption),
-          ...choiceMessagePull,
-          caption && '[--choice-last-caption:1]',
-          className,
-        ],
+        className: [soloRows(caption), ...choiceMessagePull, className],
       })}
     >
-      <span aria-hidden className={s.pillar()} />
       {box(describedBy)}
       <BaseField.Label data-slot="field-label" className={s.label()}>
         {label}
@@ -181,8 +172,18 @@ export function CheckboxBase({
           {caption}
         </BaseField.Description>
       )}
-      <FieldMessageLine kind="error" content={error} id={ids.error} className={s.message()} />
-      <FieldMessageLine kind="warning" content={warning} id={ids.warning} className={s.message()} />
+      <FieldMessageLine
+        kind="error"
+        content={error}
+        id={ids.error}
+        className={s.message({ className: 'row-start-[-3]' })}
+      />
+      <FieldMessageLine
+        kind="warning"
+        content={warning}
+        id={ids.warning}
+        className={s.message({ className: 'row-start-[-2]' })}
+      />
     </BaseField.Root>
   );
 }
