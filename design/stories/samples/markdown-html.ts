@@ -10,7 +10,7 @@ import { landscape, screenshot } from './images';
 //   kbd と mark は、Markdown の中に書いた HTML がそのまま残ったもの
 export const markdownArticleHtml = `<p>Markdown で書いた記事の見本です。<strong>ひととおり</strong>の要素を並べます。強調は <em>ページから離れているもの</em> のように使い、古い情報は <del>9月12日</del> 9月17日のように打ち消します。<br>
 改行のあとの行には、<mark>目立たせたい言葉</mark>と<a href="#docs">文字のリンク</a>を置きました。</p>
-<p>2 つ目の段落です。文の中のコードは <code>data-reading</code> のように書き、キーは <kbd>⌘</kbd> + <kbd>K</kbd> のように書きます。</p>
+<p>2 つ目の段落です。文の中のコードは <code>data-reading</code> のように書き、キーは <kbd>Cmd</kbd> + <kbd>K</kbd> のように書きます。</p>
 <h2>リスト</h2>
 <ul>
 <li>部品の高さは、マウスでも指でも 44px です。</li>

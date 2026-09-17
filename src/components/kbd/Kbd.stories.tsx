@@ -16,8 +16,9 @@ const meta = {
         component: [
           '文の中でキーボードのキーを示します。',
           '',
-          '- 組み合わせは `Kbd` を並べ、あいだに「+」などの文字を置きます（`<Kbd>⌘</Kbd> + <Kbd>K</Kbd>`）。',
+          '- 組み合わせは `Kbd` を並べ、あいだに「+」などの文字を置きます（`<Kbd>Cmd</Kbd> + <Kbd>K</Kbd>`）。',
           '- 大きさは周りの文字に合わせて決まります。',
+          '- `⌘` や `⇧` のような記号は、ライブラリのフォントに入っていないので、端末のフォントで描かれます。端末によって幅や形が少し変わります。',
           '- キーの絵ですが、押せる部品ではありません。押せる操作にはボタンを使います。',
         ].join('\n'),
       },
@@ -47,7 +48,7 @@ export const InText: Story = {
     <DensityPair>
       <div className="flex w-[22rem] flex-col gap-2">
         <Text>
-          検索は <Kbd>⌘</Kbd> + <Kbd>K</Kbd>、Windows では <Kbd>Ctrl</Kbd> + <Kbd>Shift</Kbd> +{' '}
+          検索は <Kbd>Cmd</Kbd> + <Kbd>K</Kbd>、Windows では <Kbd>Ctrl</Kbd> + <Kbd>Shift</Kbd> +{' '}
           <Kbd>P</Kbd> です。
         </Text>
         <Text>
