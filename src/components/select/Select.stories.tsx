@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
-import { expect, fireEvent, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Select, type SelectItem, type SelectProps } from './Select';
 import { TextField } from '../text-field/TextField';
@@ -622,27 +622,37 @@ export const Sheet: Story = {
 };
 
 // つまみ（シートの見出し）を、指で縦にはじく・引く。wait を付けると、離す前に止まる（はじかない）
-// 部品は、離す直前の短いあいだ（80ms）の動きから速さを出し、それより前の記録しかなければ速さを 0 とみなす
-//   （src/components/select/Select.tsx の releaseVelocity）。イベントを1つずつ待つと、混んでいる環境では最後の動きと
-//   離すのあいだが 80ms を超え、はじいたと見なされずに閉じないことがあった。はじくときは、最後の動きと離すを続けて出す
+// 部品は、離す直前の短いあいだ（80ms）の動きから速さを出す（src/components/select/measure.ts の releaseVelocity）。
+// 速さの元になる event.timeStamp は、イベントを出した時刻ではなく作った時刻。はじくときは押す・動く・離すを先にまとめて作り、
+// 出すのは 1 フレームずつ待ちながら行う（実機と同じく、動きごとに描き直される）。混んだ環境で出す間隔が延びても、速さは変わらない
 async function dragHandle(handle: Element, dy: number, wait = 0) {
   const { top } = handle.getBoundingClientRect();
   const y = top + 8;
-  const pointer = { pointerId: 1, pointerType: 'touch', isPrimary: true, buttons: 1 };
-  await fireEvent.pointerDown(handle, { ...pointer, clientY: y });
-  // 途中の動きは、部品が高さを描き直すのを待ちながら出す（待たないと、離したときの高さが決まらない）
-  for (let step = 1; step <= 2; step += 1) {
-    await fireEvent.pointerMove(handle, { ...pointer, clientY: y + (dy * step) / 3 });
+  const create = (type: string, clientY: number, buttons = 1) =>
+    new PointerEvent(type, {
+      pointerId: 1,
+      pointerType: 'touch',
+      isPrimary: true,
+      buttons,
+      clientY,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+    });
+  const events = [
+    create('pointerdown', y),
+    ...[1, 2, 3].map((step) => create('pointermove', y + (dy * step) / 3)),
+  ];
+  // 止めてから離すときは、離すイベントを待ったあとで作る（動きより wait だけあとの時刻になる）
+  if (!wait) events.push(create('pointerup', y + dy, 0));
+  for (const event of events) {
+    handle.dispatchEvent(event);
+    await new Promise(requestAnimationFrame);
   }
   if (wait) {
-    await fireEvent.pointerMove(handle, { ...pointer, clientY: y + dy });
     await new Promise((resolve) => setTimeout(resolve, wait));
-    await fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
-    return;
+    handle.dispatchEvent(create('pointerup', y + dy, 0));
   }
-  const moved = fireEvent.pointerMove(handle, { ...pointer, clientY: y + dy });
-  const released = fireEvent.pointerUp(handle, { ...pointer, buttons: 0, clientY: y + dy });
-  await Promise.all([moved, released]);
 }
 
 // Show code: 枠（PhoneFrame）の中身は出ないので、Select の使い方を source.code に手で書く
@@ -695,7 +705,7 @@ export const SheetFling: Story = {
     const handle = popup.firstElementChild;
     if (!handle) throw new Error('見出しがありません');
     const combobox = canvas.getByRole('combobox');
-    // 高さの動きが止まるのを待つ
+    // 開いた直後は、選択肢を測ってから半分の高さに決まる。高さの動きが止まるのを待つ
     const settled = async () => {
       let last = -1;
       await waitFor(
@@ -710,27 +720,36 @@ export const SheetFling: Story = {
       return last;
     };
     const half = await settled();
+    // はじいたあとは、高さが条件を満たすまで待つ（動きを減らす設定で撮るので、高さはすぐに変わる）
+    const heightToBe = (what: string, ok: (height: number) => boolean) =>
+      waitFor(
+        () => {
+          if (!ok(popup.offsetHeight))
+            throw new Error(`${what}ではありません: ${popup.offsetHeight}px`);
+        },
+        { timeout: 3000 }
+      );
 
     // ゆっくり少し下へ引いて止めてから離すと、半分の高さに戻る
     await dragHandle(handle, 40, 150);
-    await expect(await settled()).toBe(half);
+    await heightToBe('半分の高さ', (height) => height === half);
     await expect(combobox).toHaveAttribute('aria-expanded', 'true');
 
     // 上へはじくと、高さいっぱいに広がる
     await dragHandle(handle, -30);
-    await expect(await settled()).toBeGreaterThan(half);
+    await heightToBe('半分より高い高さ', (height) => height > half);
 
     // 高さいっぱいから下へはじくと、半分の高さに戻る
     await dragHandle(handle, 30);
-    await expect(await settled()).toBe(half);
+    await heightToBe('半分の高さ', (height) => height === half);
 
     // 半分の高さから、少しだけ下へはじくと閉じる。離した高さのまま下へ滑る
+    // 閉じ終わると高さを消すので（動きを減らす設定では、すぐに閉じ終わる）、離した直後に確かめる
     await dragHandle(handle, 30);
+    await expect(popup.offsetHeight).toBeLessThan(half);
     await waitFor(() => expect(combobox).toHaveAttribute('aria-expanded', 'false'), {
       timeout: 3000,
     });
-    // 閉じるあいだは、離した高さのまま下へ滑る（最後の動きは離すのと同時に出すので、高さは1つ手前の値）
-    if (popup.isConnected) await expect(popup.offsetHeight).toBeLessThan(half);
   },
 };
 
