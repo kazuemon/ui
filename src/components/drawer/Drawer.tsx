@@ -212,6 +212,7 @@ export function Drawer({
           handle={handle}
           swipeLocked={swipeLocked}
           swipeFade={!snap}
+          modal={modal}
           closeLabel={closeLabel}
           closeButton={closeButton}
           container={container}

@@ -44,6 +44,11 @@ interface SheetPopupProps {
    * 段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので薄くできない
    */
   swipeFade?: boolean;
+  /**
+   * 開いているあいだ、ほかの部分の操作を止めるか。false では後ろを暗くせず、面の外は触れたままにする
+   * （Base UI の Backdrop と Viewport は閉じたときしか pointer-events を切らないので、ここで切る）
+   */
+  modal?: boolean;
   /** 閉じる × の読み上げの名前 */
   closeLabel?: string;
   /** 右上に閉じる × を置くか */
@@ -73,6 +78,7 @@ export function SheetPopup({
   handle = false,
   swipeLocked = false,
   swipeFade = true,
+  modal = true,
   closeLabel,
   closeButton = true,
   container,
@@ -95,16 +101,21 @@ export function SheetPopup({
     <BaseDrawer.VirtualKeyboardProvider>
       <BaseDrawer.Portal container={container}>
         {/* 引いているあいだは、引いた量に合わせて薄くする。閉じる方へ引くほど、後ろの画面が見えてくる
-        段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので、薄くしない（暗さは変えない） */}
-        <BaseDrawer.Backdrop
-          className={[
-            swipeFade ? 'opacity-[calc(1-var(--drawer-swipe-progress,0))]' : '',
-            'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none',
-          ].join(' ')}
-        />
+        段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので、薄くしない（暗さは変えない）
+        ほかの操作を止めないとき（modal=false）は、後ろを暗くしない（Base UI の非モーダルの例と同じ） */}
+        {modal && (
+          <BaseDrawer.Backdrop
+            className={[
+              swipeFade ? 'opacity-[calc(1-var(--drawer-swipe-progress,0))]' : '',
+              'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none',
+            ].join(' ')}
+          />
+        )}
+        {/* 面を置く枠。ほかの操作を止めないときは枠を素通しにし、面だけが触れるようにする */}
         <BaseDrawer.Viewport
           className={[
             'fixed inset-0 z-10 flex',
+            !modal && 'pointer-events-none',
             bottom ? 'flex-col items-center justify-end' : 'items-stretch',
             side === 'left' && 'justify-start',
             side === 'right' && 'justify-end',
@@ -123,6 +134,7 @@ export function SheetPopup({
             data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
             className={[
               'relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
+              !modal && 'pointer-events-auto',
               overlayTitleLeading,
               // 閉じる向きと反対へ引いたときに、面が端から離れても隙間が見えないよう、画面の外側に面と同じ色を伸ばしておく
               // 引いた量は端数になるので、継ぎ目が見えないよう面に 1px 重ねる
