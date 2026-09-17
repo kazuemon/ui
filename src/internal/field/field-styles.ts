@@ -58,12 +58,13 @@ export const fieldStyles = tv({
 export const controlBox = tv({
   base: [
     'flex h-(--spacing-control) w-full min-w-0 items-center gap-(--spacing-control-x) rounded-control',
-    'border-(length:--field-border-width) border-transparent bg-field',
+    // 塗りは --control-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+    'border-(length:--field-border-width) border-transparent bg-(color:--control-bg) [--control-bg:var(--color-field)]',
     'px-[calc(var(--spacing-control-x)-var(--field-border-width))] text-input text-fg',
     // 中のアイコン（▼・suffix のボタン・回る印・成功の印）は入力欄のアイコンの大きさ
     '[--spacing-icon:var(--spacing-icon-input)]',
-    'transition-[background-color,border-color,outline-color,outline-offset,box-shadow] duration-(--duration-field) ease-press motion-reduce:transition-none',
-    'hover:not-focus-within:bg-field-hover',
+    '[transition-property:--control-bg,border-color,outline-color,outline-offset,box-shadow] duration-(--duration-field) ease-press motion-reduce:transition-none',
+    'hover:not-focus-within:[--control-bg:var(--color-field-hover)]',
     // フォーカスは枠線だけで表す。ブラウザのフォーカスの線は出さない（Select のボタンで枠線と重なっていた）
     // 枠線の色は --color-focus（エラーのときは赤）。部品が自分の色（--color-own-focus。Select が color から置く）を置いたときは、
     // その色（ADR-0071 の M）。--focus-follow-color（1 か 0）で srgb で混ぜる
@@ -72,7 +73,7 @@ export const controlBox = tv({
     '[--control-focus-line:color-mix(in_srgb,var(--control-own)_calc(var(--focus-follow-color)*100%),var(--color-focus))]',
     // エラーのときは、部品の色に従わせる設定でも赤い枠線にする（エラーは状態 — 原則2。--color-focus は Field が赤にしている）
     'group-data-invalid/field:[--control-focus-line:var(--color-focus)]',
-    'outline-none focus-within:border-[color:var(--control-focus-line,var(--color-focus))] focus-within:bg-field-focus',
+    'outline-none focus-within:border-[color:var(--control-focus-line,var(--color-focus))] focus-within:[--control-bg:var(--color-field-focus)]',
     // エラーの欄だけ、赤い枠線の外にボタンと同じ離した線を引く（ADR-0071 の M。クリックでも出す — 原則2）
     // 枠線と線のあいだは --field-invalid-focus-ring-inner-width の幅で、--color-focus-ring-inner で埋める。ボタンの影は変えない
     // エラーでない欄は、線と影の太さが 0（未設定の fallback）で引かない
@@ -91,13 +92,13 @@ export const controlBox = tv({
     '[&:has([data-slot=field-addon-button]:focus-visible):not([data-invalid]_*)]:border-transparent',
     '[&:has([data-slot=field-addon-button]:focus-visible)]:ring-0 [&:has([data-slot=field-addon-button]:focus-visible)]:[outline-color:transparent]',
     // エラーの赤い枠線は、押せないときは引かない（fieldStyles の root が --field-invalid-border を置くのは、押せるエラーの欄だけ）
-    'group-data-invalid/field:border-[color:var(--field-invalid-border,transparent)] group-data-invalid/field:bg-field-invalid',
+    'group-data-invalid/field:border-[color:var(--field-invalid-border,transparent)] group-data-invalid/field:[--control-bg:var(--color-field-invalid)]',
     'group-data-disabled/field:cursor-not-allowed',
-    'group-data-disabled/field:bg-[color:var(--color-field-disabled,var(--color-field))]',
+    'group-data-disabled/field:[--control-bg:var(--color-field-disabled,var(--color-field))]',
     'group-data-disabled/field:text-[color:var(--color-on-field-disabled,var(--color-fg))]',
     // 待っているあいだ止める（loadingBehavior="blocking" — design/adr/0042）: 押せない欄と同じ塗りと文字（design/adr/0026）
     // 枠線（フォーカスの青・エラーの赤）は変えない。hover・フォーカス・開いている・エラーの塗りも押せない塗りにするため、
-    // 塗りの色（bg-field・bg-field-hover・bg-field-focus・bg-field-invalid が読む値）をこの要素で差し替える
+    // 塗りの色（--control-bg が読む --color-field・--color-field-hover・--color-field-focus・--color-field-invalid）をこの要素で差し替える
     'group-data-[loading=blocking]/field:cursor-progress group-data-[loading=blocking]/field:text-(color:--color-on-field-disabled)',
     'group-data-[loading=blocking]/field:[--color-field-hover:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field:var(--color-field-disabled)]',
     'group-data-[loading=blocking]/field:[--color-field-focus:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field-invalid:var(--color-field-disabled)]',

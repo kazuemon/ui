@@ -140,8 +140,10 @@ export function Notice({
             '-my-[calc((var(--spacing-control)_-_var(--leading-control))_/_2)] -mr-[calc((var(--spacing-control)_-_var(--leading-control))_/_2)]',
             'grid size-(--spacing-control) shrink-0 cursor-pointer place-items-center rounded-control',
             // 平らな要素（原則3、design/adr/0027）: 文字の色を淡く敷き、押下で 1px 沈む
-            'hover:bg-flat-hover active:translate-y-(--flat-press-depth) active:bg-flat-press',
-            '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
+            // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+            //   登録した変数は currentColor を補間できないので、文字の色（--notice-fg）を --flat-hover-mix・--flat-press-mix で混ぜる（--color-flat-* と同じ色）
+            '[--flat-bg:transparent] bg-(color:--flat-bg) hover:[--flat-bg:color-mix(in_oklab,var(--notice-fg)_var(--flat-hover-mix),transparent)] active:translate-y-(--flat-press-depth) active:[--flat-bg:color-mix(in_oklab,var(--notice-fg)_var(--flat-press-mix),transparent)]',
+            '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
             ...focusRing,
           ].join(' ')}
         >

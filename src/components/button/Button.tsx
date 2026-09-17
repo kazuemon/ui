@@ -48,8 +48,10 @@ const button = tv({
     ...focusRing,
     // 押下は --duration-press、送信中への切り替わり（色・薄さ）は --duration-loading で動かす
     // 塗りは押下（枠線のボタン）と送信中の両方で変わるので、送信中だけ --duration-loading にする
-    '[transition:box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),background-color_var(--button-bg-duration)_var(--ease-press),color_var(--duration-loading)_var(--ease-press),border-color_var(--duration-loading)_var(--ease-press),opacity_var(--duration-loading)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    '[transition:box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),--button-bg_var(--button-bg-duration)_var(--ease-press),color_var(--duration-loading)_var(--ease-press),border-color_var(--duration-loading)_var(--ease-press),opacity_var(--duration-loading)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     '[--button-bg-duration:var(--duration-press)] data-loading:[--button-bg-duration:var(--duration-loading)]',
+    // 塗りは --button-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+    'bg-(color:--button-bg)',
     'motion-reduce:[transition:none]',
     // Disabled（原則1、design/adr/0026）: 影をなくす。塗り・文字の色と透明度はトークンで指定する（未設定なら部品の色のまま）
     'disabled:cursor-not-allowed disabled:opacity-(--disabled-opacity)',
@@ -60,20 +62,22 @@ const button = tv({
   variants: {
     appearance: {
       filled: [
-        'bg-(color:--button-fill) text-(color:--button-text)',
+        'text-(color:--button-text) [--button-bg:var(--button-fill)]',
         '[--button-accent:var(--button-fill)] [--button-ink:var(--button-text)]',
         // 押したときの影は --shadow-raised-press（hover と同じ輪郭の線だけ — design/adr/0033）
         'shadow-raised not-[:disabled,[data-disabled]]:not-data-loading:hover:shadow-raised-hover not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:shadow-(--shadow-raised-press)',
-        'disabled:bg-[color:var(--color-disabled,var(--button-fill))] disabled:text-[color:var(--color-on-disabled,var(--button-text))] disabled:shadow-none',
-        'data-disabled:bg-[color:var(--color-disabled,var(--button-fill))] data-disabled:text-[color:var(--color-on-disabled,var(--button-text))] data-disabled:shadow-none',
+        'disabled:text-[color:var(--color-on-disabled,var(--button-text))] disabled:shadow-none disabled:[--button-bg:var(--color-disabled,var(--button-fill))]',
+        'data-disabled:text-[color:var(--color-on-disabled,var(--button-text))] data-disabled:shadow-none data-disabled:[--button-bg:var(--color-disabled,var(--button-fill))]',
         // 送信中: Disabled の「本体を薄くする」を、塗りと文字の色で表す（文字は地の色に混ぜる）
-        'data-loading:bg-[color:color-mix(in_oklab,var(--button-fill)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:text-[color:color-mix(in_oklab,var(--button-text)_calc(var(--disabled-opacity)*100%),var(--color-bg))] data-loading:shadow-none',
+        'data-loading:text-[color:color-mix(in_oklab,var(--button-text)_calc(var(--disabled-opacity)*100%),var(--color-bg))] data-loading:shadow-none data-loading:[--button-bg:color-mix(in_oklab,var(--button-fill)_calc(var(--disabled-opacity)*100%),transparent)]',
       ],
       // 枠線のボタンは平らな要素（原則3）: hover と押下で文字の色を淡く敷き、押下で 1px 沈む（design/adr/0027）
+      //   敷く色は --color-flat-hover・--color-flat-press と同じ濃さ。登録した変数（--button-bg）は currentColor を補間できないので、
+      //   文字の色（--button-ink。色付きは --button-line、グレー・白は --color-fg）を --flat-hover-mix・--flat-press-mix で混ぜる（ADR-0112）
       outline: [
-        'border-(length:--border-width-medium) border-(color:--button-line) bg-transparent text-(color:--button-line)',
+        'border-(length:--border-width-medium) border-(color:--button-line) text-(color:--button-line) [--button-bg:transparent]',
         '[--button-accent:var(--button-line)] [--button-ink:var(--button-line)]',
-        'not-[:disabled,[data-disabled]]:not-data-loading:hover:bg-flat-hover not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--flat-press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:bg-flat-press',
+        'not-[:disabled,[data-disabled]]:not-data-loading:hover:[--button-bg:color-mix(in_oklab,var(--button-ink)_var(--flat-hover-mix),transparent)] not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--flat-press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:[--button-bg:color-mix(in_oklab,var(--button-ink)_var(--flat-press-mix),transparent)]',
         'disabled:border-[color:var(--color-disabled-fg,var(--button-line))] disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
         'data-disabled:border-[color:var(--color-disabled-fg,var(--button-line))] data-disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
         'data-loading:border-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:text-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)]',
@@ -119,7 +123,7 @@ const button = tv({
         'disabled:[--color-disabled:var(--color-neutral-disabled)] disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
         'data-disabled:opacity-100',
         'data-disabled:[--color-disabled:var(--color-neutral-disabled)] data-disabled:[--color-on-disabled:var(--color-on-neutral-disabled)]',
-        'data-loading:bg-(color:--color-neutral-disabled) data-loading:text-(color:--color-on-neutral-disabled)',
+        'data-loading:text-(color:--color-on-neutral-disabled) data-loading:[--button-bg:var(--color-neutral-disabled)]',
       ],
     },
     {

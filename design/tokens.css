@@ -147,8 +147,8 @@
   --color-surface-line: var(--palette-gray-300);
   /* 平らな要素（影のない押すもの）の hover と押下（原則3）— adr/0027
      枠線のボタン・枠線のリンク: 要素の文字の色を淡く敷く。色のない要素は灰色になる */
-  --color-flat-hover: color-mix(in oklab, currentColor 8%, transparent);
-  --color-flat-press: color-mix(in oklab, currentColor 16%, transparent);
+  --color-flat-hover: color-mix(in oklab, currentColor var(--flat-hover-mix), transparent);
+  --color-flat-press: color-mix(in oklab, currentColor var(--flat-press-mix), transparent);
 
   /* 文字 */
   --color-fg: var(--palette-ink-900);
@@ -263,6 +263,10 @@
   --disabled-opacity: 0.4; /* 色を持つ押すものを押せないときの薄さ — design/adr/0026 */
   --press-depth: 1px; /* 押下で沈む深さ — design/adr/0009 */
   --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
+  /* 平らな要素の hover と押下で、文字の色を敷く濃さ（--color-flat-hover・--color-flat-press が読む）
+     塗りを登録した変数で動かす要素（ADR-0112）は currentColor を補間できないので、文字の色の変数をこの濃さで混ぜて同じ色を作る */
+  --flat-hover-mix: 8%;
+  --flat-press-mix: 16%;
 
   /* ── 役割の層: 動き（原則3「一段沈む」） ─────────────── */
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
