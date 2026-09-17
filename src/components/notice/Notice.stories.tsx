@@ -13,6 +13,8 @@ import { sourceCode } from '../../stories/story-states';
 
 const colors: NoticeColor[] = ['info', 'success', 'warning', 'danger'];
 const appearances: NoticeAppearance[] = ['soft', 'filled', 'outline'];
+const allColors: NoticeColor[] = [...colors, 'neutral'];
+const allAppearances: NoticeAppearance[] = [...appearances, 'muted'];
 
 const samples: Record<NoticeColor, { title: string; body: string }> = {
   info: { title: 'メンテナンスのお知らせ', body: '9月20日 2:00〜4:00 は、サービスを使えません。' },
@@ -25,6 +27,7 @@ const samples: Record<NoticeColor, { title: string; body: string }> = {
     title: '保存できませんでした',
     body: '通信が切れた可能性があります。時間をおいて、もう一度お試しください。',
   },
+  neutral: { title: 'メモ', body: 'タブレットとマウスでは、浮かぶ選択肢のままです。' },
 };
 
 // 部品にせず要素のまま置く。Show code に中身（Button と Link）が出る
@@ -48,9 +51,11 @@ const meta = {
         component: [
           '情報・成功・警告・危険を知らせる帯です。お知らせそのものは押せず、押せるのは中の操作だけです。',
           '',
-          '- `color` は状態の色（`info`・`success`・`warning`・`danger`）から選びます。利用者が選ぶ `primary`・`secondary`・`neutral` は持ちません。',
-          '- 題・本文・操作は読み上げの箱に入ります。`info`・`success`・`warning` は `role="status"`（区切りを待って読む）、`danger` は `role="alert"`（割り込んで読む）です。',
-          '- `appearance` は見た目です。`soft`（既定）は淡い面、`filled` は濃い塗り、`outline` は白い面に状態の色の枠線です。',
+          '- `color` は状態の色（`info`・`success`・`warning`・`danger`）と、色を持たないグレー（`neutral`）から選びます。利用者が選ぶ `primary`・`secondary` は持ちません。',
+          '- 題・本文・操作は読み上げの箱に入ります。`danger` は `role="alert"`（割り込んで読む）、ほかは `role="status"`（区切りを待って読む）です。',
+          '- `appearance` は見た目です。`soft`（既定）は淡い面、`filled` は濃い塗り、`outline` は白い面に状態の色の枠線、`muted` はグレーの面に状態の色の小さな題です。',
+          '- アイコンは状態の色ごとに付きます（`neutral` と `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
+          '- 記事の中にはじめからある補足や注意には、読み上げで知らせない `Callout` を使います。',
           '- 操作は `actions` に、白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
           '- `onClose` を渡すと、右上に閉じるボタン（×）が出ます。読み上げの名前は `closeLabel`（既定は「閉じる」）で、題があるときは「閉じる 題」と読みます。',
           '- 操作のあとで出すお知らせは、`NoticeRegion` の中に入れます。ページを開いたときからあるお知らせは、領域に入れずに置きます。',
@@ -71,8 +76,8 @@ const meta = {
     onClose: fn(),
   },
   argTypes: {
-    color: { control: 'inline-radio', options: colors },
-    appearance: { control: 'inline-radio', options: appearances },
+    color: { control: 'inline-radio', options: allColors },
+    appearance: { control: 'inline-radio', options: allAppearances },
     title: { control: 'text' },
     children: { control: 'text' },
     live: { control: 'boolean' },
@@ -162,6 +167,84 @@ export const ColorsAndAppearances: Story = {
         </Notice>
       )}
     />
+  ),
+};
+
+export const MutedAndNeutral: Story = {
+  tags: ['visual'],
+  name: 'グレーの面と色なし',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '左が `muted`（グレーの面に状態の色の小さな題）、右が色を持たない `neutral` の各見た目です。どちらも既定ではアイコンを出しません。',
+      },
+      source: sourceCode(`
+        <Notice color="warning" appearance="muted" title="保存していない変更があります">
+          このページを離れると、変更が消えます。
+        </Notice>
+        <Notice color="neutral" title="メモ">
+          タブレットとマウスでは、浮かぶ選択肢のままです。
+        </Notice>
+      `),
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap items-start gap-8">
+      <div className="flex w-[20rem] flex-col gap-3">
+        {colors.map((color) => (
+          <Notice key={color} color={color} appearance="muted" title={samples[color].title}>
+            {samples[color].body}
+          </Notice>
+        ))}
+      </div>
+      <div className="flex w-[20rem] flex-col gap-3">
+        {allAppearances.map((appearance) => (
+          <Notice
+            key={appearance}
+            color="neutral"
+            appearance={appearance}
+            title={samples.neutral.title}
+          >
+            {samples.neutral.body}
+          </Notice>
+        ))}
+      </div>
+    </div>
+  ),
+};
+
+export const Icons: Story = {
+  tags: ['visual'],
+  name: 'アイコン',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`icon={false}` でアイコンを消すと、文が左端から始まります。`muted` と `neutral` は、既定でアイコンを出しません。',
+      },
+      source: sourceCode(`
+        <Notice color="info" icon={false} title="メンテナンスのお知らせ">
+          9月20日 2:00〜4:00 は、サービスを使えません。
+        </Notice>
+      `),
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="icon なし">
+        <Notice color="info" icon={false} title={samples.info.title}>
+          {samples.info.body}
+        </Notice>
+      </Specimen>
+      <Specimen label="既定（アイコンあり）">
+        <Notice color="info" title={samples.info.title}>
+          {samples.info.body}
+        </Notice>
+      </Specimen>
+    </Gallery>
   ),
 };
 

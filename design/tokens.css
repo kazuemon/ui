@@ -77,6 +77,34 @@
   --palette-info-500: #6b9ff1;
   --palette-info-50: #e1ecfc;
 
+  /* コードの色（CodeBlock の色分けと行番号）— 軸 68 の D・69 の B。light は明るい地（白・入力欄のグレー）、dark は濃い地（ink-900）に置く
+     色分けは GitHub の明るいテーマ・暗いテーマ（Primer）の値。役割は :root の --shiki-token-* と --color-codeblock-* が指す
+     比（design/tools/color.mjs の contrast）は「地・最低」。最低は、地と強調行・差分・帯の面のうちいちばん低いもの
+       light の面: 白・グレー #f2f4f4・強調行 #dee8f3・足した行 #dde9e0・消した行 #f1e4e3
+       dark の面: 地 #1f2f37・帯 #2a3a41・強調行 #253f56・足した行 #284441・消した行 #3e3a44
+     どれも 4.5:1 以上。GitHub の値が届かない色だけ、色相を保って明度を最小限に動かした */
+  --palette-code-light-keyword: #cb1b2a; /* GitHub #cf222e（最低 4.29）を暗く。白 5.63・最低 4.51 */
+  --palette-code-light-function: #7b47d6; /* GitHub #8250df（最低 4.04）を暗く。5.65・4.52 */
+  --palette-code-light-string: #0a3069; /* 12.81・10.25 */
+  --palette-code-light-constant: #0550ae; /* 7.59・6.08 */
+  --palette-code-light-parameter: #953800; /* 7.39・5.91 */
+  --palette-code-light-comment: #59636e; /* 6.11・4.89 */
+  --palette-code-light-punctuation: var(
+    --palette-ink-900
+  ); /* GitHub は #1f2328。文字は濃紺にそろえる。13.82・11.06 */
+  --palette-code-light-line-number: #5f696e; /* ink-500 を暗く。白 5.63・最低 4.50（強調行） */
+  --palette-code-dark-fg: #e6edf3; /* 濃い地の、色分けしない文字と記号。11.69・8.92 */
+  --palette-code-dark-muted: #b4bec3; /* 濃い地の題とコピーの印。帯の上 6.23 */
+  --palette-code-dark-keyword: #ff877e; /* GitHub #ff7b72（最低 4.18）を明るく。5.93・4.52 */
+  --palette-code-dark-function: #d2a8ff; /* 7.10・5.41 */
+  --palette-code-dark-string: #a5d6ff; /* 8.99・6.85 */
+  --palette-code-dark-constant: #79c0ff; /* 7.10・5.42 */
+  --palette-code-dark-parameter: #ffa657; /* 7.13・5.44 */
+  --palette-code-dark-comment: #a2abb5; /* GitHub #8b949e（最低 3.43）を明るく。5.94・4.53 */
+  --palette-code-dark-punctuation: var(--palette-code-dark-fg);
+  --palette-code-dark-line-number: #a1abb1; /* 5.90・4.50（消した行） */
+  --palette-code-dark-deleted: #fe7c99; /* 濃い地の、差分で消した行の線と印。消した行の面の上 4.5 */
+
   /* ── 尺度の層 ─────────────────────────────────────
      役割と部品が共通で使う値。余白と角丸は Tailwind と同じ名前・同じ値で、px で持つ（利用者の p-2・rounded-xl と部品が同じ値になる）
      Tailwind の既定は rem。部品の高さと文字は px なので、ブラウザの文字の大きさを変えたときに余白と角丸だけが大きくならないよう、px にそろえる
@@ -408,6 +436,133 @@
   --leading-heading-4-fine: 28px;
   --leading-heading-4-coarse: 24px;
 
+  /* キー（Kbd）— 軸 53 の B。白い面に白いボタンと同じ細い輪郭、下辺だけを太くしてキーの厚みを線で見せる。影は付けない（押せないので原則1のまま）
+     大きさと余白は周りの文字に対する比 */
+  --kbd-size: 0.8125em;
+  --kbd-min-width: 1.75em;
+  --kbd-pad-x: 0.4em;
+  --kbd-line-bottom-width: var(--border-width-thick);
+
+  /* 引用（Blockquote）— 軸 54。現行版（左にグレーの線）が既定、color で線の色、appearance="surface" で入力欄の塗りの面（B）
+     icon を渡すと、お知らせと同じく 1 行目にそろえて置く（C の引用符を、利用者が選ぶアイコンにした形）
+     線の端は丸めない（A の丸い端は採らなかった） */
+  --blockquote-line-width: 3px;
+
+  /* 複数行のコード（CodeBlock）— 軸 64・66・67・68・69 で決定。src/components/code-block/CodeBlock.tsx
+     既定は入力欄のグレーの面・部品の角・上の帯（軸 64 の現行版）。appearance="dark" で濃紺の地（64 の D）
+     文字はマウスでも指でも、読みものの中でも 14/24（部品が --text-body-sm-fine・--leading-body-sm-fine を使う）
+     題の帯は 52px で、下の細い線は帯の外。コピーのボタンは 44px で帯の上下右に 4px（67 の A）。題がないときは右上から 4px に浮かせ、細い輪郭を付ける
+     行の飾りは 66 の D: 強調行と語は Primary の青 10% の面、強調行と差分は左に 2px の線、フォーカスはほかの行を 30% に薄くする、行番号は細い線で区切る
+     --shiki-token-* は Shiki の CSS 変数のテーマ（createCssVariablesTheme、variablePrefix '--shiki-'）が style に書く名前。ブログ側との約束なので名前は変えない
+       値はコードの色のパレット（--palette-code-*）。部品は appearance ごとに自分の要素で指し直す。ここの値は、部品の外（Prose が素の pre.shiki に当てるとき）の明るい地の既定 */
+  --shiki-token-keyword: var(--palette-code-light-keyword);
+  --shiki-token-function: var(--palette-code-light-function);
+  --shiki-token-string: var(--palette-code-light-string);
+  --shiki-token-string-expression: var(--palette-code-light-string);
+  --shiki-token-constant: var(--palette-code-light-constant);
+  --shiki-token-parameter: var(--palette-code-light-parameter);
+  --shiki-token-comment: var(--palette-code-light-comment);
+  --shiki-token-punctuation: var(--palette-code-light-punctuation);
+  --shiki-token-link: var(--palette-code-light-string);
+
+  /* 明るい地（既定） */
+  --color-codeblock-bg: var(--color-field);
+  --color-codeblock-fg: var(--color-fg);
+  --color-codeblock-muted: var(--color-fg-muted); /* 題とコピーの印 */
+  --color-codeblock-head-bg: transparent;
+  --color-codeblock-line: var(--color-line); /* 帯の下の線・行番号の区切り */
+  --color-codeblock-highlight: var(
+    --color-primary
+  ); /* 強調行の左の線。面はこの色を地に 10% 混ぜる（部品が計算する） */
+  --color-codeblock-inserted: var(--color-fg-success); /* 足した行の線と印。面は 10% */
+  --color-codeblock-deleted: var(--color-fg-danger); /* 消した行の線と印。面は 8% */
+  --color-codeblock-number: var(--palette-code-light-line-number); /* 行番号（69 の B） */
+  --color-codeblock-copy-line: var(
+    --color-surface-line
+  ); /* 題がなく浮かせたコピーのボタンの輪郭（白いボタンと同じ） */
+  /* 濃い地（appearance="dark"） */
+  --color-codeblock-dark-bg: var(--palette-ink-900);
+  --color-codeblock-dark-fg: var(--palette-code-dark-fg);
+  --color-codeblock-dark-muted: var(--palette-code-dark-muted);
+  --color-codeblock-dark-head-bg: color-mix(
+    in oklab,
+    var(--palette-ink-900),
+    white 6%
+  ); /* #2a3a41 */
+  --color-codeblock-dark-line: color-mix(in oklab, var(--palette-ink-900), white 14%);
+  --color-codeblock-dark-highlight: var(--palette-blue-500); /* 地 4.06。面は 18% */
+  --color-codeblock-dark-inserted: var(--palette-success-500); /* 面は 12% */
+  --color-codeblock-dark-deleted: var(--palette-code-dark-deleted); /* 面は 14% */
+  --color-codeblock-dark-number: var(--palette-code-dark-line-number);
+  --color-codeblock-dark-copy-line: var(--color-codeblock-dark-line);
+
+  /* ── リスト（軸 60 の B）。src/components/list/List.tsx ─────────────
+     印は li::before。li の左の外に置き、文字との間は --list-marker-gap。縦は 1 行目の中央
+     既定の印は薄いグレーの短い線（入れ子は小さい点）。marker="dot" で濃紺の丸（入れ子は白抜きの丸）にする（現行版を選べる形で残した）
+     番号は薄いグレー・通常の太さで、右揃え（10 以上の番号も「.」がそろう）
+     チェックリストの箱は塗らず、まだの項目は細い輪郭の四角、済んだ項目は ✓ だけ。済んだ項目の文は subtle（checkedTone="default" で本文の色） */
+  --list-indent: calc(var(--spacing) * 8); /* ul・ol の左の字下げ。「10.」が入る幅 */
+  --list-marker-gap: calc(var(--spacing) * 1.5); /* 印・番号・箱と文字の間 */
+  --list-item-gap: calc(var(--spacing) * 2); /* 項目の間。入れ子のリストの上も同じ */
+  --list-item-gap-loose: calc(
+    var(--spacing) * 3
+  ); /* ゆるいリスト（li の中に p）の項目の間と段落の間 */
+  --list-bullet-width: 8px;
+  --list-bullet-height: 1.5px;
+  --list-bullet-radius: var(--radius-pill);
+  --list-bullet-ring: 0px;
+  --color-list-bullet: var(--color-fg-subtle);
+  --color-list-bullet-ring: transparent;
+  --list-bullet-nested-width: 4px;
+  --list-bullet-nested-height: 4px;
+  --list-bullet-nested-radius: var(--radius-pill);
+  --list-bullet-nested-ring: 0px;
+  --color-list-bullet-nested: var(--color-fg-subtle);
+  --color-list-bullet-nested-ring: transparent;
+  --list-number-width: 1.4em; /* 番号の箱の最小の幅。中は右揃え */
+  --color-list-number: var(--color-fg-subtle);
+  --list-task-size: 16px;
+  --list-task-ring: var(--border-width-medium);
+  --color-list-task-ring: var(--color-line-strong);
+  /* ✓ の形と色（#6e787d = --color-fg-subtle）。色は画像の中に書く */
+  --list-task-mark-checked: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236e787d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 8.5 6.75 11.25 12 5.5'/%3E%3C/svg%3E");
+  --color-list-task-done: var(--color-fg-subtle); /* 済んだ項目の文 */
+
+  /* ── 脚注（軸 61）。src/internal/reading/footnote.ts ─────────────
+     戻るリンクの矢印（ArrowUDownLeftIcon と同じ形・同じ線の太さ --icon-stroke）。Prose が、GFM の HTML の文字 ↩ を隠して mask で描く
+     形と太さが部品のアイコンと同じことは src/components/prose/prose-styles.test.ts が確かめる */
+  --footnote-backref-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='none' stroke='black' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='80 120 32 168 80 216'/%3E%3Cpath d='M80,56h88a56,56,0,0,1,56,56h0a56,56,0,0,1-56,56H32'/%3E%3C/svg%3E");
+
+  /* ── 記事（Prose）の要素のあいだの余白 — 軸 70。src/components/prose/Prose.tsx
+     余白は後ろの要素の上（margin-top）にだけ付ける。最初の要素の上と最後の要素の下には付かない
+     paragraph: 段落と段落のあいだ。block: それ以外の要素のあいだ（リスト・表・コード・画像・引用の上下）
+     heading-N-before・after: 見出しの上（前が見出しでないとき）と、見出しのすぐ後ろ。h4〜h6 は 4
+     divider: 区切り線の上下と、脚注の一覧の上
+     見出しと区切り線の上下は入力方式で変える（src/styles/theme.css の密度の規則が入れる）
+       マウス（軸 70 の C）: 見出しの上をとくに広げ、節の切れ目をはっきりさせる。見出しの下は詰め、見出しを下の文の題として読ませる
+       指（軸 70 の現行版）: 画面が狭いので、見出しの上を詰める
+     項目のあいだ・入れ子のリストの上は、リストのトークン（--list-item-gap・--list-item-gap-loose） */
+  --prose-paragraph-gap: calc(var(--spacing) * 4); /* 16px */
+  --prose-block-gap: calc(var(--spacing) * 5); /* 20px */
+  --prose-heading-1-before-fine: calc(var(--spacing) * 18); /* 72px */
+  --prose-heading-1-before-coarse: calc(var(--spacing) * 10); /* 40px */
+  --prose-heading-1-after-fine: calc(var(--spacing) * 4); /* 16px */
+  --prose-heading-1-after-coarse: calc(var(--spacing) * 4); /* 16px */
+  --prose-heading-2-before-fine: calc(var(--spacing) * 18); /* 72px */
+  --prose-heading-2-before-coarse: calc(var(--spacing) * 10); /* 40px */
+  --prose-heading-2-after-fine: calc(var(--spacing) * 2); /* 8px */
+  --prose-heading-2-after-coarse: calc(var(--spacing) * 3); /* 12px */
+  --prose-heading-3-before-fine: calc(var(--spacing) * 12); /* 48px */
+  --prose-heading-3-before-coarse: calc(var(--spacing) * 8); /* 32px */
+  --prose-heading-3-after-fine: calc(var(--spacing) * 1); /* 4px */
+  --prose-heading-3-after-coarse: calc(var(--spacing) * 2); /* 8px */
+  --prose-heading-4-before-fine: calc(var(--spacing) * 8); /* 32px */
+  --prose-heading-4-before-coarse: calc(var(--spacing) * 6); /* 24px */
+  --prose-heading-4-after-fine: calc(var(--spacing) * 1); /* 4px */
+  --prose-heading-4-after-coarse: calc(var(--spacing) * 2); /* 8px */
+  --prose-divider-gap-fine: calc(var(--spacing) * 18); /* 72px */
+  --prose-divider-gap-coarse: calc(var(--spacing) * 10); /* 40px */
+
   /* 送信中（loading）の既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる — adr/0034 */
   --loading-label-opacity: 0.55;
 
@@ -433,6 +588,9 @@
   /* 文字のリンクで、新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）— adr/0046
      下線を ↗ の線の右端まで続ける幅と、線の下端を基線にそろえる量は、部品がこの値から計算する（どの大きさでも成り立つ） */
   --link-external-icon-size: 0.85em;
+  /* 本文の外（Text・Heading・Prose の外）に置いた文字のリンクの大きさと行の高さ — 軸 71
+     部品の文字と同じ（マウス 16/24・指 14/20）。--link-text-size・--link-text-leading は src/styles/theme.css の密度の規則が入れる
+     Text・Heading・Prose の中では、部品が 1em と未設定に戻す（周りの文字のまま。記事の中は 16px）。未設定（initial）の行の高さは周りを受け継ぐ */
   /* 幅いっぱいの枠線のリンク（contentAlign="center-end"）の前のアイコン（サービスのアイコンなど）— ADR-0056
      1: 前のアイコンは文字と一緒に動く（まとめて中央。既定）。0: 前のアイコンは左端に残り、文字だけが中央に寄る
      0 は部品の leadIconPlacement="start" で選ぶ

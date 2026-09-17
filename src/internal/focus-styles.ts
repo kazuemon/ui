@@ -14,3 +14,13 @@ export const focusRing = [
   'focus-visible:[outline-style:solid] focus-visible:[outline-width:var(--focus-ring-width)]',
   'focus-visible:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
 ];
+
+// Prose の中の素の HTML（リンクと、横にスクロールできる表）に付ける、同じフォーカスの線
+// 上の focusRing の各クラスの前に [&_:is(a,table)]: を付けたもの。Tailwind はソースの文字列からクラスを作るので、組み立てずに書く
+// 2 つが同じであることは focus-styles.test.ts が確かめる（片方だけ直すとテストが落ちる）
+export const focusRingInProse = [
+  '[&_:is(a,table)]:[outline-offset:var(--focus-ring-offset)] [&_:is(a,table)]:[outline-color:transparent]',
+  '[&_:is(a,table)]:[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
+  '[&_:is(a,table)]:focus-visible:[outline-style:solid] [&_:is(a,table)]:focus-visible:[outline-width:var(--focus-ring-width)]',
+  '[&_:is(a,table)]:focus-visible:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
+];
