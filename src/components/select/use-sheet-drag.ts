@@ -75,14 +75,17 @@ export function useSheetDrag({ sheetDetent, metrics, long, onClose }: SheetDragO
   const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = dragStart.current;
     dragStart.current = null;
-    const height = dragHeight;
     setDragging(false);
     if (!start || !metrics) {
       setDragHeight(null);
       return;
     }
+    // 離した高さは、離した位置から出す。state の dragHeight は、最後の動きがまだ描き直されていないと古い値のまま
+    const dy = event.clientY - start.y;
+    const moved = start.moved || Math.abs(dy) > SHEET_DRAG.moveSlop;
+    const height = Math.min(metrics.full, Math.max(0, start.height - dy));
     // 引かずに押したときは、半分と高さいっぱいを切り替える
-    if (!start.moved || height === null) {
+    if (!moved) {
       setDragHeight(null);
       setDetent(detent === 'half' ? 'full' : 'half');
       return;
@@ -103,6 +106,7 @@ export function useSheetDrag({ sheetDetent, metrics, long, onClose }: SheetDragO
       target = Math.abs(height - metrics.half) <= Math.abs(height - full) ? 'half' : 'full';
     }
     if (target === 'close') {
+      setDragHeight(height);
       onClose();
       return;
     }
