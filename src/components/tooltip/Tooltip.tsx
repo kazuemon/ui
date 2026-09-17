@@ -26,6 +26,11 @@ export interface TooltipProps {
    * @default 500
    */
   longPressDelay?: number;
+  /**
+   * 長押しで出したときの向き。指と手で隠れないよう、既定では上に出します。false を渡すと side のままにします
+   * @default 'top'
+   */
+  longPressSide?: TooltipSide | false;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -57,6 +62,7 @@ export function Tooltip({
   side = 'bottom',
   delay = 400,
   longPressDelay = 500,
+  longPressSide = 'top',
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -146,7 +152,8 @@ export function Tooltip({
       />
       <BaseTooltip.Portal container={container}>
         <BaseTooltip.Positioner
-          side={side}
+          // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
+          side={longPressed && longPressSide ? longPressSide : side}
           sideOffset={() => readTokenLength('--tooltip-offset')}
           collisionPadding={8}
           data-density={scope.density}

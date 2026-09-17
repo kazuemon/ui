@@ -63,6 +63,12 @@ export interface DrawerProps {
    */
   closeOnEscape?: boolean;
   /**
+   * 出した向きへはじいて閉じられるか。false では、はじいても閉じません（上へ引いて広げることはできます）
+   * つまみは「引けること」の印なので、これを false にし、上へ広げられないときは、つまみを出しません
+   * @default true
+   */
+  closeOnSwipe?: boolean;
+  /**
    * 右上に閉じる × を置くか。false のときは、actions に閉じる手段を置きます
    * @default true
    */
@@ -105,6 +111,7 @@ export function Drawer({
   dismissible = true,
   actionsLayout = 'auto',
   closeOnEscape = true,
+  closeOnSwipe = true,
   closeButton = true,
   closeLabel,
   container,
@@ -127,9 +134,14 @@ export function Drawer({
       const content = popup.querySelector<HTMLElement>('[data-slot="sheet-content"]');
       if (!content) return;
       const read = () => {
+        // 引いているあいだは測らない。面の下の余白（段のずれの分）が動くので、中身の高さが変わって見える
+        if (popup.hasAttribute('data-swiping')) return;
         // 画面の高さは、Base UI と同じく面を置く枠（Viewport）の高さで見る
         const screen = popup.parentElement?.offsetHeight ?? window.innerHeight;
-        const natural = popup.offsetHeight - content.clientHeight + content.scrollHeight;
+        // 中身をすべて出したときの高さ。段のずれの分に足した面の下の余白は、中身の高さではないので引く
+        const offsetPadding = parseFloat(getComputedStyle(popup).paddingBottom) || 0;
+        const natural =
+          popup.offsetHeight - offsetPadding - content.clientHeight + content.scrollHeight;
         const next = natural > screen * HALF + 1;
         setLong(next);
         // 長いと分かる前に Base UI が段を空（null）に戻していても、半分から始める
@@ -142,7 +154,11 @@ export function Drawer({
     },
     [side, detent]
   );
+  // 上へ引いて広げられるか（中身が開いた高さに収まらず、半分の段があるとき）
   const snap = side === 'bottom' && detent === 'half' && long;
+  // つまみは「引けること」の印。はじいて閉じられるか、上へ引いて広げられるときに出す（横から出すパネルには出さない）
+  // 出さないときも場所は取る。出し入れで見出しの位置と余白が動かないようにするため
+  const handle = side === 'bottom' && (closeOnSwipe || snap);
   const changeOpen = (next: boolean) => {
     if (next) setSnapPoint(HALF);
     setOpenState(next);
@@ -153,7 +169,15 @@ export function Drawer({
     <BaseDrawer.Root
       open={open}
       onOpenChange={(next, details) => {
-        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) return;
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        // はじいて閉じない設定のときは、閉じる合図を取り消す（Base UI が近い段に戻す）
+        if (!next && !closeOnSwipe && details.reason === 'swipe') {
+          details.cancel();
+          return;
+        }
         changeOpen(next);
       }}
       modal={modal}
@@ -174,7 +198,8 @@ export function Drawer({
           description={description}
           footer={actions}
           footerLayout={actionsLayout}
-          handle={snap}
+          handle={handle}
+          swipeFade={!snap}
           closeLabel={closeLabel}
           closeButton={closeButton}
           container={container}

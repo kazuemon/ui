@@ -39,7 +39,8 @@ const meta = {
         component: [
           '画面の端から出す面です。既定は画面の下から出すシートで、Select のシートと同じ見出し（つまみ・題・右上の ×）を持ちます。',
           '',
-          '- `side` で出す向きを選びます。`bottom`（既定）はシート、`left`・`right` はナビゲーションや詳細を出す横のパネルです。出した向きへはじくと閉じます。',
+          '- `side` で出す向きを選びます。`bottom`（既定）はシート、`left`・`right` はナビゲーションや詳細を出す横のパネルです。出した向きへはじくと閉じます（`closeOnSwipe={false}` で止められます）。',
+          '- シートの上端のつまみは「引けること」の印です。はじいて閉じられるか、上へ引いて広げられるときに出ます。どちらもできないときは出ません。横から出すパネルには出しません。',
           '- 下から出すとき、中身が画面の半分より長ければ、半分の高さで開いてつまみを出します（`detent="half"`、既定）。つまみを上へ引くと高さいっぱいに広がります。`full` は中身の高さで開きます。',
           '- 中身が長いときはスクロールし、上の端に区切り線、上下の端に続きの影を出します。',
           '- 下に並べるボタンは `actions` に渡します。中身をスクロールしても動きません。押して閉じるボタンは `OverlayClose` の `render` に渡します。並べ方は `actionsLayout` で選びます。既定の `auto` は、下から出すシートでは幅いっぱいで縦に積み（最後に渡した主な操作が上）、横から出すパネルでは右に寄せます。渡した順に上から積むときは `stack`、横に並べるときは `end`（右寄せ）か `fill`（幅を等分）です。',
@@ -57,6 +58,7 @@ const meta = {
     modal: true,
     dismissible: true,
     closeOnEscape: true,
+    closeOnSwipe: true,
     closeButton: true,
     closeLabel: '閉じる',
   },
@@ -144,7 +146,15 @@ export const Long: Story = {
   },
   parameters: {
     controls: {
-      include: ['detent', 'actionsLayout', 'title', 'description', 'closeOnEscape', 'closeButton'],
+      include: [
+        'detent',
+        'actionsLayout',
+        'title',
+        'description',
+        'closeOnEscape',
+        'closeOnSwipe',
+        'closeButton',
+      ],
     },
     docs: {
       description: {
@@ -166,6 +176,36 @@ export const Long: Story = {
           container={frame}
         >
           {longText}
+        </Drawer>
+      )}
+    </PhoneFrame>
+  ),
+};
+
+export const NoSwipe: Story = {
+  tags: ['visual'],
+  name: 'はじいて閉じない',
+  args: { closeOnSwipe: false },
+  parameters: {
+    controls: { include: ['closeOnSwipe', 'title'] },
+    docs: {
+      description: {
+        story:
+          '`closeOnSwipe={false}` では、下へはじいても閉じません。上へ引いて広げることもできない（中身が短い）ときは、引けることの印であるつまみを出しません。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <Drawer
+          {...args}
+          trigger={<Button>通知の設定</Button>}
+          defaultOpen={openOnLoad(viewMode)}
+          modal={false}
+          container={frame}
+        >
+          {settings}
         </Drawer>
       )}
     </PhoneFrame>
