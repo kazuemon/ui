@@ -35,6 +35,11 @@ interface SheetPopupProps {
    */
   handle?: boolean;
   /**
+   * 引く操作を始めさせないか（はじいて閉じず、上へ広げることもできないとき）
+   * Base UI は指を置いた要素から data-base-ui-swipe-ignore を探して引く操作を無視するので、面そのものに付ける
+   */
+  swipeLocked?: boolean;
+  /**
    * 引いているあいだ、引いた量に合わせて後ろの暗さを薄くするか
    * 段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので薄くできない
    */
@@ -66,6 +71,7 @@ export function SheetPopup({
   footer,
   footerLayout = 'auto',
   handle = false,
+  swipeLocked = false,
   swipeFade = true,
   closeLabel,
   closeButton = true,
@@ -114,6 +120,7 @@ export function SheetPopup({
             data-slot="sheet"
             data-side={side}
             data-density={densityScope.density}
+            data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
             className={[
               'relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
               overlayTitleLeading,

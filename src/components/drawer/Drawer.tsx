@@ -159,6 +159,10 @@ export function Drawer({
   // つまみは「引けること」の印。はじいて閉じられるか、上へ引いて広げられるときに出す（横から出すパネルには出さない）
   // 出さないときも場所は取る。出し入れで見出しの位置と余白が動かないようにするため
   const handle = side === 'bottom' && (closeOnSwipe || snap);
+  // はじいて閉じず、上へ広げることもできないときは、引く操作そのものを始めさせない（面を指に追従させない）
+  // Base UI には、はじいて閉じるのを止める prop がなく、data-base-ui-swipe-ignore で引く操作を無視させる
+  // 広げられるとき（段があるとき）は引く操作が要るので、閉じる合図だけを onSnapPointChange で取り消す
+  const swipeLocked = !closeOnSwipe && !snap;
   const changeOpen = (next: boolean) => {
     if (next) setSnapPoint(HALF);
     setOpenState(next);
@@ -173,7 +177,7 @@ export function Drawer({
           details.cancel();
           return;
         }
-        // はじいて閉じない設定のときは、閉じる合図を取り消す（Base UI が近い段に戻す）
+        // はじいて閉じない設定のときの保険。引く操作は swipeLocked と onSnapPointChange で先に止めている
         if (!next && !closeOnSwipe && details.reason === 'swipe') {
           details.cancel();
           return;
@@ -186,7 +190,14 @@ export function Drawer({
       snapPoints={snap ? SNAP_POINTS : undefined}
       // 段はいつも部品が持つ（途中で Base UI に任せる形と切り替えると、段が空に戻る）
       snapPoint={snap ? snapPoint : null}
-      onSnapPointChange={(point) => {
+      onSnapPointChange={(point, details) => {
+        // 段があり、はじいて閉じない設定のとき: 下へ引いて離すと Base UI は段を null（閉じる）にする
+        // その合図を取り消すと、Base UI は閉じる動きを始めずにその場へ戻す。いちばん低い段に留める
+        if (point === null && !closeOnSwipe && details.reason === 'swipe') {
+          details.cancel();
+          setSnapPoint(HALF);
+          return;
+        }
         if (snap) setSnapPoint(point);
       }}
     >
@@ -199,6 +210,7 @@ export function Drawer({
           footer={actions}
           footerLayout={actionsLayout}
           handle={handle}
+          swipeLocked={swipeLocked}
           swipeFade={!snap}
           closeLabel={closeLabel}
           closeButton={closeButton}
