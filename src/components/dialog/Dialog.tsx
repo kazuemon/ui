@@ -44,6 +44,8 @@ export interface DialogProps {
   modal?: boolean;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc と × では閉じます）
+   * 画面の下から出すシートで出すときは、下へはじいて閉じる操作もこれに従います
+   * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
    * @default true
    */
   dismissible?: boolean;
@@ -85,7 +87,12 @@ export function Dialog({ presentation = 'auto', dismissible = true, ...props }: 
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   // シートは中身の高さで開く（半分で止めない）。Dialog の中身は、上から順に読んで答えるものなので
-  if (sheet) return <Drawer {...props} dismissible={dismissible} detent="full" />;
+  // 下へはじいて閉じるのは、後ろの画面を押して閉じるのと同じ扱い（dismissible）
+  if (sheet) {
+    return (
+      <Drawer {...props} dismissible={dismissible} closeOnSwipe={dismissible} detent="full" />
+    );
+  }
   // 中央に浮かべるときは、下の操作をいつも右に寄せる（actionsLayout はシートのときだけ）
   const { actionsLayout: _actionsLayout, ...centered } = props;
   return <CenteredDialog {...centered} dismissible={dismissible} />;
@@ -126,7 +133,11 @@ function CenteredDialog({
     <BaseDialog.Root
       open={open}
       onOpenChange={(next, details) => {
-        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) return;
+        // Esc で閉じない設定のときは、閉じる合図を取り消す（Base UI が Esc を処理済みにしないようにする）
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
         changeOpen(next);
       }}
       modal={modal}

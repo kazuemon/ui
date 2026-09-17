@@ -47,6 +47,7 @@ export interface DrawerProps {
   modal?: boolean;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc・×・はじく操作では閉じます）
+   * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
    * @default true
    */
   dismissible?: boolean;
