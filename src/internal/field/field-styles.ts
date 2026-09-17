@@ -33,15 +33,21 @@ export const fieldStyles = tv({
     // 見えなくする（visibility）のは中身で、閉じ終えたとき。動きを減らす設定では、すぐ切り替える
     // 空のときに間（--spacing-field-gap）が増えないよう、箱の上の間を打ち消す。間は行の上に持たせる（messageLine）
     // 箱はエラー・警告で1つずつ続けて置く。両方開くと、エラーの行と警告の行の間も --spacing-field-gap になる（design/adr/0041 の追記）
+    // --field-message-pull: すぐ上の部品の下に余りがあるとき、行の上の間から引く長さ（チェックボックスとラジオが入れる — 軸 80）
+    //   間（--spacing-field-gap）までは行の上の間を減らし、超えた分（--field-message-overlap）は開いているあいだだけ箱を上に寄せる
+    //   開いた行のあとに続く行（エラーのあとの警告）は、ふつうの間に戻す
     messageRegion: [
       'group/message -mt-(--spacing-field-gap) grid grid-rows-[0fr] data-open:grid-rows-[1fr]',
-      'transition-[grid-template-rows] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
+      '[--field-message-overlap:max(0px,var(--field-message-pull,0px)_-_var(--spacing-field-gap))]',
+      'data-open:mt-[calc(-1*var(--spacing-field-gap)_-_var(--field-message-overlap))]',
+      '[[data-slot=field-message][data-open]~&]:[--field-message-pull:0px]',
+      'transition-[grid-template-rows,margin-top] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
     ],
     messageClip: [
       'invisible min-h-0 overflow-hidden opacity-0 group-data-open/message:visible group-data-open/message:opacity-100',
       'transition-[opacity,visibility] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
     ],
-    messageLine: 'pt-(--spacing-field-gap)',
+    messageLine: 'pt-[max(0px,var(--spacing-field-gap)_-_var(--field-message-pull,0px))]',
   },
 });
 

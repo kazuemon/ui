@@ -4,7 +4,12 @@ import { RadioGroup as BaseRadioGroup } from '@base-ui/react/radio-group';
 import { type ComponentProps, type ReactNode, useContext, useMemo } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
-import { type ChoiceColor, choiceRows, choiceStyles } from '../../internal/choice/choice-styles';
+import {
+  type ChoiceColor,
+  choiceGroupMessagePull,
+  choiceRows,
+  choiceStyles,
+} from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import { useChoiceLock } from '../../internal/form-context';
 
@@ -40,6 +45,7 @@ export function Radio({
   const locked = useChoiceLock(disabled);
   return (
     <BaseField.Item
+      data-choice-item=""
       disabled={disabled}
       className={s.item({ className: [choiceRows(caption), className] })}
     >
@@ -54,7 +60,11 @@ export function Radio({
         <BaseRadio.Indicator className={s.dot()} />
       </BaseRadio.Root>
       <BaseField.Label className={s.label()}>{label}</BaseField.Label>
-      {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
+      {caption && (
+        <BaseField.Description data-choice-caption="" className={s.caption()}>
+          {caption}
+        </BaseField.Description>
+      )}
     </BaseField.Item>
   );
 }
@@ -121,7 +131,9 @@ export function RadioGroup<Value>({
         error={error}
         warning={warning}
         disabled={disabled}
-        className={className}
+        className={[...choiceGroupMessagePull(captionPlacement), className]
+          .filter(Boolean)
+          .join(' ')}
         nativeLabel={false}
       >
         {(describedBy) => (

@@ -3,15 +3,23 @@ import { Field as BaseField } from '@base-ui/react/field';
 import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
-import { type ChoiceColor, choiceRows, choiceStyles } from '../../internal/choice/choice-styles';
+import {
+  type ChoiceColor,
+  choiceMessagePull,
+  choiceRows,
+  choiceStyles,
+} from '../../internal/choice/choice-styles';
 import { FieldMessageLine } from '../../internal/field/Field';
 import { useChoiceLock } from '../../internal/form-context';
 
 export type { ChoiceColor } from '../../internal/choice/choice-styles';
 
 // 1つだけ置くチェックボックスの行。上下の 1fr の行が、柱の高さ（部品の高さ）の残りを分ける。エラー・警告の行は、その下に足す行
+//   上下の行は、行の上下の余白（--choice-row-pad-y。軸 80）より狭くしない
 const soloRows = (caption: ReactNode) =>
-  caption ? 'grid-rows-[1fr_auto_auto_1fr]' : 'grid-rows-[1fr_auto_1fr]';
+  caption
+    ? 'grid-rows-[minmax(var(--choice-row-pad-y),1fr)_auto_auto_minmax(var(--choice-row-pad-y),1fr)]'
+    : 'grid-rows-[minmax(var(--choice-row-pad-y),1fr)_auto_minmax(var(--choice-row-pad-y),1fr)]';
 
 // チェック（✓）と中間の横線。線の太さは画面の px（--checkbox-mark-width）で、箱の大きさによらない
 function CheckboxMark() {
@@ -128,13 +136,16 @@ export function CheckboxBase({
   if (!solo) {
     return (
       <BaseField.Item
+        data-choice-item=""
         disabled={disabled}
         className={s.item({ className: [choiceRows(caption), className] })}
       >
         {box(ariaDescribedBy)}
         <BaseField.Label className={s.label()}>{label}</BaseField.Label>
         {caption && (
-          <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>
+          <BaseField.Description data-choice-caption="" className={s.caption()}>
+            {caption}
+          </BaseField.Description>
         )}
       </BaseField.Item>
     );
@@ -151,7 +162,14 @@ export function CheckboxBase({
     <BaseField.Root
       disabled={disabled}
       invalid={error ? true : undefined}
-      className={s.item({ className: [soloRows(caption), className] })}
+      className={s.item({
+        className: [
+          soloRows(caption),
+          ...choiceMessagePull,
+          caption && '[--choice-last-caption:1]',
+          className,
+        ],
+      })}
     >
       <span aria-hidden className={s.pillar()} />
       {box(describedBy)}

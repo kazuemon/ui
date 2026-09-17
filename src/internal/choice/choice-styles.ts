@@ -22,10 +22,29 @@ import { tv } from '../tv';
 export const choiceSize =
   '[--choice-size:calc(var(--choice-size-fine)_+_var(--density-coarse)_*_(var(--choice-size-coarse)_-_var(--choice-size-fine)))]';
 
+// 行の下の余り（部品の高さの中で文字の行を縦の中央に置いたときの、上下それぞれの空き）と、行の上下の余白（軸 80）
+const choiceRowSpace = [
+  '[--choice-row-leftover:calc((var(--spacing-control)_-_var(--leading-control))/2)]',
+  '[--choice-row-pad-y:calc(var(--choice-row-pad)*var(--choice-row-leftover))]',
+];
+
+/**
+ * 選択肢のすぐ下に出すエラー・警告の行の上の間から、行の下の余りを引く（軸 80）。
+ * --choice-last-caption（最後の行にキャプションがあれば 1）を、使う側で入れる
+ */
+export const choiceMessagePull = [
+  ...choiceRowSpace,
+  '[--field-message-pull:calc(var(--choice-message-tighten)*var(--choice-row-leftover)*max(var(--choice-row-pad),1_-_var(--choice-last-caption,0)))]',
+];
+
 export const choiceStyles = tv({
   slots: {
     // 1つの選択肢の行
-    item: ['group/choice grid grid-cols-[auto_minmax(0,1fr)] items-center', choiceSize],
+    item: [
+      'group/choice grid grid-cols-[auto_minmax(0,1fr)] items-center',
+      choiceSize,
+      ...choiceRowSpace,
+    ],
     // 1つだけ置くチェックボックスで、箱・横の文字・キャプションのまとまりの高さを部品の高さにする見えない柱
     // まとまりの上下の行（1fr）が残りを分けるので、まとまりは部品の高さの中で縦の中央になる
     // 下に足すエラー・警告の行は柱の外なので、出ても箱と文字は動かない
@@ -77,7 +96,8 @@ export const choiceStyles = tv({
     // 1つだけ置くチェックボックスのエラー・警告の行。柱の下の行に置き、キャプションと同じく横の文字の始まりにそろえて字下げする
     //   列は2列ともまたぐ（2列目だけに置くと、柱の横の空いた1行目に入ってしまう）。字下げは1列目の幅（箱）と文字の側の間
     // 格子には行の間がないので、行の箱の上の間の打ち消し（Field の中で使うとき）をやめる。間は行の上に持つ（--spacing-field-gap）
-    message: 'col-span-full mt-0 pl-[calc(var(--choice-size)_+_var(--choice-gap))]',
+    message:
+      'col-span-full mt-0 pl-[calc(var(--choice-size)_+_var(--choice-gap))] data-open:-mt-(--field-message-overlap)',
     // 「すべて選ぶ」の箱の下に並べる子の箱。字下げして、箱の左端を「すべて選ぶ」の横の文字の始まりにそろえる
     children: ['flex flex-col pl-[calc(var(--choice-size)+var(--choice-gap))]', choiceSize],
   },
@@ -105,7 +125,7 @@ export const choiceStyles = tv({
     //   solo: 1つだけ置くチェックボックス。柱（pillar）が高さを持ち、箱と文字は2行目（上下は 1fr の行）
     layout: {
       item: {
-        item: 'min-h-(--spacing-control) content-center',
+        item: 'min-h-(--spacing-control) content-center py-(--choice-row-pad-y)',
         box: 'row-start-1',
         label: 'row-start-1',
         caption: 'row-start-2',
@@ -118,6 +138,19 @@ export const choiceStyles = tv({
 
 /** 選んだときの色。Switch と同じ並び */
 export type ChoiceColor = NonNullable<VariantProps<typeof choiceStyles>['color']>;
+
+/**
+ * グループ（RadioGroup・CheckboxGroup）の Field に付ける、エラー・警告の行の詰め方（軸 80）。
+ * 行が選択肢のすぐ下に来るとき（キャプションが上）だけ使う。枠で囲んだグループは、行が枠の線の下に来るので詰めない
+ */
+export const choiceGroupMessagePull = (captionPlacement: 'top' | 'bottom' | undefined) =>
+  captionPlacement === 'bottom'
+    ? []
+    : [
+        ...choiceMessagePull,
+        'has-[[data-choice-item]:last-child>[data-choice-caption]]:[--choice-last-caption:1]',
+        'has-[[data-choice-frame]]:[--field-message-pull:0px]',
+      ];
 
 /** 行を明示する（キャプションがあれば2行）。箱は1行目（ラベルの行）の中央 */
 export const choiceRows = (caption: ReactNode) =>
