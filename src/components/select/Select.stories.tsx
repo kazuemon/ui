@@ -6,7 +6,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Select, type SelectItem, type SelectProps } from './Select';
 import { TextField } from '../text-field/TextField';
-import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
+import { Gallery, Matrix, PhoneFrame, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
 
 const wards: SelectItem[] = [
@@ -88,20 +88,6 @@ function PopoverFrame({
 // 開いた状態のストーリーも、ドキュメントのページでは閉じて描く
 // 開くと選んだ選択肢にフォーカスが移り、ページがそのストーリーの位置まで流れてしまうため
 const openOnLoad = (viewMode: string) => viewMode !== 'docs';
-
-// スマートフォンの画面の代わり。シートは画面の下に固定して出るので、枠を位置の基準にする（transform）
-function PhoneFrame({ children }: { children: (frame: HTMLElement) => ReactNode }) {
-  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
-  return (
-    <div
-      ref={setFrame}
-      data-density="coarse"
-      className="relative h-[640px] w-[375px] max-w-full [transform:translateZ(0)] overflow-clip rounded-[28px] border border-line bg-bg"
-    >
-      <div className="flex flex-col gap-5 px-5 pt-8">{frame && children(frame)}</div>
-    </div>
-  );
-}
 
 const meta = {
   title: 'Components/Select',

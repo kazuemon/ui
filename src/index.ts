@@ -18,7 +18,15 @@ export {
 } from './components/checkbox/CheckboxGroup';
 export { Code, type CodeProps } from './components/code/Code';
 export { CodeBlock, type CodeBlockProps } from './components/code-block/CodeBlock';
+export { Dialog, type DialogPresentation, type DialogProps } from './components/dialog/Dialog';
 export { Divider, type DividerProps } from './components/divider/Divider';
+export {
+  Drawer,
+  type OverlayActionsLayout,
+  type DrawerDetent,
+  type DrawerProps,
+  type DrawerSide,
+} from './components/drawer/Drawer';
 export { Figure, type FigureProps } from './components/figure/Figure';
 export {
   FootnoteItem,
@@ -48,6 +56,14 @@ export {
   type NoticeProps,
 } from './components/notice/Notice';
 export { NoticeRegion, type NoticeRegionProps } from './components/notice/NoticeRegion';
+export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
+export {
+  Popover,
+  type PopoverAlign,
+  type PopoverPresentation,
+  type PopoverProps,
+  type PopoverSide,
+} from './components/popover/Popover';
 export { Prose, type ProseProps } from './components/prose/Prose';
 export { Radio, RadioGroup, type RadioGroupProps, type RadioProps } from './components/radio/Radio';
 export {
@@ -80,6 +96,7 @@ export {
 } from './components/table/Table';
 export { Tag, type TagProps } from './components/tag/Tag';
 export { Text, type TextProps } from './components/text/Text';
+export { Tooltip, type TooltipProps, type TooltipSide } from './components/tooltip/Tooltip';
 export { TextField, type TextFieldProps } from './components/text-field/TextField';
 export type { CaptionPlacement, FieldLoadingBehavior } from './internal/field/Field';
 export type { FormSubmittingBehavior } from './internal/form-context';

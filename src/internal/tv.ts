@@ -41,7 +41,7 @@ export const twMergeConfig = {
         'heading-4',
       ],
       radius: ['control', 'card', 'pill'],
-      shadow: ['raised', 'raised-hover', 'raised-press'],
+      shadow: ['raised', 'raised-hover', 'raised-press', 'overlay', 'sheet'],
       ease: ['press', 'sheet'],
       animate: ['loading-in', 'loading-bar', 'spin-reduced', 'loading-bar-reduced'],
       'font-weight': ['heading'],

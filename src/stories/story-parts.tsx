@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type ReactNode, useState } from 'react';
 
 import { labelClass, type MatrixColumn } from './story-states';
 
@@ -94,6 +94,45 @@ export function DensityPair({ children }: { children: ReactNode }) {
           {children}
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * スマートフォンの画面の代わり（幅 375px・指用の密度）。シートは画面の下に固定して出るので、枠を位置の基準にする（transform）
+ * 中身には、重なる面を描く場所（container）として枠の要素を渡す
+ */
+export function PhoneFrame({ children }: { children: (frame: HTMLElement) => ReactNode }) {
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  return (
+    <div
+      ref={setFrame}
+      data-density="coarse"
+      className="relative h-[640px] w-[375px] max-w-full [transform:translateZ(0)] overflow-clip rounded-[28px] border border-line bg-bg"
+    >
+      <div className="flex flex-col gap-5 px-5 pt-8">{frame && children(frame)}</div>
+    </div>
+  );
+}
+
+/**
+ * パソコンの画面の代わり（マウス用の密度）。Dialog・Drawer は画面に固定して出るので、枠を位置の基準にする（transform）
+ */
+export function ScreenFrame({
+  children,
+  height = 'h-[520px]',
+}: {
+  children: (frame: HTMLElement) => ReactNode;
+  height?: string;
+}) {
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  return (
+    <div
+      ref={setFrame}
+      data-density="fine"
+      className={`relative ${height} w-[720px] max-w-full [transform:translateZ(0)] overflow-clip rounded-card border border-line bg-bg`}
+    >
+      <div className="flex flex-col items-start gap-4 p-6">{frame && children(frame)}</div>
     </div>
   );
 }
