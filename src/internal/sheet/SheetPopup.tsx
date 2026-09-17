@@ -67,6 +67,8 @@ interface SheetPopupProps {
 //   見出しは Select のシートと同じ（つまみ・題・説明・右上の ×）。中身が長いときは上下の端に続きの印（上はいつも区切り線）
 //   滑る長さと緩急はシート（--duration-sheet・--ease-sheet）。はじいて閉じたときも同じ長さで滑らせる（Select のシートと同じ。
 //   Base UI の例のように、はじいた強さで短くすると、一瞬で消えて見える）
+//   閉じるときは影も一緒に薄くする。緩急の尻尾で面が画面の端に着いたあとも外されるまで数フレームあり、
+//   面の外へ伸びる影だけが画面の端に残って見えるため（はじいて閉じたときは、残りの距離が短い分、長く残る）
 //   動きを減らす設定では動かさない（原則3）
 export function SheetPopup({
   side,
@@ -139,7 +141,7 @@ export function SheetPopup({
               // 閉じる向きと反対へ引いたときに、面が端から離れても隙間が見えないよう、画面の外側に面と同じ色を伸ばしておく
               // 引いた量は端数になるので、継ぎ目が見えないよう面に 1px 重ねる
               "before:pointer-events-none before:absolute before:bg-surface before:content-['']",
-              'transition-transform duration-(--duration-sheet) ease-(--ease-sheet) data-swiping:duration-0 data-swiping:select-none motion-reduce:transition-none',
+              'transition-[transform,box-shadow] duration-(--duration-sheet) ease-(--ease-sheet) data-swiping:duration-0 data-swiping:select-none motion-reduce:transition-none',
               densityScope.large && 'coarse-large',
               bottom && [
                 'max-h-(--sheet-max-height) w-full rounded-t-card border-t-(length:--border-width-thin) shadow-sheet',
@@ -150,6 +152,7 @@ export function SheetPopup({
                 // 引いている量（--drawer-swipe-movement-y）は足さない。足すと面が伸びて、指の動きと打ち消し合い、面が止まって見える
                 '[padding-bottom:max(0px,var(--drawer-snap-point-offset,0px))] data-ending-style:[padding-bottom:0] data-starting-style:[padding-bottom:0]',
                 'data-ending-style:[transform:translateY(100%)] data-starting-style:[transform:translateY(100%)]',
+                'data-ending-style:shadow-none',
                 // はじいて閉じるときは、離した位置から下へ滑らせる（transition では滑らない場合がある — src/styles/theme.css）
                 'data-swipe-dismiss:data-ending-style:animate-[sheet-swipe-out-down_var(--duration-sheet)_var(--ease-sheet)_forwards] motion-reduce:data-swipe-dismiss:data-ending-style:animate-none',
               ],
@@ -158,12 +161,14 @@ export function SheetPopup({
                 'before:inset-y-0 before:right-[calc(100%-1px)] before:w-(--sheet-bleed)',
                 '[transform:translateX(var(--drawer-swipe-movement-x,0px))]',
                 'data-ending-style:[transform:translateX(-100%)] data-starting-style:[transform:translateX(-100%)]',
+                'data-ending-style:[box-shadow:none]',
               ],
               side === 'right' && [
                 'h-full w-(--sheet-side-width) rounded-l-card border-l-(length:--border-width-thin) [box-shadow:var(--shadow-sheet-right)]',
                 'before:inset-y-0 before:left-[calc(100%-1px)] before:w-(--sheet-bleed)',
                 '[transform:translateX(var(--drawer-swipe-movement-x,0px))]',
                 'data-ending-style:[transform:translateX(100%)] data-starting-style:[transform:translateX(100%)]',
+                'data-ending-style:[box-shadow:none]',
               ],
               className,
             ]
