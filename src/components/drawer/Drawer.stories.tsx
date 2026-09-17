@@ -127,7 +127,6 @@ export const Bottom: Story = {
           {...args}
           trigger={<Button>通知の設定</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          modal={false}
           container={frame}
         >
           {settings}
@@ -172,7 +171,6 @@ export const Long: Story = {
           trigger={<Button>利用規約</Button>}
           actions={<OverlayClose render={<Button color="primary">同意する</Button>} />}
           defaultOpen={openOnLoad(viewMode)}
-          modal={false}
           container={frame}
         >
           {longText}
@@ -202,7 +200,6 @@ export const NoSwipe: Story = {
           {...args}
           trigger={<Button>通知の設定</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          modal={false}
           container={frame}
         >
           {settings}
@@ -233,7 +230,6 @@ export const Side: Story = {
           {...args}
           trigger={<Button>メニュー</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          modal={false}
           container={frame}
         >
           <nav className="flex flex-col items-start gap-2">

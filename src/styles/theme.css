@@ -240,8 +240,10 @@
     transform: translateY(
       calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
     );
+    box-shadow: var(--shadow-sheet);
   }
   to {
     transform: translateY(100%);
+    box-shadow: none;
   }
 }

@@ -2,6 +2,7 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactElement, type ReactNode, useCallback, useRef, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import {
   type OverlayActionsLayout,
@@ -47,6 +48,7 @@ export interface DrawerProps {
   modal?: boolean;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc・×・はじく操作では閉じます）
+   * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
    * @default true
    */
   dismissible?: boolean;
@@ -90,8 +92,6 @@ export interface DrawerProps {
 // 中身が画面の半分より長いときの、開いたときの高さ（画面の高さに対する割合）
 const HALF = 0.5;
 const SNAP_POINTS = [HALF, 1];
-// Esc で閉じないときに止める閉じ方（Esc と、Android の戻る操作）
-export const ESCAPE_REASONS = new Set<string>(['escape-key', 'close-watcher']);
 
 /**
  * 画面の端から出す面。既定は画面の下から出すシートで、横から出すパネルも選べます
@@ -159,6 +159,10 @@ export function Drawer({
   // つまみは「引けること」の印。はじいて閉じられるか、上へ引いて広げられるときに出す（横から出すパネルには出さない）
   // 出さないときも場所は取る。出し入れで見出しの位置と余白が動かないようにするため
   const handle = side === 'bottom' && (closeOnSwipe || snap);
+  // はじいて閉じず、上へ広げることもできないときは、引く操作そのものを始めさせない（面を指に追従させない）
+  // Base UI には、はじいて閉じるのを止める prop がなく、data-base-ui-swipe-ignore で引く操作を無視させる
+  // 広げられるとき（段があるとき）は引く操作が要るので、閉じる合図だけを onSnapPointChange で取り消す
+  const swipeLocked = !closeOnSwipe && !snap;
   const changeOpen = (next: boolean) => {
     if (next) setSnapPoint(HALF);
     setOpenState(next);
@@ -173,7 +177,7 @@ export function Drawer({
           details.cancel();
           return;
         }
-        // はじいて閉じない設定のときは、閉じる合図を取り消す（Base UI が近い段に戻す）
+        // はじいて閉じない設定のときの保険。引く操作は swipeLocked と onSnapPointChange で先に止めている
         if (!next && !closeOnSwipe && details.reason === 'swipe') {
           details.cancel();
           return;
@@ -186,7 +190,14 @@ export function Drawer({
       snapPoints={snap ? SNAP_POINTS : undefined}
       // 段はいつも部品が持つ（途中で Base UI に任せる形と切り替えると、段が空に戻る）
       snapPoint={snap ? snapPoint : null}
-      onSnapPointChange={(point) => {
+      onSnapPointChange={(point, details) => {
+        // 段があり、はじいて閉じない設定のとき: 下へ引いて離すと Base UI は段を null（閉じる）にする
+        // その合図を取り消すと、Base UI は閉じる動きを始めずにその場へ戻す。いちばん低い段に留める
+        if (point === null && !closeOnSwipe && details.reason === 'swipe') {
+          details.cancel();
+          setSnapPoint(HALF);
+          return;
+        }
         if (snap) setSnapPoint(point);
       }}
     >
@@ -199,7 +210,9 @@ export function Drawer({
           footer={actions}
           footerLayout={actionsLayout}
           handle={handle}
+          swipeLocked={swipeLocked}
           swipeFade={!snap}
+          modal={modal}
           closeLabel={closeLabel}
           closeButton={closeButton}
           container={container}

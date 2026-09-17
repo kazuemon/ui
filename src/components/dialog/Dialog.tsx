@@ -2,6 +2,7 @@ import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
@@ -14,7 +15,7 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { Drawer, ESCAPE_REASONS, type OverlayActionsLayout } from '../drawer/Drawer';
+import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
 
 export type DialogPresentation = OverlayPresentation;
 
@@ -44,6 +45,8 @@ export interface DialogProps {
   modal?: boolean;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc と × では閉じます）
+   * 画面の下から出すシートで出すときは、下へはじいて閉じる操作もこれに従います
+   * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
    * @default true
    */
   dismissible?: boolean;
@@ -81,14 +84,42 @@ export interface DialogProps {
 /**
  * ページの上に重ねて、ほかの操作を止めて答えや入力を求める面
  */
-export function Dialog({ presentation = 'auto', dismissible = true, ...props }: DialogProps) {
+export function Dialog({
+  presentation = 'auto',
+  dismissible = true,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  ...props
+}: DialogProps) {
+  // 開閉はここで持つ。出し方（シート・中央）が開いたまま切り替わっても（画面を回すなど）、閉じないようにするため
+  const [openState, setOpenState] = useState(defaultOpen);
+  const open = openProp ?? openState;
+  const changeOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   // シートは中身の高さで開く（半分で止めない）。Dialog の中身は、上から順に読んで答えるものなので
-  if (sheet) return <Drawer {...props} dismissible={dismissible} detent="full" />;
+  // 下へはじいて閉じるのは、後ろの画面を押して閉じるのと同じ扱い（dismissible）
+  if (sheet) {
+    return (
+      <Drawer
+        {...props}
+        open={open}
+        onOpenChange={changeOpen}
+        dismissible={dismissible}
+        closeOnSwipe={dismissible}
+        detent="full"
+      />
+    );
+  }
   // 中央に浮かべるときは、下の操作をいつも右に寄せる（actionsLayout はシートのときだけ）
   const { actionsLayout: _actionsLayout, ...centered } = props;
-  return <CenteredDialog {...centered} dismissible={dismissible} />;
+  return (
+    <CenteredDialog {...centered} open={open} onOpenChange={changeOpen} dismissible={dismissible} />
+  );
 }
 
 // 中央に浮かべる形
@@ -103,9 +134,8 @@ function CenteredDialog({
   children,
   actions,
   trigger,
-  open: openProp,
-  defaultOpen = false,
-  onOpenChange,
+  open,
+  onOpenChange: changeOpen,
   modal = true,
   dismissible,
   closeOnEscape = true,
@@ -113,20 +143,21 @@ function CenteredDialog({
   closeLabel,
   container,
   className,
-}: Omit<DialogProps, 'presentation'>) {
-  const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
+}: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange'> & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { anchorRef, scope } = useDensityScope(open);
   const overlayId = useId();
-  const changeOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
   return (
     <BaseDialog.Root
       open={open}
       onOpenChange={(next, details) => {
-        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) return;
+        // Esc で閉じない設定のときは、閉じる合図を取り消す（Base UI が Esc を処理済みにしないようにする）
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
         changeOpen(next);
       }}
       modal={modal}

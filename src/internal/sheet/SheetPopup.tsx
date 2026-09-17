@@ -35,10 +35,20 @@ interface SheetPopupProps {
    */
   handle?: boolean;
   /**
+   * 引く操作を始めさせないか（はじいて閉じず、上へ広げることもできないとき）
+   * Base UI は指を置いた要素から data-base-ui-swipe-ignore を探して引く操作を無視するので、面そのものに付ける
+   */
+  swipeLocked?: boolean;
+  /**
    * 引いているあいだ、引いた量に合わせて後ろの暗さを薄くするか
    * 段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので薄くできない
    */
   swipeFade?: boolean;
+  /**
+   * 開いているあいだ、ほかの部分の操作を止めるか。false では後ろを暗くせず、面の外は触れたままにする
+   * （Base UI の Backdrop と Viewport は閉じたときしか pointer-events を切らないので、ここで切る）
+   */
+  modal?: boolean;
   /** 閉じる × の読み上げの名前 */
   closeLabel?: string;
   /** 右上に閉じる × を置くか */
@@ -57,6 +67,8 @@ interface SheetPopupProps {
 //   見出しは Select のシートと同じ（つまみ・題・説明・右上の ×）。中身が長いときは上下の端に続きの印（上はいつも区切り線）
 //   滑る長さと緩急はシート（--duration-sheet・--ease-sheet）。はじいて閉じたときも同じ長さで滑らせる（Select のシートと同じ。
 //   Base UI の例のように、はじいた強さで短くすると、一瞬で消えて見える）
+//   閉じるときは影も一緒に薄くする。緩急の尻尾で面が画面の端に着いたあとも外されるまで数フレームあり、
+//   面の外へ伸びる影だけが画面の端に残って見えるため（はじいて閉じたときは、残りの距離が短い分、長く残る）
 //   動きを減らす設定では動かさない（原則3）
 export function SheetPopup({
   side,
@@ -66,7 +78,9 @@ export function SheetPopup({
   footer,
   footerLayout = 'auto',
   handle = false,
+  swipeLocked = false,
   swipeFade = true,
+  modal = true,
   closeLabel,
   closeButton = true,
   container,
@@ -89,16 +103,21 @@ export function SheetPopup({
     <BaseDrawer.VirtualKeyboardProvider>
       <BaseDrawer.Portal container={container}>
         {/* 引いているあいだは、引いた量に合わせて薄くする。閉じる方へ引くほど、後ろの画面が見えてくる
-        段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので、薄くしない（暗さは変えない） */}
-        <BaseDrawer.Backdrop
-          className={[
-            swipeFade ? 'opacity-[calc(1-var(--drawer-swipe-progress,0))]' : '',
-            'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none',
-          ].join(' ')}
-        />
+        段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので、薄くしない（暗さは変えない）
+        ほかの操作を止めないとき（modal=false）は、後ろを暗くしない（Base UI の非モーダルの例と同じ） */}
+        {modal && (
+          <BaseDrawer.Backdrop
+            className={[
+              swipeFade ? 'opacity-[calc(1-var(--drawer-swipe-progress,0))]' : '',
+              'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none',
+            ].join(' ')}
+          />
+        )}
+        {/* 面を置く枠。ほかの操作を止めないときは枠を素通しにし、面だけが触れるようにする */}
         <BaseDrawer.Viewport
           className={[
             'fixed inset-0 z-10 flex',
+            !modal && 'pointer-events-none',
             bottom ? 'flex-col items-center justify-end' : 'items-stretch',
             side === 'left' && 'justify-start',
             side === 'right' && 'justify-end',
@@ -114,13 +133,15 @@ export function SheetPopup({
             data-slot="sheet"
             data-side={side}
             data-density={densityScope.density}
+            data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
             className={[
               'relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
+              !modal && 'pointer-events-auto',
               overlayTitleLeading,
               // 閉じる向きと反対へ引いたときに、面が端から離れても隙間が見えないよう、画面の外側に面と同じ色を伸ばしておく
               // 引いた量は端数になるので、継ぎ目が見えないよう面に 1px 重ねる
               "before:pointer-events-none before:absolute before:bg-surface before:content-['']",
-              'transition-transform duration-(--duration-sheet) ease-(--ease-sheet) data-swiping:duration-0 data-swiping:select-none motion-reduce:transition-none',
+              'transition-[transform,box-shadow] duration-(--duration-sheet) ease-(--ease-sheet) data-swiping:duration-0 data-swiping:select-none motion-reduce:transition-none',
               densityScope.large && 'coarse-large',
               bottom && [
                 'max-h-(--sheet-max-height) w-full rounded-t-card border-t-(length:--border-width-thin) shadow-sheet',
@@ -131,6 +152,7 @@ export function SheetPopup({
                 // 引いている量（--drawer-swipe-movement-y）は足さない。足すと面が伸びて、指の動きと打ち消し合い、面が止まって見える
                 '[padding-bottom:max(0px,var(--drawer-snap-point-offset,0px))] data-ending-style:[padding-bottom:0] data-starting-style:[padding-bottom:0]',
                 'data-ending-style:[transform:translateY(100%)] data-starting-style:[transform:translateY(100%)]',
+                'data-ending-style:shadow-none',
                 // はじいて閉じるときは、離した位置から下へ滑らせる（transition では滑らない場合がある — src/styles/theme.css）
                 'data-swipe-dismiss:data-ending-style:animate-[sheet-swipe-out-down_var(--duration-sheet)_var(--ease-sheet)_forwards] motion-reduce:data-swipe-dismiss:data-ending-style:animate-none',
               ],
@@ -139,12 +161,14 @@ export function SheetPopup({
                 'before:inset-y-0 before:right-[calc(100%-1px)] before:w-(--sheet-bleed)',
                 '[transform:translateX(var(--drawer-swipe-movement-x,0px))]',
                 'data-ending-style:[transform:translateX(-100%)] data-starting-style:[transform:translateX(-100%)]',
+                'data-ending-style:[box-shadow:none]',
               ],
               side === 'right' && [
                 'h-full w-(--sheet-side-width) rounded-l-card border-l-(length:--border-width-thin) [box-shadow:var(--shadow-sheet-right)]',
                 'before:inset-y-0 before:left-[calc(100%-1px)] before:w-(--sheet-bleed)',
                 '[transform:translateX(var(--drawer-swipe-movement-x,0px))]',
                 'data-ending-style:[transform:translateX(100%)] data-starting-style:[transform:translateX(100%)]',
+                'data-ending-style:[box-shadow:none]',
               ],
               className,
             ]
