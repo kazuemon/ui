@@ -1,85 +1,18 @@
 import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
 import { createPortal } from 'react-dom';
-import { tv } from '../../internal/tv';
-
 import { focusRing } from '../../internal/focus-styles';
+import { XIcon } from '../../internal/icons';
+import { NoticeIcon } from '../../internal/notice-surface/NoticeIcon';
 import {
-  CheckCircleIcon,
-  InfoIcon,
-  WarningCircleIcon,
-  WarningIcon,
-  XIcon,
-} from '../../internal/icons';
+  type NoticeAppearance,
+  type NoticeColor,
+  noticeSurface,
+} from '../../internal/notice-surface/notice-surface';
 import { NoticeRegionContext } from './notice-region-context';
 
-/** お知らせの色。状態の色（情報・成功・警告・危険）だけを持つ */
-export type NoticeColor = 'info' | 'success' | 'warning' | 'danger';
+export type { NoticeAppearance, NoticeColor };
 
-/**
- * 見た目（design/adr/0043）
- * soft: タグと同じ淡い面に、同じ色相の濃い題とアイコン、濃紺の本文（既定）
- * filled: 白文字が載る濃い塗り。警告だけは黄色の塗りに濃紺（design/adr/0038）
- * outline: 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺
- */
-export type NoticeAppearance = 'soft' | 'filled' | 'outline';
-
-// お知らせ（design/adr/0043）
-// 原則1: 影は付けない。お知らせそのものは押せない。押せるのは中のリンクとボタンだけ（白いボタンは、ボタンなので影がある）
-// 形: アイコン → 題・本文・操作を縦に積み、× は右上。角丸は部品と同じ（--radius-control）。余白と文字は部品の寸法（密度で変わる）
-//   余白は --spacing-control-x、アイコンと文の間は --spacing-control-x から 4px 引いた値
-// 色は状態の役割（--color-{状態}・--color-on-{状態}・--color-fg-{状態}・--color-{状態}-subtle）を color で受け取り、
-//   見た目（appearance）で --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-ring-color に割り当てる
-// フォーカスの線（design/adr/0031）: soft と outline は濃紺（--color-focus）。filled は塗りの上で青が見えない（1.00〜1.48:1）ので、
-//   中のリンク・ボタン・× の線を文字の色（白か濃紺）にする（ADR-0031 の例外）
-// 中のリンクは、お知らせの文字の色にする（塗りの上でも読めるように）。操作の場所のリンクは太字
-const notice = tv({
-  base: [
-    'flex items-start gap-x-[calc(var(--spacing-control-x)-var(--spacing))] rounded-control p-(--spacing-control-x)',
-    'text-(length:--text-control) leading-(--leading-control)',
-    'bg-(color:--notice-bg) text-(color:--notice-fg)',
-    '[--color-focus-ring:var(--notice-ring-color)] [&_a]:[--link-color:currentColor]',
-    // 中の線は、部品の色に従わせない。お知らせの線の色のまま
-    '[--focus-follow-color:initial]',
-  ],
-  variants: {
-    appearance: {
-      // 淡い面に、状態の色の題とアイコン、濃紺の本文（淡い面の上の濃い色は 4.52〜5.93、本文は 12.20〜12.44）
-      soft: [
-        '[--notice-bg:var(--notice-subtle)] [--notice-fg:var(--color-fg)]',
-        '[--notice-icon-color:var(--notice-ink)] [--notice-ring-color:var(--color-focus)] [--notice-title-color:var(--notice-ink)]',
-      ],
-      // 濃い塗りに、同じ色の題・本文・アイコン。縁の線は付けない（ADR-0057）。黄色の上は青でも 3.76 あるが、ほかの塗りとそろえて文字の色の線にする
-      filled: [
-        '[--notice-bg:var(--notice-fill)] [--notice-fg:var(--notice-on-fill)]',
-        '[--notice-icon-color:var(--notice-fg)] [--notice-ring-color:var(--notice-fg)] [--notice-title-color:var(--notice-fg)]',
-      ],
-      // 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺
-      outline: [
-        'border border-(color:--notice-ink)',
-        '[--notice-bg:var(--color-surface)] [--notice-fg:var(--color-fg)]',
-        '[--notice-icon-color:var(--notice-ink)] [--notice-ring-color:var(--color-focus)] [--notice-title-color:var(--notice-fg)]',
-      ],
-    },
-    color: {
-      info: '[--notice-fill:var(--color-info)] [--notice-ink:var(--color-fg-info)] [--notice-on-fill:var(--color-on-info)] [--notice-subtle:var(--color-info-subtle)]',
-      success:
-        '[--notice-fill:var(--color-success)] [--notice-ink:var(--color-fg-success)] [--notice-on-fill:var(--color-on-success)] [--notice-subtle:var(--color-success-subtle)]',
-      warning:
-        '[--notice-fill:var(--color-warning)] [--notice-ink:var(--color-fg-warning)] [--notice-on-fill:var(--color-on-warning)] [--notice-subtle:var(--color-warning-subtle)]',
-      danger:
-        '[--notice-fill:var(--color-danger)] [--notice-ink:var(--color-fg-danger)] [--notice-on-fill:var(--color-on-danger)] [--notice-subtle:var(--color-danger-subtle)]',
-    },
-  },
-  defaultVariants: { appearance: 'soft' },
-});
-
-// アイコンは文と並ぶので線は Regular（design/adr/0018）。警告と危険は入力欄の下の行と同じ形（design/adr/0041）
-const iconOf: Record<NoticeColor, (props: { className?: string }) => ReactNode> = {
-  info: InfoIcon,
-  success: CheckCircleIcon,
-  warning: WarningIcon,
-  danger: WarningCircleIcon,
-};
+// お知らせ（design/adr/0043）。見た目は internal/notice-surface（Callout と共有）。ここは読み上げ（role・領域）と、閉じる・操作を持つ
 
 // 読み上げ: 題・本文・操作を role の箱に入れる。危険は alert（割り込む）、ほかは status（区切りを待つ）
 // あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる。
@@ -89,6 +22,7 @@ const roleOf: Record<NoticeColor, 'alert' | 'status'> = {
   success: 'status',
   warning: 'status',
   danger: 'alert',
+  neutral: 'status',
 };
 
 export interface NoticeProps extends Omit<
@@ -106,7 +40,12 @@ export interface NoticeProps extends Omit<
    * @default 'soft'
    */
   appearance?: NoticeAppearance;
-  /** 太字の題。soft では状態の色、filled・outline では本文と同じ色 */
+  /**
+   * 1 行目の左に置くアイコン。指定しないときは、状態の色ごとのアイコン（muted と neutral ではなし）です。
+   * false でアイコンを出さず、文が左端から始まります
+   */
+  icon?: ReactNode | false;
+  /** 太字の題。soft・muted では状態の色、filled・outline では本文と同じ色。muted では小さくなります */
   title?: ReactNode;
   /** 本文 */
   children?: ReactNode;
@@ -140,6 +79,7 @@ export interface NoticeProps extends Omit<
 export function Notice({
   color,
   appearance = 'soft',
+  icon,
   title,
   children,
   actions,
@@ -149,7 +89,6 @@ export function Notice({
   className,
   ...props
 }: NoticeProps) {
-  const Icon = iconOf[color];
   const titleId = useId();
   const closeId = useId();
   // 領域の中では、領域が先に置いた箱へ描く。live={false} は箱に入れない（その場に描く）
@@ -161,18 +100,19 @@ export function Notice({
       data-color={color}
       data-appearance={appearance}
       {...props}
-      className={notice({ appearance, color, className })}
+      className={noticeSurface({ appearance, color, className })}
     >
-      {/* 1行目の中央にそろえる（行の高さとアイコンの差は、どちらの密度も 4px） */}
-      <span className="mt-0.5 flex shrink-0 text-(color:--notice-icon-color)">
-        <Icon />
-      </span>
+      <NoticeIcon color={color} appearance={appearance} icon={icon} />
       <div
         role={live && !inRegion ? roleOf[color] : undefined}
         className="flex min-w-0 flex-1 flex-col gap-0.5"
       >
         {title ? (
-          <p id={titleId} className="font-bold text-(color:--notice-title-color)">
+          <p
+            id={titleId}
+            data-slot="notice-title"
+            className="font-bold text-(color:--notice-title-color)"
+          >
             {title}
           </p>
         ) : null}

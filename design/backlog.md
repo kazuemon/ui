@@ -91,7 +91,7 @@
   - 一部（section など）だけを大きくすることは、rem ではできません（rem はいつも html の文字の大きさが基準）。残すなら、倍率の変数を別に持ちます
   - 決めること: この形で進めるか、一部だけ大きくする仕組みを残すか、何を大きくするか（角丸と線はそのままでよいか）
 - 余白（`gap-2`・`mt-1` など）と角丸のクラスは、tokens.css で Tailwind と同じ名前の px にしたので、部品のトークンと同じく px です（[ADR-0076](./adr/0076-token-structure.md)。前はクラスが rem で、html 20px のとき、お知らせの操作の間が 8→10px、上の余白が 4→5px になっていました）。文字の大きさのクラス（`text-xs` など）は Tailwind の既定の rem のままです
-- 大きい指用（`coarse-large`）で、左右の余白・並べる間を変えるかは比べていません。高さと余白をそろえたあとも、トグルのトラック（マウス 40×22px・指 48×28px）とチェックボックス・ラジオの箱（マウス 18px・指 22px）は入力方式で変わります。そろえるかは決めていません（[ADR-0079](./adr/0079-control-type-and-height.md)）
+- 大きい指用（`coarse-large`）で、左右の余白・並べる間を変えるかは比べていません。
 - どんな場面で大きい指用を使うかは決めていません（[ADR-0045](./adr/0045-coarse-size.md)）
 - 寸法を Provider で固定する仕組みがまだありません。クラス（`coarse-large` など）は `html` か要素に直接付けます（[ADR-0045](./adr/0045-coarse-size.md)）
 
@@ -101,18 +101,12 @@
 - 利用者向けの CSS（`src/styles/index.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、`index.css` でも消します
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
-- 使っていないトークンがあります: ブランドの色（`--color-brand`・`--color-fg-brand`・`--color-on-brand`）、カード（`--card-*`）、セクションラベル（`--label-*`）、`--font-weight-heading`、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
-
-## Heading・Text
-
-- 見出しの途中での折り返し: 日本語はどの文字のあいだでも折れ、見出しの `text-wrap: balance` が早めに折ることもあります。文節で折る `word-break: auto-phrase`（Chrome・Edge のみ。`lang="ja"` が要り、Storybook の `html` は `lang="en"` です）と、ブログのビルドで BudouX を使う形、`balance` を外すかを、あとで決めます（[ADR-0078](./adr/0078-reading-type.md)）。ユーザーのメモ:「自動改行は一旦後で考えましょう。」
+- 使っていないトークンがあります: ブランドの色の `--color-on-brand`、カード（`--card-*`）、セクションラベル（`--label-*`）、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
 
 ## 本文（Prose・CodeBlock など）
 
-ポートフォリオサイトのブログを MDX（ほぼ Markdown）で書くための部品です。どれもまだありません。作り方の方針は 2026-09-13 に相談して決めました。
-
-- Prose は、MDX に渡す部品の対応表（`h2` → Heading、`pre` → CodeBlock など）と、要素のあいだの余白を持つ包みにします。見た目は各部品に持たせ、素の要素に CSS を当てる形（Tailwind Typography の `prose`）にはしません。記事の外で使う部品と見た目がずれないようにするためです
-- CodeBlock の色分け（Shiki）は、ブログ側でビルド時に行います。ライブラリは外枠（ファイル名・コピーのボタン・横スクロール）、強調行・差分・行番号の見た目、色分けの色を持ちます。色は Shiki の CSS 変数のテーマ（`createCssVariablesTheme`）で受け、値を tokens.css に置きます。作るときは、Shiki を devDependencies に入れて見本を作るか、色分けのあとの HTML を想定して書きます
-  - 「パースなどはコンポーネントライブラリ側ではなくて、ブログ側に持たせたほうがいいのかなと思っていますが、どうでしょうか？」「CodeBlock を作るときは、dev-deps に入れるかパース後の見た目を想定して書く、みたいな感じで。」
-- 決めること: ブログが出す HTML の形（強調行・差分をどのクラス・属性で表すか）。Shiki の transformers と rehype-pretty-code のどちらに合わせるか
-- 決めること: Callout を Notice の形から作るか、別の部品にするか
+- Prose が想定する HTML の形（GFM の脚注、チェックリストの `li` の属性、Shiki の transformers のクラス）は、手で書いた見本で確かめただけです。ブログ側で実際の変換（remark-gfm・Shiki）を組んだら、出力と見た目が合うかを確かめます（[ADR-0096](./adr/0096-prose.md)）
+- Prose の根には、部品と共有する見た目のクラスが数百並びます。HTML が重くなりすぎないかは、ブログに載せてから見ます（[ADR-0096](./adr/0096-prose.md)）
+- 素の HTML の表は `display: block` で横にスクロールするので、スクロールしない表や短いコード（Shiki が `tabindex` を付ける）にも Tab で止まります（[ADR-0096](./adr/0096-prose.md)）
+- CodeBlock のスクロールの判定は、Table の `use-scrollable` と別に書いています。そろえるなら、CodeBlock のスクロールを外側の包みに移します
+- Callout の `role="note"` が本物の読み上げソフトでどう読まれるかは確かめていません（下の「Form・読み上げ」の確かめに足す。[ADR-0084](./adr/0084-callout.md)）

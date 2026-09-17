@@ -139,3 +139,26 @@ export const WarningIcon = (props: IconProps) => (
     <circle cx="128" cy="180" r="12" fill="currentColor" stroke="none" />
   </Icon>
 );
+
+// 重なった 2 枚の紙（Phosphor の Copy）。コードの囲みのコピーのボタンに置く
+export const CopyIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="168 168 216 168 216 40 88 40 88 88" />
+    <rect x="40" y="88" width="128" height="128" />
+  </Icon>
+);
+
+// チェック（Phosphor の Check）。CheckIcon と同じ形で、アイコン単体の太さ（standalone）と大きさを選べる。コピーしたあとの印
+export const CheckMarkIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="40 144 96 200 224 72" />
+  </Icon>
+);
+
+// 戻る向きの矢印（Phosphor の ArrowUDownLeft）。脚注の一覧の、参照へ戻るリンクに置く
+export const ArrowUDownLeftIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="80 120 32 168 80 216" />
+    <path d="M80,56h88a56,56,0,0,1,56,56h0a56,56,0,0,1-56,56H32" />
+  </Icon>
+);

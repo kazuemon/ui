@@ -39,7 +39,7 @@ pnpm test -u     # 基準画像を撮り直す（意図して見た目を変え�
 ## 撮影の条件（`vitest.config.ts`）
 
 - **文字の描き方を Chromium のフラグで固定する。** `--font-render-hinting=none` と `--disable-lcd-text`。Linux の Chromium はヒンティングとサブピクセルの描き方を OS の fontconfig から読むので、手元（Debian）と GitHub Actions（Ubuntu）で字形全体が 1px 未満ずれ、文字のある画像がすべて数百〜数千画素の差分になった（2026-09-17、CI の初回）。フラグで固定すると、Debian で撮った基準に Ubuntu が 1 画素の差もなく一致する。fontconfig の設定ファイルを `FONTCONFIG_FILE` で指す形でもそろうが、OS の設定を取り込む分だけ依存が残るので、フラグにした
-- **同梱していない文字を使わない。** 「↗」のような同梱フォント（IBM Plex Sans JP・Mulish・Geist Mono）にない文字は、OS の代替フォント（DejaVu など）で描かれ、OS ごとに違う。ストーリーの文でも避ける
+- **同梱していない文字を使わない。** 「↗」や「⌘」のような同梱フォント（IBM Plex Sans JP・Mulish・Geist Mono）にない文字は、OS の代替フォント（DejaVu など）で描かれ、OS ごとに違う。ストーリーの文でも避ける
 
 - **hover とポインタを固定する。** headless の既定は「マウスなし」で、`hover:` の見た目（Tailwind が `@media (hover: hover)` で包む）も、`@media (pointer: coarse)` で決まる密度も出ません。`--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4`
 - **動きを減らす設定で撮る。** `--force-prefers-reduced-motion`

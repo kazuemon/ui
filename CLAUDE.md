@@ -13,24 +13,24 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 
 ## ファイルの地図
 
-| 場所                                   | 中身                                                                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                       |
-| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                 |
-| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                   |
-| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                      |
-| `design/review-checklist.md`           | AI が部品の PR をレビューするときの点検表（GitHub の自動化の側で書く）                                                                     |
-| `design/plans/`                        | まだ始めていない計画（ドキュメントサイトなど）                                                                                             |
-| `design/references/`                   | 原則の出どころの参照画像                                                                                                                   |
-| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す                  |
-| `design/tools/`                        | 撮影・確かめのスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md)                                                    |
-| `src/index.ts`                         | 公開の入口。ここに並べたものだけを利用者に渡す                                                                                             |
-| `src/components/<name>/`               | 部品 1 つにつき 1 フォルダ。部品・ストーリー・見た目の基準画像（`__screenshots__/`）と、その部品だけが使う部分                             |
-| `src/internal/`                        | 2 つ以上の部品が使う、公開しない部分（`tv`・アイコン・フォーカスの線・Form との連携・Field・choice の見た目など）                          |
-| `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン） |
-| `src/styles/`                          | `theme.css`（トークン・フォント・密度）、`index.css`（利用者向け）、`globals.css`（Storybook 用）                                          |
-| `templates/component/`                 | 部品とストーリーの雛形                                                                                                                     |
-| `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                       |
+| 場所                                   | 中身                                                                                                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                                               |
+| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                         |
+| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                           |
+| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                              |
+| `design/review-checklist.md`           | AI が部品の PR をレビューするときの点検表（GitHub の自動化の側で書く）                                                                                             |
+| `design/plans/`                        | まだ始めていない計画（ドキュメントサイトなど）                                                                                                                     |
+| `design/references/`                   | 原則の出どころの参照画像                                                                                                                                           |
+| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す                                          |
+| `design/tools/`                        | 撮影・確かめのスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md)                                                                            |
+| `src/index.ts`                         | 公開の入口。ここに並べたものだけを利用者に渡す                                                                                                                     |
+| `src/components/<name>/`               | 部品 1 つにつき 1 フォルダ。部品・ストーリー・見た目の基準画像（`__screenshots__/`）と、その部品だけが使う部分                                                     |
+| `src/internal/`                        | 2 つ以上の部品が使う、公開しない部分（`tv`・アイコン・フォーカスの線・Form との連携・Field・choice の見た目、読む部品と Prose が共有する見た目の `reading/` など） |
+| `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン）                         |
+| `src/styles/`                          | `theme.css`（トークン・フォント・密度）、`index.css`（利用者向け）、`globals.css`（Storybook 用）                                                                  |
+| `templates/component/`                 | 部品とストーリーの雛形                                                                                                                                             |
+| `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                                               |
 
 よく使うコマンド:
 

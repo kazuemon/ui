@@ -2,11 +2,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 
 import {
+  ArrowUDownLeftIcon,
   ArrowUpRightIcon,
   CaretDownIcon,
   CaretRightIcon,
   CheckCircleIcon,
   CheckIcon,
+  CheckMarkIcon,
+  CopyIcon,
   EyeIcon,
   EyeSlashIcon,
   InfoIcon,
@@ -46,6 +49,23 @@ const entries: Entry[] = [
     use: '外へのリンク（右上向きの矢印）',
   },
   { name: 'CheckIcon', regular: <CheckIcon />, use: '選んだ選択肢の印' },
+  {
+    name: 'ArrowUDownLeftIcon',
+    regular: <ArrowUDownLeftIcon />,
+    use: '脚注の一覧の、参照へ戻るリンク',
+  },
+  {
+    name: 'CopyIcon',
+    regular: <CopyIcon />,
+    bold: <CopyIcon standalone />,
+    use: 'CodeBlock のコピー',
+  },
+  {
+    name: 'CheckMarkIcon',
+    regular: <CheckMarkIcon />,
+    bold: <CheckMarkIcon standalone />,
+    use: 'CodeBlock のコピーしたあとの印',
+  },
   {
     name: 'WarningCircleIcon',
     regular: <WarningCircleIcon />,

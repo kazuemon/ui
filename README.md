@@ -21,20 +21,20 @@
 
 ### 文字
 
-- [ ] Heading
-- [ ] Text
-- [ ] Code
-- [ ] Kbd
+- [x] Heading
+- [x] Text
+- [x] Code
+- [x] Kbd
 
 ### 本文
 
-- [ ] Prose
-- [ ] CodeBlock
-- [ ] Blockquote
-- [ ] Figure
-- [ ] Callout
+- [x] Prose
+- [x] CodeBlock
+- [x] Blockquote
+- [x] Figure
+- [x] Callout
 - [ ] LinkCard
-- [ ] Footnote
+- [x] Footnote
 - [ ] Steps
 - [ ] FileTree
 
@@ -59,9 +59,9 @@
 
 - [x] Tag
 - [ ] Card
-- [ ] List
-- [ ] Table
-- [ ] Divider
+- [x] List
+- [x] Table
+- [x] Divider
 - [ ] Time
 - [ ] Avatar
 - [x] Badge

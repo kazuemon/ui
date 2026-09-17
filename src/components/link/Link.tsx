@@ -24,6 +24,7 @@ import {
   withoutNavigation,
   withRenderOverrides,
 } from '../../internal/link-parts';
+import { textLinkNeutral, textLinkStyles } from '../../internal/reading/text-link';
 import { tv } from '../../internal/tv';
 
 // 原則5: リンクなどの小物は pill。原則7の例外: 密度の高い並び（More、SNS のアカウント一覧）は枠線
@@ -66,21 +67,14 @@ const link = tv({
   base: ['cursor-pointer text-(color:--link-color)', ...focusRing],
   variants: {
     appearance: {
-      // 文字のリンク。hover・押下で背景を敷かず、押下で沈むだけ（design/adr/0027。塗りのトークンは transparent）
-      // 左右に 4px はみ出させ、フォーカスの線を文字から離す。前後の文字には少しかかる（design/adr/0031）
-      // 文章の中で折り返せるよう inline のまま沈める
-      // 下線はふだん淡く、hover で下線だけ濃くする。文字の色と下線の太さは変えない（design/adr/0030）
+      // 文字のリンク。見た目のクラス列は src/internal/reading/text-link.ts（Prose の a も同じものを使う）
       text: [
         // group/link: 新しいタブの ↗ の下線のつなぎ目を、hover のあいだだけ重ねる（下の TextNewTabArrow）
-        'group/link relative -mx-1 rounded-(--link-text-radius) box-decoration-clone px-1 py-0.5 underline-offset-4',
-        // 色は [text-decoration-color:…] で書く。decoration-(color:…) は tailwind-merge が太さ（decoration-1）と同じ種類とみなして消す
-        'underline [text-decoration-color:var(--color-link-underline)] decoration-1',
-        'not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)]',
-        'not-data-disabled:active:top-(--flat-press-depth)',
-        // 下線の色の変化は --link-underline-duration で動かす
-        // 位置は動かさない（離したときに抜ける向きを変えられる）
-        '[transition:top_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
-        'motion-reduce:[transition:none]',
+        'group/link',
+        ...textLinkStyles,
+        // 大きさ: 文の中（Text・Heading の中）では周りの文字のまま。Text の外に置いたときの大きさと行の高さは tokens で決める
+        //   --link-text-size・--link-text-leading（Text と Heading が 1em と未設定に戻す。未設定の行の高さは周りを受け継ぐ）
+        'text-(length:--link-text-size) leading-(--link-text-leading)',
         // 押せないとき: ただの文字と同じ見た目（下線なし。色とカーソルは周りの文字のまま）
         'data-disabled:cursor-auto data-disabled:text-inherit data-disabled:no-underline',
       ],
@@ -106,7 +100,7 @@ const link = tv({
       primary: '[--color-own-focus:var(--color-primary)] [--link-color:var(--color-primary)]',
       secondary:
         '[--color-own-focus:var(--color-fg-secondary)] [--link-color:var(--color-fg-secondary)]',
-      neutral: '[--link-color:var(--color-fg-muted)]',
+      neutral: textLinkNeutral,
     },
     // 幅いっぱいに広げたときの中身の寄せ方。枠線のリンクだけに効く（design/adr/0046）
     contentAlign: { center: '', between: '', 'center-end': '' },

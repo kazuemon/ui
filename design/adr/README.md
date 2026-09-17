@@ -148,3 +148,23 @@
 | [0078](./0078-reading-type.md)                    | 読む文字の大きさ                                                       | Accepted           |
 | [0079](./0079-control-type-and-height.md)         | 部品の文字と高さ・余白（入力方式で文字だけを変える）                   | Accepted           |
 | [0080](./0080-icon-size.md)                       | アイコンの大きさ                                                       | Accepted           |
+| [0081](./0081-inline-code.md)                     | 文中のコード                                                           | Accepted           |
+| [0082](./0082-kbd.md)                             | キー                                                                   | Accepted           |
+| [0083](./0083-blockquote.md)                      | 引用                                                                   | Accepted           |
+| [0084](./0084-callout.md)                         | 記事の中の囲みと、Callout・Notice の分け方                             | Accepted           |
+| [0085](./0085-inline-emphasis.md)                 | 文字の飾り（strong・em・del・mark）                                    | Accepted           |
+| [0086](./0086-divider.md)                         | 区切り線                                                               | Accepted           |
+| [0087](./0087-figure.md)                          | 画像                                                                   | Accepted           |
+| [0088](./0088-list.md)                            | リスト                                                                 | Accepted           |
+| [0089](./0089-footnote.md)                        | 脚注                                                                   | Accepted           |
+| [0090](./0090-table.md)                           | 表                                                                     | Accepted           |
+| [0091](./0091-mark.md)                            | 目立たせたい言葉（mark）                                               | Accepted           |
+| [0092](./0092-code-block-frame.md)                | コードの外枠と題                                                       | Accepted           |
+| [0093](./0093-code-block-line-decoration.md)      | コードの行の飾り                                                       | Accepted           |
+| [0094](./0094-code-block-syntax-palette.md)       | 色分けの色とコードの色のパレット                                       | Accepted           |
+| [0095](./0095-code-block-line-numbers.md)         | 行番号の濃さ                                                           | Accepted           |
+| [0096](./0096-prose.md)                           | Prose の作り                                                           | Accepted           |
+| [0097](./0097-prose-spacing.md)                   | Prose の余白                                                           | Accepted           |
+| [0098](./0098-link-size-outside-prose.md)         | 本文の外の文字のリンクの大きさ                                         | Accepted           |
+| [0099](./0099-reading-round-deferred.md)          | 後半ラウンド（本文の部品）で据え置きにしたこと                         | Accepted           |
+| [0100](./0100-prose-after-heading.md)             | Prose の見出しのすぐ後ろの余白                                         | Accepted           |
