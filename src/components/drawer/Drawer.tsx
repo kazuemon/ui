@@ -2,6 +2,7 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactElement, type ReactNode, useCallback, useRef, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import {
   type OverlayActionsLayout,
@@ -91,8 +92,6 @@ export interface DrawerProps {
 // 中身が画面の半分より長いときの、開いたときの高さ（画面の高さに対する割合）
 const HALF = 0.5;
 const SNAP_POINTS = [HALF, 1];
-// Esc で閉じないときに止める閉じ方（Esc と、Android の戻る操作）
-export const ESCAPE_REASONS = new Set<string>(['escape-key', 'close-watcher']);
 
 /**
  * 画面の端から出す面。既定は画面の下から出すシートで、横から出すパネルも選べます

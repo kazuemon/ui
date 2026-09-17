@@ -2,6 +2,7 @@ import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
@@ -14,7 +15,7 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { Drawer, ESCAPE_REASONS, type OverlayActionsLayout } from '../drawer/Drawer';
+import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
 
 export type DialogPresentation = OverlayPresentation;
 
