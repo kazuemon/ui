@@ -53,6 +53,9 @@
     --prose-heading-4-before: var(--prose-heading-4-before-fine);
     --prose-heading-4-after: var(--prose-heading-4-after-fine);
     --prose-divider-gap: var(--prose-divider-gap-fine);
+    --prose-heading-block-extra: var(--prose-heading-block-extra-fine);
+    --list-indent: var(--list-indent-fine);
+    --list-marker-gap: var(--list-marker-gap-fine);
     --link-text-size: var(--text-control);
     --link-text-leading: var(--leading-control);
     --text-body: var(--text-body-fine);
@@ -95,6 +98,9 @@
       --prose-heading-4-before: var(--prose-heading-4-before-coarse);
       --prose-heading-4-after: var(--prose-heading-4-after-coarse);
       --prose-divider-gap: var(--prose-divider-gap-coarse);
+      --prose-heading-block-extra: var(--prose-heading-block-extra-coarse);
+      --list-indent: var(--list-indent-coarse);
+      --list-marker-gap: var(--list-marker-gap-coarse);
       --link-text-size: var(--text-control);
       --link-text-leading: var(--leading-control);
       --text-body: var(--text-body-coarse);
@@ -137,6 +143,9 @@
     --prose-heading-4-before: var(--prose-heading-4-before-coarse);
     --prose-heading-4-after: var(--prose-heading-4-after-coarse);
     --prose-divider-gap: var(--prose-divider-gap-coarse);
+    --prose-heading-block-extra: var(--prose-heading-block-extra-coarse);
+    --list-indent: var(--list-indent-coarse);
+    --list-marker-gap: var(--list-marker-gap-coarse);
     --link-text-size: var(--text-control);
     --link-text-leading: var(--leading-control);
     --text-body: var(--text-body-coarse);

@@ -46,6 +46,16 @@ const flow = [
   '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+h2]:mt-(--prose-heading-2-before) [:is(&,&>div:only-child)>h2+*]:mt-(--prose-heading-2-after)',
   '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+h3]:mt-(--prose-heading-3-before) [:is(&,&>div:only-child)>h3+*]:mt-(--prose-heading-3-after)',
   '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+:is(h4,h5,h6)]:mt-(--prose-heading-4-before) [:is(&,&>div:only-child)>:is(h4,h5,h6)+*]:mt-(--prose-heading-4-after)',
+  // 見出しのすぐ後ろが段落でないとき（軸 72）。リストは --prose-heading-list-extra（4px）、
+  //   引用・コード・表・画像だけの段落は --prose-heading-block-extra（マウス 12px・指 0）だけ、見出しの後ろの余白に足す
+  '[:is(&,&>div:only-child)>h1+:is(ul,ol)]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-list-extra))]',
+  '[:is(&,&>div:only-child)>h1+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>h2+:is(ul,ol)]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-list-extra))]',
+  '[:is(&,&>div:only-child)>h2+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>h3+:is(ul,ol)]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-list-extra))]',
+  '[:is(&,&>div:only-child)>h3+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(ul,ol)]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-list-extra))]',
+  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-block-extra))]',
   // 区切り線の上下
   '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+hr]:mt-(--prose-divider-gap) [:is(&,&>div:only-child)>hr+*]:mt-(--prose-divider-gap)',
   // 脚注の一覧: 区切り線と同じだけ空ける。線などの区切りは付けない（見た目を付けるのは利用者）

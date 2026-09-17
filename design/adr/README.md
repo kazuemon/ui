@@ -167,3 +167,4 @@
 | [0097](./0097-prose-spacing.md)                   | Prose の余白                                                           | Accepted           |
 | [0098](./0098-link-size-outside-prose.md)         | 本文の外の文字のリンクの大きさ                                         | Accepted           |
 | [0099](./0099-reading-round-deferred.md)          | 後半ラウンド（本文の部品）で据え置きにしたこと                         | Accepted           |
+| [0100](./0100-prose-after-heading.md)             | Prose の見出しのすぐ後ろの余白                                         | Accepted           |

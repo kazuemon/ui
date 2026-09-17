@@ -501,8 +501,12 @@
      既定の印は薄いグレーの短い線（入れ子は小さい点）。marker="dot" で濃紺の丸（入れ子は白抜きの丸）にする（現行版を選べる形で残した）
      番号は薄いグレー・通常の太さで、右揃え（10 以上の番号も「.」がそろう）
      チェックリストの箱は塗らず、まだの項目は細い輪郭の四角、済んだ項目は ✓ だけ。済んだ項目の文は subtle（checkedTone="default" で本文の色） */
-  --list-indent: calc(var(--spacing) * 8); /* ul・ol の左の字下げ。「10.」が入る幅 */
-  --list-marker-gap: calc(var(--spacing) * 1.5); /* 印・番号・箱と文字の間 */
+  /* 字下げと、印・番号・チェックの箱と文字の間。マウスでは間を 4px 広げ、字下げも同じだけ広げる（印の位置は変えず、文字だけが右へ寄る）
+     指では詰めたまま。src/styles/theme.css の密度の規則が --list-indent・--list-marker-gap に入れる */
+  --list-indent-fine: calc(var(--spacing) * 9); /* 36px。「10.」が入る幅 */
+  --list-indent-coarse: calc(var(--spacing) * 8); /* 32px */
+  --list-marker-gap-fine: calc(var(--spacing) * 2.5); /* 10px */
+  --list-marker-gap-coarse: calc(var(--spacing) * 1.5); /* 6px */
   --list-item-gap: calc(var(--spacing) * 2); /* 項目の間。入れ子のリストの上も同じ */
   --list-item-gap-loose: calc(
     var(--spacing) * 3
@@ -542,6 +546,13 @@
        マウス（軸 70 の C）: 見出しの上をとくに広げ、節の切れ目をはっきりさせる。見出しの下は詰め、見出しを下の文の題として読ませる
        指（軸 70 の現行版）: 画面が狭いので、見出しの上を詰める
      項目のあいだ・入れ子のリストの上は、リストのトークン（--list-item-gap・--list-item-gap-loose） */
+  /* 見出しのすぐ後ろが段落でないときに、見出しの後ろの余白に足す量 — 軸 72
+     list: リスト。印があって段落より詰まって見えるので、入力方式によらず 4px 足す
+     block: 引用・コード・表・画像だけの段落。線や面で文字より大きく見えるので、マウスでは 12px 足す。指では足さない
+       （block は src/styles/theme.css の密度の規則が入れる） */
+  --prose-heading-list-extra: var(--spacing); /* 4px */
+  --prose-heading-block-extra-fine: calc(var(--spacing) * 3); /* 12px */
+  --prose-heading-block-extra-coarse: 0px;
   --prose-paragraph-gap: calc(var(--spacing) * 4); /* 16px */
   --prose-block-gap: calc(var(--spacing) * 5); /* 20px */
   --prose-heading-1-before-fine: calc(var(--spacing) * 18); /* 72px */
