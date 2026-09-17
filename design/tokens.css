@@ -244,6 +244,13 @@
   /* 押したとき — adr/0033
      落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
   --shadow-raised-press: var(--shadow-raised-hover);
+  /* 重なるレイヤー（原則1）— adr/0036・adr/0037
+     ページの上に重なる面（浮かぶ選択肢・Popover・Tooltip・Dialog）の、やわらかく広い影。輪郭は白いボタンと同じ細い線（--color-surface-line）
+     sheet は画面の下から出る面（Select のシート・Drawer）の上向きの影。左右から出る Drawer は、影を開く向きに回す
+     backdrop は、後ろの画面を暗くする色（シート・Dialog・Drawer） */
+  --shadow-overlay: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+  --shadow-sheet: 0 -8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+  --color-backdrop: rgb(from var(--color-shadow) r g b / 0.3);
 
   /* ── 役割の層: 線の太さ・離し方・薄さ ───────────────── */
   /* 入力欄の枠線（原則2）— design/adr/0019: フォーカスは枠線だけを足す。枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
@@ -747,7 +754,6 @@
      押せない ▼ と、選べない理由の文は、プレースホルダの場所の文と同じ --color-fg-subtle（押せない欄の塗りの上で 3.51:1）。
      --color-on-field-disabled（1.92:1）は、選んだ値と選べない選択肢のラベルだけに使う（値が入った押せない欄と、文を出している押せない欄を見分ける） */
   --select-popup-padding: var(--spacing);
-  --shadow-select-popup: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
   /* 選んだ項目の印は、部品の色（color。primary・secondary・neutral、既定 neutral）に従う — adr/0047、ADR-0053
      色から面・文字・チェックを部品が作る。面は利用者が選ぶ色の淡い面（neutral は --color-select-neutral-selected）、
      文字とチェックはその上の文字（neutral は濃紺）。選んだ項目の hover は、面に文字の色を 8% 混ぜて一段濃くする */
@@ -762,20 +768,82 @@
      画面の高さの半分のうち、最後の項目が半分見える高さにする（部品が計算して --select-popup-max-height に書く）
      大きな画面で長くなりすぎないよう、項目の数でも上限をかける。10.5 は「10 項目と、半分だけ見える 1 項目」 */
   --select-popup-max-rows: 10.5;
-  /* 浮かぶ選択肢の開閉の動き — ADR-0054（D: 本体の側に 8px 寄った位置から、濃さと一緒に滑る。緩急はシートと同じ）
+  /* 浮かぶ面の開閉の動き — ADR-0054（D: 本体の側に 8px 寄った位置から、濃さと一緒に滑る。緩急はシートと同じ）
+     Select の浮かぶ選択肢・Popover・Tooltip が使う。Dialog は中央に出るので、下から shift だけ寄った位置から滑る
      濃さ 0 から、ずれ shift（本体の側から離れる向き）を戻しながら現れる
      開くときは duration-in、閉じるときは duration-out。動きを減らす設定では動かさない */
-  --select-popup-duration-in: var(--duration-normal);
-  --select-popup-duration-out: 150ms;
-  --select-popup-ease: var(--ease-sheet);
-  --select-popup-shift: calc(var(--spacing) * 2);
-  /* Select のボトムシート（指で操作していて画面が狭いときは、選択肢を画面の下から出す）— adr/0037
-     面・輪郭・選んだ項目の見た目は浮かぶ選択肢と同じ。上の角はカードの角
-     backdrop: 後ろの画面を暗くする色
-     edge-shadow: 選択肢が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる） */
-  --color-select-sheet-backdrop: rgb(from var(--color-shadow) r g b / 0.3);
-  --color-select-sheet-edge-shadow: rgb(from var(--color-shadow) r g b / 0.1);
-  --shadow-select-sheet: 0 -8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+  --popup-duration-in: var(--duration-normal);
+  --popup-duration-out: 150ms;
+  --popup-ease: var(--ease-sheet);
+  --popup-shift: calc(var(--spacing) * 2);
+  /* シート（画面の下から出る面。Select のシート・Drawer・狭い画面の Dialog と Popover）— adr/0037
+     面・輪郭は浮かぶ面と同じ。上の角はカードの角。影は --shadow-sheet、後ろの画面は --color-backdrop
+     edge-shadow: 中身が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる）
+     padding-x: 見出しと中身の左右の余白。Select のシートの見出し（ラベルが選択肢の文字とそろう位置）と同じ
+     max-height: 高さの上限（画面の高さに対する割合）。Drawer の左右の向きの幅は side-width */
+  --color-sheet-edge-shadow: rgb(from var(--color-shadow) r g b / 0.1);
+  --sheet-padding-x: var(--spacing-control-x);
+  /* 右上の × と、面の端との間と、× の角（Select のシートで、部品の角から浮かぶ選択肢の余白を引いた同心の角） */
+  --sheet-close-inset: var(--spacing);
+  --sheet-close-radius: calc(var(--radius-control) - var(--spacing));
+  --sheet-max-height: 85%;
+  /* 閉じる向きと反対へ引いたときに、面の外側に伸ばしておく面の長さ（隙間を見せない） */
+  --sheet-bleed: calc(var(--spacing) * 12);
+  --sheet-side-width: min(calc(var(--spacing) * 90), calc(100vw - var(--spacing) * 12));
+  /* 横から出すときの影 — 軸 86 の A。下から出すシートと同じく、影を開く向き（画面の内側）に向ける
+     left は左から出すパネル、right は右から出すパネル */
+  --shadow-sheet-left: 8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* シートの下の操作の並べ方（比べている途中 — 軸 83）
+     direction: row（横に並べる）か column-reverse（縦に積み、最後に渡した主な操作を上にする）
+     justify: 横に並べるときの寄せ方。grow: 各ボタンの flex（0 0 auto は文字の幅、1 1 0 は幅を等分） */
+  --sheet-actions-direction: row;
+  --sheet-actions-justify: flex-end;
+  --sheet-actions-grow: 0 0 auto;
+
+  /* Dialog・Drawer・Popover の題と説明の大きさ — 軸 81 の B
+     題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。Select のシートの見出しは欄のラベルのまま
+     --overlay-title-size・--overlay-title-leading・--overlay-description-size・--overlay-description-leading は、
+     密度で変わる役割を指すので、src/styles/theme.css の密度の規則が入れる */
+
+  /* Popover（原則にない判断: 余白・幅）
+     面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay）。角は浮かぶ面なので部品の角（原則5）
+     padding: 内側の余白。max-width: 幅の上限。本体との間は浮かぶ選択肢と同じ 4px */
+  --popover-padding: calc(var(--spacing) * 4);
+  --popover-max-width: calc(var(--spacing) * 80);
+  --popover-offset: var(--spacing);
+  /* 本体を指す矢印と、右上の閉じる ×（比べている途中 — 軸 85）
+     arrow-display・close-display: 出すか（none で出さない）。close-space: × の分だけ題の右を空ける */
+  --popover-arrow-display: none;
+  --popover-close-display: none;
+  --popover-close-space: 0px;
+
+  /* Tooltip（原則にない判断: 面の色・余白）
+     面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip。文字は部品のキャプションと同じ大きさ
+     出るまでの時間と長押しの時間は、部品の props（delay・longPressDelay）で持つ */
+  --tooltip-padding-x: calc(var(--spacing) * 2);
+  --tooltip-padding-y: var(--spacing);
+  --tooltip-max-width: calc(var(--spacing) * 60);
+  --tooltip-offset: calc(var(--spacing) * 2);
+  /* Tooltip は小さいので、ほかの浮かぶ面より影を小さく淡くする */
+  --shadow-tooltip: 0 2px 8px rgb(from var(--color-shadow) r g b / 0.08);
+  /* 面・文字・輪郭の色（比べている途中 — 軸 84） */
+  --color-tooltip: var(--color-surface);
+  --color-on-tooltip: var(--color-fg);
+  --color-tooltip-line: var(--color-surface-line);
+
+  /* Dialog（原則にない判断: 幅・余白・角）
+     中央に浮かべる。部品（ボタン）を包むので、角はカードの角（原則5）。面・輪郭・影は浮かぶ面と同じ
+     width: 既定の幅。画面が狭いときは左右に margin を残して縮む */
+  --dialog-width: calc(var(--spacing) * 120);
+  --dialog-padding: calc(var(--spacing) * 6);
+  --dialog-margin: calc(var(--spacing) * 4);
+  /* 角（比べている途中 — 軸 82） */
+  --dialog-radius: var(--radius-card);
+  /* 下の操作の並べ方。シートと同じ作り（--sheet-actions-*。比べている途中 — 軸 83） */
+  --dialog-actions-direction: row;
+  --dialog-actions-justify: flex-end;
+  --dialog-actions-grow: 0 0 auto;
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

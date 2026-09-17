@@ -58,6 +58,10 @@
     --list-marker-gap: var(--list-marker-gap-fine);
     --link-text-size: var(--text-control);
     --link-text-leading: var(--leading-control);
+    --overlay-title-size: var(--text-heading-3);
+    --overlay-title-leading: var(--leading-heading-3);
+    --overlay-description-size: var(--text-body-sm);
+    --overlay-description-leading: var(--leading-body-sm);
     --text-body: var(--text-body-fine);
     --leading-body: var(--leading-body-fine);
     --text-body-sm: var(--text-body-sm-fine);
@@ -103,6 +107,10 @@
       --list-marker-gap: var(--list-marker-gap-coarse);
       --link-text-size: var(--text-control);
       --link-text-leading: var(--leading-control);
+      --overlay-title-size: var(--text-heading-3);
+      --overlay-title-leading: var(--leading-heading-3);
+      --overlay-description-size: var(--text-body-sm);
+      --overlay-description-leading: var(--leading-body-sm);
       --text-body: var(--text-body-coarse);
       --leading-body: var(--leading-body-coarse);
       --text-body-sm: var(--text-body-sm-coarse);
@@ -148,6 +156,10 @@
     --list-marker-gap: var(--list-marker-gap-coarse);
     --link-text-size: var(--text-control);
     --link-text-leading: var(--leading-control);
+    --overlay-title-size: var(--text-heading-3);
+    --overlay-title-leading: var(--leading-heading-3);
+    --overlay-description-size: var(--text-body-sm);
+    --overlay-description-leading: var(--leading-body-sm);
     --text-body: var(--text-body-coarse);
     --leading-body: var(--leading-body-coarse);
     --text-body-sm: var(--text-body-sm-coarse);
@@ -216,4 +228,20 @@
     var(--switch-knob-fine) + var(--density-coarse) *
       (var(--switch-knob-coarse) - var(--switch-knob-fine))
   );
+}
+
+/*
+ * 下から出すシート（Drawer）を、はじいて閉じるときの動き
+ * 半分の段があるとき、Base UI は引く操作の transition: none を外すのと同じ瞬間に閉じた位置へ動かすので、transition では滑らない。
+ * 離した位置（段のずれ＋引いた量）から画面の下まで、シートと同じ長さと緩急で滑らせる（src/internal/sheet/SheetPopup.tsx）
+ */
+@keyframes sheet-swipe-out-down {
+  from {
+    transform: translateY(
+      calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
+    );
+  }
+  to {
+    transform: translateY(100%);
+  }
 }

@@ -25,20 +25,25 @@ import { FieldAddon } from '../field-addon/FieldAddon';
 import { CaretDownIcon } from '../../internal/icons';
 import { type LoadingIndicator, Spinner } from '../loading/Loading';
 import { OWN_FOCUS, type SelectColor, selectedTokens } from './select-colors';
-import { SelectMoreCue, type SheetMoreCue } from './SelectMoreCue';
+import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
+import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
+import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
+import {
+  type OverlayPresentation,
+  useSheetPresentation,
+} from '../../internal/sheet/use-narrow-screen';
 import { SelectOption, type SelectItem } from './SelectOption';
-import { type SheetMessage, SelectSheetHeader } from './SelectSheetHeader';
+import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
 import { usePopupLayout } from './use-popup-layout';
-import { useNarrowScreen } from './use-narrow-screen';
 import { type SheetDetent, useSheetDrag } from './use-sheet-drag';
 
 export type { SelectColor } from './select-colors';
-export type { SheetMoreCue } from './SelectMoreCue';
+export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SelectItem, SelectItemNote, SelectItemNoteKind } from './SelectOption';
 export type { SheetDetent } from './use-sheet-drag';
 
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
-export type SelectPresentation = 'popover' | 'sheet' | 'auto';
+export type SelectPresentation = OverlayPresentation;
 
 export interface SelectProps {
   label: ReactNode;
@@ -130,7 +135,7 @@ export interface SelectProps {
    * divider-shadow・divider-always-shadow は区切り線と内側の影の組み合わせです
    * @default 'divider-always-shadow'
    */
-  sheetMoreCue?: SheetMoreCue;
+  sheetMoreCue?: SheetMoreCueKind;
   /**
    * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
    * @default 'shadow'
@@ -227,8 +232,7 @@ export function Select({
   className,
   ...rootProps
 }: SelectProps) {
-  const narrow = useNarrowScreen();
-  const sheet = presentation === 'sheet' || (presentation === 'auto' && narrow);
+  const sheet = useSheetPresentation(presentation);
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない（readOnly）。フォーカスは外さない
   // non-blocking は、開いた選択肢の最後に「読み込んでいます」の行を出す
   const loadingBlocking = loading && loadingBehavior === 'blocking';
@@ -414,9 +418,9 @@ export function Select({
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
           </BaseSelect.Trigger>
           <BaseSelect.Portal container={container}>
-            {/* シートのときは、後ろの画面を暗くする（--color-select-sheet-backdrop） */}
+            {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
             {sheet && (
-              <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-(color:--color-select-sheet-backdrop) transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+              <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
             )}
             {/* 浮かぶ部分は、白い面に細い境界線とやわらかい影（浮かぶ UI の影は重なりを表す — design/adr/0036）
               選んだ項目は部品の色（color — selectedTokens）。見た目は design/tokens.css の --select-popup-*・--select-item-selected-*・--color-select-* で決める
@@ -448,13 +452,13 @@ export function Select({
                 }
                 className={[
                   // 選択肢の文字は欄の値と同じ大きさ（指でも 16px）。選んだ値が欄に入っても大きさが変わらない
-                  'p-(--select-popup-padding) text-input text-fg outline-none [--spacing-icon:var(--spacing-icon-input)]',
+                  'p-(--select-popup-padding) text-input text-fg outline-none [--sheet-inset:var(--select-popup-padding)] [--spacing-icon:var(--spacing-icon-input)]',
                   'border-(length:--border-width-thin) border-surface-line bg-surface',
                   sheet
                     ? [
                         // シート: 上の角だけ丸め、下から滑り出る。高さはつまみに合わせて動く（引いているあいだは動きを止める）
                         // 下端は端末の安全領域の分だけ空ける
-                        'flex min-h-0 w-full flex-col rounded-t-card border-x-0 border-b-0 [box-shadow:var(--shadow-select-sheet)]',
+                        'flex min-h-0 w-full flex-col rounded-t-card border-x-0 border-b-0 shadow-sheet',
                         // 下端の余白（端末の安全領域の分）は選択肢の内側に持たせ、続きの印がシートの下端に接するようにする
                         'py-0',
                         '[transition:translate_var(--duration-sheet)_var(--ease-sheet),height_var(--duration-sheet)_var(--ease-sheet)] data-dragging:[transition:none] motion-reduce:[transition:none]',
@@ -462,32 +466,40 @@ export function Select({
                       ].join(' ')
                     : [
                         // 上下の余白は選択肢の内側に持たせ、続きの影が面の上下の端に接するようにする。角丸で切り抜く
-                        'min-w-(--anchor-width) overflow-clip rounded-control py-0 [box-shadow:var(--shadow-select-popup)]',
-                        // 開閉の動き（--select-popup-duration-in・-out・-ease・-shift — ADR-0054 の D）
+                        'min-w-(--anchor-width) overflow-clip rounded-control py-0 shadow-overlay',
+                        // 開閉の動き（--popup-duration-in・-out・-ease・-shift — ADR-0054 の D）
                         // 本体の側から離れる向きにずれた位置から、濃さと一緒に滑る
                         // 動きを減らす設定では動かさず、すぐに出す・消す（原則3）
-                        'transition-[opacity,translate] duration-(--select-popup-duration-in) ease-(--select-popup-ease) data-ending-style:duration-(--select-popup-duration-out)',
+                        'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
                         'data-ending-style:opacity-0 data-starting-style:opacity-0',
-                        'data-ending-style:[translate:0_calc(var(--select-popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--select-popup-shift)*-1)]',
-                        'data-[side=top]:data-ending-style:[translate:0_var(--select-popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--select-popup-shift)]',
+                        'data-ending-style:[translate:0_calc(var(--popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--popup-shift)*-1)]',
+                        'data-[side=top]:data-ending-style:[translate:0_var(--popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--popup-shift)]',
                         'motion-reduce:[transition:none]',
                       ].join(' '),
                 ].join(' ')}
               >
                 {sheet && (
-                  <SelectSheetHeader
+                  <SheetHeader
                     ref={headerRef}
-                    long={long}
-                    label={label}
-                    caption={caption}
-                    captionId={sheetCaptionId}
-                    messages={sheetMessages}
-                    onClose={() => changeOpen(false)}
-                    {...drag.handlers}
-                  />
+                    handle={long}
+                    onPointerDown={drag.handlers.onPointerDown}
+                    onPointerMove={drag.handlers.onPointerMove}
+                    onPointerUp={drag.handlers.onPointerUp}
+                    onPointerCancel={drag.handlers.onPointerUp}
+                    className={long ? 'cursor-grab touch-none' : undefined}
+                    // 選ばずに閉じる。Tab では止まらない（開いた直後のフォーカスを選んだ項目に置くため）。キーボードでは Esc で閉じる
+                    close={<SheetCloseButton tabIndex={-1} onClick={() => changeOpen(false)} />}
+                  >
+                    <SelectSheetTitle
+                      label={label}
+                      caption={caption}
+                      captionId={sheetCaptionId}
+                      messages={sheetMessages}
+                    />
+                  </SheetHeader>
                 )}
                 {(long || popoverCue) && (
-                  <SelectMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )}
                 {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                   シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す
@@ -527,7 +539,7 @@ export function Select({
                   ))}
                 </BaseSelect.List>
                 {(long || popoverCue) && (
-                  <SelectMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )}
                 {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
                   選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置く

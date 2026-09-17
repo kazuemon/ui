@@ -102,10 +102,10 @@
 
 ### 重なるもの
 
-- [ ] Dialog
-- [ ] Drawer
-- [ ] Popover
-- [ ] Tooltip
+- [x] Dialog
+- [x] Drawer
+- [x] Popover
+- [x] Tooltip
 
 ## Figma
 

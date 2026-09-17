@@ -5,10 +5,14 @@ import { useSyncExternalStore } from 'react';
 //   縦長: md（768px）より狭い — スマートフォン、iPad mini
 //   横長: lg（1024px）より狭い — スマートフォンの横持ち
 // それより広い画面（タブレット）では浮かべたまま
+// Select・Dialog・Popover が使う
 const SHEET_QUERY = [
   '(pointer: coarse) and (orientation: portrait) and (max-width: 767.98px)',
   '(pointer: coarse) and (orientation: landscape) and (max-width: 1023.98px)',
 ].join(', ');
+
+/** 浮かぶ UI の出し方。popover: 浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
+export type OverlayPresentation = 'popover' | 'sheet' | 'auto';
 
 export function useNarrowScreen() {
   return useSyncExternalStore(
@@ -20,4 +24,10 @@ export function useNarrowScreen() {
     () => window.matchMedia(SHEET_QUERY).matches,
     () => false
   );
+}
+
+/** presentation から、いまシートにするかを決める */
+export function useSheetPresentation(presentation: OverlayPresentation) {
+  const narrow = useNarrowScreen();
+  return presentation === 'sheet' || (presentation === 'auto' && narrow);
 }
