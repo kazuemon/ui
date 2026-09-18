@@ -8,6 +8,7 @@ import { SheetCloseButton, SheetHeader } from './SheetHeader';
 import { SheetMoreCue } from './SheetMoreCue';
 import { overlayTitleLeading, sheetDescriptionClass, sheetTitleClass } from './sheet-styles';
 import { useMoreCues } from './use-more-cues';
+import { usePortalContainer } from '../ui-config';
 
 /**
  * 下の操作の並べ方
@@ -88,6 +89,7 @@ export function SheetPopup({
   popupRef,
   className,
 }: SheetPopupProps) {
+  const portalContainer = usePortalContainer(container);
   const cues = useMoreCues();
   // auto: 下から出すシートは縦に積み（主な操作が上）、横から出すパネルは右寄せ
   const layout =
@@ -101,7 +103,7 @@ export function SheetPopup({
   return (
     // 中身に入力欄を置くシートのために、ソフトウェアキーボードに合わせてスクロールを整える（Base UI）
     <BaseDrawer.VirtualKeyboardProvider>
-      <BaseDrawer.Portal container={container}>
+      <BaseDrawer.Portal container={portalContainer}>
         {/* 引いているあいだは、引いた量に合わせて薄くする。閉じる方へ引くほど、後ろの画面が見えてくる
         段（snap points）があるときは、Base UI の引いた量が段の位置によらず 1 になるので、薄くしない（暗さは変えない）
         ほかの操作を止めないとき（modal=false）は、後ろを暗くしない（Base UI の非モーダルの例と同じ） */}

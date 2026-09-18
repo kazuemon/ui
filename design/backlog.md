@@ -43,9 +43,7 @@
 - Drawer の半分の段は、Base UI の snap points で面をずらして作っています。Select のシートと違い、つまみを押しても半分と高さいっぱいを切り替えません。はじいたとみなす速さも Base UI の値です。Select のシートの引く操作とそろえるかは決めていません
 - はじいて閉じるときは、半分の段から閉じる動きだけキーフレームで書いています（Base UI が引く操作の transition を外すのと同じ瞬間に閉じた位置へ動かすため）。Base UI を上げたら要らなくなるかを見ます
 - 横から出すパネルの幅と影の向きの違いは小さく、見た目の回帰テストでは差になりません（画素の比較のしきい値の中）。影の向きを変えるときは、目で確かめます
-- 出し方や密度をまとめて決める Provider（テーマのような入口）を作っていません。原則11 の「どちらの判定も、使う側が固定できるようにします」に当たるもので、いまは部品ごとの `presentation` だけです（[ADR-0037](./adr/0037-select-sheet.md)）
-  - イメージ: 置くと、その中の Select・Dialog・Popover・Menu が出し方の既定（浮かぶ・シート・自動）を受け取る。同じ入口で、密度の固定と、浮かぶ部分を描く場所（`container`）も渡せる形にしたい。部品の props は Provider より強いままにする
-  - 決めること: 何を渡せるか（出し方・密度・描く場所・読みものかどうか）、名前、`data-surface`（色の面）やダークモードの入口とまとめるか
+- 開いた Popover が、横スクロールする親の外に隠れると置き場所を探し続けます。Popover 側の問題です（[ADR-0119](./adr/0119-scroll-area.md)）
 - AlertDialog（取り消せない操作の確かめ専用の形）を作っていません
   - イメージ: 外を押しても Esc でも閉じず、× も置かない Dialog。閉じるのは下のボタンだけ。読み上げでは `alertdialog` として扱い、開いた直後のフォーカスは取り消しの側に置く
   - いまの Dialog でも `dismissible={false}`・`closeOnEscape={false}`・`closeButton={false}` と `autoFocus` で同じ形にできる。部品にする値打ちは、組み合わせを間違えないことと、読み上げの役割が変わること
@@ -92,6 +90,7 @@
 
 ## 色の面（Surface）
 
+- 色の面とダークモードを ThemeProvider に入れるかは決めていません。名前は、いずれ色も渡す前提で ThemeProvider にしました（[ADR-0113](./adr/0113-foundation-components.md)）
 - 濃紺・青などの色の面の上に部品を置く仕組みがありません。いまは、青いカードの上で青いフォーカスの線が地との比 1.00 で見えず、濃紺の上でも 3.05 です。「青のカードにおいても filled な notice と同じように白いフォーカスリングになるようにしたいですね。これは props で切り替えできるようなものですか？」「ユーザー側の任意コンポーネント内で利用するとしたときは props しかないかなと思っているのですが、2つの経路を作るのはいいと思いますか？」「kazuemon/ui で提供されるコンポーネント同士での親和性も維持できそうですね」
   - 話した形（まだ決めていない）: 仕組みは属性 `data-surface="primary"` などの1つにし、その中で差し替える値（フォーカスの線・リンクの色・Badge の縁・`--focus-follow-color` の戻しなど）を CSS の1か所に書く。入口は、部品 `Surface` の props（`color`、`render` でユーザーの要素に付けられる）と、属性を直接書く形（MDX・サーバーの HTML・CSS だけの場所）の2つ。CSS 変数そのものの上書きは公開の使い方にしない。部品ごとの props（ボタンに線の色を渡すなど）は作らない
   - 入れ子は近い指定が勝つ（白いカードを `data-surface="default"` で戻す）。浮かぶ選択肢は body に描くので引き継がない（選択肢は白い面なので、それで正しい）
@@ -113,7 +112,6 @@
 - 余白（`gap-2`・`mt-1` など）と角丸のクラスは、tokens.css で Tailwind と同じ名前の px にしたので、部品のトークンと同じく px です（[ADR-0076](./adr/0076-token-structure.md)。前はクラスが rem で、html 20px のとき、お知らせの操作の間が 8→10px、上の余白が 4→5px になっていました）。文字の大きさのクラス（`text-xs` など）は Tailwind の既定の rem のままです
 - 大きい指用（`coarse-large`）で、左右の余白・並べる間を変えるかは比べていません。
 - どんな場面で大きい指用を使うかは決めていません（[ADR-0045](./adr/0045-coarse-size.md)）
-- 寸法を Provider で固定する仕組みがまだありません。クラス（`coarse-large` など）は `html` か要素に直接付けます（[ADR-0045](./adr/0045-coarse-size.md)）
 
 ## トークン・テーマ
 
@@ -130,3 +128,17 @@
 - 素の HTML の表は `display: block` で横にスクロールするので、スクロールしない表や短いコード（Shiki が `tabindex` を付ける）にも Tab で止まります（[ADR-0096](./adr/0096-prose.md)）
 - CodeBlock のスクロールの判定は、Table の `use-scrollable` と別に書いています。そろえるなら、CodeBlock のスクロールを外側の包みに移します
 - Callout の `role="note"` が本物の読み上げソフトでどう読まれるかは確かめていません（下の「Form・読み上げ」の確かめに足す。[ADR-0084](./adr/0084-callout.md)）
+
+## 土台の部品
+
+2026-09-18 に作りました。決定は [ADR-0113](./adr/0113-foundation-components.md)〜[ADR-0120](./adr/0120-container.md) です。
+
+- Bleed（画像を Container の余白の外へ出す）は作っていません。Container は中の要素に `--container-gutter`・`--container-width` を渡しますが、`--container-gutter` は `%` を含むので、読む要素の親の幅を基準に解決される点に注意します（[ADR-0120](./adr/0120-container.md)）
+- ScrollArea の左右の影の計算（`use-inline-cues` の CUE_RAMP）が、上下の `useMoreCues` と重複しています。横にも広げて internal にまとめるかを決めます。対象は ScrollArea・Select・シート・表・CodeBlock のスクロールです（[ADR-0119](./adr/0119-scroll-area.md)）
+- Image の寸法のない画像は、読み込めたときに高さが変わって下の内容が動きます（[ADR-0116](./adr/0116-image.md)）
+- Skeleton の `sweep-viewport` は、transform の付いた要素の中と iOS の Safari では面ごとの光になります（[ADR-0115](./adr/0115-skeleton.md)）
+- 見た目のテスト（pixelmatch の既定のしきい値）は、背景に近い薄いグレーの変化を見落とします。Skeleton の色の変更のときに分かりました（[ADR-0115](./adr/0115-skeleton.md)）
+- Button にアイコンだけのボタンの形がありません。Icon のストーリーでは className で四角にしています（[ADR-0114](./adr/0114-icon.md)）
+- `pnpm test -u <パス>` が範囲を絞らず全体の基準画像を書き換えることがあります。`pnpm vitest run --project=storybook <パス>` なら絞れます
+- `capture-story.mjs --pick A,B` のように採用の案を「,」区切りで渡すと、Storybook が URL の引数を安全でないとみなして捨て、採用の印が付きません。ストーリーの `pick` の既定値に書けば付きます
+- ScrollArea のつまみ（ふだんは細い）がマウスで狙いにくくないか、実機で見ます（[ADR-0119](./adr/0119-scroll-area.md)）

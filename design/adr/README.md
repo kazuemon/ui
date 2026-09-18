@@ -180,3 +180,11 @@
 | [0110](./0110-sheet-handle-and-long-press-side.md)       | シートのつまみは引ける印、Tooltip は長押しで上に出す                   | Accepted           |
 | [0111](./0111-sheet-swipe-lock-and-close-fixes.md)       | シートの引く操作を止める仕組みと、閉じるときの影・× の場所             | Accepted           |
 | [0112](./0112-fill-transition-by-registered-property.md) | 塗りの移り変わりは、登録した変数で動かす                               | Accepted           |
+| [0113](./0113-foundation-components.md)                  | 土台の部品（ThemeProvider・Portal・VisuallyHidden・AspectRatio）       | Accepted           |
+| [0114](./0114-icon.md)                                   | Icon の大きさと線の太さ                                                | Accepted           |
+| [0115](./0115-skeleton.md)                               | 読み込み中の面（Skeleton）                                             | Accepted           |
+| [0116](./0116-image.md)                                  | 画像の読み込み中と失敗（Image）                                        | Accepted           |
+| [0117](./0117-collapsible.md)                            | 開閉（Collapsible）の見た目                                            | Accepted           |
+| [0118](./0118-transition.md)                             | 出入りの動き（Transition）                                             | Accepted           |
+| [0119](./0119-scroll-area.md)                            | スクロールする枠（ScrollArea）                                         | Accepted           |
+| [0120](./0120-container.md)                              | ページの幅と左右の余白（Container）                                    | Accepted           |

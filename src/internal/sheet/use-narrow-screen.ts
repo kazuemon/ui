@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
+import { useUIConfig } from '../ui-config';
+
 // auto では、指で操作していて、画面が狭いときにシートにする（design/adr/0037）
 // シートにする理由は指の動きを減らすことなので、入力方式を見る。狭さは Tailwind のブレイクポイントで決める
 //   縦長: md（768px）より狭い — スマートフォン、iPad mini
@@ -26,8 +28,10 @@ export function useNarrowScreen() {
   );
 }
 
-/** presentation から、いまシートにするかを決める */
-export function useSheetPresentation(presentation: OverlayPresentation) {
+/** presentation から、いまシートにするかを決める。書かないときは ThemeProvider の presentation、それもなければ auto */
+export function useSheetPresentation(presentationProp: OverlayPresentation | undefined) {
   const narrow = useNarrowScreen();
+  const config = useUIConfig();
+  const presentation = presentationProp ?? config.presentation ?? 'auto';
   return presentation === 'sheet' || (presentation === 'auto' && narrow);
 }
