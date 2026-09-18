@@ -65,13 +65,18 @@
 ### ページの枠
 
 - [x] Container
-- [ ] Navbar
-- [ ] Footer
+- [x] Navbar
 - [ ] Sidebar
 - [ ] Stack
 - [x] SkipLink
 - [ ] Affix
 - [ ] Splitter
+
+### レシピ
+
+部品にはせず、既存の部品を組み合わせて作るものです。組み方の見本を Storybook の Recipes に置きます。
+
+- [x] Footer
 
 ### ナビゲーション
 
@@ -94,7 +99,7 @@
 ### 表示
 
 - [x] Tag
-- [ ] Card
+- [x] Card
 - [x] List
 - [x] Table
 - [x] Divider

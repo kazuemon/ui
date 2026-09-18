@@ -56,6 +56,25 @@
 
 - 写せなかったとき（権限がない・安全でない接続）の見た目はありません。`onCopyError` で使う側が知らせる前提です
 
+## Card
+
+2026-09-19 に作りました。決定は [ADR-0129](./adr/0129-card-press.md) です。
+
+- Card の中にほかのリンクやボタンを置く形（題だけをリンクにして、カード全体を押せるように広げる）は用意していません
+
+## Navbar
+
+2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md) です。
+
+- Navbar の行き先を、下に開くメニュー（NavigationMenu）にする形は決めていません
+- Navbar のメニューを開いたとき、actions（Contact などのボタン）をメニューの中にも出すかは決めていません
+
+## レシピ
+
+2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
+
+- レシピに回す部品の見直し（Sidebar・Stack などが部品として要るか）は決めていません
+
 ## Mark・Time・RelativeTime・NumberFormat
 
 2026-09-19 に作りました。決定は [ADR-0121](./adr/0121-reading-datetime-number.md) です。
@@ -155,7 +174,7 @@
 - 利用者向けの CSS（`src/styles/index.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、`index.css` でも消します
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
-- 使っていないトークンがあります: ブランドの色の `--color-on-brand`、カード（`--card-*`）、セクションラベル（`--label-*`）、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
+- 使っていないトークンがあります: ブランドの色の `--color-on-brand`、セクションラベル（`--label-*`）、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
 
 ## 本文（Prose・CodeBlock など）
 

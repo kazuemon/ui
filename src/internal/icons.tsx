@@ -162,3 +162,11 @@ export const ArrowUDownLeftIcon = (props: IconProps) => (
     <path d="M80,56h88a56,56,0,0,1,56,56h0a56,56,0,0,1-56,56H32" />
   </Icon>
 );
+
+export const ListIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
+    <line x1="40" y1="128" x2="216" y2="128" />
+    <line x1="40" y1="64" x2="216" y2="64" />
+    <line x1="40" y1="192" x2="216" y2="192" />
+  </Icon>
+);

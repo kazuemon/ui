@@ -622,10 +622,21 @@
   --color-outline-neutral-disabled-line: var(--color-line);
   --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
 
-  /* カードの画像の比率 — design/adr/0017 */
+  /* ── Card — 軸 103 ── BEGIN card */
+  /* カード。src/components/card。角は --radius-card（ADR-0016）、影は付けない（原則1: ページと同じレイヤー）
+     面は地と同じ白なので、細い輪郭（--color-surface-line）で面を見せる
+     media-aspect: 画像の比率 — ADR-0017。nested-inset: 入れ子の型の、画像の周りの余白 — ADR-0014
+     padding: 中身の余白。入れ子の型では、画像の周りの余白を引いた分を中身に足して、文字の位置を標準の型とそろえる
+     gap: 中身の縦の間（日付と題など）
+     押せるカード（href・render）— 軸 103 の D＋A: hover で面を入力欄の塗りにし、輪郭を 3:1 の濃さにし、画像を少し大きくする。
+       押すと平らな要素と同じ深さ（--flat-press-depth）で沈む
+       hover-media-scale: hover で画像を大きくする割合 */
   --card-media-aspect: 16 / 9;
-  /* 入れ子の型のカード: 画像の周りの余白 — design/adr/0014 */
   --card-nested-inset: calc(var(--spacing) * 2);
+  --card-padding: calc(var(--spacing) * 4);
+  --card-gap: calc(var(--spacing) * 1);
+  --card-hover-media-scale: 1.04;
+  /* ── END card */
 
   /* トグルのトラック。高さは密度で変わる（切り替えは src/styles/globals.css） */
   --switch-w-coarse: 48px; /* 前半のキャンバスの値 */
@@ -936,6 +947,23 @@
   --container-width-wide: calc(var(--spacing) * 320); /* 1280px */
   --container-gutter-size: clamp(calc(var(--spacing) * 4), 5%, calc(var(--spacing) * 12));
   /* ── END container */
+
+  /* ── Navbar — 軸 104・105 ── BEGIN navbar */
+  /* ページの上の帯。ロゴ・行き先・操作を 1 行に並べる。src/components/navbar
+     height: 帯の高さ。入力方式では変えない（原則11: 部品の高さは指で押せる大きさのまま）
+     gap: ロゴ・行き先・操作のあいだ。item-gap: 行き先どうしのあいだ
+     current-bar: いまいるページの下の線の太さ（currentIndicator="underline" — 軸 104 の C）
+     貼り付けた（sticky）ときの境目と面 — 軸 105
+       sticky-shadow: stickyEdge="shadow" の、下へ落とす淡い影（線の代わり）
+       backdrop-bg・backdrop-blur: stickyBackdrop="blur" の、透ける面と後ろのぼかし */
+  --navbar-height: calc(var(--spacing) * 16);
+  --navbar-gap: calc(var(--spacing) * 6);
+  --navbar-item-gap: var(--spacing);
+  --navbar-current-bar: calc(var(--spacing) / 2);
+  --navbar-sticky-shadow: 0 4px 16px rgb(from var(--color-shadow) r g b / 0.08);
+  --navbar-backdrop-bg: color-mix(in oklab, var(--color-bg) 80%, transparent);
+  --navbar-backdrop-blur: calc(var(--spacing) * 3);
+  /* ── END navbar */
 
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */
   /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link

@@ -28,6 +28,7 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `src/components/<name>/`               | 部品 1 つにつき 1 フォルダ。部品・ストーリー・見た目の基準画像（`__screenshots__/`）と、その部品だけが使う部分                                                     |
 | `src/internal/`                        | 2 つ以上の部品が使う、公開しない部分（`tv`・アイコン・フォーカスの線・Form との連携・Field・choice の見た目、読む部品と Prose が共有する見た目の `reading/` など） |
 | `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン）                         |
+| `src/recipes/`                         | レシピ: 部品にせず、既存の部品を組み合わせて作るもの（Footer など）の見本のストーリー。公開の入口には足さない                                                      |
 | `src/styles/`                          | `theme.css`（トークン・フォント・密度）、`index.css`（利用者向け）、`globals.css`（Storybook 用）                                                                  |
 | `templates/component/`                 | 部品とストーリーの雛形                                                                                                                                             |
 | `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                                               |

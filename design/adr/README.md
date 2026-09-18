@@ -196,3 +196,7 @@
 | [0126](./0126-bleed.md)                                  | 本文の幅の外へ出す枠（Bleed）の広げ方                                    | Accepted           |
 | [0127](./0127-icon-only-button-shape.md)                 | アイコンだけのボタンの形                                                 | Accepted           |
 | [0128](./0128-copy-button.md)                            | CopyButton で写せたことをどう見せるか                                    | Accepted           |
+| [0129](./0129-card-press.md)                             | 押せるカードの hover と押下                                              | Accepted           |
+| [0130](./0130-navbar-current.md)                         | Navbar のいまいるページの印                                              | Accepted           |
+| [0131](./0131-navbar-sticky.md)                          | Navbar を貼り付けたときの境目                                            | Accepted           |
+| [0132](./0132-recipes.md)                                | レシピ（Footer を部品にせず組み合わせの見本にする）                      | Accepted           |
