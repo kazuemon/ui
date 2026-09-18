@@ -1,5 +1,5 @@
-import { focusRing } from '../../internal/focus-styles';
-import { tv } from '../../internal/tv';
+import { focusRing } from './focus-styles';
+import { tv } from './tv';
 
 // 開閉の行と中身の見た目。Accordion・FileTree など、開閉を土台にする部品もこれを使う
 // 値は design/tokens.css の --collapsible-*

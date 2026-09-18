@@ -1,10 +1,30 @@
 // @kazuemon/ui の公開の入口。ここに並べたものだけを利用者に渡す
 // CSS は別の入口（package.json の exports の ./styles.css → src/styles/index.css）
 
+export {
+  Accordion,
+  type AccordionAppearance,
+  type AccordionIndicator,
+  AccordionItem,
+  type AccordionItemProps,
+  type AccordionProps,
+} from './components/accordion/Accordion';
+export {
+  AlertDialog,
+  type AlertDialogProps,
+  type AlertDialogTone,
+} from './components/alert-dialog/AlertDialog';
 export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
 export { Badge, type BadgeProps } from './components/badge/Badge';
 export { Blockquote, type BlockquoteProps } from './components/blockquote/Blockquote';
-export { Button, type ButtonLinkProps, type ButtonProps } from './components/button/Button';
+export { Bleed, type BleedProps } from './components/bleed/Bleed';
+export {
+  Button,
+  type ButtonIconOnlyProps,
+  type ButtonShape,
+  type ButtonLinkProps,
+  type ButtonProps,
+} from './components/button/Button';
 export {
   Callout,
   type CalloutAppearance,
@@ -30,6 +50,11 @@ export {
   type ContainerProps,
   type ContainerSize,
 } from './components/container/Container';
+export {
+  CopyButton,
+  type CopyButtonFeedback,
+  type CopyButtonProps,
+} from './components/copy-button/CopyButton';
 export { Dialog, type DialogPresentation, type DialogProps } from './components/dialog/Dialog';
 export { Divider, type DividerProps } from './components/divider/Divider';
 export {
@@ -62,6 +87,7 @@ export { Image, type ImageProps } from './components/image/Image';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
 export { List, ListItem, type ListItemProps, type ListProps } from './components/list/List';
 export { Link, type LinkContentAlign, type LinkProps } from './components/link/Link';
+export { Mark, type MarkProps } from './components/mark/Mark';
 export { LoadingBar, type LoadingIndicator, Spinner } from './components/loading/Loading';
 export {
   Notice,
@@ -70,6 +96,7 @@ export {
   type NoticeProps,
 } from './components/notice/Notice';
 export { NoticeRegion, type NoticeRegionProps } from './components/notice/NoticeRegion';
+export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
 export {
   Popover,
@@ -80,6 +107,7 @@ export {
 } from './components/popover/Popover';
 export { Portal, type PortalProps } from './components/portal/Portal';
 export { ThemeProvider, type ThemeProviderProps } from './components/theme-provider/ThemeProvider';
+export { RelativeTime, type RelativeTimeProps } from './components/relative-time/RelativeTime';
 export { Prose, type ProseProps } from './components/prose/Prose';
 export { Radio, RadioGroup, type RadioGroupProps, type RadioProps } from './components/radio/Radio';
 export {
@@ -116,8 +144,10 @@ export {
   TableRow,
 } from './components/table/Table';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
+export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Tag, type TagProps } from './components/tag/Tag';
 export { Text, type TextProps } from './components/text/Text';
+export { Time, type TimeProps } from './components/time/Time';
 export {
   Transition,
   type TransitionPreset,
@@ -125,6 +155,7 @@ export {
 } from './components/transition/Transition';
 export { Tooltip, type TooltipProps, type TooltipSide } from './components/tooltip/Tooltip';
 export { TextField, type TextFieldProps } from './components/text-field/TextField';
+export { Textarea, type TextareaProps } from './components/textarea/Textarea';
 export {
   VisuallyHidden,
   type VisuallyHiddenProps,

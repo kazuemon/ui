@@ -170,6 +170,8 @@ export interface FieldProps {
   captionPlacement?: CaptionPlacement;
   /** エラーの内容。渡すとエラーの状態になり、本体の下に丸の「!」と赤い文字で出す */
   error?: ReactNode;
+  /** error がなくても、欄をエラーの状態（赤い枠線・aria-invalid）にする。エラーの行は出さない。Textarea の文字数の上限を超えたときに使う */
+  invalid?: boolean;
   /**
    * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えず、エラーの状態にもしない
    * error と両方あるときは両方出す。エラーの行が上、警告の行がその下（design/adr/0041 の追記）
@@ -209,6 +211,7 @@ export function Field({
   caption,
   captionPlacement = 'top',
   error,
+  invalid,
   warning,
   success,
   info,
@@ -245,7 +248,7 @@ export function Field({
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
   return (
     <BaseField.Root
-      invalid={error ? true : undefined}
+      invalid={error || invalid ? true : undefined}
       disabled={disabled || undefined}
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する

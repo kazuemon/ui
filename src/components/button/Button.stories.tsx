@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 import { Button, type ButtonProps } from './Button';
-import { CheckIcon } from '../../internal/icons';
+import { CheckIcon, CopyIcon, XIcon } from '../../internal/icons';
 import type { LoadingIndicator } from '../loading/Loading';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
@@ -32,6 +32,7 @@ const meta = {
           '',
           '- 画面の中で最も進めたい操作を `appearance="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。',
           '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`white` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
+          '- アイコンだけのボタンは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="round"` で丸にできます。',
           '- 送信中は `loading` を付けます。押せないボタンと同じ見た目になり、押しても `onClick` を呼びません。`disabled` と違い、フォーカスは外れません。',
           '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link appearance="button">` を使います（Components/Link の「ボタンの見た目」）。',
         ].join('\n'),
@@ -255,6 +256,77 @@ export const WithIcon: Story = {
       </Button>
     </div>
   ),
+};
+
+// Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
+export const IconOnly: Story = {
+  name: 'アイコンだけ',
+  tags: ['visual'],
+  parameters: {
+    pseudo: statePseudo({ hover: 'button', active: 'button', focusVisible: 'button' }),
+    controls: { exclude: ['appearance', 'color', 'disabled', 'children'] },
+    docs: {
+      description: {
+        story:
+          '`iconOnly` を付けると、部品の高さの正方形になります。各セルの左が `shape="square"`（既定。文字のボタンと同じ角）、右が `shape="round"`（丸）です。文字がないので、`aria-label` で読み上げの名前を必ず付けます（付けないと型で止まります）。アイコンは単体の太い線（`standalone`）で置きます。',
+      },
+      source: sourceCode(`
+        <Button iconOnly appearance="outline" aria-label="閉じる">
+          <Icon icon={XIcon} standalone />
+        </Button>
+        <Button iconOnly shape="round" appearance="outline" aria-label="コピー">
+          <Icon icon={CopyIcon} standalone />
+        </Button>
+      `),
+    },
+  },
+  render: (args) => (
+    <Matrix
+      rows={appearances.flatMap((appearance) =>
+        (['primary', 'neutral'] as const).map((color) => ({ appearance, color }))
+      )}
+      rowLabel={({ appearance, color }) => `${appearance} / ${color}`}
+      columns={pressColumns}
+      columnWidth="5rem"
+      renderCell={({ appearance, color }, { disabled }) => (
+        <div className="flex gap-3">
+          <Button
+            {...args}
+            iconOnly
+            aria-label="閉じる"
+            appearance={appearance}
+            color={color}
+            disabled={disabled}
+          >
+            <XIcon standalone />
+          </Button>
+          <Button
+            {...args}
+            iconOnly
+            shape="round"
+            aria-label="コピー"
+            appearance={appearance}
+            color={color}
+            disabled={disabled}
+          >
+            <CopyIcon standalone />
+          </Button>
+        </div>
+      )}
+    />
+  ),
+  play: async ({ canvas }) => {
+    // 名前は aria-label。幅と高さは同じ（正方形）
+    const button = canvas.getAllByRole('button', { name: '閉じる' })[0];
+    const { width, height } = button.getBoundingClientRect();
+    await expect(width).toBe(height);
+    // shape="round" は丸
+    const round = canvas.getAllByRole('button', { name: 'コピー' })[0];
+    await expect(round).toHaveAttribute('data-icon-only', 'round');
+    await expect(getComputedStyle(round).borderTopLeftRadius).not.toBe(
+      getComputedStyle(button).borderTopLeftRadius
+    );
+  },
 };
 
 export const Densities: Story = {

@@ -1,10 +1,12 @@
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
-import { type ReactElement, type ReactNode, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, use, useId, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
+import { type OverlayRole, OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
+import { PopupRole } from '../../internal/overlay/popup-role';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import {
   overlayTitleLeading,
@@ -92,8 +94,19 @@ export function Dialog({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  children,
+  actions,
   ...props
 }: DialogProps) {
+  // 読み上げの役割。AlertDialog が包んだときだけ alertdialog になる
+  const role = use(OverlayRoleContext);
+  // 中身と下の操作には dialog を配り直す（中に置いた Dialog に alertdialog が写らないようにする）
+  const inner = (node: ReactNode) =>
+    node == null || role === 'dialog' ? (
+      node
+    ) : (
+      <OverlayRoleContext value="dialog">{node}</OverlayRoleContext>
+    );
   // 開閉はここで持つ。出し方（シート・中央）が開いたまま切り替わっても（画面を回すなど）、閉じないようにするため
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
@@ -109,18 +122,32 @@ export function Dialog({
     return (
       <Drawer
         {...props}
+        actions={inner(actions)}
         open={open}
         onOpenChange={changeOpen}
         dismissible={dismissible}
         closeOnSwipe={dismissible}
         detent="full"
-      />
+      >
+        {/* シートの面は役割を props で受け取らないので、中身から書き換える */}
+        {role !== 'dialog' && <PopupRole role={role} />}
+        {inner(children)}
+      </Drawer>
     );
   }
   // 中央に浮かべるときは、下の操作をいつも右に寄せる（actionsLayout はシートのときだけ）
   const { actionsLayout: _actionsLayout, ...centered } = props;
   return (
-    <CenteredDialog {...centered} open={open} onOpenChange={changeOpen} dismissible={dismissible} />
+    <CenteredDialog
+      {...centered}
+      role={role}
+      actions={inner(actions)}
+      open={open}
+      onOpenChange={changeOpen}
+      dismissible={dismissible}
+    >
+      {inner(children)}
+    </CenteredDialog>
   );
 }
 
@@ -131,6 +158,7 @@ export function Dialog({
 //   開閉は浮かぶ面と同じ動き（下に --popup-shift 寄った位置から、濃さと一緒に滑る）。動きを減らす設定では動かさない
 //   中身が画面より高いときは、面ごと画面の中でスクロールする
 function CenteredDialog({
+  role,
   title,
   description,
   children,
@@ -146,6 +174,7 @@ function CenteredDialog({
   container,
   className,
 }: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange'> & {
+  role: OverlayRole;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -174,6 +203,8 @@ function CenteredDialog({
             <BaseDialog.Popup
               data-overlay-id={overlayId}
               initialFocus={initialFocusOf(overlayId, 'dialog')}
+              // 読み上げの役割（Base UI の既定は dialog。AlertDialog が包んだときは alertdialog）
+              role={role}
               data-slot="dialog"
               data-density={scope.density}
               className={[
