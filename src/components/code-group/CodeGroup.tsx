@@ -45,10 +45,10 @@ const codeGroup = tv({
     //   続きのぼかしが帯からはみ出さないよう、帯の中で切る（タブのフォーカスの線は内側に引くので切れない）
     head: [
       'relative h-(--cb-head-h) overflow-clip bg-(color:--cb-head-bg)',
-      "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-(--code-group-bar) before:bg-(color:--cb-line) before:content-['']",
+      "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-(--code-group-line) before:bg-(color:--cb-line) before:content-['']",
     ],
     // スクロールする範囲は、コピーのボタンの手前で終わらせる（タブがボタンの下に入らない）
-    scroller: 'h-full pe-[calc(var(--spacing-control)+var(--spacing)*2)]',
+    scroller: 'me-[calc(var(--spacing-control)+var(--spacing)*2)] h-full',
     viewport: 'flex items-end',
     list: 'relative flex w-max items-center gap-(--code-group-tab-gap) px-(--code-group-list-px)',
     tab: [

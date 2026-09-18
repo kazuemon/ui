@@ -1160,7 +1160,7 @@
      帯の中に置くための寸法と、コードの面の色が違うので、値はここに持つ
      list-px: 帯の左右の余白。タブの左右の余白（tab-px）と足して、コードの左の余白（16px）にそろえる
      tab-inset: タブの上下と帯のあいだ。radius: hover の塗りの形（pill）
-     bar: 帯とコードの境目の線と、選んだタブの印の太さ（同じ 1 本に重ねる）。色と、滑って移る動き
+     line: 帯とコードの境目の線の太さ。bar: 選んだタブの印の太さ（境目の線に下端をそろえて重ねる）と、色・滑って移る動き
      focus-offset: フォーカスの線をタブの内側に引く量（Tabs の --tabs-tab-focus-offset と同じ）
      copy-inset: コピーのボタンと、帯の上・右のあいだ */
   --code-group-list-px: var(--spacing);
@@ -1168,7 +1168,8 @@
   --code-group-tab-gap: 0px;
   --code-group-tab-inset: var(--spacing);
   --code-group-tab-radius: var(--radius-pill);
-  --code-group-bar: var(--border-width-thin);
+  --code-group-line: var(--border-width-thin);
+  --code-group-bar: calc(var(--spacing) / 2);
   --code-group-bar-color: var(--color-primary);
   --code-group-bar-duration: var(--duration-normal);
   --code-group-bar-ease: var(--ease-press);
