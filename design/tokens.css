@@ -638,6 +638,22 @@
   --card-hover-media-scale: 1.04;
   /* ── END card */
 
+  /* ── LinkCard — 軸 115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */
+  /* 記事の中から別のページへ移るカード。src/components/link-card
+     面・角・輪郭・hover・押下はカードと同じ（--card-fill・--card-hover-media-scale を使う。原則1・3・5）
+     画像の位置（layout）・サイトの行の位置（sitePlacement）・題と説明の行数（titleLines・descriptionLines）は props で選ぶ。
+       軸 115〜117 で比べるためだけに置いていた --link-card-areas・--link-card-columns・--link-card-site-order・
+       --link-card-favicon-display・--link-card-external-display・--link-card-title-heading・
+       --link-card-title-lines・--link-card-description-lines は、決まった値へ部品に畳んで消した
+     media-width: 横に並べるときの画像の幅。カードの幅の割合で、広いときは上限で止める
+     media-aspect: 画像の比。横に並べるときは画像の最小の高さ（文が長いと画像が縦に伸びる）、上に置くときは画像の高さを決める
+     padding・gap: 文の余白と、文の中の縦の間 */
+  --link-card-media-width: min(calc(var(--spacing) * 48), 36%);
+  --link-card-media-aspect: 1.91 / 1;
+  --link-card-padding: calc(var(--spacing) * 4);
+  --link-card-gap: calc(var(--spacing) * 1);
+  /* ── END link-card */
+
   /* トグルのトラック。高さは密度で変わる（切り替えは src/styles/globals.css） */
   --switch-w-coarse: 48px; /* 前半のキャンバスの値 */
   --switch-h-coarse: 28px;
@@ -791,6 +807,21 @@
   --popup-duration-out: 150ms;
   --popup-ease: var(--ease-sheet);
   --popup-shift: calc(var(--spacing) * 2);
+  /* ── Menu — 軸 121・124 で決定（ADR-0149・0152） ── BEGIN menu */
+  /* 押して開く操作の一覧（Menu）。src/components/menu/
+     面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay・部品の角）。余白・本体との間も同じ
+     項目の hover とキーボードの選択は入力欄の塗り。危険な項目は、赤い枠線のボタンの hover と同じく赤を淡く敷く（原則3）
+     min-width: 項目が短くても、押しやすい幅を保つ（本体の幅より狭くはしない） */
+  --menu-popup-padding: var(--select-popup-padding);
+  --menu-offset: var(--spacing);
+  --menu-min-width: calc(var(--spacing) * 48);
+  --menu-item-highlight: var(--color-field);
+  --menu-danger-highlight: color-mix(
+    in oklab,
+    var(--color-fg-danger) var(--flat-hover-mix),
+    transparent
+  );
+  /* ── END menu */
   /* シート（画面の下から出る面。Select のシート・Drawer・狭い画面の Dialog と Popover）— adr/0037・ADR-0102
      面・輪郭は浮かぶ面と同じ。上の角はカードの角。影は --shadow-sheet、後ろの画面は --color-backdrop
      edge-shadow: 中身が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる）
@@ -964,6 +995,27 @@
   --navbar-backdrop-bg: color-mix(in oklab, var(--color-bg) 80%, transparent);
   --navbar-backdrop-blur: calc(var(--spacing) * 3);
   /* ── END navbar */
+
+  /* ── Tabs ── BEGIN tabs */
+  /* タブ（切り替える見出しの並びと、その中身）。src/components/tabs
+     タブの高さは部品の高さ（密度）。並びが溝（segmented）を敷くときは、溝の内側の余白の分だけタブを低くし、並び全体を部品の高さにそろえる（原則5の同心の角）
+     hover は平らなボタンと同じく本文の色を淡く敷き、押すと沈む（原則3・ADR-0027）。塗りの角は --tabs-tab-radius
+     選んだタブの印は 1 つの要素（Base UI の Tabs.Indicator）で描き、選んだタブの位置へ動く。見た目は Tabs の indicator props、動きは indicatorMotion props で選ぶ（軸 118・119・決定、ADR-0146・0147）
+       色は部品の色（原則6）: 濃い色（グレーは濃いグレー）、subtle は淡い面、segmented は白い面（溝の中のつまみ）
+     indicator・indicatorMotion が切り替える値（形・色・並びの線と溝・動きの長さ）は部品の内部の CSS 変数に畳んであり、ここには置かない */
+  --tabs-gap: var(--spacing);
+  --tabs-tab-radius: var(--radius-pill);
+  --tabs-panel-gap: calc(var(--spacing) * 4);
+  --tabs-line-width: var(--border-width-thin);
+  --tabs-indicator-bar: var(--border-width-thick);
+  --tabs-indicator-radius: var(--radius-pill);
+  --tabs-indicator-ease: var(--ease-press);
+  /* フォーカスの線（軸 120 で決定、ADR-0148）
+     タブは内側に引き、線の下端を下の印・並びの線より上に収める（角は pill のまま）
+     パネルは離れは全体と同じで、角を小さくする。1 行のパネルでも pill にならず、角丸の四角に見える */
+  --tabs-tab-focus-offset: calc(var(--spacing) * -1);
+  --tabs-panel-radius: var(--radius-md);
+  /* ── END tabs */
 
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */
   /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link

@@ -48,7 +48,7 @@
 - [x] Blockquote
 - [x] Figure
 - [x] Callout
-- [ ] LinkCard
+- [x] LinkCard
 - [x] Footnote
 - [ ] Steps
 - [ ] FileTree
@@ -83,9 +83,9 @@
 - [ ] TableOfContents
 - [ ] Pager
 - [ ] Breadcrumb
-- [ ] Tab
+- [x] Tabs
 - [ ] Pagination
-- [ ] Menu
+- [x] Menu
 - [ ] Stepper
 - [ ] NavigationMenu
 - [ ] ContextMenu

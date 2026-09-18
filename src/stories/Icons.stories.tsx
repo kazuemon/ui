@@ -48,7 +48,7 @@ const entries: Entry[] = [
     name: 'CaretLeftIcon',
     regular: <CaretLeftIcon />,
     bold: <CaretLeftIcon standalone />,
-    use: 'Calendar の前の月',
+    use: 'Calendar の前の月・シートの見出しの「‹」（親へ戻る）',
   },
   {
     name: 'CaretRightIcon',

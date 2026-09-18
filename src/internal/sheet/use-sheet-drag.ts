@@ -1,7 +1,14 @@
 import { type PointerEvent as ReactPointerEvent, useRef, useState } from 'react';
 
-import { type DragSample, releaseVelocity, SHEET_DRAG } from './measure';
-import type { SheetMetrics } from './use-popup-layout';
+/** シートの高さの段。content: 中身をすべて出したときの高さ、half: 半分の高さ、full: 高さの上限 */
+export interface SheetMetrics {
+  /** 中身をすべて出したときの高さ */
+  content: number;
+  /** 半分で開くときの高さ。最後の項目が半分だけ見えるところで切る（「まだ続きがある」ことを見せる） */
+  half: number;
+  /** 高さの上限 */
+  full: number;
+}
 
 /** シートを開いたときの高さ。half: 選択肢が長いときは半分の高さで開き、つまみを出す。full: 高さいっぱいで開く */
 export type SheetDetent = 'half' | 'full';
@@ -16,7 +23,35 @@ interface SheetDragOptions {
   onClose: () => void;
 }
 
+interface DragSample {
+  y: number;
+  t: number;
+}
+
+// シートのつまみを引く操作のしきい値。値は実機で詰める
+// iOS・Android のシートと、vaul・Base UI の Drawer にならい、離す直前の速さで「はじいた」かを見る
+//   flingVelocity: はじいたとみなす速さ（px/ms）。Base UI の Drawer は 0.5、vaul は 0.4、Android は 500px/s
+//   velocityWindow: 離す直前のこの時間（ms）の動きから速さを出す。それより前から止まっていたら、はじいていない（Base UI は 80ms）
+//   minVelocityDuration: 速さを出すときの時間の下限（ms）。動きの記録が1つしかないときに、速さが大きくなりすぎないようにする（Base UI は 16ms）
+//   closeRatio: はじかずに離したとき、半分の高さのこの割合より低ければ閉じる
+//   moveSlop: 動いた量がこれ以下（px）なら、引かずに押したとみなす
+const SHEET_DRAG = {
+  flingVelocity: 0.5,
+  velocityWindow: 80,
+  minVelocityDuration: 16,
+  closeRatio: 0.6,
+  moveSlop: 4,
+} as const;
+
+// 離したときの縦の速さ（px/ms。下向きが正）。離す直前 velocityWindow の間の動きから出す
+function releaseVelocity(samples: DragSample[], y: number, t: number) {
+  const first = samples.find((sample) => t - sample.t <= SHEET_DRAG.velocityWindow);
+  if (!first) return 0;
+  return (y - first.y) / Math.max(t - first.t, SHEET_DRAG.minVelocityDuration);
+}
+
 // シートのつまみを引く操作。選択肢が長いときだけ、半分の高さで開いてつまみを出す。つまみを引くと高さが変わり、下へはじくか下まで引くと閉じる
+// Select と Menu（submenuSheet="fixed"）のシートが使う
 export function useSheetDrag({ sheetDetent, metrics, long, onClose }: SheetDragOptions) {
   const [detent, setDetent] = useState<SheetDetent>(sheetDetent);
   // つまみを引いているあいだの高さ。はじいて・引いて閉じたときは、閉じる動きが終わるまで残し、離した高さのまま下へ滑らせる
