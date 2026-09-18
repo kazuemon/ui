@@ -1,11 +1,11 @@
 import { type ComponentProps, type ReactNode, useEffect, useId, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
-import { CheckMarkIcon, CopyIcon } from '../../internal/icons';
+import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
+import { useCopy } from '../../internal/copy/use-copy';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { tv } from '../../internal/tv';
 import { codeTextOf } from './code-text';
-import { useCopy } from './use-copy';
 
 // 複数行のコード（軸 64・66・67・68・69）
 // 色分けはブログ側がビルド時に Shiki で行い、この部品は色分けしたあとの HTML に見た目を付ける
@@ -240,13 +240,11 @@ export function CodeBlock({
             </span>
           ) : null}
           {/* アイコン単体なので Bold（design/adr/0018） */}
-          {copied ? <CheckMarkIcon standalone /> : <CopyIcon standalone />}
+          <CopyGlyph copied={copied} standalone />
         </button>
       ) : null}
       {/* コピーしたことを読み上げる。箱は先に置いておき、中身だけを入れる */}
-      <span role="status" className="sr-only">
-        {copied ? copiedLabel : ''}
-      </span>
+      <CopiedStatus copied={copied} label={copiedLabel} />
     </figure>
   );
 }

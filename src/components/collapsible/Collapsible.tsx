@@ -2,7 +2,7 @@ import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible';
 import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 import { CaretDownIcon } from '../../internal/icons';
-import { collapsibleStyles } from './collapsible-styles';
+import { collapsibleStyles } from '../../internal/collapsible-styles';
 
 export type CollapsibleAppearance = 'plain' | 'open-filled' | 'filled' | 'divided';
 export type CollapsibleIndicator = 'end' | 'start';

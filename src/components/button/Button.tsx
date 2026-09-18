@@ -161,6 +161,18 @@ const button = tv({
   defaultVariants: { appearance: 'filled', color: 'neutral' },
 });
 
+// アイコンだけのボタン（iconOnly）: 部品の高さの正方形（幅の下限を高さと同じにし、左右の余白をなくす）
+//   形（shape）: square（既定）は文字のボタンと同じ部品の角、round は丸（pill）— 軸 101
+//   中に文字が加わったとき（CopyButton の「コピーしました」）は、使う側が左右の余白を足して横に伸ばす
+//   アイコンは単体なので太い線（design/adr/0018）。読み上げの名前（aria-label）は型で必須にする
+const iconOnlyClass = {
+  square: 'min-w-(--spacing-control) px-0 rounded-control',
+  round: 'min-w-(--spacing-control) px-0 rounded-pill',
+} as const;
+
+/** アイコンだけのボタンの形 */
+export type ButtonShape = keyof typeof iconOnlyClass;
+
 // キャプション（原則4）: ボタンの下に中央寄せで、小さくグレーの文字。間・大きさ・色は比べている途中（後半の軸 31）
 // ボタンとキャプションを包み（root）、className は包みに付ける（Switch・TextField と同じく、いちばん外の要素に付く）
 //   ボタンは包みの幅いっぱいに伸ばす（items-stretch）。包みに w-full を付けると、幅いっぱいのボタンになる
@@ -234,6 +246,15 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
   /** @default 'button' */
   type?: ComponentProps<'button'>['type'];
   /**
+   * アイコンだけのボタンにします。部品の高さの正方形になります。
+   * 文字がないので、読み上げの名前を aria-label で必ず付けます（ButtonIconOnlyProps）。
+   * アイコンは単体の太い線（Icon の standalone）で置きます
+   * @default false
+   */
+  iconOnly?: false;
+  /** 形はアイコンだけのボタン（iconOnly）でだけ選べる */
+  shape?: never;
+  /**
    * 送信中。押せないボタンと同じ見た目になり、押しても onClick を呼ばない（フォームも送信しない）。
    * disabled と違い、フォーカスは外れない（aria-disabled・aria-busy）。
    * Form の中の送信のボタン（type="submit"）は、渡さなければ Form の submitting を受け取ります。
@@ -267,6 +288,23 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
   render?: undefined;
 }
 
+/** アイコンだけのボタン（iconOnly）の props。読み上げの名前（aria-label）が要ります */
+export interface ButtonIconOnlyProps extends Omit<
+  ButtonProps,
+  'iconOnly' | 'shape' | 'aria-label'
+> {
+  /** アイコンだけのボタンにします。部品の高さの正方形になります */
+  iconOnly: true;
+  /**
+   * 形。square は文字のボタンと同じ角の正方形、round は丸です。
+   * 中に文字が加わって横に伸びたときは、square は同じ角のまま、round は両端の丸い形になります
+   * @default 'square'
+   */
+  shape?: ButtonShape;
+  /** 読み上げの名前。文字がないので必ず付けます（例: 「削除」「コピー」） */
+  'aria-label': string;
+}
+
 /** ボタンの見た目のリンク（render を渡す）の props */
 export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps {
   /**
@@ -289,6 +327,9 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
   inlineSpinner?: never;
   /** リンクには付けない */
   type?: never;
+  /** リンクのアイコンだけの形は Link で作る */
+  iconOnly?: never;
+  shape?: never;
   /**
    * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
    * ボタンの見た目のリンクでも角丸は 12px のままで、リンクは pill という規則の例外にはなりません（design/adr/0046）。
@@ -329,6 +370,8 @@ function ButtonLink({
   caption,
   children,
   ref,
+  iconOnly: _iconOnly,
+  shape: _shape,
   ...props
 }: ButtonLinkProps) {
   if (loading !== undefined || loadingIndicator !== undefined || inlineSpinner !== undefined)
@@ -381,9 +424,10 @@ function ButtonLink({
  * 型はボタンとリンクの2つの形で重ねる（overload）。props を union 1つにすると、render に要素（JSX）を渡したときに
  * どちらの形か決まらず、onClick={(e) => …} の e が any になる（JSX の要素は union を見分ける値にならない）
  */
+export function Button(props: ButtonIconOnlyProps): ReactElement;
 export function Button(props: ButtonProps): ReactElement;
 export function Button(props: ButtonLinkProps): ReactElement;
-export function Button(allProps: ButtonProps | ButtonLinkProps) {
+export function Button(allProps: ButtonProps | ButtonIconOnlyProps | ButtonLinkProps) {
   // リンクのときは別の部品で描く。ボタンのときは、キャプションがなければ <button> をそのまま返す（比較のストーリーが class を読むため）
   if (allProps.render) return <ButtonLink {...allProps} />;
   return <NativeButton {...allProps} />;
@@ -405,13 +449,17 @@ function NativeButton({
   loadingIndicator = 'spinner',
   inlineSpinner = false,
   caption,
+  iconOnly = false,
+  shape = 'square',
   onClick,
   children,
   ref,
   render: _render,
   'aria-describedby': ariaDescribedBy,
   ...props
-}: ButtonProps) {
+}: ButtonProps | ButtonIconOnlyProps) {
+  if (iconOnly && !props['aria-label'] && !props['aria-labelledby'])
+    warnOnce('Button: アイコンだけのボタン（iconOnly）には aria-label で読み上げの名前を付けます');
   const captionId = useId();
   const form = use(FormSubmitContext);
   const submit = form !== null && type === 'submit';
@@ -449,7 +497,12 @@ function NativeButton({
         onClick?.(event);
       }}
       // キャプションがあるときは、className は包みに付ける
-      className={button({ appearance, color, className: caption ? undefined : className })}
+      data-icon-only={iconOnly ? shape : undefined}
+      className={button({
+        appearance,
+        color,
+        className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
+      })}
     >
       {inline && <Spinner className="text-(color:--button-ink)" />}
       {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}

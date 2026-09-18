@@ -19,12 +19,27 @@
 
 ## つくりたいコンポーネント
 
+### 土台
+
+- [x] Icon
+- [x] VisuallyHidden
+- [x] ThemeProvider
+- [x] Collapsible
+- [x] ScrollArea
+- [x] AspectRatio
+- [x] Portal
+- [x] Transition
+
 ### 文字
 
 - [x] Heading
 - [x] Text
 - [x] Code
 - [x] Kbd
+- [x] Mark
+- [ ] Ruby
+- [ ] Highlight
+- [x] NumberFormat
 
 ### 本文
 
@@ -37,13 +52,26 @@
 - [x] Footnote
 - [ ] Steps
 - [ ] FileTree
+- [ ] CodeGroup
+- [ ] Embed
+- [ ] Gallery
+- [ ] ImageZoom
+- [x] Bleed
+- [ ] Spoiler
+- [ ] TypeTable
+- [ ] Mermaid
+- [ ] Math
 
 ### ページの枠
 
-- [ ] Container
+- [x] Container
 - [ ] Navbar
 - [ ] Footer
 - [ ] Sidebar
+- [ ] Stack
+- [x] SkipLink
+- [ ] Affix
+- [ ] Splitter
 
 ### ナビゲーション
 
@@ -54,6 +82,14 @@
 - [ ] Pagination
 - [ ] Menu
 - [ ] Stepper
+- [ ] NavigationMenu
+- [ ] ContextMenu
+- [ ] Toolbar
+- [ ] CommandPalette
+- [ ] BackToTop
+- [ ] Menubar
+- [ ] Tree
+- [ ] Tour
 
 ### 表示
 
@@ -62,17 +98,29 @@
 - [x] List
 - [x] Table
 - [x] Divider
-- [ ] Time
+- [x] Time
+- [x] RelativeTime
 - [ ] Avatar
 - [x] Badge
 - [ ] Chip
 - [ ] Timeline
-- [ ] Accordion
+- [x] Accordion
+- [x] Image
+- [ ] AvatarGroup
+- [ ] DescriptionList
+- [ ] Stat
+- [ ] Meter
+- [ ] Carousel
+- [ ] Indicator
 
 ### 操作
 
 - [x] Button
 - [x] Link
+- [ ] Toggle
+- [ ] ToggleGroup
+- [ ] ButtonGroup
+- [x] CopyButton
 
 ### 入力
 
@@ -80,7 +128,7 @@
 - [x] Select
 - [x] Switch
 - [x] Form
-- [ ] Textarea
+- [x] Textarea
 - [x] Checkbox
 - [x] Radio
 - [ ] Fieldset
@@ -90,6 +138,20 @@
 - [ ] NumberField
 - [ ] DatePicker
 - [ ] Dropzone
+- [ ] SearchField
+- [ ] PasswordField
+- [ ] Autocomplete
+- [ ] PinField
+- [ ] TagsInput
+- [ ] TimePicker
+- [ ] ColorPicker
+- [ ] Rating
+- [ ] Calendar
+- [ ] DateRangePicker
+- [x] CheckboxGroup
+- [ ] MaskInput
+- [ ] Editable
+- [ ] FileInput
 
 ### 通知
 
@@ -97,8 +159,9 @@
 - [x] Loading
 - [ ] Toast
 - [ ] Progress
-- [ ] Skeleton
-- [ ] Empty
+- [x] Skeleton
+- [ ] StatusPanel
+- [ ] LoadingOverlay
 
 ### 重なるもの
 
@@ -106,6 +169,32 @@
 - [x] Drawer
 - [x] Popover
 - [x] Tooltip
+- [x] AlertDialog
+- [ ] PreviewCard
+
+### アプリの画面
+
+Web アプリで使うものです。ポートフォリオのあとに作ります。土台は外のヘッドレス（TanStack Table・TanStack Virtual・dnd-kit）に peer dependency で乗り、ここでは見た目とトークンを持ちます。
+
+- [ ] DataTable
+- [ ] VirtualList
+- [ ] Sortable
+- [ ] Kanban
+- [ ] Popconfirm
+- [ ] ActionBar
+- [ ] Mentions
+- [ ] Cascader
+- [ ] TreeSelect
+- [ ] Transfer
+
+### チャット
+
+- [ ] Composer
+- [ ] MessageList
+- [ ] Bubble
+- [ ] TypingIndicator
+- [ ] Attachment
+- [ ] StreamingText
 
 ## Figma
 

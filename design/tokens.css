@@ -936,6 +936,31 @@
   --container-width-wide: calc(var(--spacing) * 320); /* 1280px */
   --container-gutter-size: clamp(calc(var(--spacing) * 4), 5%, calc(var(--spacing) * 12));
   /* ── END container */
+
+  /* ── SkipLink — 軸 99 ── BEGIN skip-link */
+  /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link
+     ページの上に重なる面なので、面・輪郭・影は浮かぶ面と同じ（原則1）。リンクなので角は pill（原則5）、文字はリンクの Primary と下線
+     top・left・right: 画面の端からの位置（right が auto なら文字の幅、0 なら上端の帯）。radius: 角
+     bg・fg・line・shadow: 面・文字・輪郭・影。focus-ring-offset・focus-ring-color: フォーカスの線の離れと色（帯では内側に引く） */
+  --skip-link-top: calc(var(--spacing) * 3);
+  --skip-link-left: calc(var(--spacing) * 3);
+  --skip-link-right: auto;
+  --skip-link-radius: var(--radius-pill);
+  --skip-link-bg: var(--color-surface);
+  --skip-link-fg: var(--color-primary);
+  --skip-link-line: var(--color-surface-line);
+  --skip-link-shadow: var(--shadow-overlay);
+  --skip-link-focus-ring-offset: var(--focus-ring-offset);
+  --skip-link-focus-ring-color: var(--color-primary);
+  /* ── END skip-link */
+
+  /* ── Bleed — 軸 100 ── BEGIN bleed */
+  /* 画像やコードを Container の本文の幅の外へ、左右の余白いっぱいまで出す。src/components/bleed
+     gutter: 出す幅（片側）。Container の左右の余白（--container-gutter-size: 置いた場所の幅の 5%、16〜48px）を、本文の幅から逆算したもの
+       余白が幅 P の 5% なら、本文の幅は P の 90% なので、余白は本文の幅の 1/18。% は Bleed の親（本文の幅）を基準に解決する
+       Container の幅の上限で止まっているとき（広い画面）は、本文の幅の 1/18 のまま（prose で約 37px）。実際の余白（最大 48px）までは届かない */
+  --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
+  /* ── END bleed */
 }
 
 /* ── skeleton keyframes */

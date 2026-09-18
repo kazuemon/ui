@@ -23,11 +23,21 @@ export interface ThemeProviderProps {
    * Transition の preset を書かないときの出方。書かないときは、浮かぶ面と同じ出方（下から上へ）です
    */
   transitionPreset?: TransitionPreset;
+  /**
+   * 日付と数を書く言語（Time・RelativeTime・NumberFormat）。部品の locale を書いたときは、そちらが勝ちます
+   * @default 'ja-JP'
+   */
+  locale?: string;
+  /**
+   * 時刻を書くタイムゾーン（Time・RelativeTime）。部品の timeZone を書いたときは、そちらが勝ちます
+   * @default 'Asia/Tokyo'
+   */
+  timeZone?: string;
   children?: ReactNode;
 }
 
 /**
- * 中の部品に、密度・浮かぶ UI の出し方・描く場所の既定をまとめて渡す入口
+ * 中の部品に、密度・浮かぶ UI の出し方・描く場所・言語とタイムゾーンの既定をまとめて渡す入口
  *
  * 入れ子にでき、内側の ThemeProvider が書いた値だけが外側より勝ちます。
  */
@@ -36,6 +46,8 @@ export function ThemeProvider({
   presentation,
   portalContainer,
   transitionPreset,
+  locale,
+  timeZone,
   children,
 }: ThemeProviderProps) {
   const outer = useContext(UIConfigContext);
@@ -44,8 +56,10 @@ export function ThemeProvider({
       presentation: presentation ?? outer.presentation,
       portalContainer: portalContainer !== undefined ? portalContainer : outer.portalContainer,
       transitionPreset: transitionPreset ?? outer.transitionPreset,
+      locale: locale ?? outer.locale,
+      timeZone: timeZone ?? outer.timeZone,
     }),
-    [presentation, portalContainer, transitionPreset, outer]
+    [presentation, portalContainer, transitionPreset, locale, timeZone, outer]
   );
   const content = <UIConfigContext value={value}>{children}</UIConfigContext>;
   if (density === 'auto') return content;

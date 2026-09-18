@@ -13,6 +13,10 @@ export interface UIConfig {
   portalContainer?: HTMLElement | null;
   /** Transition の preset を書かないときの出方 */
   transitionPreset?: TransitionPreset;
+  /** 日付・数を書く言語（Time・RelativeTime・NumberFormat） */
+  locale?: string;
+  /** 時刻を書くタイムゾーン（Time・RelativeTime） */
+  timeZone?: string;
 }
 
 export const UIConfigContext = createContext<UIConfig>({});
