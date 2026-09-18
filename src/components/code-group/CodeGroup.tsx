@@ -1,4 +1,3 @@
-import { Tabs } from '@base-ui/react/tabs';
 import {
   Children,
   cloneElement,
@@ -17,74 +16,65 @@ import { codeBlockStyles } from '../../internal/reading/code-block';
 import { codeTextOf } from '../../internal/reading/code-text';
 import { tv } from '../../internal/tv';
 import type { CodeBlockProps } from '../code-block/CodeBlock';
+import { Tab, TabList, TabPanel, Tabs } from '../tabs/Tabs';
 
 // 同じことを別のやり方で書いたコードを、タブで切り替える（pnpm / npm / yarn、TypeScript / JavaScript など）
 //   外枠・面・角・色は CodeBlock と同じ（src/internal/reading/code-block.ts）。ページと同じレイヤーなので影はない（原則1）
-//   題の帯の場所にタブを並べる。中の CodeBlock は題とコピーのボタンを出さず、帯は外の枠が 1 つだけ持つ
+//   題の帯の場所にタブを並べる。タブそのものは Tabs 部品（indicator="line"）。印・hover・押下・フォーカスの線は Tabs と同じ
+//     色だけをコードの面の色に差し替える（濃い地でも読めるように、--cb-fg・--cb-muted・--cb-line を Tabs の変数に入れる）
+//     文字は等幅の 14px（コードと同じ）。左右の余白は、帯の内側の余白と足してコードの左の余白（16px）にそろえる
+//   中の CodeBlock は題とコピーのボタンを出さず、帯は外の枠が 1 つだけ持つ
 //     中の CodeBlock の面は外枠と同じ色なので、重ねても境目は出ない
-//   タブは平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと沈む。選んだタブは文字を濃く太くし、下に部品の色の線を引く（軸 146）
-//     塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
-//   キーボードと読み上げ（tablist・tab・tabpanel、←→ で移る）は Base UI の Tabs に任せる
 //   コピーのボタンは、いま開いているタブのコードを写す（CodeBlock の題があるときと同じ場所・同じ見た目）
 const codeGroup = tv({
   slots: {
-    root: ['group/code-group relative flex min-w-0 flex-col', ...codeBlockStyles.surface],
-    // 帯: CodeBlock の題の帯と同じ高さ・同じ下の線。タブが入りきらないときは帯だけが横にスクロールする
-    list: [
+    root: [
+      'group/code-group relative flex min-w-0 flex-col',
+      // 帯の高さ（CodeBlock の題の帯と同じ）
       '[--cb-head-h:calc(var(--spacing-control)+var(--spacing)*2)]',
-      'flex min-w-0 items-stretch gap-(--code-group-tab-gap) overflow-x-auto px-(--code-group-list-px)',
-      // 下の余白は線の太さの分。選んだタブの下の線を、帯とコードの境界線に重ねて引くための場所
-      'min-h-[calc(var(--cb-head-h)+var(--code-group-bar))] pb-(--code-group-bar)',
-      // コピーのボタンの分だけ右を空ける
-      'pr-[calc(var(--spacing-control)+var(--spacing)*3)]',
-      'bg-(color:--cb-head-bg) [box-shadow:inset_0_calc(var(--border-width-thin)*-1)_0_0_var(--cb-line)]',
-      '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+      ...codeBlockStyles.surface,
+      // Tabs の色を、コードの面の色に差し替える
+      //   選んでいないタブの文字・並びの下の線は、役割のトークンをこの枠の中だけで置き換える
+      '[--color-fg-muted:var(--cb-muted)] [--color-line:var(--cb-line)]',
+      // 帯とコードの境目の線。印（indicator）がどれでも同じ場所に引く
+      "before:pointer-events-none before:absolute before:inset-x-0 before:top-(--cb-head-h) before:z-1 before:h-(--border-width-thin) before:bg-(color:--cb-line) before:content-['']",
+    ],
+    // 帯: CodeBlock の題の帯と同じ高さ・同じ下の線（Tabs の並びの線）
+    //   タブの並びは、枠の外へ 4px はみ出して同じだけ内側に余白を取る作り（フォーカスの線が切れないように）。
+    //   そのため見えている帯の高さは「タブの高さ＋上下の余白」になる
+    list: [
+      'bg-(color:--cb-head-bg)',
+      // 帯の高さを CodeBlock の題の帯にそろえる。タブの下端は、帯とコードの境目の線に接する
+      'pt-[calc(var(--cb-head-h)-var(--spacing-control))]',
+      // 並びは枠の外へ 4px はみ出す作りだが、左だけは戻す（タブの塗りが枠の角で切られないように）
+      //   タブの左右の余白（--code-group-tab-px）が、コードの左の余白（16px）と同じ位置に文字を置く
+      'ms-0',
+      // コピーのボタンの分は、並びの中で空ける（帯の下の線は幅いっぱいのまま）
+      '[&_[data-slot=tab-list]]:pe-[calc(var(--spacing-control)+var(--spacing)*2)]',
     ],
     tab: [
-      'relative inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap',
-      'my-(--code-group-tab-inset) rounded-(--code-group-tab-radius) px-(--code-group-tab-px)',
-      'font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
-      // 選んだタブ: 文字を濃く太く（どの印でも）。印は下の線（軸 146）
-      'aria-selected:text-(color:--cb-fg) aria-selected:[&_[data-slot=code-group-tab-label]]:font-bold',
-      'bg-(color:--flat-bg) [--flat-bg:var(--code-group-tab-rest)]',
-      'aria-selected:[--flat-bg:var(--code-group-tab-selected)]',
-      'hover:[--flat-bg:color-mix(in_oklab,var(--cb-fg)_var(--flat-hover-mix),var(--code-group-tab-rest))]',
-      'aria-selected:hover:[--flat-bg:color-mix(in_oklab,var(--cb-fg)_var(--flat-hover-mix),var(--code-group-tab-selected))]',
-      'active:translate-y-(--flat-press-depth)',
-      'active:[--flat-bg:color-mix(in_oklab,var(--cb-fg)_var(--flat-press-mix),var(--code-group-tab-rest))]',
-      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
-      'motion-reduce:[transition:none]',
-      // 選んだタブの下の線。帯とコードの境界線に重ねる
-      "aria-selected:after:pointer-events-none aria-selected:after:absolute aria-selected:after:inset-x-(--code-group-bar-inset) aria-selected:after:bottom-(--code-group-bar-bottom) aria-selected:after:h-(--code-group-bar) aria-selected:after:rounded-pill aria-selected:after:bg-(color:--code-group-bar-color) aria-selected:after:content-['']",
-      ...focusRing,
-      // 線はタブの内側に引く（外に離すと、帯の下の線を越えてしまう）。Tabs 部品のタブと同じ位置
-      'focus-visible:[outline-offset:var(--code-group-tab-focus-offset)]',
+      'font-mono text-(length:--text-body-sm-fine) leading-(--leading-label)',
+      'px-(--code-group-tab-px)',
+      // 選んだタブの文字は、コードの面の文字の色（Tabs の印ごとの既定より内側で置き換える）
+      '[--tabs-tab-color:var(--cb-fg)]',
     ],
-    // 太字にしても幅が動かないよう、太字の写しで幅を取っておく
-    label: 'col-start-1 row-start-1',
-    labelSizer: 'invisible col-start-1 row-start-1 font-bold',
-    labelBox: 'grid place-items-center',
-    panel: 'min-w-0',
+    panel: 'mt-0 min-w-0',
     copy: [
       'absolute z-1 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
       // 帯の中: 上と右に (帯の高さ − ボタン) / 2 = 4px（CodeBlock の題があるときと同じ）
-      'top-[calc((var(--spacing-control)+var(--spacing)*2-var(--spacing-control))/2)] right-1',
+      'top-[calc((var(--cb-head-h)-var(--spacing-control))/2)] right-(--code-group-copy-inset)',
       'h-(--spacing-control) min-w-(--spacing-control) px-[calc((var(--spacing-control)-var(--spacing-icon))/2)]',
       'rounded-control text-(color:--cb-muted)',
       'hover:[background-image:linear-gradient(var(--color-flat-hover),var(--color-flat-hover))]',
       'active:translate-y-(--flat-press-depth) active:[background-image:linear-gradient(var(--color-flat-press),var(--color-flat-press))]',
       '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       ...focusRing,
+      // 外枠が overflow: clip なので、フォーカスの線を内側に引く
       'focus-visible:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     copied: 'text-body-sm font-bold',
   },
   variants: {
-    // 選んでいるタブの印（軸 146）。line は下の線、text は文字の濃さと太さだけ
-    indicator: {
-      line: {},
-      text: { tab: '[--code-group-bar:0px]' },
-    },
     appearance: {
       surface: { root: codeBlockStyles.surfaceColors },
       dark: {
@@ -92,15 +82,17 @@ const codeGroup = tv({
           '[--cb-bg:var(--color-codeblock-dark-bg)] [--cb-fg:var(--color-codeblock-dark-fg)] [--cb-muted:var(--color-codeblock-dark-muted)]',
           '[--cb-head-bg:var(--color-codeblock-dark-head-bg)] [--cb-line:var(--color-codeblock-dark-line)]',
           '[--cb-copy-line:var(--color-codeblock-dark-copy-line)]',
-          '[--code-group-bar-color:var(--color-codeblock-dark-highlight)]',
-          '[--color-focus-ring:var(--cb-fg)]',
+          // 選んだタブの印と、フォーカスの線は、濃い地の上で見える色にする
+          '[--tabs-own:var(--color-codeblock-dark-highlight)]',
+          '[--color-focus-ring:var(--cb-fg)] [--color-own-focus:var(--color-codeblock-dark-highlight)]',
         ],
       },
     },
   },
-  defaultVariants: { appearance: 'surface', indicator: 'line' },
+  defaultVariants: { appearance: 'surface' },
 });
 
+/** 選んでいるタブの印（軸 146）。line は下の線、text は文字の濃さと太さだけ */
 export type CodeGroupIndicator = 'line' | 'text';
 
 type CodeChild = ReactElement<CodeBlockProps>;
@@ -162,7 +154,7 @@ export function CodeGroup({
   className,
   ...props
 }: CodeGroupProps) {
-  const s = codeGroup({ appearance, indicator });
+  const s = codeGroup({ appearance });
   const frameRef = useRef<HTMLDivElement>(null);
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
   const current = value ?? uncontrolled;
@@ -175,39 +167,38 @@ export function CodeGroup({
   const currentTitle = currentBlock?.props.title;
 
   return (
-    <Tabs.Root
-      value={current}
-      onValueChange={(next) => {
-        const index = typeof next === 'number' ? next : 0;
-        if (value === undefined) setUncontrolled(index);
-        onValueChange?.(index);
-      }}
+    <div
+      ref={frameRef}
       data-slot="code-group"
       data-appearance={appearance}
-      render={<div ref={frameRef} />}
       className={s.root({ className })}
       {...props}
     >
-      <Tabs.List aria-label={label} className={s.list()}>
+      <Tabs
+        // 印は Tabs の line（下の線が並びの線に重なる）。text のときは印を出さない
+        indicator={indicator === 'line' ? 'line' : 'text'}
+        color="primary"
+        value={current}
+        onValueChange={(next) => {
+          const index = typeof next === 'number' ? next : 0;
+          if (value === undefined) setUncontrolled(index);
+          onValueChange?.(index);
+        }}
+        className="min-w-0"
+      >
+        <TabList aria-label={label} className={s.list()}>
+          {blocks.map((block, index) => (
+            <Tab key={index} value={index} data-slot="code-group-tab" className={s.tab()}>
+              {block.props.title ?? `コード ${index + 1}`}
+            </Tab>
+          ))}
+        </TabList>
         {blocks.map((block, index) => (
-          <Tabs.Tab key={index} value={index} data-slot="code-group-tab" className={s.tab()}>
-            <span className={s.labelBox()}>
-              {/* 太字にしても幅が動かないよう、太字の写しで幅を取っておく */}
-              <span aria-hidden="true" className={s.labelSizer()}>
-                {block.props.title ?? `コード ${index + 1}`}
-              </span>
-              <span data-slot="code-group-tab-label" className={s.label()}>
-                {block.props.title ?? `コード ${index + 1}`}
-              </span>
-            </span>
-          </Tabs.Tab>
+          <TabPanel key={index} value={index} className={s.panel()}>
+            {cloneElement(block, { title: false, copyButton: false, appearance })}
+          </TabPanel>
         ))}
-      </Tabs.List>
-      {blocks.map((block, index) => (
-        <Tabs.Panel key={index} value={index} className={s.panel()}>
-          {cloneElement(block, { title: false, copyButton: false, appearance })}
-        </Tabs.Panel>
-      ))}
+      </Tabs>
       {copyButton ? (
         <button
           type="button"
@@ -233,6 +224,6 @@ export function CodeGroup({
       ) : null}
       {/* コピーしたことを読み上げる。箱は先に置いておき、中身だけを入れる */}
       <CopiedStatus copied={copied} label={copiedLabel} />
-    </Tabs.Root>
+    </div>
   );
 }

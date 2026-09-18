@@ -1155,25 +1155,12 @@
   /* ── END pager */
 
   /* ── CodeGroup — 軸 146 ── BEGIN code-group */
-  /* コードのタブ。外枠・面・色は CodeBlock と同じ（--cb-*）。ここはタブの並びだけを持つ。src/components/code-group
-     list-px: 帯の左右の余白。タブの左右の余白（tab-px）と足して、コードの左の余白（16px）にそろえる
-     tab-inset: タブの上下と帯のあいだ（hover の塗りを帯いっぱいにしない）。radius: hover の塗りの形（pill）
-     bar: 選んだタブの下の線の太さと色・位置。帯の下の線（帯とコードの境界線）に重ねる
-       bar-bottom は、タブの下からタブと帯のあいだ（tab-inset）の分だけ下げた位置。帯の下の余白は線の太さの分だけ取る
-     tab-rest・tab-selected: ふだんと選んだタブの塗り（既定はどちらも透明で、印は下の線だけ） */
-  --code-group-list-px: var(--spacing);
+  /* コードのタブ。外枠・面・色は CodeBlock と同じ（--cb-*）、タブそのものは Tabs 部品（--tabs-*）。src/components/code-group
+     ここは、コードの帯に置くための差だけを持つ
+     tab-px: タブの左右の余白。タブの文字の頭が、コードの左の余白（16px）と同じ位置に来る
+     copy-inset: コピーのボタンと、帯の上・右のあいだ（帯の高さ − ボタンの高さ）/ 2 */
   --code-group-tab-px: calc(var(--spacing) * 3);
-  --code-group-tab-gap: 0px;
-  --code-group-tab-inset: var(--spacing);
-  --code-group-tab-radius: var(--radius-pill);
-  --code-group-tab-rest: transparent;
-  --code-group-tab-selected: transparent;
-  --code-group-bar: calc(var(--spacing) / 2);
-  --code-group-bar-inset: 0px;
-  --code-group-bar-bottom: calc(var(--code-group-tab-inset) * -1);
-  --code-group-bar-color: var(--color-primary);
-  /* フォーカスの線は、タブの内側に引く（Tabs 部品の --tabs-tab-focus-offset と同じ） */
-  --code-group-tab-focus-offset: calc(var(--spacing) * -1);
+  --code-group-copy-inset: var(--spacing);
   /* ── END code-group */
 
   /* ── Toast — 軸 147・148 ── BEGIN toast */
