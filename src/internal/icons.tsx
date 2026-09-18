@@ -96,6 +96,21 @@ export const CaretLeftIcon = ({ standalone }: IconProps) => (
   </Icon>
 );
 
+// 左向き・右向きの矢印（Phosphor の ArrowLeft・ArrowRight）。Pager の前後の行き先が既定で使う
+export const ArrowLeftIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
+    <line x1="216" y1="128" x2="40" y2="128" />
+    <polyline points="112 56 40 128 112 200" />
+  </Icon>
+);
+
+export const ArrowRightIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
+    <line x1="40" y1="128" x2="216" y2="128" />
+    <polyline points="144 56 216 128 144 200" />
+  </Icon>
+);
+
 // 右上向きの矢印（Phosphor の ArrowUpRight）。ボタンの見た目のリンクに部品が必ず付ける。外のサイトへのリンクにも置く（design/adr/0046）
 // 文字のリンクは、新しいタブで開くときに部品が文字より少し小さく（0.85em）付ける（className で大きさと置き方を替える）
 export const ArrowUpRightIcon = ({ className }: Pick<IconProps, 'className'>) => (

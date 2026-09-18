@@ -5,7 +5,7 @@ import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { tv } from '../../internal/tv';
-import { codeTextOf } from './code-text';
+import { codeTextOf } from '../../internal/reading/code-text';
 
 // 複数行のコード（軸 64・66・67・68・69）
 // 色分けはブログ側がビルド時に Shiki で行い、この部品は色分けしたあとの HTML に見た目を付ける

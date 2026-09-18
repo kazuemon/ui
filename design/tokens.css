@@ -1001,6 +1001,190 @@
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
   /* ── END calendar */
+
+  /* ── Avatar — 軸 140・141 ── BEGIN avatar */
+  /* 人やものの顔（画像・頭文字・アイコン）。src/components/avatar
+     押せないので影はなく、ページと同じレイヤーに置く（原則1）
+     size-*: 大きさの段（正方形）。押すものではないので、入力方式では変えない（原則11。Badge と同じ）
+     text-*: 頭文字の大きさ。部品の文字ではなく、大きさの段に従う（およそ段の 0.4 倍）
+     radius-circle: 丸（shape="circle"、既定）。小物と同じ pill（原則5）— 軸 140
+     radius-rounded-*: 四角（shape="rounded"）の角。大きさの段に従い、小さい段（sm・md）は部品の角、大きい段（lg・xl）はカードの角 — 軸 140
+     outline-width・outline-color: 細い輪郭。白っぽい画像が白地に溶けないように付ける（原則1）。濃さは Image の輪郭と同じ。付けるかは利用者が選ぶ — 軸 140
+     icon-scale: 頭文字の代わりに人のアイコンを出すとき（fallback="icon"）の、大きさの段に対する割合 — 軸 141 */
+  --avatar-size-sm: calc(var(--spacing) * 6); /* 24px。文字の行に並べる */
+  --avatar-size-md: calc(var(--spacing) * 8); /* 32px。一覧の行 */
+  --avatar-size-lg: calc(var(--spacing) * 10); /* 40px。カードの見出し */
+  --avatar-size-xl: calc(var(--spacing) * 14); /* 56px。プロフィールの見出し */
+  --avatar-text-sm: 10px;
+  --avatar-text-md: 12px;
+  --avatar-text-lg: 16px;
+  --avatar-text-xl: 20px;
+  --avatar-radius-circle: var(--radius-pill);
+  --avatar-radius-rounded-sm: var(--radius-control);
+  --avatar-radius-rounded-md: var(--radius-control);
+  --avatar-radius-rounded-lg: var(--radius-card);
+  --avatar-radius-rounded-xl: var(--radius-card);
+  --avatar-outline-width: var(--border-width-thin);
+  --avatar-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --avatar-icon-scale: 0.6;
+  /* ── END avatar */
+
+  /* ── Breadcrumb — 軸 143・144 ── BEGIN breadcrumb */
+  /* パンくずリスト。src/components/breadcrumb
+     文字は読む文字の小さいほう（--text-body-sm。本文の上に置く注記 — 原則11）。影は付けない（原則1）
+     gap: 項目と区切りの印のあいだ。row-gap: 入りきらずに折り返したときの行のあいだ
+     separator-size・--color-breadcrumb-separator: 区切りの印の大きさ（周りの文字に対する比）と色。形は部品の separator で選ぶ（軸 143。既定は右向きの山、「/」も選べる）
+     link-*: 行き先のリンクの見た目（軸 144）。ここの値は既定（appearance="underline"）で、文字のリンクと同じ淡い下線。hover で下線だけが濃くなる（ADR-0030）
+       radius・px・py: 角丸と余白。いまいるページの文字も同じ余白で置き、行き先と位置をそろえる
+       underline・underline-hover: ふだんと hover の下線の色
+       hover-color: hover の文字の色（下線の案では変えない）
+       hover-bg・press-bg: 平らな要素として敷く塗り（下線の案では透明）。登録した変数（--flat-bg）に入れるので currentColor は混ぜられない
+     pill-*: appearance="pill"（Navbar の行き先と同じ平らな pill）のときに、部品が link-* に差し替える値 */
+  --breadcrumb-gap: var(--spacing);
+  --breadcrumb-row-gap: var(--spacing);
+  --breadcrumb-separator-size: 1em;
+  --color-breadcrumb-separator: var(--color-fg-subtle);
+  --breadcrumb-link-radius: var(--link-text-radius);
+  --breadcrumb-link-px: var(--spacing);
+  --breadcrumb-link-py: calc(var(--spacing) / 2);
+  --breadcrumb-link-color: var(--color-fg-muted);
+  --breadcrumb-link-hover-color: var(--breadcrumb-link-color);
+  --breadcrumb-link-underline: var(--color-link-underline);
+  --breadcrumb-link-underline-hover: var(--color-link-underline-hover);
+  --breadcrumb-link-hover-bg: transparent;
+  --breadcrumb-link-press-bg: transparent;
+  --breadcrumb-pill-radius: var(--radius-pill);
+  --breadcrumb-pill-px: calc(var(--spacing) * 3);
+  --breadcrumb-pill-py: var(--spacing);
+  --breadcrumb-pill-hover-bg: color-mix(
+    in oklab,
+    var(--color-fg) var(--flat-hover-mix),
+    transparent
+  );
+  --breadcrumb-pill-press-bg: color-mix(
+    in oklab,
+    var(--color-fg) var(--flat-press-mix),
+    transparent
+  );
+  /* ── END breadcrumb */
+
+  /* ── Pager — 軸 145 ── BEGIN pager */
+  /* 記事の前後へ移るナビ。src/components/pager
+     前と次の 2 つの行き先を横に並べ、狭いときは縦に積む。影は付けない（原則1: ページと同じレイヤー）
+     見た目は 2 つ（軸 145）。既定は押せるカード（card）で、矢印付きの文字のリンク（text）も選べる
+     gap: 2 つの行き先の間（縦に積んだときも同じ）。item-gap: 矢印と文字の間。label-gap: 小さい見出しと題の間
+     press-depth: 押して沈む深さ（平らな要素と同じ — 原則3）
+     label-display: 「前の記事」の小さい見出しを出すか（none で出さない。既定を出すかは未決）
+     押せるカード（card）: 押せるカードと同じ面。地と同じ白なので細い輪郭で面を見せ、hover で面を入力欄の塗りに、輪郭を 3:1 の濃さにする
+       card-padding-*: 面の余白。card-radius: 角（カードの角 — 原則5）。card-line-width・card-line・card-line-hover: 輪郭
+       card-fill・card-fill-hover・card-fill-press: 面の塗り。--flat-bg に入れて動かす（ADR-0112）
+     文字のリンク（text）: 面も枠線も持たず、矢印と題だけ。押せる範囲は矢印と文字の幅だけにする（原則7）
+       text-radius: フォーカスの線が沿う角。text-underline・text-underline-hover: 題の下線（文字のリンクと同じ色）
+       text-underline-duration・text-underline-ease: 下線の色が変わる速さ（文字のリンクと同じ） */
+  --pager-gap: calc(var(--spacing) * 3);
+  --pager-item-gap: calc(var(--spacing) * 2);
+  --pager-label-gap: calc(var(--spacing) * 1);
+  --pager-label-display: block;
+  --pager-press-depth: var(--flat-press-depth);
+  --pager-card-padding-block: calc(var(--spacing) * 3);
+  --pager-card-padding-inline: calc(var(--spacing) * 4);
+  --pager-card-radius: var(--radius-card);
+  --pager-card-line-width: var(--border-width-thin);
+  --pager-card-line: var(--color-surface-line);
+  --pager-card-line-hover: var(--color-line-strong);
+  --pager-card-fill: var(--color-surface);
+  --pager-card-fill-hover: var(--color-field);
+  --pager-card-fill-press: var(--color-field);
+  --pager-text-radius: var(--radius-control);
+  --pager-text-underline: var(--color-link-underline);
+  --pager-text-underline-hover: var(--color-link-underline-hover);
+  --pager-text-underline-duration: var(--link-underline-duration);
+  --pager-text-underline-ease: var(--link-underline-ease);
+  /* ── END pager */
+
+  /* ── CodeGroup — 軸 146 ── BEGIN code-group */
+  /* コードのタブ。外枠・面・色は CodeBlock と同じ（--cb-*）。ここはタブの並びだけを持つ。src/components/code-group
+     list-px: 帯の左右の余白。タブの左右の余白（tab-px）と足して、コードの左の余白（16px）にそろえる
+     tab-inset: タブの上下と帯のあいだ（hover の塗りを帯いっぱいにしない）。radius: hover の塗りの形（pill）
+     bar: 選んだタブの下の線の太さと色・位置。帯の下の線（帯とコードの境界線）に重ねる
+       bar-bottom は、タブの下からタブと帯のあいだ（tab-inset）の分だけ下げた位置。帯の下の余白は線の太さの分だけ取る
+     tab-rest・tab-selected: ふだんと選んだタブの塗り（既定はどちらも透明で、印は下の線だけ） */
+  --code-group-list-px: var(--spacing);
+  --code-group-tab-px: calc(var(--spacing) * 3);
+  --code-group-tab-gap: 0px;
+  --code-group-tab-inset: var(--spacing);
+  --code-group-tab-radius: var(--radius-pill);
+  --code-group-tab-rest: transparent;
+  --code-group-tab-selected: transparent;
+  --code-group-bar: calc(var(--spacing) / 2);
+  --code-group-bar-inset: 0px;
+  --code-group-bar-bottom: calc(var(--code-group-tab-inset) * -1);
+  --code-group-bar-color: var(--color-primary);
+  /* フォーカスの線は、タブの内側に引く（Tabs 部品の --tabs-tab-focus-offset と同じ） */
+  --code-group-tab-focus-offset: calc(var(--spacing) * -1);
+  /* ── END code-group */
+
+  /* ── Toast — 軸 147・148 ── BEGIN toast */
+  /* 一定の時間で消えるお知らせ（トースト）。面はお知らせ（Notice）と同じで、ここは置き方と重なりだけを持つ。src/components/toast
+     ページの上に重なるレイヤーなので、影は浮かぶ面と同じ（原則1）。輪郭も浮かぶ面と同じ細い線
+     width: 幅。inset: 画面の端からの距離。gap: 開いたときのあいだ
+     peek: 重ねたとき、後ろの 1 枚をのぞかせる高さ。scale-step: 後ろへ 1 枚ごとに縮める割合
+     duration・ease: 出入りと重なりの動き（浮かぶ面と同じ緩急、シートと同じ長さ） */
+  --toast-width: calc(var(--spacing) * 90);
+  --toast-inset: calc(var(--spacing) * 4);
+  --toast-gap: calc(var(--spacing) * 3);
+  --toast-peek: calc(var(--spacing) * 3);
+  --toast-scale-step: 0.05;
+  --toast-shadow: var(--shadow-overlay);
+  --toast-line: var(--color-surface-line);
+  --toast-duration: var(--duration-slow);
+  --toast-ease: var(--popup-ease);
+  /* 残り時間の線（消えるまでの時間を決めたときだけ出す）。面の下の端に引く
+     色は題・アイコンと同じ状態の色で、部品が面の要素で --toast-progress-color に入れる */
+  --toast-progress-height: calc(var(--spacing) / 2);
+  --toast-progress-opacity: 0.5;
+  /* ── END toast */
+
+  /* ── Tree — 軸 149・150 ── BEGIN tree */
+  /* 入れ子の行き先の木（ドキュメントの目次・ファイルの一覧）。src/components/tree
+     行は一覧の項目の仲間。hover は入力欄の塗り、押すと一段濃くして沈む（原則3）。高さは部品の高さ（原則11）
+     row-px: 行の左右の余白。gap: 印・アイコン・文字のあいだ。indent: 1 段ごとの字下げ
+     guide-*: 字下げの案内線（軸 149）。親の印の中心にそろえる。太さ 0 で線なし
+     current-*: いまいる行（軸 150）。面・文字・左の印（bar。太さ 0 で印なし）
+       色を持たないときの面は、Select の選んだ項目と同じグレー */
+  --tree-row-px: calc(var(--spacing) * 2);
+  --tree-gap: calc(var(--spacing) * 1.5);
+  /* 1 段の字下げ＝印の幅＋印と文字の間。子の行の印が、親の行の文字の頭にそろう */
+  --tree-indent: calc(var(--spacing-icon) + var(--tree-gap));
+  --tree-guide-width: var(--border-width-thin);
+  --tree-guide-color: var(--color-line);
+  /* 案内線の位置。行の左端から、開閉の印の中心まで（段の分は部品が --tree-depth を足す。
+     トークンの値はここ（:root）で解決されるので、段ごとに変わる分は部品の側で足す） */
+  --tree-guide-left: calc(var(--tree-row-px) + var(--spacing-icon) / 2);
+  --tree-row-rest: transparent;
+  --tree-row-hover: var(--color-field);
+  --tree-row-press: color-mix(in oklab, var(--color-field), var(--color-fg) 6%);
+  --tree-current-bg: var(--color-select-neutral-selected);
+  --tree-current-fg: var(--color-fg);
+  --tree-current-hover: color-mix(in oklab, var(--tree-current-bg), var(--color-fg) 8%);
+  /* 開け閉めで高さを動かすあいだ、中身を切る場所。フォーカスの線（離れ＋太さ）より外に取る */
+  /* Chrome は overflow-clip-margin に calc() を受け取らない（0 として扱う）ので、ここだけは計算せずに書く。
+     フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
+  --tree-panel-clip-margin: 6px;
+  --tree-current-bar: 0px;
+  --tree-current-bar-color: var(--color-primary);
+  /* ── END tree */
+}
+
+/* ── toast keyframes */
+/* 残り時間の線。消えるまでの時間をかけて、幅いっぱいから 0 へ縮む */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 /* ── calendar keyframes */
