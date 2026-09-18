@@ -43,16 +43,19 @@ const codeGroup = tv({
     // 帯: CodeBlock の題の帯と同じ高さ・同じ下の線（Tabs の並びの線）
     //   タブの並びは、枠の外へ 4px はみ出して同じだけ内側に余白を取る作り（フォーカスの線が切れないように）。
     //   そのため見えている帯の高さは「タブの高さ＋上下の余白」になる
+    // 帯そのもの（面と高さ）。タブの並びは、この中に置く
+    head: 'relative h-(--cb-head-h) bg-(color:--cb-head-bg)',
     list: [
-      'bg-(color:--cb-head-bg)',
+      // 選んだタブの下の線は、帯とコードの境目の線と同じ太さ（同じ 1 本の線の上に出す）
+      '[--tabs-indicator-bar:var(--border-width-thin)]',
       // 帯の高さを CodeBlock の題の帯にそろえる。タブの下端は、帯とコードの境目の線に接する
       'pt-[calc(var(--cb-head-h)-var(--spacing-control))]',
       // 並びは枠の外へ 4px はみ出す作りだが、左だけは戻す（タブの塗りが枠の角で切られないように）
       //   タブの左右の余白（--code-group-tab-px）が、コードの左の余白（16px）と同じ位置に文字を置く
       'ms-0',
-      // コピーのボタンの分だけ、スクロールする範囲を狭める（タブがボタンの下に入らない）
+      // コピーのボタンの手前で、スクロールする範囲を終わらせる（タブがボタンの下に入らない）
       //   帯とコードの境目の線は外枠が引くので、狭めても線は幅いっぱいのまま
-      'pe-[calc(var(--spacing-control)+var(--spacing)*2)]',
+      'me-[calc(var(--spacing-control)+var(--spacing)*2)]',
     ],
     tab: [
       'font-mono text-(length:--text-body-sm-fine) leading-(--leading-label)',
@@ -80,13 +83,17 @@ const codeGroup = tv({
     appearance: {
       surface: { root: codeBlockStyles.surfaceColors },
       dark: {
+        // 選んだタブの印とフォーカスの線は、濃い地の上で見える色にする
+        //   Tabs の色は Tabs のルートで解決されるので、印の色そのもの（--tabs-indicator-bg）を内側で置き換える
+        list: [
+          '[--tabs-indicator-bg:var(--color-codeblock-dark-highlight)]',
+          '[--color-own-focus:var(--color-codeblock-dark-highlight)]',
+        ],
         root: [
           '[--cb-bg:var(--color-codeblock-dark-bg)] [--cb-fg:var(--color-codeblock-dark-fg)] [--cb-muted:var(--color-codeblock-dark-muted)]',
           '[--cb-head-bg:var(--color-codeblock-dark-head-bg)] [--cb-line:var(--color-codeblock-dark-line)]',
           '[--cb-copy-line:var(--color-codeblock-dark-copy-line)]',
-          // 選んだタブの印と、フォーカスの線は、濃い地の上で見える色にする
-          '[--tabs-own:var(--color-codeblock-dark-highlight)]',
-          '[--color-focus-ring:var(--cb-fg)] [--color-own-focus:var(--color-codeblock-dark-highlight)]',
+          '[--color-focus-ring:var(--cb-fg)]',
         ],
       },
     },
@@ -189,13 +196,15 @@ export function CodeGroup({
         }}
         className="min-w-0"
       >
-        <TabList aria-label={label} className={s.list()}>
-          {blocks.map((block, index) => (
-            <Tab key={index} value={index} data-slot="code-group-tab" className={s.tab()}>
-              {block.props.title ?? `コード ${index + 1}`}
-            </Tab>
-          ))}
-        </TabList>
+        <div className={s.head()}>
+          <TabList aria-label={label} className={s.list()}>
+            {blocks.map((block, index) => (
+              <Tab key={index} value={index} data-slot="code-group-tab" className={s.tab()}>
+                {block.props.title ?? `コード ${index + 1}`}
+              </Tab>
+            ))}
+          </TabList>
+        </div>
         {blocks.map((block, index) => (
           <TabPanel key={index} value={index} className={s.panel()}>
             {cloneElement(block, { title: false, copyButton: false, appearance })}
