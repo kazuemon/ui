@@ -5,6 +5,7 @@ import {
   ArrowUDownLeftIcon,
   ArrowUpRightIcon,
   CaretDownIcon,
+  CaretLeftIcon,
   CaretRightIcon,
   CheckCircleIcon,
   CheckIcon,
@@ -43,7 +44,18 @@ const entries: Entry[] = [
     use: 'パスワードを隠す',
   },
   { name: 'CaretDownIcon', regular: <CaretDownIcon />, use: 'Select の ▼' },
-  { name: 'CaretRightIcon', regular: <CaretRightIcon />, use: '枠線のリンクの「›」' },
+  {
+    name: 'CaretLeftIcon',
+    regular: <CaretLeftIcon />,
+    bold: <CaretLeftIcon standalone />,
+    use: 'Calendar の前の月',
+  },
+  {
+    name: 'CaretRightIcon',
+    regular: <CaretRightIcon />,
+    bold: <CaretRightIcon standalone />,
+    use: '枠線のリンクの「›」・Calendar の次の月',
+  },
   {
     name: 'ArrowUpRightIcon',
     regular: <ArrowUpRightIcon />,

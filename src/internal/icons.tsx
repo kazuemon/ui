@@ -84,9 +84,15 @@ export const CaretDownIcon = () => (
   </Icon>
 );
 
-export const CaretRightIcon = () => (
-  <Icon>
+export const CaretRightIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
     <polyline points="96 48 176 128 96 208" />
+  </Icon>
+);
+
+export const CaretLeftIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
+    <polyline points="160 208 80 128 160 48" />
   </Icon>
 );
 
