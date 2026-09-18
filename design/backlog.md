@@ -7,7 +7,7 @@
 ## 調べている途中
 
 - チェックボックスやスイッチを切り替えたときに色がちらつく件: スイッチのトラックは直しました（[ADR-0112](./adr/0112-fill-transition-by-registered-property.md)）。Windows の GPU あり Chrome 153 の録画で、`background-color` の 100ms の移り変わりの最後の 1 フレームに動かす前の色が出ていました（コンポジタで動かした色を主スレッドへ戻すときの取りこぼし）。`background-color` を transition で動かす要素はすべて、登録した変数を動かす形にしました。チェックボックスの箱は色を動かしていないので、チェックボックスで見えたものが同じ現象かは分かっていません（見えたら録画で確かめる）
-- タッチで速く押すと、Chrome は `:active` を離したあと（切り替わったあと）に 100〜150ms 付けることがあり、トグルのノブが滑りながら縮んで戻ります。押下を `:active` ではなく pointer イベント（pointerdown〜pointerup）で持つ直しを、レンダリングの件とは別に出します。チェックボックス・ラジオ・ボタンの `:active` も同じ
+- タッチで速く押すと、Chrome は `:active` を離したあと（切り替わったあと）に 100〜150ms 付けることがあります。トグルは押下を pointer イベントで持つようにしました（[ADR-0113](./adr/0113-switch-press-by-pointer.md)）。チェックボックス・ラジオの押下（`--choice-press`）とボタンの沈みも `:active` で付けているので、同じ直し（`use-pressed.ts` を `src/internal/` へ移して使う）を当てるかは決めていません
 
 ## Button
 

@@ -304,7 +304,8 @@ export const States: Story = {
   name: '状態',
   tags: ['visual'],
   parameters: {
-    pseudo: statePseudo({ active: '[role="switch"]', focusVisible: '[role="switch"]' }),
+    // 押下は部品が pointer イベントで持つ（data-pressing）ので、pseudo-states では作れない。列の state から付ける
+    pseudo: statePseudo({ focusVisible: '[role="switch"]' }),
     controls: { exclude: ['defaultChecked'] },
     docs: {
       description: {
@@ -328,7 +329,13 @@ export const States: Story = {
         { label: 'フォーカス（キーボード）', state: 'focus' },
       ]}
       columnWidth="13rem"
-      renderCell={(checked) => <Switch {...args} defaultChecked={checked} />}
+      renderCell={(checked, { state }) => (
+        <Switch
+          {...args}
+          defaultChecked={checked}
+          data-pressing={state === 'active' ? '' : undefined}
+        />
+      )}
     />
   ),
 };
