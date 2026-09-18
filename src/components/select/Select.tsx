@@ -35,13 +35,13 @@ import {
 import { SelectOption, type SelectItem } from './SelectOption';
 import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
 import { usePopupLayout } from './use-popup-layout';
-import { type SheetDetent, useSheetDrag } from './use-sheet-drag';
+import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
 
 export type { SelectColor } from './select-colors';
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SelectItem, SelectItemNote, SelectItemNoteKind } from './SelectOption';
-export type { SheetDetent } from './use-sheet-drag';
+export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
 export type SelectPresentation = OverlayPresentation;

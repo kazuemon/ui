@@ -10,7 +10,7 @@ export interface ThemeProviderProps {
    */
   density?: 'auto' | 'fine' | 'coarse';
   /**
-   * 浮かぶ UI（Select・Dialog・Popover）の出し方の既定。部品の presentation を書いたときは、そちらが勝ちます
+   * 浮かぶ UI（Select・Menu・Dialog・Popover）の出し方の既定。部品の presentation を書いたときは、そちらが勝ちます
    * @default 'auto'
    */
   presentation?: OverlayPresentation;

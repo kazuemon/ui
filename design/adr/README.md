@@ -210,3 +210,13 @@
 | [0140](./0140-calendar-holiday.md)                       | Calendar の祝日                                                          | Accepted           |
 | [0141](./0141-calendar-range-preview.md)                 | Calendar で期間を選んでいる途中の帯                                      | Accepted           |
 | [0142](./0142-calendar-month-motion.md)                  | Calendar で月を送るときの動き                                            | Accepted           |
+| [0143](./0143-link-card-layout.md)                       | LinkCard の画像の位置                                                    | Accepted           |
+| [0144](./0144-link-card-site.md)                         | LinkCard のサイトの行                                                    | Accepted           |
+| [0145](./0145-link-card-text.md)                         | LinkCard の題と説明の行数                                                | Accepted           |
+| [0146](./0146-tabs-indicator.md)                         | Tabs の選んだタブの印                                                    | Accepted           |
+| [0147](./0147-tabs-motion.md)                            | Tabs の印の動き                                                          | Accepted           |
+| [0148](./0148-tabs-focus.md)                             | Tabs のフォーカスの線                                                    | Accepted           |
+| [0149](./0149-menu-marks.md)                             | Menu のチェックとラジオの印                                              | Accepted           |
+| [0150](./0150-menu-group-label.md)                       | Menu のグループの見出し                                                  | Accepted           |
+| [0151](./0151-menu-shortcut.md)                          | Menu のショートカットの文字                                              | Accepted           |
+| [0152](./0152-menu-submenu-sheet.md)                     | Menu の入れ子をシートで開く形と、つまみ                                  | Accepted           |

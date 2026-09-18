@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { SheetMetrics } from '../../internal/sheet/use-sheet-drag';
 import {
   CUE_RAMP,
   listContentLength,
@@ -13,14 +14,7 @@ import {
   SHEET_HALF,
 } from './measure';
 
-export interface SheetMetrics {
-  /** 中身をすべて出したときの高さ */
-  content: number;
-  /** 半分で開くときの高さ。最後の項目が半分だけ見えるところで切る（「まだ続きがある」ことを見せる） */
-  half: number;
-  /** 高さの上限 */
-  full: number;
-}
+export type { SheetMetrics } from '../../internal/sheet/use-sheet-drag';
 
 interface PopupLayoutOptions {
   open: boolean;

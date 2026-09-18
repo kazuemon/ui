@@ -4,7 +4,7 @@ import { type ReactNode, type Ref, useCallback, useImperativeHandle, useState } 
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import { useMoreCues } from '../../internal/sheet/use-more-cues';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
-import { useInlineCues } from './use-inline-cues';
+import { useInlineCues } from '../../internal/use-inline-cues';
 
 // スクロールする枠 — 軸 93。見た目の考えと値は internal/scroll-area-styles.ts（Textarea と共有する）
 

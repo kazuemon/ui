@@ -120,7 +120,38 @@ export { Image, type ImageProps } from './components/image/Image';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
 export { List, ListItem, type ListItemProps, type ListProps } from './components/list/List';
 export { Link, type LinkContentAlign, type LinkProps } from './components/link/Link';
+export { LinkCard, type LinkCardProps } from './components/link-card/LinkCard';
 export { Mark, type MarkProps } from './components/mark/Mark';
+export {
+  Menu,
+  type MenuAlign,
+  type MenuCollisionAvoidance,
+  type MenuColor,
+  type MenuGroupLabelStyle,
+  type MenuMarkPlacement,
+  type MenuPresentation,
+  type MenuProps,
+  type MenuRadioMark,
+  type MenuSide,
+  type MenuSubmenuSheet,
+} from './components/menu/Menu';
+export {
+  MenuCheckboxItem,
+  type MenuCheckboxItemProps,
+  MenuGroup,
+  type MenuGroupProps,
+  MenuItem,
+  type MenuItemProps,
+  MenuLinkItem,
+  type MenuLinkItemProps,
+  MenuRadioGroup,
+  type MenuRadioGroupProps,
+  MenuRadioItem,
+  type MenuRadioItemProps,
+  MenuSeparator,
+  MenuSubmenu,
+  type MenuSubmenuProps,
+} from './components/menu/MenuItem';
 export { LoadingBar, type LoadingIndicator, Spinner } from './components/loading/Loading';
 export {
   Notice,
@@ -195,6 +226,17 @@ export {
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Tag, type TagProps } from './components/tag/Tag';
+export {
+  Tab,
+  TabList,
+  type TabListProps,
+  TabPanel,
+  type TabPanelProps,
+  type TabProps,
+  Tabs,
+  type TabsColor,
+  type TabsProps,
+} from './components/tabs/Tabs';
 export { Text, type TextProps } from './components/text/Text';
 export { Time, type TimeProps } from './components/time/Time';
 export {

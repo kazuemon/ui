@@ -608,7 +608,7 @@ export const Sheet: Story = {
 };
 
 // つまみ（シートの見出し）を、指で縦にはじく・引く。wait を付けると、離す前に止まる（はじかない）
-// 部品は、離す直前の短いあいだ（80ms）の動きから速さを出す（src/components/select/measure.ts の releaseVelocity）。
+// 部品は、離す直前の短いあいだ（80ms）の動きから速さを出す（src/internal/sheet/use-sheet-drag.ts の releaseVelocity）。
 // 速さの元になる event.timeStamp は、イベントを出した時刻ではなく作った時刻。はじくときは押す・動く・離すを先にまとめて作り、
 // 出すのは 1 フレームずつ待ちながら行う（実機と同じく、動きごとに描き直される）。混んだ環境で出す間隔が延びても、速さは変わらない
 async function dragHandle(handle: Element, dy: number, wait = 0) {
