@@ -1,22 +1,9 @@
-// 浮かぶ選択肢とシートの寸法の計算と、つまみを引く操作のしきい値。DOM を読むが、状態は持たない
+// 浮かぶ選択肢とシートの寸法の計算。DOM を読むが、状態は持たない
+// つまみを引く操作のしきい値は src/internal/sheet/use-sheet-drag.ts（Select と Menu が共有）
 
 // シートの高さの上限と、半分で開くときの目安（画面の高さに対する割合）
 export const SHEET_FULL = 0.85;
 export const SHEET_HALF = 0.5;
-// シートのつまみを引く操作のしきい値。値は実機で詰める
-// iOS・Android のシートと、vaul・Base UI の Drawer にならい、離す直前の速さで「はじいた」かを見る
-//   flingVelocity: はじいたとみなす速さ（px/ms）。Base UI の Drawer は 0.5、vaul は 0.4、Android は 500px/s
-//   velocityWindow: 離す直前のこの時間（ms）の動きから速さを出す。それより前から止まっていたら、はじいていない（Base UI は 80ms）
-//   minVelocityDuration: 速さを出すときの時間の下限（ms）。動きの記録が1つしかないときに、速さが大きくなりすぎないようにする（Base UI は 16ms）
-//   closeRatio: はじかずに離したとき、半分の高さのこの割合より低ければ閉じる
-//   moveSlop: 動いた量がこれ以下（px）なら、引かずに押したとみなす
-export const SHEET_DRAG = {
-  flingVelocity: 0.5,
-  velocityWindow: 80,
-  minVelocityDuration: 16,
-  closeRatio: 0.6,
-  moveSlop: 4,
-} as const;
 // 続きの印が最も濃くなるまでのスクロールの量（px）
 export const CUE_RAMP = 24;
 // 浮かぶ選択肢の高さの上限（画面の高さに対する割合）。popoverMaxHeight="screen" のとき
@@ -72,16 +59,4 @@ export function loadingRowLength(list: HTMLElement) {
   const row = list.parentElement?.querySelector<HTMLElement>('[data-slot="select-loading"]');
   if (!row) return 0;
   return row.offsetHeight + parseFloat(getComputedStyle(row).marginBottom);
-}
-
-export interface DragSample {
-  y: number;
-  t: number;
-}
-
-// 離したときの縦の速さ（px/ms。下向きが正）。離す直前 velocityWindow の間の動きから出す
-export function releaseVelocity(samples: DragSample[], y: number, t: number) {
-  const first = samples.find((sample) => t - sample.t <= SHEET_DRAG.velocityWindow);
-  if (!first) return 0;
-  return (y - first.y) / Math.max(t - first.t, SHEET_DRAG.minVelocityDuration);
 }
