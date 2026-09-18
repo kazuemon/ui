@@ -8,6 +8,8 @@ const config: StorybookConfig = {
     '../src/components/*/*.stories.@(js|jsx|mjs|ts|tsx)',
     // 部品をまたぐ一覧（押せない状態の一覧など）
     '../src/stories/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // レシピ: 部品にせず、既存の部品を組み合わせて作るものの見本
+    '../src/recipes/*.stories.@(js|jsx|mjs|ts|tsx)',
     // デザイン原則の後半の比較（design/README.md）
     '../design/stories/*.stories.@(ts|tsx)',
   ],

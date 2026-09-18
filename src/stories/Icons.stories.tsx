@@ -13,6 +13,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
   InfoIcon,
+  ListIcon,
   WarningCircleIcon,
   WarningIcon,
   XIcon,
@@ -49,6 +50,12 @@ const entries: Entry[] = [
     use: '外へのリンク（右上向きの矢印）',
   },
   { name: 'CheckIcon', regular: <CheckIcon />, use: '選んだ選択肢の印' },
+  {
+    name: 'ListIcon',
+    regular: <ListIcon />,
+    bold: <ListIcon standalone />,
+    use: 'Navbar の、行き先を畳んだメニューを開くボタン',
+  },
   {
     name: 'ArrowUDownLeftIcon',
     regular: <ArrowUDownLeftIcon />,

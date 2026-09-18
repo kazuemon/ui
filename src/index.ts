@@ -31,6 +31,15 @@ export {
   type CalloutColor,
   type CalloutProps,
 } from './components/callout/Callout';
+export {
+  Card,
+  type CardAppearance,
+  CardBody,
+  type CardBodyProps,
+  CardImage,
+  type CardImageProps,
+  type CardProps,
+} from './components/card/Card';
 export { Checkbox, type CheckboxProps, type ChoiceColor } from './components/checkbox/Checkbox';
 export {
   CheckboxGroup,
@@ -96,6 +105,15 @@ export {
   type NoticeProps,
 } from './components/notice/Notice';
 export { NoticeRegion, type NoticeRegionProps } from './components/notice/NoticeRegion';
+export {
+  Navbar,
+  type NavbarCurrentIndicator,
+  NavbarLink,
+  type NavbarLinkProps,
+  type NavbarProps,
+  type NavbarStickyBackdrop,
+  type NavbarStickyEdge,
+} from './components/navbar/Navbar';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
 export {

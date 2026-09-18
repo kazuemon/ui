@@ -243,6 +243,7 @@
  *   --switch-track: トグルのトラック（OFF・ON）
  *   --switch-row-fill: 行全体を押せるトグルの行の塗り（hover・押下）
  *   --collapsible-row-fill: Collapsible の行の塗り（hover・開いている）
+ *   --card-fill: 押せるカードの面（hover）
  */
 @property --button-bg {
   syntax: '<color>';
@@ -275,6 +276,11 @@
   initial-value: transparent;
 }
 @property --collapsible-row-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --card-fill {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;
