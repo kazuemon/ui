@@ -38,13 +38,14 @@ const codeGroup = tv({
       '[--color-fg-muted:var(--cb-muted)] [--color-line:var(--cb-line)]',
       // 帯とコードの境目の線。印（indicator）がどれでも同じ場所に引く
       //   線の下端を帯の高さにそろえる。選んだタブの下の線（Tabs の印）は、この線に重なって同じ高さに出る
-      "before:pointer-events-none before:absolute before:inset-x-0 before:top-[calc(var(--cb-head-h)-var(--border-width-thin))] before:z-1 before:h-(--border-width-thin) before:bg-(color:--cb-line) before:content-['']",
+      //   線は印より下に置く（重ねると、選んだタブの下線が隠れる）
+      "before:pointer-events-none before:absolute before:inset-x-0 before:top-[calc(var(--cb-head-h)-var(--border-width-thin))] before:h-(--border-width-thin) before:bg-(color:--cb-line) before:content-['']",
     ],
     // 帯: CodeBlock の題の帯と同じ高さ・同じ下の線（Tabs の並びの線）
     //   タブの並びは、枠の外へ 4px はみ出して同じだけ内側に余白を取る作り（フォーカスの線が切れないように）。
     //   そのため見えている帯の高さは「タブの高さ＋上下の余白」になる
     // 帯そのもの（面と高さ）。タブの並びは、この中に置く
-    head: 'relative h-(--cb-head-h) bg-(color:--cb-head-bg)',
+    head: 'relative h-(--cb-head-h) overflow-clip bg-(color:--cb-head-bg)',
     list: [
       // 選んだタブの下の線は、帯とコードの境目の線と同じ太さ（同じ 1 本の線の上に出す）
       '[--tabs-indicator-bar:var(--border-width-thin)]',
