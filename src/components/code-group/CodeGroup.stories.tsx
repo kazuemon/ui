@@ -89,7 +89,7 @@ export const Appearances: Story = {
         </CodeGroup>
       </Specimen>
       <Specimen label="タブが多いとき（帯が横にスクロールする）">
-        <div className="max-w-[18rem]">
+        <div className="max-w-[13rem]">
           <CodeGroup>
             <CodeBlock title="pnpm" html={pnpmHtml} />
             <CodeBlock title="npm" html={npmHtml} />

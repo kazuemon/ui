@@ -37,7 +37,8 @@ const codeGroup = tv({
       //   選んでいないタブの文字・並びの下の線は、役割のトークンをこの枠の中だけで置き換える
       '[--color-fg-muted:var(--cb-muted)] [--color-line:var(--cb-line)]',
       // 帯とコードの境目の線。印（indicator）がどれでも同じ場所に引く
-      "before:pointer-events-none before:absolute before:inset-x-0 before:top-(--cb-head-h) before:z-1 before:h-(--border-width-thin) before:bg-(color:--cb-line) before:content-['']",
+      //   線の下端を帯の高さにそろえる。選んだタブの下の線（Tabs の印）は、この線に重なって同じ高さに出る
+      "before:pointer-events-none before:absolute before:inset-x-0 before:top-[calc(var(--cb-head-h)-var(--border-width-thin))] before:z-1 before:h-(--border-width-thin) before:bg-(color:--cb-line) before:content-['']",
     ],
     // 帯: CodeBlock の題の帯と同じ高さ・同じ下の線（Tabs の並びの線）
     //   タブの並びは、枠の外へ 4px はみ出して同じだけ内側に余白を取る作り（フォーカスの線が切れないように）。
@@ -49,8 +50,9 @@ const codeGroup = tv({
       // 並びは枠の外へ 4px はみ出す作りだが、左だけは戻す（タブの塗りが枠の角で切られないように）
       //   タブの左右の余白（--code-group-tab-px）が、コードの左の余白（16px）と同じ位置に文字を置く
       'ms-0',
-      // コピーのボタンの分は、並びの中で空ける（帯の下の線は幅いっぱいのまま）
-      '[&_[data-slot=tab-list]]:pe-[calc(var(--spacing-control)+var(--spacing)*2)]',
+      // コピーのボタンの分だけ、スクロールする範囲を狭める（タブがボタンの下に入らない）
+      //   帯とコードの境目の線は外枠が引くので、狭めても線は幅いっぱいのまま
+      'pe-[calc(var(--spacing-control)+var(--spacing)*2)]',
     ],
     tab: [
       'font-mono text-(length:--text-body-sm-fine) leading-(--leading-label)',
@@ -175,8 +177,9 @@ export function CodeGroup({
       {...props}
     >
       <Tabs
-        // 印は Tabs の line（下の線が並びの線に重なる）。text のときは印を出さない
-        indicator={indicator === 'line' ? 'line' : 'text'}
+        // 印は Tabs の underline（下の線だけ）。帯とコードの境目の線は、外枠がいつも引くのでこちらは出さない
+        //   text のときは印を出さない
+        indicator={indicator === 'line' ? 'underline' : 'text'}
         color="primary"
         value={current}
         onValueChange={(next) => {
