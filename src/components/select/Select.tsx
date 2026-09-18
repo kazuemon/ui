@@ -369,10 +369,10 @@ export function Select({
             data-addon-shape={addonShape}
             className={controlBox({
               className: [
-                'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:bg-field-focus',
+                'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
                 blocking ? 'cursor-progress' : 'cursor-pointer',
                 loading && 'relative',
-                'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:bg-field-focus',
+                'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
                 // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
                 '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
                 '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',

@@ -35,10 +35,12 @@ const rowBase = [
   // 1行の高さから引く線の太さ（上下の線の内側で1行を作る）
   '[--switch-line-inset:var(--border-width-thin)]',
   // 押しているあいだも hover と同じ塗り。指で操作するとき（hover なし）は、押した瞬間に塗る
-  'not-data-disabled:hover:bg-field not-data-disabled:active:bg-field',
+  //   塗りは --switch-row-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+  '[--switch-row-fill:transparent] bg-(color:--switch-row-fill)',
+  'not-data-disabled:hover:[--switch-row-fill:var(--color-field)] not-data-disabled:active:[--switch-row-fill:var(--color-field)]',
   // 塗りの動きの長さ。hover の入り・抜けと、離して戻るときは入力欄と同じ長さ、押して塗りが変わるときは 0ms
   //   CSS の transition は移った先の状態の長さを使うので、hover の入りと離したときの戻りは同じ長さになる
-  '[transition:background-color_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+  '[transition:--switch-row-fill_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
   'not-data-disabled:active:[transition-duration:0ms,var(--focus-ring-duration),var(--focus-ring-duration)]',
   'motion-reduce:[transition:none]',
   // フォーカスの線（focusRing と同じトークン）。トラックではなく行に描く。離し方は各形で --switch-row-focus-offset に置く
@@ -189,7 +191,8 @@ const styles = tv({
       // キーボードで操作したときのフォーカス（design/adr/0031）は、frame が none のときトラックの外側に描く（下の frame）
       // 塗りは、ノブの滑る動きと同じ長さ・緩急で一緒に動かす
       //   塗りだけを動かさないと、ノブが滑る前に明るさが跳び、一瞬白くなったように見える
-      '[transition:background-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      //   動かすのは background-color ではなく --switch-track（theme.css で登録した変数 — ADR-0112）
+      '[transition:--switch-track_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
       'data-disabled:bg-[color:var(--color-disabled,var(--switch-track))]',

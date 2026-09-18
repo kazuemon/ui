@@ -231,6 +231,50 @@
 }
 
 /*
+ * 塗りの移り変わりに使う変数（ADR-0112）
+ * Chrome（GPU あり）は background-color の移り変わりを、条件がそろうとコンポジタ側で動かす。要素の絵は動かす前の色で描いておき、
+ * 終わると主スレッドが最後の色で描き直す。この受け渡しがずれると、終わりの 1 フレームに動かす前の色が見える。
+ * 登録した変数の移り変わりは主スレッドで動くので、塗りが動く要素は background-color ではなく変数を transition で動かし、
+ * background-color にはその変数を渡す（bg-(color:--xxx)）。
+ *   --button-bg: Button の塗り（塗り・枠線・押せない・送信中・hover・押下）
+ *   --control-bg: 入力欄の本体（controlBox。通常・hover・フォーカス・エラー・押せない・開いている）
+ *   --addon-bg: 入力欄の prefix・suffix のボタン（hover・押下）
+ *   --flat-bg: 平らなボタン（Notice の ×・シートの ×・枠線のリンク）の hover・押下
+ *   --switch-track: トグルのトラック（OFF・ON）
+ *   --switch-row-fill: 行全体を押せるトグルの行の塗り（hover・押下）
+ */
+@property --button-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --control-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --addon-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --flat-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --switch-track {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --switch-row-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+/*
  * 下から出すシート（Drawer）を、はじいて閉じるときの動き
  * 半分の段があるとき、Base UI は引く操作の transition: none を外すのと同じ瞬間に閉じた位置へ動かすので、transition では滑らない。
  * 離した位置（段のずれ＋引いた量）から画面の下まで、シートと同じ長さと緩急で滑らせる（src/internal/sheet/SheetPopup.tsx）

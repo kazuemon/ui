@@ -83,8 +83,11 @@ const link = tv({
         // pill（原則5）。文字のリンクの角丸は --link-text-radius（フォーカスの線が沿う — design/adr/0031）
         'inline-flex h-(--spacing-control) items-center gap-2 rounded-pill border-(length:--border-width-medium) border-current px-(--spacing-control-x) whitespace-nowrap',
         'text-(length:--text-control) leading-(--leading-control) font-bold',
-        'not-data-disabled:hover:bg-flat-hover not-data-disabled:active:translate-y-(--flat-press-depth) not-data-disabled:active:bg-flat-press',
-        '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+        // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+        //   登録した変数は currentColor を補間できないので、文字の色（--link-color）を --flat-hover-mix・--flat-press-mix で混ぜる（--color-flat-* と同じ色）
+        'bg-(color:--flat-bg) [--flat-bg:transparent]',
+        'not-data-disabled:hover:[--flat-bg:color-mix(in_oklab,var(--link-color)_var(--flat-hover-mix),transparent)] not-data-disabled:active:translate-y-(--flat-press-depth) not-data-disabled:active:[--flat-bg:color-mix(in_oklab,var(--link-color)_var(--flat-press-mix),transparent)]',
+        '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
         // 押せないとき: 押せないグレーの枠線のボタンと同じ文字と枠線（design/adr/0029）
         'data-disabled:cursor-not-allowed data-disabled:[--link-color:var(--color-outline-neutral-disabled-text)]',

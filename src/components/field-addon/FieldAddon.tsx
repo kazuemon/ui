@@ -46,11 +46,15 @@ const fieldAddon = tv({
         'group-data-invalid/field:text-[color:var(--color-on-field-addon-invalid,var(--color-fg))]',
         // キーボードでフォーカスしているあいだは、本体の枠線を消してこの線だけにする（controlBox — design/adr/0040）
         ...focusRing,
-        '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+        // 塗りは --addon-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+        'bg-(color:--addon-bg) [--addon-bg:transparent]',
+        // 登録した変数は currentColor を補間できないので、文字の色を --addon-ink に置いて混ぜる（上の text-fg・エラーの色と同じ）
+        '[--addon-ink:var(--color-fg)] group-data-invalid/field:[--addon-ink:var(--color-on-field-addon-invalid,var(--color-fg))]',
+        '[transition:--addon-bg_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
-        // 淡く敷く濃さは --color-flat-hover・--color-flat-press と同じ（文字の色を 8%・16%）。グレーの上に重ねた色にする
-        'enabled:hover:bg-[color:color-mix(in_oklab,var(--addon-fill),currentColor_8%)]',
-        'enabled:active:bg-[color:color-mix(in_oklab,var(--addon-fill),currentColor_16%)]',
+        // 淡く敷く濃さは --color-flat-hover・--color-flat-press と同じ（--flat-hover-mix・--flat-press-mix）。グレーの上に重ねた色にする
+        'enabled:hover:[--addon-bg:color-mix(in_oklab,var(--addon-fill),var(--addon-ink)_var(--flat-hover-mix))]',
+        'enabled:active:[--addon-bg:color-mix(in_oklab,var(--addon-fill),var(--addon-ink)_var(--flat-press-mix))]',
         'disabled:cursor-not-allowed disabled:text-[color:var(--color-on-field-disabled,var(--color-fg))]',
       ],
     },
