@@ -16,6 +16,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
+import { usePortalContainer } from '../../internal/ui-config';
 
 export type DialogPresentation = OverlayPresentation;
 
@@ -35,6 +36,7 @@ export interface DialogProps {
   onOpenChange?: (open: boolean) => void;
   /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも中央に浮かべ、sheet はいつもシートにします
+   * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
   presentation?: DialogPresentation;
@@ -85,7 +87,7 @@ export interface DialogProps {
  * ページの上に重ねて、ほかの操作を止めて答えや入力を求める面
  */
 export function Dialog({
-  presentation = 'auto',
+  presentation,
   dismissible = true,
   open: openProp,
   defaultOpen = false,
@@ -147,6 +149,7 @@ function CenteredDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const portalContainer = usePortalContainer(container);
   const { anchorRef, scope } = useDensityScope(open);
   const overlayId = useId();
   return (
@@ -165,7 +168,7 @@ function CenteredDialog({
     >
       {trigger && <BaseDialog.Trigger ref={anchorRef} render={trigger} />}
       <OverlayCloseContext value={() => changeOpen(false)}>
-        <BaseDialog.Portal container={container}>
+        <BaseDialog.Portal container={portalContainer}>
           <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-ending-style:duration-(--popup-duration-out) data-starting-style:opacity-0 motion-reduce:transition-none" />
           <BaseDialog.Viewport className="fixed inset-0 z-10 grid place-items-center overflow-y-auto p-(--dialog-margin)">
             <BaseDialog.Popup

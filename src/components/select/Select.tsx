@@ -36,6 +36,7 @@ import { SelectOption, type SelectItem } from './SelectOption';
 import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
 import { usePopupLayout } from './use-popup-layout';
 import { type SheetDetent, useSheetDrag } from './use-sheet-drag';
+import { usePortalContainer } from '../../internal/ui-config';
 
 export type { SelectColor } from './select-colors';
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -120,6 +121,7 @@ export interface SelectProps {
   /**
    * 選択肢の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
    * sheet はいつもシートにします。シートにするのは指の動きを減らすためで、狭さそのものが理由ではありません（design/adr/0037）
+   * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
   presentation?: SelectPresentation;
@@ -218,7 +220,7 @@ export function Select({
   onOpenChange,
   container,
   collisionAvoidance,
-  presentation = 'auto',
+  presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
   popoverMoreCue = 'shadow',
@@ -239,6 +241,7 @@ export function Select({
   const loadingRow = loading && !loadingBlocking;
   // Form の送信中（後半の軸 38）も、同じく開けず値も変えられない。見た目は Field の data-loading="blocking"（押せない欄）
   // 読み込みと違い、選んだ値はそのまま出し（loadingText に置き換えない）、回る円は出さず、▼ は押せない Select と同じ色で残す
+  const portalContainer = usePortalContainer(container);
   const formLock = useFormSubmittingLock();
   const blocking = loadingBlocking || formLock.blocking;
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときは両方、エラー → 警告の順（design/adr/0041 の追記）
@@ -267,7 +270,7 @@ export function Select({
     open,
     sheet,
     popoverFit,
-    container,
+    container: portalContainer,
   });
 
   // 選択肢が長いときだけ、半分の高さで開いてつまみを出す
@@ -417,7 +420,7 @@ export function Select({
             </BaseSelect.Icon>
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
           </BaseSelect.Trigger>
-          <BaseSelect.Portal container={container}>
+          <BaseSelect.Portal container={portalContainer}>
             {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
             {sheet && (
               <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />

@@ -840,4 +840,120 @@
      テキストと並ぶときは Regular、アイコン単体（アイコンボタンなど）は Bold */
   --icon-stroke: 16;
   --icon-stroke-standalone: 24;
+
+  /* ── Icon（公開の Icon 部品）— 軸 88 ── BEGIN icon */
+  /* 既定の大きさ（size="text"）: 周りの文字の大きさに比例する（16px の文字に 20px）。ボタン・リンク・見出し・文のどこでも文字に合う
+     size="control" は部品の中の文字と並ぶ大きさ（--spacing-icon。密度で変わる）で、部品の中で指す */
+  --icon-size-text: 1.25em;
+  /* 文の中で、アイコンの中心を置く高さ（ベースラインから）。漢字の枠の中心。見出し 1〜4・本文・注記で
+     「国」の字面の中心を測ると 0.34〜0.375em（和文と欧文の大文字でほぼ同じ） */
+  --icon-text-center: 0.35em;
+  /* 段（size="sm"・"md"・"lg"）。密度で変わらない */
+  --icon-size-sm: calc(var(--spacing) * 4); /* 16px */
+  --icon-size-md: calc(var(--spacing) * 5); /* 20px */
+  --icon-size-lg: calc(var(--spacing) * 6); /* 24px */
+  /* 線の太さ（viewBox 256 に対する線幅）。文字と並ぶとき・アイコン単体（standalone）のとき — design/adr/0018 */
+  --icon-weight-inline: var(--icon-stroke);
+  --icon-weight-standalone: var(--icon-stroke-standalone);
+  /* ── END icon */
+
+  /* ── Skeleton — 軸 89 ── BEGIN skeleton */
+  /* 読み込み中の場所取り。ページと同じレイヤーなので影は付けない（原則1）。角は代わりに置くものの角（原則5）
+     fill: 面の色（入力欄の塗り）。highlight: 光の帯のいちばん明るいところの色
+     動きは 3 つから選ぶ（帯の向き・幅・絵の大きさは src/internal/skeleton-styles.ts。keyframes はファイル末尾）
+       sweep: 既定。面ごとに、縦の光の帯が左から右へ通り抜ける
+       sweep-viewport: 画面を基準にした帯が、並んだ面をまたいで通る（長さの 6 割で通り、残りは休む）
+       pulse: 面そのものの明滅（Tailwind の pulse。濃さ 100% ↔ 50%、2 秒）
+     動きを減らす設定では、どれも光は通さず、その場の明滅（Tailwind の pulse）に置き換える（原則3）
+     text-bar: 文字の行の帯の高さ（周りの文字の大きさに対する比）。行そのものは周りの行の高さを取り、帯はその中央に置く
+     text-radius: 文字の行の帯の角。last-line: 2 行以上のとき、最後の行の幅 */
+  --skeleton-fill: var(--color-field);
+  --skeleton-highlight: color-mix(in oklab, var(--color-surface) 60%, transparent);
+  --skeleton-sweep: skeleton-sweep 1.6s ease-in-out infinite;
+  --skeleton-sweep-viewport: skeleton-sweep-rest 2.8s ease-in-out infinite;
+  --skeleton-pulse: var(--animate-pulse);
+  --skeleton-text-bar: 1em;
+  --skeleton-text-radius: var(--radius-sm);
+  --skeleton-last-line: 60%;
+  /* ── END skeleton */
+
+  /* ── Image — 軸 90 ── BEGIN image */
+  /* 画像。角はカードの角、輪郭は Figure と同じ（原則5）。読み込むまでは Skeleton と同じ面（--skeleton-*）を置き、
+     読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
+     icon-size: 失敗したときのアイコンの大きさ */
+  --image-icon-size: calc(var(--spacing) * 8);
+  /* ── END image */
+
+  /* ── Collapsible — 軸 91 ── BEGIN collapsible */
+  /* 開閉の行（トリガー）と、中身の高さの動き。src/components/collapsible
+     行の塗り・区切り線・角は見た目（appearance）ごとに部品に書く。印の位置と回り方は indicator に従う
+     gap: 題と開閉の印のあいだ
+     row-gap: いつも塗る見た目（filled）で、続けて置いた行のあいだ（塗りの面がつながらないように）
+     中身: 高さを動かす長さと緩急（どの見た目も同じ）、出はじめの濃さ（1 で濃さは動かさない）
+       上下の余白は行の上下の余白と同じ（部品で計算する）。塗った行の面の下端から中身までが、面の中の余白とそろう */
+  --collapsible-gap: calc(var(--spacing) * 2);
+  --collapsible-row-gap: var(--spacing);
+  --collapsible-duration: var(--duration-normal);
+  --collapsible-ease: var(--ease-sheet);
+  --collapsible-start-opacity: 0;
+  /* ── END collapsible */
+
+  /* ── Transition — 軸 92 ── BEGIN transition */
+  /* 利用者の中身に付ける出入りの動き。src/components/transition
+     長さと緩急は出るとき（enter）と消えるとき（exit）で分ける。既定は浮かぶ面と同じ（--popup-*）
+     shift・scale: preset を書かないときの出方。下に shift ずれた位置・scale の大きさから、濃さと一緒に定位置へ戻る
+     preset-shift: fade-up・fade-down のずれ。preset-scale: scale のはじめの大きさ
+     動きを減らす設定では、どの形も動かさずにすぐ出す・消す（原則3） */
+  --transition-duration-enter: var(--popup-duration-in);
+  --transition-duration-exit: var(--popup-duration-out);
+  --transition-ease-enter: var(--popup-ease);
+  --transition-ease-exit: var(--popup-ease);
+  --transition-shift: var(--popup-shift);
+  --transition-scale: 1;
+  --transition-preset-shift: var(--popup-shift);
+  --transition-preset-scale: 0.96;
+  /* ── END transition */
+
+  /* ── ScrollArea — 軸 93 ── BEGIN scroll-area */
+  /* スクロールする枠。続きがあることは、端の内側の影（--color-sheet-edge-shadow。Select・シートと同じ）で見せる（原則1）
+     つまみは中身の上に重ねる細い棒。影があるときは、枠に載せたとき・スクロールしているあいだ・キーボードで止まったときに出す
+     （いつも出すことも選べる）。影をなくしたときは、いつも出す
+     thumb-size: つまみの太さ。見えている太さがそのまま押せる範囲（1 ラウンド目と同じ 4px）
+     thumb-size-hover: つまみそのものに載せたとき・つかんでいるあいだの太さ。枠の内側へ太くなる（ふだんの 2 倍）
+     thumb-inset: 枠の端からの隙間（押せる範囲には入れない） */
+  --scroll-area-thumb-size: var(--spacing);
+  --scroll-area-thumb-size-hover: calc(var(--spacing) * 2);
+  --scroll-area-thumb-inset: calc(var(--spacing) / 2);
+  --scroll-area-thumb-color: var(--color-line-strong);
+  /* ── END scroll-area */
+
+  /* ── Container — 軸 94 ── BEGIN container */
+  /* 本文の幅と左右の余白 — 軸 94 の E。幅（width-*）は余白を除いた中身の幅で、Tailwind の max-w-2xl・5xl・7xl と同じ値
+     読みもの（prose）は本文 16px でちょうど 1 行 42 字（42em）
+     左右の余白は画面の端に部品が付かないためのもので、押すものではないので入力方式では変えない。置いた場所の幅の 5%（16〜48px） */
+  --container-width-prose: calc(var(--spacing) * 168); /* 672px */
+  --container-width-default: calc(var(--spacing) * 256); /* 1024px */
+  --container-width-wide: calc(var(--spacing) * 320); /* 1280px */
+  --container-gutter-size: clamp(calc(var(--spacing) * 4), 5%, calc(var(--spacing) * 12));
+  /* ── END container */
+}
+
+/* ── skeleton keyframes */
+/* 読み込み中の面の光（軸 89。--skeleton-sweep）。光の絵の位置を右端から左端へ動かすと、帯が面の左の外から右の外へ通る */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+@keyframes skeleton-sweep-rest {
+  0% {
+    background-position: 100% 0;
+  }
+  60%,
+  100% {
+    background-position: 0% 0;
+  }
 }

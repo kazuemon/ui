@@ -242,6 +242,7 @@
  *   --flat-bg: 平らなボタン（Notice の ×・シートの ×・枠線のリンク）の hover・押下
  *   --switch-track: トグルのトラック（OFF・ON）
  *   --switch-row-fill: 行全体を押せるトグルの行の塗り（hover・押下）
+ *   --collapsible-row-fill: Collapsible の行の塗り（hover・開いている）
  */
 @property --button-bg {
   syntax: '<color>';
@@ -269,6 +270,11 @@
   initial-value: transparent;
 }
 @property --switch-row-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --collapsible-row-fill {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;

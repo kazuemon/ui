@@ -3,6 +3,7 @@ import { type ReactElement, type ReactNode, useEffect, useRef, useState } from '
 
 import { useDensityScope } from '../../internal/density-scope';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
+import { usePortalContainer } from '../../internal/ui-config';
 
 export type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 
@@ -73,6 +74,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
+  const portalContainer = usePortalContainer(container);
   const { anchorRef, scope } = useDensityScope(open);
   const changeOpen = (next: boolean) => {
     setOpenState(next);
@@ -150,7 +152,7 @@ export function Tooltip({
           event.stopPropagation();
         }}
       />
-      <BaseTooltip.Portal container={container}>
+      <BaseTooltip.Portal container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
           side={longPressed && longPressSide ? longPressSide : side}

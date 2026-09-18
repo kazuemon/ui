@@ -18,6 +18,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { Drawer } from '../drawer/Drawer';
+import { usePortalContainer } from '../../internal/ui-config';
 
 export type PopoverPresentation = OverlayPresentation;
 export type PopoverSide = 'top' | 'bottom' | 'left' | 'right';
@@ -52,6 +53,7 @@ export interface PopoverProps {
   onOpenChange?: (open: boolean) => void;
   /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも本体のそばに浮かべ、sheet はいつもシートにします
+   * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
   presentation?: PopoverPresentation;
@@ -74,7 +76,7 @@ export interface PopoverProps {
  * ほかの操作は止めず、外を押すか Esc で閉じます
  */
 export function Popover({
-  presentation = 'auto',
+  presentation,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -130,13 +132,14 @@ function FloatingPopover({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const portalContainer = usePortalContainer(container);
   const { anchorRef, scope } = useDensityScope(open);
   const heading = title != null || description != null;
   return (
     <BasePopover.Root open={open} onOpenChange={changeOpen}>
       <BasePopover.Trigger ref={anchorRef} render={trigger} />
       <OverlayCloseContext value={() => changeOpen(false)}>
-        <BasePopover.Portal container={container}>
+        <BasePopover.Portal container={portalContainer}>
           <BasePopover.Positioner
             side={side}
             align={align}
