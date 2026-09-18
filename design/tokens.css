@@ -989,6 +989,31 @@
        Container の幅の上限で止まっているとき（広い画面）は、本文の幅の 1/18 のまま（prose で約 37px）。実際の余白（最大 48px）までは届かない */
   --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
   /* ── END bleed */
+
+  /* ── Calendar — ADR-0133〜0142 ── BEGIN calendar
+     日は部品の高さの正方形（原則7・11）。平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む
+     選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯、選んでいる途中は半分の濃さの帯（ADR-0141）
+     今日は太字と短い下線（ADR-0135）。日曜と祝日は危険の赤、土曜は情報の青（ADR-0137・0140） */
+  /* 色を持たない（neutral）ときの淡い面。Select の選んだ項目と同じグレー */
+  --color-calendar-neutral-subtle: var(--palette-gray-200);
+  --color-calendar-sunday: var(--color-fg-danger);
+  --color-calendar-saturday: var(--color-fg-info);
+  /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
+  --calendar-month-fade-duration: 150ms;
+  /* ── END calendar */
+}
+
+/* ── calendar keyframes */
+/* 月を送るときの動き（monthTransition="fade" — ADR-0142）。新しい月はその場で現れ、前の月はその場で消える */
+@keyframes calendar-month-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes calendar-month-fade-out {
+  to {
+    opacity: 0;
+  }
 }
 
 /* ── skeleton keyframes */

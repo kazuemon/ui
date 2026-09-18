@@ -151,7 +151,7 @@
 - [ ] TimePicker
 - [ ] ColorPicker
 - [ ] Rating
-- [ ] Calendar
+- [x] Calendar
 - [ ] DateRangePicker
 - [x] CheckboxGroup
 - [ ] MaskInput
