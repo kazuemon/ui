@@ -107,7 +107,7 @@
   - つまみを押しても、Select のシートのように半分と高さいっぱいを切り替えません。はじいたとみなす速さも Base UI の値です
   - Tooltip の長押し（500ms）は実機で確かめていません。iOS の Safari で文字の選択や端末のメニューが出ないか、スクロールの始まりと取り違えないかを見ます
   - 構造を固定する Provider（原則11 の「使う側が固定できる」）は、まだ部品ごとの `presentation` だけです
-  - AlertDialog（外を押しても Esc でも閉じない確かめ）は部品として持たず、`dismissible`・`closeOnEscape`・`closeButton` の組み合わせで作ります
+  - AlertDialog（外を押しても Esc でも閉じない確かめ）は部品として持たず、`dismissible`・`closeOnEscape`・`closeButton` の組み合わせで作ります（2026-09-19: この記述は [ADR-0123](./0123-alert-dialog.md) で覆しました。組み合わせを間違えないことと、読み上げの役割を確実に切り替えるため、AlertDialog を部品として作りました）
 
 ## 原則への反映
 

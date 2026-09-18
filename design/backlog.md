@@ -15,15 +15,54 @@
 - 押せない理由（キャプション）を Tab で移る人にも届けるには、押せないときもフォーカスできるボタン（aria-disabled。Base UI の `focusableWhenDisabled` に当たるもの）が要ります。いまの押せないボタンは Tab で止まりません
 - キャプションがボタンより長いときは、ボタンの幅で折り返します。和文が語の途中で折れる（「残/ります」）ので、文節で折る（`word-break: auto-phrase`。いまは Chrome だけ）かは決めていません
 - キャプションのあるボタンとないボタンを横に並べるとき、`items-center` の並びでは、キャプションのないボタンが中央に寄ります。上端でそろえる決まりを使い方に書くかは決めていません
+- 塗りも枠線もない、いちばん軽いボタンの見た目（ghost）はありません（[ADR-0128](./adr/0128-copy-button.md)）
 
 ## Link
 
-- アイコンだけの枠線のリンクは、左右の余白が今のままなので、指用では 54×44px の横長になります。正方形（丸）にして、アイコンだけのボタンと合わせるかは決めていません
+- アイコンだけの枠線のリンクは、左右の余白が今のままなので、指用では 54×44px の横長になります。Button のアイコンだけのボタンは角（`shape`）を選べるようになりました（[ADR-0127](./adr/0127-icon-only-button-shape.md)）。Link をそろえるかは決めていません
 - Chrome は、名前を付けていないリンクや aria-labelledby のリンクで、「リポジトリ （新しいタブで開きます）」のように文の前に空白を入れます（読み上げの文が絶対配置で、ブロック扱いになるため）。二重には読まれません
 
 ## TextField
 
-- 読み取り専用（readOnly）の TextField が、通常の欄と同じ見た目です。原則8 の「読み取り専用の欄は下線だけ」の形をまだ作っていません。「4 あとでにします。」（押せない状態の一覧の 7）
+- 読み取り専用（readOnly）の TextField が、通常の欄と同じ見た目です。原則8 の「読み取り専用の欄は下線だけ」の形をまだ作っていません。「4 あとでにします。」（押せない状態の一覧の 7）。Textarea も同じです（[ADR-0124](./adr/0124-textarea.md)）
+
+## Textarea
+
+2026-09-19 に作りました。決定は [ADR-0124](./adr/0124-textarea.md) です。
+
+- `loading`・`prefix`・`suffix` はまだありません
+- 上限（`maxCount`）に近づいたことを予告する見た目は作っていません。超えたときだけ知らせます
+- 文字数は `String.length` で数えます。絵文字などは、実際に見える文字数と数え方が違うことがあります
+- 右下のつまみで一度高さを変えたあと、入力に合わせて伸びる動きへ戻す手段がありません
+- iOS で右下のつまみがどう見える・操作できるかは実機で確認していません
+- 高さの計算（`--textarea-min-height`・`--textarea-max-height` など）は欄の要素で密度のトークンを読むので、開いたあとに祖先の密度が変わっても再計算されるかは確認していません
+
+## Accordion
+
+2026-09-19 に作りました。決定は [ADR-0122](./adr/0122-accordion.md) です。
+
+- 入れ子の Accordion（Accordion の中に Accordion）は確かめていません
+- フォームを送っているあいだ、開閉を止める仕組み（`useFormSubmittingLock` 相当）はまだありません
+
+## AlertDialog
+
+2026-09-19 に作りました。決定は [ADR-0123](./adr/0123-alert-dialog.md) です。
+
+- シートの面の読み上げの役割（`alertdialog`）は、`PopupRole` が DOM の `role` 属性を layout effect で書き換えるハックで付けています。Base UI の `SheetPopup` が role を props で受け取らないためで、`SheetPopup` に role を渡せるようにするのが本筋です
+
+## CopyButton
+
+2026-09-19 に作りました。決定は [ADR-0128](./adr/0128-copy-button.md) です。
+
+- 写せなかったとき（権限がない・安全でない接続）の見た目はありません。`onCopyError` で使う側が知らせる前提です
+
+## Mark・Time・RelativeTime・NumberFormat
+
+2026-09-19 に作りました。決定は [ADR-0121](./adr/0121-reading-datetime-number.md) です。
+
+- RelativeTime の「昨日」などの境界は UTC の 0 時で計算します。端末のタイムゾーンでの体感の「今日」とずれることがあります
+- `Intl.RelativeTimeFormat`・`Intl.NumberFormat` の言い回しは、ICU のバージョンでブラウザによって変わることがあります
+- 数字の幅をそろえるか（tabular-nums 相当）は比べていません。欧文フォント（Mulish）の数字がもとから等幅で、見た目の差が出なかったためです
 
 ## Select
 
@@ -44,9 +83,6 @@
 - はじいて閉じるときは、半分の段から閉じる動きだけキーフレームで書いています（Base UI が引く操作の transition を外すのと同じ瞬間に閉じた位置へ動かすため）。Base UI を上げたら要らなくなるかを見ます
 - 横から出すパネルの幅と影の向きの違いは小さく、見た目の回帰テストでは差になりません（画素の比較のしきい値の中）。影の向きを変えるときは、目で確かめます
 - 開いた Popover が、横スクロールする親の外に隠れると置き場所を探し続けます。Popover 側の問題です（[ADR-0119](./adr/0119-scroll-area.md)）
-- AlertDialog（取り消せない操作の確かめ専用の形）を作っていません
-  - イメージ: 外を押しても Esc でも閉じず、× も置かない Dialog。閉じるのは下のボタンだけ。読み上げでは `alertdialog` として扱い、開いた直後のフォーカスは取り消しの側に置く
-  - いまの Dialog でも `dismissible={false}`・`closeOnEscape={false}`・`closeButton={false}` と `autoFocus` で同じ形にできる。部品にする値打ちは、組み合わせを間違えないことと、読み上げの役割が変わること
 - Tooltip を長押しで出したあと、指を離さずに動かすと、Base UI の位置の追従で向きが変わることがあります。実機で見ます
 - 半分の段のときに面へ足している下の余白は、Base UI が測る面の高さを増やし、中身が画面の 50〜85% のとき、面の高さが上限に達するまで数回往復します。上端の位置は保たれるので目には出にくいはずですが、開く途中で面の動きと高さの変化がずれないかを実機で見ます（[ADR-0111](./adr/0111-sheet-swipe-lock-and-close-fixes.md)）
 - 段があり、はじいて閉じない設定のシートは、いちばん低い段から下へ引く動きだけ止められません（Base UI は上端の行き過ぎしか減衰しない）。離すと段に戻ります。Base UI を上げたら止められるかを見ます
@@ -133,12 +169,10 @@
 
 2026-09-18 に作りました。決定は [ADR-0113](./adr/0113-foundation-components.md)〜[ADR-0120](./adr/0120-container.md) です。
 
-- Bleed（画像を Container の余白の外へ出す）は作っていません。Container は中の要素に `--container-gutter`・`--container-width` を渡しますが、`--container-gutter` は `%` を含むので、読む要素の親の幅を基準に解決される点に注意します（[ADR-0120](./adr/0120-container.md)）
 - ScrollArea の左右の影の計算（`use-inline-cues` の CUE_RAMP）が、上下の `useMoreCues` と重複しています。横にも広げて internal にまとめるかを決めます。対象は ScrollArea・Select・シート・表・CodeBlock のスクロールです（[ADR-0119](./adr/0119-scroll-area.md)）
 - Image の寸法のない画像は、読み込めたときに高さが変わって下の内容が動きます（[ADR-0116](./adr/0116-image.md)）
 - Skeleton の `sweep-viewport` は、transform の付いた要素の中と iOS の Safari では面ごとの光になります（[ADR-0115](./adr/0115-skeleton.md)）
 - 見た目のテスト（pixelmatch の既定のしきい値）は、背景に近い薄いグレーの変化を見落とします。Skeleton の色の変更のときに分かりました（[ADR-0115](./adr/0115-skeleton.md)）
-- Button にアイコンだけのボタンの形がありません。Icon のストーリーでは className で四角にしています（[ADR-0114](./adr/0114-icon.md)）
 - `pnpm test -u <パス>` が範囲を絞らず全体の基準画像を書き換えることがあります。`pnpm vitest run --project=storybook <パス>` なら絞れます
 - `capture-story.mjs --pick A,B` のように採用の案を「,」区切りで渡すと、Storybook が URL の引数を安全でないとみなして捨て、採用の印が付きません。ストーリーの `pick` の既定値に書けば付きます
 - ScrollArea のつまみ（ふだんは細い）がマウスで狙いにくくないか、実機で見ます（[ADR-0119](./adr/0119-scroll-area.md)）

@@ -35,6 +35,9 @@ pnpm test -u     # 基準画像を撮り直す（意図して見た目を変え�
 2. **画面が 0.8 倍に縮む。** ストーリーを描く枠（1200×900）が窓（既定 1280×720）に収まらないと、Vitest が枠ごと縮めます。縮むと 1px のずれがふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがします。`contextOptions.viewport` を枠より大きく取りました（`browser.viewport` は provider 側で無効化されていて効きません）
 3. **許す幅は割合で持たない。** `allowedMismatchedPixelRatio: 0.002` では、全ボタンの角を 12px から 0px にしても 4 本中 3 本が通りました。`allowedMismatchedPixels: 0` にしています
 4. **基準画像の置き場が Storybook を壊す。** 既定の置き場は `__screenshots__/Button.stories.tsx/` で、この**ディレクトリ名**が `../src/**/*.stories.tsx` に一致し、Storybook の索引作りが EISDIR で落ちて画面が真っ白になります。`screenshotDirectory` は何を渡してもテストファイルの隣に継ぎ足されるので（絶対パスも先頭の `/` が落ちる）、Storybook 側の指定を `**` から `*` に変えて、ディレクトリに降りないようにしました
+5. **`:not(:focus)` で隠す書き方は、pseudo-states で固定すると出てこない。** 「ふだんは隠れ、フォーカスしたときだけ見せる」を `not-focus:sr-only`（`:not(:focus)`）で書くと、`storybook-addon-pseudo-states` が `:not()` の中身を `:not(:focus), :not(.pseudo-focus)` に書き換えます。`.pseudo-focus` クラスを当てても `:not(:focus)` はまだ真のままなので、フォーカスした状態に固定したストーリーでも隠れたままになります。「フォーカスしたときだけ現す」ものは、`focus:` 側に見せる指定を書く形にします（SkipLink）
+6. **Controls で props を切り替えても、pseudo-states は前のクラスを外さない。** `storybook-addon-pseudo-states` が要素に付けた `.pseudo-focus` などのクラスは、Controls で props を変えても残ったままで、状態の見た目が消えません。切り替えるたびに要素を作り直す（切り替える値を `key` にする）と直ります（Accordion の `indicator`・focusRing の切り替え）
+7. **`pnpm test -u` は、パスを渡しても範囲を絞らないことがあります。** ディレクトリのパスだけでは全体の基準画像を撮り直すことがあります。範囲を絞るには、パスの後ろに `--update` を続けて書くか、ファイルを直接指定します（`pnpm vitest run --project=storybook <パス>` も使えます）
 
 ## 撮影の条件（`vitest.config.ts`）
 
