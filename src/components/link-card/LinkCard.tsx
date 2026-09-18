@@ -13,7 +13,7 @@ import { newTabNaming, opensNewTab, renderPropOf } from '../../internal/link-par
 import { tv } from '../../internal/tv';
 import { Image } from '../image/Image';
 
-// リンクカード — 軸 115〜117 で決定（ADR 未定）
+// リンクカード — 軸 115〜117 で決定（ADR-0143〜0145）
 //   記事の中から別のページへ移るカード。題・説明・サイト（favicon とドメイン）・画像を並べ、カード全体が 1 つのリンクになる
 //   カードの仲間なので、面・角・輪郭・hover・押下はカード（Card）と同じ（原則1・3・5）。影は付けない
 //     hover で面を入力欄の塗りにし（--card-fill。theme.css で登録）、輪郭を 3:1 の濃さにし、画像を少し大きくする

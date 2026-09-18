@@ -10,7 +10,7 @@ import { useInlineCues } from '../../internal/use-inline-cues';
 // タブ。値は design/tokens.css の --tabs-*
 //   振る舞い（矢印キーで移る・読み上げの tablist/tab/tabpanel）は Base UI の Tabs
 //   タブは平らな押すもの: hover は本文の色を淡く敷き、押すと沈む（原則3・ADR-0027）。選んでいるタブは押しても変わらないので、hover も沈みもしない
-//   選んだタブの印は 1 つの要素（Tabs.Indicator）で描き、選んだタブの位置へ動く。見た目は indicator（軸 118・決定、ADR 未定）、動きは indicatorMotion（軸 119・決定、ADR 未定）
+//   選んだタブの印は 1 つの要素（Tabs.Indicator）で描き、選んだタブの位置へ動く。見た目は indicator（軸 118・決定、ADR-0146）、動きは indicatorMotion（軸 119・決定、ADR-0147）
 //     色は部品の色（原則6）。指定しないときはグレー（濃いグレーの線・グレーの面）。フォーカスの線も部品の色（ADR-0071）
 //     indicator・indicatorMotion が選ぶ値は、Tabs のルートに内部の CSS 変数（--tabs-indicator-*・--tabs-list-*・--tabs-tab-color）として置き、他のスロットはその変数だけを読む
 //   選んだタブの文字は太くする。太くしても幅が変わらないよう、太字の写しを見えないまま重ねて幅を取っておく（印が動くあいだにタブが揺れない）
@@ -18,7 +18,7 @@ import { useInlineCues } from '../../internal/use-inline-cues';
 //     枠そのものには Tab で止まらない（タブにフォーカスすると、そのタブが見える位置までスクロールする）
 //     フォーカスの線が枠で切れないよう、枠を外へ広げ、同じだけ内側に余白を取る（--tabs-ring-room）
 //   押せないタブは、色を持たない押すものと同じく薄いグレーの文字（原則1）
-//   フォーカスの線（軸 120・決定、ADR 未定）: タブは内側に引く（--tabs-tab-focus-offset。外に離すと下の印・並びの線を越える）
+//   フォーカスの線（軸 120・決定、ADR-0148）: タブは内側に引く（--tabs-tab-focus-offset。外に離すと下の印・並びの線を越える）
 //     パネルは全体と同じ離れで、角を小さくする（--tabs-panel-radius。1 行のパネルでも pill に見えない）
 
 export type TabsColor = 'neutral' | 'primary' | 'secondary';
@@ -104,7 +104,7 @@ const tabs = tv({
         root: '[--color-own-focus:var(--color-fg-secondary)] [--tabs-own-subtle:var(--color-secondary-subtle)] [--tabs-own-text:var(--color-on-secondary-subtle)] [--tabs-own:var(--color-fg-secondary)]',
       },
     },
-    // 選んだタブの印（軸 118・決定、ADR 未定）。各案が --tabs-indicator-*・--tabs-list-*・--tabs-tab-color を決めきる
+    // 選んだタブの印（軸 118・決定、ADR-0146）。各案が --tabs-indicator-*・--tabs-list-*・--tabs-tab-color を決めきる
     indicator: {
       line: {
         root: [
@@ -147,7 +147,7 @@ const tabs = tv({
         ].join(' '),
       },
     },
-    // 印の動き（軸 119・決定、ADR 未定）。既定は滑る。none はすぐ切り替える
+    // 印の動き（軸 119・決定、ADR-0147）。既定は滑る。none はすぐ切り替える
     indicatorMotion: {
       slide: { root: '[--tabs-indicator-duration:var(--duration-normal)]' },
       none: { root: '[--tabs-indicator-duration:0ms]' },
