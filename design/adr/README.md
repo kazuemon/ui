@@ -180,3 +180,4 @@
 | [0110](./0110-sheet-handle-and-long-press-side.md)       | シートのつまみは引ける印、Tooltip は長押しで上に出す                   | Accepted           |
 | [0111](./0111-sheet-swipe-lock-and-close-fixes.md)       | シートの引く操作を止める仕組みと、閉じるときの影・× の場所             | Accepted           |
 | [0112](./0112-fill-transition-by-registered-property.md) | 塗りの移り変わりは、登録した変数で動かす                               | Accepted           |
+| [0113](./0113-switch-press-by-pointer.md)                | トグルの押下は :active ではなく pointer イベントで持つ                 | Accepted           |

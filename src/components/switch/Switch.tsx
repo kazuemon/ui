@@ -6,6 +6,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { focusRing } from '../../internal/focus-styles';
 import { useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
+import { usePressed } from './use-pressed';
 
 // OFF のトラックはグレー（チェックボックスの選んでいない箱と同じ色。--color-switch-off）で、輪郭を付けない（design/adr/0011）
 // ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
@@ -21,6 +22,8 @@ import { tv } from '../../internal/tv';
 // ラベルは押しても切り替わるので本体の一部。押せないときは、ほかの押せない文字と同じグレーにする（原則1）
 //   キャプションは説明なので、押せないときも読めるまま
 //   ラベルを押しているあいだも、トラックを押したときと同じくノブが縮む（チェックボックスの横の文字と同じ）。押せないときは縮まない
+//   押しているあいだは :active ではなく pointer イベントで持ち（use-pressed.ts）、トラックに data-pressing を付ける — ADR-0113
+//     Chrome はタッチで速く押すと、:active を離したあと（切り替わったあと）に付けるので、ノブが滑りながら縮んで戻り、ちらつく
 // 行全体を押せる形（frame。既定の none は上のとおり、押せるのは文字とトラックだけ）— 後半の軸 46（既定は none、card・divided を選べる）
 //   押せる範囲を見せるため、行の範囲を囲み（card）か区切り線（divided）で描き、その内側を全部押せるようにする
 //   ラベルの ::after を行いっぱい（線の上まで）に広げる。ラベルを押したのと同じなので、読み上げと切り替えは変わらない
@@ -37,11 +40,11 @@ const rowBase = [
   // 押しているあいだも hover と同じ塗り。指で操作するとき（hover なし）は、押した瞬間に塗る
   //   塗りは --switch-row-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
   '[--switch-row-fill:transparent] bg-(color:--switch-row-fill)',
-  'not-data-disabled:hover:[--switch-row-fill:var(--color-field)] not-data-disabled:active:[--switch-row-fill:var(--color-field)]',
+  'not-data-disabled:hover:[--switch-row-fill:var(--color-field)] not-data-disabled:has-data-pressing:[--switch-row-fill:var(--color-field)]',
   // 塗りの動きの長さ。hover の入り・抜けと、離して戻るときは入力欄と同じ長さ、押して塗りが変わるときは 0ms
   //   CSS の transition は移った先の状態の長さを使うので、hover の入りと離したときの戻りは同じ長さになる
   '[transition:--switch-row-fill_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
-  'not-data-disabled:active:[transition-duration:0ms,var(--focus-ring-duration),var(--focus-ring-duration)]',
+  'not-data-disabled:has-data-pressing:[transition-duration:0ms,var(--focus-ring-duration),var(--focus-ring-duration)]',
   'motion-reduce:[transition:none]',
   // フォーカスの線（focusRing と同じトークン）。トラックではなく行に描く。離し方は各形で --switch-row-focus-offset に置く
   '[outline-color:transparent] [outline-offset:var(--switch-row-focus-offset)]',
@@ -165,8 +168,8 @@ const styles = tv({
   },
   slots: {
     // 行の高さは部品の高さ。中身（ラベル・キャプション・トラック）は行の縦の中央に置く
-    //   group/field group/toggle: ラベルを押しているか（ノブの縮み）を、このトグルの中だけで見る。外の Field のラベルには反応させない
-    root: 'group/field group/toggle grid min-h-(--spacing-control) content-center items-center gap-x-(--switch-gap)',
+    //   group/field: 押せないときのラベルの色を、このトグルの中だけで見る
+    root: 'group/field grid min-h-(--spacing-control) content-center items-center gap-x-(--switch-gap)',
     // 押せる範囲は文字の幅だけ（justify-self-start）。列いっぱいに広げると、文字の右の空白を押しても切り替わる（見えない広がり）
     //   チェックボックス・ラジオの横の文字と同じ。Web のフォームの <label> の既定（inline）とも同じ
     label: [
@@ -203,8 +206,8 @@ const styles = tv({
       'block size-(--switch-knob) rounded-pill bg-surface shadow-(--shadow-switch-knob)',
       'transition-[translate,scale] duration-(--duration-press) ease-press motion-reduce:transition-none',
       'data-checked:translate-x-[calc(var(--switch-w)-var(--switch-knob)-var(--switch-inset)*2)]',
-      // 押しているあいだ（トラックかラベル）は縮む。押せないときは縮まない
-      'group-active/switch:scale-92 group-has-[label:active]/toggle:scale-92 data-disabled:scale-100! data-disabled:shadow-none',
+      // 押しているあいだ（トラックかラベル。トラックの data-pressing）は縮む。押せないときは縮まない
+      'group-data-pressing/switch:scale-92 data-disabled:scale-100! data-disabled:shadow-none',
     ],
   },
 });
@@ -278,6 +281,8 @@ export function Switch({
   // Form の送信中は、押せないトグルと同じ見た目にして切り替えを止める（Checkbox.tsx の useChoiceLock）
   //   ラベル・行の塗り（root）とノブも押せないときの規則で描くので、root・トラック・ノブの3つに印を付ける
   const locked = useChoiceLock(disabled);
+  // 押しているあいだ（ノブの縮み・行の塗り）。押せないときと送信中は押下にしない
+  const pressed = usePressed(!disabled && !locked.readOnly);
   // 行を明示する（キャプションがあれば2行）。囲みのあるトラックの row-[1/-1] の -1 は明示した行の最後の線を指すので、
   // 行を明示しないと 1 / -1（まとまりの中央）が 1行目だけになる
   const rows = caption ? 'grid-rows-[auto_auto]' : 'grid-rows-[auto]';
@@ -288,11 +293,13 @@ export function Switch({
       data-switch-frame={frame === 'none' ? undefined : frame}
       className={s.root({ className: [rows, className] })}
       {...locked.data}
+      {...pressed.handlers}
     >
       <BaseField.Label className={s.label()}>{label}</BaseField.Label>
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
       <BaseSwitch.Root
         className={s.track()}
+        data-pressing={pressed.pressed ? '' : undefined}
         disabled={disabled}
         readOnly={locked.readOnly || readOnly}
         aria-disabled={locked.readOnly || ariaDisabled}
