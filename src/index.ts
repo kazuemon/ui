@@ -28,9 +28,11 @@ export {
 export {
   Calendar,
   type CalendarLabels,
+  type CalendarNavPlacement,
   type CalendarProps,
   type CalendarRange,
   type CalendarRangeProps,
+  type CalendarShape,
   type CalendarSingleProps,
 } from './components/calendar/Calendar';
 export {

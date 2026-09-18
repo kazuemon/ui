@@ -6,18 +6,18 @@ import {
   type PreviousMonthButtonProps,
   type WeekdayProps,
 } from '@daypicker/react';
-import { createContext, type ReactNode, use, useMemo, useState } from 'react';
+import { createContext, use, useMemo, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { Button } from '../button/Button';
 import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
 import {
   fromDate,
-  Temporal,
   monthFromDate,
   monthToDate,
   type PlainDate,
   type PlainYearMonth,
+  Temporal,
   toDate,
   todayIn,
   weekStartOf,
@@ -26,120 +26,85 @@ import { useLocale } from '../../internal/date/use-locale';
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
 
-// 月の日を並べて、日か期間を選ぶ。振る舞い（キーボード・読み上げ・範囲の選び方）は react-day-picker（@daypicker/react）
+// 月の日を並べて、日か期間を選ぶ。振る舞い（キーボード・読み上げ・範囲の選び方）は react-day-picker（@daypicker/react）— ADR-0133
 // 値は Temporal.PlainDate で受け渡し、react-day-picker との境界で Date（ローカル時刻の正午）に変える（src/internal/date/plain-date.ts）
-// 日は部品の高さの正方形（原則7・11）。平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む
-// 選んだ日の印は部品の色（原則6）。範囲の中の日は、淡い面の帯でつなぐ
-// 比べている途中の見た目（軸 106〜111）は design/tokens.css の --calendar-* で決める
+// 日は部品の高さの正方形（原則7・11）。入れ物が狭いときは、正方形のまま縮む
+// 日は平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む。キーボードではフォーカスの線（ADR-0136）
+// 選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯でつなぎ、選んでいる途中は半分の濃さの帯（ADR-0141）
+// 今日は太字と短い下線（ADR-0135）。日曜と祝日は危険の赤、土曜は情報の青（ADR-0137・0140）
 //
 // 日の見た目は、セル（td）が置く変数だけで決める。どの状態も別の変数を置くので、状態が重なっても当てる順に左右されない
-//   --day-base・--day-ink   日の塗りと文字（data-look: selected・band・outside・disabled・plain のどれか 1 つ）
-//   --day-weekend(-k)       日曜・土曜の色と、その色を混ぜる割合（data-weekday）
-//   --day-dot・--day-weight-today・今日の塗り   今日の印（data-today）
-//   --day-hover・--day-press・--day-focus       ボタンが置く、文字の色を敷く濃さ。いちばん濃いものを使う
+//   --day-base・--day-ink       日の塗りと文字（data-look: selected・band・outside・disabled・plain のどれか 1 つ）
+//   --day-weekend(-k)           日曜・祝日と土曜の色と、その色を混ぜる割合（data-tone）
+//   --day-mark・--day-weight-*  今日の下線と、数字の太さ（data-today・data-look）
+//   --day-hover・--day-press    ボタンが置く、文字の色を敷く濃さ。濃いほうを使う
 const calendar = tv({
   slots: {
     root: [
       // 幅は日 7 つ分（部品の高さの正方形 × 7）。入れ物が狭いときは入れ物の幅まで縮み、日は正方形のまま小さくなる
       'inline-block w-[calc(var(--spacing-control)*7)] max-w-full text-fg',
-      // 選んだ日の塗りと文字。濃い塗り（部品の色）と淡い面（部品の色の淡い面）を --calendar-selected-strong で切り替える
-      '[--cal-selected-bg:color-mix(in_oklab,var(--cal-accent)_calc(var(--calendar-selected-strong)*100%),var(--cal-subtle))]',
-      '[--cal-selected-fg:color-mix(in_oklab,var(--cal-on-accent)_calc(var(--calendar-selected-strong)*100%),var(--cal-on-subtle))]',
       // セルが置かないときの値（セルの変数はここから継ぐ）
-      '[--day-dot:0] [--day-weekend-k:0] [--day-weekend:var(--color-fg)] [--day-weight-look:400] [--day-weight-today:400]',
-      '[--day-focus:0%] [--day-hover:0%] [--day-press:0%]',
-      // 動きを減らす設定では、月を送っても動かさない（軸 114）
-      'motion-reduce:[--calendar-motion-duration:1ms]',
-      '[--day-ring-color:var(--color-calendar-today-ring)] [--day-ring:0]',
-      '[--day-circle-allow:1] [--day-circle:0]',
+      '[--day-mark:0] [--day-weekend-k:0] [--day-weekend:var(--color-fg)] [--day-weight-look:400] [--day-weight-today:400]',
+      '[--day-hover:0%] [--day-press:0%]',
+      // 動きを減らす設定では、月を送っても動かさない（ADR-0142）
+      'motion-reduce:[--calendar-month-fade-duration:1ms]',
     ],
     months: 'relative',
-    // 見出しの行（前の月・月の名前・次の月）と日の表。並ぶ順と列は --calendar-head-columns などで決める（軸 110）
+    // 見出しの行（前の月・月の名前・次の月）と日の表。並ぶ順と列は navPlacement で決める（ADR-0138）
     // 月を送る動きのあいだ、react-day-picker は前の月の写しを重ねる（position: absolute）。幅を今の月にそろえる
     month:
-      'grid grid-cols-(--calendar-head-columns) items-center gap-y-2 [&>[data-animated-month]]:inset-x-0 [&>[data-animated-month]]:top-0',
-    // 月を送るときの動き（軸 114）。新しい月は送る向きから入り、前の月は反対へ出る
-    // react-day-picker はこのクラスを 1 つの名前として足し外しするので、空白を含まない 1 つのクラスにする
-    enterFromNext:
-      'animate-[calendar-month-enter-next_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-    enterFromPrevious:
-      'animate-[calendar-month-enter-previous_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-    exitToPrevious:
-      'animate-[calendar-month-exit-previous_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-    exitToNext:
-      'animate-[calendar-month-exit-next_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-    // その月の祝日の名前（軸 112）。日の数字は祝日の色
-    holidayList: [
-      '[display:var(--calendar-holiday-list)] flex-wrap gap-x-3 gap-y-1 px-3 pt-3',
-      'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
-    ],
-    holidayDay:
-      'me-1 font-bold text-[color:color-mix(in_oklab,var(--color-calendar-sunday)_calc(var(--calendar-weekend-color)*100%),var(--color-fg))]',
-    caption: [
-      'order-(--calendar-caption-order) flex h-(--spacing-control) items-center [justify-self:var(--calendar-caption-align)] px-3',
-      // 月を送るとき、月の名前は自分の箱の中で動かす（月送りのボタンの上を通らない）。react-day-picker が付ける印のクラスで、中の文字を動かす
-      //   動きの終わり（animationend）は中の文字から箱へ伝わるので、react-day-picker の片付けはそのまま動く
-      'overflow-hidden',
-      '[&.cal-caption-enter-next>*]:animate-[calendar-month-enter-next_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-      '[&.cal-caption-enter-previous>*]:animate-[calendar-month-enter-previous_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-      '[&.cal-caption-exit-previous>*]:animate-[calendar-month-exit-previous_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-      '[&.cal-caption-exit-next>*]:animate-[calendar-month-exit-next_var(--calendar-motion-duration)_var(--ease-sheet)_both]',
-    ],
+      'grid items-center gap-y-2 [&>[data-animated-month]]:inset-x-0 [&>[data-animated-month]]:top-0',
+    caption: 'flex h-(--spacing-control) items-center px-3',
     captionLabel: 'text-(length:--text-control) leading-(--leading-control) font-bold',
-    previous: 'order-(--calendar-prev-order)',
+    previous: '',
     next: 'order-2',
     grid: 'order-3 col-span-full w-full table-fixed border-separate border-spacing-0',
+    // 月を送るとき、その場でふわっと入れ替える（monthTransition="fade" — ADR-0142）
+    // react-day-picker はこのクラスを 1 つの名前として足し外しするので、空白を含まない 1 つのクラスにする
+    fadeIn:
+      'animate-[calendar-month-fade-in_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]',
+    fadeOut:
+      'animate-[calendar-month-fade-out_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]',
     weekday: [
       'h-8 p-0 text-center align-middle font-normal',
       'text-(length:--text-caption) leading-(--leading-caption)',
       'text-[color:color-mix(in_oklab,var(--day-weekend)_calc(var(--day-weekend-k)*100%),var(--color-fg-subtle))]',
-      'data-[weekday=0]:[--day-weekend-k:var(--calendar-weekend-color)] data-[weekday=0]:[--day-weekend:var(--color-calendar-sunday)]',
-      'data-[weekday=6]:[--day-weekend-k:var(--calendar-weekend-color)] data-[weekday=6]:[--day-weekend:var(--color-calendar-saturday)]',
+      'data-[weekday=0]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=0]:[--day-weekend:var(--color-calendar-sunday)]',
+      'data-[weekday=6]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=6]:[--day-weekend:var(--color-calendar-saturday)]',
     ],
     day: [
-      'group/day relative p-0 text-center',
+      'group/day relative rounded-(--cal-radius) p-0 text-center',
       // 状態ごとの塗りと文字（どれか 1 つ）
       'data-[look=plain]:[--day-base:transparent] data-[look=plain]:[--day-ink:color-mix(in_oklab,var(--day-weekend)_calc(var(--day-weekend-k)*100%),var(--color-fg))]',
-      'data-[look=selected]:[--day-base:var(--cal-selected-bg)] data-[look=selected]:[--day-ink:var(--cal-selected-fg)] data-[look=selected]:[--day-weight-look:700]',
+      'data-[look=selected]:[--day-base:var(--cal-accent)] data-[look=selected]:[--day-ink:var(--cal-on-accent)] data-[look=selected]:[--day-weight-look:700]',
       'data-[look=band]:[--day-base:transparent] data-[look=band]:[--day-ink:var(--cal-on-subtle)]',
       'data-[look=outside]:[--day-base:transparent] data-[look=outside]:[--day-ink:var(--color-fg-subtle)]',
-      // ほかの月の日（軸 111）。範囲の帯に入っていても同じ
-      'data-outside:opacity-(--calendar-outside-visible)',
       'data-[look=disabled]:[--day-base:transparent] data-[look=disabled]:[--day-ink:var(--color-on-field-disabled)]',
-      // 日曜・祝日と土曜（軸 109・112）。祝日の土曜は日曜の色
-      'data-[tone=sun]:[--day-weekend-k:var(--calendar-weekend-color)] data-[tone=sun]:[--day-weekend:var(--color-calendar-sunday)]',
-      'data-[tone=sat]:[--day-weekend-k:var(--calendar-weekend-color)] data-[tone=sat]:[--day-weekend:var(--color-calendar-saturday)]',
-      // 今日（軸 107）: 数字の太さ・下の点・後ろの塗り
-      'data-today:[--day-dot:var(--calendar-today-dot)] data-today:[--day-weight-today:var(--calendar-today-weight)]',
-      'data-today:[--day-circle:var(--calendar-today-circle)] data-[look=disabled]:[--day-circle-allow:0] data-[look=selected]:[--day-circle-allow:0]',
-      'data-today:[--day-ring:var(--calendar-today-ring)] data-[look=selected]:[--day-ring-color:color-mix(in_oklab,var(--cal-selected-fg)_50%,transparent)]',
-      'rounded-(--calendar-day-radius) data-today:bg-[color-mix(in_oklab,var(--color-field)_calc(var(--calendar-today-fill)*100%),transparent)]',
-      // 範囲の帯。始まりと終わりの日は、日の中央から外へ伸ばす。週の端では日の角で丸める
+      // 日曜・祝日と土曜（ADR-0137・0140）。祝日の土曜は日曜の色。weekendColor={false} のときは色を混ぜない
+      'data-[tone=sun]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sun]:[--day-weekend:var(--color-calendar-sunday)]',
+      'data-[tone=sat]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sat]:[--day-weekend:var(--color-calendar-saturday)]',
+      // 今日（ADR-0135）: 太字と、数字の下の短い線
+      'data-today:[--day-mark:1] data-today:[--day-weight-today:700]',
+      // 期間の帯。始まりと終わりの日は、日の中央から外へ伸ばす。週の端では日の角で丸める
       'before:pointer-events-none before:absolute before:inset-y-0 before:bg-(--cal-subtle)',
       'before:hidden data-band:before:block',
       'data-[band=end]:before:start-0 data-[band=end]:before:end-1/2 data-[band=middle]:before:inset-x-0 data-[band=start]:before:start-1/2 data-[band=start]:before:end-0',
-      'first:before:rounded-s-(--calendar-day-radius) last:before:rounded-e-(--calendar-day-radius)',
-      'data-[band=cap-end]:before:inset-x-0 data-[band=cap-end]:before:rounded-e-(--calendar-day-radius) data-[band=cap-start]:before:inset-x-0 data-[band=cap-start]:before:rounded-s-(--calendar-day-radius)',
-      // 期間を選んでいる途中の仮の帯（軸 113）
-      'data-tentative:before:opacity-(--calendar-preview-opacity)',
+      'first:before:rounded-s-(--cal-radius) last:before:rounded-e-(--cal-radius)',
+      // 選んでいる途中の帯（ADR-0141）: 半分の濃さ。マウスを載せた日（塗っていない）は日いっぱいに引き、端を丸める
+      'data-[band=cap-end]:before:inset-x-0 data-[band=cap-end]:before:rounded-e-(--cal-radius) data-[band=cap-start]:before:inset-x-0 data-[band=cap-start]:before:rounded-s-(--cal-radius)',
+      'data-tentative:before:opacity-50',
     ],
     dayButton: [
-      'relative flex aspect-square w-full cursor-pointer items-center justify-center rounded-(--calendar-day-radius) select-none',
+      'relative flex aspect-square w-full cursor-pointer items-center justify-center rounded-(--cal-radius) select-none',
       'text-(length:--text-control) leading-(--leading-control) text-(color:--day-ink)',
       '[font-weight:max(var(--day-weight-look),var(--day-weight-today))]',
-      'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press),var(--day-focus)))]',
-      // 今日の小さな丸（軸 107）。数字の後ろに敷く。選んだ日と押せない日には出さない
-      'isolate before:absolute before:top-1/2 before:left-1/2 before:-z-10 before:size-(--calendar-today-circle-size) before:-translate-1/2 before:rounded-full before:bg-(--color-calendar-today-circle) before:opacity-[calc(var(--day-circle)*var(--day-circle-allow))]',
-      // 今日の枠線（軸 107）。日の内側に細く引く。フォーカスの線（外に離して太く引く）とは別の線
-      'shadow-[inset_0_0_0_calc(var(--day-ring)*var(--border-width-thin))_var(--day-ring-color)]',
-      // 今日の点（軸 107）。文字の色で、数字の下に置く
-      'after:absolute after:bottom-[5px] after:left-1/2 after:h-(--calendar-today-mark-height) after:w-(--calendar-today-mark-width) after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-(--day-dot)',
+      'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press)))]',
+      // 今日の下線（ADR-0135）。文字の色なので、選んだ日の上では白くなる
+      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-(--day-mark)',
       'enabled:hover:[--day-hover:var(--flat-hover-mix)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--day-press:var(--flat-press-mix)]',
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
-      // キーボードで日を動かしたとき（軸 108）: 線の太さに --calendar-focus-ring を掛け、0 のときは hover と同じ塗りにする
+      // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため
       ...focusRing,
-      'focus-visible:[outline-width:calc(var(--focus-ring-width)*var(--calendar-focus-ring))]',
-      'focus-visible:[--day-focus:calc((1-var(--calendar-focus-ring))*var(--flat-hover-mix))]',
       'disabled:cursor-not-allowed',
     ],
   },
@@ -157,11 +122,41 @@ const calendar = tv({
         root: '[--cal-accent:var(--color-neutral-strong)] [--cal-on-accent:var(--color-on-neutral-strong)] [--cal-on-subtle:var(--color-fg)] [--cal-subtle:var(--color-calendar-neutral-subtle)]',
       },
     },
+    // 日の形（ADR-0134）。square は部品の角（既定）、round は丸
+    shape: {
+      square: { root: '[--cal-radius:var(--radius-control)]' },
+      round: { root: '[--cal-radius:var(--radius-pill)]' },
+    },
+    // 日曜・祝日を赤、土曜を青にするか（ADR-0137）
+    weekendColor: {
+      true: { root: '[--cal-weekend-k:1]' },
+      false: { root: '[--cal-weekend-k:0]' },
+    },
+    // 月送りの置き方（ADR-0138）。sides は ‹ 月の名前 ›（既定）、end は 月の名前 ‹ ›
+    navPlacement: {
+      sides: {
+        month: 'grid-cols-[auto_1fr_auto]',
+        caption: 'order-1 justify-self-center',
+        previous: 'order-0',
+      },
+      end: {
+        month: 'grid-cols-[1fr_auto_auto]',
+        caption: 'order-0 justify-self-start',
+        previous: 'order-1',
+      },
+    },
   },
-  defaultVariants: { color: 'neutral' },
+  defaultVariants: { color: 'neutral', shape: 'square', weekendColor: true, navPlacement: 'sides' },
 });
 
 const styles = calendar();
+
+type CalendarVariants = VariantProps<typeof calendar>;
+
+/** 日の形 */
+export type CalendarShape = NonNullable<CalendarVariants['shape']>;
+/** 月送りのボタンの置き方 */
+export type CalendarNavPlacement = NonNullable<CalendarVariants['navPlacement']>;
 
 /** 期間。end が null のときは、始まりの日だけを選んだところ */
 export interface CalendarRange {
@@ -193,13 +188,42 @@ interface CalendarBaseProps {
    * 選んだ日の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーです
    * @default 'neutral'
    */
-  color?: VariantProps<typeof calendar>['color'];
+  color?: CalendarVariants['color'];
+  /**
+   * 日の形。square はボタンと同じ角、round は丸です
+   * @default 'square'
+   */
+  shape?: CalendarShape;
+  /**
+   * 日曜と祝日を赤、土曜を青にする。false のときは、どの曜日も同じ色です
+   * @default true
+   */
+  weekendColor?: boolean;
+  /**
+   * 月送りのボタンの置き方。sides は月の名前の両側、end は右にまとめます
+   * @default 'sides'
+   */
+  navPlacement?: CalendarNavPlacement;
+  /**
+   * 前後の月の日を灰色で見せる。false のときは隠します。どちらも表はいつも 6 週です
+   * @default true
+   */
+  showOutsideDays?: boolean;
+  /**
+   * 月を送るときの動き。none はすぐに切り替え、fade はその場でふわっと入れ替えます
+   * @default 'none'
+   */
+  monthTransition?: 'none' | 'fade';
   /** 選べるいちばん前の日。これより前の日は押せず、前の月へも送れません */
   min?: PlainDate;
   /** 選べるいちばん後の日。これより後の日は押せず、次の月へも送れません */
   max?: PlainDate;
   /** 日ごとに押せなくする。true を返した日は押せません */
   isDateDisabled?: (date: PlainDate) => boolean;
+  /**
+   * 祝日の名前を返す。名前を返した日は日曜と同じ色になり、名前が読み上げに入ります。祝日のデータは部品に含みません
+   */
+  getHoliday?: (date: PlainDate) => string | undefined;
   /** 見せている月（制御するとき）。onMonthChange と組み合わせます */
   month?: PlainYearMonth;
   /** はじめに見せる月。指定しないときは選んだ日の月、なければ今日の月です */
@@ -221,10 +245,6 @@ interface CalendarBaseProps {
    * @default timeZone での今日
    */
   today?: PlainDate;
-  /**
-   * 祝日の名前を返す。名前を返した日は日曜と同じ色になり、名前が読み上げに入ります。祝日のデータは部品に含みません
-   */
-  getHoliday?: (date: PlainDate) => string | undefined;
   /** 読み上げの文言 */
   labels?: Partial<CalendarLabels>;
   /** 読み上げの名前。見出しなどで名前が付いていないときに付けます */
@@ -256,7 +276,10 @@ export interface CalendarRangeProps extends CalendarBaseProps {
   value?: CalendarRange | null;
   /** はじめに選んでおく期間 */
   defaultValue?: CalendarRange | null;
-  /** 期間を選んだとき。1 回目で始まりの日、2 回目で終わりの日が決まります */
+  /**
+   * 期間を選んだとき。1 回目で始まりの日、2 回目で終わりの日が決まります。
+   * 始まりを選んだあとは、マウスを載せた日（キーボードで移った日）まで薄い帯が出ます
+   */
   onValueChange?: (value: CalendarRange | null) => void;
   /** 選んだ日を押しても外れないようにする */
   required?: boolean;
@@ -266,14 +289,15 @@ export type CalendarProps = CalendarSingleProps | CalendarRangeProps;
 
 // 部品の中の部分（日のセル・曜日の見出し・月送り）が読む値。部分は react-day-picker に渡すので、props ではなくここから読む
 interface CalendarContextValue {
-  /** 期間の両端が決まっているか。始まりだけのときは帯を出さない */
+  /** 期間の両端が決まっているか。始まりだけのときは決まった帯を出さない */
   rangeComplete: boolean;
   /** 曜日の名前（読み上げの名前）から、曜日（0 が日曜）を引く */
   weekdayOf: Map<string, number>;
   /** 日（YYYY-MM-DD）の祝日の名前 */
   holidayOf: (iso: string) => string | undefined;
-  /** 期間の始まりだけを選び、別の日にマウスを載せているときの仮の期間（YYYY-MM-DD。from が前） */
+  /** 期間の始まりだけを選び、別の日を指しているときの仮の期間（YYYY-MM-DD。from が前）。pointed は指している側 */
   tentative: { from: string; to: string; pointed: 'from' | 'to' } | null;
+  navPlacement: CalendarNavPlacement;
 }
 
 const CalendarContext = createContext<CalendarContextValue>({
@@ -281,9 +305,10 @@ const CalendarContext = createContext<CalendarContextValue>({
   weekdayOf: new Map(),
   holidayOf: () => undefined,
   tentative: null,
+  navPlacement: 'sides',
 });
 
-// 日のセル。状態を 1 つの data-look にまとめ、範囲の帯（data-band）と曜日（data-weekday）を足す
+// 日のセル。状態を 1 つの data-look にまとめ、範囲の帯（data-band）と色（data-tone）を足す
 // 押せないことは、選んでいることより先に見せる（原則1）
 function CalendarDay({ day, modifiers, className, ...props }: DayProps) {
   const { rangeComplete, holidayOf, tentative } = use(CalendarContext);
@@ -307,7 +332,7 @@ function CalendarDay({ day, modifiers, className, ...props }: DayProps) {
           ? 'end'
           : undefined;
   // 仮の期間の帯。両端が決まるまでのあいだだけ
-  // 始まりの日（塗ってある）は日の中央から、マウスを載せた日（塗っていない）は日いっぱいに帯を引き、端を日の角で丸める
+  // 始まりの日（塗ってある）は日の中央から、指している日（塗っていない）は日いっぱいに帯を引き、端を日の角で丸める
   const tentativeBand =
     rangeComplete || !tentative
       ? undefined
@@ -355,12 +380,13 @@ function MonthButton({
   'aria-disabled': ariaDisabled,
   ...props
 }: PreviousMonthButtonProps & { direction: 'previous' | 'next' }) {
+  const { navPlacement } = use(CalendarContext);
   return (
     <Button
       iconOnly
       appearance="outline"
       aria-label={props['aria-label'] ?? ''}
-      className={direction === 'previous' ? styles.previous() : styles.next()}
+      className={direction === 'previous' ? styles.previous({ navPlacement }) : styles.next()}
       disabled={ariaDisabled === true || ariaDisabled === 'true'}
       onClick={props.onClick}
     >
@@ -369,14 +395,8 @@ function MonthButton({
   );
 }
 
-// react-day-picker の footer は読み上げで知らせる（aria-live）。祝日の一覧は月の名前と一緒に知らせなくてよいので、ただの箱にする
-function CalendarFooter({ className, children }: { className?: string; children?: ReactNode }) {
-  return <div className={className}>{children}</div>;
-}
-
 const components = {
   Day: CalendarDay,
-  Footer: CalendarFooter,
   Weekday: CalendarWeekday,
   PreviousMonthButton: (props: PreviousMonthButtonProps) => (
     <MonthButton direction="previous" {...props} />
@@ -395,15 +415,20 @@ function useControlled<T>(value: T | undefined, defaultValue: T) {
 export function Calendar(props: CalendarProps) {
   const {
     color,
+    shape,
+    weekendColor = true,
+    navPlacement = 'sides',
+    showOutsideDays = true,
+    monthTransition = 'none',
     min,
     max,
     isDateDisabled,
+    getHoliday,
     month,
     defaultMonth,
     onMonthChange,
     labels: labelsProp,
     today: todayProp,
-    getHoliday,
     autoFocus,
     className,
   } = props;
@@ -426,17 +451,8 @@ export function Calendar(props: CalendarProps) {
       (props.mode === 'range' ? range?.start : single)?.toPlainYearMonth() ??
       today.toPlainYearMonth()
   );
-  // 期間の始まりだけを選んだあと、マウスを載せた日・キーボードで移った日（軸 113）
+  // 期間の始まりだけを選んだあと、マウスを載せた日・キーボードで移った日（ADR-0141）
   const [pointed, setPointed] = useState<string | null>(null);
-
-  const holidayOf = (iso: string) => getHoliday?.(Temporal.PlainDate.from(iso));
-  const holidays: [day: number, name: string][] = [];
-  if (getHoliday) {
-    for (let d = 1; d <= shownMonth.daysInMonth; d++) {
-      const name = getHoliday(shownMonth.toPlainDate({ day: d }));
-      if (name) holidays.push([d, name]);
-    }
-  }
 
   const intl = useMemo(() => {
     const caption = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' });
@@ -454,13 +470,16 @@ export function Calendar(props: CalendarProps) {
   if (max) disabled.push({ after: toDate(max) });
   if (isDateDisabled) disabled.push((date: Date) => isDateDisabled(fromDate(date)));
 
+  // 月を送るときの動き（ADR-0142）。動かさないときは react-day-picker の動きを使わない
+  const fade = monthTransition === 'fade';
+
   const shared = {
     lang: locale,
     weekStartsOn: weekStartOf(locale),
     today: toDate(today),
     navLayout: 'around' as const,
     fixedWeeks: true,
-    showOutsideDays: true,
+    showOutsideDays,
     autoFocus,
     disabled,
     startMonth: min ? toDate(min) : undefined,
@@ -472,34 +491,26 @@ export function Calendar(props: CalendarProps) {
       setShownMonth(next);
       onMonthChange?.(next);
     },
-    animate: true,
-    footer: holidays.length ? (
-      <ul className={styles.holidayList()}>
-        {holidays.map(([d, name]) => (
-          <li key={d}>
-            <span className={styles.holidayDay()}>{d}</span>
-            {name}
-          </li>
-        ))}
-      </ul>
-    ) : undefined,
+    animate: fade,
     components,
     classNames: {
-      root: styles.root({ color, className }),
+      root: styles.root({ color, shape, weekendColor, className }),
       months: styles.months(),
-      month: styles.month(),
-      month_caption: styles.caption(),
+      month: styles.month({ navPlacement }),
+      month_caption: styles.caption({ navPlacement }),
       caption_label: styles.captionLabel(),
       month_grid: styles.grid(),
       day_button: styles.dayButton(),
-      weeks_after_enter: styles.enterFromNext(),
-      caption_after_enter: 'cal-caption-enter-next',
-      weeks_before_enter: styles.enterFromPrevious(),
-      caption_before_enter: 'cal-caption-enter-previous',
-      weeks_before_exit: styles.exitToPrevious(),
-      caption_before_exit: 'cal-caption-exit-previous',
-      weeks_after_exit: styles.exitToNext(),
-      caption_after_exit: 'cal-caption-exit-next',
+      ...(fade && {
+        weeks_after_enter: styles.fadeIn(),
+        weeks_before_enter: styles.fadeIn(),
+        caption_after_enter: styles.fadeIn(),
+        caption_before_enter: styles.fadeIn(),
+        weeks_after_exit: styles.fadeOut(),
+        weeks_before_exit: styles.fadeOut(),
+        caption_after_exit: styles.fadeOut(),
+        caption_before_exit: styles.fadeOut(),
+      }),
     },
     formatters: {
       formatCaption: (date: Date) => intl.caption.format(date),
@@ -522,16 +533,17 @@ export function Calendar(props: CalendarProps) {
   };
 
   const rangeStart = props.mode === 'range' && range && !range.end ? range.start.toString() : null;
-  const context = {
+  const context: CalendarContextValue = {
     rangeComplete: Boolean(range?.start && range.end),
     weekdayOf: intl.weekdayOf,
-    holidayOf,
+    holidayOf: (iso) => getHoliday?.(Temporal.PlainDate.from(iso)),
     tentative:
       rangeStart && pointed && pointed !== rangeStart
         ? pointed < rangeStart
-          ? { from: pointed, to: rangeStart, pointed: 'from' as const }
-          : { from: rangeStart, to: pointed, pointed: 'to' as const }
+          ? { from: pointed, to: rangeStart, pointed: 'from' }
+          : { from: rangeStart, to: pointed, pointed: 'to' }
         : null,
+    navPlacement,
   };
   // 仮の帯を出すのは、期間の始まりだけを選んだあとだけ
   const pointing = rangeStart
@@ -547,10 +559,17 @@ export function Calendar(props: CalendarProps) {
     const selected: DateRange | undefined = range
       ? { from: toDate(range.start), to: range.end ? toDate(range.end) : undefined }
       : undefined;
-    const onSelect = (next: DateRange | undefined) => {
-      const value = next?.from
-        ? { start: fromDate(next.from), end: next.to ? fromDate(next.to) : null }
-        : null;
+    // 選び方は部品で決める。react-day-picker は 1 回目で始まりと終わりを同じ日にし、両端が決まったあとは期間を伸ばすため
+    //   期間がないか両端が決まっているとき: 押した日を始まりにして選び直す
+    //   始まりだけのとき: 押した日を終わりにする（前の日なら入れ替える。同じ日なら 1 日の期間）
+    const onSelect = (_next: DateRange | undefined, triggerDate: Date) => {
+      const date = fromDate(triggerDate);
+      const value: CalendarRange =
+        range && !range.end
+          ? Temporal.PlainDate.compare(date, range.start) < 0
+            ? { start: date, end: range.start }
+            : { start: range.start, end: date }
+          : { start: date, end: null };
       setRange(value);
       setPointed(null);
       props.onValueChange?.(value);

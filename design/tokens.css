@@ -990,79 +990,29 @@
   --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
   /* ── END bleed */
 
-  /* ── Calendar — 軸 106〜111 ── BEGIN calendar
-     日は部品の高さの正方形（原則7・11: 指で押せる大きさで、押せる範囲は見た目と同じ）。平らな押すもの（原則3）で、
-     hover と押下で文字の色を淡く敷き（--flat-hover-mix・--flat-press-mix）、押すと沈む
-     選んだ日の印は部品の色（color。primary・secondary・neutral、既定 neutral）に従う（原則6）。範囲の中の日は、淡い面の帯でつなぐ
-     押せない日は押せない文字の色（原則1）。0・1 の切り替えは比べるためのもので、決まったら部品の値に畳む */
-  /* 軸 106: 選んだ日の形と塗り。radius は日の角、selected-strong は 1 で部品の色の濃い塗りに白い文字、0 で淡い面に濃い文字 */
-  --calendar-day-radius: var(--radius-control);
-  --calendar-selected-strong: 1;
+  /* ── Calendar — ADR-0133〜0142 ── BEGIN calendar
+     日は部品の高さの正方形（原則7・11）。平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む
+     選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯、選んでいる途中は半分の濃さの帯（ADR-0141）
+     今日は太字と短い下線（ADR-0135）。日曜と祝日は危険の赤、土曜は情報の青（ADR-0137・0140） */
   /* 色を持たない（neutral）ときの淡い面。Select の選んだ項目と同じグレー */
   --color-calendar-neutral-subtle: var(--palette-gray-200);
-  /* 軸 107: 今日の印。weight は数字の太さ、dot は数字の下の点（0 か 1）、fill は日の後ろの入力欄の塗り（0 か 1） */
-  --calendar-today-weight: 700;
-  --calendar-today-dot: 1;
-  --calendar-today-fill: 0;
-  /* 軸 107 の 2 回目: 日の内側に引く細い枠線（0 か 1）と、その色。選んだ日の上では、選んだ日の文字の色を半分の濃さで引く */
-  --calendar-today-ring: 0;
-  --color-calendar-today-ring: var(--color-line);
-  /* 軸 107 の 3 回目: 数字の下の印の大きさ（点は 4px の丸、下線は横長の線）と、数字の後ろに敷く小さな丸（0 か 1）・その大きさと色 */
-  --calendar-today-mark-width: 14px; /* 決定: 軸 107 の G（太字と下線） */
-  --calendar-today-mark-height: 2px;
-  --calendar-today-circle: 0;
-  --calendar-today-circle-size: calc(var(--spacing) * 8);
-  --color-calendar-today-circle: var(--palette-gray-200);
-  /* 軸 108: キーボードで日を動かしたときの印。1 でフォーカスの線、0 で hover と同じ塗り（原則2 の一覧の中の選択） */
-  --calendar-focus-ring: 1;
-  /* 軸 109: 日曜と土曜の文字の色（0 か 1）。1 で日曜を危険の赤、土曜を情報の青にする */
-  --calendar-weekend-color: 1; /* 決定: 軸 109 の A */
   --color-calendar-sunday: var(--color-fg-danger);
   --color-calendar-saturday: var(--color-fg-info);
-  /* 軸 110: 月送りの置き方。head-columns は見出しの行の列、caption-order・prev-order は並ぶ順、caption-align は月の名前の寄せ方
-     両側（前の月・月の名前・次の月）: auto 1fr auto・1・0・center。右にまとめる: 1fr auto auto・0・1・start */
-  --calendar-head-columns: auto 1fr auto;
-  --calendar-caption-order: 1;
-  --calendar-prev-order: 0;
-  --calendar-caption-align: center;
-  /* 軸 111: ほかの月の日（0 か 1）。1 で見せる（キャプションと同じ灰色）、0 で隠す */
-  --calendar-outside-visible: 1;
-  /* 軸 112: その月の祝日の名前を表の下に並べるか（none か flex）。祝日の日は日曜と同じ色（軸 109）で、名前は読み上げにも入る */
-  --calendar-holiday-list: none;
-  /* 軸 113: 期間の始まりを選んだあと、マウスを載せた日（キーボードで移った日）まで仮の帯を出す濃さ（0 で出さない） */
-  --calendar-preview-opacity: 0;
-  /* 軸 114: 月を送るときの動き。新しい月は送る向きから distance だけ離れた位置と from-opacity の濃さから、前の月はその逆へ動く
-     duration は動く長さ。動かさない案でも、react-day-picker が動きの終わりで前の月を片付けるので、ごく短い長さで動かす */
-  --calendar-motion-duration: 1ms;
-  --calendar-motion-distance: 0px;
-  --calendar-motion-from-opacity: 1;
+  /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
+  --calendar-month-fade-duration: 150ms;
   /* ── END calendar */
 }
 
 /* ── calendar keyframes */
-/* 月を送るときの動き（軸 114）。新しい月は送る向きから入り（enter-next は右から、enter-previous は左から）、前の月は反対へ出る */
-@keyframes calendar-month-enter-next {
+/* 月を送るときの動き（monthTransition="fade" — ADR-0142）。新しい月はその場で現れ、前の月はその場で消える */
+@keyframes calendar-month-fade-in {
   from {
-    transform: translateX(calc(1 * var(--calendar-motion-distance)));
-    opacity: var(--calendar-motion-from-opacity);
+    opacity: 0;
   }
 }
-@keyframes calendar-month-enter-previous {
-  from {
-    transform: translateX(calc(-1 * var(--calendar-motion-distance)));
-    opacity: var(--calendar-motion-from-opacity);
-  }
-}
-@keyframes calendar-month-exit-previous {
+@keyframes calendar-month-fade-out {
   to {
-    transform: translateX(calc(-1 * var(--calendar-motion-distance)));
-    opacity: var(--calendar-motion-from-opacity);
-  }
-}
-@keyframes calendar-month-exit-next {
-  to {
-    transform: translateX(calc(1 * var(--calendar-motion-distance)));
-    opacity: var(--calendar-motion-from-opacity);
+    opacity: 0;
   }
 }
 

@@ -75,6 +75,13 @@
 
 - レシピに回す部品の見直し（Sidebar・Stack などが部品として要るか）は決めていません
 
+## Calendar
+
+2026-09-19 に作りました。決定は [ADR-0133](./adr/0133-calendar-foundation.md)〜[ADR-0142](./adr/0142-calendar-month-motion.md) です。
+
+- 年と月を直接選ぶ機能は決めていません。月の名前を Select 2 つに替える案や、月の一覧に切り替える案があります。数を打ち込む形にするなら、NumberField を作ったあとで検討します
+- DatePicker・DateRangePicker は作っていません。2 か月を並べて見せるか、「今日」に戻るボタンを持つか、日付を打ち込んだときのパース（決まった書式・和暦・全角・「9月20日」のような日本語の書き方）をどうするかを決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）
+
 ## Mark・Time・RelativeTime・NumberFormat
 
 2026-09-19 に作りました。決定は [ADR-0121](./adr/0121-reading-datetime-number.md) です。
