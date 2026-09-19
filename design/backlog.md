@@ -119,6 +119,19 @@
   - 多言語: next-intl・react-i18next（機能の多言語ができたら）
   - データ取得: TanStack Query（読み込み中に Skeleton・Progress・Spinner、失敗したら Notice・Toast）
   - 日付: date-fns・Temporal（Calendar・Time・RelativeTime）
+- 使う人がよく組むものも、レシピの案に置きます（2026-09-20）。src/samples の見本ページ（記事・ドキュメント・サインイン・設定・一覧・SNS）と重ならない、小さな組み合わせにします:
+  - ページの見出し帯: 題・Breadcrumb・操作のボタンを 1 行に並べる
+  - 記事のメタ行: 著者（Avatar）・公開日（Time）・読了時間・Tag
+  - 関連記事・シリーズの案内: LinkCard・List・Pager
+  - 作品カード・自己紹介・トップの見出し（Hero）: ポートフォリオのトップで使う Card・Image・Avatar・Button の組み方
+  - お問い合わせフォーム: Form・TextField・Textarea で送り、結果を Toast で知らせる
+  - 削除の確認: AlertDialog と送信中のボタン（非同期の確定）
+  - 検索できる一覧: 検索の欄・List・Pagination と、結果がないときの表示
+  - 読み込み・空・失敗の 3 つの状態: Skeleton・StatusPanel・Notice の出し分け
+  - 狭い画面のメニュー: Navbar と Drawer（Navbar が持っていない分）
+  - 言語の切り替え: Menu で切り替える（機能の多言語ができたら）
+  - Cookie の同意: Notice か Drawer で下に出す
+  - 404・エラーのページ: StatusPanel と戻るリンク
 
 ## Affix
 
