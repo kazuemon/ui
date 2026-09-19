@@ -24,7 +24,6 @@
 - [x] Icon
 - [x] VisuallyHidden
 - [x] ThemeProvider
-- [ ] ColorModeToggle
 - [x] Collapsible
 - [x] ScrollArea
 - [x] AspectRatio
@@ -73,15 +72,6 @@
 - [x] SkipLink
 - [x] Affix
 - [ ] Splitter
-
-### レシピ
-
-部品にはせず、既存の部品を組み合わせて作るものです。組み方の見本を Storybook の Recipes に置きます。
-
-- [x] Footer
-- [ ] PostCard
-- [ ] PostList
-- [ ] ShareButtons
 
 ### ナビゲーション
 

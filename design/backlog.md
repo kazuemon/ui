@@ -105,6 +105,10 @@
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
 - レシピに回す部品の見直し（Sidebar・Stack などが部品として要るか）は決めていません
+- レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:
+  - PostCard・PostList: ブログの記事カードと一覧。Card・Time・Tag・Pagination を組み合わせる
+  - ShareButtons: X への共有と URL のコピー。CopyButton と Link を組み合わせる
+  - ダークモードの切り替え: 下の「トークン・テーマ」のダークモードができたら、Toggle か Menu で ThemeProvider を切り替える形にする
 
 ## Affix
 
@@ -275,6 +279,7 @@
 
 ## トークン・テーマ
 
+- ダークモードを、部品ではなくライブラリの機能として入れたいです（2026-09-20、「機能としてダークモードを実装したい、という気持ちなので、コンポーネントではないかも」）。役割のトークンのダーク版と、ThemeProvider（または属性）での切り替えの入口を決めます。入口は「色の面（Surface）」の仕組みと 1 つにできるかを見ます
 - 色のばらつきを整える軸は、あとでやります（「色のばらつきは後からやりましょう」— [ADR-0076](./adr/0076-token-structure.md)）。パレットを OKLCH で測ると、同じ番号でも明度がそろわない（50 は 0.940〜0.970、700 は 0.499〜0.564）、番号の意味が族ごとに違う（pink-500 は中くらい、warning-500 は明るい）、ほぼ同じ色が別の名前で並ぶ（gray-100 と gray-150、gray-200 と gray-300）、薄い赤が 3 段で間が不ぞろい（red-50・red-75・red-100。色相も 23°・17°・26°）、グレーの色相が 197° と 229° で混ざる、が分かっています。ストーリーでパレットの表と部品の見本を候補ごとに並べ、グレー → 赤・ピンク → 青・水色 → 状態の色の順に1軸ずつ決める計画です
 - 利用者向けの CSS（`src/styles/index.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、`index.css` でも消します
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
