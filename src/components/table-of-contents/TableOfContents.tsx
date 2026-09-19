@@ -14,30 +14,32 @@ import { useCurrentHeading } from './use-current-heading';
 //   行は平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと濃くして 1px 沈む。影はない（原則1）
 //     行の高さは部品の高さにしない。記事の横に並ぶ文字のリンクの一覧で、44px の行では目次が長くなりすぎるため（原則にない判断）
 //     文字はラベルと同じ大きさで、入力方式で変えない（原則11。記事の横の補足の文字）
-//   一覧の左に細い線を引き、今の見出しの印はその線の上に重ねる（軸 165: --toc-current-*）
+//   今の見出しの印（軸 165。Tree の currentIndicator・color にそろえる）: 既定は一覧の左の線に重ねる濃い線（line）、
+//     太字だけ（text）も選べる。color で線と文字を利用者の色にできる（原則6）。淡い面は採らない
 //     どの印でも今の見出しは太字。太字の写しを重ねて幅を取っておくので、太くなっても折り返しが変わらない
-//   入れ子の段は字下げで見せる（軸 166: --toc-indent・--toc-guide-*・--toc-nested-color）
+//   入れ子（軸 166）: 既定は左の線 1 本と字下げ。段ごとの細い線（guides）・左の線なし（track={false}）・
+//     2 段目より下を一段淡く（subtleNested）を選べる。線と色は別の props（Tree の guides・Table の columnLines と同じ真偽値）
 //   ScrollArea の中に置くと、今の見出しの行が枠の外に出たとき、枠の中だけをスクロールして見せる（reveal-current.ts）
 const styles = tv({
   slots: {
-    root: 'flex min-w-0 flex-col gap-(--toc-gap) text-(length:--text-label) leading-(--leading-label)',
+    // --toc-step: 1 段ぶん文字の頭が右へずれる幅（印の線を一覧の左の線に戻すのに使う）
+    root: [
+      'flex min-w-0 flex-col gap-(--toc-gap) text-(length:--text-label) leading-(--leading-label)',
+      '[--toc-step:var(--toc-indent)]',
+    ],
     title: 'font-bold text-fg',
     // 一覧の左の細い線（今の見出しの印が載る）
     list: [
       'flex flex-col ps-(--toc-track-gap)',
       'border-s-(length:--toc-track-width) border-(color:--toc-track-color)',
     ],
-    // 入れ子の並び。段ごとの細い線（--toc-guide-width）は、ふだんは 0
-    group: [
-      'ms-(--toc-guide-margin) flex flex-col ps-(--toc-indent)',
-      'border-s-(length:--toc-guide-width) border-(color:--toc-track-color)',
-    ],
+    // 入れ子の並び。ふだんは字下げだけ
+    group: 'flex flex-col ps-(--toc-indent)',
     link: [
       'relative grid rounded-control px-(--toc-item-px) py-(--toc-item-py) no-underline',
       '[overflow-wrap:anywhere]',
       'text-(color:--toc-link-color) [--toc-link-color:var(--toc-item-color)]',
-      'data-nested:[--toc-link-color:var(--toc-nested-color)]',
-      // 塗り: ふだんは --toc-item-rest（今の見出しは --toc-current-bg）。hover と押下は、その上に文字の色を淡く敷く
+      // 塗り: ふだんは塗らない。hover と押下は、文字の色を淡く敷く
       // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
       'bg-(color:--flat-bg) [--flat-bg:var(--toc-item-rest)] [--toc-item-rest:transparent]',
       'hover:[--flat-bg:color-mix(in_oklab,currentColor_var(--flat-hover-mix),var(--toc-item-rest))]',
@@ -45,23 +47,68 @@ const styles = tv({
       '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
-      // 今の見出し: 太字にし、文字の色と塗りを印のものにする
-      'aria-[current=location]:font-bold',
-      'aria-[current=location]:[--toc-item-rest:var(--toc-current-bg)] aria-[current=location]:[--toc-link-color:var(--toc-current-fg)]',
+      // 今の見出し: 太字にし、文字の色を印のものにする
+      'aria-[current=location]:font-bold aria-[current=location]:[--toc-link-color:var(--toc-current-fg)]',
       // 今の見出しの印の線。一覧の左の線の中心に、段にかかわらず重ねる
       "before:absolute before:inset-y-0 before:hidden before:w-(--toc-current-bar-width) before:rounded-pill before:bg-(color:--toc-current-bar-color) before:content-['']",
-      'before:start-[calc(-1*(var(--toc-track-width)*0.5+var(--toc-current-bar-width)*0.5+var(--toc-track-gap)+var(--toc-depth)*(var(--toc-guide-margin)+var(--toc-guide-width)+var(--toc-indent))))]',
-      'aria-[current=location]:before:block',
+      'before:start-[calc(-1*(var(--toc-track-width)*0.5+var(--toc-current-bar-width)*0.5+var(--toc-track-gap)+var(--toc-depth)*var(--toc-step)))]',
     ],
     // 見える文字と、幅を取るための太字の写しを同じ場所に重ねる
     text: '[grid-area:1/1]',
     ghost: 'invisible font-bold [grid-area:1/1]',
   },
+  variants: {
+    // 今の見出しの印の形（軸 165）。line は一覧の左の線に重ねる濃い線と太字、text は太字だけ
+    currentIndicator: {
+      line: { link: 'aria-[current=location]:before:block' },
+      text: {},
+    },
+    // 今の見出しの色（原則6）。線と文字に使う。指定しないときは本文の色
+    color: {
+      primary: {
+        root: '[--toc-current-bar-color:var(--color-primary)] [--toc-current-fg:var(--color-on-primary-subtle)]',
+      },
+      secondary: {
+        root: '[--toc-current-bar-color:var(--color-secondary)] [--toc-current-fg:var(--color-on-secondary-subtle)]',
+      },
+      neutral: {},
+    },
+    // 一覧の左の線（軸 166）。消しても、今の見出しの印の線は同じ位置に出る
+    track: {
+      true: {},
+      false: { root: '[--toc-track-width:0px]' },
+    },
+    // 段ごとの細い線（軸 166）。親の文字の頭の位置に引き、字下げは線の右の空きだけにする
+    guides: {
+      true: {
+        root: '[--toc-step:calc(var(--toc-item-px)+var(--toc-guide-width)+var(--toc-track-gap))]',
+        group: [
+          'ms-(--toc-item-px) ps-(--toc-track-gap)',
+          'border-s-(length:--toc-guide-width) border-(color:--toc-track-color)',
+        ],
+      },
+      false: {},
+    },
+    // 2 段目より下の文字を一段淡くする（軸 166）
+    subtleNested: {
+      true: { link: 'data-nested:[--toc-item-color:var(--color-fg-subtle)]' },
+      false: {},
+    },
+  },
+  defaultVariants: {
+    currentIndicator: 'line',
+    color: 'neutral',
+    track: true,
+    guides: false,
+    subtleNested: false,
+  },
 });
+
+export type TableOfContentsCurrentIndicator = 'line' | 'text';
 
 export type { TableOfContentsItem };
 
-export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'children'> {
+export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'children' | 'color'> {
   /** 並べる見出し（id・文字・段）。記事の順に渡します。段は h2 なら 2 で、いちばん小さい段が 1 段目になります */
   items: readonly TableOfContentsItem[];
   /**
@@ -89,6 +136,31 @@ export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'child
   offset?: number;
   /** 見出しのリンクを押したときに呼ばれます。狭い画面で、開いた目次を閉じるときなどに使います */
   onItemClick?: (id: string, event: MouseEvent<HTMLAnchorElement>) => void;
+  /**
+   * 今の見出しの印。line は一覧の左の線に重ねる濃い線と太字、text は太字だけです
+   * @default 'line'
+   */
+  currentIndicator?: TableOfContentsCurrentIndicator;
+  /**
+   * 今の見出しの印の色（線と文字）。primary・secondary は利用者が選ぶ色、neutral は本文の色です
+   * @default 'neutral'
+   */
+  color?: 'primary' | 'secondary' | 'neutral';
+  /**
+   * 一覧の左に細い線を引きます。false でも、今の見出しの印の線は出ます
+   * @default true
+   */
+  track?: boolean;
+  /**
+   * 入れ子の並びの左に、段ごとの細い線を引きます。どの見出しの下の見出しかを目で追いやすくなります
+   * @default false
+   */
+  guides?: boolean;
+  /**
+   * 2 段目より下の見出しの文字を、一段淡くします。字下げに色の差を重ねて、節と小見出しを見分けやすくします
+   * @default false
+   */
+  subtleNested?: boolean;
 }
 
 /**
@@ -102,10 +174,15 @@ export function TableOfContents({
   onCurrentChange,
   offset,
   onItemClick,
+  currentIndicator,
+  color,
+  track,
+  guides,
+  subtleNested,
   className,
   ...props
 }: TableOfContentsProps) {
-  const slots = styles();
+  const slots = styles({ currentIndicator, color, track, guides, subtleNested });
   const tree = useMemo(() => buildTocTree(items), [items]);
   const ids = useMemo(() => items.map((item) => item.id), [items]);
   const controlled = currentId !== undefined;

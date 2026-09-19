@@ -7,7 +7,7 @@ import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
-const sizes = ['sm', 'md', 'lg'] as const;
+const sizes = ['xs', 'sm', 'md', 'lg'] as const;
 
 const meta = {
   title: 'Components/Progress',
@@ -24,7 +24,8 @@ const meta = {
           '- どれだけかかるか分からないときは `value={null}` にします。地の上を短い区切りが流れ続けます。値の文字は出ません。動きを減らす設定では、流さずに、その場で明滅します。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「3 / 12 ファイル」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。進み具合に良し悪しはないので、値によって色は変わりません。',
-          '- `size` でバーの太さを選びます。`md` が標準で、細い `sm` と太い `lg` があります。',
+          '- `size` でバーの太さを選びます。`md` が標準で、細い `sm`、太い `lg` と、記事の読了のバーのような線に近い `xs` があります。',
+          '- `track={false}` で地（まだ進んでいない分のグレー）を消し、進んだ分だけの線にできます。',
           '- 終わる（`value` が `max`）と `data-complete` が付きます。見た目は変わりません。終わったことは、ラベルやキャプションの文で伝えます。',
           '- `label` を渡さないときは、`aria-label` で名前を付けます。',
         ].join('\n'),
@@ -36,6 +37,7 @@ const meta = {
     value: 45,
     color: 'neutral',
     size: 'md',
+    track: true,
     showValue: true,
   },
   argTypes: {
@@ -52,6 +54,7 @@ const meta = {
       options: sizes,
       table: { defaultValue: { summary: "'md'" } },
     },
+    track: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
   },
   decorators: [
     (Story) => (
@@ -128,6 +131,33 @@ export const Sizes: Story = {
   ),
 };
 
+export const WithoutTrack: Story = {
+  tags: ['visual'],
+  name: '地なし',
+  decorators: wide,
+  render: () => (
+    <Gallery columnWidth="14rem">
+      {(['xs', 'sm'] as const).map((size) => (
+        <Specimen key={size} label={`${size}・track={false}`}>
+          <div className="flex flex-col gap-5">
+            {colors.map((color) => (
+              <Progress
+                key={color}
+                aria-label={color}
+                value={45}
+                size={size}
+                color={color}
+                track={false}
+                showValue={false}
+              />
+            ))}
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
 export const Parts: Story = {
   tags: ['visual'],
   name: 'ラベル・キャプション・値の文字',
@@ -168,6 +198,7 @@ export const ReadingBar: Story = {
         story: [
           '記事の上端に、ラベルを持たない細い Progress を `Affix` で留めます。枠をスクロールすると伸びます。',
           '端から離さないよう `--affix-gap` を 0 にし、貼り付けた Navbar があるページでは `belowNavbar` でその下に留めます。',
+          '太さは `size="sm"`（4px）で地を敷くのが基本です。もっと控えめにしたいときは、`size="xs"`（2px）や `track={false}`（読んだ分だけの線）にします。',
           '読んだ割合はスクロールの位置から分かることなので、読み上げからは外します（`aria-hidden`）。値が変わるたびに音で知らせる読み上げがあるためです。',
         ].join('\n'),
       },
@@ -208,6 +239,9 @@ export const ReadingBar: Story = {
       </Specimen>
       <Specimen label="貼り付けた Navbar の下">
         <ReadingScene navbar width="w-[340px]" />
+      </Specimen>
+      <Specimen label='size="xs"・track={false}'>
+        <ReadingScene size="xs" track={false} width="w-[340px]" />
       </Specimen>
     </div>
   ),

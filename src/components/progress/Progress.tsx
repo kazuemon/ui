@@ -15,19 +15,39 @@ import { tv } from '../../internal/tv';
 //   進み具合に良し悪しはないので、Meter の範囲による色（regionColor）は持たない。色は部品の色だけ
 //   終わった（value が max）ときも見た目は変えない（原則にない判断）。data-complete を付けるので、使う側が変えられる
 // 終わりの分からないとき（value が null）: 地の上を、塗りの色の短い区切りが左から右へ流れる
-//   送信中の流れる線（Loading の LoadingBar — adr/0034）と同じ動き。幅と動きは --progress-indeterminate-{width,}
-//   動きを減らす設定では、区切りを幅いっぱいに引いて、その場で明滅する（LoadingBar と同じ — adr/0042・原則14）
+//   送信中の流れる線（Loading の LoadingBar — adr/0034）と同じ動き。幅・動き・塗りは --progress-indeterminate-{width,,fill}
+//   塗りは currentColor から作る（:root のトークンから、部品の中の --bar-fill を指せないため。縞の案 — 軸 167）
+//   動きを減らす設定では、区切りを幅いっぱいに引いて、その場で明滅する（LoadingBar と同じ — adr/0042・原則14）。縞は流さない
 //   値の文字は出さない。読み上げの値の文（aria-valuetext）も付けない（Base UI の英語の既定を出さない）
+// 記事の読了のバー（Affix で上端に留める使い方）向けに、Progress だけが持つもの — 軸 168
+//   size="xs": 2px。送信中の流れる線と同じ細さ。Meter は範囲の色を見せるので、この細さは持たない
+//   track: 地を敷くか。地を消すと、読んだ分だけの線になる。Meter は範囲の中の位置を見せるので、地はいつも敷く
 const progress = tv({
   extend: barStyles,
   slots: {
+    root: '',
+    track: '',
     indicator: [
       'data-indeterminate:left-0 data-indeterminate:w-(--progress-indeterminate-width)',
+      'data-indeterminate:text-(color:--bar-fill) data-indeterminate:[background:var(--progress-indeterminate-fill)]',
       'data-indeterminate:animate-(--progress-indeterminate)',
       'motion-reduce:data-indeterminate:w-full motion-reduce:data-indeterminate:animate-loading-bar-reduced motion-reduce:data-indeterminate:opacity-60',
     ],
   },
+  variants: {
+    size: {
+      xs: { root: '[--bar-height:var(--progress-height-xs)]' },
+    },
+    track: {
+      true: {},
+      false: { track: 'bg-transparent' },
+    },
+  },
+  defaultVariants: { track: true },
 });
+
+/** Progress の太さ。xs は読了のバー向けのいちばん細い線です */
+export type ProgressSize = 'xs' | BarSize;
 
 export interface ProgressProps extends Omit<
   ComponentProps<'div'>,
@@ -72,10 +92,17 @@ export interface ProgressProps extends Omit<
    */
   color?: BarColor;
   /**
-   * バーの太さ。sm は細い線に近いバー、md は標準、lg は太いバーです。どの太さでも角は丸いままです
+   * バーの太さ。xs（2px）は記事の読了のバーのような細い線、sm（4px）は細いバー、md は標準、lg は太いバーです。
+   * どの太さでも角は丸いままです
    * @default 'md'
    */
-  size?: BarSize;
+  size?: ProgressSize;
+  /**
+   * 地（まだ進んでいない分のグレー）を敷くか。false にすると、進んだ分だけの線になります。
+   * 記事の上端に留める読了のバーを軽く見せたいときに使います
+   * @default true
+   */
+  track?: boolean;
 }
 
 /**
@@ -93,11 +120,12 @@ export function Progress({
   locale,
   color,
   size,
+  track = true,
   className,
   'aria-describedby': describedByProp,
   ...props
 }: ProgressProps) {
-  const styles = progress({ color, size });
+  const styles = progress({ color, size, track });
   const captionId = `${useId()}caption`;
   const indeterminate = value === null || !Number.isFinite(value);
   return (

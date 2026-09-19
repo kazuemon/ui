@@ -7,6 +7,7 @@ import { Progress, type ProgressProps } from './Progress';
 import { useReadingProgress } from './use-reading-progress';
 
 // ストーリーで使う場面（部品ではない）。記事の読了のバー: スクロールする枠の上端に、ラベルを持たない細い Progress を留める
+//   既定は 4px（size="sm"）・地あり。2px（size="xs"）と地なし（track={false}）も選べる — 軸 168
 //   留めるのは Affix（端から離さない）。貼り付けた Navbar があれば、その下に留める（belowNavbar）
 //   読んだ割合は、枠のスクロールの位置から計算する（useReadingProgress）
 
@@ -47,6 +48,8 @@ interface ReadingSceneProps {
   /** 貼り付けた Navbar を置く */
   navbar?: boolean;
   color?: ProgressProps['color'];
+  size?: ProgressProps['size'];
+  track?: boolean;
   width?: string;
   height?: string;
 }
@@ -56,6 +59,8 @@ export function ReadingScene({
   value,
   navbar = false,
   color = 'primary',
+  size = 'sm',
+  track = true,
   width = 'w-[480px]',
   height = 'h-[320px]',
 }: ReadingSceneProps) {
@@ -81,7 +86,7 @@ export function ReadingScene({
         </Navbar>
       ) : null}
       <Affix belowNavbar={navbar} className="[--affix-gap:0px]">
-        <ReadingProgress value={value ?? readValue} color={color} />
+        <ReadingProgress value={value ?? readValue} color={color} size={size} track={track} />
       </Affix>
       <Article />
     </div>

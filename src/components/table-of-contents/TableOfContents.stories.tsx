@@ -9,7 +9,7 @@ import { TableOfContents, type TableOfContentsProps } from './TableOfContents';
 import { longHeadings, useSceneItems } from './story-items';
 import { Article, SceneFrame, type SceneScroll } from './story-scenes';
 import { DensityPair, Matrix, Specimen } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode } from '../../stories/story-states';
+import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
 const meta = {
   title: 'Components/TableOfContents',
@@ -26,6 +26,8 @@ const meta = {
           '- 見出しが枠の上から `offset`（既定は枠の高さの 4 分の 1）より上に来ると、今の見出しになります。見出しに `scroll-margin-top` を付けていれば、それより手前にはしません。貼り付けた Navbar の下に見出しを止めるページでも、リンクで移った見出しが今の見出しになります。',
           '- `currentId` を渡すと、スクロールから求めずにその見出しを示します。今の見出しを自分で持つときや、ページの外の仕組み（ルーター）から決めるときに使います。スクロールから求めた見出しが変わると `onCurrentChange` が呼ばれます。',
           '- 一覧の上に `label`（既定は「目次」）を題として出し、読み上げでは目次の名前として読みます。Collapsible の行など、外に題があるときは `hideLabel` で題を消します。',
+          '- 今の見出しの印は `currentIndicator` です。`line`（既定）は一覧の左の線に濃い線を重ねて太字に、`text` は太字だけにします。印の色は `color` で選び、既定の `neutral` は本文の色です。',
+          '- 入れ子の段は字下げで見せます。`guides` で段ごとの細い線を引き、`track={false}` で一覧の左の線を消し、`subtleNested` で 2 段目より下の文字を一段淡くします。見出しが 3 段になる記事や、どの見出しの下かを追わせたいときは `guides` が向きます。',
           '- 記事の横に置くときは Affix に入れて画面に留めます。目次が長いときは ScrollArea に入れて高さを画面に収めます。今の見出しの行は、枠の中だけがスクロールして見えるところに来ます。',
           '',
           '見出しの一覧は、記事を組み立てる側で作ります。MDX なら、見出しに id を付ける rehype-slug と同じ github-slugger で、remark のプラグインから集めます。',
@@ -53,13 +55,27 @@ const meta = {
       },
     },
   },
-  args: { items: [], label: '目次', hideLabel: false },
+  args: {
+    items: [],
+    label: '目次',
+    hideLabel: false,
+    currentIndicator: 'line',
+    color: 'neutral',
+    track: true,
+    guides: false,
+    subtleNested: false,
+  },
   argTypes: {
     items: { control: false },
     label: { control: 'text', table: { defaultValue: { summary: "'目次'" } } },
     hideLabel: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     currentId: { control: false },
     offset: { control: 'number', table: { defaultValue: { summary: '枠の高さの 4 分の 1' } } },
+    currentIndicator: { control: 'inline-radio', options: ['line', 'text'] },
+    color: { control: 'inline-radio', options: ['neutral', 'primary', 'secondary'] },
+    track: { control: 'boolean' },
+    guides: { control: 'boolean' },
+    subtleNested: { control: 'boolean' },
   },
 } satisfies Meta<typeof TableOfContents>;
 
@@ -147,6 +163,86 @@ export const States: Story = {
           <FixedToc />
         </div>
       )}
+    />
+  ),
+};
+
+/** 種類の一覧に並べる目次。2〜3 段の見出しを入れ、今の見出しは 2 段目 */
+function VariantToc(props: Partial<TableOfContentsProps>) {
+  const all = useSceneItems();
+  const items = [0, 1, 2, 3, 7, 8, 9].flatMap((i) => (all[i] ? [all[i]] : []));
+  return <TableOfContents items={items} currentId={items[2]?.id} hideLabel {...props} />;
+}
+
+const variantColumns: MatrixColumn[] = [
+  { label: '通常' },
+  { label: 'hover', state: 'hover' },
+  { label: 'フォーカス（キーボード）', state: 'focus' },
+];
+
+const variantPseudo = statePseudo({
+  hover: 'a[aria-current]',
+  focusVisible: 'a[aria-current]',
+});
+
+const indicatorRows: [label: string, props: Partial<TableOfContentsProps>][] = [
+  ['line（既定）', {}],
+  ['text', { currentIndicator: 'text' }],
+  ['line・primary', { color: 'primary' }],
+  ['line・secondary', { color: 'secondary' }],
+];
+
+export const CurrentIndicators: Story = {
+  tags: ['visual'],
+  name: '今の見出しの印',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`currentIndicator` で印の形を、`color` で印の色を選びます。どの印でも今の見出しは太字です。hover とフォーカスは今の見出しに当てています。',
+      },
+    },
+    pseudo: variantPseudo,
+  },
+  render: () => (
+    <Matrix
+      rows={indicatorRows}
+      columns={variantColumns}
+      columnWidth="12rem"
+      rowLabel={([label]) => label}
+      renderCell={([, props]) => <VariantToc {...props} />}
+    />
+  ),
+};
+
+const nestingRows: [label: string, props: Partial<TableOfContentsProps>][] = [
+  ['字下げ（既定）', {}],
+  ['guides', { guides: true }],
+  ['track={false}', { track: false }],
+  ['subtleNested', { subtleNested: true }],
+];
+
+export const Nesting: Story = {
+  tags: ['visual'],
+  name: '入れ子の見せ方',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '既定では一覧の左に細い線を 1 本引き、段は字下げで見せます。`guides` は段ごとの細い線を足し、`track={false}` は左の線を消し（今の見出しの印の線は残ります）、`subtleNested` は 2 段目より下の文字を一段淡くします。',
+      },
+    },
+    pseudo: variantPseudo,
+  },
+  render: () => (
+    <Matrix
+      rows={nestingRows}
+      columns={variantColumns}
+      columnWidth="12rem"
+      rowLabel={([label]) => label}
+      renderCell={([, props]) => <VariantToc {...props} />}
     />
   ),
 };
