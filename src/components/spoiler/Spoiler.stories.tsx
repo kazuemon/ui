@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
-import { Spoiler } from './Spoiler';
+import { Spoiler, type SpoilerAppearance } from './Spoiler';
 import { Blockquote } from '../blockquote/Blockquote';
 import { Callout } from '../callout/Callout';
 import { Heading } from '../heading/Heading';
@@ -20,7 +20,9 @@ const meta = {
         component: [
           '文の中で隠しておき、押すと見える言葉です。ネタバレや、クイズの答えに使います。',
           '',
-          '- 押すか、フォーカスして Enter・Space で見せます。一度見せたら、隠し直しません。',
+          '- 押すか、フォーカスして Enter・Space で見せます。既定では、一度見せたら隠し直しません。もう一度押して隠し直せるようにするには `toggleable` を付けます。',
+          '- 隠し方は `appearance` で選びます。既定の `hatched` は斜線の模様、`soft` は淡い面で覆います。`blur` は文字をぼかすので、おおよその長さと形が見えます。短い数字や英字は形から推し量れることがあるので、答えを隠すときは `hatched` か `soft` にします。',
+          '- 見せる・隠すときは、すぐに切り替えます。移り変わりを付けたいときは `duration` に長さ（ms）を渡します。動きを減らす設定では、指定があってもすぐに切り替えます。',
           '- 隠しているあいだは、中身を読み上げず、`label`（既定は「ネタバレを表示」）のボタンとして読みます。何が隠れているかを伝えたいときは、「犯人の名前を表示」のように `label` を変えます。',
           '- 隠しているあいだは、中身を選んで写したり、中のリンクを押したりできません。',
           '- 文の中にそのまま置けます。行をまたいでも折り返します。記事（Prose）の中では、MDX から部品として置きます。',
@@ -32,6 +34,9 @@ const meta = {
   args: { children: '犯人は語り手でした', label: 'ネタバレを表示', onRevealedChange: fn() },
   argTypes: {
     children: { control: 'text' },
+    appearance: { control: 'inline-radio', options: ['hatched', 'soft', 'blur'] },
+    toggleable: { control: 'boolean' },
+    duration: { control: 'number' },
     defaultRevealed: { control: 'boolean' },
   },
   render: (args) => (
@@ -79,6 +84,44 @@ export const States: Story = {
       renderCell={(row) => (
         <Text>
           答えは<Spoiler defaultRevealed={row === '見せたあと'}>42</Spoiler>です。
+        </Text>
+      )}
+    />
+  ),
+};
+
+const appearances: SpoilerAppearance[] = ['hatched', 'soft', 'blur'];
+
+export const Appearances: Story = {
+  tags: ['visual'],
+  name: '隠し方',
+  parameters: {
+    controls: { disable: true },
+    pseudo: statePseudo({ hover: '[data-slot="spoiler"]' }),
+    docs: {
+      description: {
+        story:
+          '`appearance` ごとの、隠しているとき・hover・見せたあとです。どれも面と文字の色は周りの文字の色から作ります。',
+      },
+    },
+  },
+  render: () => (
+    <Matrix
+      rows={appearances}
+      columns={[
+        { label: '隠している' },
+        { label: 'hover', state: 'hover' },
+        { label: '見せたあと' },
+      ]}
+      columnWidth="14rem"
+      rowLabel={(row) => row}
+      renderCell={(row, column) => (
+        <Text>
+          最後の章で、
+          <Spoiler appearance={row} defaultRevealed={column.label === '見せたあと'}>
+            語り手が犯人
+          </Spoiler>
+          だと分かります。
         </Text>
       )}
     />
@@ -165,6 +208,7 @@ export const Accessibility: Story = {
   name: '読み上げ',
   play: async ({ canvas, args }) => {
     const spoiler = canvas.getByRole('button', { name: 'ネタバレを表示' });
+    await expect(spoiler).not.toHaveAttribute('aria-expanded');
     // 隠しているあいだは、中身を読まない
     await expect(canvas.queryByText('犯人は語り手でした')).toHaveAttribute('inert');
     // キーボードで見せると、ボタンでなくなり、フォーカスはそのまま残る
@@ -184,5 +228,46 @@ export const RevealByClick: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'ネタバレを表示' }));
     await expect(canvas.getByText('犯人は語り手でした')).not.toHaveAttribute('inert');
     await expect(canvas.queryByRole('button')).toBeNull();
+  },
+};
+
+export const Toggleable: Story = {
+  name: '隠し直せる',
+  args: { toggleable: true },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`toggleable` を付けると、見せたあともボタンのままで、もう一度押すと隠し直します。読み上げでは開閉のボタン（見せているかどうか）として読みます。見せたあとの中身はボタンの名前として読まれるので、中にリンクなどの押せるものは置きません。',
+      },
+      source: sourceCode(`
+        <Spoiler toggleable>語り手が犯人</Spoiler>
+      `),
+    },
+  },
+  play: async ({ canvas, args }) => {
+    const spoiler = canvas.getByRole('button', { name: 'ネタバレを表示' });
+    await expect(spoiler).toHaveAttribute('aria-expanded', 'false');
+    // キーボードで見せても、ボタンのまま、フォーカスも残る。名前は中身になる
+    await userEvent.tab();
+    await expect(spoiler).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onRevealedChange).toHaveBeenLastCalledWith(true);
+    await expect(spoiler).toHaveAttribute('aria-expanded', 'true');
+    await expect(canvas.getByRole('button', { name: '犯人は語り手でした' })).toBe(spoiler);
+    await expect(spoiler).toHaveFocus();
+    await expect(canvas.getByText('犯人は語り手でした')).not.toHaveAttribute('inert');
+    // Space でもう一度押すと隠し直す
+    await userEvent.keyboard(' ');
+    await expect(args.onRevealedChange).toHaveBeenLastCalledWith(false);
+    await expect(spoiler).toHaveAttribute('aria-expanded', 'false');
+    await expect(spoiler).toHaveAccessibleName('ネタバレを表示');
+    await expect(spoiler).toHaveFocus();
+    await expect(canvas.getByText('犯人は語り手でした')).toHaveAttribute('inert');
+    // 押しても見せる・隠すを繰り返す
+    await userEvent.click(spoiler);
+    await expect(spoiler).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(spoiler);
+    await expect(spoiler).toHaveAttribute('aria-expanded', 'false');
   },
 };

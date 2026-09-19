@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Fragment } from 'react';
 import { expect, waitFor } from 'storybook/test';
 
 import { Affix } from './Affix';
@@ -20,7 +21,9 @@ const meta = {
           '- `position` は留まる端です。`top`（既定）は上、`bottom` は下です。',
           '- Navbar を `sticky` で貼り付けたページでは、`belowNavbar` を付けると帯の下に留まります。',
           '- 枠そのものは見た目を持ちません。目次やボタンが自分の見た目のまま留まります。枠の空いたところは、下の内容を押せます。',
-          '- `surface` を付けると、内容が下を通る帯になります。白い面を敷いて端から離さずに留め、留まっているあいだは下の内容との境目を付けます。',
+          '- `surface` を付けると、内容が下を通る帯になります。白い面を敷いて端から離さずに留め、下の内容との境目を付けます。',
+          '- 帯の境目は `surfaceEdge` で選びます。`line`（既定）は留まっているあいだだけ細い線、`shadow` は留まっているあいだだけ淡い影、`always-line` は留まる前からいつも細い線です。貼り付けた Navbar の `stickyEdge` とそろえると、上の帯どうしがなじみます。',
+          '- 面を持たないとき、端からは 24px 離れて留まります。ページのレイアウトに合わせて変えるときは、`className="[--affix-gap:--spacing(4)]"` のように `--affix-gap` を上書きします。ページ全体で変えるなら、CSS の `:root` で `--affix-gap` を定めます。',
           '- 留まっているあいだは `data-stuck` が付きます。中身の見た目を変えるときに使えます。上からの離れは `--affix-inset` で読めます（目次の高さを画面に収めるときなど）。',
           '- スクロールする枠の中に置くと、画面ではなくその枠の端に留まります。',
         ].join('\n'),
@@ -42,7 +45,7 @@ const meta = {
         `),
     },
   },
-  args: { position: 'top', belowNavbar: true, surface: false },
+  args: { position: 'top', belowNavbar: true, surface: false, surfaceEdge: 'line' },
   argTypes: {
     position: {
       control: 'inline-radio',
@@ -51,6 +54,11 @@ const meta = {
     },
     belowNavbar: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     surface: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    surfaceEdge: {
+      control: 'inline-radio',
+      options: ['line', 'shadow', 'always-line'],
+      table: { defaultValue: { summary: "'line'" } },
+    },
   },
 } satisfies Meta<typeof Affix>;
 
@@ -137,6 +145,42 @@ export const Surface: Story = {
       <Specimen label="下: 終わりまで来たところ">
         <BarScene width="w-[480px]" height="h-[280px]" edge="bottom" scroll="end" />
       </Specimen>
+    </div>
+  ),
+};
+
+export const SurfaceEdges: Story = {
+  tags: ['visual'],
+  name: '帯の境目',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`surfaceEdge` で帯の境目を選びます。左は留まる前、右は留まったところです。`line`（既定）と `shadow` は留まってから境目を出し、`always-line` は留まる前から線を引きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="grid grid-cols-[repeat(3,max-content)] gap-6">
+      {(['line', 'shadow', 'always-line'] as const).map((surfaceEdge) => (
+        <Fragment key={surfaceEdge}>
+          <Specimen label={`${surfaceEdge}: 留まる前`}>
+            <BarScene width="w-[360px]" height="h-[220px]" surfaceEdge={surfaceEdge} />
+          </Specimen>
+          <Specimen label={`${surfaceEdge}: 上に留まったところ`}>
+            <BarScene width="w-[360px]" height="h-[220px]" scroll={240} surfaceEdge={surfaceEdge} />
+          </Specimen>
+          <Specimen label={`${surfaceEdge}: 下に留まったところ`}>
+            <BarScene
+              width="w-[360px]"
+              height="h-[220px]"
+              edge="bottom"
+              surfaceEdge={surfaceEdge}
+            />
+          </Specimen>
+        </Fragment>
+      ))}
     </div>
   ),
 };

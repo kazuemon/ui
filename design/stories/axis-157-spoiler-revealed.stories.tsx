@@ -4,12 +4,12 @@ import { type Candidate, type Column, Comparison } from './Comparison';
 import { Blockquote } from '../../src/components/blockquote/Blockquote';
 import { Callout } from '../../src/components/callout/Callout';
 import { Link } from '../../src/components/link/Link';
-import { Spoiler } from '../../src/components/spoiler/Spoiler';
+import { Spoiler, type SpoilerAppearance } from '../../src/components/spoiler/Spoiler';
 import { Text } from '../../src/components/text/Text';
 
 // 後半の軸 157: Spoiler を見せたあとに、隠していた範囲を残すか
 //   候補は --spoiler-revealed-fill・--spoiler-revealed-line の上書きだけで作る
-//   隠し方は軸 156 の現行版のまま
+//   隠し方（appearance）・隠し直すか（toggleable）・移る長さ（duration）は Controls で切り替える
 
 const candidates: Candidate[] = [
   {
@@ -65,39 +65,60 @@ const columns: Column[] = [
   { label: '折り返し' },
 ];
 
-function renderCell(column: Column) {
+interface Args {
+  pick: string;
+  appearance: SpoilerAppearance;
+  toggleable: boolean;
+  duration: number;
+}
+
+function renderCell(column: Column, args: Args) {
+  const { appearance, toggleable, duration } = args;
+  const shared = { appearance, toggleable, duration };
   const cell = (() => {
     switch (column.label) {
       case '見せる前':
         return (
           <Text>
-            最後の章で、<Spoiler>語り手が犯人</Spoiler>だと分かります。
+            最後の章で、<Spoiler {...shared}>語り手が犯人</Spoiler>だと分かります。
           </Text>
         );
       case 'リンクと並べる':
         return (
           <Text>
-            最後の章で、<Spoiler defaultRevealed>語り手が犯人</Spoiler>だと分かります。
+            最後の章で、
+            <Spoiler {...shared} defaultRevealed>
+              語り手が犯人
+            </Spoiler>
+            だと分かります。
             <Link href="#review">感想</Link>も書きました。
           </Text>
         );
       case 'グレーの面':
         return (
           <Blockquote appearance="surface">
-            答えは<Spoiler defaultRevealed>42</Spoiler>です。
+            答えは
+            <Spoiler {...shared} defaultRevealed>
+              42
+            </Spoiler>
+            です。
           </Blockquote>
         );
       case '濃い塗り':
         return (
           <Callout color="info" appearance="filled">
-            答えは<Spoiler defaultRevealed>42</Spoiler>です。
+            答えは
+            <Spoiler {...shared} defaultRevealed>
+              42
+            </Spoiler>
+            です。
           </Callout>
         );
       case '折り返し':
         return (
           <Text>
             読み終えてから開いてください。
-            <Spoiler defaultRevealed>
+            <Spoiler {...shared} defaultRevealed>
               最後の一行で、語り手がはじめから嘘をついていたことが分かります
             </Spoiler>
             。
@@ -106,7 +127,11 @@ function renderCell(column: Column) {
       default:
         return (
           <Text>
-            最後の章で、<Spoiler defaultRevealed>語り手が犯人</Spoiler>だと分かります。
+            最後の章で、
+            <Spoiler {...shared} defaultRevealed>
+              語り手が犯人
+            </Spoiler>
+            だと分かります。
           </Text>
         );
     }
@@ -118,37 +143,45 @@ const meta = {
   title: 'Design Review/157 Spoiler を見せたあと',
   id: 'design-review-157-spoiler-revealed',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: '', appearance: 'hatched', toggleable: false, duration: 0 },
   argTypes: {
+    appearance: {
+      description: '隠し方',
+      control: 'inline-radio',
+      options: ['hatched', 'soft', 'blur'],
+    },
+    toggleable: { description: 'もう一度押したら隠し直すか', control: 'boolean' },
+    duration: { description: '見せる・隠すときに移る長さ（ms）', control: 'number' },
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
       options: ['', 'current', 'A', 'B'],
     },
   },
-} satisfies Meta<{ pick: string }>;
+} satisfies Meta<Args>;
 
 export default meta;
 
-export const Candidates: StoryObj<{ pick: string }> = {
+export const Candidates: StoryObj<Args> = {
   name: '候補',
-  render: ({ pick }) => (
+  render: (args) => (
     <Comparison
       index={157}
       axis="Spoiler を見せたあとの残り方"
-      pick={pick}
+      pick={args.pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(column) => renderCell(column)}
+      renderCell={(column) => renderCell(column, args)}
     >
+      <p>Spoiler を押して見せたあと、隠していた範囲に跡を残すかを選びます。</p>
       <p>
-        Spoiler
-        を押して見せたあと、隠していた範囲に跡を残すかを選びます。一度見せたら隠し直さないので、見せたあとはふつうの文として読まれます。
+        Controls の appearance で隠し方（斜線の模様・淡い面・ぼかし）を、toggleable
+        で「もう一度押したら隠し直す」を、duration で見せるときに移る長さ（ms。既定の 0
+        はすぐに切り替え）を変えられます。見せる前の列の Spoiler を押すと見せられ、toggleable
+        を入れると、どの列ももう一度押して隠し直せます。
       </p>
       <p>
-        隠し方は軸 156 の現行版のまま比べます。見せるときは、隠した形から見せた形へ 200ms
-        で移ります（動きを減らす設定ではすぐに切り替わります）。見せる前の列の Spoiler
-        を押すと、見せる動きも試せます。
+        隠し直せるときは、見せたあとも押せるものとして残るので、跡の残り方が「押せる」ことの手がかりにもなります。
       </p>
       <p>どれを既定にするか、ほかに選べるようにしたい案があれば、それも教えてください。</p>
     </Comparison>

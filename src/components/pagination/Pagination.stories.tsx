@@ -32,6 +32,9 @@ const meta = {
           '- リンクにするときは、`href` に番号から行き先を作る関数を渡します。Next.js の `Link` などは `render={(page) => <NextLink href={…} />}` で渡します。',
           '- ボタンにするときは、`href`・`render` を渡さずに `onChange` を渡します。押した番号を受け取って、`page` を差し替えます。',
           '- いまのページは `aria-current="page"` で読み上げます。',
+          '- いまのページの印は `currentIndicator` で選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字です。どれも文字は太字です。ふだんは `neutral` にし、いまの位置を強く見せたいときは `neutral-strong`、サイトの色を出したいときは `primary` にします。Navbar の `currentIndicator` とそろえると、行き先の並びどうしで印がそろいます。',
+          '- 番号と前へ・次への形は `shape` で選びます。`square`（既定）はボタンと同じ角、`round` は丸です。Navbar の行き先と並べるときは `round` にすると形がそろいます。',
+          '- `outline` を付けると、番号ごとに細い枠線を引き、押せる範囲をふだんから見せます。',
           '- 端のページでは、前へ・次へは押せない見た目で残ります。並びの位置は動きません。',
           '- どのページにいても番号の数は同じです。ページを送っても、前へ・次へのボタンの位置が変わりません。',
           '- `siblings`（既定 1）はいまのページの左右に出す番号の数、`boundaries`（既定 1）は両端に出す番号の数です。',
@@ -42,7 +45,15 @@ const meta = {
       },
     },
   },
-  args: { page: 5, count: 10, href, align: 'center' },
+  args: {
+    page: 5,
+    count: 10,
+    href,
+    align: 'center',
+    currentIndicator: 'neutral',
+    shape: 'square',
+    outline: false,
+  },
   argTypes: {
     page: { control: { type: 'number', min: 1 } },
     count: { control: { type: 'number', min: 1 } },
@@ -56,6 +67,17 @@ const meta = {
       options: ['start', 'center', 'end'],
       table: { defaultValue: { summary: "'center'" } },
     },
+    currentIndicator: {
+      control: 'inline-radio',
+      options: ['neutral', 'neutral-strong', 'primary'],
+      table: { defaultValue: { summary: "'neutral'" } },
+    },
+    shape: {
+      control: 'inline-radio',
+      options: ['square', 'round'],
+      table: { defaultValue: { summary: "'square'" } },
+    },
+    outline: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     label: { control: 'text', table: { defaultValue: { summary: "'ページ送り'" } } },
     prevLabel: { control: 'text', table: { defaultValue: { summary: "'前へ'" } } },
     nextLabel: { control: 'text', table: { defaultValue: { summary: "'次へ'" } } },
@@ -103,6 +125,103 @@ export const States: Story = {
           </div>
         </Specimen>
       ))}
+    </div>
+  ),
+};
+
+const indicators = ['neutral', 'neutral-strong', 'primary'] as const;
+const shapes = ['square', 'round'] as const;
+const target = '[data-kind="page"][aria-label="4 ページ目"]';
+const currentPage = '[data-kind="page"][aria-current="page"]';
+
+// いまのページの印の種類。hover はいまのページ（5）、フォーカスは隣の番号（4）に当てる
+export const CurrentIndicators: Story = {
+  tags: ['visual'],
+  name: 'いまのページの印',
+  parameters: {
+    pseudo: statePseudo({ hover: currentPage, focusVisible: target }),
+    docs: {
+      description: {
+        story:
+          '`currentIndicator` でいまのページの印を選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字です。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex max-w-[40rem] flex-col gap-6">
+      {indicators.map((indicator) =>
+        (['通常', 'hover（5）', 'フォーカス（4）'] as const).map((label, i) => (
+          <Specimen key={`${indicator}-${label}`} label={`${indicator}・${label}`}>
+            <div data-preview={([undefined, 'hover', 'focus'] as const)[i]}>
+              <Pagination {...args} currentIndicator={indicator} />
+            </div>
+          </Specimen>
+        ))
+      )}
+    </div>
+  ),
+};
+
+// 番号の形。hover・押下・フォーカスは隣の番号（4）に当てる
+export const Shapes: Story = {
+  tags: ['visual'],
+  name: '形',
+  parameters: {
+    pseudo: statePseudo({ hover: target, active: target, focusVisible: target }),
+    docs: {
+      description: {
+        story:
+          '`shape` で番号と前へ・次への形を選びます。`square`（既定）はボタンと同じ角、`round` は丸です。2 桁以上の番号と、文字の付いた前へ・次へは、両端の丸い形になります。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex max-w-[40rem] flex-col gap-4">
+      {shapes.map((shape) =>
+        stateRows.map((row) => (
+          <Specimen key={`${shape}-${row.label}`} label={`${shape}・${row.label}`}>
+            <div data-preview={row.state}>
+              <Pagination {...args} shape={shape} />
+            </div>
+          </Specimen>
+        ))
+      )}
+      <Specimen label="round・3 桁のページ（120 / 240）">
+        <Pagination {...args} shape="round" page={120} count={240} />
+      </Specimen>
+    </div>
+  ),
+};
+
+// 枠線。hover・押下・フォーカスは隣の番号（4）に当てる
+export const Outline: Story = {
+  tags: ['visual'],
+  name: '枠線',
+  args: { outline: true },
+  parameters: {
+    pseudo: statePseudo({ hover: target, active: target, focusVisible: target }),
+    docs: {
+      description: {
+        story:
+          '`outline` を付けると、番号と前へ・次へに細い枠線を引き、押せる範囲をふだんから見せます。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex max-w-[40rem] flex-col gap-4">
+      {stateRows.map((row) => (
+        <Specimen key={row.label} label={row.label}>
+          <div data-preview={row.state}>
+            <Pagination {...args} />
+          </div>
+        </Specimen>
+      ))}
+      <Specimen label="最初のページ（1 / 10）">
+        <Pagination {...args} page={1} />
+      </Specimen>
+      <Specimen label="3 桁のページ（120 / 240）">
+        <Pagination {...args} page={120} count={240} />
+      </Specimen>
     </div>
   ),
 };

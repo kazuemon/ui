@@ -5,6 +5,8 @@ import { Meter } from './Meter';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
+const sizes = ['sm', 'md', 'lg'] as const;
+const regionColors = ['status', 'color', 'color-yellow'] as const;
 
 const meta = {
   title: 'Components/Meter',
@@ -20,13 +22,23 @@ const meta = {
           '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`showValue={false}` で隠せます。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「12 / 50 GB」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。',
-          '- `low`・`high`・`optimum` を渡すと、値のある範囲で塗りの色が変わります。`optimum` のある範囲はそのまま、隣の範囲は警告の色、反対の端の範囲は危険の色です。色だけで伝わらないよう、範囲の意味は `caption` に書きます。',
+          '- `size` でバーの太さを選びます。`md` が標準で、たくさん並べる一覧では細い `sm`、1 つだけ大きく見せるときは太い `lg` です。どの太さでも角は丸いままです。',
+          '- `low`・`high`・`optimum` を渡すと、値のある範囲で塗りの色が変わります。`optimum` のある範囲が「最適」、その隣が「隣の範囲」、反対の端が「反対の端」です。',
+          '- 範囲ごとの色は `regionColor` で選びます。既定の `status` は、最適を成功の緑、隣の範囲を警告のオリーブ、反対の端を危険の赤にします。最適のときも `color` の色のままにしたいときは `color`、隣の範囲を黄色の塗りにしたいときは `color-yellow` です。黄色は白地との差が小さいので、値の文字を出したままにします。',
+          '- 色だけで伝わらないよう、範囲の意味は `caption` に書きます。',
           '- `label` を渡さないときは、`aria-label` で名前を付けます。',
         ].join('\n'),
       },
     },
   },
-  args: { label: 'TypeScript', value: 72, color: 'neutral', showValue: true },
+  args: {
+    label: 'TypeScript',
+    value: 72,
+    color: 'neutral',
+    size: 'md',
+    regionColor: 'status',
+    showValue: true,
+  },
   argTypes: {
     value: { control: { type: 'range', min: 0, max: 100 } },
     label: { control: 'text' },
@@ -35,6 +47,16 @@ const meta = {
       control: 'inline-radio',
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: sizes,
+      table: { defaultValue: { summary: "'md'" } },
+    },
+    regionColor: {
+      control: 'inline-radio',
+      options: regionColors,
+      table: { defaultValue: { summary: "'status'" } },
     },
   },
   decorators: [
@@ -78,6 +100,31 @@ export const Colors: Story = {
   ),
 };
 
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '太さ',
+  decorators: [
+    (Story) => (
+      <div className="w-[760px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <Gallery columnWidth="14rem">
+      {sizes.map((size) => (
+        <Specimen key={size} label={size}>
+          <div className="flex flex-col gap-5">
+            {[0, 6, 45, 100].map((value) => (
+              <Meter key={value} label="習熟度" value={value} size={size} color="primary" />
+            ))}
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
 export const Parts: Story = {
   tags: ['visual'],
   name: 'ラベル・キャプション・値の文字',
@@ -104,34 +151,45 @@ export const Regions: Story = {
     docs: {
       description: {
         story:
-          'ストレージの使用量（少ないほどよい）: `low={60} high={85} optimum={0}`。バッテリー（多いほどよい）: `low={20} high={50} optimum={100}`。',
+          '行は `regionColor`。ストレージの使用量（少ないほどよい）: `low={60} high={85} optimum={0}` を、最適・隣の範囲・反対の端の値で並べています。右端はバッテリー（多いほどよい）: `low={20} high={50} optimum={100}`。',
       },
     },
   },
+  decorators: [
+    (Story) => (
+      <div className="w-[1000px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
   render: () => (
-    <div className="flex flex-col gap-6">
-      {[40, 72, 93].map((value) => (
-        <Meter
-          key={`storage-${value}`}
-          label="ストレージ"
-          value={value}
-          low={60}
-          high={85}
-          optimum={0}
-          color="primary"
-          caption="85% を超えると、新しいファイルを保存できなくなります"
-        />
-      ))}
-      {[80, 35, 10].map((value) => (
-        <Meter
-          key={`battery-${value}`}
-          label="バッテリー"
-          value={value}
-          low={20}
-          high={50}
-          optimum={100}
-          color="primary"
-        />
+    <div className="flex flex-col gap-8">
+      {regionColors.map((regionColor) => (
+        <Specimen key={regionColor} label={regionColor}>
+          <div className="grid grid-cols-4 gap-6">
+            {[40, 72, 93].map((value) => (
+              <Meter
+                key={value}
+                label="ストレージ"
+                value={value}
+                low={60}
+                high={85}
+                optimum={0}
+                color="primary"
+                regionColor={regionColor}
+              />
+            ))}
+            <Meter
+              label="バッテリー"
+              value={35}
+              low={20}
+              high={50}
+              optimum={100}
+              regionColor={regionColor}
+              caption="20% を切ると省電力になります"
+            />
+          </div>
+        </Specimen>
       ))}
     </div>
   ),

@@ -7,7 +7,7 @@ import { Step, Steps } from '../../src/components/steps/Steps';
 // 後半の軸 154: 手順（Steps）の番号の印
 //   --steps-marker-size（印の大きさ）・--steps-marker-radius（角）・--steps-marker-text・--steps-marker-weight（数字）
 //   --color-steps-marker（塗り）・--color-steps-marker-fg（数字の色）・--steps-marker-ring・--color-steps-marker-ring（輪郭）
-//   段をつなぐ線（軸 155）はどの案も現行版の細い線のまま
+//   段をつなぐ線は既定の細い実線のまま
 
 function Titled() {
   return (
@@ -136,6 +136,26 @@ const candidates: Candidate[] = [
       '--color-steps-marker-ring': 'transparent',
     },
   },
+  {
+    id: 'D',
+    name: 'Primary の丸',
+    intent:
+      'Primary ボタンと同じ青の丸に、白の数字。A の水色は白地との差が足りず丸の形が 3:1 に届かないので、同じく色で手順を目立たせる案として、ボタンの色合いを借りる。丸も数字も白地・丸の上で 4.5:1 を越える。',
+    spec: [
+      ['印', '28px の丸・Primary の青（白地 4.53:1）'],
+      ['数字', '14px・太字・白（丸の上 4.53:1）'],
+    ],
+    tokens: {
+      '--steps-marker-size': 'calc(var(--spacing) * 7)',
+      '--steps-marker-radius': 'var(--radius-pill)',
+      '--steps-marker-text': '14px',
+      '--steps-marker-weight': 'var(--font-weight-heading)',
+      '--steps-marker-ring': '0px',
+      '--color-steps-marker': 'var(--color-primary)',
+      '--color-steps-marker-fg': 'var(--color-on-primary)',
+      '--color-steps-marker-ring': 'transparent',
+    },
+  },
 ];
 
 const columns: Column[] = [
@@ -153,7 +173,7 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;

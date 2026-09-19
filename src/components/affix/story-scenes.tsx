@@ -170,9 +170,10 @@ export function BarScene({
   width = 'w-[640px]',
   height = 'h-[320px]',
   edge = 'top',
-}: SceneProps & { edge?: 'top' | 'bottom' }) {
+  surfaceEdge,
+}: SceneProps & { edge?: 'top' | 'bottom'; surfaceEdge?: AffixProps['surfaceEdge'] }) {
   const bar = (
-    <Affix surface position={edge} belowNavbar={edge === 'top'}>
+    <Affix surface surfaceEdge={surfaceEdge} position={edge} belowNavbar={edge === 'top'}>
       <Container>
         <div className="flex items-center justify-between gap-4 py-2">
           <span className="truncate text-sm font-bold text-fg">デザインの決め方</span>

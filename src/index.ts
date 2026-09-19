@@ -9,7 +9,12 @@ export {
   type AccordionItemProps,
   type AccordionProps,
 } from './components/accordion/Accordion';
-export { Affix, type AffixPosition, type AffixProps } from './components/affix/Affix';
+export {
+  Affix,
+  type AffixPosition,
+  type AffixProps,
+  type AffixSurfaceEdge,
+} from './components/affix/Affix';
 export {
   AlertDialog,
   type AlertDialogProps,
@@ -183,7 +188,9 @@ export {
 export {
   Pagination,
   type PaginationAlign,
+  type PaginationCurrentIndicator,
   type PaginationProps,
+  type PaginationShape,
 } from './components/pagination/Pagination';
 export {
   Popover,
@@ -232,12 +239,13 @@ export {
 } from './components/table/Table';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
-export { Spoiler, type SpoilerProps } from './components/spoiler/Spoiler';
+export { Spoiler, type SpoilerAppearance, type SpoilerProps } from './components/spoiler/Spoiler';
 export {
   Step,
   type StepProps,
   Steps,
   type StepsHeadingLevel,
+  type StepsLine,
   type StepsProps,
 } from './components/steps/Steps';
 export { Tag, type TagProps } from './components/tag/Tag';

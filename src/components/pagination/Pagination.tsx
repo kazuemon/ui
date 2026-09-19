@@ -7,15 +7,17 @@ import { disabledLinkProps } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
 import { type PaginationSlot, paginationSlots } from './pagination-items';
 
-// ページ番号のナビ（ブログの記事一覧など）— 軸 160・161
+// ページ番号のナビ（ブログの記事一覧など）— 軸 160・161 で決めた
 //   構造: <nav aria-label><ul><li>。前へ・番号・省略（…）・次へを 1 行に並べる
 //     リンク（href に番号から行き先を作る関数を渡す）とボタン（onChange）の両方で使える
 //     いまのページは aria-current="page"。リンクのときもリンクのまま残す（Navbar のいまいるページと同じ）
 //   番号と前へ・次へは平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと濃くして 1px 沈む。影はない（原則1）
 //     高さと幅の下限は部品の高さ（原則11・原則17: 押せる範囲は見た目の範囲）。数字は等幅にし、ページを送っても幅が変わらない
-//     角は --pagination-item-radius（軸 161 で比べている。既定は部品の角 — 原則5「見た目がボタンなら部品の角」）
-//   いまのページの印は --pagination-current-*（軸 160 で比べている。既定はグレーの塗り＋本文の色の太字。
-//     色を持たない部品の選んだ印はグレー — 原則6。Navbar の neutral・Tree のいまいる行と同じ地）
+//     形は shape と outline で選ぶ（軸 161）。square（既定）は部品の角（原則5「見た目がボタンなら部品の角」）、
+//       round は pill（Navbar の行き先・Calendar の round と同じ）。outline は番号ごとに細い境界線を引く
+//   いまのページの印は currentIndicator で選ぶ（軸 160。Navbar の currentIndicator と同じ名前）。どの印でも太字
+//     neutral（既定）はグレーの塗りに本文の色（色を持たない部品の選んだ印はグレー — 原則6。Tree のいまいる行と同じ地）
+//     neutral-strong は濃いグレーに白い文字（トグルの ON と同じ）、primary は淡い青に青い文字（Navbar の primary と同じ）
 //   省略（…）は押せない。キャプションと同じグレーの文字で、読み上げでは読まない（番号の飛びで伝わる）
 //   前へ・次へは、端のページでは押せない見た目で残す（原則13。消すと並びの位置が動くため — 原則にない判断）
 //     矢印は Caret（‹ ›）。Calendar の月送りと同じく、並びの中を一段ずつ送る印（記事の外へ移る Pager は Arrow）
@@ -34,8 +36,6 @@ const styles = tv({
     item: [
       'relative inline-flex h-(--spacing-control) min-w-(--spacing-control) shrink-0 cursor-pointer items-center justify-center',
       'rounded-(--pagination-item-radius) px-(--pagination-item-px)',
-      // 枠線（軸 161 の比較のためだけ。既定は太さ 0 で線なし）
-      'border-(length:--pagination-item-line-width) border-(color:--pagination-item-line)',
       'text-(length:--text-control) leading-(--leading-control) whitespace-nowrap tabular-nums no-underline select-none',
       'text-(color:--pagination-item-color)',
       // 塗り: ふだんは透明、いまのページは --pagination-current-bg。hover と押下は、その上に文字の色を淡く敷く
@@ -47,7 +47,7 @@ const styles = tv({
       '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
-      // いまのページ: 印の塗りと文字の色（軸 160）。どの印でも太字
+      // いまのページ: 印の塗りと文字の色（currentIndicator が root に置く）。どの印でも太字
       'aria-[current=page]:font-bold aria-[current=page]:text-(color:--pagination-current-fg)',
       'aria-[current=page]:[--pagination-item-ink:var(--pagination-current-fg)] aria-[current=page]:[--pagination-item-rest:var(--pagination-current-bg)]',
       // 押せない（端のページの前へ・次へ）: 押せない枠線のグレーのボタンと同じ文字の色（原則13）
@@ -67,6 +67,28 @@ const styles = tv({
     ],
   },
   variants: {
+    // いまのページの印。塗りと文字の色を root に置き、番号が読む
+    currentIndicator: {
+      neutral: {
+        root: '[--pagination-current-bg:var(--color-neutral)] [--pagination-current-fg:var(--color-fg)]',
+      },
+      'neutral-strong': {
+        root: '[--pagination-current-bg:var(--color-neutral-strong)] [--pagination-current-fg:var(--color-on-neutral-strong)]',
+      },
+      primary: {
+        root: '[--pagination-current-bg:var(--color-primary-subtle)] [--pagination-current-fg:var(--color-on-primary-subtle)]',
+      },
+    },
+    // 番号と前へ・次への角
+    shape: {
+      square: { root: '[--pagination-item-radius:var(--radius-control)]' },
+      round: { root: '[--pagination-item-radius:var(--radius-pill)]' },
+    },
+    // 番号と前へ・次への細い境界線（押せる範囲をふだんから見せる — 原則17）
+    outline: {
+      true: { item: 'border-(length:--border-width-thin) border-line' },
+      false: {},
+    },
     // 並びの寄せ方（原則20: 置く場所は使う側が知っている）
     align: {
       start: { list: 'justify-start' },
@@ -74,12 +96,19 @@ const styles = tv({
       end: { list: 'justify-end' },
     },
   },
-  defaultVariants: { align: 'center' },
+  defaultVariants: {
+    align: 'center',
+    currentIndicator: 'neutral',
+    shape: 'square',
+    outline: false,
+  },
 });
 
 type Styles = ReturnType<typeof styles>;
 
 export type PaginationAlign = 'start' | 'center' | 'end';
+export type PaginationCurrentIndicator = 'neutral' | 'neutral-strong' | 'primary';
+export type PaginationShape = 'square' | 'round';
 
 export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' | 'onChange'> {
   /** いまのページ（1 から数える） */
@@ -115,6 +144,22 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
    * @default 'center'
    */
   align?: PaginationAlign;
+  /**
+   * いまのページの印。どれも文字は太字です。neutral はグレーの塗り、neutral-strong は濃いグレーの塗りに白い文字、
+   * primary は淡い青の塗りに青い文字です。neutral-strong はいまの位置をいちばん強く見せます
+   * @default 'neutral'
+   */
+  currentIndicator?: PaginationCurrentIndicator;
+  /**
+   * 番号と前へ・次への形。square はボタンと同じ角、round は丸です（2 桁以上の番号と、文字の付いた前へ・次へは両端の丸い形）
+   * @default 'square'
+   */
+  shape?: PaginationShape;
+  /**
+   * 番号と前へ・次へに細い枠線を引き、押せる範囲をふだんから見せます
+   * @default false
+   */
+  outline?: boolean;
   /**
    * 並び（nav）の読み上げの名前
    * @default 'ページ送り'
@@ -234,6 +279,9 @@ export function Pagination({
   siblings = 1,
   boundaries = 1,
   align,
+  currentIndicator,
+  shape,
+  outline,
   label = 'ページ送り',
   prevLabel = '前へ',
   nextLabel = '次へ',
@@ -241,7 +289,7 @@ export function Pagination({
   className,
   ...props
 }: PaginationProps) {
-  const s = styles({ align });
+  const s = styles({ align, currentIndicator, shape, outline });
   const asLink = href != null || render != null;
   const Control = asLink ? LinkControl : ButtonControl;
   const shared = { s, href, render, onChange };

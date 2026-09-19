@@ -22,6 +22,7 @@ const meta = {
           '',
           '- `Steps` の中に `Step` を並べます。`Step` の `title` が段の題、children が本文です。本文には段落・コード・リストなどを置けます。',
           '- `headingLevel` は題を描く見出しの段です。既定は 3（`h3`）です。手順を置く節の見出しより 1 段下にします。題の大きさは段に従います。',
+          '- `line` は段をつなぐ縦の線です。既定は細い実線（`solid`）です。軽くしたいときは点線（`dotted`）、普通の番号付きリストのように静かにしたいときは線なし（`none`）にします。本文が長い段が続くときは、次の番号を目で追えるよう線を残します。',
           '- `start` で最初の番号を決めます。',
           '- `title` を省くと、番号を本文の 1 行目にそろえます。短い手順を文だけで並べるときに使います。',
           '- Prose の中に置けます。MDX では `<Steps>` と `<Step title="…">` を書き、その中に Markdown で本文を書きます。',
@@ -29,9 +30,10 @@ const meta = {
       },
     },
   },
-  args: { headingLevel: 3 },
+  args: { headingLevel: 3, line: 'solid' },
   argTypes: {
     headingLevel: { control: 'inline-radio', options: [2, 3, 4, 5, 6] },
+    line: { control: 'inline-radio', options: ['solid', 'dotted', 'none'] },
     start: { control: 'number' },
   },
   render: (args) => (
@@ -116,6 +118,36 @@ export const Kinds: Story = {
             <Step title="始める">準備ができたら、次の節へ進みます。</Step>
           </Steps>
         </Specimen>
+      </Gallery>
+    </div>
+  ),
+};
+
+export const Lines: Story = {
+  tags: ['visual'],
+  name: '線の種類',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div data-reading>
+      <Gallery columnWidth="18rem">
+        {(
+          [
+            ['solid', '細い実線（solid・既定）'],
+            ['dotted', '点線（dotted）'],
+            ['none', '線なし（none）'],
+          ] as const
+        ).map(([line, label]) => (
+          <Specimen key={line} label={label}>
+            <Steps line={line}>
+              <Step title="インストールする">パッケージを追加します。</Step>
+              <Step title="設定する">
+                <p>設定のファイルを置きます。</p>
+                <p>書き換えたら、開発のサーバーを立て直します。</p>
+              </Step>
+              <Step title="確かめる">画面を開いて見ます。</Step>
+            </Steps>
+          </Specimen>
+        ))}
       </Gallery>
     </div>
   ),
