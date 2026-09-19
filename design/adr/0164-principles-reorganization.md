@@ -79,6 +79,7 @@
 - `design/review-checklist.md`: 原則ごとの点検の表を 21 本に合わせました
 - `design/references/README.md`: 参照画像の表を移しました。`design/README.md` の案内も直しました
 - `design/backlog.md`: 読み取り専用の形の決め直し（D11）、押せない理由の届け方（未決）を足しました
+- 原則 8 の「読み取り専用の欄は下線だけ」は、参照画像（`site-profile-mobile.webp`）のキーと値の組を読み取り専用の入力欄と読み違えたものでした（前半のキャンバスから、ADR なしで入っていた決まり）。原則 8 には編集できる欄の塗りだけを残し、読み取り専用の形は軸を立てて一から比べます。キーと値の組を示す部品は backlog に足しました
 - 原則から外した 27 項目は、「行の高さに端数を作らない」（部品をまたぐ決まりなので原則 10 に残した）を除き、それぞれの ADR にあります。部品の Docs・JSDoc に説明が欠けているものが 8 つあります（Kbd の線、Tabs のパネルの角、脚注の下線、prefix の読み上げ、CodeBlock の色の組、リンクの Enter と Space、Prose の見出しの後ろ、Navbar の畳む幅）
 - レビューに使った台帳: https://claude.ai/artifact/2ofZFN1Ni6Ar4u55sNvfBv
 
