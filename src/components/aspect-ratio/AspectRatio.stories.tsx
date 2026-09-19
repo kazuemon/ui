@@ -5,7 +5,7 @@ import { AspectRatio } from './AspectRatio';
 import { Heading } from '../heading/Heading';
 import { Tag } from '../tag/Tag';
 import { Text } from '../text/Text';
-import { landscape, screenshot } from '../../../design/stories/samples/images';
+import { landscape, screenshot } from '../../samples/images';
 import { labelClass } from '../../stories/story-states';
 
 const meta = {
