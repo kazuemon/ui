@@ -333,6 +333,8 @@ export interface TabPanelProps extends Omit<
 
 /**
  * タブの中身。同じ value の Tab を選んでいるときだけ出します
+ *
+ * キーボードでフォーカスすると線が出ます。1 行だけの中身でも線が pill に見えないよう、角は小さくしてあります。`className` で角を大きくすると、線が pill に見えます
  */
 export function TabPanel({ className, ...props }: TabPanelProps) {
   return (
