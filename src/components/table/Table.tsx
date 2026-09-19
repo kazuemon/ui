@@ -16,7 +16,8 @@ import { useScrollable } from './use-scrollable';
 const table = tv({
   slots: {
     root: 'flex min-w-0 flex-col gap-2',
-    scroll: ['overflow-x-auto', ...focusRing],
+    // relative は、セルの中の sr-only（position: absolute）が、包みの外へはみ出してページを横に伸ばさないため
+    scroll: ['relative overflow-x-auto', ...focusRing],
     // 表とセルの見た目のクラス列は src/internal/reading/table.ts（Prose も同じものを使う）
     table: [...tableStyles.table, ...tableStyles.cells],
     caption: 'text-body-sm text-fg-subtle',
