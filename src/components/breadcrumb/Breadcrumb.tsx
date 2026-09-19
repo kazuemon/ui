@@ -47,12 +47,12 @@ const breadcrumb = tv({
       'text-(color:--breadcrumb-link-color)',
       // 下線（原則3・ADR-0030）: ふだんは淡く、hover で下線だけが濃くなる。文字の色と太さは変えない
       'underline [text-decoration-color:var(--breadcrumb-link-underline)] decoration-1 underline-offset-4',
-      'hover:text-(color:--breadcrumb-link-hover-color) hover:[text-decoration-color:var(--breadcrumb-link-underline-hover)]',
+      'hover:[text-decoration-color:var(--breadcrumb-link-underline-hover)]',
       // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
       'bg-(color:--flat-bg) [--flat-bg:transparent]',
       'hover:[--flat-bg:var(--breadcrumb-link-hover-bg)]',
       'active:translate-y-(--flat-press-depth) active:[--flat-bg:var(--breadcrumb-link-press-bg)]',
-      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
     ],

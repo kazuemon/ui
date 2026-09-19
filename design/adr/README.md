@@ -220,3 +220,14 @@
 | [0150](./0150-menu-group-label.md)                       | Menu のグループの見出し                                                  | Accepted           |
 | [0151](./0151-menu-shortcut.md)                          | Menu のショートカットの文字                                              | Accepted           |
 | [0152](./0152-menu-submenu-sheet.md)                     | Menu の入れ子をシートで開く形と、つまみ                                  | Accepted           |
+| [0153](./0153-nav-display-foundation.md)                 | 6 部品の土台（Avatar・Breadcrumb・Pager・CodeGroup・Toast・Tree）        | Accepted           |
+| [0154](./0154-avatar-shape.md)                           | Avatar の形と輪郭                                                        | Accepted           |
+| [0155](./0155-avatar-fallback.md)                        | Avatar の画像がないとき                                                  | Accepted           |
+| [0156](./0156-breadcrumb-separator.md)                   | パンくずリストの区切りの印                                               | Accepted           |
+| [0157](./0157-breadcrumb-link.md)                        | パンくずリストの行き先の見た目                                           | Accepted           |
+| [0158](./0158-pager-look.md)                             | 前後の記事へ移るナビ（Pager）の見た目                                    | Accepted           |
+| [0159](./0159-code-group-tabs.md)                        | コードのタブの見た目                                                     | Accepted           |
+| [0160](./0160-toast-surface.md)                          | トーストの面                                                             | Accepted           |
+| [0161](./0161-toast-placement.md)                        | トーストの出方（場所・積み方・消えるまで）                               | Accepted           |
+| [0162](./0162-tree-guides.md)                            | 木の字下げと案内線                                                       | Accepted           |
+| [0163](./0163-tree-current.md)                           | 木のいまいる行の印                                                       | Accepted           |

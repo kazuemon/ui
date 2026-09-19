@@ -56,8 +56,6 @@ const tree = tv({
       'aria-[current=page]:font-bold aria-[current=page]:text-(color:--tree-current-fg)',
       'aria-[current=page]:[--tree-row-rest:var(--tree-current-bg)]',
       'aria-[current=page]:hover:[--flat-bg:var(--tree-current-hover)]',
-      // いまいる行の左の印（軸 150 の候補で使う。既定は太さ 0）
-      "aria-[current=page]:before:absolute aria-[current=page]:before:inset-y-1 aria-[current=page]:before:left-0 aria-[current=page]:before:w-(--tree-current-bar) aria-[current=page]:before:rounded-pill aria-[current=page]:before:bg-(color:--tree-current-bar-color) aria-[current=page]:before:content-['']",
       // 押せない行: 押せない文字の色。塗りも動かさない
       'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-on-field-disabled)',
       'data-disabled:hover:[--flat-bg:var(--tree-row-rest)] data-disabled:active:translate-y-0',
@@ -80,10 +78,10 @@ const tree = tv({
     // いまいる行の色（原則6）。指定しないときはグレー
     color: {
       primary: {
-        root: '[--tree-current-bar-color:var(--color-primary)] [--tree-current-bg:var(--color-primary-subtle)] [--tree-current-fg:var(--color-on-primary-subtle)]',
+        root: '[--tree-current-bg:var(--color-primary-subtle)] [--tree-current-fg:var(--color-on-primary-subtle)]',
       },
       secondary: {
-        root: '[--tree-current-bar-color:var(--color-fg-secondary)] [--tree-current-bg:var(--color-secondary-subtle)] [--tree-current-fg:var(--color-on-secondary-subtle)]',
+        root: '[--tree-current-bg:var(--color-secondary-subtle)] [--tree-current-fg:var(--color-on-secondary-subtle)]',
       },
       neutral: {},
     },

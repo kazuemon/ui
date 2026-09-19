@@ -1100,7 +1100,6 @@
   --breadcrumb-link-px: var(--spacing);
   --breadcrumb-link-py: calc(var(--spacing) / 2);
   --breadcrumb-link-color: var(--color-fg-muted);
-  --breadcrumb-link-hover-color: var(--breadcrumb-link-color);
   --breadcrumb-link-underline: var(--color-link-underline);
   --breadcrumb-link-underline-hover: var(--color-link-underline-hover);
   --breadcrumb-link-hover-bg: transparent;
@@ -1203,7 +1202,7 @@
      行は一覧の項目の仲間。hover は入力欄の塗り、押すと一段濃くして沈む（原則3）。高さは部品の高さ（原則11）
      row-px: 行の左右の余白。gap: 印・アイコン・文字のあいだ。indent: 1 段ごとの字下げ
      guide-*: 字下げの案内線（軸 149）。親の印の中心にそろえる。太さ 0 で線なし
-     current-*: いまいる行（軸 150）。面・文字・左の印（bar。太さ 0 で印なし）
+     current-*: いまいる行（軸 150 の決定）。面・文字・その行に載せたときの面
        色を持たないときの面は、Select の選んだ項目と同じグレー */
   --tree-row-px: calc(var(--spacing) * 2);
   --tree-gap: calc(var(--spacing) * 1.5);
@@ -1224,8 +1223,6 @@
   /* Chrome は overflow-clip-margin に calc() を受け取らない（0 として扱う）ので、ここだけは計算せずに書く。
      フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
   --tree-panel-clip-margin: 6px;
-  --tree-current-bar: 0px;
-  --tree-current-bar-color: var(--color-primary);
   /* ── END tree */
 }
 
