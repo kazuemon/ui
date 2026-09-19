@@ -9,7 +9,7 @@ import { tv } from '../../internal/tv';
 // 進み具合（処理の進行・記事の読了）は Progress（まだない）として分ける。Meter は「いまの量」で、終わりに向かって進まない
 // 押さないので、ページと同じレイヤー（原則1: 影なし）。枠線も付けない
 // 並びは Field と同じ3層（原則4）: 上にラベル（太字）、真ん中にバー、下にキャプション（小さくグレー）
-//   値の文字はラベルと同じ行の右端に、ラベルと同じ大きさで一段淡く置く（数字の幅をそろえる）— 原則にない判断（軸 162 のメモ）
+//   値の文字はラベルと同じ行の右端に、ラベルと同じ大きさで一段淡く置く（数字の幅をそろえる）— 原則にない判断（backlog）
 // バー: 地（トグルの OFF・選んでいない箱と同じグレー）の上に、値までを部品の色で塗る。角は小物と同じ pill
 //   塗りは地の角で切り抜く（塗りの右端も地と同じ角になる）
 //   太さは size で 3 段（--meter-height-{sm,md,lg}）。太くしても角は pill のまま（原則5: 角は何であるかで決め、高さに比例させない）
@@ -19,8 +19,6 @@ import { tv } from '../../internal/tv';
 //   範囲ごとの色は regionColor で選ぶ。部品の中の --meter-{optimum,suboptimum,even-less-good} に入れ、data-region で塗りに渡す
 //     status: 最適は成功、隣は警告（前景用のオリーブ）、反対の端は危険（既定）
 //     color: 最適は部品の色のまま。隣・反対の端は status と同じ
-//     color-yellow: color の隣の範囲を、面用の黄色にする（白地・地のグレーとの差が小さい）
-//       黄色の塗りの内側に引く線（--meter-yellow-outline-{x,spread}・--color-meter-yellow-outline）を読む。既定は線なし（軸 164）
 //   色だけで伝えず、値の文字（数）でも読める（原則6）。範囲の意味は、使う側がキャプションなどの文で書く
 // 値が変わったときは、塗りを --duration-meter で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
 const meter = tv({
@@ -38,7 +36,7 @@ const meter = tv({
       'col-start-2 justify-self-end text-(length:--text-label) leading-(--leading-label) whitespace-nowrap text-fg-muted tabular-nums',
     track: 'relative col-span-full h-(--meter-height) overflow-hidden rounded-pill bg-field-addon',
     indicator: [
-      'absolute inset-y-0 rounded-pill bg-(color:--meter-fill) [box-shadow:var(--meter-fill-ring,none)]',
+      'absolute inset-y-0 rounded-pill bg-(color:--meter-fill)',
       'transition-[width,background-color] duration-(--duration-meter) ease-press motion-reduce:transition-none',
     ],
     caption:
@@ -58,12 +56,6 @@ const meter = tv({
     regionColor: {
       status: { root: '[--meter-optimum:var(--color-success)]' },
       color: { root: '[--meter-optimum:var(--meter-own)]' },
-      'color-yellow': {
-        root: [
-          '[--meter-optimum:var(--meter-own)] [--meter-suboptimum:var(--color-warning)]',
-          'data-[region=suboptimum]:[--meter-fill-ring:inset_var(--meter-yellow-outline-x)_0_0_var(--meter-yellow-outline-spread)_var(--color-meter-yellow-outline)]',
-        ],
-      },
     },
   },
   defaultVariants: { color: 'neutral', size: 'md', regionColor: 'status' },
@@ -133,7 +125,6 @@ export interface MeterProps extends Omit<
    * low・high・optimum を渡したときの、範囲ごとの塗りの色。
    * status は最適を成功の緑、隣の範囲を警告のオリーブ、反対の端を危険の赤にします。
    * color は最適の範囲を color の色のままにし、隣と反対の端は status と同じです。
-   * color-yellow は color の隣の範囲を黄色の塗りにします（白地との差が小さいので、値の文字やキャプションと合わせて使います）。
    * low・high のどちらも渡さないときは、いつも color の色です
    * @default 'status'
    */

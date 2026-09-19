@@ -6,7 +6,7 @@ import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
 const sizes = ['sm', 'md', 'lg'] as const;
-const regionColors = ['status', 'color', 'color-yellow'] as const;
+const regionColors = ['status', 'color'] as const;
 
 const meta = {
   title: 'Components/Meter',
@@ -24,7 +24,7 @@ const meta = {
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。',
           '- `size` でバーの太さを選びます。`md` が標準で、たくさん並べる一覧では細い `sm`、1 つだけ大きく見せるときは太い `lg` です。どの太さでも角は丸いままです。',
           '- `low`・`high`・`optimum` を渡すと、値のある範囲で塗りの色が変わります。`optimum` のある範囲が「最適」、その隣が「隣の範囲」、反対の端が「反対の端」です。',
-          '- 範囲ごとの色は `regionColor` で選びます。既定の `status` は、最適を成功の緑、隣の範囲を警告のオリーブ、反対の端を危険の赤にします。最適のときも `color` の色のままにしたいときは `color`、隣の範囲を黄色の塗りにしたいときは `color-yellow` です。黄色は白地との差が小さいので、値の文字を出したままにします。',
+          '- 範囲ごとの色は `regionColor` で選びます。既定の `status` は、最適を成功の緑、隣の範囲を警告のオリーブ、反対の端を危険の赤にします。最適のときも `color` の色のままにしたいときは `color` です。',
           '- 色だけで伝わらないよう、範囲の意味は `caption` に書きます。',
           '- `label` を渡さないときは、`aria-label` で名前を付けます。',
         ].join('\n'),
