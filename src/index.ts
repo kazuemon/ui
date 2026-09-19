@@ -142,6 +142,7 @@ export {
   type MenuSubmenuSheet,
 } from './components/menu/Menu';
 export { Meter, type MeterProps } from './components/meter/Meter';
+export { Progress, type ProgressProps } from './components/progress/Progress';
 export {
   MenuCheckboxItem,
   type MenuCheckboxItemProps,
@@ -237,6 +238,11 @@ export {
   type TableProps,
   TableRow,
 } from './components/table/Table';
+export {
+  TableOfContents,
+  type TableOfContentsItem,
+  type TableOfContentsProps,
+} from './components/table-of-contents/TableOfContents';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerAppearance, type SpoilerProps } from './components/spoiler/Spoiler';

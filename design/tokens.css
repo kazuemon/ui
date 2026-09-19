@@ -1262,6 +1262,31 @@
   --pagination-ellipsis-color: var(--color-fg-subtle);
   /* ── END pagination */
 
+  /* ── TableOfContents — 軸 165・166 ── BEGIN table-of-contents */
+  /* ブログ記事の目次。src/components/table-of-contents
+     行は平らな押すもの（原則3）。行の高さは部品の高さにせず、文字の上下に item-py だけ空ける
+     gap: 題と一覧のあいだ。item-px・item-py: 行の余白（hover の塗りの範囲）。item-color: 行の文字
+     track-*: 一覧の左の細い線と、線から行までの空き。今の見出しの印の線はこの線の中心に重ねる
+     current-*: 今の見出しの印（軸 165）。文字の色・塗り・線の太さと色。どの印でも太字
+     indent: 入れ子の 1 段の字下げ。guide-*: 入れ子の並びの左に引く段ごとの線（margin は線の手前の空き）
+     nested-color: 2 段目より下の行の文字（軸 166） */
+  --toc-gap: calc(var(--spacing) * 2);
+  --toc-item-px: calc(var(--spacing) * 2);
+  --toc-item-py: var(--spacing);
+  --toc-item-color: var(--color-fg-muted);
+  --toc-track-width: var(--border-width-thin);
+  --toc-track-color: var(--color-line);
+  --toc-track-gap: calc(var(--spacing) * 1.5);
+  --toc-current-fg: var(--color-fg);
+  --toc-current-bg: transparent;
+  --toc-current-bar-width: var(--border-width-thick);
+  --toc-current-bar-color: var(--color-fg);
+  --toc-indent: calc(var(--spacing) * 3);
+  --toc-guide-width: 0px;
+  --toc-guide-margin: 0px;
+  --toc-nested-color: var(--toc-item-color);
+  /* ── END table-of-contents */
+
   /* ── Steps — ADR-0172・0181 ── BEGIN steps */
   /* 記事の中の番号付きの手順。src/components/steps
      読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
@@ -1284,17 +1309,30 @@
   --color-steps-line: var(--color-line);
   /* ── END steps */
 
-  /* ── Meter — ADR-0179・0180 ── BEGIN meter */
-  /* 決まった範囲の中の量を示すバー（HTML の meter）。src/components/meter
+  /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */
+  /* 地の上に値までを塗るバー。Meter（決まった範囲の中の量）と Progress（進み具合）が共有する。src/internal/bar
      押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
-     地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5）。範囲ごとの塗りの色は部品の regionColor
-     height-{sm,md,lg}: バーの太さ（size）。入力方式で変えない（原則11） */
-  --meter-height-sm: var(--spacing); /* 4px */
-  --meter-height-md: calc(var(--spacing) * 2); /* 8px */
-  --meter-height-lg: calc(var(--spacing) * 3); /* 12px */
+     地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5）。範囲ごとの塗りの色は Meter の regionColor
+     height-{sm,md,lg}: バーの太さ（size）。入力方式で変えない（原則11）
+     track・radius: 地の色と角。読了のバーの比較（軸 168）で上書きするために名前にしている */
+  --bar-height-sm: var(--spacing); /* 4px */
+  --bar-height-md: calc(var(--spacing) * 2); /* 8px */
+  --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
+  --bar-track: var(--color-field-addon);
+  --bar-radius: var(--radius-pill);
   /* 値が変わったときに塗りが伸び縮みする長さ */
-  --duration-meter: var(--duration-normal);
-  /* ── END meter */
+  --duration-bar: var(--duration-normal);
+  /* ── END bar */
+
+  /* ── Progress ── BEGIN progress */
+  /* 処理の進み具合を示すバー。src/components/progress。形は上の Bar と同じ
+     終わりの分からないとき（indeterminate）: 地の上を、塗りの色の短い区切りが流れる（送信中の流れる線と同じ動き — adr/0034）
+       indeterminate-width: 流れる区切りの幅（地の幅に対する割合）
+       indeterminate: 流れる動き。keyframes はファイル末尾（progress keyframes）
+       動きを減らす設定では、区切りを幅いっぱいに引いて明滅する（送信中の線と同じ — adr/0042。部品で当てる） */
+  --progress-indeterminate-width: 40%;
+  --progress-indeterminate: var(--animate-loading-bar);
+  /* ── END progress */
 
   /* ── Spoiler ── BEGIN spoiler */
   /* 文中で隠しておき、押すと見える言葉（ネタバレ・答え）。src/components/spoiler
@@ -1362,5 +1400,32 @@
   60%,
   100% {
     background-position: 0% 0;
+  }
+}
+
+/* ── progress keyframes */
+/* 終わりの分からない Progress の動きの候補（軸 167。--progress-indeterminate で選ぶ）。決まったら、採らなかったものは消す
+   progress-shuttle: 区切りが左右の端のあいだを往復する（alternate で使う）
+   progress-stretch: 区切りが左の端から伸びながら進み、縮みながら右の端へ抜ける */
+@keyframes progress-shuttle {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - var(--progress-indeterminate-width));
+  }
+}
+@keyframes progress-stretch {
+  0% {
+    left: 0;
+    width: 0;
+  }
+  50% {
+    left: 25%;
+    width: 50%;
+  }
+  100% {
+    left: 100%;
+    width: 0;
   }
 }

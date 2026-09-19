@@ -3,62 +3,34 @@ import { type ComponentProps, type ReactNode, useId } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { meterRegion } from './meter-region';
+import { barDescribedBy, barStyles } from '../../internal/bar/bar-styles';
 import { tv } from '../../internal/tv';
 
 // 決まった範囲の中の量を示すバー（HTML の meter）。スキルの習熟度、ストレージの使用量など
-// 進み具合（処理の進行・記事の読了）は Progress（まだない）として分ける。Meter は「いまの量」で、終わりに向かって進まない
-// 押さないので、ページと同じレイヤー（原則1: 影なし）。枠線も付けない
-// 並びは Field と同じ3層（原則4）: 上にラベル（太字）、真ん中にバー、下にキャプション（小さくグレー）
-//   値の文字はラベルと同じ行の右端に、ラベルと同じ大きさで一段淡く置く（数字の幅をそろえる）— 原則にない判断（backlog）
-// バー: 地（トグルの OFF・選んでいない箱と同じグレー）の上に、値までを部品の色で塗る。角は小物と同じ pill
-//   塗りは地の角で切り抜く（塗りの右端も地と同じ角になる）
-//   太さは size で 3 段（--meter-height-{sm,md,lg}）。太くしても角は pill のまま（原則5: 角は何であるかで決め、高さに比例させない）
-// 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（トグルの ON と同じ）
-//   ピンクは面用（文字を載せない塗り — 原則12）。トグルの ON と同じ
+// 進み具合（処理の進行・記事の読了）は Progress として分ける。Meter は「いまの量」で、終わりに向かって進まない
+// バーの形・色・太さ・3 層の並びは Progress と共有する（src/internal/bar/bar-styles.ts）
 // low・high・optimum を渡すと、値のある範囲で塗りを変える（HTML の meter と同じ規則。meter-region.ts）
-//   範囲ごとの色は regionColor で選ぶ。部品の中の --meter-{optimum,suboptimum,even-less-good} に入れ、data-region で塗りに渡す
+//   範囲ごとの色は regionColor で選ぶ。部品の中の --meter-{optimum,suboptimum,even-less-good} に入れ、data-region で塗り（--bar-fill）に渡す
 //     status: 最適は成功、隣は警告（前景用のオリーブ）、反対の端は危険（既定）
 //     color: 最適は部品の色のまま。隣・反対の端は status と同じ
 //   色だけで伝えず、値の文字（数）でも読める（原則6）。範囲の意味は、使う側がキャプションなどの文で書く
-// 値が変わったときは、塗りを --duration-meter で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
 const meter = tv({
+  extend: barStyles,
   slots: {
     root: [
-      'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-(--spacing-field-gap)',
-      '[--meter-fill:var(--meter-own)]',
       '[--meter-even-less-good:var(--color-danger)] [--meter-suboptimum:var(--color-fg-warning)]',
-      'data-[region=optimum]:[--meter-fill:var(--meter-optimum)]',
-      'data-[region=suboptimum]:[--meter-fill:var(--meter-suboptimum)]',
-      'data-[region=even-less-good]:[--meter-fill:var(--meter-even-less-good)]',
+      'data-[region=optimum]:[--bar-fill:var(--meter-optimum)]',
+      'data-[region=suboptimum]:[--bar-fill:var(--meter-suboptimum)]',
+      'data-[region=even-less-good]:[--bar-fill:var(--meter-even-less-good)]',
     ],
-    label: 'col-start-1 text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
-    value:
-      'col-start-2 justify-self-end text-(length:--text-label) leading-(--leading-label) whitespace-nowrap text-fg-muted tabular-nums',
-    track: 'relative col-span-full h-(--meter-height) overflow-hidden rounded-pill bg-field-addon',
-    indicator: [
-      'absolute inset-y-0 rounded-pill bg-(color:--meter-fill)',
-      'transition-[width,background-color] duration-(--duration-meter) ease-press motion-reduce:transition-none',
-    ],
-    caption:
-      'col-span-full text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
   variants: {
-    color: {
-      primary: { root: '[--meter-own:var(--color-primary)]' },
-      secondary: { root: '[--meter-own:var(--color-secondary)]' },
-      neutral: { root: '[--meter-own:var(--color-neutral-strong)]' },
-    },
-    size: {
-      sm: { root: '[--meter-height:var(--meter-height-sm)]' },
-      md: { root: '[--meter-height:var(--meter-height-md)]' },
-      lg: { root: '[--meter-height:var(--meter-height-lg)]' },
-    },
     regionColor: {
       status: { root: '[--meter-optimum:var(--color-success)]' },
-      color: { root: '[--meter-optimum:var(--meter-own)]' },
+      color: { root: '[--meter-optimum:var(--bar-own)]' },
     },
   },
-  defaultVariants: { color: 'neutral', size: 'md', regionColor: 'status' },
+  defaultVariants: { regionColor: 'status' },
 });
 
 type MeterColor = NonNullable<VariantProps<typeof meter>['color']>;
@@ -157,7 +129,7 @@ export function Meter({
   const styles = meter({ color, size, regionColor });
   const captionId = `${useId()}caption`;
   const region = meterRegion({ value, min, max, low, high, optimum });
-  const describedBy = [describedByProp, caption ? captionId : null].filter(Boolean).join(' ');
+  const describedBy = barDescribedBy(describedByProp, captionId, Boolean(caption));
   return (
     <BaseMeter.Root
       value={value}
@@ -168,7 +140,7 @@ export function Meter({
       getAriaValueText={getValueText}
       data-slot="meter"
       data-region={region}
-      aria-describedby={describedBy || undefined}
+      aria-describedby={describedBy}
       className={styles.root({ className })}
       {...props}
     >
