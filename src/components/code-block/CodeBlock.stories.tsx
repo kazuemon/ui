@@ -15,7 +15,7 @@ const meta = {
         component: [
           '複数行のコードです。色分けはブログのビルド時に Shiki で済ませ、色分けしたあとの HTML を `html` に渡します。',
           '',
-          "- Shiki は `createCssVariablesTheme`（`variablePrefix: '--shiki-'`）で色分けします。色はこの部品が入れます。",
+          "- Shiki は `createCssVariablesTheme`（`variablePrefix: '--shiki-'`）で色分けします。色はこの部品が入れます。ブランドの色は混ざらず、GitHub のテーマに近い専用の色の組で、明るい地と濃い地の両方を持ちます。",
           '- 強調行・差分・フォーカス・語の強調は、`@shikijs/transformers` の `transformerNotationHighlight`・`transformerNotationDiff`・`transformerNotationFocus`・`transformerNotationWordHighlight` の書き方（`// [!code highlight]` など）で付けます。',
           '- `html` はそのまま HTML として入れます。ビルド時に自分で作った HTML だけを渡し、利用者が書いた文や外から取ってきた文をエスケープせずに渡さないでください。',
           '- MDX の `pre` を差し替えるときは、`html` の代わりに `children` に pre の中身を渡せます。',
