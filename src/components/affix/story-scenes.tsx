@@ -1,9 +1,10 @@
-import { type ReactNode, useCallback, useRef } from 'react';
+import { type ReactNode, useCallback, useId, useRef } from 'react';
 
 import { Button } from '../button/Button';
 import { Container } from '../container/Container';
 import { Heading } from '../heading/Heading';
 import { Navbar, NavbarLink } from '../navbar/Navbar';
+import { TableOfContents } from '../table-of-contents/TableOfContents';
 import { Text } from '../text/Text';
 import { Affix, type AffixProps } from './Affix';
 
@@ -83,9 +84,15 @@ const sections = [
 const paragraph =
   '部品は自分がどこに置かれるかを知りません。知らないことは決めず、使う側に渡します。値は役割のトークンで持ち、部品の中だけで使う値は部品のトークンに分けます。';
 
-function Sections() {
+// 見出しの id は場面ごとに変える（同じページに場面を 2 つ並べても、目次が隣の場面の見出しを読まないように）
+function useSectionId() {
+  const prefix = useId();
+  return (id: string) => `${prefix}-${id}`;
+}
+
+function Sections({ sectionId }: { sectionId: (id: string) => string }) {
   return sections.map(([id, title]) => (
-    <section key={id} id={id} className="flex flex-col gap-3">
+    <section key={id} id={sectionId(id)} className="flex flex-col gap-3">
       <Heading level={2} size={3}>
         {title}
       </Heading>
@@ -95,26 +102,12 @@ function Sections() {
   ));
 }
 
-/** 記事の横の目次（TableOfContents の代わりの見本） */
-export function SampleToc({ current = 'density' }: { current?: string }) {
+/** 記事の横の目次。今の見出しはスクロールから求める */
+function SceneToc({ sectionId }: { sectionId: (id: string) => string }) {
   return (
-    <nav aria-label="目次" className="flex flex-col gap-2 text-sm">
-      <span className="font-bold text-fg">目次</span>
-      <ul className="flex flex-col gap-1.5 border-s border-line ps-3">
-        {sections.map(([id, title]) => (
-          <li key={id}>
-            <a
-              href={`#${id}`}
-              onClick={stop}
-              aria-current={id === current ? 'location' : undefined}
-              className="text-fg-muted no-underline aria-[current]:font-bold aria-[current]:text-fg"
-            >
-              {title}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <TableOfContents
+      items={sections.map(([id, title]) => ({ id: sectionId(id), text: title, level: 2 }))}
+    />
   );
 }
 
@@ -134,6 +127,7 @@ export function ArticleScene({
   toc = { belowNavbar: true },
   backToTop = true,
 }: SceneProps & { toc?: AffixProps | false; backToTop?: boolean }) {
+  const sectionId = useSectionId();
   return (
     <Frame scroll={scroll} width={width} height={height}>
       <Container>
@@ -142,7 +136,7 @@ export function ArticleScene({
             <Heading level={1} size={2}>
               デザインの決め方
             </Heading>
-            <Sections />
+            <Sections sectionId={sectionId} />
             {backToTop && (
               <Affix position="bottom" className="flex justify-end">
                 <Button color="white" onClick={() => undefined}>
@@ -153,7 +147,7 @@ export function ArticleScene({
           </article>
           {toc && (
             <Affix render={<aside />} {...toc}>
-              <SampleToc />
+              <SceneToc sectionId={sectionId} />
             </Affix>
           )}
         </div>
@@ -172,6 +166,7 @@ export function BarScene({
   edge = 'top',
   surfaceEdge,
 }: SceneProps & { edge?: 'top' | 'bottom'; surfaceEdge?: AffixProps['surfaceEdge'] }) {
+  const sectionId = useSectionId();
   const bar = (
     <Affix surface surfaceEdge={surfaceEdge} position={edge} belowNavbar={edge === 'top'}>
       <Container>
@@ -189,7 +184,7 @@ export function BarScene({
       {edge === 'top' && bar}
       <Container>
         <div className="flex flex-col gap-8 py-8">
-          <Sections />
+          <Sections sectionId={sectionId} />
         </div>
       </Container>
       {edge === 'bottom' && bar}

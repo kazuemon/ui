@@ -1262,6 +1262,27 @@
   --pagination-ellipsis-color: var(--color-fg-subtle);
   /* ── END pagination */
 
+  /* ── TableOfContents — ADR-0183・0184 ── BEGIN table-of-contents */
+  /* ブログ記事の目次。src/components/table-of-contents
+     行は平らな押すもの（原則3）。行の高さは部品の高さにせず、文字の上下に item-py だけ空ける
+     gap: 題と一覧のあいだ。item-px・item-py: 行の余白（hover の塗りの範囲）。item-color: 行の文字
+     track-*: 一覧の左の細い線と、線から行までの空き。今の見出しの印の線はこの線の中心に重ねる（track={false} で線の太さを 0 にする）
+     current-*: 今の見出しの印（ADR-0183）。文字の色と、印の線の太さと色（color で差し替える）
+     indent: 入れ子の 1 段の字下げ。guide-width: 段ごとの細い線（guides のときだけ引く。ADR-0184） */
+  --toc-gap: calc(var(--spacing) * 2);
+  --toc-item-px: calc(var(--spacing) * 2);
+  --toc-item-py: var(--spacing);
+  --toc-item-color: var(--color-fg-muted);
+  --toc-track-width: var(--border-width-thin);
+  --toc-track-color: var(--color-line);
+  --toc-track-gap: calc(var(--spacing) * 1.5);
+  --toc-current-fg: var(--color-fg);
+  --toc-current-bar-width: var(--border-width-thick);
+  --toc-current-bar-color: var(--color-fg);
+  --toc-indent: calc(var(--spacing) * 3);
+  --toc-guide-width: var(--border-width-thin);
+  /* ── END table-of-contents */
+
   /* ── Steps — ADR-0172・0181 ── BEGIN steps */
   /* 記事の中の番号付きの手順。src/components/steps
      読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
@@ -1284,17 +1305,46 @@
   --color-steps-line: var(--color-line);
   /* ── END steps */
 
-  /* ── Meter — ADR-0179・0180 ── BEGIN meter */
-  /* 決まった範囲の中の量を示すバー（HTML の meter）。src/components/meter
+  /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */
+  /* 地の上に値までを塗るバー。Meter（決まった範囲の中の量）と Progress（進み具合）が共有する。src/internal/bar
      押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
-     地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5）。範囲ごとの塗りの色は部品の regionColor
+     地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5。部品で当てる）。範囲ごとの塗りの色は Meter の regionColor
+     Progress だけは、読了のバー向けに端を丸めない形（shape="square"）を選べる
      height-{sm,md,lg}: バーの太さ（size）。入力方式で変えない（原則11） */
-  --meter-height-sm: var(--spacing); /* 4px */
-  --meter-height-md: calc(var(--spacing) * 2); /* 8px */
-  --meter-height-lg: calc(var(--spacing) * 3); /* 12px */
+  --bar-height-sm: var(--spacing); /* 4px */
+  --bar-height-md: calc(var(--spacing) * 2); /* 8px */
+  --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
   /* 値が変わったときに塗りが伸び縮みする長さ */
-  --duration-meter: var(--duration-normal);
-  /* ── END meter */
+  --duration-bar: var(--duration-normal);
+  /* ── END bar */
+
+  /* ── Progress — ADR-0185・0186 ── BEGIN progress */
+  /* 処理の進み具合を示すバー。src/components/progress。形は上の Bar と同じ
+     終わりの分からないとき（indeterminate）の動きは animation で選ぶ（ADR-0186）。keyframes はファイル末尾（progress keyframes）
+       sweep（既定）: 塗りの色の短い区切りが、左の外から右の外へ流れる（送信中の流れる線と同じ動き — adr/0034。loading-bar）
+         sweep-width: 流れる区切りの幅（地の幅に対する割合）
+       shuttle: 区切りが地の中に収まったまま、左右の端を往復する
+         shuttle-width: 往復する区切りの幅。shuttle-animation: 片道の長さと緩み（alternate で往復）
+       stripes: 地の幅いっぱいを斜めの縞で塗り、縞を左から右へ流す
+         stripes: 縞の絵（background の値）。塗りの色（currentColor。部品が塗りの色を入れる）と、それを透かして地が見える色を交互に並べる
+         stripe-size: 縞の 1 組の幅。stripes-animation: 縞を 1 組ずつ送る長さ（一定の速さ）
+       動きを減らす設定では、どれも幅いっぱいに引いて明滅する（送信中の線と同じ — adr/0042。部品で当てる）。縞は止まる
+     height-xs: 読了のバー向けの、いちばん細い太さ（size="xs"。Progress だけ。ADR-0185） */
+  --progress-sweep-width: 40%;
+  --progress-shuttle-width: 30%;
+  --progress-shuttle-animation: progress-shuttle 0.9s ease-in-out infinite alternate;
+  --progress-stripe-size: calc(var(--spacing) * 4);
+  --progress-stripes: linear-gradient(
+      135deg,
+      currentColor 25%,
+      color-mix(in oklab, currentColor 35%, transparent) 25% 50%,
+      currentColor 50% 75%,
+      color-mix(in oklab, currentColor 35%, transparent) 75%
+    )
+    0 0 / var(--progress-stripe-size) var(--progress-stripe-size);
+  --progress-stripes-animation: progress-stripes 0.8s linear infinite;
+  --progress-height-xs: calc(var(--spacing) / 2); /* 2px */
+  /* ── END progress */
 
   /* ── Spoiler ── BEGIN spoiler */
   /* 文中で隠しておき、押すと見える言葉（ネタバレ・答え）。src/components/spoiler
@@ -1362,5 +1412,26 @@
   60%,
   100% {
     background-position: 0% 0;
+  }
+}
+
+/* ── progress keyframes */
+/* 終わりの分からない Progress の動き（animation）
+   progress-shuttle: 区切りが左右の端のあいだを往復する（alternate で使う。--progress-shuttle-width の幅）
+   progress-stripes: 縞の絵を右へ 1 組ずつ送る（縞が左から右へ流れて見える。--progress-stripe-size の幅） */
+@keyframes progress-shuttle {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - var(--progress-shuttle-width));
+  }
+}
+@keyframes progress-stripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: var(--progress-stripe-size) 0;
   }
 }

@@ -80,7 +80,7 @@
 
 ### ナビゲーション
 
-- [ ] TableOfContents
+- [x] TableOfContents
 - [x] Pager
 - [x] Breadcrumb
 - [x] Tabs
@@ -163,7 +163,7 @@
 - [x] Notice
 - [x] Loading
 - [x] Toast
-- [ ] Progress
+- [x] Progress
 - [x] Skeleton
 - [ ] StatusPanel
 - [ ] LoadingOverlay

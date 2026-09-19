@@ -38,7 +38,7 @@ const meta = {
                 </Affix>
               </article>
               <Affix render={<aside />} belowNavbar>
-                <TableOfContents />
+                <TableOfContents items={headings} />
               </Affix>
             </div>
           </Container>

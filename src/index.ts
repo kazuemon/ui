@@ -143,6 +143,13 @@ export {
 } from './components/menu/Menu';
 export { Meter, type MeterProps } from './components/meter/Meter';
 export {
+  Progress,
+  type ProgressAnimation,
+  type ProgressProps,
+  type ProgressShape,
+  type ProgressSize,
+} from './components/progress/Progress';
+export {
   MenuCheckboxItem,
   type MenuCheckboxItemProps,
   MenuGroup,
@@ -237,6 +244,12 @@ export {
   type TableProps,
   TableRow,
 } from './components/table/Table';
+export {
+  TableOfContents,
+  type TableOfContentsCurrentIndicator,
+  type TableOfContentsItem,
+  type TableOfContentsProps,
+} from './components/table-of-contents/TableOfContents';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerAppearance, type SpoilerProps } from './components/spoiler/Spoiler';
