@@ -157,6 +157,33 @@
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
 - レシピに回す部品の見直し（Sidebar・Stack などが部品として要るか）は決めていません
+- レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:
+  - PostCard・PostList: ブログの記事カードと一覧。Card・Time・Tag・Pagination を組み合わせる
+  - ShareButtons: X への共有と URL のコピー。CopyButton と Link を組み合わせる
+  - ダークモードの切り替え: 下の「トークン・テーマ」のダークモードができたら、Toggle か Menu で ThemeProvider を切り替える形にする
+- ほかのライブラリと一緒に使うときの統合の見本も、レシピとして置きます（2026-09-20）。いまの案:
+  - フォーム: react-hook-form・Zod（Field のエラーの行とのつなぎ方、送信中の固定）、Conform・Next.js の Server Actions（サーバーで検証したエラーを Field に出す）
+  - MDX: @next/mdx・next-mdx-remote・Velite（h2・a・code などを部品に割り当てる。TableOfContents に渡す見出しを集める）
+  - コード: Shiki（CodeBlock・CodeGroup に色付けしたコードを渡す）
+  - ルーター: next/link・React Router・TanStack Router（Link・Navbar・Pagination・Breadcrumb に `render` でルーターのリンクを渡す）
+  - 画像: next/image（Image・Figure・Gallery に渡す）
+  - ダークモード: next-themes（機能のダークモードができたら）
+  - 多言語: next-intl・react-i18next（機能の多言語ができたら）
+  - データ取得: TanStack Query（読み込み中に Skeleton・Progress・Spinner、失敗したら Notice・Toast）
+  - 日付: date-fns・Temporal（Calendar・Time・RelativeTime）
+- 使う人がよく組むものも、レシピの案に置きます（2026-09-20）。src/samples の見本ページ（記事・ドキュメント・サインイン・設定・一覧・SNS）と重ならない、小さな組み合わせにします:
+  - ページの見出し帯: 題・Breadcrumb・操作のボタンを 1 行に並べる
+  - 記事のメタ行: 著者（Avatar）・公開日（Time）・読了時間・Tag
+  - 関連記事・シリーズの案内: LinkCard・List・Pager
+  - 作品カード・自己紹介・トップの見出し（Hero）: ポートフォリオのトップで使う Card・Image・Avatar・Button の組み方
+  - お問い合わせフォーム: Form・TextField・Textarea で送り、結果を Toast で知らせる
+  - 削除の確認: AlertDialog と送信中のボタン（非同期の確定）
+  - 検索できる一覧: 検索の欄・List・Pagination と、結果がないときの表示
+  - 読み込み・空・失敗の 3 つの状態: Skeleton・StatusPanel・Notice の出し分け
+  - 狭い画面のメニュー: Navbar と Drawer（Navbar が持っていない分）
+  - 言語の切り替え: Menu で切り替える（機能の多言語ができたら）
+  - Cookie の同意: Notice か Drawer で下に出す
+  - 404・エラーのページ: StatusPanel と戻るリンク
 
 ## Affix
 
@@ -327,6 +354,7 @@
 
 ## トークン・テーマ
 
+- ダークモードを、部品ではなくライブラリの機能として入れたいです（2026-09-20、「機能としてダークモードを実装したい、という気持ちなので、コンポーネントではないかも」）。役割のトークンのダーク版と、ThemeProvider（または属性）での切り替えの入口を決めます。入口は「色の面（Surface）」の仕組みと 1 つにできるかを見ます
 - 色のばらつきを整える軸は、あとでやります（「色のばらつきは後からやりましょう」— [ADR-0076](./adr/0076-token-structure.md)）。パレットを OKLCH で測ると、同じ番号でも明度がそろわない（50 は 0.940〜0.970、700 は 0.499〜0.564）、番号の意味が族ごとに違う（pink-500 は中くらい、warning-500 は明るい）、ほぼ同じ色が別の名前で並ぶ（gray-100 と gray-150、gray-200 と gray-300）、薄い赤が 3 段で間が不ぞろい（red-50・red-75・red-100。色相も 23°・17°・26°）、グレーの色相が 197° と 229° で混ざる、が分かっています。ストーリーでパレットの表と部品の見本を候補ごとに並べ、グレー → 赤・ピンク → 青・水色 → 状態の色の順に1軸ずつ決める計画です
 - 利用者向けの CSS（`src/styles/index.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、`index.css` でも消します
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
@@ -346,6 +374,16 @@
 ## Overview/入力欄の一覧
 
 - 状態（通常・hover・フォーカス・エラー・押せないなど）を並べたストーリーは、見た目の回帰テストの画面の幅では右側が切れます。幅を広げるか、並びを折り返すかは決めていません
+
+## 機能（README の「つくりたい機能」）
+
+- Tailwind を入れているときと、入れていないときの入れ方を、それぞれ書きます（2026-09-20）。入れていないときはビルド済みの CSS を配ります
+- スタイルの衝突: 利用者向けの `src/styles/index.css` は中で `tailwindcss` を読み込んでいるので、使う側にも Tailwind があると Tailwind の CSS が 2 回入り、使う側の CSS と順番がぶつかります。Tailwind あり・なしのそれぞれで、CSS のレイヤー（`@layer`）に閉じ込めるなどの手当てを決めます
+- フォントの読み込み: 部品は Mulish・IBM Plex Sans JP・Geist Mono を前提にしています。和文フォントは重いので、ライブラリには同梱せず、使う側で別に読み込んでもらう形を推奨にします（2026-09-20）。読み込み方の例と、読み込まないときに代わりに使われるフォントを書きます
+- テーマの上書き: 使う側がブランドの色や角を差し替える公開の入口です。ダークモード・色の面と同じ仕組みで作れるかを見ます
+- 対応環境: React のバージョンと、ブラウザの下限（Tailwind v4 は Safari 16.4 以降が前提）を決めて書きます
+- ほかの候補: ハイコントラストモード（`forced-colors` で枠やフォーカスの線が消えないようにする）、アイコンの差し替え（部品の中のアイコンを使う側のセットに替える）
+- 公開: npm に公開します（機能の一覧には置きません）。いまは package.json の `exports` がビルド前の `src/index.ts` を指し、`peerDependencies` に `react`・`react-dom` がありません。ビルドの手順（ESM と型）と一緒に整えます。ツリーシェイクと Server Components 対応は、ビルドのやり方と一緒に決めます
 
 ## 土台の部品
 

@@ -17,6 +17,17 @@
 
 ![フォントのサンプルテキスト「@kazuemon/uiは、「ぼくがかんがえたさいきょうのUIライブラリ」をConceptに、かずえもんが個人で制作しています。SimpleでModernな見た目かつ、Usabilityも重視したUI Libraryを目指しています。Designはほぼ独学で、Design Systemなどの勉強も兼ねているので、DesignのRuleにおいては正しくないかもしれません。ご容赦ください。」](./text-sample.png)
 
+## つくりたい機能
+
+部品ではなく、ライブラリとして使うときに要るものです。
+
+- [ ] ダークモード
+- [ ] Server Components 対応
+- [ ] 多言語
+- [ ] Tailwind なしでの利用
+- [ ] スタイルの衝突を避ける（Tailwind あり・なし）
+- [ ] ツリーシェイク
+
 ## つくりたいコンポーネント
 
 ### 土台
@@ -33,6 +44,7 @@
 ### 文字
 
 - [x] Heading
+- [ ] HeadingAnchor
 - [x] Text
 - [x] Code
 - [x] Kbd
@@ -71,12 +83,6 @@
 - [x] SkipLink
 - [x] Affix
 - [ ] Splitter
-
-### レシピ
-
-部品にはせず、既存の部品を組み合わせて作るものです。組み方の見本を Storybook の Recipes に置きます。
-
-- [x] Footer
 
 ### ナビゲーション
 
@@ -164,6 +170,7 @@
 
 - [x] Notice
 - [x] Loading
+- [ ] Spinner
 - [x] Toast
 - [x] Progress
 - [x] Skeleton
