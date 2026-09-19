@@ -86,7 +86,8 @@ await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
 
 // 3. 撮影
 const query = [`id=${storyId}`, 'viewMode=story'];
-if (values.pick) query.push(`args=pick:${values.pick}`);
+// args ではなく独自の ?pick= で渡す。Storybook の args は options にない値（「,」区切りの複数）を黙って捨てる
+if (values.pick) query.push(`pick=${encodeURIComponent(values.pick)}`);
 if (values.density) query.push(`globals=density:${values.density}`);
 const url = `http://127.0.0.1:${server.address().port}/iframe.html?${query.join('&')}`;
 

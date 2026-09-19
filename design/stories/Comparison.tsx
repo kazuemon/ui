@@ -50,7 +50,9 @@ export function Comparison({
   columns,
   renderCell,
 }: ComparisonProps) {
-  const picks = pick ? pick.split(',').map((id) => id.trim()) : [];
+  // 撮影ツールは iframe の URL の ?pick= で渡す。Storybook の args は options にない値（「,」区切りの複数）を捨てるため
+  const urlPick = new URLSearchParams(window.location.search).get('pick');
+  const picks = (urlPick ?? pick)?.split(',').map((id) => id.trim()) ?? [];
   const isPicked = (candidate: Candidate, i: number) =>
     picks.some((id) => id === candidate.id || (id === 'current' && i === 0));
   const grid = {

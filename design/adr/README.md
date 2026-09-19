@@ -239,3 +239,14 @@
 | [0169](./0169-pressable-card-shadow-hover.md)            | 押せるカードの影と hover                                                 | Accepted           |
 | [0170](./0170-readonly-field.md)                         | 読み取り専用の欄の形                                                     | Accepted           |
 | [0171](./0171-field-placeholder.md)                      | プレースホルダーの色と書き方                                             | Accepted           |
+| [0172](./0172-steps-line.md)                             | 手順の段をつなぐ線                                                       | Accepted           |
+| [0173](./0173-spoiler-conceal.md)                        | Spoiler の隠し方                                                         | Accepted           |
+| [0174](./0174-spoiler-motion.md)                         | Spoiler の見せる動き                                                     | Accepted           |
+| [0175](./0175-affix-surface-edge.md)                     | 帯として留める Affix の、下の内容との境目                                | Accepted           |
+| [0176](./0176-affix-gap.md)                              | Affix が留まるときの端からの離れ                                         | Accepted           |
+| [0177](./0177-pagination-current.md)                     | Pagination のいまのページの印                                            | Accepted           |
+| [0178](./0178-pagination-shape.md)                       | Pagination の番号の形                                                    | Accepted           |
+| [0179](./0179-meter-bar.md)                              | Meter のバーの太さ・角・地の色                                           | Accepted           |
+| [0180](./0180-meter-region.md)                           | Meter の範囲による塗りの色                                               | Accepted           |
+| [0181](./0181-steps-marker.md)                           | 手順の番号の印                                                           | Accepted           |
+| [0182](./0182-spoiler-revealed.md)                       | Spoiler を見せたあとの残り方                                             | Accepted           |
