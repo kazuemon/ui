@@ -51,6 +51,6 @@ NumberField（数を入力する欄）の増減ボタンの置き方を決める
 
 ## 比較画像
 
-比較のストーリーは決めた時点のコミット `（コミット後に記入）` にあります。`git checkout （コミット後に記入） && pnpm storybook` で開けます。
+比較のストーリーは決めた時点のコミット `3571614` にあります。`git checkout 3571614 && pnpm storybook` で開けます。
 
 ![NumberField の増減ボタンの比較。現行版・A・C を、通常・hover・フォーカス・値あり・上限に届いた・エラー・押せない・読み取り専用の 8 列で並べたもの。現行版・A・C に採用の印](./assets/0188-number-field-stepper.png)

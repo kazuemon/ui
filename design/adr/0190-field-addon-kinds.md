@@ -74,6 +74,6 @@ SearchField の虫眼鏡は、塗りのない印のままです（`icon="inline"
 
 ## 比較画像
 
-比較のストーリーは決めた時点のコミット `（コミット後に記入）` にあります。`git checkout （コミット後に記入） && pnpm storybook` で開けます。
+比較のストーリーは決めた時点のコミット `3571614` にあります。`git checkout 3571614 && pnpm storybook` で開けます。ただし、このコミットでは切り替えのトークン（ボタンの地の濃さ・混ぜる割合）を畳んであるため、現行版（塗りなし）と C（一段濃い）の行は A と同じ見た目で描かれます。比べたときの見た目は比較画像に残っています（トークンを畳む前に撮りました）。
 
 ![欄の中のボタンのグレー地の比較。現行版・A・B・C を、SearchField・× に hover・PasswordField・NumberField（split・stacked）・エラー・押せないの 7 列で並べたもの。A・B に採用の印](./assets/0190-field-addon-kinds.png)

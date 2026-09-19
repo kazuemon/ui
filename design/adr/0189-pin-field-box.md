@@ -53,7 +53,7 @@ PinField（確認コード・PIN を 1 桁ずつ打つ欄）の、桁の箱の�
 - `design/tokens.css`: `--pin-field-box-width`・`--pin-field-gap`・`--pin-field-dot-size`・`--pin-field-text`・`--pin-field-group-gap`・`--pin-field-dash-width`・`--pin-field-separator-color` を PinField の区画に持ちます。B・C を比べるためだけに置いていた切り替えのトークン（`--pin-field-seam`・`--pin-field-radius-inner`・`--pin-field-fill-amount`・`--pin-field-edge-width`・`--pin-field-underline`・`--pin-field-dot-color` など）は畳みました
 - backlog に、読み取り専用の破線が並ぶと見え方がうるさくないか、伏せ字の ● が小さいことを足しました
 
-比較画像を撮ったのは、切り替えのトークンを畳んだあとです。そのため、**画像の B・C の行は、比べたときの見た目（区切り線・下線）ではなく、いまの部品（現行版と同じ離した箱）で描かれています**。決めたときの見た目は、決めた時点のコミットで再現できます（`git checkout <sha> && pnpm storybook`）。撮り直していません。
+比較画像を撮ったのは、切り替えのトークンを畳んだあとです。そのため、**画像の B・C の行は、比べたときの見た目（区切り線・下線）ではなく、いまの部品（現行版と同じ離した箱）で描かれています**。決めた時点のコミットでも同じトークンは畳んであるため、B・C を比べたときの見た目は、上の「候補」の説明の文でしか残っていません。
 
 ## 原則への反映
 
@@ -61,6 +61,6 @@ PinField（確認コード・PIN を 1 桁ずつ打つ欄）の、桁の箱の�
 
 ## 比較画像
 
-比較のストーリーは決めた時点のコミット `（コミット後に記入）` にあります。`git checkout （コミット後に記入） && pnpm storybook` で開けます。B・C の行は、上に書いたとおりトークンを畳んだあとの見た目です。
+比較のストーリーは決めた時点のコミット `3571614` にあります。`git checkout 3571614 && pnpm storybook` で開けます。B・C の行は、上に書いたとおりトークンを畳んだあとの見た目です。
 
 ![PinField の桁の箱の比較。現行版・B・C・D を、空・フォーカス・途中まで打った・全部打った・エラー・押せない・伏せ字の 7 列で並べたもの。現行版・D に採用の印](./assets/0189-pin-field-box.png)
