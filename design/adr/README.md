@@ -196,7 +196,7 @@
 | [0126](./0126-bleed.md)                                  | 本文の幅の外へ出す枠（Bleed）の広げ方                                    | Accepted           |
 | [0127](./0127-icon-only-button-shape.md)                 | アイコンだけのボタンの形                                                 | Accepted           |
 | [0128](./0128-copy-button.md)                            | CopyButton で写せたことをどう見せるか                                    | Accepted           |
-| [0129](./0129-card-press.md)                             | 押せるカードの hover と押下                                              | Accepted           |
+| [0129](./0129-card-press.md)                             | 押せるカードの hover と押下                                              | Superseded by 0169 |
 | [0130](./0130-navbar-current.md)                         | Navbar のいまいるページの印                                              | Accepted           |
 | [0131](./0131-navbar-sticky.md)                          | Navbar を貼り付けたときの境目                                            | Accepted           |
 | [0132](./0132-recipes.md)                                | レシピ（Footer を部品にせず組み合わせの見本にする）                      | Accepted           |
@@ -236,3 +236,6 @@
 | [0166](./0166-press-sink-scope.md)                       | 押すと沈むものの範囲                                                     | Accepted           |
 | [0167](./0167-pressable-card-floats.md)                  | 全体が押せるカードは、浮いた押すものにする                               | Accepted           |
 | [0168](./0168-field-suffix-acts-on-value.md)             | 入力欄の suffix に入れるのは、値に作用するものだけ                       | Accepted           |
+| [0169](./0169-pressable-card-shadow-hover.md)            | 押せるカードの影と hover                                                 | Accepted           |
+| [0170](./0170-readonly-field.md)                         | 読み取り専用の欄の形                                                     | Accepted           |
+| [0171](./0171-field-placeholder.md)                      | プレースホルダーの色と書き方                                             | Accepted           |

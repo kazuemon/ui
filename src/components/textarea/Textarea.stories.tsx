@@ -35,6 +35,7 @@ const stateRows: Sample[] = [
     },
   },
   { label: '押せない', props: { defaultValue: 'はじめまして。', disabled: true } },
+  { label: '読み取り専用', props: { defaultValue: 'はじめまして。', readOnly: true } },
 ];
 
 const stateColumns: MatrixColumn[] = [
@@ -64,6 +65,7 @@ const meta = {
           '- 右下のつまみで、利用者が高さを変えられます（`resizable`、既定であり）。一度変えると、その高さのままになります。',
           '- `minRows` と `maxRows` を同じにすると、高さが変わらない欄になります。',
           '- 1 行ぶんの高さと 1 行目の文字の位置は、TextField と同じです。',
+          '- `placeholder` は、値と見分けられるよう「例: UI を作っています」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
           '- `showCount` を渡すと、本体の右下の下に「12 / 200」の形で文字数を出します。上限は `maxCount`（超えても打てる）か `maxLength`（ブラウザが打つのを止める）です。',
           '- `maxCount` を超えると、`showCount` がなくても文字数を出し、数を赤にします。超えているあいだは欄もエラーの見た目（赤い枠線・`aria-invalid`）にし、読み上げでも知らせます。欄を変えたくないときは `overCountInvalid={false}` を渡します。送信を止めるときは、超えていたら `error` を渡します。',
           '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<textarea>` に渡ります。',

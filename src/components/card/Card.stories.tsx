@@ -37,12 +37,14 @@ const meta = {
           '- `appearance` は型です。`default`（既定）は画像をカードの端まで届かせ、`nested` は画像をカードの内側に余白を空けて収めます。',
           '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js の `Link` は `render` に渡します。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
           '- カード全体がリンクになるので、中にほかのリンクやボタンは置けません。置きたいときは `href` を渡さず、題をリンクにします。',
+          '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
+          '- hover で画像を少し大きくしたいときは、`imageZoom` を渡します。',
           '- 幅は置いた場所に合わせます。一覧は grid で並べます。',
         ].join('\n'),
       },
     },
   },
-  args: { appearance: 'default' },
+  args: { appearance: 'default', imageZoom: false },
   argTypes: {
     appearance: {
       control: 'inline-radio',
@@ -50,6 +52,7 @@ const meta = {
       table: { defaultValue: { summary: "'default'" } },
     },
     href: { control: 'text' },
+    imageZoom: { control: 'boolean' },
     render: { control: false },
     children: { control: false },
   },

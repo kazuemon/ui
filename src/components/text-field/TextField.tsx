@@ -53,6 +53,11 @@ export interface TextFieldProps extends Omit<
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
   /**
+   * 空の欄に出す見本の文字。値と見分けられるよう、「例: かずえもん」のように、見本だと分かる書き方にします。
+   * 色は、文字の基準（4.5:1）を保つ淡さまでしか淡くできないため、書き方でも値と区別します
+   */
+  placeholder?: string;
+  /**
    * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
    * @default 'top'
    */
@@ -169,6 +174,7 @@ export function TextField({
         <div
           data-slot="control"
           data-addon-shape={addonShape}
+          data-field-readonly={readOnly || undefined}
           className={controlBox({ className: ['gap-0 px-0', loading && 'relative'] })}
           onMouseDown={(event) => {
             if (
@@ -184,7 +190,7 @@ export function TextField({
             {before.addon}
             <BaseField.Control
               className={[
-                'h-full w-full min-w-0 bg-transparent px-[calc(var(--spacing-control-x)-var(--field-border-width))] outline-none placeholder:text-fg-subtle disabled:cursor-not-allowed',
+                'h-full w-full min-w-0 bg-transparent px-[calc(var(--spacing-control-x)-var(--field-border-width))] outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
                 blocking && 'cursor-progress',
               ]
                 .filter(Boolean)

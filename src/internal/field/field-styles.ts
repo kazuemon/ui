@@ -102,6 +102,18 @@ export const controlBox = tv({
     'group-data-[loading=blocking]/field:cursor-progress group-data-[loading=blocking]/field:text-(color:--color-on-field-disabled)',
     'group-data-[loading=blocking]/field:[--color-field-hover:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field:var(--color-field-disabled)]',
     'group-data-[loading=blocking]/field:[--color-field-focus:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field-invalid:var(--color-field-disabled)]',
+    // 読み取り専用（readOnly。TextField・Textarea が data-field-readonly を置く。Base UI の Select は止めているあいだ本体に data-readonly を付けるので、名前を分ける）— 軸 152（ADR-0170）
+    //   塗りを持たせず、3:1 の濃さの破線の輪郭で欄の形だけを残す。hover でも塗りを変えない。prefix・suffix も塗りを持たせない
+    //   値の文字は一段淡いグレー。読む文字なので、文字の基準（4.5:1）は保つ（押せない欄のように薄くしない — 原則13）
+    //   フォーカスしたときは、破線の輪郭の代わりに編集できる欄と同じ枠線を付ける（原則2）
+    'data-field-readonly:[--color-field-focus:transparent] data-field-readonly:[--color-field:transparent]',
+    'data-field-readonly:text-fg-muted data-field-readonly:[--color-field-addon:transparent] data-field-readonly:[--color-field-hover:transparent]',
+    // 破線はいつも引き、フォーカス中だけ本体の線（エラーの欄の離した線。ふだんは太さ 0）に戻す
+    //   :not(:focus-within) で書くと、Storybook の状態の固定（pseudo-states）が否定を書き換え、フォーカスしても破線が残るため
+    'data-field-readonly:[outline-width:var(--border-width-thin)] data-field-readonly:[outline-style:dashed]',
+    'data-field-readonly:[outline-offset:calc(-1*var(--border-width-thin))] data-field-readonly:[outline-color:var(--color-line-strong)]',
+    'data-field-readonly:focus-within:[outline-width:var(--control-ring-width,0px)] data-field-readonly:focus-within:[outline-style:solid]',
+    'data-field-readonly:focus-within:[outline-offset:var(--focus-ring-offset)] data-field-readonly:focus-within:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
     // prefix・suffix を内側に浮かせる形（addonShape="floating" — design/adr/0035）。既定は端に接する
     'data-[addon-shape=floating]:[--field-addon-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
   ],

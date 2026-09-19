@@ -90,6 +90,10 @@ export interface SelectProps {
    * 選べない理由や警告の文は、呼び出し側が組み立てて渡す（書き方は実装ガイドラインで決める）。部品は渡された文をそのまま出す
    */
   items: SelectItem[];
+  /**
+   * 何も選んでいないときに出す文字。選んだ値と見分けられるよう、「選んでください」のように、まだ選んでいないと分かる書き方にします。
+   * 選択肢の名前（「東京都」など）をそのまま書くと、選んだ値に見えます
+   */
   placeholder?: string;
   /** 本体の前に付く文字（グレーのラベル）。例: 都道府県を選んだあとの市区町村の欄に「東京都」 */
   prefix?: ReactNode;
@@ -388,7 +392,7 @@ export function Select({
           >
             {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
             <BaseSelect.Value
-              className="min-w-0 flex-1 truncate data-placeholder:text-fg-subtle"
+              className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
               placeholder={loadingBlocking ? loadingText : placeholder}
             />
             {loading && loadingIndicator === 'spinner' && (
