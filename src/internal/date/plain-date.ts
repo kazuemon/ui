@@ -9,6 +9,8 @@ export { Temporal };
 export type PlainDate = Temporal.PlainDate;
 /** 年と月 */
 export type PlainYearMonth = Temporal.PlainYearMonth;
+/** 時刻もタイムゾーンも持たない、1 日の中の時刻 */
+export type PlainTime = Temporal.PlainTime;
 
 // Date はローカル時刻の正午にする。0 時だと、夏時間に切り替わる日に 0 時がない地域で前の日になる
 export function toDate(date: PlainDate): Date {

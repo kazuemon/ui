@@ -1369,6 +1369,72 @@
   --spoiler-blur-fill-hover: color-mix(in oklab, currentColor 16%, transparent);
   --spoiler-blur-radius: 0.3em;
   /* ── END spoiler */
+
+  /* ── SearchField ── BEGIN search-field */
+  /* 本体の内側に置いた虫眼鏡（icon="inline"）と、打った文字のあいだ */
+  --search-field-icon-gap: calc(var(--spacing) * 2);
+  /* ── END search-field */
+
+  /* ── PinField ── BEGIN pin-field */
+  /* 桁の箱（軸 170）。箱 1 つずつは controlBox と同じ規則（グレーの塗り・フォーカスの箱だけ枠線・エラーは赤い枠線）で、離して並べる
+     --pin-field-box-width         箱の幅。高さは --spacing-control で、正方形にする
+     --pin-field-gap               箱と箱のあいだ
+     --pin-field-dot-size          まだ打っていない箱の中の淡い点（emptyDots）の半径
+     --pin-field-text              打った文字と、文字で渡した区切りの大きさ
+     --pin-field-group-gap         group で区切る位置の間
+     --pin-field-dash-width        既定の区切り（短い横線）の幅
+     --pin-field-separator-color   区切り（横線・渡した文字）の色 */
+  --pin-field-box-width: var(--spacing-control);
+  --pin-field-gap: calc(var(--spacing) * 2);
+  --pin-field-dot-size: calc(var(--spacing) * 0.75);
+  --pin-field-text: var(--text-xl);
+  --pin-field-group-gap: calc(var(--spacing) * 3);
+  --pin-field-dash-width: calc(var(--spacing) * 2);
+  --pin-field-separator-color: var(--color-fg-subtle);
+  /* 箱の列と、右に置く回る円・成功の印のあいだ */
+  --pin-field-mark-gap: calc(var(--spacing) * 3);
+  /* ── END pin-field */
+
+  /* ── NumberField ── BEGIN number-field */
+  /* 増減ボタン（軸 169）。縦積み（stepper="stacked"）の塊の幅と、▲▼ の大きさ
+     高さは本体（--spacing-control）を 2 つに割る。▲▼ は半分の高さに収まる大きさ */
+  --number-field-stepper-width: calc(var(--spacing) * 8); /* 32px */
+  --number-field-stepper-icon: calc(var(--spacing) * 3.5); /* 14px */
+  /* ── END number-field */
+
+  /* ── MaskField ── BEGIN mask-field */
+  /* 残りの桁の見本を _ で出す形（maskHintStyle="underscore"）の字間。打った文字にも当て、打っても桁の位置をずらさない */
+  --mask-field-tracking: 0.15em;
+  /* ── END mask-field */
+
+  /* ── DateField・TimeField ── BEGIN date-field */
+  /* 区切り（年・月・日・時・分）の見た目（軸 172）
+     --date-segment-pad-x         区切りの左右の余白。いま打っている区切りの塗りはこの幅だけ文字の外へ広がる
+                                  （先頭の区切りの分は本体の内側の余白から引き、値の文字の先頭を TextField とそろえる）
+     --date-segment-gap           区切りと区切り記号（/ :）のあいだ。塗りが記号にかからないよう、塗りの外に空ける
+     --date-segment-radius        塗りの角丸
+     --date-segment-focus-bg      いま打っている区切りの塗り。既定（color="neutral"）は prefix・suffix のグレーに本文の色を 8% 混ぜたもの
+     --date-segment-focus-bg-primary・-secondary
+                                  color を指定した欄の塗り。その色を欄の塗りに 16% 混ぜる。部品が --date-segment-focus-bg に置く
+     --date-segment-focus-fg      その上の値の文字
+     --date-segment-focus-placeholder  その上の見本の文字（空の区切り） */
+  --date-segment-pad-x: calc(var(--spacing) * 0.5);
+  --date-segment-gap: calc(var(--spacing) * 0.5);
+  --date-segment-radius: var(--radius-sm);
+  --date-segment-focus-bg: color-mix(in oklab, var(--color-field-addon), var(--color-fg) 8%);
+  --date-segment-focus-bg-primary: color-mix(
+    in oklab,
+    var(--color-primary) 16%,
+    var(--color-field)
+  );
+  --date-segment-focus-bg-secondary: color-mix(
+    in oklab,
+    var(--color-secondary) 16%,
+    var(--color-field)
+  );
+  --date-segment-focus-fg: var(--color-fg);
+  --date-segment-focus-placeholder: var(--field-placeholder);
+  /* ── END date-field */
 }
 
 /* ── toast keyframes */
