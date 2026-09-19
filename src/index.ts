@@ -246,6 +246,7 @@ export {
   Steps,
   type StepsHeadingLevel,
   type StepsLine,
+  type StepsMarker,
   type StepsProps,
 } from './components/steps/Steps';
 export { Tag, type TagProps } from './components/tag/Tag';

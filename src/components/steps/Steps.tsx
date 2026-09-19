@@ -9,7 +9,10 @@ import { tv } from '../../internal/tv';
 // ページと同じレイヤーの読みもの（原則1・19）。影を付けず、押せない。文字は読む文字（--text-body）で、密度で変わる（原則11）
 // 要素は <ol>・<li>。番号は li の list-item の数を印に描く（<ol start> が効く）。印の文字は読み上げに出さない（ol が番号を伝える）
 //   Safari は list-style: none の ol を一覧として読まないので、role="list" を付ける
-// 印の形（軸 154）はトークン（design/tokens.css の --steps-*）で持つ
+// 印（軸 154）は marker で選ぶ。どれも影を付けず、押せる見た目にしない
+//   neutral（既定）は淡いグレーの丸に本文の色の太い数字（色を持たない部品の印はグレー — 原則6）
+//   outline は塗らずに線の強いグレーの輪郭と一段淡い数字、number は丸を置かず題と同じくらいの淡い大きな数字
+//   primary は Primary ボタンと同じ青の丸に白い数字（丸も数字も 4.5:1 を越える）
 //   印は、題の 1 行目の中央にそろえる（題がないときは本文の 1 行目）
 // 段をつなぐ線（軸 155）は line で選ぶ。既定は細い実線、点線と線なしも選べる
 //   線は、印の中心の下から次の段の印の上まで引く。最後の段には引かない
@@ -37,10 +40,10 @@ const inner = tv({
     '[--step-marker-top:calc((var(--step-line)-var(--steps-marker-size))/2)]',
     // 印（番号）。読み上げでは読まない（content の / "" が代わりの文。ol が番号を伝える）
     'before:absolute before:start-0 before:top-(--step-marker-top) before:flex before:items-center before:justify-center',
-    'before:size-(--steps-marker-size) before:rounded-(--steps-marker-radius)',
-    'before:bg-(--color-steps-marker) before:text-(color:--color-steps-marker-fg)',
-    'before:[box-shadow:inset_0_0_0_var(--steps-marker-ring)_var(--color-steps-marker-ring)]',
-    'before:text-(length:--steps-marker-text) before:leading-none before:font-(--steps-marker-weight) before:tabular-nums',
+    'before:size-(--steps-marker-size) before:rounded-(--step-marker-radius)',
+    'before:bg-(--step-marker-bg) before:text-(color:--step-marker-fg)',
+    'before:[box-shadow:inset_0_0_0_var(--step-marker-ring)_var(--step-marker-ring-color)]',
+    'before:text-(length:--step-marker-text) before:leading-none before:font-(--font-weight-heading) before:tabular-nums',
     'before:content-[counter(list-item)_/_""]',
     // 段をつなぐ線。印の下から、次の段の印の上まで
     'after:absolute after:w-0 after:content-[""]',
@@ -51,6 +54,25 @@ const inner = tv({
     '[li:last-child>&]:after:content-none',
   ],
   variants: {
+    // 印の種類。丸の塗り・輪郭・角と、数字の色・大きさを置く
+    marker: {
+      neutral: [
+        '[--step-marker-bg:var(--color-neutral)] [--step-marker-fg:var(--color-fg)]',
+        '[--step-marker-radius:var(--radius-pill)] [--step-marker-ring-color:transparent] [--step-marker-ring:0px] [--step-marker-text:var(--steps-marker-text)]',
+      ],
+      outline: [
+        '[--step-marker-bg:transparent] [--step-marker-fg:var(--color-fg-muted)]',
+        '[--step-marker-radius:var(--radius-pill)] [--step-marker-ring-color:var(--color-line-strong)] [--step-marker-ring:var(--border-width-medium)] [--step-marker-text:var(--steps-marker-text)]',
+      ],
+      number: [
+        '[--step-marker-bg:transparent] [--step-marker-fg:var(--color-fg-subtle)]',
+        '[--step-marker-radius:0px] [--step-marker-ring-color:transparent] [--step-marker-ring:0px] [--step-marker-text:var(--steps-marker-number-text)]',
+      ],
+      primary: [
+        '[--step-marker-bg:var(--color-primary)] [--step-marker-fg:var(--color-on-primary)]',
+        '[--step-marker-radius:var(--radius-pill)] [--step-marker-ring-color:transparent] [--step-marker-ring:0px] [--step-marker-text:var(--steps-marker-text)]',
+      ],
+    },
     // 段をつなぐ線の種類。点線は太さと印とのあいだを点線用の値に差し替える
     line: {
       solid: '[--step-line-style:solid]',
@@ -101,9 +123,16 @@ const sizeOfLevel = { 2: 2, 3: 3, 4: 4, 5: 4, 6: 4 } as const;
 
 export type StepsLine = 'solid' | 'dotted' | 'none';
 
-const StepsContext = createContext<{ level: StepsHeadingLevel; line: StepsLine }>({
+export type StepsMarker = 'neutral' | 'outline' | 'number' | 'primary';
+
+const StepsContext = createContext<{
+  level: StepsHeadingLevel;
+  line: StepsLine;
+  marker: StepsMarker;
+}>({
   level: 3,
   line: 'solid',
+  marker: 'neutral',
 });
 
 export interface StepsProps extends Omit<ComponentProps<'ol'>, 'type' | 'reversed'> {
@@ -117,6 +146,11 @@ export interface StepsProps extends Omit<ComponentProps<'ol'>, 'type' | 'reverse
    * @default 'solid'
    */
   line?: StepsLine;
+  /**
+   * 番号の印。neutral は淡いグレーの丸、outline は輪郭だけの丸と淡い数字、number は丸を置かない淡い大きな数字、primary は Primary の青の丸に白い数字です
+   * @default 'neutral'
+   */
+  marker?: StepsMarker;
   /** 最初の番号 */
   start?: number;
   children?: ReactNode;
@@ -128,12 +162,13 @@ export interface StepsProps extends Omit<ComponentProps<'ol'>, 'type' | 'reverse
 export function Steps({
   headingLevel = 3,
   line = 'solid',
+  marker = 'neutral',
   className,
   children,
   ...props
 }: StepsProps) {
   return (
-    <StepsContext.Provider value={{ level: headingLevel, line }}>
+    <StepsContext.Provider value={{ level: headingLevel, line, marker }}>
       {/* list-style: none の ol を Safari が一覧として読むよう、role="list" を明示する */}
       {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles */}
       <ol role="list" data-slot="steps" className={steps({ className })} {...props}>
@@ -153,13 +188,16 @@ export interface StepProps extends Omit<ComponentProps<'li'>, 'title'> {
  * 手順の 1 段。番号は並びの順に付きます
  */
 export function Step({ title: titleText, className, children, ...props }: StepProps) {
-  const { level, line } = useContext(StepsContext);
+  const { level, line, marker } = useContext(StepsContext);
   const Tag = `h${level}` as const;
   const size = sizeOfLevel[level];
   const titled = titleText != null && titleText !== false;
   return (
     <li data-slot="step" className={className} {...props}>
-      <div data-slot="step-inner" className={inner({ line, firstLine: titled ? size : 'body' })}>
+      <div
+        data-slot="step-inner"
+        className={inner({ marker, line, firstLine: titled ? size : 'body' })}
+      >
         {titled ? (
           <Tag data-slot="step-title" className={title({ size })}>
             {titleText}

@@ -21,6 +21,7 @@ const meta = {
           '文の中で隠しておき、押すと見える言葉です。ネタバレや、クイズの答えに使います。',
           '',
           '- 押すか、フォーカスして Enter・Space で見せます。既定では、一度見せたら隠し直しません。もう一度押して隠し直せるようにするには `toggleable` を付けます。',
+          '- 見せたあとは、跡を残さず周りの文と同じに見えます。`toggleable` のときだけ、もう一度押せることが分かるよう点線の下線を残します。',
           '- 隠し方は `appearance` で選びます。既定の `hatched` は斜線の模様、`soft` は淡い面で覆います。`blur` は文字をぼかすので、おおよその長さと形が見えます。短い数字や英字は形から推し量れることがあるので、答えを隠すときは `hatched` か `soft` にします。',
           '- 見せる・隠すときは、すぐに切り替えます。移り変わりを付けたいときは `duration` に長さ（ms）を渡します。動きを減らす設定では、指定があってもすぐに切り替えます。',
           '- 隠しているあいだは、中身を読み上げず、`label`（既定は「ネタバレを表示」）のボタンとして読みます。何が隠れているかを伝えたいときは、「犯人の名前を表示」のように `label` を変えます。',
@@ -73,17 +74,27 @@ export const States: Story = {
       focusVisible: '[data-slot="spoiler"]',
     }),
     docs: {
-      description: { story: '隠しているときの状態と、見せたあとです。' },
+      description: {
+        story:
+          '隠しているときの状態と、見せたあとです。`toggleable` のときは、見せたあとも押せるので点線の下線を残します。',
+      },
     },
   },
   render: () => (
     <Matrix
-      rows={['隠している', '見せたあと'] as const}
+      rows={['隠している', '見せたあと', '見せたあと（toggleable）'] as const}
       columns={stateColumns}
       rowLabel={(row) => row}
       renderCell={(row) => (
         <Text>
-          答えは<Spoiler defaultRevealed={row === '見せたあと'}>42</Spoiler>です。
+          答えは
+          <Spoiler
+            defaultRevealed={row !== '隠している'}
+            toggleable={row === '見せたあと（toggleable）'}
+          >
+            42
+          </Spoiler>
+          です。
         </Text>
       )}
     />
@@ -238,7 +249,7 @@ export const Toggleable: Story = {
     docs: {
       description: {
         story:
-          '`toggleable` を付けると、見せたあともボタンのままで、もう一度押すと隠し直します。読み上げでは開閉のボタン（見せているかどうか）として読みます。見せたあとの中身はボタンの名前として読まれるので、中にリンクなどの押せるものは置きません。',
+          '`toggleable` を付けると、見せたあともボタンのままで、もう一度押すと隠し直します。見せたあとは、押せることが分かるよう点線の下線を残します。読み上げでは開閉のボタン（見せているかどうか）として読みます。見せたあとの中身はボタンの名前として読まれるので、中にリンクなどの押せるものは置きません。',
       },
       source: sourceCode(`
         <Spoiler toggleable>語り手が犯人</Spoiler>

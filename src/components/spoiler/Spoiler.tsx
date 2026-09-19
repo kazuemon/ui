@@ -16,7 +16,9 @@ import { tv } from '../../internal/tv';
 // 文の中にあるので影は付けない（原則1）。押すものなので、hover で面を濃くし、押すと沈む（原則3。文字のリンクと同じ 1px）
 // フォーカスの線はキーボードのときだけ（原則2）。見せたあとも同じ要素にフォーカスを残す
 // 見せる・隠すときは、既定ではすぐに切り替える。duration を渡したときだけ、その長さで移る（--spoiler-duration）
-// 隠し方ごとの面は design/tokens.css の --spoiler-{hatched,soft,blur}-fill*。見せたあとの残り方は --spoiler-revealed-*（軸 157）
+// 隠し方ごとの面は design/tokens.css の --spoiler-{hatched,soft,blur}-fill*
+// 見せたあとは、既定では跡を残さず、文の一部に戻す。隠し直せるときだけ、押せることが分かるよう周りの文字の色の点線の下線を残す（ADR-0182）
+// 左右の余白は見せたあとも残す。消すと隠しているときと幅が変わり、周りの文が動くため
 const spoiler = tv({
   slots: {
     root: [
@@ -37,10 +39,7 @@ const spoiler = tv({
         root: 'cursor-pointer select-none active:top-(--flat-press-depth)',
       },
       true: {
-        root: [
-          '[background:var(--spoiler-revealed-fill)]',
-          'underline [text-decoration-color:var(--spoiler-revealed-line)] decoration-dotted decoration-1 underline-offset-4',
-        ],
+        root: '[background:none]',
         content: 'text-inherit [filter:none]',
       },
     },
@@ -78,7 +77,12 @@ const spoiler = tv({
     {
       revealed: true,
       toggleable: true,
-      class: { root: 'cursor-pointer active:top-(--flat-press-depth)' },
+      class: {
+        root: [
+          'cursor-pointer active:top-(--flat-press-depth)',
+          'underline [text-decoration-color:color-mix(in_oklab,currentColor_40%,transparent)] decoration-dotted decoration-1 underline-offset-4',
+        ],
+      },
     },
   ],
   defaultVariants: { appearance: 'hatched', revealed: false, toggleable: false },
@@ -101,7 +105,8 @@ export interface SpoilerProps extends Omit<ComponentProps<'span'>, 'children'> {
    */
   label?: string;
   /**
-   * もう一度押したら隠し直すか。true のときは、見せたあともボタンのままで、読み上げでは開閉（aria-expanded）として読みます
+   * もう一度押したら隠し直すか。true のときは、見せたあともボタンのままで、読み上げでは開閉（aria-expanded）として読みます。
+   * 見せたあとは、押せることが分かるよう点線の下線を残します。false のときは、見せたあとは跡を残さず、周りの文と同じに見えます
    * @default false
    */
   toggleable?: boolean;

@@ -20,6 +20,7 @@ import { tv } from '../../internal/tv';
 //     status: 最適は成功、隣は警告（前景用のオリーブ）、反対の端は危険（既定）
 //     color: 最適は部品の色のまま。隣・反対の端は status と同じ
 //     color-yellow: color の隣の範囲を、面用の黄色にする（白地・地のグレーとの差が小さい）
+//       黄色の塗りの内側に引く線（--meter-yellow-outline-{x,spread}・--color-meter-yellow-outline）を読む。既定は線なし（軸 164）
 //   色だけで伝えず、値の文字（数）でも読める（原則6）。範囲の意味は、使う側がキャプションなどの文で書く
 // 値が変わったときは、塗りを --duration-meter で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
 const meter = tv({
@@ -37,7 +38,7 @@ const meter = tv({
       'col-start-2 justify-self-end text-(length:--text-label) leading-(--leading-label) whitespace-nowrap text-fg-muted tabular-nums',
     track: 'relative col-span-full h-(--meter-height) overflow-hidden rounded-pill bg-field-addon',
     indicator: [
-      'absolute inset-y-0 rounded-pill bg-(color:--meter-fill)',
+      'absolute inset-y-0 rounded-pill bg-(color:--meter-fill) [box-shadow:var(--meter-fill-ring,none)]',
       'transition-[width,background-color] duration-(--duration-meter) ease-press motion-reduce:transition-none',
     ],
     caption:
@@ -58,7 +59,10 @@ const meter = tv({
       status: { root: '[--meter-optimum:var(--color-success)]' },
       color: { root: '[--meter-optimum:var(--meter-own)]' },
       'color-yellow': {
-        root: '[--meter-optimum:var(--meter-own)] [--meter-suboptimum:var(--color-warning)]',
+        root: [
+          '[--meter-optimum:var(--meter-own)] [--meter-suboptimum:var(--color-warning)]',
+          'data-[region=suboptimum]:[--meter-fill-ring:inset_var(--meter-yellow-outline-x)_0_0_var(--meter-yellow-outline-spread)_var(--color-meter-yellow-outline)]',
+        ],
       },
     },
   },
