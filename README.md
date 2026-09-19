@@ -50,14 +50,14 @@
 - [x] Callout
 - [x] LinkCard
 - [x] Footnote
-- [ ] Steps
+- [x] Steps
 - [ ] FileTree
 - [x] CodeGroup
 - [ ] Embed
 - [ ] Gallery
 - [ ] ImageZoom
 - [x] Bleed
-- [ ] Spoiler
+- [x] Spoiler
 - [ ] TypeTable
 - [ ] Mermaid
 - [ ] Math
@@ -69,7 +69,7 @@
 - [ ] Sidebar
 - [ ] Stack
 - [x] SkipLink
-- [ ] Affix
+- [x] Affix
 - [ ] Splitter
 
 ### レシピ
@@ -84,7 +84,7 @@
 - [x] Pager
 - [x] Breadcrumb
 - [x] Tabs
-- [ ] Pagination
+- [x] Pagination
 - [x] Menu
 - [ ] Stepper
 - [ ] NavigationMenu
@@ -114,7 +114,7 @@
 - [ ] AvatarGroup
 - [ ] DescriptionList
 - [ ] Stat
-- [ ] Meter
+- [x] Meter
 - [ ] Carousel
 - [ ] Indicator
 

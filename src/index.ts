@@ -9,6 +9,7 @@ export {
   type AccordionItemProps,
   type AccordionProps,
 } from './components/accordion/Accordion';
+export { Affix, type AffixPosition, type AffixProps } from './components/affix/Affix';
 export {
   AlertDialog,
   type AlertDialogProps,
@@ -135,6 +136,7 @@ export {
   type MenuSide,
   type MenuSubmenuSheet,
 } from './components/menu/Menu';
+export { Meter, type MeterProps } from './components/meter/Meter';
 export {
   MenuCheckboxItem,
   type MenuCheckboxItemProps,
@@ -178,6 +180,11 @@ export {
   type PagerDirection,
   type PagerProps,
 } from './components/pager/Pager';
+export {
+  Pagination,
+  type PaginationAlign,
+  type PaginationProps,
+} from './components/pagination/Pagination';
 export {
   Popover,
   type PopoverAlign,
@@ -225,6 +232,14 @@ export {
 } from './components/table/Table';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
+export { Spoiler, type SpoilerProps } from './components/spoiler/Spoiler';
+export {
+  Step,
+  type StepProps,
+  Steps,
+  type StepsHeadingLevel,
+  type StepsProps,
+} from './components/steps/Steps';
 export { Tag, type TagProps } from './components/tag/Tag';
 export {
   Tab,

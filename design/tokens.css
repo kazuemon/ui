@@ -1003,6 +1003,21 @@
   --navbar-backdrop-blur: calc(var(--spacing) * 3);
   /* ── END navbar */
 
+  /* ── Affix — 軸 158・159 ── BEGIN affix */
+  /* スクロールしても端に留まる枠。src/components/affix
+     gap: 留まったときの、画面（または貼り付けた Navbar の下の線）からの離れ。面を持たないとき（目次・上へ戻る）だけ — 軸 159
+     navbar-height: belowNavbar のとき、上から空ける Navbar の高さ（線の太さは部品が足す）
+     surface（内容が下を通る帯）の境目 — 軸 158
+       line: 留まる前の下（上）の線の色。line-stuck: 留まったあとの線の色
+       shadow-top-stuck・shadow-bottom-stuck: 留まったあとに落とす影（上に留まる帯は下へ、下に留まる帯は上へ） */
+  --affix-gap: calc(var(--spacing) * 6);
+  --affix-navbar-height: var(--navbar-height);
+  --affix-line: transparent;
+  --affix-line-stuck: var(--color-line);
+  --affix-shadow-top-stuck: 0 0 #0000;
+  --affix-shadow-bottom-stuck: 0 0 #0000;
+  /* ── END affix */
+
   /* ── Tabs ── BEGIN tabs */
   /* タブ（切り替える見出しの並びと、その中身）。src/components/tabs
      タブの高さは部品の高さ（密度）。並びが溝（segmented）を敷くときは、溝の内側の余白の分だけタブを低くし、並び全体を部品の高さにそろえる（原則5の同心の角）
@@ -1231,6 +1246,86 @@
      フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
   --tree-panel-clip-margin: 6px;
   /* ── END tree */
+
+  /* ── Pagination — 軸 160・161（比べている途中） ── BEGIN pagination */
+  /* ページ番号のナビ。src/components/pagination
+     番号と前へ・次へは平らな押すもの（原則3）。高さと幅の下限は部品の高さ
+     gap: 項目のあいだ。item-px: 番号の左右の余白（2 桁以上で幅が伸びるとき）
+     step-*: 前へ・次へ（矢印と文字のとき）の左右の余白と、矢印と文字のあいだ
+     item-radius: 番号と前へ・次への角（軸 161）
+     item-color: 番号と前へ・次への文字（Navbar の行き先と同じグレー）
+     current-*: いまのページの印（軸 160）。塗りと文字。どの印でも太字
+     ellipsis-*: 省略（…）の幅と色。押せないので部品の高さの正方形にしない */
+  --pagination-gap: var(--spacing);
+  --pagination-item-px: calc(var(--spacing) * 2);
+  --pagination-step-px: calc(var(--spacing) * 3);
+  --pagination-step-gap: calc(var(--spacing) * 2);
+  --pagination-item-radius: var(--radius-control);
+  /* 番号と前へ・次への枠線。軸 161 の比較のためだけの切り替え（0 で線なし）。決まったら畳む */
+  --pagination-item-line-width: 0px;
+  --pagination-item-line: var(--color-line);
+  --pagination-item-color: var(--color-fg-muted);
+  --pagination-current-bg: var(--color-neutral);
+  --pagination-current-fg: var(--color-fg);
+  --pagination-ellipsis-width: calc(var(--spacing) * 6);
+  --pagination-ellipsis-color: var(--color-fg-subtle);
+  /* ── END pagination */
+
+  /* ── Steps — 軸 154・155 ── BEGIN steps */
+  /* 記事の中の番号付きの手順。src/components/steps
+     読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
+     gap: 段と段のあいだ。title-gap: 題と本文のあいだ
+     marker-*: 番号の印（軸 154）。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
+     line-*: 段をつなぐ縦の線（軸 155）。印の中心の下から次の段の印の上まで。太さ 0 で線なし。line-gap は印と線の端のあいだ */
+  --steps-gap: calc(var(--spacing) * 8);
+  --steps-title-gap: calc(var(--spacing) * 1);
+  --steps-marker-size: calc(var(--spacing) * 7);
+  --steps-marker-gap: calc(var(--spacing) * 3);
+  --steps-marker-radius: var(--radius-pill);
+  --steps-marker-text: 14px;
+  --steps-marker-weight: var(--font-weight-heading);
+  --steps-marker-ring: 0px;
+  --color-steps-marker: var(--color-neutral);
+  --color-steps-marker-fg: var(--color-fg);
+  --color-steps-marker-ring: transparent;
+  --steps-line-width: var(--border-width-thin);
+  --steps-line-style: solid;
+  --steps-line-gap: calc(var(--spacing) * 1);
+  --color-steps-line: var(--color-line);
+  /* ── END steps */
+
+  /* ── Meter — 軸 162・163 ── BEGIN meter */
+  /* 決まった範囲の中の量を示すバー（HTML の meter）。src/components/meter
+     押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
+     height: バーの太さ。入力方式で変えない（原則11）。radius: バーの角
+     color-meter-track: 地（まだ入っていない分）。トグルの OFF・選んでいない箱と同じグレー
+     color-meter-{optimum,suboptimum,even-less-good}: low・high・optimum を渡したときの、値のある範囲ごとの塗り
+       initial は「部品の色のまま」（部品が var(--…, 部品の色) で読む） */
+  --meter-height: calc(var(--spacing) * 2); /* 8px */
+  --meter-radius: var(--radius-pill);
+  --color-meter-track: var(--color-field-addon);
+  --color-meter-optimum: initial;
+  --color-meter-suboptimum: var(--color-fg-warning);
+  --color-meter-even-less-good: var(--color-danger);
+  /* 値が変わったときに塗りが伸び縮みする長さ */
+  --duration-meter: var(--duration-normal);
+  /* ── END meter */
+
+  /* ── Spoiler — 軸 156・157 ── BEGIN spoiler */
+  /* 文中で隠しておき、押すと見える言葉（ネタバレ・答え）。src/components/spoiler
+     文の中にあるので影は付けない（原則1）。色は周りの文字の色（currentColor）から作り、どの地の上でも一段濃い面にする（Code と同じ考え方）
+     fill: 隠しているときの面（background の値。色でも模様でもよい）。fill-hover: hover の面
+     text: 隠しているときの文字の色（transparent で見えなくする）。blur: 隠しているときのぼかし（0px でぼかさない）
+     revealed-fill: 見せたあとに残す面。revealed-line: 見せたあとに残す下線の色（transparent で残さない）
+     duration: 隠した形から見せた形へ移る長さ */
+  --spoiler-fill: color-mix(in oklab, currentColor 16%, transparent);
+  --spoiler-fill-hover: color-mix(in oklab, currentColor 24%, transparent);
+  --spoiler-text: transparent;
+  --spoiler-blur: 0px;
+  --spoiler-revealed-fill: transparent;
+  --spoiler-revealed-line: transparent;
+  --spoiler-duration: var(--duration-normal);
+  /* ── END spoiler */
 }
 
 /* ── toast keyframes */
