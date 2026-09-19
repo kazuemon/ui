@@ -1,17 +1,17 @@
-import { Blockquote } from '../../../src/components/blockquote/Blockquote';
-import { Callout } from '../../../src/components/callout/Callout';
-import { Code } from '../../../src/components/code/Code';
-import { CodeBlock } from '../../../src/components/code-block/CodeBlock';
-import { diffHtml, shellHtml } from '../../../src/components/code-block/fixtures';
-import { Divider } from '../../../src/components/divider/Divider';
-import { Figure } from '../../../src/components/figure/Figure';
-import { figureImageClassName } from '../../../src/components/figure/figure-styles';
-import { FootnoteItem, FootnoteRef, Footnotes } from '../../../src/components/footnote/Footnote';
-import { Heading } from '../../../src/components/heading/Heading';
-import { Kbd } from '../../../src/components/kbd/Kbd';
-import { Link } from '../../../src/components/link/Link';
-import { List, ListItem } from '../../../src/components/list/List';
-import { inlineStyles } from '../../../src/components/prose/inline-styles';
+import { Blockquote } from '../components/blockquote/Blockquote';
+import { Callout } from '../components/callout/Callout';
+import { Code } from '../components/code/Code';
+import { CodeBlock } from '../components/code-block/CodeBlock';
+import { diffHtml, shellHtml } from '../components/code-block/fixtures';
+import { Divider } from '../components/divider/Divider';
+import { Figure } from '../components/figure/Figure';
+import { figureImageClassName } from '../components/figure/figure-styles';
+import { FootnoteItem, FootnoteRef, Footnotes } from '../components/footnote/Footnote';
+import { Heading } from '../components/heading/Heading';
+import { Kbd } from '../components/kbd/Kbd';
+import { Link } from '../components/link/Link';
+import { List, ListItem } from '../components/list/List';
+import { inlineStyles } from '../components/prose/inline-styles';
 import {
   Table,
   TableBody,
@@ -19,8 +19,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../../src/components/table/Table';
-import { Text } from '../../../src/components/text/Text';
+} from '../components/table/Table';
+import { Text } from '../components/text/Text';
 import { landscape, screenshot } from './images';
 
 // 見本のページの「Markdown の記事」。Markdown を HTML に変換したときに出る要素を、ひととおり並べる

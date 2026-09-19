@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Navbar, NavbarLink, NavbarMenuList } from './Navbar';
-import { landscape } from '../../../design/stories/samples/images';
+import { landscape } from '../../samples/images';
 import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';

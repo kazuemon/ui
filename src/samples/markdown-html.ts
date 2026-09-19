@@ -1,4 +1,4 @@
-import { diffHtml, shellHtml } from '../../../src/components/code-block/fixtures';
+import { diffHtml, shellHtml } from '../components/code-block/fixtures';
 import { landscape, screenshot } from './images';
 
 // 見本のページの「Markdown（Prose）」と、Prose のストーリーで使う HTML の文字列

@@ -10,6 +10,8 @@ const config: StorybookConfig = {
     '../src/stories/*.stories.@(js|jsx|mjs|ts|tsx)',
     // レシピ: 部品にせず、既存の部品を組み合わせて作るものの見本
     '../src/recipes/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // 見本のページ: 部品を実際の画面に並べたもの（Overview/見本/）
+    '../src/samples/*.stories.@(js|jsx|mjs|ts|tsx)',
     // デザイン原則の後半の比較（design/README.md）
     '../design/stories/*.stories.@(ts|tsx)',
   ],

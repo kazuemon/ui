@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 
-import { markdownArticleHtml } from '../../../design/stories/samples/markdown-html';
+import { markdownArticleHtml } from '../../samples/markdown-html';
 import { Prose } from './Prose';
 import { DensityPair } from '../../stories/story-parts';
 

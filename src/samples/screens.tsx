@@ -1,18 +1,11 @@
-import type { ReactNode } from 'react';
-
-import { Badge } from '../../../src/components/badge/Badge';
-import { Blockquote, type BlockquoteProps } from '../../../src/components/blockquote/Blockquote';
-import { Button } from '../../../src/components/button/Button';
-import { Code } from '../../../src/components/code/Code';
-import { Heading } from '../../../src/components/heading/Heading';
-import { Kbd } from '../../../src/components/kbd/Kbd';
-import { Link } from '../../../src/components/link/Link';
-import { Callout, type CalloutAppearance } from '../../../src/components/callout/Callout';
-import { Select } from '../../../src/components/select/Select';
-import { Switch } from '../../../src/components/switch/Switch';
-import { Tag } from '../../../src/components/tag/Tag';
-import { Text } from '../../../src/components/text/Text';
-import { TextField } from '../../../src/components/text-field/TextField';
+import { Blockquote, type BlockquoteProps } from '../components/blockquote/Blockquote';
+import { Code } from '../components/code/Code';
+import { Heading } from '../components/heading/Heading';
+import { Kbd } from '../components/kbd/Kbd';
+import { Link } from '../components/link/Link';
+import { Callout, type CalloutAppearance } from '../components/callout/Callout';
+import { Tag } from '../components/tag/Tag';
+import { Text } from '../components/text/Text';
 
 // 比較のストーリーと見本のページで共有する画面。要素のあいだの余白は仮（Prose の軸で決める）
 
@@ -135,121 +128,4 @@ export const ArticleScreen = ({
       ※ 画面の幅ではなく、入力方式で判定します。
     </Text>
   </article>
-);
-
-/** 設定画面 */
-export const SettingsScreen = () => (
-  <div className="flex flex-col">
-    <Heading level={1} size={2}>
-      設定
-    </Heading>
-    <Text tone="muted" className="mt-1">
-      通知と表示の設定です。変更はすぐに反映されます。
-    </Text>
-    <Heading level={2} size={3} className="mt-8">
-      通知
-    </Heading>
-    <div className="mt-3 flex flex-col gap-2">
-      <Switch label="メールで受け取る" caption="週に 1 回、まとめて届きます" defaultChecked />
-      <Switch label="プッシュ通知" />
-    </div>
-    <Heading level={2} size={3} className="mt-8">
-      プロフィール
-    </Heading>
-    <div className="mt-3 flex flex-col gap-4">
-      <TextField label="表示名" defaultValue="かずえもん" caption="ほかの人に表示される名前です" />
-      <Select
-        label="言語"
-        items={[
-          { label: '日本語', value: 'ja' },
-          { label: 'English', value: 'en' },
-        ]}
-        defaultValue="ja"
-        presentation="popover"
-      />
-    </div>
-    <Text size="sm" tone="subtle" className="mt-4">
-      メールアドレスの変更は、<Link href="#account">アカウント</Link>から行います。
-    </Text>
-    <div className="mt-6 flex gap-2">
-      <Button color="primary">保存する</Button>
-      <Button appearance="outline">キャンセル</Button>
-    </div>
-  </div>
-);
-
-const Post = ({
-  name,
-  handle,
-  time,
-  children,
-  tags,
-}: {
-  name: string;
-  handle: string;
-  time: string;
-  children: ReactNode;
-  tags?: string[];
-}) => (
-  <div className="flex flex-col gap-2 border-b border-line py-4">
-    <div className="flex items-baseline gap-2">
-      <Text as="span" className="font-bold">
-        {name}
-      </Text>
-      <Text as="span" size="sm" tone="subtle">
-        {handle}・{time}
-      </Text>
-    </div>
-    <Text>{children}</Text>
-    {tags && (
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <Tag key={tag} color="primary">
-            #{tag}
-          </Tag>
-        ))}
-      </div>
-    )}
-    <div className="flex gap-4">
-      <Link href="#reply">返信</Link>
-      <Link href="#share">共有</Link>
-    </div>
-  </div>
-);
-
-/** SNS のタイムライン */
-export const SnsScreen = () => (
-  <div className="flex flex-col">
-    <div className="flex items-center justify-between">
-      <Heading level={1} size={2}>
-        ホーム
-      </Heading>
-      <span className="relative inline-flex">
-        <Button appearance="outline">通知</Button>
-        <Badge count={3} color="secondary" className="absolute -top-1 -right-1" />
-      </span>
-    </div>
-    <Post name="かずえもん" handle="@kazuemon" time="2 時間前" tags={['kazuemonui', 'デザイン']}>
-      見出しと本文の大きさを決めています。<Code>--text-body</Code> は密度で変わります。
-    </Post>
-    <Post name="Hanako" handle="@hanako" time="5 時間前">
-      スマホで読むと、行の間が広いほうが読みやすいですね。
-    </Post>
-    <Heading level={2} size={4} className="mt-6">
-      おすすめのユーザー
-    </Heading>
-    <div className="mt-2 flex items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-col">
-        <Text as="span" className="font-bold">
-          Taro
-        </Text>
-        <Text as="span" size="sm" tone="subtle">
-          フロントエンドエンジニア
-        </Text>
-      </div>
-      <Button appearance="outline" color="primary">
-        フォロー
-      </Button>
-    </div>
-  </div>
 );

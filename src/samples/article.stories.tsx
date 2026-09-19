@@ -1,15 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { CSSProperties, ReactNode } from 'react';
 
-import { Button } from '../../src/components/button/Button';
-import { Heading } from '../../src/components/heading/Heading';
-import { Link } from '../../src/components/link/Link';
-import { Prose } from '../../src/components/prose/Prose';
-import { Text } from '../../src/components/text/Text';
-import { TextField } from '../../src/components/text-field/TextField';
-import { MarkdownArticleScreen } from './samples/markdown-article';
-import { markdownArticleHtml } from './samples/markdown-html';
-import { ArticleScreen, type CalloutStyle, SettingsScreen, SnsScreen } from './samples/screens';
+import { Button } from '../components/button/Button';
+import { Heading } from '../components/heading/Heading';
+import { Prose } from '../components/prose/Prose';
+import { Text } from '../components/text/Text';
+import { TextField } from '../components/text-field/TextField';
+import { SamplePage, densityOf } from './SamplePage';
+import { MarkdownArticleScreen } from './markdown-article';
+import { markdownArticleHtml } from './markdown-html';
+import { ArticleScreen, type CalloutStyle } from './screens';
 
 // 見本のページ: 部品を実際の画面に並べ、選べる見た目を Controls で組み合わせて見る。密度はツールバーの「密度」で切り替える
 
@@ -20,57 +19,14 @@ interface PageArgs {
   blockquoteIcon: boolean;
 }
 
-// 密度の値（--text-body など）は data-density を付けた要素で決まる。トークンを上書きして比べるときに効くよう、
-// ページの包みにも密度を付け直す。ツールバーが「入力方式に合わせる」なら、いまの入力方式から決める
-function densityOf(globals: Record<string, unknown>) {
-  if (globals.density === 'coarse' || globals.density === 'fine') return globals.density;
-  return window.matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine';
-}
-
-function Page({
-  density,
-  style,
-  children,
-}: {
-  density: 'coarse' | 'fine';
-  style?: CSSProperties;
-  children: ReactNode;
-}) {
-  return (
-    <div style={style} data-density={density} className="min-h-screen bg-bg text-fg">
-      <header className="border-b border-line">
-        <div className="mx-auto flex max-w-[720px] items-center justify-between gap-4 px-5 py-3">
-          <Text as="span" className="font-heading text-fg-brand">
-            kazuemon
-          </Text>
-          <nav className="flex gap-4">
-            <Link href="#works">Works</Link>
-            <Link href="#blog">Blog</Link>
-            <Link href="#about">About</Link>
-          </nav>
-        </div>
-      </header>
-      <main className="mx-auto max-w-[720px] px-5 py-10">{children}</main>
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-[720px] px-5 py-6">
-          <Text size="sm" tone="subtle">
-            © 2026 kazuemon
-          </Text>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
 const meta = {
-  title: 'Design Review/00 見本のページ',
-  id: 'design-review-00-sample-page',
+  title: 'Overview/見本',
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          '決めている途中の軸の候補と、選べる見た目を組み合わせて、実際の画面で確かめるページです。密度はツールバーで切り替えます。',
+          'ブログの記事の見本です。囲みや引用の見た目を Controls で組み合わせて確かめます。密度はツールバーで切り替えます。',
       },
     },
   },
@@ -115,7 +71,7 @@ type Story = StoryObj<PageArgs>;
 export const Article: Story = {
   name: '記事',
   render: (args, { globals }) => (
-    <Page density={densityOf(globals)}>
+    <SamplePage density={densityOf(globals)}>
       {/* 記事は読みもの。Prose ができるまでは data-reading を直接付ける */}
       <div data-reading>
         <ArticleScreen
@@ -138,45 +94,23 @@ export const Article: Story = {
           <Button color="primary">送信する</Button>
         </div>
       </section>
-    </Page>
-  ),
-};
-
-export const Settings: Story = {
-  name: '設定画面',
-  render: (_args, { globals }) => (
-    <Page density={densityOf(globals)}>
-      <div className="max-w-[480px]">
-        <SettingsScreen />
-      </div>
-    </Page>
-  ),
-};
-
-export const Sns: Story = {
-  name: 'SNS',
-  render: (_args, { globals }) => (
-    <Page density={densityOf(globals)}>
-      <div className="max-w-[480px]">
-        <SnsScreen />
-      </div>
-    </Page>
+    </SamplePage>
   ),
 };
 
 export const MarkdownArticle: Story = {
   name: 'Markdown の記事',
   render: (_args, { globals }) => (
-    <Page density={densityOf(globals)}>
+    <SamplePage density={densityOf(globals)}>
       <MarkdownArticleScreen />
-    </Page>
+    </SamplePage>
   ),
 };
 
 export const MarkdownProse: Story = {
   name: 'Markdown（Prose）',
   render: (_args, { globals }) => (
-    <Page density={densityOf(globals)}>
+    <SamplePage density={densityOf(globals)}>
       <article className="flex flex-col">
         <Text size="sm" tone="subtle">
           2026年9月17日・Design
@@ -189,6 +123,6 @@ export const MarkdownProse: Story = {
           <div dangerouslySetInnerHTML={{ __html: markdownArticleHtml }} />
         </Prose>
       </article>
-    </Page>
+    </SamplePage>
   ),
 };

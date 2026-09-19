@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { expect, userEvent } from 'storybook/test';
 
 import { LinkCard } from './LinkCard';
-import { landscape, svg } from '../../../design/stories/samples/images';
+import { landscape, svg } from '../../samples/images';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Prose } from '../prose/Prose';
