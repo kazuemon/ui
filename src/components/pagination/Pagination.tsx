@@ -7,15 +7,15 @@ import { disabledLinkProps } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
 import { type PaginationSlot, paginationSlots } from './pagination-items';
 
-// ページ番号のナビ（ブログの記事一覧など）— 軸 160・161 で決めた
+// ページ番号のナビ（ブログの記事一覧など）— ADR-0177・0178 で決めた
 //   構造: <nav aria-label><ul><li>。前へ・番号・省略（…）・次へを 1 行に並べる
 //     リンク（href に番号から行き先を作る関数を渡す）とボタン（onChange）の両方で使える
 //     いまのページは aria-current="page"。リンクのときもリンクのまま残す（Navbar のいまいるページと同じ）
 //   番号と前へ・次へは平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと濃くして 1px 沈む。影はない（原則1）
 //     高さと幅の下限は部品の高さ（原則11・原則17: 押せる範囲は見た目の範囲）。数字は等幅にし、ページを送っても幅が変わらない
-//     形は shape と outline で選ぶ（軸 161）。square（既定）は部品の角（原則5「見た目がボタンなら部品の角」）、
+//     形は shape と outline で選ぶ（ADR-0178）。square（既定）は部品の角（原則5「見た目がボタンなら部品の角」）、
 //       round は pill（Navbar の行き先・Calendar の round と同じ）。outline は番号ごとに細い境界線を引く
-//   いまのページの印は currentIndicator で選ぶ（軸 160。Navbar の currentIndicator と同じ名前）。どの印でも太字
+//   いまのページの印は currentIndicator で選ぶ（ADR-0177。Navbar の currentIndicator と同じ名前）。どの印でも太字
 //     neutral（既定）はグレーの塗りに本文の色（色を持たない部品の選んだ印はグレー — 原則6。Tree のいまいる行と同じ地）
 //     neutral-strong は濃いグレーに白い文字（トグルの ON と同じ）、primary は淡い青に青い文字（Navbar の primary と同じ）
 //   省略（…）は押せない。キャプションと同じグレーの文字で、読み上げでは読まない（番号の飛びで伝わる）

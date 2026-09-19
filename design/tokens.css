@@ -1003,13 +1003,13 @@
   --navbar-backdrop-blur: calc(var(--spacing) * 3);
   /* ── END navbar */
 
-  /* ── Affix — 軸 158・159 ── BEGIN affix */
+  /* ── Affix — ADR-0175・0176 ── BEGIN affix */
   /* スクロールしても端に留まる枠。src/components/affix
      gap: 留まったときの、画面（または貼り付けた Navbar の下の線）からの離れ。面を持たないとき（目次・上へ戻る）だけ。
-       ページのレイアウトに合わせて使う側が上書きする — 軸 159
+       ページのレイアウトに合わせて使う側が上書きする（ADR-0176）
      navbar-height: belowNavbar のとき、上から空ける Navbar の高さ（線の太さは部品が足す）
      shadow-top・shadow-bottom: surfaceEdge="shadow" の帯が留まったときに落とす影。
-       上に留まる帯は下へ（Navbar の stickyEdge="shadow" と同じ）、下に留まる帯は上へ — 軸 158 */
+       上に留まる帯は下へ（Navbar の stickyEdge="shadow" と同じ）、下に留まる帯は上へ（ADR-0175） */
   --affix-gap: calc(var(--spacing) * 6);
   --affix-navbar-height: var(--navbar-height);
   --affix-shadow-top: var(--navbar-sticky-shadow);
@@ -1245,7 +1245,7 @@
   --tree-panel-clip-margin: 6px;
   /* ── END tree */
 
-  /* ── Pagination — 軸 160・161 ── BEGIN pagination */
+  /* ── Pagination — ADR-0177・0178 ── BEGIN pagination */
   /* ページ番号のナビ。src/components/pagination
      番号と前へ・次へは平らな押すもの（原則3）。高さと幅の下限は部品の高さ
      gap: 項目のあいだ。item-px: 番号の左右の余白（2 桁以上で幅が伸びるとき）
@@ -1262,11 +1262,11 @@
   --pagination-ellipsis-color: var(--color-fg-subtle);
   /* ── END pagination */
 
-  /* ── Steps — 軸 154・155 ── BEGIN steps */
+  /* ── Steps — ADR-0172・0181 ── BEGIN steps */
   /* 記事の中の番号付きの手順。src/components/steps
      読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
      gap: 段と段のあいだ。title-gap: 題と本文のあいだ
-     marker-*: 番号の印（軸 154）。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
+     marker-*: 番号の印（ADR-0181）。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
        印の種類（グレーの丸・輪郭・数字だけ・Primary の丸）は部品の marker で選ぶ。marker-text は丸の中の数字、
        marker-number-text は丸を置かないときの数字の大きさ
      line-*: 段をつなぐ縦の線。印の中心の下から次の段の印の上まで。line-gap は印と線の端のあいだ
@@ -1284,7 +1284,7 @@
   --color-steps-line: var(--color-line);
   /* ── END steps */
 
-  /* ── Meter — 軸 162・163 ── BEGIN meter */
+  /* ── Meter — ADR-0179・0180 ── BEGIN meter */
   /* 決まった範囲の中の量を示すバー（HTML の meter）。src/components/meter
      押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
      地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5）。範囲ごとの塗りの色は部品の regionColor
@@ -1294,11 +1294,6 @@
   --meter-height-lg: calc(var(--spacing) * 3); /* 12px */
   /* 値が変わったときに塗りが伸び縮みする長さ */
   --duration-meter: var(--duration-normal);
-  /* regionColor="color-yellow" の隣の範囲で、黄色の塗りの内側に引く線（軸 164 で比べている途中）
-     inset <x> 0 0 <spread> の影で描く。x・spread がどちらも 0 なら線なし（現行版） */
-  --meter-yellow-outline-x: 0px;
-  --meter-yellow-outline-spread: 0px;
-  --color-meter-yellow-outline: var(--color-fg-warning);
   /* ── END meter */
 
   /* ── Spoiler ── BEGIN spoiler */

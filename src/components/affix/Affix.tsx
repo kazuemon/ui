@@ -12,8 +12,8 @@ import { tv } from '../../internal/tv';
 //   surface: 内容が下を通る帯として使うとき。白い面を敷き、端から離さずに留める。
 //     画面に貼り付いて内容が下を通るものは重なりとして扱う（原則1）ので、境目を付ける
 //     surfaceEdge: line（既定）は留まったときだけ細い線、shadow は留まったときだけ淡い影（Navbar の stickyEdge と同じ影）、
-//       always-line は留まる前からいつも細い線 — 軸 158
-//   端からの離れ（--affix-gap）は 24px。ページのレイアウトに合わせて、使う側が className か CSS で上書きする — 軸 159
+//       always-line は留まる前からいつも細い線（ADR-0175）
+//   端からの離れ（--affix-gap）は 24px。ページのレイアウトに合わせて、使う側が className か CSS で上書きする（ADR-0176）
 //   Navbar を貼り付けたページでは belowNavbar で帯の下に留める
 //   重なり順は、貼り付けた Navbar（z-10）より下、ページの内容より上
 const affix = tv({
