@@ -231,3 +231,8 @@
 | [0161](./0161-toast-placement.md)                        | トーストの出方（場所・積み方・消えるまで）                               | Accepted           |
 | [0162](./0162-tree-guides.md)                            | 木の字下げと案内線                                                       | Accepted           |
 | [0163](./0163-tree-current.md)                           | 木のいまいる行の印                                                       | Accepted           |
+| [0164](./0164-principles-reorganization.md)              | 原則の整理（1〜12 を保ち、13〜21 を足す）                                | Accepted           |
+| [0165](./0165-button-emphasis-levels.md)                 | 押すものの強さは 3 段（色の塗り・グレーの塗り・枠線）                    | Accepted           |
+| [0166](./0166-press-sink-scope.md)                       | 押すと沈むものの範囲                                                     | Accepted           |
+| [0167](./0167-pressable-card-floats.md)                  | 全体が押せるカードは、浮いた押すものにする                               | Accepted           |
+| [0168](./0168-field-suffix-acts-on-value.md)             | 入力欄の suffix に入れるのは、値に作用するものだけ                       | Accepted           |
