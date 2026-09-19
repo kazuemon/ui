@@ -15,8 +15,17 @@ export {
   type AlertDialogTone,
 } from './components/alert-dialog/AlertDialog';
 export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
+export { Avatar, type AvatarFallback, type AvatarProps } from './components/avatar/Avatar';
 export { Badge, type BadgeProps } from './components/badge/Badge';
 export { Blockquote, type BlockquoteProps } from './components/blockquote/Blockquote';
+export {
+  type BreadcrumbAppearance,
+  Breadcrumb,
+  BreadcrumbItem,
+  type BreadcrumbItemProps,
+  type BreadcrumbProps,
+  type BreadcrumbSeparatorName,
+} from './components/breadcrumb/Breadcrumb';
 export { Bleed, type BleedProps } from './components/bleed/Bleed';
 export {
   Button,
@@ -64,6 +73,11 @@ export {
 } from './components/collapsible/Collapsible';
 export { Code, type CodeProps } from './components/code/Code';
 export { CodeBlock, type CodeBlockProps } from './components/code-block/CodeBlock';
+export {
+  CodeGroup,
+  type CodeGroupIndicator,
+  type CodeGroupProps,
+} from './components/code-group/CodeGroup';
 export {
   Container,
   type ContainerProps,
@@ -158,6 +172,13 @@ export {
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
 export {
+  Pager,
+  type PagerAppearance,
+  type PagerDestination,
+  type PagerDirection,
+  type PagerProps,
+} from './components/pager/Pager';
+export {
   Popover,
   type PopoverAlign,
   type PopoverPresentation,
@@ -223,7 +244,27 @@ export {
   type TransitionPreset,
   type TransitionProps,
 } from './components/transition/Transition';
+export {
+  type ToastAppearance,
+  type ToastColor,
+  type ToastData,
+  type ToastOptions,
+  type ToastPosition,
+  ToastProvider,
+  type ToastProviderProps,
+  type ToastStack,
+  useToast,
+} from './components/toast/Toast';
 export { Tooltip, type TooltipProps, type TooltipSide } from './components/tooltip/Tooltip';
+export {
+  Tree,
+  type TreeCurrentIndicator,
+  TreeItem,
+  type TreeItemProps,
+  type TreePanelMotion,
+  type TreeProps,
+  type TreeRowWidth,
+} from './components/tree/Tree';
 export { TextField, type TextFieldProps } from './components/text-field/TextField';
 export { Textarea, type TextareaProps } from './components/textarea/Textarea';
 export {

@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   ArrowUDownLeftIcon,
   ArrowUpRightIcon,
   CaretDownIcon,
@@ -55,6 +57,18 @@ const entries: Entry[] = [
     regular: <CaretRightIcon />,
     bold: <CaretRightIcon standalone />,
     use: '枠線のリンクの「›」・Calendar の次の月',
+  },
+  {
+    name: 'ArrowLeftIcon',
+    regular: <ArrowLeftIcon />,
+    bold: <ArrowLeftIcon standalone />,
+    use: 'Pager の前の記事',
+  },
+  {
+    name: 'ArrowRightIcon',
+    regular: <ArrowRightIcon />,
+    bold: <ArrowRightIcon standalone />,
+    use: 'Pager の次の記事',
   },
   {
     name: 'ArrowUpRightIcon',

@@ -52,7 +52,7 @@
 - [x] Footnote
 - [ ] Steps
 - [ ] FileTree
-- [ ] CodeGroup
+- [x] CodeGroup
 - [ ] Embed
 - [ ] Gallery
 - [ ] ImageZoom
@@ -81,8 +81,8 @@
 ### ナビゲーション
 
 - [ ] TableOfContents
-- [ ] Pager
-- [ ] Breadcrumb
+- [x] Pager
+- [x] Breadcrumb
 - [x] Tabs
 - [ ] Pagination
 - [x] Menu
@@ -93,7 +93,7 @@
 - [ ] CommandPalette
 - [ ] BackToTop
 - [ ] Menubar
-- [ ] Tree
+- [x] Tree
 - [ ] Tour
 
 ### 表示
@@ -105,7 +105,7 @@
 - [x] Divider
 - [x] Time
 - [x] RelativeTime
-- [ ] Avatar
+- [x] Avatar
 - [x] Badge
 - [ ] Chip
 - [ ] Timeline
@@ -162,7 +162,7 @@
 
 - [x] Notice
 - [x] Loading
-- [ ] Toast
+- [x] Toast
 - [ ] Progress
 - [x] Skeleton
 - [ ] StatusPanel
