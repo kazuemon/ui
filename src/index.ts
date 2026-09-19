@@ -142,7 +142,13 @@ export {
   type MenuSubmenuSheet,
 } from './components/menu/Menu';
 export { Meter, type MeterProps } from './components/meter/Meter';
-export { Progress, type ProgressProps, type ProgressSize } from './components/progress/Progress';
+export {
+  Progress,
+  type ProgressAnimation,
+  type ProgressProps,
+  type ProgressShape,
+  type ProgressSize,
+} from './components/progress/Progress';
 export {
   MenuCheckboxItem,
   type MenuCheckboxItemProps,

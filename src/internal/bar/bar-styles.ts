@@ -4,8 +4,8 @@ import { tv } from '../tv';
 // 押さないので、ページと同じレイヤー（原則1: 影なし）。枠線も付けない
 // 並びは Field と同じ3層（原則4）: 上にラベル（太字）、真ん中にバー、下にキャプション（小さくグレー）
 //   値の文字はラベルと同じ行の右端に、ラベルと同じ大きさで一段淡く置く（数字の幅をそろえる）— 原則にない判断（backlog）
-// バー: 地（トグルの OFF・選んでいない箱と同じグレー）の上に、値までを部品の色で塗る。角は小物と同じ pill（--bar-radius）
-//   角は、読了のバーの端をどうするかが決まっていないので、トークンに残して差し替えられるようにしている（backlog）
+// バー: 地（トグルの OFF・選んでいない箱と同じグレー）の上に、値までを部品の色で塗る。角は小物と同じ pill
+//   Progress だけは、読了のバー向けに端を丸めない形（shape="square"）を持つ（Progress で rounded-none に差し替える）
 //   塗りは地の角で切り抜く（塗りの右端も地と同じ角になる）
 //   太さは size で 3 段（--bar-height-{sm,md,lg}）。太くしても角は pill のまま（原則5: 角は何であるかで決め、高さに比例させない）
 // 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（トグルの ON と同じ）
@@ -21,10 +21,9 @@ export const barStyles = tv({
     label: 'col-start-1 text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
     value:
       'col-start-2 justify-self-end text-(length:--text-label) leading-(--leading-label) whitespace-nowrap text-fg-muted tabular-nums',
-    track:
-      'relative col-span-full h-(--bar-height) overflow-hidden rounded-(--bar-radius) bg-field-addon',
+    track: 'relative col-span-full h-(--bar-height) overflow-hidden rounded-pill bg-field-addon',
     indicator: [
-      'absolute inset-y-0 rounded-(--bar-radius) bg-(color:--bar-fill)',
+      'absolute inset-y-0 rounded-pill bg-(color:--bar-fill)',
       'transition-[width,background-color] duration-(--duration-bar) ease-press motion-reduce:transition-none',
     ],
     caption:

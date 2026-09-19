@@ -7,7 +7,7 @@ import { Progress, type ProgressProps } from './Progress';
 import { useReadingProgress } from './use-reading-progress';
 
 // ストーリーで使う場面（部品ではない）。記事の読了のバー: スクロールする枠の上端に、ラベルを持たない細い Progress を留める
-//   既定は 4px（size="sm"）・地あり。2px（size="xs"）と地なし（track={false}）も選べる — 軸 168
+//   既定は 4px（size="sm"）・地あり・端を丸めない（shape="square"）。2px（size="xs"）と地なし（track={false}）も選べる
 //   留めるのは Affix（端から離さない）。貼り付けた Navbar があれば、その下に留める（belowNavbar）
 //   読んだ割合は、枠のスクロールの位置から計算する（useReadingProgress）
 
@@ -37,9 +37,9 @@ function Article() {
   );
 }
 
-/** 読了のバー。ラベルを持たない細い Progress で、読み上げからは外す */
+/** 読了のバー。ラベルを持たない細い Progress で、端を丸めず、読み上げからは外す */
 export function ReadingProgress(props: Omit<ProgressProps, 'label' | 'showValue'>) {
-  return <Progress size="sm" showValue={false} aria-hidden {...props} />;
+  return <Progress size="sm" shape="square" showValue={false} aria-hidden {...props} />;
 }
 
 interface ReadingSceneProps {
