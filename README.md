@@ -146,21 +146,23 @@
 - [ ] Combobox
 - [ ] Segmented Control
 - [ ] Slider
-- [ ] NumberField
+- [x] NumberField
+- [x] DateField
 - [ ] DatePicker
 - [ ] Dropzone
-- [ ] SearchField
-- [ ] PasswordField
+- [x] SearchField
+- [x] PasswordField
 - [ ] Autocomplete
-- [ ] PinField
+- [x] PinField
 - [ ] TagsInput
+- [x] TimeField
 - [ ] TimePicker
 - [ ] ColorPicker
 - [ ] Rating
 - [x] Calendar
 - [ ] DateRangePicker
 - [x] CheckboxGroup
-- [ ] MaskInput
+- [x] MaskField
 - [ ] Editable
 - [ ] FileInput
 

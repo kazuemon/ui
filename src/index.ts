@@ -305,13 +305,49 @@ export {
 export { TextField, type TextFieldProps } from './components/text-field/TextField';
 export { Textarea, type TextareaProps } from './components/textarea/Textarea';
 export {
+  SearchField,
+  type SearchFieldProps,
+  type SearchFieldIcon,
+} from './components/search-field/SearchField';
+export { PasswordField, type PasswordFieldProps } from './components/password-field/PasswordField';
+export {
+  MaskField,
+  type MaskFieldProps,
+  type MaskFieldMask,
+  type MaskFieldHint,
+  type MaskFieldHintStyle,
+  type MaskFieldValueDetails,
+} from './components/mask-field/MaskField';
+export {
+  NumberField,
+  type NumberFieldProps,
+  type NumberFieldStepper,
+} from './components/number-field/NumberField';
+export {
+  PinField,
+  type PinFieldProps,
+  type PinFieldValidationType,
+} from './components/pin-field/PinField';
+export {
+  DateField,
+  type DateFieldProps,
+  type SegmentPlaceholder,
+} from './components/date-field/DateField';
+export { TimeField, type TimeFieldProps } from './components/time-field/TimeField';
+export type { DateSegmentColor as DateFieldColor } from './internal/date-segments/colors';
+export {
   VisuallyHidden,
   type VisuallyHiddenProps,
 } from './components/visually-hidden/VisuallyHidden';
 export type { CaptionPlacement, FieldLoadingBehavior } from './internal/field/Field';
 export type { FormSubmittingBehavior } from './internal/form-context';
-/** 日付の値（Calendar）。ブラウザに Temporal があればそれを、なければ polyfill を返す */
-export { Temporal, type PlainDate, type PlainYearMonth } from './internal/date/plain-date';
+/** 日付と時刻の値（Calendar・DateField・TimeField）。ブラウザに Temporal があればそれを、なければ polyfill を返す */
+export {
+  Temporal,
+  type PlainDate,
+  type PlainTime,
+  type PlainYearMonth,
+} from './internal/date/plain-date';
 export type { OverlayPresentation } from './internal/sheet/use-narrow-screen';
 /** tailwind-merge の設定。利用者の cn() で `extendTailwindMerge(twMergeConfig)` に渡す（design/adr/0077） */
 export { twMergeConfig } from './internal/tv';

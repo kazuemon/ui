@@ -78,9 +78,45 @@ export const EyeSlashIcon = ({ standalone }: IconProps) => (
   </Icon>
 );
 
-export const CaretDownIcon = () => (
-  <Icon>
+// 虫眼鏡（Phosphor の MagnifyingGlass）。SearchField の印
+export const MagnifyingGlassIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="112" cy="112" r="80" />
+    <line x1="168.57" y1="168.57" x2="224" y2="224" />
+  </Icon>
+);
+
+export const CaretDownIcon = (props: IconProps) => (
+  <Icon {...props}>
     <polyline points="208 96 128 176 48 96" />
+  </Icon>
+);
+
+export const CaretUpIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="48 160 128 80 208 160" />
+  </Icon>
+);
+
+export const MinusIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="40" y1="128" x2="216" y2="128" />
+  </Icon>
+);
+
+export const PlusIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="40" y1="128" x2="216" y2="128" />
+    <line x1="128" y1="40" x2="128" y2="216" />
+  </Icon>
+);
+
+// 左右の矢印（Phosphor の ArrowsHorizontal）。NumberField のラベルを左右に動かして値を変えるあいだのカーソル
+export const ArrowsHorizontalIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="192 96 224 128 192 160" />
+    <line x1="32" y1="128" x2="224" y2="128" />
+    <polyline points="64 96 32 128 64 160" />
   </Icon>
 );
 

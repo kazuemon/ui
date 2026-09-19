@@ -181,6 +181,9 @@ importers:
       '@fontsource/ibm-plex-sans-jp':
         specifier: ^5.3.0
         version: 5.3.0
+      maska:
+        specifier: ^3.2.1
+        version: 3.2.1
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -2177,6 +2180,9 @@ packages:
   magic-string@1.3.1:
     resolution: {integrity: sha512-rm91zr2Ou+XueDTohjQQjdQEcYM6zVi8KVUCG8Ec3vHwUEKrhSdCNyfuIywkA6hcCAteIn0ZOtAHA6eGpiX+Pg==}
 
+  maska@3.2.1:
+    resolution: {integrity: sha512-YXMSyY6QPhf+knXWpHEWMswFQMGzYv5rjIOSPgjLibKkA8AlfBf2HT7XHJoTL6Pm1obXQ+tsM1AnyC/AkcVGnQ==}
+
   mdast-util-to-hast@13.2.1:
     resolution: {integrity: sha512-cctsq2wp5vTsLIcaymblUriiTcZd0CwWtCbLvrOzYCDZoWyMNV8sZ7krj09FSnsiJi3WVsHLM4k6Dq/yaPyCXA==}
 
@@ -4153,6 +4159,8 @@ snapshots:
   magic-string@1.3.1:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  maska@3.2.1: {}
 
   mdast-util-to-hast@13.2.1:
     dependencies:
