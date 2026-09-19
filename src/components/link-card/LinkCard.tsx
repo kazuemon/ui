@@ -36,9 +36,11 @@ const styles = tv({
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
       'cursor-pointer',
       ...focusRing,
-      'hover:border-line-strong hover:[--card-fill:var(--color-field)]',
-      'active:top-(--flat-press-depth)',
-      '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      // 輪郭・面・影・沈みは Card と同じトークン（--card-line・--card-fill-hover・--card-shadow*・--card-press-depth — 軸 151）
+      'border-(color:--card-line) shadow-(--card-shadow)',
+      'hover:border-(color:--card-line-hover) hover:[--card-fill:var(--card-fill-hover)] hover:shadow-(--card-shadow-hover)',
+      'active:top-(--card-press-depth) active:shadow-(--card-shadow-press)',
+      '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     body: [

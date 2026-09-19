@@ -21,6 +21,7 @@ import { Image, type ImageProps } from '../image/Image';
 //   押せるカード（href か、href を持つ render）は、カード全体が 1 つのリンクになる。押せる範囲は見た目の範囲（原則7）
 //     軸 103 の D＋A: hover で面を入力欄の塗りにし、輪郭を 3:1 の濃さにし、画像を少し大きくする（--card-hover-media-scale）
 //     押すと平らな要素と同じく沈む（原則3）。影は付けない（原則1）
+//     輪郭・面・影・沈みはトークン（--card-line・--card-fill-hover・--card-shadow*・--card-press-depth）で持つ（軸 151 で比べる）
 //     面の塗りは --card-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
 //   新しいタブで開くときは、読み上げに「新しいタブで開きます」を足す（Link と同じ。原則7）
 const styles = tv({
@@ -52,9 +53,10 @@ const styles = tv({
         root: [
           'cursor-pointer no-underline',
           ...focusRing,
-          'hover:border-line-strong hover:[--card-fill:var(--color-field)]',
-          'active:translate-y-(--flat-press-depth)',
-          '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+          'border-(color:--card-line) shadow-(--card-shadow)',
+          'hover:border-(color:--card-line-hover) hover:[--card-fill:var(--card-fill-hover)] hover:shadow-(--card-shadow-hover)',
+          'active:translate-y-(--card-press-depth) active:shadow-(--card-shadow-press)',
+          '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
           'motion-reduce:[transition:none]',
         ],
       },

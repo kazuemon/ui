@@ -102,6 +102,16 @@ export const controlBox = tv({
     'group-data-[loading=blocking]/field:cursor-progress group-data-[loading=blocking]/field:text-(color:--color-on-field-disabled)',
     'group-data-[loading=blocking]/field:[--color-field-hover:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field:var(--color-field-disabled)]',
     'group-data-[loading=blocking]/field:[--color-field-focus:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field-invalid:var(--color-field-disabled)]',
+    // 読み取り専用（readOnly。部品が data-readonly を置く）— 軸 152 で形を比べる（塗りを持たせるかも含めて未決）
+    //   いまの値は編集できる欄と同じ（--field-readonly-* が --color-field などを指す）
+    //   塗り・hover の塗り・prefix・suffix の塗り・角・下線・輪郭（太さと線の種類）・値の文字の色・左右の余白をトークンで差し替える
+    //   下線は背景に描き（枠線はフォーカスのもの — 原則2）、輪郭はフォーカスしていないときだけ内側に引く
+    'data-readonly:[--color-field-focus:var(--field-readonly-fill)] data-readonly:[--color-field:var(--field-readonly-fill)]',
+    'data-readonly:[--color-field-addon:var(--field-readonly-addon-fill)] data-readonly:[--color-field-hover:var(--field-readonly-fill-hover)]',
+    'data-readonly:rounded-(--field-readonly-radius) data-readonly:text-(color:--field-readonly-text) data-readonly:[--field-flush:var(--field-readonly-flush)]',
+    'data-readonly:bg-[linear-gradient(var(--field-readonly-line),var(--field-readonly-line))] data-readonly:bg-[length:100%_var(--field-readonly-underline-width)] data-readonly:bg-bottom data-readonly:bg-no-repeat',
+    'data-readonly:not-focus-within:[outline-width:var(--field-readonly-outline-width)] data-readonly:not-focus-within:[outline-style:var(--field-readonly-outline-style)]',
+    'data-readonly:not-focus-within:[outline-offset:calc(-1*var(--field-readonly-outline-width))] data-readonly:not-focus-within:[outline-color:var(--field-readonly-line)]',
     // prefix・suffix を内側に浮かせる形（addonShape="floating" — design/adr/0035）。既定は端に接する
     'data-[addon-shape=floating]:[--field-addon-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
   ],

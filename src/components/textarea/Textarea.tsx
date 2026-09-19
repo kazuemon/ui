@@ -38,8 +38,8 @@ const textarea = tv({
     ],
     input: [
       'block [field-sizing:content] w-full min-w-0 resize-none overflow-hidden bg-transparent outline-none',
-      'placeholder:text-fg-subtle disabled:cursor-not-allowed',
-      'px-[calc(var(--spacing-control-x)-var(--field-border-width))] py-(--textarea-py) leading-(--textarea-lh)',
+      'placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
+      'px-[calc(var(--spacing-control-x)*(1-var(--field-flush,0))-var(--field-border-width))] py-(--textarea-py) leading-(--textarea-lh)',
       'min-h-(--textarea-min-height)',
     ],
     count:
@@ -77,6 +77,11 @@ export interface TextareaProps extends Omit<
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
+  /**
+   * 空の欄に出す見本の文字。値と見分けられるよう、「例: UI を作っています」のように、見本だと分かる書き方にします。
+   * 色は、文字の基準（4.5:1）を保つ淡さまでしか淡くできないため、書き方でも値と区別します
+   */
+  placeholder?: string;
   /**
    * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
    * @default 'top'
@@ -231,6 +236,7 @@ export function Textarea({
         <>
           <div
             data-slot="control"
+            data-readonly={readOnly || undefined}
             className={controlBox({ className: styles.box() })}
             style={heightVars(low, high)}
           >

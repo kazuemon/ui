@@ -622,6 +622,27 @@
   --color-outline-neutral-disabled-line: var(--color-line);
   --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
 
+  /* 入力欄のプレースホルダー（TextField・Textarea の placeholder、Select の未選択の文字）— 軸 153 で比べる
+     いまはキャプションと同じ淡いグレー。白地 4.5:1、入力欄の塗りの上 4.1:1、hover の塗りの上 3.95:1 */
+  --field-placeholder: var(--color-fg-subtle);
+
+  /* 読み取り専用の欄（TextField・Textarea の readOnly）— 軸 152 で形を比べる。src/internal/field/field-styles.ts の controlBox
+     原則8: 編集できる欄はグレーの塗り。読み取り専用の欄の形は未決（塗りを持たせるかも含めて）。いまは編集できる欄と同じ見た目
+     fill・fill-hover: 本体の塗りと hover の塗り。addon-fill: prefix・suffix の塗り。radius: 角
+     line: 下線と輪郭の色。underline-width: 本体の下端の線の太さ（0 で引かない）。outline-width: 内側の輪郭の太さ（0 で引かない）
+     outline-style: 輪郭の線の種類（solid・dashed）。text: 値の文字の色
+     flush: 1 で本体の左右の余白をなくし、値をラベルの左端にそろえる（0 で編集できる欄と同じ余白） */
+  --field-readonly-fill: var(--color-field);
+  --field-readonly-fill-hover: var(--color-field-hover);
+  --field-readonly-addon-fill: var(--color-field-addon);
+  --field-readonly-radius: var(--radius-control);
+  --field-readonly-line: var(--color-surface-line);
+  --field-readonly-underline-width: 0px;
+  --field-readonly-outline-width: 0px;
+  --field-readonly-outline-style: solid;
+  --field-readonly-text: var(--color-fg);
+  --field-readonly-flush: 0;
+
   /* ── Card — 軸 103 ── BEGIN card */
   /* カード。src/components/card。角は --radius-card（ADR-0016）、影は付けない（原則1: ページと同じレイヤー）
      面は地と同じ白なので、細い輪郭（--color-surface-line）で面を見せる
@@ -636,6 +657,17 @@
   --card-padding: calc(var(--spacing) * 4);
   --card-gap: calc(var(--spacing) * 1);
   --card-hover-media-scale: 1.04;
+  /* 押せるカードの輪郭・面・影・沈み（軸 151 で比べる。ADR-0167 で「全体が押せるカードは浮かせる」方向に決めた）
+     いまの値は軸 103 の D＋A のまま（影なし、hover で面を入力欄の塗りに、輪郭を 3:1 の濃さに）
+     line・line-hover: 輪郭。fill-hover: hover の面の塗り。shadow・shadow-hover・shadow-press: 影（影なしは 0 0 #0000）
+     press-depth: 押して沈む深さ。LinkCard・Pager の押せるカードも同じ値を読む（Pager は --pager-card-* に写す） */
+  --card-line: var(--color-surface-line);
+  --card-line-hover: var(--color-line-strong);
+  --card-fill-hover: var(--color-field);
+  --card-shadow: 0 0 #0000;
+  --card-shadow-hover: 0 0 #0000;
+  --card-shadow-press: 0 0 #0000;
+  --card-press-depth: var(--flat-press-depth);
   /* ── END card */
 
   /* ── LinkCard — 軸 115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */
@@ -1129,6 +1161,7 @@
      押せるカード（card）: 押せるカードと同じ面。地と同じ白なので細い輪郭で面を見せ、hover で面を入力欄の塗りに、輪郭を 3:1 の濃さにする
        card-padding-*: 面の余白。card-radius: 角（カードの角 — 原則5）。card-line-width・card-line・card-line-hover: 輪郭
        card-fill・card-fill-hover・card-fill-press: 面の塗り。--flat-bg に入れて動かす（ADR-0112）
+       card-shadow・card-shadow-hover・card-shadow-press: 影（軸 151 で比べる。いまは影なし）
      文字のリンク（text）: 面も枠線も持たず、矢印と題だけ。押せる範囲は矢印と文字の幅だけにする（原則7）
        text-radius: フォーカスの線が沿う角。text-underline・text-underline-hover: 題の下線（文字のリンクと同じ色）
        text-underline-duration・text-underline-ease: 下線の色が変わる速さ（文字のリンクと同じ） */
@@ -1146,6 +1179,9 @@
   --pager-card-fill: var(--color-surface);
   --pager-card-fill-hover: var(--color-field);
   --pager-card-fill-press: var(--color-field);
+  --pager-card-shadow: 0 0 #0000;
+  --pager-card-shadow-hover: 0 0 #0000;
+  --pager-card-shadow-press: 0 0 #0000;
   --pager-text-radius: var(--radius-control);
   --pager-text-underline: var(--color-link-underline);
   --pager-text-underline-hover: var(--color-link-underline-hover);
