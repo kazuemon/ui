@@ -15,8 +15,9 @@ import { Image } from '../image/Image';
 
 // リンクカード — 軸 115〜117 で決定（ADR-0143〜0145）
 //   記事の中から別のページへ移るカード。題・説明・サイト（favicon とドメイン）・画像を並べ、カード全体が 1 つのリンクになる
-//   カードの仲間なので、面・角・輪郭・hover・押下はカード（Card）と同じ（原則1・3・5）。影は付けない
-//     hover で面を入力欄の塗りにし（--card-fill。theme.css で登録）、輪郭を 3:1 の濃さにし、画像を少し大きくする
+//   カードの仲間なので、面・角・輪郭・影・hover・押下はカード（Card）と同じ（原則1・3・5、ADR-0169）
+//     ボタンと同じ薄い影を付け、hover で落ち影を消して面を淡く塗り（--card-fill。theme.css で登録）、押すと沈む
+//     hover で画像を少し大きくする動きは、imageZoom を渡したときだけ（既定はなし）
 //   並び（画像の位置）は layout（既定 end。文が左・画像が右）。start・top も選べる。画像がないときはどれも文だけの 1 列
 //     画像の枠は --link-card-media-aspect の比を最小の高さにして、行の高さまで伸ばす（文が長いと縦に伸び、はみ出た分を切る）
 //   サイトの行の位置は sitePlacement（既定 top。題の上）。favicon は渡したときだけ出す（既定は渡さない＝出さない）
@@ -36,11 +37,9 @@ const styles = tv({
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
       'cursor-pointer',
       ...focusRing,
-      // 輪郭・面・影・沈みは Card と同じトークン（--card-line・--card-fill-hover・--card-shadow*・--card-press-depth — 軸 151）
-      'border-(color:--card-line) shadow-(--card-shadow)',
-      'hover:border-(color:--card-line-hover) hover:[--card-fill:var(--card-fill-hover)] hover:shadow-(--card-shadow-hover)',
-      'active:top-(--card-press-depth) active:shadow-(--card-shadow-press)',
-      '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      'shadow-raised hover:shadow-raised-hover hover:[--card-fill:var(--card-fill-hover)]',
+      'active:top-(--press-depth) active:shadow-(--shadow-raised-press)',
+      '[transition:--card-fill_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     body: [
@@ -58,7 +57,7 @@ const styles = tv({
     image: [
       'm-0 max-w-none [outline:none]',
       '[transition:scale_var(--duration-normal)_var(--ease-press)] motion-reduce:[transition:none]',
-      'group-hover/link-card:scale-(--card-hover-media-scale)',
+      'group-data-image-zoom/link-card:group-hover/link-card:scale-(--card-hover-media-scale)',
     ],
   },
   variants: {
@@ -151,6 +150,11 @@ export interface LinkCardProps extends Omit<ComponentProps<'a'>, 'title' | 'chil
    */
   sitePlacement?: 'top' | 'bottom';
   /**
+   * hover したときに画像を少し大きくします。影と面の変化に、画像の動きを足したいときに使います
+   * @default false
+   */
+  imageZoom?: boolean;
+  /**
    * 題の最大の行数。超えた分は最後に三点を付けて切ります
    * @default 2
    */
@@ -178,6 +182,7 @@ export function LinkCard({
   render,
   layout = 'end',
   sitePlacement = 'top',
+  imageZoom = false,
   titleLines = 2,
   descriptionLines = 2,
   className,
@@ -223,6 +228,7 @@ export function LinkCard({
       'aria-describedby': describedBy,
       'data-slot': 'link-card',
       'data-media': hasMedia || undefined,
+      'data-image-zoom': imageZoom || undefined,
       className: s.root({ className }),
       style: { ...style, ...lineClampVars(titleLines, descriptionLines) },
       children: (

@@ -19,9 +19,6 @@ const fieldAddon = tv({
     '[--addon-radius-inner:calc(var(--addon-radius)*var(--addon-round-inner))]',
     '[--addon-edge:max(0px,calc(-1*var(--addon-inset)))]',
     '[margin-block:var(--addon-inset)] [border-block-width:var(--addon-edge)] [border-block-color:inherit]',
-    // 読み取り専用の欄で値をラベルの左端にそろえるとき（--field-flush が 1 — 軸 152）は、欄の外側の余白もなくす
-    'first:[padding-inline-start:calc(var(--spacing-control-x)*(1-var(--field-flush,0)))]',
-    'last:[padding-inline-end:calc(var(--spacing-control-x)*(1-var(--field-flush,0)))]',
     // prefix（本体の最初の子）
     'first:[margin-inline-start:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
     'first:[border-inline-start-width:var(--addon-edge)] first:[border-inline-start-color:inherit]',

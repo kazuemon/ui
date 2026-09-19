@@ -35,6 +35,7 @@ const stateRows: Sample[] = [
     },
   },
   { label: '押せない', props: { defaultValue: 'はじめまして。', disabled: true } },
+  { label: '読み取り専用', props: { defaultValue: 'はじめまして。', readOnly: true } },
 ];
 
 const stateColumns: MatrixColumn[] = [

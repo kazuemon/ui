@@ -174,7 +174,7 @@ export function TextField({
         <div
           data-slot="control"
           data-addon-shape={addonShape}
-          data-readonly={readOnly || undefined}
+          data-field-readonly={readOnly || undefined}
           className={controlBox({ className: ['gap-0 px-0', loading && 'relative'] })}
           onMouseDown={(event) => {
             if (
@@ -190,7 +190,7 @@ export function TextField({
             {before.addon}
             <BaseField.Control
               className={[
-                'h-full w-full min-w-0 bg-transparent px-[calc(var(--spacing-control-x)*(1-var(--field-flush,0))-var(--field-border-width))] outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
+                'h-full w-full min-w-0 bg-transparent px-[calc(var(--spacing-control-x)-var(--field-border-width))] outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
                 blocking && 'cursor-progress',
               ]
                 .filter(Boolean)

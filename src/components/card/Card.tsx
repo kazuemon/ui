@@ -13,15 +13,15 @@ import { newTabNaming, opensNewTab, renderPropOf } from '../../internal/link-par
 import { tv } from '../../internal/tv';
 import { Image, type ImageProps } from '../image/Image';
 
-// カード — 軸 103
-//   ページと同じレイヤーなので影は付けない（原則1）。面は地と同じ白なので、細い輪郭で面を見せる
+// カード — 軸 103・151
+//   面は地と同じ白なので、細い輪郭で面を見せる。押せないカードはページと同じレイヤーなので影を付けない（原則1）
 //   角はカードの角（ADR-0016）。画像は 16:9（ADR-0017）
 //   型は 2 つ（ADR-0014）: default は画像をカードの端まで届かせ、nested は画像を内側に収める（周りの余白 --card-nested-inset）
 //     nested の画像の角は、外の角から余白を引いた同心の角（原則5）。中身の余白は、画像の周りの余白を引いた分を足し、文字の位置を default とそろえる
 //   押せるカード（href か、href を持つ render）は、カード全体が 1 つのリンクになる。押せる範囲は見た目の範囲（原則7）
-//     軸 103 の D＋A: hover で面を入力欄の塗りにし、輪郭を 3:1 の濃さにし、画像を少し大きくする（--card-hover-media-scale）
-//     押すと平らな要素と同じく沈む（原則3）。影は付けない（原則1）
-//     輪郭・面・影・沈みはトークン（--card-line・--card-fill-hover・--card-shadow*・--card-press-depth）で持つ（軸 151 で比べる）
+//     浮いた押すもの（原則1・3、ADR-0169）: ボタンと同じ薄い影を付け、hover で落ち影を消して面を淡く塗り（--card-fill-hover）、
+//     押すと沈む（影は hover のまま）。輪郭は hover でも変えない
+//     hover で画像を少し大きくする動き（--card-hover-media-scale）は、imageZoom を渡したときだけ（既定はなし）
 //     面の塗りは --card-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
 //   新しいタブで開くときは、読み上げに「新しいタブで開きます」を足す（Link と同じ。原則7）
 const styles = tv({
@@ -33,9 +33,9 @@ const styles = tv({
     ],
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
     image: [
-      // hover で画像を少し大きくする（--card-hover-media-scale）。枠（Image）が切り取る
+      // imageZoom のとき、hover で画像を少し大きくする（--card-hover-media-scale）。枠（Image）が切り取る
       '[transition:scale_var(--duration-normal)_var(--ease-press)] motion-reduce:[transition:none]',
-      'group-data-interactive/card:group-hover/card:scale-(--card-hover-media-scale)',
+      'group-data-image-zoom/card:group-hover/card:scale-(--card-hover-media-scale)',
     ],
   },
   variants: {
@@ -53,10 +53,9 @@ const styles = tv({
         root: [
           'cursor-pointer no-underline',
           ...focusRing,
-          'border-(color:--card-line) shadow-(--card-shadow)',
-          'hover:border-(color:--card-line-hover) hover:[--card-fill:var(--card-fill-hover)] hover:shadow-(--card-shadow-hover)',
-          'active:translate-y-(--card-press-depth) active:shadow-(--card-shadow-press)',
-          '[transition:--card-fill_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+          'shadow-raised hover:shadow-raised-hover hover:[--card-fill:var(--card-fill-hover)]',
+          'active:translate-y-(--press-depth) active:shadow-(--shadow-raised-press)',
+          '[transition:--card-fill_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
           'motion-reduce:[transition:none]',
         ],
       },
@@ -83,6 +82,11 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
   /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
   rel?: string;
   /**
+   * 押せるカードで、hover したときに画像を少し大きくします。影と面の変化に、画像の動きを足したいときに使います
+   * @default false
+   */
+  imageZoom?: boolean;
+  /**
    * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素にカードの見た目を重ねます（例: `render={<NextLink href="/works/1" />}`）。
    * article・li などにするときも使います
    */
@@ -97,6 +101,7 @@ export function Card({
   href,
   target,
   rel,
+  imageZoom = false,
   render,
   className,
   children,
@@ -117,6 +122,7 @@ export function Card({
       'data-slot': 'card',
       'data-appearance': appearance,
       'data-interactive': interactive || undefined,
+      'data-image-zoom': (interactive && imageZoom) || undefined,
       className: s.root({ className }),
       children: (
         <>

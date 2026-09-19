@@ -39,7 +39,7 @@ const textarea = tv({
     input: [
       'block [field-sizing:content] w-full min-w-0 resize-none overflow-hidden bg-transparent outline-none',
       'placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
-      'px-[calc(var(--spacing-control-x)*(1-var(--field-flush,0))-var(--field-border-width))] py-(--textarea-py) leading-(--textarea-lh)',
+      'px-[calc(var(--spacing-control-x)-var(--field-border-width))] py-(--textarea-py) leading-(--textarea-lh)',
       'min-h-(--textarea-min-height)',
     ],
     count:
@@ -236,7 +236,7 @@ export function Textarea({
         <>
           <div
             data-slot="control"
-            data-readonly={readOnly || undefined}
+            data-field-readonly={readOnly || undefined}
             className={controlBox({ className: styles.box() })}
             style={heightVars(low, high)}
           >

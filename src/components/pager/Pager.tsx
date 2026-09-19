@@ -14,7 +14,7 @@ import { tv } from '../../internal/tv';
 //   影は付けない（原則1: ページと同じレイヤー）
 //   見た目は 2 つ（軸 145）。既定は押せるカード（card）で、矢印付きの文字のリンク（text）も選べる
 //     card: 押せるカードと同じ面（Card と同じ作り）。地と同じ白なので細い輪郭で面を見せる（原則1）。角はカードの角（原則5）
-//       hover で面を入力欄の塗りにし、輪郭を 3:1 の濃さにする。押すと平らな要素と同じ深さで沈む（原則3）
+//       浮いた押すもの（ADR-0169）: ボタンと同じ薄い影を付け、hover で落ち影を消して面を淡く塗る。押すと沈む（原則3）。輪郭は変えない
 //       塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
 //     text: 面も枠線も持たない。題は文字のリンクと同じで、ふだんは淡い下線、hover で下線だけが濃くなる（原則3）
 //       押せる範囲は、矢印と文字の幅だけ（原則7: 押せる範囲は見た目の範囲と一致させる）。
@@ -45,10 +45,10 @@ const styles = tv({
         item: [
           'rounded-(--pager-card-radius) border-(length:--pager-card-line-width) border-(color:--pager-card-line)',
           'px-(--pager-card-padding-inline) py-(--pager-card-padding-block)',
-          'bg-(color:--flat-bg) [--flat-bg:var(--pager-card-fill)] shadow-(--pager-card-shadow)',
-          'hover:border-(color:--pager-card-line-hover) hover:[--flat-bg:var(--pager-card-fill-hover)] hover:shadow-(--pager-card-shadow-hover)',
-          'active:[--flat-bg:var(--pager-card-fill-press)] active:shadow-(--pager-card-shadow-press)',
-          '[transition:--flat-bg_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+          'bg-(color:--flat-bg) shadow-raised [--flat-bg:var(--pager-card-fill)]',
+          'hover:shadow-raised-hover hover:[--flat-bg:var(--pager-card-fill-hover)]',
+          'active:shadow-(--shadow-raised-press) active:[--flat-bg:var(--pager-card-fill-press)]',
+          '[transition:--flat-bg_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
           'motion-reduce:[transition:none]',
         ],
       },

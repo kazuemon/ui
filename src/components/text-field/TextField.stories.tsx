@@ -24,6 +24,7 @@ const stateRows: Sample[] = [
     },
   },
   { label: '押せない', props: { defaultValue: 'かずえもん', disabled: true } },
+  { label: '読み取り専用', props: { defaultValue: 'かずえもん', readOnly: true } },
 ];
 
 const stateColumns: MatrixColumn[] = [
@@ -35,7 +36,7 @@ const stateColumns: MatrixColumn[] = [
 const addonColumns: Sample[] = [
   {
     label: 'prefix',
-    props: { label: 'Web サイト', prefix: 'https://', placeholder: 'example.com' },
+    props: { label: 'Web サイト', prefix: 'https://', placeholder: '例: example.com' },
   },
   {
     label: 'suffix',
@@ -96,7 +97,7 @@ const meta = {
   // Controls で既定の値を選んだ状態から始める（部品の既定と同じ値）
   args: {
     label: '表示名',
-    placeholder: 'かずえもん',
+    placeholder: '例: かずえもん',
     captionPlacement: 'top',
     addonShape: 'attached',
     disabled: false,
@@ -152,11 +153,11 @@ export const States: Story = {
     docs: {
       description: {
         story:
-          '通常はグレーの塗りで枠線がなく、フォーカスで青い枠線が付きます（クリックでもキーボードでも）。エラーのあいだは赤い枠線のまま、hover でも塗りを変えません。',
+          '通常はグレーの塗りで枠線がなく、フォーカスで青い枠線が付きます（クリックでもキーボードでも）。エラーのあいだは赤い枠線のまま、hover でも塗りを変えません。読み取り専用（`readOnly`）の欄は、塗りを持たず、破線の輪郭と一段淡い文字になります。フォーカスでき、値を選んで写せます。',
       },
       source: sourceCode(`
         {/* hover・フォーカスの見た目は部品が受け持つ */}
-        <TextField label="表示名" placeholder="かずえもん" />
+        <TextField label="表示名" placeholder="例: かずえもん" />
         <TextField label="表示名" defaultValue="かずえもん" />
         <TextField label="表示名" error="表示名を入力してください" />
         <TextField
@@ -165,6 +166,7 @@ export const States: Story = {
           warning="20文字を超えると、一覧では途中で切れます"
         />
         <TextField label="表示名" defaultValue="かずえもん" disabled />
+        <TextField label="表示名" defaultValue="かずえもん" readOnly />
       `),
     },
   },
@@ -238,7 +240,7 @@ export const Addons: Story = {
           '行が形（`addonShape`）です。`attached`（既定）は本体の端に接する塊、`floating` は本体の内側に少し浮かせます。`floating` は、欄の外形を入力欄だけのときと同じにしたいときや、グレーを軽く見せたいときに使います。文字の prefix・suffix を押しても、入力欄にフォーカスが移ります。',
       },
       source: sourceCode(`
-        <TextField label="Web サイト" prefix="https://" placeholder="example.com" />
+        <TextField label="Web サイト" prefix="https://" placeholder="例: example.com" />
         <TextField label="価格" suffix="円" defaultValue="1200" inputMode="numeric" />
         {/* 本体の内側に少し浮かせる */}
         <TextField label="Web サイト" prefix="https://" addonShape="floating" />

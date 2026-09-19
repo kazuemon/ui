@@ -64,6 +64,7 @@ const meta = {
     target: { control: 'inline-radio', options: [undefined, '_blank'] },
     layout: { control: 'inline-radio', options: ['end', 'start', 'top'] },
     sitePlacement: { control: 'inline-radio', options: ['top', 'bottom'] },
+    imageZoom: { control: 'boolean' },
     titleLines: { control: { type: 'number', min: 1, max: 4 } },
     descriptionLines: { control: { type: 'number', min: 1, max: 4 } },
   },
@@ -248,7 +249,7 @@ export const States: Story = {
     docs: {
       description: {
         story:
-          'hover で面を淡く塗り、輪郭を濃くし、画像を少し大きくします。押すと少し沈みます。影は付けません。',
+          'ボタンと同じ薄い影で浮かせ、hover で影を減らして面を淡く塗ります。押すと少し沈みます。hover で画像を少し大きくしたいときは `imageZoom` を渡します。',
       },
     },
   },

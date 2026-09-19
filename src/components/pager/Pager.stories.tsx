@@ -101,7 +101,8 @@ export const States: Story = {
     pseudo: statePseudoTargets,
     docs: {
       description: {
-        story: '押せるカードと同じ面です。hover で面と輪郭が変わり、押すと沈みます。',
+        story:
+          '押せるカードと同じ面です。薄い影で浮かせ、hover で影を減らして面を淡く塗り、押すと沈みます。',
       },
     },
   },

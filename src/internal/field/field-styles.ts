@@ -102,16 +102,18 @@ export const controlBox = tv({
     'group-data-[loading=blocking]/field:cursor-progress group-data-[loading=blocking]/field:text-(color:--color-on-field-disabled)',
     'group-data-[loading=blocking]/field:[--color-field-hover:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field:var(--color-field-disabled)]',
     'group-data-[loading=blocking]/field:[--color-field-focus:var(--color-field-disabled)] group-data-[loading=blocking]/field:[--color-field-invalid:var(--color-field-disabled)]',
-    // 読み取り専用（readOnly。部品が data-readonly を置く）— 軸 152 で形を比べる（塗りを持たせるかも含めて未決）
-    //   いまの値は編集できる欄と同じ（--field-readonly-* が --color-field などを指す）
-    //   塗り・hover の塗り・prefix・suffix の塗り・角・下線・輪郭（太さと線の種類）・値の文字の色・左右の余白をトークンで差し替える
-    //   下線は背景に描き（枠線はフォーカスのもの — 原則2）、輪郭はフォーカスしていないときだけ内側に引く
-    'data-readonly:[--color-field-focus:var(--field-readonly-fill)] data-readonly:[--color-field:var(--field-readonly-fill)]',
-    'data-readonly:[--color-field-addon:var(--field-readonly-addon-fill)] data-readonly:[--color-field-hover:var(--field-readonly-fill-hover)]',
-    'data-readonly:rounded-(--field-readonly-radius) data-readonly:text-(color:--field-readonly-text) data-readonly:[--field-flush:var(--field-readonly-flush)]',
-    'data-readonly:bg-[linear-gradient(var(--field-readonly-line),var(--field-readonly-line))] data-readonly:bg-[length:100%_var(--field-readonly-underline-width)] data-readonly:bg-bottom data-readonly:bg-no-repeat',
-    'data-readonly:not-focus-within:[outline-width:var(--field-readonly-outline-width)] data-readonly:not-focus-within:[outline-style:var(--field-readonly-outline-style)]',
-    'data-readonly:not-focus-within:[outline-offset:calc(-1*var(--field-readonly-outline-width))] data-readonly:not-focus-within:[outline-color:var(--field-readonly-line)]',
+    // 読み取り専用（readOnly。TextField・Textarea が data-field-readonly を置く。Base UI の Select は止めているあいだ本体に data-readonly を付けるので、名前を分ける）— 軸 152（ADR-0170）
+    //   塗りを持たせず、3:1 の濃さの破線の輪郭で欄の形だけを残す。hover でも塗りを変えない。prefix・suffix も塗りを持たせない
+    //   値の文字は一段淡いグレー。読む文字なので、文字の基準（4.5:1）は保つ（押せない欄のように薄くしない — 原則13）
+    //   フォーカスしたときは、破線の輪郭の代わりに編集できる欄と同じ枠線を付ける（原則2）
+    'data-field-readonly:[--color-field-focus:transparent] data-field-readonly:[--color-field:transparent]',
+    'data-field-readonly:text-fg-muted data-field-readonly:[--color-field-addon:transparent] data-field-readonly:[--color-field-hover:transparent]',
+    // 破線はいつも引き、フォーカス中だけ本体の線（エラーの欄の離した線。ふだんは太さ 0）に戻す
+    //   :not(:focus-within) で書くと、Storybook の状態の固定（pseudo-states）が否定を書き換え、フォーカスしても破線が残るため
+    'data-field-readonly:[outline-width:var(--border-width-thin)] data-field-readonly:[outline-style:dashed]',
+    'data-field-readonly:[outline-offset:calc(-1*var(--border-width-thin))] data-field-readonly:[outline-color:var(--color-line-strong)]',
+    'data-field-readonly:focus-within:[outline-width:var(--control-ring-width,0px)] data-field-readonly:focus-within:[outline-style:solid]',
+    'data-field-readonly:focus-within:[outline-offset:var(--focus-ring-offset)] data-field-readonly:focus-within:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
     // prefix・suffix を内側に浮かせる形（addonShape="floating" — design/adr/0035）。既定は端に接する
     'data-[addon-shape=floating]:[--field-addon-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
   ],
