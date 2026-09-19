@@ -24,6 +24,7 @@
 - [x] Icon
 - [x] VisuallyHidden
 - [x] ThemeProvider
+- [ ] ColorModeToggle
 - [x] Collapsible
 - [x] ScrollArea
 - [x] AspectRatio
@@ -33,6 +34,7 @@
 ### 文字
 
 - [x] Heading
+- [ ] HeadingAnchor
 - [x] Text
 - [x] Code
 - [x] Kbd
@@ -77,6 +79,9 @@
 部品にはせず、既存の部品を組み合わせて作るものです。組み方の見本を Storybook の Recipes に置きます。
 
 - [x] Footer
+- [ ] PostCard
+- [ ] PostList
+- [ ] ShareButtons
 
 ### ナビゲーション
 
@@ -162,6 +167,7 @@
 
 - [x] Notice
 - [x] Loading
+- [ ] Spinner
 - [x] Toast
 - [x] Progress
 - [x] Skeleton
