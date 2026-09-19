@@ -6,7 +6,7 @@ import { revealInScrollArea } from './reveal-current';
 import { type TableOfContentsItem, type TocNode, buildTocTree } from './toc-tree';
 import { useCurrentHeading } from './use-current-heading';
 
-// ブログ記事の目次 — 軸 165・166
+// ブログ記事の目次 — ADR-0183・0184
 //   構造: <nav aria-label> ＞ ul ＞ li ＞ a（#id へのリンク）＋入れ子の ul。見出しの段から木を組む（toc-tree.ts）
 //     見える題（「目次」）は nav の名前と同じ文なので、読み上げでは題を読まず、nav の名前として一度だけ読む（原則15）
 //   今読んでいる見出しは aria-current="location"。スクロールのたびに DOM を読んで求める（current-heading.ts）か、
@@ -14,10 +14,10 @@ import { useCurrentHeading } from './use-current-heading';
 //   行は平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと濃くして 1px 沈む。影はない（原則1）
 //     行の高さは部品の高さにしない。記事の横に並ぶ文字のリンクの一覧で、44px の行では目次が長くなりすぎるため（原則にない判断）
 //     文字はラベルと同じ大きさで、入力方式で変えない（原則11。記事の横の補足の文字）
-//   今の見出しの印（軸 165。Tree の currentIndicator・color にそろえる）: 既定は一覧の左の線に重ねる濃い線（line）、
+//   今の見出しの印（ADR-0183。Tree の currentIndicator・color にそろえる）: 既定は一覧の左の線に重ねる濃い線（line）、
 //     太字だけ（text）も選べる。color で線と文字を利用者の色にできる（原則6）。淡い面は採らない
 //     どの印でも今の見出しは太字。太字の写しを重ねて幅を取っておくので、太くなっても折り返しが変わらない
-//   入れ子（軸 166）: 既定は左の線 1 本と字下げ。段ごとの細い線（guides）・左の線なし（track={false}）・
+//   入れ子（ADR-0184）: 既定は左の線 1 本と字下げ。段ごとの細い線（guides）・左の線なし（track={false}）・
 //     2 段目より下を一段淡く（subtleNested）を選べる。線と色は別の props（Tree の guides・Table の columnLines と同じ真偽値）
 //   ScrollArea の中に置くと、今の見出しの行が枠の外に出たとき、枠の中だけをスクロールして見せる（reveal-current.ts）
 const styles = tv({
@@ -58,7 +58,7 @@ const styles = tv({
     ghost: 'invisible font-bold [grid-area:1/1]',
   },
   variants: {
-    // 今の見出しの印の形（軸 165）。line は一覧の左の線に重ねる濃い線と太字、text は太字だけ
+    // 今の見出しの印の形（ADR-0183）。line は一覧の左の線に重ねる濃い線と太字、text は太字だけ
     currentIndicator: {
       line: { link: 'aria-[current=location]:before:block' },
       text: {},
@@ -73,12 +73,12 @@ const styles = tv({
       },
       neutral: {},
     },
-    // 一覧の左の線（軸 166）。消しても、今の見出しの印の線は同じ位置に出る
+    // 一覧の左の線（ADR-0184）。消しても、今の見出しの印の線は同じ位置に出る
     track: {
       true: {},
       false: { root: '[--toc-track-width:0px]' },
     },
-    // 段ごとの細い線（軸 166）。親の文字の頭の位置に引き、字下げは線の右の空きだけにする
+    // 段ごとの細い線（ADR-0184）。親の文字の頭の位置に引き、字下げは線の右の空きだけにする
     guides: {
       true: {
         root: '[--toc-step:calc(var(--toc-item-px)+var(--toc-guide-width)+var(--toc-track-gap))]',
@@ -89,7 +89,7 @@ const styles = tv({
       },
       false: {},
     },
-    // 2 段目より下の文字を一段淡くする（軸 166）
+    // 2 段目より下の文字を一段淡くする（ADR-0184）
     subtleNested: {
       true: { link: 'data-nested:[--toc-item-color:var(--color-fg-subtle)]' },
       false: {},

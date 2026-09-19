@@ -250,3 +250,7 @@
 | [0180](./0180-meter-region.md)                           | Meter の範囲による塗りの色                                               | Accepted           |
 | [0181](./0181-steps-marker.md)                           | 手順の番号の印                                                           | Accepted           |
 | [0182](./0182-spoiler-revealed.md)                       | Spoiler を見せたあとの残り方                                             | Accepted           |
+| [0183](./0183-toc-current.md)                            | 目次のいまの見出しの印                                                   | Accepted           |
+| [0184](./0184-toc-nesting.md)                            | 目次の入れ子の見せ方と行の高さ                                           | Accepted           |
+| [0185](./0185-reading-progress.md)                       | 記事の読了のバー                                                         | Accepted           |
+| [0186](./0186-progress-indeterminate.md)                 | 終わりの分からない Progress の動き                                       | Accepted           |
