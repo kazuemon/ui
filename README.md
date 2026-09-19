@@ -17,6 +17,16 @@
 
 ![フォントのサンプルテキスト「@kazuemon/uiは、「ぼくがかんがえたさいきょうのUIライブラリ」をConceptに、かずえもんが個人で制作しています。SimpleでModernな見た目かつ、Usabilityも重視したUI Libraryを目指しています。Designはほぼ独学で、Design Systemなどの勉強も兼ねているので、DesignのRuleにおいては正しくないかもしれません。ご容赦ください。」](./text-sample.png)
 
+## つくりたい機能
+
+部品ではなく、ライブラリとして使うときに要るものです。
+
+- [ ] ダークモード
+- [ ] Server Components 対応
+- [ ] 多言語
+- [ ] Tailwind なしでの利用
+- [ ] ツリーシェイク
+
 ## つくりたいコンポーネント
 
 ### 土台

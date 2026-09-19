@@ -109,6 +109,16 @@
   - PostCard・PostList: ブログの記事カードと一覧。Card・Time・Tag・Pagination を組み合わせる
   - ShareButtons: X への共有と URL のコピー。CopyButton と Link を組み合わせる
   - ダークモードの切り替え: 下の「トークン・テーマ」のダークモードができたら、Toggle か Menu で ThemeProvider を切り替える形にする
+- ほかのライブラリと一緒に使うときの統合の見本も、レシピとして置きます（2026-09-20）。いまの案:
+  - フォーム: react-hook-form・Zod（Field のエラーの行とのつなぎ方、送信中の固定）、Conform・Next.js の Server Actions（サーバーで検証したエラーを Field に出す）
+  - MDX: @next/mdx・next-mdx-remote・Velite（h2・a・code などを部品に割り当てる。TableOfContents に渡す見出しを集める）
+  - コード: Shiki（CodeBlock・CodeGroup に色付けしたコードを渡す）
+  - ルーター: next/link・React Router・TanStack Router（Link・Navbar・Pagination・Breadcrumb に `render` でルーターのリンクを渡す）
+  - 画像: next/image（Image・Figure・Gallery に渡す）
+  - ダークモード: next-themes（機能のダークモードができたら）
+  - 多言語: next-intl・react-i18next（機能の多言語ができたら）
+  - データ取得: TanStack Query（読み込み中に Skeleton・Progress・Spinner、失敗したら Notice・Toast）
+  - 日付: date-fns・Temporal（Calendar・Time・RelativeTime）
 
 ## Affix
 
@@ -295,6 +305,12 @@
 - Callout の `role="note"` が本物の読み上げソフトでどう読まれるかは確かめていません（下の「Form・読み上げ」の確かめに足す。[ADR-0084](./adr/0084-callout.md)）
 - Steps: 段の間（32px）・題と本文の間（4px）・題の大きさ（見出しの段に従う）・印と文字の間（12px）は、原則にない判断として仮に置いています
 - Steps: 印の番号は `content: counter(list-item) / ""` で読み上げから外しています。代わりの文の書き方を受け取らないブラウザ（Firefox 127 以前など）では、宣言ごと無視されて番号が出ません。本物の読み上げソフトで、`ol` の番号と題がどう読まれるかも確かめていません
+
+## 機能（README の「つくりたい機能」）
+
+- Tailwind を入れているときと、入れていないときの入れ方を、それぞれ書きます（2026-09-20）。入れていないときはビルド済みの CSS を配ります
+- 挙げたが README に載せていない候補: テーマの上書き（使う側がブランドの色や角を差し替える公開の入口。ダークモード・色の面と同じ仕組みで作れるか）、ハイコントラストモード（`forced-colors` で枠やフォーカスの線が消えないようにする）、アイコンの差し替え（部品の中のアイコンを使う側のセットに替える）
+- npm には公開するので、公開そのものは機能の一覧に置きません
 
 ## 土台の部品
 
