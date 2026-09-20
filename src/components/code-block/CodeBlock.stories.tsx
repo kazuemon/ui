@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { CodeBlock } from './CodeBlock';
 import { diffHtml, focusHtml, shellHtml, typescriptHtml, wordHtml } from './fixtures';
@@ -23,6 +23,7 @@ const meta = {
           '- `appearance` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地です。',
           '- `lineNumbers` で行番号を出します。数を渡すと、その番号から数えます。',
           '- コピーのボタンは、表示している行の文字を写します（差分で消した行は写しません）。`copyText` で写す文字を決められます。押すと「コピーしました」に変わり、読み上げでも伝えます。',
+          '- 写せなかったとき（権限がない・安全でない接続）は、ボタンの下に淡い赤の吹き出しで知らせます。文は `copyErrorLabel` で変えられます。',
           '- 文字はパソコンでもスマホでも 14px です。長い行は、コードの部分だけが横にスクロールします。',
         ].join('\n'),
       },
@@ -133,6 +134,50 @@ export const Accessibility: Story = {
       await waitFor(() =>
         expect(canvasElement.querySelector('pre')).toHaveAttribute('tabindex', '0')
       );
+    } finally {
+      if (original) Object.defineProperty(navigator, 'clipboard', original);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+    }
+  },
+};
+
+export const CopyError: Story = {
+  name: 'コピーできなかったとき',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'クリップボードを使えなくして押しています。印は変わらず、淡い赤の吹き出しで知らせます。',
+      },
+    },
+  },
+  play: async ({ canvas, canvasElement }) => {
+    const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: fn(async (_text: string) => {
+          throw new Error('denied');
+        }),
+      },
+    });
+    try {
+      const button = canvas.getByRole('button', { name: 'コードをコピー src/lib/posts.ts' });
+      await userEvent.click(button);
+      // 吹き出しで知らせる。印（チェック）には変わらない
+      await waitFor(() =>
+        expect(
+          within(document.body).getByText('コピーできませんでした', {
+            selector: '[data-slot="tooltip"] *',
+          })
+        ).toBeVisible()
+      );
+      await expect(button).not.toHaveAttribute('data-copied');
+      // 読み上げは 1 回だけ（吹き出しは読み上げの箱ではない）
+      const spoken = [...canvasElement.querySelectorAll('[role="status"]')].filter((box) =>
+        box.textContent?.includes('コピーできませんでした')
+      );
+      await expect(spoken).toHaveLength(1);
     } finally {
       if (original) Object.defineProperty(navigator, 'clipboard', original);
       else Reflect.deleteProperty(navigator, 'clipboard');
