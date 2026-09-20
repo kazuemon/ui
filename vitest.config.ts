@@ -35,7 +35,9 @@ export default mergeConfig(
                 // ふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがす。窓を枠より大きく取る
                 contextOptions: {
                   deviceScaleFactor: 1,
-                  viewport: { width: 1400, height: 1100 },
+                  // 高さは、parameters.viewport で既定より高くするストーリー（例: Pagination の secondary を足した一覧）
+                  // より大きく取る。ここより低いと、その枠ごと縮んで撮られる
+                  viewport: { width: 1400, height: 1300 },
                 },
                 launchOptions: {
                   args: [

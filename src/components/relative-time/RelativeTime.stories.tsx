@@ -3,6 +3,7 @@ import { expect } from 'storybook/test';
 
 import { RelativeTime } from './RelativeTime';
 import { Text } from '../text/Text';
+import { ThemeProvider } from '../theme-provider/ThemeProvider';
 import { Gallery, Specimen } from '../../stories/story-parts';
 
 // 見本の「今」。見た目の比較で日がずれないよう固定する
@@ -22,7 +23,8 @@ const meta = {
           '- `now` を渡すと、その時刻を基準にして、サーバーでも最初から相対で書きます。書き直しはしません。',
           '- 静的に書き出すページでは、HTML に書いた相対の文字がすぐ古くなります。記事の日付のように変わらない日付には Time を使います。',
           '- 45 秒に満たない隔たりは「今」、そのあとは分・時間・日・か月・年で書きます。',
-          '- 言語とタイムゾーン（`title` のふつうの日付に使います）は Time と同じく、ThemeProvider でまとめて変えられます。',
+          '- 「昨日」「今月」のような言い回しの境界は、`timeZone` の暦で日付が変わったかどうかで決まります。',
+          '- 言語とタイムゾーン（`title` のふつうの日付と、上の境界に使います）は Time と同じく、ThemeProvider でまとめて変えられます。',
         ].join('\n'),
       },
     },
@@ -92,6 +94,44 @@ export const WithNow: Story = {
     await expect(el.tagName).toBe('TIME');
     await expect(el).toHaveAttribute('datetime', '2026-09-15');
     await expect(el).toHaveAttribute('title', '2026/09/15');
+  },
+};
+
+export const Provider: Story = {
+  name: '境界を timeZone で計算する',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '「昨日」「今日」などの境界は timeZone の暦で決まります。ThemeProvider の timeZone が既定になり、部品に書いた値が勝ちます。',
+      },
+    },
+  },
+  render: () => {
+    // 同じ瞬間でも、UTC の暦では日付が変わっていて、Asia/Tokyo の暦ではまだ同じ日
+    const boundaryNow = new Date('2026-09-18T14:00:00Z');
+    const boundaryDate = '2026-09-17T15:30:00Z';
+    return (
+      <ThemeProvider timeZone="UTC">
+        <Text>
+          <RelativeTime dateTime={boundaryDate} now={boundaryNow} data-testid="provider" />
+        </Text>
+        <Text>
+          <RelativeTime
+            dateTime={boundaryDate}
+            now={boundaryNow}
+            timeZone="Asia/Tokyo"
+            data-testid="own"
+          />
+        </Text>
+      </ThemeProvider>
+    );
+  },
+  play: async ({ canvas }) => {
+    // ThemeProvider の timeZone（UTC）では、日付をまたいでいるので「昨日」
+    await expect(canvas.getByTestId('provider')).toHaveTextContent('昨日');
+    // 部品の timeZone（Asia/Tokyo）が勝つと、同じ日なので「今日」
+    await expect(canvas.getByTestId('own')).toHaveTextContent('今日');
   },
 };
 

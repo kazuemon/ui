@@ -196,6 +196,7 @@ export {
   Pagination,
   type PaginationAlign,
   type PaginationCurrentIndicator,
+  type PaginationNarrowDisplay,
   type PaginationProps,
   type PaginationShape,
 } from './components/pagination/Pagination';

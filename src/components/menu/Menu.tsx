@@ -43,6 +43,7 @@ import {
   type MenuSubmenuSheet,
   useMenuContext,
 } from './menu-context';
+import { menuChildrenHaveMarks } from './MenuItem';
 import { MenuSlideStage } from './MenuSlide';
 import { useMenuSlideState } from './use-menu-slide';
 
@@ -108,6 +109,12 @@ export interface MenuProps {
    */
   radioMark?: MenuRadioMark;
   /**
+   * 印（チェック・ラジオ）を持つ項目があるとき、印を持たない項目（MenuItem・MenuLinkItem・MenuSubmenu）にも
+   * 印の場所を空けて文字の左をそろえるか。false にすると、印を持つ項目だけ字下げされます
+   * @default true
+   */
+  alignMarks?: boolean;
+  /**
    * グループ（MenuGroup）の見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーで、項目を主役にします。
    * 1 つのメニューの見出しはそろえるので、メニューごとに選びます
    * @default 'label'
@@ -172,6 +179,7 @@ export function Menu({
   color = 'neutral',
   markPlacement = 'start',
   radioMark = 'radio',
+  alignMarks = true,
   groupLabelStyle = 'label',
   submenuSheet = 'fixed',
   closeOnSwipe = false,
@@ -193,6 +201,7 @@ export function Menu({
   const { anchorRef, scope } = useDensityScope(open);
   // 閉じ終えたら面を作り直す（slide のシートで開いていた入れ子を、次に開くときに持ち越さない）
   const [generation, setGeneration] = useState(0);
+  const reserveMarkSpace = alignMarks && menuChildrenHaveMarks(children);
   return (
     <BaseMenu.Root
       open={open}
@@ -211,6 +220,7 @@ export function Menu({
           color,
           markPlacement,
           radioMark,
+          reserveMarkSpace,
           groupLabelStyle,
           submenuSheet,
           closeOnSwipe,

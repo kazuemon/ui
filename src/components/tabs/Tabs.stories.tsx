@@ -231,13 +231,13 @@ export const Overflow: Story = {
     docs: {
       description: {
         story:
-          '並びが入り切らない幅では、横にスクロールします。続きがある端に内側の影が出て、並びにマウスを載せるとつまみが出ます。キーボードで移ると、フォーカスしたタブが見える位置までスクロールします。',
+          '並びが入り切らない幅では、横にスクロールします。続きがある端に内側の影が出て、並びにマウスを載せるとつまみが出ます。キーボードで移ると、フォーカスしたタブが見える位置までスクロールします。はじめに選んでおいたタブが見えている範囲の外にあるときも、開いた時点でその位置までスクロールします。',
       },
     },
   },
   render: (args) => (
     <div className="w-[320px] max-w-full" data-density="coarse">
-      <Tabs color={args.color} defaultValue="作品">
+      <Tabs color={args.color} defaultValue="お問い合わせ">
         <TabList aria-label="プロフィール">
           {manyTabs.map((label) => (
             <Tab key={label} value={label}>
@@ -248,6 +248,11 @@ export const Overflow: Story = {
       </Tabs>
     </div>
   ),
+  play: async ({ canvas }) => {
+    // はじめに選んでおいた、見えている範囲の外のタブが見えるまでスクロールしている
+    const active = canvas.getByRole('tab', { name: 'お問い合わせ' });
+    await waitFor(() => expect(active.getBoundingClientRect().right).toBeGreaterThan(0));
+  },
 };
 
 export const Densities: Story = {

@@ -39,6 +39,8 @@ export interface MenuContextValue {
   color: MenuColor;
   markPlacement: MenuMarkPlacement;
   radioMark: MenuRadioMark;
+  /** 印を持たない項目にも、印の場所を空けて文字の左をそろえるか（Menu の alignMarks と、印を持つ項目の有無から決める） */
+  reserveMarkSpace: boolean;
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;

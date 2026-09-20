@@ -12,6 +12,7 @@ import { tv } from '../../internal/tv';
 //   警告の数の丸は、黄色に濃紺の文字のまま
 // children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--badge-ring-width）で相手と切り離す
 //   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
+//   相手が丸い（overlap="circular"）ときは、角からの内側ではなく、Badge の中心を相手の円周上（右上 45°）に置く。既定（square）は今のまま
 // 読み上げ: label を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）で label を読ませる
 //   sr-only は絶対配置なので、Badge 自身を位置の基準にする（重ねるときは absolute、置くだけのときは relative）
 const badge = tv({
@@ -35,9 +36,18 @@ const badge = tv({
       true: 'pointer-events-none absolute top-(--badge-overlay-inset) right-(--badge-overlay-inset) translate-x-1/2 -translate-y-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-surface)]',
       false: 'relative',
     },
+    // 重ねる相手の形（overlay のときだけ効く）。circular は中心を円周上（右上 45°）に置く
+    overlap: {
+      square: {},
+      circular: {},
+    },
   },
-  compoundVariants: [{ color: 'warning', shape: 'dot', class: 'bg-fg-warning' }],
-  defaultVariants: { color: 'neutral', shape: 'dot', overlay: false },
+  compoundVariants: [
+    { color: 'warning', shape: 'dot', class: 'bg-fg-warning' },
+    // 45° の点は、辺の中心から (1 - cos45°) ≈ 0.292893 だけ内側（半分の 14.6447% を top・right に使う）
+    { overlay: true, overlap: 'circular', class: 'top-[14.6447%] right-[14.6447%]' },
+  ],
+  defaultVariants: { color: 'neutral', shape: 'dot', overlay: false, overlap: 'square' },
 });
 
 export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'children'> {
@@ -72,6 +82,12 @@ export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'chil
    * 数が点のときも、相手の名前に意味を含めます（例: aria-label="通知（未読あり）"）
    */
   children?: ReactNode;
+  /**
+   * 重ねる相手（children）の形。square（既定）は四角い相手向けで、角から内側に置きます。
+   * circular は Avatar のような丸い相手向けで、Badge の中心を相手の円周上（右上 45°）に置きます
+   * @default 'square'
+   */
+  overlap?: 'square' | 'circular';
 }
 
 /**
@@ -88,6 +104,7 @@ export function Badge({
   color,
   label,
   children,
+  overlap = 'square',
   className,
   ...props
 }: BadgeProps) {
@@ -102,6 +119,7 @@ export function Badge({
         color,
         shape: count === undefined ? 'dot' : 'count',
         overlay,
+        overlap,
         className,
       })}
       {...props}
