@@ -6,7 +6,7 @@ import { HashIcon, LinkSimpleHorizontalIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 
 // 見出しに付くページ内リンク。見出し（Heading・Prose の h2 など）の中に置く。値は design/tokens.css の --heading-anchor-*
-// 働きはリンク（原則18）。押せる範囲は印と、その周りの 4px だけ（文字のリンクと同じ。原則17）
+// 働きはリンク（原則18）。押せる範囲は印と、その周りの 4px だけ。印は小さいので、hover と押下で Primary を淡く敷いてその範囲を見せる（原則17。見えない広がりにしない）
 // 印は文字の仲間（原則21）。大きさは見出しの文字に比例し、線は細い（文字と並ぶため）。色は控えめな灰色で、hover で Primary
 // 見せ方（reveal）: hover は、見出しに hover したときと、キーボードでフォーカスしたときだけ現れる。隠しているあいだも Tab では止まる
 //   指（--density-coarse が 1）では hover がないので、reveal にかかわらず、いつも見せる
@@ -24,11 +24,13 @@ const headingAnchor = tv({
     // 印の大きさ。利用者が渡した svg にも同じ大きさをかける
     '[&_svg]:size-(--heading-anchor-icon-size) [&_svg]:shrink-0',
     '[opacity:max(var(--heading-anchor-rest-opacity),calc(var(--density-coarse)*var(--heading-anchor-touch-opacity)))]',
-    'hover:text-(color:--heading-anchor-color-hover) focus-visible:text-(color:--heading-anchor-color-hover) focus-visible:opacity-100',
+    // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）。色は Link と同じく、文字の色（hover の Primary）を淡く敷く
+    'bg-(color:--flat-bg) [--flat-bg:transparent]',
+    'hover:text-(color:--heading-anchor-color-hover) hover:[--flat-bg:color-mix(in_oklab,var(--heading-anchor-color-hover)_var(--flat-hover-mix),transparent)] focus-visible:text-(color:--heading-anchor-color-hover) focus-visible:opacity-100 active:[--flat-bg:color-mix(in_oklab,var(--heading-anchor-color-hover)_var(--flat-press-mix),transparent)]',
     // 見出しに hover したとき。見出しのどこでも現れる
     '[:is(h1,h2,h3,h4,h5,h6):hover_&]:opacity-100',
     'active:top-(--flat-press-depth)',
-    '[transition:opacity_var(--heading-anchor-duration)_var(--ease-press),color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    '[transition:opacity_var(--heading-anchor-duration)_var(--ease-press),--flat-bg_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
     '[--color-own-focus:var(--color-primary)]',
     ...focusRing,
