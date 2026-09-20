@@ -43,7 +43,7 @@ const meta = {
           '',
           '- 打つと次の箱へ進み、Backspace で前の箱へ戻ります。コードを貼り付けると、先頭から埋まります。',
           '- 1 桁目に `autocomplete="one-time-code"` を付けるので、SMS で届いたコードを端末が差し出せます。',
-          '- 全角の数字は半角に直して受け取ります。`validationType` で、入れてよい文字（数字・英字・英数字）を選びます。',
+          '- 全角の数字は半角に直して受け取ります。直したことを知らせたいときは `halfWidthNotice` を付けます。`validationType` で、入れてよい文字（数字・英字・英数字）を選びます。',
           '- 全部の桁が埋まったら `onValueComplete` が呼ばれます。`autoSubmit` を付けると、囲んでいる form を送ります。',
           "- 桁が多いときは `group` で区切ります。`[3, 3]` は 3 桁ずつのあいだに短い横線を置きます。区切りに置くものは `groupSeparator` で変えられます（`'-'` などの文字、`null` で間だけ）。",
           '- `emptyDots` を付けると、まだ打っていない箱に淡い点を置きます。あと何桁あるかが一目で分かります。',
@@ -289,6 +289,26 @@ export const Behavior: Story = {
     await expect(canvas.getByLabelText('4 桁目（全 6 桁）')).toHaveFocus();
     await userEvent.keyboard('915');
     await waitFor(() => expect(args.onValueComplete).toHaveBeenCalledWith('382915'));
+  },
+};
+
+export const FullWidthNotice: Story = {
+  name: '全角を直したことを知らせる',
+  args: { halfWidthNotice: true },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`halfWidthNotice` を付けると、全角を半角に直したときに、本体の下の情報の行で知らせます。文を渡すと、その文を出します。既定は知らせません。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const first = canvas.getByRole('textbox', { name: '確認コード' });
+    await userEvent.click(first);
+    await userEvent.keyboard('３８２');
+    await expect(canvas.getByText('全角の数字を半角に直しました')).toBeInTheDocument();
   },
 };
 

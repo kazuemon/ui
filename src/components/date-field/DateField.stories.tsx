@@ -55,7 +55,7 @@ const meta = {
           '日付を、年・月・日の区切りごとに打つ欄です。ラベル・キャプション・本体の並びや、`error`・`prefix`・`suffix`・`loading` などは TextField と同じです。',
           '',
           '- 区切りは ←→ で移り、↑↓ で 1 つずつ増減します（端まで行くと反対の端へ回ります）。数字を打つと埋まり、桁がそろうと次の区切りへ進みます。Backspace で 1 桁ずつ消えます。',
-          '- 「2026/09/20」「20260920」「令和8年9月20日」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。読めないときは値を変えず、`onParseFail` を呼びます。',
+          '- 「2026/09/20」「20260920」「令和8年9月20日」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。直したことを知らせたいときは `halfWidthNotice` を付けます。読めないときは値を変えず、`onParseFail` を呼びます。',
           '- 並びと記号は `locale` で決まります（ja-JP は 年/月/日）。',
           '- 値は `Temporal.PlainDate` で受け渡します。年・月・日がそろうまでは `null` です。`name` を渡すと、フォームには「2026-09-20」の形で送ります。',
           '- `min`・`max` の外の日が入ると、欄をエラーの見た目にします。理由の文は `error` で渡します。',
@@ -341,6 +341,33 @@ export const Paste: Story = {
     await userEvent.paste('きのう');
     await expect(args.onParseFail).toHaveBeenCalledWith('きのう');
     await expect(year).toHaveTextContent('2026');
+  },
+};
+
+export const FullWidthNotice: Story = {
+  name: '全角を直したことを知らせる',
+  args: { halfWidthNotice: true },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`halfWidthNotice` を付けると、全角の数字を半角に直したときに、本体の下の情報の行で知らせます。文を渡すと、その文を出します。既定は知らせません。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    const [year] = canvas.getAllByRole('spinbutton');
+    await userEvent.click(year);
+    await userEvent.paste('２０２６／０９／２０');
+    await expect(canvas.getByText('全角の数字を半角に直しました')).toBeInTheDocument();
   },
 };
 

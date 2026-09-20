@@ -1,13 +1,18 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { Mask, type MaskTokens } from 'maska';
-import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Field } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
+import {
+  type HalfWidthKind,
+  type HalfWidthNoticeProps,
+  toHalfWidth,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
-import { toHalfWidth, type HalfWidthResult } from './half-width';
 import { hintRest } from './mask-hint';
 
 // Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
@@ -42,7 +47,8 @@ export interface MaskFieldProps
       ComponentProps<typeof BaseField.Control>,
       'className' | 'render' | 'prefix' | 'value' | 'defaultValue' | 'onValueChange'
     >,
-    InputFieldProps {
+    InputFieldProps,
+    HalfWidthNoticeProps {
   /**
    * 書式。`#` は数字、`@` は英字、`*` は英数字の 1 桁で、ほかの文字はそのまま入ります（'###-####'）。
    * 桁数で書式が変わるときは配列（短い順に当てはめます）か、打った値から書式を返す関数を渡します
@@ -73,13 +79,6 @@ export interface MaskFieldProps
    * 書式や例（「ハイフンは自動で入ります」「例: 150-0042」）は `caption`（入力欄の説明のテキスト）で伝えます
    */
   placeholder?: string;
-  /**
-   * 全角の英数字を半角に直したときに、本体の下に情報の行で知らせるか。
-   * true で「全角の数字を半角に直しました」（英字を直したときは「全角の英数字を半角に直しました」）、文を渡すとその文を出します。
-   * `info` を渡したときは `info` を出します
-   * @default false
-   */
-  halfWidthNotice?: ReactNode;
 }
 
 // 打った文字と見本の、字間と数字の幅。input と見本の層の両方に当て、打っても桁の位置をずらさない
@@ -172,8 +171,8 @@ export function MaskField({
   const [innerValue, setInnerValue] = useState(() => format(defaultValue));
   // IME で打っているあいだ（変換を確定する前）の生の値。確定するまで書式を当てない
   const [draft, setDraft] = useState<string | null>(null);
-  // 全角を半角に直したか。値が空になるまで知らせを残す
-  const [converted, setConverted] = useState<HalfWidthResult['converted']>(null);
+  // 全角を半角に直したことの知らせ（値が空になるまで残す）
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   const composing = useRef(false);
   const wrapper = useRef<HTMLDivElement>(null);
 
@@ -187,18 +186,16 @@ export function MaskField({
     if (!form || valueProp !== undefined) return undefined;
     const reset = () => {
       setInnerValue(format(defaultRef.current));
-      setConverted(null);
+      noticed(null, true);
     };
     form.addEventListener('reset', reset);
     return () => form.removeEventListener('reset', reset);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 書式が変わっても登録し直さなくてよい
   }, [valueProp === undefined]);
 
-  const commit = (next: string, wasConverted: HalfWidthResult['converted']) => {
+  const commit = (next: string, wasConverted: HalfWidthKind | null) => {
     if (valueProp === undefined) setInnerValue(next);
-    if (next === '') setConverted(null);
-    else if (wasConverted)
-      setConverted((current) => (current === 'alnum' ? current : wasConverted));
+    noticed(wasConverted, next === '');
     onValueChange?.(next, { unmasked: masker.unmasked(next), completed: masker.completed(next) });
   };
 
@@ -259,14 +256,6 @@ export function MaskField({
   const editable = !disabled && !readOnly && !blocking;
   const showHint = maskHint !== 'none' && editable;
   const rest = showHint ? hintRest(value, mask, masker, tokens) : [];
-  const notice =
-    halfWidthNotice === false || halfWidthNotice == null || !converted
-      ? undefined
-      : halfWidthNotice === true
-        ? converted === 'alnum'
-          ? '全角の英数字を半角に直しました'
-          : '全角の数字を半角に直しました'
-        : halfWidthNotice;
 
   return (
     <Field

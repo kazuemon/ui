@@ -1,6 +1,7 @@
 // 区切りの欄の状態とキー操作（DateField・TimeField）。値の形（PlainDate・PlainTime）は呼ぶ側が決める
 import { useRef, useState } from 'react';
 
+import { type HalfWidthKind, halfWidthKind } from '../half-width';
 import {
   constrainDay,
   formatSegment,
@@ -43,6 +44,11 @@ export interface DateSegmentsOptions<T> {
   editable: boolean;
   /** 貼り付けた文字が読めなかったとき */
   onParseFail?: (text: string) => void;
+  /**
+   * 値が変わったとき、全角の英数字を半角に直したか（直していなければ null）と、区切りがすべて空になったかを渡す
+   * 直すのは NFKC（input）で、これは知らせのためだけに呼ぶ
+   */
+  onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
 }
 
 const SEPARATORS = new Set(['/', '-', '.', ':', ',', ' ', '年', '月', '日', '時', '分', '秒']);
@@ -83,9 +89,10 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
   };
   const neighbor = (type: SegmentType, delta: number) => order[order.indexOf(type) + delta];
 
-  const commit = (model: Model) => {
+  const commit = (model: Model, converted: HalfWidthKind | null = null) => {
     const next = toValue(model.values);
     setState({ ...model, emitted: next });
+    options.onHalfWidth?.(converted, Object.keys(model.values).length === 0);
     if (!same(next, state.emitted, equals)) options.onValueChange?.(next);
   };
 
@@ -121,14 +128,19 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
   const input = (type: SegmentType, raw: string) => {
     if (!editable) return;
     const text = raw.normalize('NFKC');
+    // 全角の英数字を半角に直したか（NFKC が直す）。知らせるかは欄の側（halfWidthNotice）が決める
+    const converted = halfWidthKind(raw);
     if (text.length > 1 || /午前|午後/.test(text)) {
       const parsed = options.parseText(text);
       if (parsed) {
-        commit({ values: parsed, buffer: null });
+        commit({ values: parsed, buffer: null }, converted);
         return;
       }
       if (type === 'dayPeriod' && /^(午前|午後)$/.test(text)) {
-        commit({ values: setValue(model.values, type, text === '午前' ? 0 : 1), buffer: null });
+        commit(
+          { values: setValue(model.values, type, text === '午前' ? 0 : 1), buffer: null },
+          converted
+        );
         focus(neighbor(type, 1));
         return;
       }
@@ -140,7 +152,7 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
     let current = model;
     let at = type;
     for (const char of text) [current, at] = feed(current, at, char);
-    commit(current);
+    commit(current, converted);
     if (at !== type) focus(at);
   };
 

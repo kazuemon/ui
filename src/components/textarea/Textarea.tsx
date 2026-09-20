@@ -16,6 +16,7 @@ import { controlBox } from '../../internal/field/field-styles';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { tv } from '../../internal/tv';
+import { countGraphemes } from './count-graphemes';
 import { useAutoHeight } from './use-auto-height';
 
 // 本体は TextField と同じ（原則8: 編集できる欄はグレーの塗り。フォーカス・エラー・押せない・止めているあいだも controlBox）
@@ -46,6 +47,8 @@ const textarea = tv({
       'self-end text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle tabular-nums',
     // 上限を超えた数（文字数の表示の左の数）。エラーの文字と同じ赤
     countOver: 'text-fg-danger',
+    // 上限に近づいた数。警告は送信を止めないので、欄の見た目は変えず、数だけを警告の色にする（原則4）
+    countNear: 'text-fg-warning',
   },
   variants: {
     resizable: {
@@ -124,6 +127,12 @@ export interface TextareaProps extends Omit<
    */
   overCountInvalid?: boolean;
   /**
+   * 上限まで残りこの文字数になったら、上限に近づいたことを予告します。予告のあいだは showCount がなくても文字数を出し、
+   * 数を警告の色にします。欄の見た目は変えません（警告は送信を止めないため）。0 を渡すと予告しません
+   * @default Math.ceil(上限 / 10)（上限の 10%）
+   */
+  warnRemaining?: number;
+  /**
    * 文字数を本体の右下の下に「12 / 200」の形で出すか。上限（maxCount か maxLength）があるときだけ出します。
    * maxCount を超えているあいだは、false でも出します
    * @default false
@@ -149,6 +158,7 @@ export function Textarea({
   resizable = true,
   maxCount,
   overCountInvalid = true,
+  warnRemaining,
   showCount = false,
   readOnly,
   style,
@@ -199,13 +209,17 @@ export function Textarea({
     inputRef.current?.focus();
   };
 
-  // 文字数。値を渡されたときはその長さ、渡されないときは打った長さを数える
-  const [typed, setTyped] = useState(() => String(defaultValue ?? '').length);
-  const length = value != null ? String(value).length : typed;
+  // 文字数。値を渡されたときはその長さ、渡されないときは打った長さを数える。数えるのは見えている文字（書記素）
+  const [typed, setTyped] = useState(() => countGraphemes(String(defaultValue ?? '')));
+  const length = value != null ? countGraphemes(String(value)) : typed;
   // 上限は、柔らかい上限（maxCount）を先に使う。maxLength はブラウザが打つのを止めるので、超えない
   const limit = maxCount ?? maxLength;
   const over = maxCount != null && length > maxCount;
-  const counted = (showCount && limit != null) || over;
+  // 上限に近づいたことの予告。残りが warnRemaining 以下になったら、数を警告の色にして出す
+  //   既定は上限の 10%（上限が小さい欄で、打ちはじめから警告にならない割合）。空のうちは予告しない
+  const nearAt = warnRemaining ?? (limit != null ? Math.ceil(limit / 10) : 0);
+  const near = !over && limit != null && nearAt > 0 && length > 0 && limit - length <= nearAt;
+  const counted = (showCount && limit != null) || over || near;
   const countId = `${id}count`;
   // 超えたとき・戻ったときに、1 回だけ読み上げで知らせる（打つたびには知らせない — ADR-0044 と同じく polite）
   // 初めから超えているとき（値を入れて描いたとき）は知らせず、フォーカスしたときの説明で伝える
@@ -261,7 +275,7 @@ export function Textarea({
                         rows={low}
                         maxLength={maxLength}
                         onChange={(event) => {
-                          setTyped(event.currentTarget.value.length);
+                          setTyped(countGraphemes(event.currentTarget.value));
                           fit();
                           onChange?.(event);
                         }}
@@ -292,12 +306,17 @@ export function Textarea({
             // 超えたことは、数の赤だけでなく文でも伝える
             <div id={countId} className={styles.count()}>
               <span aria-hidden>
-                <span className={over ? styles.countOver() : undefined}>{length}</span> / {limit}
+                <span className={over ? styles.countOver() : near ? styles.countNear() : undefined}>
+                  {length}
+                </span>{' '}
+                / {limit}
               </span>
               <span className="sr-only">
                 {over
                   ? `${limit}文字を超えています。いま${length}文字`
-                  : `${limit}文字まで。いま${length}文字`}
+                  : near
+                    ? `${limit}文字まで。いま${length}文字。残り${limit - length}文字`
+                    : `${limit}文字まで。いま${length}文字`}
               </span>
             </div>
           )}

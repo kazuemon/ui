@@ -9,10 +9,11 @@ import { type PlainTime, Temporal } from '../../internal/date/plain-date';
 import { useLocale } from '../../internal/date/use-locale';
 import { Field } from '../../internal/field/Field';
 import { FieldBox } from '../../internal/field/FieldBox';
+import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
-export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'> {
+export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'>, HalfWidthNoticeProps {
   /** 入っている時刻（制御するとき）。時・分がそろっていないときは null */
   value?: PlainTime | null;
   /** はじめに入れておく時刻 */
@@ -104,10 +105,13 @@ export function TimeField({
   locale: localeProp,
   color = 'neutral',
   onParseFail,
+  halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
 }: TimeFieldProps) {
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  // 全角を半角に直したことの知らせ（既定は知らせない）。直すのは区切りの欄（NFKC）で、ここは知らせるだけ
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   const { locale } = useLocale(localeProp);
   const layout = useMemo(
     () => timeLayout(locale, { hourCycle, showSeconds }),
@@ -129,7 +133,7 @@ export function TimeField({
       invalid={outOfRange}
       warning={warning}
       success={success}
-      info={info}
+      info={info ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -176,6 +180,7 @@ export function TimeField({
               }}
               steps={{ minute: minuteStep }}
               onParseFail={onParseFail}
+              onHalfWidth={noticed}
               toFormValue={(time) =>
                 time?.toString({ smallestUnit: showSeconds ? 'second' : 'minute' }) ?? ''
               }

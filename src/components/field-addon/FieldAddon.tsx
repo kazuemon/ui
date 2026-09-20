@@ -14,8 +14,12 @@ import { focusRing } from '../../internal/focus-styles';
 // 形はトークンで決める（design/tokens.css の --field-addon-*、design/adr/0035）。既定は本体の端に接する
 //   本体の端に接するとき（inset が負）は、本体の枠線の場所に同じ太さの枠線を持ち、本体の枠線の色を受け継ぐ
 //   外側の角は本体の角丸と同心。Select のボタンのように本体に左右の余白があるときは --field-addon-pad で打ち消す
-// 地は --addon-base（文字の塊のグレー）を使う場所で読むので、読み取り専用（グレーを消す）や
-// 押せない欄（エラーの赤みを外す）で --color-field-addon* を差し替えると、ボタンの地も一緒に変わる
+// 地は --addon-base（文字の塊のグレー）を使う場所で読むので、押せない欄（エラーの赤みを外す）で
+// --color-field-addon* を差し替えると、ボタンの地も一緒に変わる
+// 読み取り専用の欄（data-field-readonly。ADR-0170）— 軸 178
+//   文字の塊は地を外す（原則8: 読み取り専用の欄は prefix・suffix も塗りを持たない）
+//   ボタンはグレー地を残す。グレー地が「押せる」ことの印で、読み取り専用でも押せるため（伏せ字の切り替えなど）
+//   エラーのときは、欄と同じく地が赤みを帯びる（--color-field-addon-invalid）。通常と同じ規則で、地の色だけが変わる
 const fieldAddon = tv({
   base: [
     'flex shrink-0 items-center self-stretch px-(--spacing-control-x) whitespace-nowrap',
@@ -49,6 +53,8 @@ const fieldAddon = tv({
         // 同じ端でボタン（FieldAddonButton か、ボタンを並べた塊）と隣り合う文字は、地を外す（グレー地＝押せる、を崩さない）
         '[&:has(+[data-slot=field-addon-button])]:[--addon-fill:transparent] [&:has(+[data-slot=field-addon]_button)]:[--addon-fill:transparent]',
         '[[data-slot=field-addon-button]+&]:[--addon-fill:transparent] [[data-slot=field-addon]:has(button)+&]:[--addon-fill:transparent]',
+        // 読み取り専用の欄では、文字の塊は地を持たない（原則8）。エラーのときも赤みを帯びない
+        '[[data-field-readonly]_&]:[--addon-fill:transparent]',
       ],
       // ボタン: グレー地の塊（軸 171）。hover と押下で文字の色を淡く重ね、押下で中身が 1px 沈む（design/adr/0027）
       button: [

@@ -109,6 +109,14 @@ export type CheckboxGroupProps = Omit<
     /** 警告の内容。選択肢の下に三角とオリーブ色の文字で出します。箱の見た目は変えません */
     warning?: ReactNode;
     /**
+     * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
+     * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
+     * 押してもキーボードでも値は変わりません。フォームでは値が送られます。
+     * 選択肢ごとの `readOnly` で上書きできます
+     * @default false
+     */
+    readOnly?: boolean;
+    /**
      * 中の選択肢の色。選択肢ごとの color で上書きできます
      * @default 'neutral'
      */
@@ -131,6 +139,7 @@ export function CheckboxGroup({
   error,
   warning,
   disabled,
+  readOnly,
   color,
   className,
   children,
@@ -140,7 +149,8 @@ export function CheckboxGroup({
   'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupProps) {
-  const context = useMemo(() => ({ color }), [color]);
+  // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
+  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
   const withSelectAll = selectAll !== undefined && selectAll !== null;
   return (
     <ChoiceGroupContext.Provider value={context}>

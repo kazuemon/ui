@@ -59,7 +59,7 @@ const meta = {
           '',
           '- `hourCycle` で 12 時間制か 24 時間制かを選びます。指定しないときは言語の既定（ja-JP は 24 時間制）です。12 時間制では午前・午後の区切りが付き、↑↓ か A・P のキーで切り替えます。',
           '- `showSeconds` で秒の区切りを出します。`minuteStep` は、分を ↑↓ で増減するときの刻みです。',
-          '- 「9:05」「0905」「午後3時」「3:05 PM」のような文字を貼り付けると、読み取って区切りに入れます。',
+          '- 「9:05」「0905」「午後3時」「3:05 PM」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。直したことを知らせたいときは `halfWidthNotice` を付けます。',
           '- 値は `Temporal.PlainTime` で受け渡します。`name` を渡すと、フォームには「15:05」の形で送ります。',
           '- `color` で、いま打っている区切りの塗りとフォーカスの枠線の色を選びます。既定はグレーの塗りです。',
         ].join('\n'),
@@ -261,6 +261,33 @@ export const Keyboard: Story = {
     await expect(hidden?.value).toBe('09:30');
     await userEvent.paste('午後３時半');
     await expect(hidden?.value).toBe('15:30');
+  },
+};
+
+export const FullWidthNotice: Story = {
+  name: '全角を直したことを知らせる',
+  args: { halfWidthNotice: true },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`halfWidthNotice` を付けると、全角の数字を半角に直したときに、本体の下の情報の行で知らせます。文を渡すと、その文を出します。既定は知らせません。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    const [hour] = canvas.getAllByRole('spinbutton');
+    await userEvent.click(hour);
+    await userEvent.paste('０９：０５');
+    await expect(canvas.getByText('全角の数字を半角に直しました')).toBeInTheDocument();
   },
 };
 
