@@ -245,6 +245,58 @@ export const Side: Story = {
   ),
 };
 
+export const OutsidePress: Story = {
+  name: '外を押して閉じる',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-wrap gap-3">
+      <Drawer title="下から" side="bottom" trigger={<Button>下から</Button>}>
+        {settings}
+      </Drawer>
+      <Drawer title="右から" side="right" trigger={<Button>右から</Button>}>
+        {settings}
+      </Drawer>
+      <Drawer
+        title="閉じない"
+        side="bottom"
+        dismissible={false}
+        trigger={<Button>閉じない</Button>}
+      >
+        {settings}
+      </Drawer>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const document = canvasElement.ownerDocument;
+    const body = within(document.body);
+    // 後ろの暗いところ（面のない左上）を、指で押すのと同じように押す
+    const pressOutside = async () => {
+      const target = document.elementFromPoint(20, 20);
+      await expect(target).not.toBeNull();
+      // 暗いところを引いてもシートは動かさない（印は暗い面そのものに付ける — src/internal/sheet/SheetPopup.tsx）
+      await expect(target).toHaveAttribute('data-base-ui-swipe-ignore');
+      await userEvent.click(target as Element);
+    };
+
+    // 既定では、暗いところを押すと閉じる
+    for (const name of ['下から', '右から']) {
+      await userEvent.click(canvas.getByRole('button', { name }));
+      await body.findByRole('dialog', { name });
+      await pressOutside();
+      await waitFor(() => expect(body.queryByRole('dialog', { name })).toBeNull());
+    }
+
+    // dismissible={false} では閉じない。Esc では閉じる
+    await userEvent.click(canvas.getByRole('button', { name: '閉じない' }));
+    await body.findByRole('dialog', { name: '閉じない' });
+    await pressOutside();
+    await expect(body.getByRole('dialog', { name: '閉じない' })).toBeVisible();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog', { name: '閉じない' })).toBeNull());
+  },
+};
+
 export const Accessibility: Story = {
   name: '読み上げとキーボード',
   parameters: { controls: { disable: true } },
