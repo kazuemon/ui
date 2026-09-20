@@ -200,7 +200,8 @@
 - シートの閉じるの「完了」は、部品が持つ既定の文です（`sheetCloseText` で差し替えられます）。多言語の対応は決めていません
 - シートを開いたあと、ヘルプ・エラーの行が出入りすると打つ欄が動きます。そのままにしています
 - 選べない選択肢の理由・警告・欄のエラーの文の書き方は、Select と同じく、部品のドキュメントで示す前提です。まだ書いていません（[ADR-0044](./adr/0044-message-announce.md)）
-- 2 つ目の部品が使うようになったら `src/internal/` へ移すものがあります。欄の中のチップ一式（Chips・Chip・ChipRemove・大きさのトークン）、入力欄型の本体の並び、読み込みの知らせの状態機械（Select と Combobox でコピー）、`sideOffset` の計算（Select とコピー）、まとまりの描画と `groupLabelStyle` の型（Menu にもあります）
+- Autocomplete と TagsInput が使う分は `src/internal/` へ移しました（見た目は変えていません）。浮かぶ面とシートの外枠・キーボード用の見えない打つ欄・開閉のスクロールの戻し・シートの閉じるボタン・空の行・まとまりの描画は `src/internal/combobox-base/`、欄の中のチップ一式と入力欄型の本体のクラスも同じ場所、選択肢の形（`items`）・読み込みの知らせ・`sideOffset` の計算・`groupLabelStyle` の型は `src/internal/listbox/` です
+- 欄の中のチップの大きさのトークン（`--combobox-chip-*`）は、TagsInput も使いますが名前は変えていません。`--select-popup-*` と同じで、名前を部品から切り離すかは色のばらつきを整えるときにまとめて決めます
 
 ### Menu
 
