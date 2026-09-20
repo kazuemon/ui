@@ -259,6 +259,7 @@
 
 - スクロールの判定は `src/internal/use-scrollable.ts` にまとめ、横にはみ出しているあいだだけ Tab で止まるようにしました。CodeBlock のスクロールそのものを外側の包みに移すかは決めていません（いまはコードの要素がスクロールします）
 - Steps: 段の間（32px）・題と本文の間（4px）・題の大きさ（見出しの段に従う）・印と文字の間（12px）は、原則にない判断として仮に置いています
+- Steps と Timeline の点の props の名前をそろえます。Timeline は、点の props を `markerType`（点の種類）・`markerSize`（点の大きさ）にしました（`size` だと文字の大きさに読めるため）。Steps の `marker` も `markerType` に、必要なら `line` も合わせて変えます。Steps の `size` の扱い（見出しの段に従う）も、点の大きさとの関係を含めて決めます。Steps と Timeline は同時に変えます（2026-09-20）
 
 ### 機能（README の「つくりたい機能」）
 

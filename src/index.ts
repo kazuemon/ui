@@ -94,6 +94,16 @@ export {
   type CopyButtonFeedback,
   type CopyButtonProps,
 } from './components/copy-button/CopyButton';
+export {
+  DescriptionItem,
+  type DescriptionItemProps,
+  DescriptionList,
+  type DescriptionListDivider,
+  type DescriptionListLayout,
+  type DescriptionListProps,
+  type DescriptionListTermAlign,
+  type DescriptionListTermStyle,
+} from './components/description-list/DescriptionList';
 export { Dialog, type DialogPresentation, type DialogProps } from './components/dialog/Dialog';
 export { Divider, type DividerProps } from './components/divider/Divider';
 export {
@@ -121,6 +131,7 @@ export {
   type HeadingProps,
   type HeadingSize,
 } from './components/heading/Heading';
+export { HeadingAnchor, type HeadingAnchorProps } from './components/heading-anchor/HeadingAnchor';
 export { Icon, type IconProps, type IconSize } from './components/icon/Icon';
 export { Image, type ImageProps } from './components/image/Image';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
@@ -255,6 +266,22 @@ export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerAppearance, type SpoilerProps } from './components/spoiler/Spoiler';
 export {
+  Stack,
+  type StackAlign,
+  type StackDirection,
+  type StackGap,
+  type StackJustify,
+  type StackProps,
+} from './components/stack/Stack';
+export {
+  Stat,
+  type StatAlign,
+  type StatDeltaTone,
+  type StatProps,
+  type StatSize,
+  type StatTrend,
+} from './components/stat/Stat';
+export {
   Step,
   type StepProps,
   Steps,
@@ -277,6 +304,20 @@ export {
 } from './components/tabs/Tabs';
 export { Text, type TextProps } from './components/text/Text';
 export { Time, type TimeProps } from './components/time/Time';
+export {
+  Timeline,
+  type TimelineAlign,
+  type TimelineCollapse,
+  type TimelineDatePlacement,
+  type TimelineHeadingLevel,
+  TimelineItem,
+  type TimelineItemProps,
+  type TimelineLine,
+  type TimelineMarkerSize,
+  type TimelineMarkerType,
+  type TimelineProps,
+  type TimelineTail,
+} from './components/timeline/Timeline';
 export {
   Transition,
   type TransitionPreset,
