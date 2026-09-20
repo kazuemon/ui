@@ -46,6 +46,10 @@ export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
   name?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  /**
+   * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * @default false
+   */
   required?: boolean;
   autoFocus?: boolean;
   /**
@@ -84,6 +88,8 @@ export function TimeField({
   disabled,
   readOnly,
   required,
+  requiredMark,
+  optionalMark,
   autoFocus,
   className,
   prefix,
@@ -137,6 +143,9 @@ export function TimeField({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
     >

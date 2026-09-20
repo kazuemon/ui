@@ -53,6 +53,8 @@ export interface PinFieldProps
       | 'info'
       | 'className'
       | 'loadingBehavior'
+      | 'requiredMark'
+      | 'optionalMark'
     >,
     HalfWidthNoticeProps {
   /**
@@ -116,7 +118,10 @@ export interface PinFieldProps
   name?: string;
   /** 関連づける form の id */
   form?: string;
-  /** 送る前に入力を求める */
+  /**
+   * 必須にします。箱の列に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * @default false
+   */
   required?: boolean;
   /** 1 桁目の input の id。2 桁目からは `{id}-2` のように続きます */
   id?: string;
@@ -188,6 +193,9 @@ export function PinField({
   emptyDots = false,
   disabled,
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   onValueChange,
   onValueComplete,
   slotLabel = defaultSlotLabel,
@@ -225,6 +233,9 @@ export function PinField({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
     >
       {(messageIds) => (
@@ -238,6 +249,7 @@ export function PinField({
             validationType="none"
             inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
             normalizeValue={normalize}
+            required={required}
             disabled={disabled}
             readOnly={blocking || readOnly}
             aria-describedby={messageIds}

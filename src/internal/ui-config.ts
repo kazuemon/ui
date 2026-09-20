@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 
+import type { OptionalMark, RequiredMark } from './field/FieldMark';
 import type { OverlayPresentation } from './sheet/use-narrow-screen';
 
 /** Transition の出方。preset を書かないときの既定を ThemeProvider で変えられる */
@@ -17,6 +18,10 @@ export interface UIConfig {
   locale?: string;
   /** 時刻を書くタイムゾーン（Time・RelativeTime） */
   timeZone?: string;
+  /** 必須の欄のラベルに出す印の既定（Field を通る部品） */
+  requiredMark?: RequiredMark;
+  /** 任意の欄のラベルに出す印の既定（Field を通る部品） */
+  optionalMark?: OptionalMark;
 }
 
 export const UIConfigContext = createContext<UIConfig>({});

@@ -147,6 +147,9 @@ export function MaskField({
   loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   placeholder,
   inputMode,
   onChange,
@@ -269,6 +272,9 @@ export function MaskField({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
     >
       {(messageIds) => (
@@ -308,6 +314,7 @@ export function MaskField({
                 placeholder={placeholder}
                 inputMode={inputMode ?? (numericOnly(mask) ? 'numeric' : undefined)}
                 disabled={disabled}
+                required={required}
                 readOnly={blocking || readOnly}
                 aria-disabled={blocking || ariaDisabled}
                 aria-busy={loading || ariaBusy}

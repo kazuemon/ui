@@ -80,6 +80,10 @@ export interface NumberFieldProps extends InputFieldProps, HalfWidthNoticeProps 
   allowOutOfRange?: boolean;
   name?: string;
   id?: string;
+  /**
+   * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * @default false
+   */
   required?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
@@ -133,6 +137,8 @@ export function NumberField({
   name,
   id,
   required,
+  requiredMark,
+  optionalMark,
   autoFocus,
   halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
@@ -214,6 +220,9 @@ export function NumberField({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={[scrub && 'relative', className].filter(Boolean).join(' ') || undefined}
     >
       {(messageIds) => (

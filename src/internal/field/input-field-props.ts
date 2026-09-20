@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 
 import type { CaptionPlacement, FieldLoadingBehavior } from './Field';
+import type { FieldMarkProps } from './FieldMark';
 import type { AddonShape } from '../../components/field-addon/field-addon-context';
 import type { LoadingIndicator } from '../../components/loading/Loading';
 
 /** 文字を打つ欄（TextField・NumberField・DateField など）に共通の props */
-export interface InputFieldProps {
+export interface InputFieldProps extends FieldMarkProps {
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;

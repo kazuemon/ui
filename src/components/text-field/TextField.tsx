@@ -32,6 +32,9 @@ export function TextField({
   loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -53,6 +56,9 @@ export function TextField({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
     >
       {(messageIds) => (
@@ -80,6 +86,7 @@ export function TextField({
                 .filter(Boolean)
                 .join(' ')}
               disabled={disabled}
+              required={required}
               readOnly={blocking || readOnly}
               aria-disabled={blocking || ariaDisabled}
               aria-busy={loading || ariaBusy}

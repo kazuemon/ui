@@ -1,5 +1,6 @@
 import { type ReactNode, useContext, useMemo } from 'react';
 
+import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { type TransitionPreset, UIConfigContext } from '../../internal/ui-config';
 
@@ -33,11 +34,24 @@ export interface ThemeProviderProps {
    * @default 'Asia/Tokyo'
    */
   timeZone?: string;
+  /**
+   * 必須の欄（required）のラベルに出す印の形。tag は「必須」のタグ、asterisk は赤い「*」、none は出しません。
+   * 部品の requiredMark を書いたときは、そちらが勝ちます。
+   * asterisk にするときは、「* は必須の項目です」の一文をフォームの先頭などに置いてください（文は使う側が書きます）
+   * @default 'tag'
+   */
+  requiredMark?: RequiredMark;
+  /**
+   * 任意の欄（required でない欄）のラベルに出す印の形。text は「任意」を出し、none は出しません。
+   * 必須の印と組み合わせられます。部品の optionalMark を書いたときは、そちらが勝ちます
+   * @default 'none'
+   */
+  optionalMark?: OptionalMark;
   children?: ReactNode;
 }
 
 /**
- * 中の部品に、密度・浮かぶ UI の出し方・描く場所・言語とタイムゾーンの既定をまとめて渡す入口
+ * 中の部品に、密度・浮かぶ UI の出し方・描く場所・言語とタイムゾーン・必須と任意の印の既定をまとめて渡す入口
  *
  * 入れ子にでき、内側の ThemeProvider が書いた値だけが外側より勝ちます。
  */
@@ -48,6 +62,8 @@ export function ThemeProvider({
   transitionPreset,
   locale,
   timeZone,
+  requiredMark,
+  optionalMark,
   children,
 }: ThemeProviderProps) {
   const outer = useContext(UIConfigContext);
@@ -58,8 +74,19 @@ export function ThemeProvider({
       transitionPreset: transitionPreset ?? outer.transitionPreset,
       locale: locale ?? outer.locale,
       timeZone: timeZone ?? outer.timeZone,
+      requiredMark: requiredMark ?? outer.requiredMark,
+      optionalMark: optionalMark ?? outer.optionalMark,
     }),
-    [presentation, portalContainer, transitionPreset, locale, timeZone, outer]
+    [
+      presentation,
+      portalContainer,
+      transitionPreset,
+      locale,
+      timeZone,
+      requiredMark,
+      optionalMark,
+      outer,
+    ]
   );
   const content = <UIConfigContext value={value}>{children}</UIConfigContext>;
   if (density === 'auto') return content;

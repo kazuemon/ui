@@ -1,6 +1,7 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { type ReactNode, useContext, useId, useState } from 'react';
 
+import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useFormSubmittingLock } from '../form-context';
 import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
@@ -161,7 +162,7 @@ export function FieldMessageLine({
   );
 }
 
-export interface FieldProps {
+export interface FieldProps extends FieldMarkProps {
   /** 本体の上に置く太字のラベル */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。省略してもレイアウトは崩れない */
@@ -225,6 +226,9 @@ export function Field({
   disabled,
   loading,
   loadingBehavior = 'non-blocking',
+  required,
+  requiredMark,
+  optionalMark,
   className,
   children,
   nativeLabel = true,
@@ -271,7 +275,8 @@ export function Field({
       data-success={success && !error ? '' : undefined}
       className={styles.root({ className })}
     >
-      {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記） */}
+      {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
+          印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる */}
       <BaseField.Label
         data-slot="field-label"
         className={styles.label()}
@@ -279,6 +284,7 @@ export function Field({
         render={nativeLabel ? undefined : <div />}
       >
         {label}
+        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
       {captionPlacement === 'top' && captionNode}
       {typeof children === 'function' ? children(describedBy) : children}
