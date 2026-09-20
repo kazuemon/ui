@@ -1,3 +1,5 @@
+'use client';
+
 import {
   type DateRange,
   type DayProps,

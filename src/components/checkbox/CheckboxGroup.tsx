@@ -1,3 +1,5 @@
+'use client';
+
 import { CheckboxGroup as BaseCheckboxGroup } from '@base-ui/react/checkbox-group';
 import { type ComponentProps, type ReactNode, useMemo } from 'react';
 

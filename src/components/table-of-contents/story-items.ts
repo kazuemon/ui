@@ -1,3 +1,5 @@
+'use client';
+
 import { useId } from 'react';
 
 // ストーリーで使う見出しの一覧（部品ではない）。場面は story-scenes.tsx

@@ -1,3 +1,5 @@
+'use client';
+
 import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // 出入りの状態。Base UI の重なる部品と同じ段を、公開の API にないので小さく持つ

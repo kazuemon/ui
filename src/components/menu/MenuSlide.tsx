@@ -1,3 +1,5 @@
+'use client';
+
 import { type KeyboardEvent, type ReactNode, useEffect, useState } from 'react';
 
 import { MenuSlideContext, type MenuSlideState, useMenuSlide } from './use-menu-slide';

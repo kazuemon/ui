@@ -1,3 +1,5 @@
+'use client';
+
 import { Accordion as BaseAccordion } from '@base-ui/react/accordion';
 import { type ComponentProps, createContext, type ReactNode, useContext } from 'react';
 

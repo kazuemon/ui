@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { SheetMetrics } from '../../internal/sheet/use-sheet-drag';

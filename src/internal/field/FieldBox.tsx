@@ -1,3 +1,5 @@
+'use client';
+
 import { cloneElement, type ComponentProps, isValidElement, type ReactNode, useId } from 'react';
 
 import { FieldLoadingBar, FieldSpinner, FieldSuccessMark } from './Field';

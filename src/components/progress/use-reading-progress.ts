@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
 // 記事の読了のバーの見本（ストーリー）が使う。部品ではなく、公開の入口には足さない

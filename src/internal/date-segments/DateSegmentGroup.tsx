@@ -1,3 +1,5 @@
+'use client';
+
 import { Field as BaseField } from '@base-ui/react/field';
 import { useEffect, useId, useRef, useState } from 'react';
 

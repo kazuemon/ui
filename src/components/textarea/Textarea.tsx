@@ -1,3 +1,5 @@
+'use client';
+
 import { Field as BaseField } from '@base-ui/react/field';
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import {

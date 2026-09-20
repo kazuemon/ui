@@ -1,3 +1,5 @@
+'use client';
+
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { type ReactElement, type ReactNode, use, useId, useState } from 'react';
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { useLayoutEffect, useRef, useState } from 'react';
 
 // 本体の祖先に付いた密度（data-density）と大きい指用（coarse-large）。浮かぶ部分とシートは body の直下に出て、

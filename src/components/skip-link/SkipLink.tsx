@@ -1,3 +1,5 @@
+'use client';
+
 import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, ReactElement } from 'react';
 

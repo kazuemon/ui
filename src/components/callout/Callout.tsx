@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, type ReactNode, useId } from 'react';
 
 import { NoticeIcon } from '../../internal/notice-surface/NoticeIcon';

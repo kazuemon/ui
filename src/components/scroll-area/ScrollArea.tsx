@@ -1,3 +1,5 @@
+'use client';
+
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { type ReactNode, type Ref, useCallback, useImperativeHandle, useState } from 'react';
 

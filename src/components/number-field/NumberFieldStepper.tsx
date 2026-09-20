@@ -1,3 +1,5 @@
+'use client';
+
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field';
 
 import { CaretDownIcon, CaretUpIcon, MinusIcon, PlusIcon } from '../../internal/icons';

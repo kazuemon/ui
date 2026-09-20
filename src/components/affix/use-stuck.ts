@@ -1,3 +1,5 @@
+'use client';
+
 import { type RefObject, useLayoutEffect, useState } from 'react';
 
 import { type AffixPosition, isStuck } from './stuck';

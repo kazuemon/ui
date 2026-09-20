@@ -1,3 +1,5 @@
+'use client';
+
 import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 

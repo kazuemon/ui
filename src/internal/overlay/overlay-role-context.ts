@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext } from 'react';
 
 /** 重なる面の読み上げの役割。alertdialog は、取り消せない操作の確かめ（AlertDialog） */

@@ -1,3 +1,5 @@
+'use client';
+
 import { Field as BaseField } from '@base-ui/react/field';
 import { Radio as BaseRadio } from '@base-ui/react/radio';
 import { RadioGroup as BaseRadioGroup } from '@base-ui/react/radio-group';

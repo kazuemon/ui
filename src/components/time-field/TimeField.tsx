@@ -1,3 +1,5 @@
+'use client';
+
 import { useMemo, useState } from 'react';
 
 import { type DateSegmentColor, dateSegmentColorClass } from '../../internal/date-segments/colors';

@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, type ReactNode, use } from 'react';
 import { tv } from '../../internal/tv';
 

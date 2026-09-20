@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, type Ref, useCallback, useRef } from 'react';
 
 import { focusRingInProse } from '../../internal/focus-styles';

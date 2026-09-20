@@ -1,3 +1,5 @@
+'use client';
+
 import { type PointerEvent as ReactPointerEvent, useRef, useState } from 'react';
 
 /** シートの高さの段。content: 中身をすべて出したときの高さ、half: 半分の高さ、full: 高さの上限 */

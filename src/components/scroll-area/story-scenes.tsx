@@ -1,3 +1,5 @@
+'use client';
+
 import { Checkbox } from '../checkbox/Checkbox';
 import { CheckboxGroup } from '../checkbox/CheckboxGroup';
 import { Tag } from '../tag/Tag';

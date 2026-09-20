@@ -1,3 +1,5 @@
+'use client';
+
 import { Field as BaseField } from '@base-ui/react/field';
 import { Mask, type MaskTokens } from 'maska';
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';

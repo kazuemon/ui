@@ -1,3 +1,5 @@
+'use client';
+
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { Tabs as BaseTabs } from '@base-ui/react/tabs';
 import { type ComponentProps, type ReactElement, type ReactNode, useEffect, useRef } from 'react';

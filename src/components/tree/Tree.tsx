@@ -1,3 +1,5 @@
+'use client';
+
 import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible';
 import { useRender } from '@base-ui/react/use-render';
 import {
