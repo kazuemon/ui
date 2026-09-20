@@ -45,11 +45,24 @@ export function useFormSubmittingLock(): FormSubmittingLock {
 }
 
 /**
- * チェックボックス・ラジオ・トグルが、Form の送信中（blocking）に切り替えを止めるための値（入力欄と同じく、押せない見た目にする）
- * readOnly で止め、見た目は押せないときの規則が読む data-disabled を付けて、押せない箱・トグルと同じにする
+ * チェックボックス・ラジオ・トグルが、値を変えられないあいだ（Form の送信中と、読み取り専用）の扱いを読む
+ * どちらも readOnly で止め、見た目は押せないときの規則が読む data-disabled を付けて、押せない箱・トグルと同じにする
  * disabled は付けないので、フォーカスは外れず、値も送られる。もともと押せない（disabled）ときは何もしない
+ *
+ * 読み取り専用（readOnly。軸 177）と送信中の違いは、読み上げと、横の文字とカーソルだけ
+ * - 送信中は aria-disabled を付け、横の文字も押せないときの薄いグレーにする（いまは操作できない）
+ * - 読み取り専用は aria-disabled を付けない。Base UI が出す aria-readonly で「読み取り専用」と伝える
+ *   横の文字は本文と同じ色のまま（読むための文字なので薄くしない — 原則13）。カーソルは禁止の形にしない
+ *   その差は readOnlyLook が true のとき、部品が className で上書きする
  */
-export function useChoiceLock(disabled: boolean | undefined) {
-  const locked = useFormSubmittingLock().blocking && !disabled;
-  return { readOnly: locked || undefined, data: locked ? { 'data-disabled': '' } : {} };
+export function useChoiceLock(disabled: boolean | undefined, readOnly?: boolean) {
+  const blocking = useFormSubmittingLock().blocking && !disabled;
+  const readOnlyLook = !!readOnly && !disabled && !blocking;
+  const dimmed = blocking || readOnlyLook;
+  return {
+    readOnly: blocking || readOnly || undefined,
+    ariaDisabled: blocking || undefined,
+    data: dimmed ? { 'data-disabled': '' } : {},
+    readOnlyLook,
+  };
 }

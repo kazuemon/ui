@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react';
 
-import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
+import { CopiedStatus, CopyErrorTooltip, CopyGlyph } from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { focusRing } from '../../internal/focus-styles';
 import { codeBlockStyles } from '../../internal/reading/code-block';
@@ -32,6 +32,7 @@ import type { CodeBlockProps } from '../code-block/CodeBlock';
 //   タブが入り切らないときは、帯だけが横にスクロールする。続きは端のぼかしで見せ、つまみは載せたときに出す（ScrollArea と同じ・原則1）
 //   キーボードと読み上げ（tablist・tab・tabpanel、←→ で移る）は Base UI の Tabs に任せる
 //   コピーのボタンは、いま開いているタブのコードを写す（CodeBlock の題があるときと同じ場所・同じ見た目）
+//     写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CodeBlock・CopyButton と同じ吹き出し）
 const scroll = scrollAreaStyles({ scrollbar: 'scroll' });
 
 const codeGroup = tv({
@@ -160,6 +161,11 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
    * @default 'コピーしました'
    */
   copiedLabel?: string;
+  /**
+   * 写せなかったとき（権限がない・安全でない接続）に、吹き出しに出して読み上げる文
+   * @default 'コピーできませんでした'
+   */
+  copyErrorLabel?: string;
   /** タブの並び（tablist）の読み上げの名前 @default 'コードの書き方' */
   label?: string;
 }
@@ -177,6 +183,7 @@ export function CodeGroup({
   copyButton = true,
   copyLabel = 'コードをコピー',
   copiedLabel = 'コピーしました',
+  copyErrorLabel = 'コピーできませんでした',
   label = 'コードの書き方',
   className,
   ...props
@@ -185,7 +192,7 @@ export function CodeGroup({
   const frameRef = useRef<HTMLDivElement>(null);
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
   const current = value ?? uncontrolled;
-  const { copied, copy } = useCopy(2000);
+  const { copied, failed, copy } = useCopy(2000);
   const inlineCues = useInlineCues();
 
   const blocks = Children.toArray(children).filter((child): child is CodeChild =>
@@ -269,30 +276,40 @@ export function CodeGroup({
         </BaseTabs.Panel>
       ))}
       {copyButton ? (
-        <button
-          type="button"
-          data-slot="code-group-copy"
-          className={s.copy()}
-          data-copied={copied ? '' : undefined}
-          // 名前は「コードをコピー ＋ 開いているタブの名前」。どのコードを写すのかが分かる
-          aria-label={typeof currentTitle === 'string' ? `${copyLabel} ${currentTitle}` : copyLabel}
-          onClick={() => {
-            const text =
-              currentBlock?.props.copyText ??
-              (frameRef.current ? codeTextOf(frameRef.current) : '');
-            void copy(text);
-          }}
-        >
-          {copied ? (
-            <span aria-hidden="true" className={s.copied()}>
-              {copiedLabel}
-            </span>
-          ) : null}
-          <CopyGlyph copied={copied} standalone />
-        </button>
+        // 写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CodeBlock・CopyButton と同じ吹き出し）
+        <CopyErrorTooltip open={failed} label={copyErrorLabel}>
+          <button
+            type="button"
+            data-slot="code-group-copy"
+            className={s.copy()}
+            data-copied={copied ? '' : undefined}
+            // 名前は「コードをコピー ＋ 開いているタブの名前」。どのコードを写すのかが分かる
+            aria-label={
+              typeof currentTitle === 'string' ? `${copyLabel} ${currentTitle}` : copyLabel
+            }
+            onClick={() => {
+              const text =
+                currentBlock?.props.copyText ??
+                (frameRef.current ? codeTextOf(frameRef.current) : '');
+              void copy(text);
+            }}
+          >
+            {copied ? (
+              <span aria-hidden="true" className={s.copied()}>
+                {copiedLabel}
+              </span>
+            ) : null}
+            <CopyGlyph copied={copied} standalone />
+          </button>
+        </CopyErrorTooltip>
       ) : null}
-      {/* コピーしたことを読み上げる。箱は先に置いておき、中身だけを入れる */}
-      <CopiedStatus copied={copied} label={copiedLabel} />
+      {/* コピーの結果を読み上げる。箱は先に置いておき、中身だけを入れる */}
+      <CopiedStatus
+        copied={copied}
+        label={copiedLabel}
+        failed={failed}
+        errorLabel={copyErrorLabel}
+      />
     </BaseTabs.Root>
   );
 }

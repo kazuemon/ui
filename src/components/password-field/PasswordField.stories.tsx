@@ -16,6 +16,11 @@ const stateRows: Sample[] = [
     props: { defaultValue: 'kazu', error: '8文字以上で入力してください' },
   },
   { label: '押せない', props: { defaultValue: 'kazuemon-2026', disabled: true } },
+  { label: '読み取り専用', props: { defaultValue: 'kazuemon-2026', readOnly: true } },
+  {
+    label: '読み取り専用（エラー）',
+    props: { defaultValue: 'kazu', readOnly: true, error: '8文字以上で入力してください' },
+  },
   {
     label: '待っている（止める）',
     props: { defaultValue: 'kazuemon-2026', loading: true, loadingBehavior: 'blocking' },
@@ -87,13 +92,15 @@ export const States: Story = {
     pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
     docs: {
       description: {
-        story: '待っているあいだ止める欄でも、表示の切り替えは押せます。押せない欄では押せません。',
+        story:
+          '待っているあいだ止める欄でも、表示の切り替えは押せます。押せない欄では押せません。読み取り専用の欄でも押せるので、ボタンのグレー地は残ります（エラーのときは欄と同じ赤みになります）。',
       },
       source: sourceCode(`
         <PasswordField label="パスワード" />
         <PasswordField label="パスワード" error="8文字以上で入力してください" />
         <PasswordField label="パスワード" disabled />
         <PasswordField label="パスワード" loading loadingBehavior="blocking" />
+        <PasswordField label="パスワード" readOnly />
       `),
     },
   },

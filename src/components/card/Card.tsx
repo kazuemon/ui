@@ -24,6 +24,9 @@ import { Image, type ImageProps } from '../image/Image';
 //     hover で画像を少し大きくする動き（--card-hover-media-scale）は、imageZoom を渡したときだけ（既定はなし）
 //     面の塗りは --card-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
 //   新しいタブで開くときは、読み上げに「新しいタブで開きます」を足す（Link と同じ。原則7）
+//   押せる Card を Prose の中に置いても崩れないようにする（LinkCard と同じ書き方）
+//     Prose は中の a に文字のリンクの見た目を当てる。ここで同じ性質を書いて打ち消す（下線・余白・色）
+//     Prose は押した文字のリンクを top で沈める（詳細度が高い）。Card も translate ではなく top で同じだけ沈め、二重に沈まないようにする
 const styles = tv({
   slots: {
     root: [
@@ -51,17 +54,21 @@ const styles = tv({
     interactive: {
       true: {
         root: [
-          'cursor-pointer no-underline',
+          'top-0 m-0 cursor-pointer no-underline',
           ...focusRing,
           'shadow-raised hover:shadow-raised-hover hover:[--card-fill:var(--card-fill-hover)]',
-          'active:translate-y-(--press-depth) active:shadow-(--shadow-raised-press)',
-          '[transition:--card-fill_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+          'active:top-(--press-depth) active:shadow-(--shadow-raised-press)',
+          '[transition:--card-fill_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
           'motion-reduce:[transition:none]',
         ],
       },
       false: {},
     },
   },
+  compoundVariants: [
+    // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
+    { appearance: 'default', interactive: true, class: { root: 'p-0' } },
+  ],
   defaultVariants: { appearance: 'default', interactive: false },
 });
 

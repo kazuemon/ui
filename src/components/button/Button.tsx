@@ -29,7 +29,8 @@ import { tv } from '../../internal/tv';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
 // 原則3: hover で影が輪郭だけになり、押下で 1px 沈む（design/adr/0009）。押しても輪郭の線は残す（design/adr/0033）
-// 原則7: 画面内で最も進めたい操作は塗り、それ以外は枠線
+// 原則7: 押すものの強さは4段。色の塗り・グレーの塗り・枠線・下線（いちばん軽い押すもの — 軸 174）
+//   下線（underline）は、塗りも枠線もなく、文字に淡い下線だけが付く。文字は枠線のボタンとまったく同じ
 // 色は --button-fill・--button-text・--button-line に入れ、Disabled のときだけ差し替える
 // 送信中（loading、design/adr/0034）: 押せないボタンと同じ見た目にし、送信中の印を出す。data-loading で表す
 //   印（回る円・線）は薄くしないので、ボタン全体を薄くする opacity は使わず、塗り・文字・枠線の色を
@@ -81,6 +82,25 @@ const button = tv({
         'disabled:border-[color:var(--color-disabled-fg,var(--button-line))] disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
         'data-disabled:border-[color:var(--color-disabled-fg,var(--button-line))] data-disabled:text-[color:var(--color-disabled-fg,var(--button-line))]',
         'data-loading:border-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:text-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)]',
+      ],
+      // いちばん軽い押すもの（軸 174）: 塗りも枠線もなく、文字に淡い下線だけが付く
+      //   文字（色・太さ・大きさ・字間）と寸法・左右の余白・角丸・フォーカスの線は、枠線のボタンとまったく同じ。
+      //   色は下の compoundVariants が枠線のボタンと共有して入れる（--button-line）
+      //   下線は文字にだけ引く。inline-flex の中では、文字の項目にだけ線が引かれ、アイコンには付かない
+      //     （アイコンだけのボタンは、下線も枠線もない形になる）
+      //   色は文字のリンクの下線と同じ考えで、文字の色を透かした淡さ（--color-link-underline）。太さと位置も文字のリンクと同じ
+      //   hover・押下は枠線のボタンと同じ（文字の色を淡く敷き、押下で 1px 沈む — design/adr/0027）。
+      //     押せる範囲は部品の大きさのままなので、hover の塗りが押せる広さを見せる（原則17）
+      //     下線は hover で変えない。塗りで手応えが伝わるので、二重に動かさない（文字のリンクとはここが違う）
+      //   押せないとき・送信中: 押せないボタンと同じ文字の色にし、下線は外す
+      underline: [
+        'text-(color:--button-line) [--button-bg:transparent]',
+        '[--button-accent:var(--button-line)] [--button-ink:var(--button-line)]',
+        'underline [text-decoration-color:var(--color-link-underline)] decoration-1 underline-offset-4',
+        'not-[:disabled,[data-disabled]]:not-data-loading:hover:[--button-bg:color-mix(in_oklab,var(--button-ink)_var(--flat-hover-mix),transparent)] not-[:disabled,[data-disabled]]:not-data-loading:active:translate-y-(--flat-press-depth) not-[:disabled,[data-disabled]]:not-data-loading:active:[--button-bg:color-mix(in_oklab,var(--button-ink)_var(--flat-press-mix),transparent)]',
+        'disabled:text-[color:var(--color-disabled-fg,var(--button-line))] disabled:no-underline',
+        'data-disabled:text-[color:var(--color-disabled-fg,var(--button-line))] data-disabled:no-underline',
+        'data-loading:text-[color:color-mix(in_oklab,var(--button-line)_calc(var(--disabled-opacity)*100%),transparent)] data-loading:no-underline',
       ],
     },
     // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028
@@ -135,17 +155,26 @@ const button = tv({
         'data-loading:border-[color:color-mix(in_oklab,var(--color-surface-line)_calc(var(--disabled-opacity)*100%),transparent)]',
       ],
     },
-    { appearance: 'outline', color: 'primary', class: '[--button-line:var(--color-primary)]' },
+    // 枠線のボタンと下線のボタンは、文字の色を共有する（軸 174）。枠線のボタンの --button-line が、下線のボタンの文字の色になる
     {
-      appearance: 'outline',
+      appearance: ['outline', 'underline'],
+      color: 'primary',
+      class: '[--button-line:var(--color-primary)]',
+    },
+    {
+      appearance: ['outline', 'underline'],
       color: 'secondary',
       class: '[--button-line:var(--color-fg-secondary)]',
     },
-    { appearance: 'outline', color: 'danger', class: '[--button-line:var(--color-fg-danger)]' },
+    {
+      appearance: ['outline', 'underline'],
+      color: 'danger',
+      class: '[--button-line:var(--color-fg-danger)]',
+    },
     // 色を持たない枠線のボタンは、枠線を細い境界線の色に、文字を本文の色にする
     // Disabled は、色を持つ枠線のボタン（薄くする）とは別に指定する — design/adr/0029
     {
-      appearance: 'outline',
+      appearance: ['outline', 'underline'],
       color: ['neutral', 'white'],
       class: [
         'text-fg [--button-accent:var(--color-fg)] [--button-ink:var(--color-fg)] [--button-line:var(--color-line)]',
@@ -274,7 +303,10 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    */
   inlineSpinner?: boolean;
   /**
-   * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
+   * 見た目。filled は塗り、outline は枠線、underline は塗りも枠線もなく文字に淡い下線だけが付く形です。
+   * 画面内で最も進めたい操作は filled、それ以外は outline、いちばん軽く見せたい操作（カードの右上の操作、
+   * 表の行末など密度の高い並び）は underline にします（原則7）。
+   * underline の文字は outline とまったく同じで、hover と押下も同じです（押せる範囲は部品の大きさのまま）。
    * @default 'filled'
    */
   appearance?: VariantProps<typeof button>['appearance'];
@@ -327,11 +359,20 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
   inlineSpinner?: never;
   /** リンクには付けない */
   type?: never;
-  /** リンクのアイコンだけの形は Link で作る */
-  iconOnly?: never;
-  shape?: never;
   /**
-   * 見た目。filled は塗り、outline は枠線です。画面内で最も進めたい操作は filled、それ以外は outline にします（原則7）。
+   * アイコンだけのリンクにします。部品の高さの正方形になり、右上向きの矢印（↗）は付けません（入る場所がないため）。
+   * 読み上げの名前は aria-label で付けます。移動するものは Link で作ります（`<Link appearance="button">`）
+   * @default false
+   */
+  iconOnly?: boolean;
+  /**
+   * アイコンだけのリンクの形。square は文字のボタンと同じ角の正方形、round は丸です
+   * @default 'square'
+   */
+  shape?: ButtonShape;
+  /**
+   * 見た目。filled は塗り、outline は枠線、underline は文字に淡い下線だけが付く形です。
+   * 画面内で最も進めたい操作は filled、それ以外は outline、いちばん軽く見せたい操作は underline にします（原則7）。
    * ボタンの見た目のリンクでも角丸は 12px のままで、リンクは pill という規則の例外にはなりません（design/adr/0046）。
    * @default 'filled'
    */
@@ -370,8 +411,8 @@ function ButtonLink({
   caption,
   children,
   ref,
-  iconOnly: _iconOnly,
-  shape: _shape,
+  iconOnly = false,
+  shape = 'square',
   ...props
 }: ButtonLinkProps) {
   if (loading !== undefined || loadingIndicator !== undefined || inlineSpinner !== undefined)
@@ -404,12 +445,18 @@ function ButtonLink({
       ...(disabled ? { ...withoutNavigation(props), ...disabledLinkProps } : props),
       ...overrides,
       rel: newTab ? 'noopener noreferrer' : undefined,
+      'data-icon-only': iconOnly ? shape : undefined,
       // キャプションがあるときは、className は包みに付ける
-      className: button({ appearance, color, className: caption ? undefined : className }),
+      className: button({
+        appearance,
+        color,
+        className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
+      }),
       children: (
         <>
           {children}
-          {!endsWithElement(children, ArrowUpRightIcon) && <ArrowUpRightIcon />}
+          {/* アイコンだけのリンクには ↗ を足さない（正方形に 2 つのアイコンは入らない。枠線のリンクと同じ） */}
+          {!iconOnly && !endsWithElement(children, ArrowUpRightIcon) && <ArrowUpRightIcon />}
           {/* sr-only は絶対配置なので、位置の基準（relative）を持つ要素の中に置く（Button は relative） */}
           {naming?.note}
         </>

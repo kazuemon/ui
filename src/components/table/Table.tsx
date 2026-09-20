@@ -3,7 +3,7 @@ import { type ComponentProps, type ReactNode, useId, useRef } from 'react';
 import { focusRing } from '../../internal/focus-styles';
 import { tableStyles } from '../../internal/reading/table';
 import { tv } from '../../internal/tv';
-import { useScrollable } from './use-scrollable';
+import { useScrollable } from '../../internal/use-scrollable';
 
 // 表（軸 62）。Markdown（GFM）を変換した HTML と同じ要素・属性を出す（table・thead・tbody・tr・th・td、列の寄せは align 属性）
 // 見た目は table に置いた子孫のセレクタで付ける。Prose が素の HTML に同じセレクタを当てられる

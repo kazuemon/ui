@@ -29,6 +29,7 @@ import { tv } from '../../internal/tv';
 //   読み上げと操作は WAI-ARIA の tree にならう（www.w3.org/WAI/ARIA/apg の Navigation Treeview）
 //     ul[role=tree] > li[role=none] > 行[role=treeitem][aria-expanded] ＋ ul[role=group]（並びは行の兄弟）
 //     Tab で入るのは 1 行だけ（roving tabindex）。↑↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移る
+//     文字を打つと、その文字で始まる行へ移る（型あたり）。続けて打った文字は 1 語にまとめ、間が空いたら打ち直し。開いていない枝の中は相手にしない
 //     行き先（href）を渡した行はリンクになり、Enter で移る。子を持つ行は Space で開け閉めする
 
 const tree = tv({
@@ -142,7 +143,18 @@ interface TreeContextValue {
   active: string | null;
   setActive: (id: string) => void;
   rootRef: React.RefObject<HTMLUListElement | null>;
+  /** 型あたり（文字を打って行へ移る）の、打っている途中の文字。木で 1 つ持つ */
+  typeaheadRef: React.RefObject<Typeahead>;
 }
+
+/** 型あたりの状態。text は打っている途中の語、time は最後に打った時刻 */
+interface Typeahead {
+  text: string;
+  time: number;
+}
+
+// 続けて打った文字を 1 語にまとめる時間。これより間が空いたら、打ち直しとみなす（木の標準のふるまい）
+const TYPEAHEAD_RESET = 1000;
 
 const TreeContext = createContext<TreeContextValue | null>(null);
 
@@ -153,6 +165,41 @@ function visibleRows(root: HTMLElement | null): HTMLElement[] {
     (row) =>
       !row.closest('[data-slot="tree-group"][hidden], [data-slot="tree-group"][data-ending-style]')
   );
+}
+
+/** 行の文字。アイコンや印は読まず、文字の部分だけを見る */
+function rowText(row: HTMLElement) {
+  const label = row.querySelector<HTMLElement>('[data-slot="tree-label"]');
+  return (label?.textContent ?? row.textContent ?? '').trim().toLowerCase();
+}
+
+/**
+ * 型あたり（文字を打つと、その文字で始まる行へ移る）。木の標準のふるまい
+ * 続けて打った文字は 1 語にまとめ、間が空いたら打ち直しとみなす
+ * 同じ文字を続けて打ったときは、その文字で始まる行を順に送る
+ * 見えている行（visibleRows）だけが相手なので、開いていない枝の中は当たらない
+ */
+function typeaheadTarget(
+  rows: HTMLElement[],
+  index: number,
+  key: string,
+  state: Typeahead
+): HTMLElement | undefined {
+  const now = Date.now();
+  const char = key.toLowerCase();
+  const fresh = now - state.time > TYPEAHEAD_RESET;
+  state.text = fresh ? char : state.text + char;
+  state.time = now;
+  // 同じ文字を続けて打ったときは 1 文字として扱い、次の行へ送る。ほかは、いまの行から見て最初に当たる行へ
+  const first = state.text.slice(0, 1);
+  const repeated = state.text.length > 1 && state.text === first.repeat(state.text.length);
+  const text = repeated ? first : state.text;
+  const from = repeated || fresh || state.text.length === 1 ? index + 1 : index;
+  for (let step = 0; step < rows.length; step += 1) {
+    const row = rows[(from + step + rows.length) % rows.length];
+    if (row && rowText(row).startsWith(text)) return row;
+  }
+  return undefined;
 }
 
 export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {
@@ -194,6 +241,9 @@ export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {
 
 /**
  * 入れ子の行き先を木の形で並べます。ドキュメントの目次や、ファイルの一覧に使います
+ *
+ * Tab で入るのは 1 行だけです。↑ ↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移ります。
+ * 文字を打つと、その文字で始まる行へ移ります（続けて打った文字は 1 語として扱い、少し間が空くと打ち直しです）
  */
 export function Tree({
   label,
@@ -209,6 +259,8 @@ export function Tree({
 }: TreeProps) {
   const slots = tree({ color, guides, rowWidth, currentIndicator, panelMotion, selectable });
   const rootRef = useRef<HTMLUListElement>(null);
+  // 型あたりの途中の文字は、木で 1 つ持つ（どの行で打っても同じ語になる）
+  const typeaheadRef = useRef<Typeahead>({ text: '', time: 0 });
   const [active, setActive] = useState<string | null>(null);
   // Tab で止まる行を 1 つ決める（roving tabindex）。いまいる行、なければ最初の行
   useEffect(() => {
@@ -218,7 +270,7 @@ export function Tree({
     if (target) setActive(target.id);
   }, [active]);
   return (
-    <TreeContext value={{ depth: 0, slots, active, setActive, rootRef }}>
+    <TreeContext value={{ depth: 0, slots, active, setActive, rootRef, typeaheadRef }}>
       <ul
         ref={rootRef}
         role="tree"
@@ -293,7 +345,7 @@ export function TreeItem({
   const groupId = `${id}-group`;
   const [uncontrolled, setUncontrolled] = useState(defaultExpanded);
   if (!context) throw new Error('TreeItem は Tree の中に置いてください');
-  const { depth, slots, active, setActive, rootRef } = context;
+  const { depth, slots, active, setActive, rootRef, typeaheadRef } = context;
   const hasChildren = children != null && children !== false;
   const open = expanded ?? uncontrolled;
 
@@ -358,8 +410,18 @@ export function TreeItem({
           setOpen(!open);
         }
         break;
-      default:
+      default: {
+        // 型あたり: 文字を打つと、その文字で始まる行へ移る（原則15: キーボードの振る舞いは働きに従う）
+        // 修飾キーと、日本語などの変換中の入力は相手にしない
+        if (event.key.length !== 1 || event.altKey || event.ctrlKey || event.metaKey) break;
+        if (event.nativeEvent.isComposing) break;
+        const target = typeaheadTarget(rows, index, event.key, typeaheadRef.current);
+        if (target) {
+          event.preventDefault();
+          move(target);
+        }
         break;
+      }
     }
   };
 
@@ -403,7 +465,9 @@ export function TreeItem({
               {icon}
             </span>
           ) : null}
-          <span className={slots.label()}>{label}</span>
+          <span data-slot="tree-label" className={slots.label()}>
+            {label}
+          </span>
         </>
       ),
     },

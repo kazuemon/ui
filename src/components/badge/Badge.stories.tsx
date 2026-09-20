@@ -28,6 +28,7 @@ const meta = {
           '- `count` を渡すと数、渡さないと点になります。`max` を超える数は「99+」のように出します。',
           '- 点は色だけで意味を伝えないよう、隣に文字を置くか、`label` で読み上げの文を付けます。',
           '- `children` で相手を包むと、その右上の角に重ねます。重ねるときは Badge に `aria-hidden` を付け、相手の名前に数を含めます。',
+          '- 重ねる相手が Avatar のような丸い形のときは `overlap="circular"` にします。Badge の中心を相手の円周上（右上 45°）に置き、円からはみ出しません。既定（`square`）は四角い相手向けです。',
           '- 文字の横やボタンの中に置くときは、`label` で数の意味を読み上げます。',
         ].join('\n'),
       },
@@ -220,7 +221,7 @@ export const Overlay: Story = {
           <BellIcon />
         </Button>
       </Badge>
-      <Badge color="success" aria-hidden="true">
+      <Badge color="success" overlap="circular" aria-hidden="true">
         <Avatar />
       </Badge>
     </Row>
@@ -230,6 +231,34 @@ export const Overlay: Story = {
     await expect(canvas.getByRole('button', { name: '通知（未読 120 件）' })).toBeVisible();
     await expect(canvas.getByRole('button', { name: '通知（未読あり）' })).toBeVisible();
   },
+};
+
+export const OverlapShape: Story = {
+  tags: ['visual'],
+  name: '重ねる相手の形',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`overlap` は重ねる相手の形です。`square`（既定）は角から内側に置くので、丸い相手（Avatar）では円の外に浮きます。`circular` は中心を円周上（右上 45°）に置きます。',
+      },
+    },
+  },
+  render: () => (
+    <Row>
+      <Specimen label="square（既定）">
+        <Badge count={3} color="danger" aria-hidden="true">
+          <Avatar />
+        </Badge>
+      </Specimen>
+      <Specimen label="circular">
+        <Badge count={3} color="danger" overlap="circular" aria-hidden="true">
+          <Avatar />
+        </Badge>
+      </Specimen>
+    </Row>
+  ),
 };
 
 // Show code: label の関数が () => {} に省かれるので、写して使えるコードを source.code に手で書く

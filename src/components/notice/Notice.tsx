@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
+import { type ComponentProps, type ReactNode, useContext, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
@@ -8,6 +8,7 @@ import {
   type NoticeColor,
   noticeSurface,
 } from '../../internal/notice-surface/notice-surface';
+import { planFocusAfterClose } from './next-focus';
 import { NoticeRegionContext } from './notice-region-context';
 
 export type { NoticeAppearance, NoticeColor };
@@ -54,6 +55,9 @@ export interface NoticeProps extends Omit<
   /**
    * 渡すと右上に × を出す。読み上げの名前は `closeLabel`。× は role の箱の外に置く
    * （お知らせの領域 `NoticeRegion` の中では、お知らせ全体が領域の箱の中に入るので、× も箱の中になります）
+   *
+   * 押してお知らせが消えたときは、フォーカスをその次にあるフォーカスできるもの（なければ前のもの、
+   * それもなければ領域 `NoticeRegion` 自身）へ移します。消さなかったときは × に置いたままです
    */
   onClose?: () => void;
   /**
@@ -87,6 +91,7 @@ export function Notice({
   closeLabel = '閉じる',
   live = true,
   className,
+  ref,
   ...props
 }: NoticeProps) {
   const titleId = useId();
@@ -94,8 +99,27 @@ export function Notice({
   // 領域の中では、領域が先に置いた箱へ描く。live={false} は箱に入れない（その場に描く）
   const region = useContext(NoticeRegionContext);
   const inRegion = region !== null && live;
+  const rootRef = useRef<HTMLDivElement>(null);
+  // × を押したとき、フォーカスは × にある。お知らせが消えると body に落ちるので、次に触るものへ移す（原則15。next-focus.ts）
+  const close = () => {
+    const element = rootRef.current;
+    const active = element?.ownerDocument.activeElement;
+    const moveFocus =
+      element && active instanceof HTMLElement && element.contains(active)
+        ? planFocusAfterClose(element, region?.root)
+        : null;
+    onClose?.();
+    // 消えるのは呼び出し側なので、描き直したあとに見る
+    if (moveFocus) requestAnimationFrame(moveFocus);
+  };
+  const setRefs = (node: HTMLDivElement | null) => {
+    rootRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  };
   const element = (
     <div
+      ref={setRefs}
       data-slot="notice"
       data-color={color}
       data-appearance={appearance}
@@ -133,7 +157,7 @@ export function Notice({
           // 操作の名前を先にする: Tab で移ったとき、何をするボタンかが先に聞こえる。音声操作で「閉じる」と言ったときも名前の頭で当たる
           aria-label={closeLabel}
           aria-labelledby={title ? `${closeId} ${titleId}` : undefined}
-          onClick={onClose}
+          onClick={close}
           className={[
             // 大きさ（押せる範囲）は部品の高さ（--spacing-control。大きい指用で 52px — ADR-0050 の B）。角丸は部品と同じ
             // 1行目の中央にそろえ、上と右にはみ出させる

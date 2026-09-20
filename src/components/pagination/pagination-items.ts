@@ -51,3 +51,29 @@ export function paginationSlots(
     ...endPages,
   ];
 }
+
+/**
+ * 省略（…）が隠しているページを返す（省略をメニューにするとき — ellipsisMenu）
+ * @param slots paginationSlots の返り値
+ * @param index その省略の場所
+ * @param count ページの数
+ */
+export function ellipsisRange(slots: PaginationSlot[], index: number, count: number): number[] {
+  let start = 1;
+  for (let i = index - 1; i >= 0; i--) {
+    const slot = slots[i];
+    if (typeof slot === 'number') {
+      start = slot + 1;
+      break;
+    }
+  }
+  let end = count;
+  for (let i = index + 1; i < slots.length; i++) {
+    const slot = slots[i];
+    if (typeof slot === 'number') {
+      end = slot - 1;
+      break;
+    }
+  }
+  return range(start, end);
+}

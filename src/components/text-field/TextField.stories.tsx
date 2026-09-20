@@ -88,6 +88,8 @@ const meta = {
           '- `error` を渡すと、欄が赤い枠線になり、本体の下に丸の「!」と文を出します。`warning` は欄の見た目を変えず、三角と文を出します。どちらも出たときに読み上げで知らせます。',
           '- `prefix`・`suffix` に文字を渡すと、本体の端にグレーのラベルが付きます。ボタンは `FieldAddonButton` を渡します。suffix のボタンは、パスワードの表示のように入力欄そのものを操作するものに限り、検索のように値を送るボタンは欄の外に置きます。',
           '- 値を確かめているあいだは `loading` を付けます。',
+          '- 押せない欄（`disabled`）の文字は選べません。値を読んで写せるようにするときは `readOnly` を使います。読み取り専用の欄はフォーカスでき、値を選んで写せます。',
+          '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、`<input>` に required が付きます。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決め、フォーム全体は `Form`・`ThemeProvider` でそろえられます。',
           '- `placeholder` は、値と見分けられるよう「例: かずえもん」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
           '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<input>` に渡ります。',
         ].join('\n'),
@@ -179,6 +181,31 @@ export const States: Story = {
       renderCell={(row) => <TextField {...args} {...row.props} />}
     />
   ),
+};
+
+export const Selection: Story = {
+  name: '押せない欄と読み取り専用の欄',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '押せない欄（`disabled`）の文字は、なぞって選べません。値を読んで写せるようにするときは、読み取り専用（`readOnly`）の欄にします。読み取り専用の欄はフォーカスでき、値を選んで写せます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-4">
+      <TextField label="表示名" defaultValue="かずえもん" disabled />
+      <TextField label="ユーザー ID" defaultValue="kazuemon" readOnly />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const disabled = canvas.getByLabelText('表示名');
+    const readOnly = canvas.getByLabelText('ユーザー ID');
+    await expect(getComputedStyle(disabled).userSelect).toBe('none');
+    await expect(getComputedStyle(readOnly).userSelect).not.toBe('none');
+  },
 };
 
 export const Messages: Story = {

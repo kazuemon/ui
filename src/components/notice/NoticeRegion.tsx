@@ -26,18 +26,25 @@ export interface NoticeRegionProps extends Omit<ComponentProps<'div'>, 'role'> {
  * - ページを開いたときからあるお知らせは、領域に入れず、そのまま置きます（お知らせが自分で role の箱を出します）
  * - 中のお知らせは、危険（`danger`）は alert の箱、ほかは status の箱に描かれます。危険の箱が上に来ます
  * - 子には Notice を直接置きます。`live={false}` の Notice は箱に入らず、領域の中にそのまま描かれます
+ * - 中のお知らせを × で閉じると、フォーカスはその次にあるフォーカスできるものへ移ります。
+ *   なければ前のもの、それもなければ領域そのものです（Tab では止まりません）
  */
 export function NoticeRegion({ children, className, ...props }: NoticeRegionProps) {
   const [alert, setAlert] = useState<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<HTMLDivElement | null>(null);
-  const boxes = useMemo(() => ({ alert, status }), [alert, status]);
+  const [root, setRoot] = useState<HTMLDivElement | null>(null);
+  const boxes = useMemo(() => ({ alert, status, root }), [alert, status, root]);
   return (
     <div
+      ref={setRoot}
       data-slot="notice-region"
+      // × で閉じたあと、前にも後ろにもフォーカスできるものがないときの行き先（原則15）。Tab では止まらない
+      tabIndex={-1}
       {...props}
       className={[
         // 中身のある箱どうし（と領域にそのまま描いたもの）の間だけをあける
-        'flex flex-col [&>:not(:empty)~:not(:empty)]:mt-2',
+        // フォーカスの行き先にするだけなので、線は出さない
+        'flex flex-col outline-none [&>:not(:empty)~:not(:empty)]:mt-2',
         className,
       ]
         .filter(Boolean)

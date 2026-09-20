@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
-import { expect, fn, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { NumberField, type NumberFieldProps } from './NumberField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
@@ -40,7 +40,7 @@ const meta = {
           '- `stepper` で増減ボタンの置き方を選びます。`split`（既定）は左に −・右に ＋、`stacked` は右端に ▲▼ を縦に積み、`none` はボタンを置きません。',
           '- `min`・`max` に届くと、その向きのボタンが押せなくなります。`step` はボタンと ↑↓ キーの幅で、Shift を押すと `largeStep`、Alt を押すと `smallStep` で増減します。',
           '- `format` に `Intl.NumberFormat` のオプションを渡すと、フォーカスが外れたときに表示の形をそろえます。`locale` で地域を決めます。',
-          '- 全角の数字・「，」「．」・全角のマイナスも打てます。フォーカスが外れると半角の形に直ります。',
+          '- 全角の数字・「，」「．」・全角のマイナスも打てます。フォーカスが外れると半角の形に直ります。直したことを知らせたいときは `halfWidthNotice` を付けます。',
           '- `stepper="none"` では、ラベルを押したまま左右に動かしても増減できます（`scrub`）。フォーカス中のホイールでも増減します（`allowWheelScrub`）。',
           '- `prefix`・`suffix` は TextField と同じく文字かボタンを渡します。`split` では、文字は値のすぐ横に淡く置きます。',
         ].join('\n'),
@@ -313,6 +313,36 @@ export const FullWidth: Story = {
     await userEvent.tab();
     await expect(args.onValueChange).toHaveBeenLastCalledWith(-12.5, expect.anything());
     await expect(input).toHaveValue('-12.5');
+  },
+};
+
+export const FullWidthNotice: Story = {
+  name: '全角を直したことを知らせる',
+  args: { defaultValue: undefined, max: undefined, halfWidthNotice: true },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`halfWidthNotice` を付けると、全角を半角に直したときに、本体の下の情報の行で知らせます。文を渡すと、その文を出します。既定は知らせません。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('数量');
+    await userEvent.click(input);
+    await userEvent.keyboard('１２３');
+    await expect(canvas.getByText('全角の数字を半角に直しました')).toBeInTheDocument();
+    // 値を消すと知らせも消える（行は閉じる動きのあいだ残るので、見えなくなったことで確かめる）
+    await userEvent.clear(input);
+    await waitFor(() => expect(canvas.getByText('全角の数字を半角に直しました')).not.toBeVisible());
   },
 };
 

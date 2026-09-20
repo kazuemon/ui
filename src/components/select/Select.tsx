@@ -37,6 +37,7 @@ import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
 import { usePopupLayout } from './use-popup-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 
 export type { SelectColor } from './select-colors';
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -46,7 +47,7 @@ export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
 export type SelectPresentation = OverlayPresentation;
 
-export interface SelectProps {
+export interface SelectProps extends FieldMarkProps {
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。シートでは見出しのラベルの下にも出す */
   caption?: ReactNode;
@@ -79,6 +80,13 @@ export interface SelectProps {
   /** 情報の内容（「前回と同じ時間帯を選んでいます」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
   info?: ReactNode;
   disabled?: boolean;
+  /**
+   * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と一段淡い値の文字になります。
+   * フォーカスでき、値をなぞって写せます。読み上げでは「読み取り専用」と伝わります。
+   * 押しても選択肢は開かず、キーボードでも値は変わりません。フォームでは値が送られます（押せない欄は送られません）
+   * @default false
+   */
+  readOnly?: boolean;
   /**
    * 選んだ項目の印（面・文字・チェック）の色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（グレー）を選べます（原則6）。
    * hover とキーボードの選択は、色を指定していても入力欄と同じグレーです。指定しないときは既定のグレー（neutral）になります
@@ -214,6 +222,7 @@ export function Select({
   successMark = true,
   info,
   disabled,
+  readOnly,
   color = 'neutral',
   items,
   placeholder,
@@ -235,6 +244,9 @@ export function Select({
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   disabledIcon = 'show',
+  required,
+  requiredMark,
+  optionalMark,
   className,
   ...rootProps
 }: SelectProps) {
@@ -248,6 +260,11 @@ export function Select({
   const portalContainer = usePortalContainer(container);
   const formLock = useFormSubmittingLock();
   const blocking = loadingBlocking || formLock.blocking;
+  // 読み取り専用（軸 177）。見た目は文字を打つ欄の読み取り専用にそろえる（ADR-0170。本体に data-field-readonly を置き、
+  //   塗りなし・細い破線の輪郭・値は一段淡いグレー・フォーカスで破線が枠線に変わる）
+  //   Base UI の readOnly で値を固定し、aria-readonly で「読み取り専用」と伝える（aria-disabled は付けない）
+  //   フォーカスは外さず、値も送る。選択肢は開かない（値を選び直せないので、開いても読める以上のことができない）
+  const locked = blocking || !!readOnly;
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときは両方、エラー → 警告の順（design/adr/0041 の追記）
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
@@ -257,7 +274,7 @@ export function Select({
 
   // 開閉は部品の中でも持つ（シートの × とつまみで閉じるため）
   const [openState, setOpenState] = useState(defaultOpen);
-  const open = blocking ? false : (openProp ?? openState);
+  const open = locked ? false : (openProp ?? openState);
   // 選んだ・Esc・×・つまみで閉じたときは、フォーカスが本体に戻るまで、開いているときと同じ見た目を保つ（data-closing）
   // Base UI は閉じる動きが終わってからフォーカスを本体に戻すので、そのあいだ本体の青い枠線が一瞬消えていた
   // 外を押して閉じたときは、押した先にフォーカスが移るので保たない
@@ -282,7 +299,7 @@ export function Select({
   const drag = useSheetDrag({ sheetDetent, metrics, long, onClose: () => changeOpen(false) });
 
   const changeOpen = (next: boolean, reason?: string) => {
-    if (next && blocking) return;
+    if (next && locked) return;
     if (next) drag.reset();
     setOpenState(next);
     onOpenChange?.(next);
@@ -341,6 +358,9 @@ export function Select({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
     >
@@ -348,7 +368,8 @@ export function Select({
         <BaseSelect.Root
           items={items}
           disabled={disabled}
-          readOnly={blocking || undefined}
+          required={required}
+          readOnly={locked || undefined}
           open={open}
           onOpenChange={(next, details) => changeOpen(next, details.reason)}
           // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
@@ -371,13 +392,19 @@ export function Select({
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
             data-slot="control"
+            data-field-readonly={readOnly || undefined}
             data-closing={closing || undefined}
             onFocus={() => setClosing(false)}
             data-addon-shape={addonShape}
             className={controlBox({
               className: [
                 'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
-                blocking ? 'cursor-progress' : 'cursor-pointer',
+                // 読み取り専用は文字の欄と同じで、押せない欄の禁止の形にはしない。値はなぞって写せる
+                blocking
+                  ? 'cursor-progress'
+                  : readOnly
+                    ? 'cursor-default select-text'
+                    : 'cursor-pointer',
                 loading && 'relative',
                 'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
                 // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
@@ -410,10 +437,13 @@ export function Select({
             )}
             {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。disabledIcon="hide" で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
-              止めて読み込んでいるあいだは隠す */}
+              止めて読み込んでいるあいだは隠す
+              読み取り専用（軸 177）では残すが、押せない Select と同じ色まで淡くする。塗りのないアイコンは押せない意味の印（ADR-0190）で、
+              選ぶ欄だと分かる形を残しつつ、押せるようには見せない */}
             <BaseSelect.Icon
               className={[
-                'flex text-fg-muted group-data-disabled/field:text-fg-subtle',
+                'flex group-data-disabled/field:text-fg-subtle',
+                readOnly ? 'text-fg-subtle' : 'text-fg-muted',
                 'group-data-[loading=blocking]/field:text-fg-subtle',
                 (loadingBlocking || (disabled && disabledIcon === 'hide')) && 'hidden',
               ]

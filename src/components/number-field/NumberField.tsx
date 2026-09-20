@@ -6,6 +6,11 @@ import { SplitStepButton, StackedStepper, type StepperLabels } from './NumberFie
 import { FieldAddon } from '../field-addon/FieldAddon';
 import { Field } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
+import {
+  type HalfWidthNoticeProps,
+  halfWidthKind,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
@@ -14,7 +19,7 @@ export type NumberFieldStepper = 'stacked' | 'split' | 'none';
 
 type RootProps = BaseNumberField.Root.Props;
 
-export interface NumberFieldProps extends InputFieldProps {
+export interface NumberFieldProps extends InputFieldProps, HalfWidthNoticeProps {
   /** 値（制御する）。空のときは null */
   value?: number | null;
   /** はじめの値（制御しない） */
@@ -75,6 +80,10 @@ export interface NumberFieldProps extends InputFieldProps {
   allowOutOfRange?: boolean;
   name?: string;
   id?: string;
+  /**
+   * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * @default false
+   */
   required?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
@@ -128,12 +137,18 @@ export function NumberField({
   name,
   id,
   required,
+  requiredMark,
+  optionalMark,
   autoFocus,
+  halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
 }: NumberFieldProps) {
   const uid = useId();
+  // 全角を半角に直したことの知らせ（既定は知らせない）。直すのは Base UI（フォーカスが外れたときに半角の形になる）なので、
+  //   打った文字に全角の英数字が入っていたかだけを見る。値が空になったら知らせを消す
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
@@ -201,10 +216,13 @@ export function NumberField({
       error={error}
       warning={warning}
       success={success}
-      info={info}
+      info={info ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={[scrub && 'relative', className].filter(Boolean).join(' ') || undefined}
     >
       {(messageIds) => (
@@ -213,7 +231,11 @@ export function NumberField({
           name={name}
           value={value}
           defaultValue={defaultValue}
-          onValueChange={onValueChange}
+          onValueChange={(next, details) => {
+            // 値が空になったら、全角を直したことの知らせも消す
+            if (next === null) noticed(null, true);
+            onValueChange?.(next, details);
+          }}
           onValueCommitted={onValueCommitted}
           min={min}
           max={max}
@@ -269,6 +291,10 @@ export function NumberField({
                   aria-disabled={blocking || ariaDisabled}
                   aria-busy={loading || ariaBusy}
                   aria-describedby={describedBy}
+                  onChange={(event) => {
+                    const raw = event.currentTarget.value;
+                    noticed(halfWidthKind(raw), raw === '');
+                  }}
                   // 値の文字の幅はそろえる（桁がそろい、増減で文字が揺れない）
                   className={[
                     'h-full min-w-0 bg-transparent tabular-nums outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',

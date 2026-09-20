@@ -18,6 +18,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { Drawer } from '../drawer/Drawer';
+import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 import { usePortalContainer } from '../../internal/ui-config';
 
 export type PopoverPresentation = OverlayPresentation;
@@ -27,8 +28,17 @@ export type PopoverAlign = 'start' | 'center' | 'end';
 export interface PopoverProps {
   /** 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる */
   trigger: ReactElement;
-  /** 題。読み上げでは、開いた面の名前になる。シートでは見出しに出す */
-  title?: ReactNode;
+  /**
+   * 題。読み上げでは、開いた面の名前になる。シートでは見出しに出す
+   * 名前のない面は、読み上げで何の面か分からないので必ず渡す。画面に出したくないときは `titleHidden` を付ける
+   */
+  title: ReactNode;
+  /**
+   * 題を画面に出さず、読み上げにだけ届けるか。文だけを見せる面（「送料について」など）で使う。
+   * 浮かべる形でもシートでも同じで、読み上げの名前は題のままです
+   * @default false
+   */
+  titleHidden?: boolean;
   /** 題の下の説明。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
   /** 中身 */
@@ -74,6 +84,9 @@ export interface PopoverProps {
 /**
  * 押して開く、本体のそばに浮かぶ面。補足の説明や、小さな設定をその場で見せます。
  * ほかの操作は止めず、外を押すか Esc で閉じます
+ *
+ * 題（title）は必ず渡します。開いた面の読み上げの名前になります（原則15）。
+ * 画面に出したくないときは titleHidden を付けます。読み上げの名前は残ります
  */
 export function Popover({
   presentation,
@@ -92,11 +105,12 @@ export function Popover({
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   if (sheet) {
-    const { trigger, title, description, children } = props;
+    const { trigger, title, titleHidden, description, children } = props;
     return (
       <Drawer
         trigger={trigger}
-        title={title}
+        // 題を出さないときも、読み上げの名前は題のまま（見出しには見えない文字として置く）
+        title={titleHidden ? <VisuallyHidden>{title}</VisuallyHidden> : title}
         description={description}
         open={open}
         onOpenChange={changeOpen}
@@ -119,6 +133,7 @@ export function Popover({
 function FloatingPopover({
   trigger,
   title,
+  titleHidden = false,
   description,
   children,
   side = 'bottom',
@@ -134,7 +149,8 @@ function FloatingPopover({
 }) {
   const portalContainer = usePortalContainer(container);
   const { anchorRef, scope } = useDensityScope(open);
-  const heading = title != null || description != null;
+  // 見出しの分の間は、見えている題か説明があるときだけ空ける（見えない題は場所を取らない）
+  const heading = (title != null && !titleHidden) || description != null;
   return (
     <BasePopover.Root open={open} onOpenChange={changeOpen}>
       <BasePopover.Trigger ref={anchorRef} render={trigger} />
@@ -175,9 +191,10 @@ function FloatingPopover({
                   ].join(' ')}
                 />
               )}
-              {title != null && (
-                <BasePopover.Title className={sheetTitleClass}>{title}</BasePopover.Title>
-              )}
+              {/* 題は必ず出す（開いた面の読み上げの名前）。titleHidden では、読み上げにだけ届ける */}
+              <BasePopover.Title className={titleHidden ? 'sr-only' : sheetTitleClass}>
+                {title}
+              </BasePopover.Title>
               {description != null && (
                 <BasePopover.Description
                   className={[sheetDescriptionClass, title != null && 'mt-0.5']

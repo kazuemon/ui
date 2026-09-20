@@ -7,7 +7,7 @@ import { Link } from './Link';
 import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
-const appearances = ['text', 'outline', 'button'] as const;
+const appearances = ['text', 'outline', 'button', 'underline'] as const;
 const colors = ['primary', 'secondary', 'neutral'] as const;
 const aligns = ['center', 'between', 'center-end'] as const;
 const accounts = ['GitHub', 'Zenn', 'X（旧 Twitter）'];
@@ -32,8 +32,10 @@ const meta = {
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
           '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
+          '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`round`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
-          '- 見た目は Button と同じものを使うので、ボタンと並べてもずれません。ボタンと見分けられるよう、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
+          '- `underline` は塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目です。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
+          '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。ボタンと見分けられるよう、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -236,6 +238,60 @@ export const NewTab: Story = {
   },
 };
 
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const IconOnly: Story = {
+  tags: ['visual'],
+  name: 'アイコンだけのリンク',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '名前を `aria-label` で付け、子をアイコン 1 つだけにすると、アイコンだけのリンクになります。部品の高さの正方形で、左右の余白はアイコンだけのボタンと同じです。',
+          '',
+          '- 枠線のリンクの既定は丸（`shape="round"`）です。リンクであることを形でも見分けられます。`shape="square"` で部品の角の正方形にできます。',
+          '- ボタンの見た目のリンクと下線のリンクの既定は正方形（`shape="square"`）で、アイコンだけのボタンと同じです。`shape="round"` で丸にできます。下線は文字にだけ引くので、下線のリンクをアイコンだけにすると、下線も枠線もない形になります。',
+          '- アイコンだけのリンクには ↗ を付けません。`target="_blank"` のときは、名前の後ろに「（新しいタブで開きます）」が入ります。',
+          '- アイコンは単体の太い線（`standalone`）で置きます。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap items-center gap-3">
+      <Link appearance="outline" color="primary" aria-label="使い方" href="#guide">
+        <InfoIcon standalone />
+      </Link>
+      <Link appearance="outline" shape="square" color="primary" aria-label="使い方" href="#guide">
+        <InfoIcon standalone />
+      </Link>
+      <Link appearance="outline" aria-label="使い方" href="#guide" disabled>
+        <InfoIcon standalone />
+      </Link>
+      <Link appearance="button" color="primary" aria-label="使い方" href="#guide">
+        <InfoIcon standalone />
+      </Link>
+      <Link appearance="button" shape="round" color="primary" aria-label="使い方" href="#guide">
+        <InfoIcon standalone />
+      </Link>
+      <Link appearance="underline" color="primary" aria-label="使い方" href="#guide">
+        <InfoIcon standalone />
+      </Link>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const links = canvas.getAllByRole('link', { name: '使い方' });
+    await expect(links).toHaveLength(6);
+    for (const link of links) {
+      // 部品の高さの正方形（指用でも 54×44px の横長にならない）
+      const box = link.getBoundingClientRect();
+      await expect(Math.round(box.width)).toBe(Math.round(box.height));
+      // アイコンは 1 つだけ（↗ を足さない）
+      await expect(link.querySelectorAll('svg')).toHaveLength(1);
+    }
+  },
+};
+
 export const Disabled: Story = {
   name: '押せない',
   parameters: {
@@ -306,16 +362,22 @@ export const States: Story = {
       rows={appearances.flatMap((appearance) => colors.map((color) => ({ appearance, color })))}
       rowLabel={({ appearance, color }) => `${appearance} / ${color}`}
       columns={pressColumns}
-      renderCell={({ appearance, color }, { disabled }) =>
-        appearance === 'outline' ? (
-          <Link {...args} appearance="outline" color={color} disabled={disabled}>
-            More
-            <CaretRightIcon />
-          </Link>
-        ) : (
-          <Link {...args} appearance="text" color={color} disabled={disabled} />
-        )
-      }
+      renderCell={({ appearance, color }, { disabled }) => {
+        if (appearance === 'outline')
+          return (
+            <Link {...args} appearance="outline" color={color} disabled={disabled}>
+              More
+              <CaretRightIcon />
+            </Link>
+          );
+        if (appearance === 'button' || appearance === 'underline')
+          return (
+            <Link {...args} appearance={appearance} color={color} disabled={disabled}>
+              作品を見る
+            </Link>
+          );
+        return <Link {...args} appearance="text" color={color} disabled={disabled} />;
+      }}
     />
   ),
 };
@@ -365,6 +427,61 @@ export const ButtonLook: Story = {
       </Link>
     </div>
   ),
+};
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const UnderlineLook: Story = {
+  name: '下線のリンク',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '`appearance="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目のリンクです。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
+          '',
+          '- 寸法・左右の余白・角丸は枠線のボタンと同じで、押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出ます。',
+          '- 最後に右上向きの矢印（↗）が付き、同じ見た目のボタンと見分けられます。',
+          '- 文章の中に置くリンクは、これではなく文字のリンク（`text`）を使います。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-md flex-col gap-4">
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-base font-bold text-fg">2026 年の作品</h3>
+        <div className="-me-(--spacing-control-x) flex shrink-0">
+          <Link appearance="underline" href="#works">
+            一覧
+          </Link>
+          <Link appearance="underline" color="primary" href="#works">
+            くわしく
+          </Link>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link appearance="underline" color="primary" href="https://example.com" target="_blank">
+          外部のサイト
+        </Link>
+        <Link appearance="underline" color="secondary" href="#works">
+          プロフィール
+        </Link>
+        <Link appearance="underline" href="#works" disabled>
+          公開前
+        </Link>
+      </div>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 下線のリンクにも ↗ が付き、同じ見た目のボタンと見分けられる
+    const link = canvas.getByRole('link', { name: '一覧' });
+    await expect(link.querySelectorAll('svg')).toHaveLength(1);
+    await expect(getComputedStyle(link).textDecorationLine).toBe('underline');
+    // 押せないリンクは、押せないグレーのボタンと同じで下線が外れる
+    const off = canvas.getByRole('link', { name: '公開前' });
+    await expect(off).toHaveAttribute('aria-disabled', 'true');
+    await expect(getComputedStyle(off).textDecorationLine).toBe('none');
+  },
 };
 
 export const RenderElement: Story = {

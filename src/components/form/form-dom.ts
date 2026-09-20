@@ -22,6 +22,16 @@ export const entryText = ({ label, text }: ErrorEntry) => (label ? `${label}: ${
 const controlOf = (form: HTMLFormElement, messageId: string) =>
   form.querySelector<HTMLElement>(`[aria-describedby~="${CSS.escape(messageId)}"]`);
 
+// 欄の名前（ラベルの文字）。ラベルの中の印（必須・任意）は読み上げから外しているので、一覧の名前からも外す
+// 写しから印を消して読む（印が入れ子でも消える）
+function labelTextOf(label: Element | null | undefined) {
+  if (!label) return '';
+  const copy = label.cloneNode(true);
+  if (!(copy instanceof Element)) return '';
+  for (const mark of copy.querySelectorAll('[data-slot="field-mark"]')) mark.remove();
+  return (copy.textContent ?? '').trim();
+}
+
 // 開いているエラーの行（Field の data-slot="field-message"）を、見た目の順（DOM の順）に集める
 // 警告は送信を止めないので入れない（エラーと警告が両方ある欄も、エラーの行だけ）
 // 欄の名前は、同じ欄（行の箱の親）のラベル（data-slot="field-label"）の文字
@@ -37,7 +47,7 @@ export function collectErrors(form: HTMLFormElement): ErrorEntry[] {
     entries.push({
       messageId: line.id,
       controlId: control.id,
-      label: (label?.textContent ?? '').trim(),
+      label: labelTextOf(label),
       text: (line.textContent ?? '').trim(),
     });
   }

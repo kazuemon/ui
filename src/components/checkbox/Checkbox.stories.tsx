@@ -22,11 +22,13 @@ const meta = {
         component: [
           'チェックボックスです。箱と横の文字（とキャプション）を並べます。横の文字を押しても切り替わります。',
           '',
-          '- 1つだけ置くとき（同意など）はそのまま置きます。`error`・`warning` を渡すと、箱の行の下に入力欄と同じ行で出します。`required` で必須にできます。',
+          '- 1つだけ置くとき（同意など）はそのまま置きます。`error`・`warning` を渡すと、箱の行の下に入力欄と同じ行で出します。`required` で必須にすると、横の文字の後ろに印（既定は「必須」のタグ）が出て、箱に aria-required が付きます。印は読み上げから外れます。',
           '- 複数を1つの問いにまとめるときは、`CheckboxGroup` の中に `value` 付きで置きます。エラー・警告はグループに渡します。',
           '- 「すべて選ぶ」の箱は、`CheckboxGroup` の `selectAll` と `allValues` で付けます。選んだ数に合わせて、箱が自分で選んだ状態・中間の状態に切り替わります。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。選んでいない箱は、色にかかわらず入力欄と同じグレーです。',
           '- グループの必須は、`caption` の文で書きます。',
+          '- `readOnly` にすると、箱が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
+          '- グループを `required` にすると見出しに印は出ますが、`role="group"` には aria-required を付けられません。必須であることは `caption` の文でも書きます。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -38,6 +40,7 @@ const meta = {
     label: 'メールで受け取る',
     color: 'neutral',
     disabled: false,
+    readOnly: false,
     required: false,
     defaultChecked: false,
     onCheckedChange: fn(),
@@ -53,6 +56,7 @@ const meta = {
       table: { defaultValue: { summary: "'neutral'" } },
     },
     disabled: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     required: { control: 'boolean' },
     defaultChecked: { control: 'boolean' },
     checked: { control: false },
@@ -180,7 +184,7 @@ export const Consent: Story = {
     docs: {
       description: {
         story:
-          '同意のように1つだけ置く箱は、`required` で必須にし（読み上げで必須と伝わります）、`error` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。「登録する」を押して確かめてください。',
+          '同意のように1つだけ置く箱は、`required` で必須にし（横の文字の後ろに印が出て、箱に aria-required が付きます）、`error` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。「登録する」を押して確かめてください。',
       },
       source: sourceCode(`
         function ConsentForm() {
@@ -251,6 +255,47 @@ export const Messages: Story = {
       <Checkbox label="お知らせのメールを受け取る" defaultChecked warning="週に数回届きます" />
     </div>
   ),
+};
+
+export const ReadOnly: Story = {
+  tags: ['visual'],
+  name: '読み取り専用',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`readOnly` の箱は、押せない箱と同じ見た目になります。横の文字は読むための文字なので、本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも値は変わりませんが、フォームでは値が送られます（押せない箱は送られません）。グループごと読み取り専用にするときは、`CheckboxGroup` に `readOnly` を渡します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-5">
+      <Checkbox label="お知らせのメールを受け取る" defaultChecked readOnly />
+      <CheckboxGroup label="連絡の方法" readOnly defaultValue={['mail']}>
+        <Checkbox value="mail" label="メール" />
+        <Checkbox value="tel" label="電話" caption="平日の 10 時から 18 時" />
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: 'お知らせのメールを受け取る' });
+    // 読み上げは「読み取り専用」。押せない（aria-disabled）とは伝えない
+    await expect(box).toHaveAttribute('aria-readonly', 'true');
+    await expect(box).not.toHaveAttribute('aria-disabled');
+    // 押しても値は変わらない
+    await userEvent.click(box);
+    await expect(box).toHaveAttribute('aria-checked', 'true');
+    // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
+    box.focus();
+    await expect(box).toHaveFocus();
+    box.blur();
+    // グループの readOnly は中の箱に伝わる
+    await expect(canvas.getByRole('checkbox', { name: '電話' })).toHaveAttribute(
+      'aria-readonly',
+      'true'
+    );
+  },
 };
 
 export const Densities: Story = {

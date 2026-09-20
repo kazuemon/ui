@@ -3,9 +3,28 @@ import { type ReactElement, type ReactNode, useEffect, useRef, useState } from '
 
 import { useDensityScope } from '../../internal/density-scope';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
+import { tv } from '../../internal/tv';
 import { usePortalContainer } from '../../internal/ui-config';
 
 export type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
+
+// 面はほかの浮かぶ面と同じ白に細い輪郭（原則1）。角は浮かぶ面なので部品の角（原則5）— ADR-0106
+// 小さいので影は小さく淡い（--shadow-tooltip）。文字は部品のキャプションと同じ大きさ
+// className は tv でまとめる（面の色だけを差し替えられるようにする。生の文字列で並べると、後ろに置いても打ち消せない）
+const tooltipPopup = tv({
+  base: [
+    'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
+    popupMotionClass,
+    'max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption) [box-shadow:var(--shadow-tooltip)]',
+  ],
+  variants: {
+    shadow: {
+      true: '',
+      false: '[--shadow-tooltip:none]',
+    },
+  },
+  defaultVariants: { shadow: true },
+});
 
 export interface TooltipProps {
   /** 出す文。短い補足だけを書く。欠かせない情報は Tooltip に置かず、Popover で見せる */
@@ -162,19 +181,7 @@ export function Tooltip({
           className={['z-10', scope.large && 'coarse-large'].filter(Boolean).join(' ')}
         >
           {/* 面は浮かぶ面と同じ白・細い輪郭（原則1）。小さいので影は小さく淡い（--shadow-tooltip）。文字は部品のキャプションと同じ大きさ */}
-          <BaseTooltip.Popup
-            data-slot="tooltip"
-            className={[
-              // 面はほかの浮かぶ面と同じ白に細い輪郭（原則1）。角は浮かぶ面なので部品の角（原則5）— ADR-0106
-              'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
-              popupMotionClass,
-              !shadow && '[--shadow-tooltip:none]',
-              '[box-shadow:var(--shadow-tooltip)] max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption)',
-              className,
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
+          <BaseTooltip.Popup data-slot="tooltip" className={tooltipPopup({ shadow, className })}>
             {content}
           </BaseTooltip.Popup>
         </BaseTooltip.Positioner>

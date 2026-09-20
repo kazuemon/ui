@@ -1,6 +1,7 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { type ReactNode, useContext, useId, useState } from 'react';
 
+import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useFormSubmittingLock } from '../form-context';
 import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
@@ -161,7 +162,7 @@ export function FieldMessageLine({
   );
 }
 
-export interface FieldProps {
+export interface FieldProps extends FieldMarkProps {
   /** 本体の上に置く太字のラベル */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。省略してもレイアウトは崩れない */
@@ -198,6 +199,13 @@ export interface FieldProps {
   children: ReactNode | ((describedBy: string | undefined) => ReactNode);
   /** ラベルを <label> で描くか。Select のように本体がボタンの部品では false にする */
   nativeLabel?: boolean;
+  /**
+   * キャプションを Base UI の説明（Field.Description）として登録するか（既定は true）
+   * false では素の p で描き、id は children に渡す describedBy だけでつなぐ
+   * 中に選択肢（Field.Item）を並べるグループ（RadioGroup・CheckboxGroup）では false にする。
+   * 登録すると、グループの説明が選択肢1つずつの aria-describedby にも入り、同じ文が繰り返し読まれる（原則15: 見えている文字を、二度読ませない）
+   */
+  registerCaption?: boolean;
 }
 
 /**
@@ -218,9 +226,13 @@ export function Field({
   disabled,
   loading,
   loadingBehavior = 'non-blocking',
+  required,
+  requiredMark,
+  optionalMark,
   className,
   children,
   nativeLabel = true,
+  registerCaption = true,
 }: FieldProps) {
   const styles = fieldStyles();
   const id = useId();
@@ -234,10 +246,18 @@ export function Field({
   };
   const messages: Record<MessageKind, ReactNode> = { error, warning, success, info };
   const kinds = Object.keys(messages) as MessageKind[];
+  // グループ（registerCaption=false）では、Base UI に説明として登録しない。
+  // 登録すると Field.Item（中の選択肢）にも伝わり、グループの説明が1つずつの選択肢でも読まれる（原則15）
   const captionNode = caption ? (
-    <BaseField.Description id={captionId} className={styles.caption()}>
-      {caption}
-    </BaseField.Description>
+    registerCaption ? (
+      <BaseField.Description id={captionId} className={styles.caption()}>
+        {caption}
+      </BaseField.Description>
+    ) : (
+      <p id={captionId} className={styles.caption()}>
+        {caption}
+      </p>
+    )
   ) : null;
   // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
   const describedBy =
@@ -255,7 +275,8 @@ export function Field({
       data-success={success && !error ? '' : undefined}
       className={styles.root({ className })}
     >
-      {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記） */}
+      {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
+          印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる */}
       <BaseField.Label
         data-slot="field-label"
         className={styles.label()}
@@ -263,6 +284,7 @@ export function Field({
         render={nativeLabel ? undefined : <div />}
       >
         {label}
+        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
       {captionPlacement === 'top' && captionNode}
       {typeof children === 'function' ? children(describedBy) : children}

@@ -1,8 +1,14 @@
 import { OTPField } from '@base-ui/react/otp-field';
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type ReactNode, useRef } from 'react';
 
 import { Field, FieldSpinner, FieldSuccessMark } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
+import {
+  type HalfWidthKind,
+  type HalfWidthNoticeProps,
+  toHalfWidth,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
@@ -14,13 +20,6 @@ const rejected: Record<Exclude<PinFieldValidationType, 'none'>, RegExp> = {
   alpha: /[^a-zA-Z]/g,
   alphanumeric: /[^a-zA-Z0-9]/g,
 };
-
-// 全角の英数字（０-９・Ａ-Ｚ・ａ-ｚ）を半角に直す。日本語入力のまま打った数字も受け取る
-function toHalfWidth(value: string) {
-  return value.replace(/[０-９Ａ-Ｚａ-ｚ]/g, (char) =>
-    String.fromCharCode(char.charCodeAt(0) - 0xfee0)
-  );
-}
 
 // 箱 1 つずつは、文字を打つ欄の本体（controlBox）と同じ規則（原則2・8・13）
 //   グレーの塗り・枠線なし、フォーカスの箱だけ枠線、エラーは赤い枠線と淡い赤の塗り、押せない・読み取り専用・送信中も同じ
@@ -40,19 +39,24 @@ const emptyDotClass = {
 };
 const emptyDotFocusClass = 'not-data-filled:focus-within:bg-none';
 
-export interface PinFieldProps extends Pick<
-  InputFieldProps,
-  | 'label'
-  | 'caption'
-  | 'captionPlacement'
-  | 'error'
-  | 'warning'
-  | 'success'
-  | 'successMark'
-  | 'info'
-  | 'className'
-  | 'loadingBehavior'
-> {
+export interface PinFieldProps
+  extends
+    Pick<
+      InputFieldProps,
+      | 'label'
+      | 'caption'
+      | 'captionPlacement'
+      | 'error'
+      | 'warning'
+      | 'success'
+      | 'successMark'
+      | 'info'
+      | 'className'
+      | 'loadingBehavior'
+      | 'requiredMark'
+      | 'optionalMark'
+    >,
+    HalfWidthNoticeProps {
   /**
    * 待っている（コードを確かめている・送っているなど）。箱の列の右に回る円を出し、aria-busy を付けます
    * @default false
@@ -114,7 +118,10 @@ export interface PinFieldProps extends Pick<
   name?: string;
   /** 関連づける form の id */
   form?: string;
-  /** 送る前に入力を求める */
+  /**
+   * 必須にします。箱の列に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * @default false
+   */
   required?: boolean;
   /** 1 桁目の input の id。2 桁目からは `{id}-2` のように続きます */
   id?: string;
@@ -186,17 +193,27 @@ export function PinField({
   emptyDots = false,
   disabled,
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   onValueChange,
   onValueComplete,
   slotLabel = defaultSlotLabel,
+  halfWidthNotice = false,
   ...props
 }: PinFieldProps) {
   // Form の送信中・blocking の待ちは、TextField と同じく押せない欄の見た目にし、書き換えを止める。フォーカスは外さない
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  // 全角を半角に直したことの知らせ（既定は知らせない）。値を直す normalizeValue は描くときにも呼ばれるので、
+  //   ここでは種類を覚えるだけにして、値が変わったとき（onValueChange）に知らせる
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+  const pending = useRef<HalfWidthKind | null>(null);
   // 文字の種類は部品の側で絞る。Base UI の numeric は全角の数字を直す前に捨ててしまうため
   const normalize = (value: string) => {
-    const converted = normalizeValue ? normalizeValue(toHalfWidth(value)) : toHalfWidth(value);
+    const half = toHalfWidth(value);
+    if (half.converted) pending.current = half.converted;
+    const converted = normalizeValue ? normalizeValue(half.value) : half.value;
     return validationType === 'none' ? converted : converted.replace(rejected[validationType], '');
   };
   // 区切りごとの桁の範囲（何桁目から、何桁）
@@ -212,10 +229,13 @@ export function PinField({
       error={error}
       warning={warning}
       success={success}
-      info={info}
+      info={info ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
     >
       {(messageIds) => (
@@ -229,11 +249,16 @@ export function PinField({
             validationType="none"
             inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
             normalizeValue={normalize}
+            required={required}
             disabled={disabled}
             readOnly={blocking || readOnly}
             aria-describedby={messageIds}
             aria-busy={loading || undefined}
-            onValueChange={onValueChange && ((value) => onValueChange(value))}
+            onValueChange={(value) => {
+              noticed(pending.current, value === '');
+              pending.current = null;
+              onValueChange?.(value);
+            }}
             onValueComplete={onValueComplete && ((value) => onValueComplete(value))}
             className="flex min-w-0 items-center gap-(--pin-field-group-gap)"
           >

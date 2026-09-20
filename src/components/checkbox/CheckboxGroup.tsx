@@ -9,6 +9,7 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { tv } from '../../internal/tv';
 import { CheckboxBase } from './Checkbox';
 
@@ -91,12 +92,21 @@ export type CheckboxGroupProps = Omit<
   ComponentProps<typeof BaseCheckboxGroup>,
   'className' | 'render' | 'color' | 'allValues' | 'aria-required'
 > &
-  SelectAllProps & {
+  SelectAllProps &
+  FieldMarkProps & {
     /** グループの見出し（太字）。グループ（role="group"）の名前になります */
     label: ReactNode;
     /**
+     * 必須にします。見出しの後ろに印（既定は「必須」のタグ）を出します。
+     * グループ（role="group"）には aria-required を付けられず、印は読み上げから外れるので、
+     * 必須であることは caption の文でも伝えます（「1つ以上選んでください」など）
+     * @default false
+     */
+    required?: boolean;
+    /**
      * 見出しの補足（ヘルプテキスト）。エラー・警告のあいだも消えません。
-     * 必須のグループは、ここに文で書きます（「1つ以上選んでください」など）。role="group" には aria-required を付けられないためです
+     * 必須のグループは、ここに文でも書きます（「1つ以上選んでください」など）。
+     * required を渡すと見出しに印は出ますが、role="group" には aria-required を付けられず、印は読み上げから外れるためです
      */
     caption?: ReactNode;
     /**
@@ -108,6 +118,14 @@ export type CheckboxGroupProps = Omit<
     error?: ReactNode;
     /** 警告の内容。選択肢の下に三角とオリーブ色の文字で出します。箱の見た目は変えません */
     warning?: ReactNode;
+    /**
+     * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
+     * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
+     * 押してもキーボードでも値は変わりません。フォームでは値が送られます。
+     * 選択肢ごとの `readOnly` で上書きできます
+     * @default false
+     */
+    readOnly?: boolean;
     /**
      * 中の選択肢の色。選択肢ごとの color で上書きできます
      * @default 'neutral'
@@ -122,7 +140,7 @@ export type CheckboxGroupProps = Omit<
  * 中には Checkbox を value 付きで置きます。選んだ value の並びが value（defaultValue）です
  * 「すべて選ぶ」の箱は selectAll と allValues で付けます。selectAllFrame で、グループを枠で囲めます
  * エラー・警告の行と読み上げは入力欄と同じ（design/adr/0041・0044）。行はグループの説明（aria-describedby）につなぐ
- * 必須は caption の文で書きます（グループには aria-required を付けられません）
+ * required は見出しに印を出すだけ（グループには aria-required を付けられない）。必須であることは caption の文でも書きます
  */
 export function CheckboxGroup({
   label,
@@ -131,16 +149,21 @@ export function CheckboxGroup({
   error,
   warning,
   disabled,
+  readOnly,
   color,
   className,
   children,
   selectAll,
   allValues,
   selectAllFrame = 'none',
+  required,
+  requiredMark,
+  optionalMark,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupProps) {
-  const context = useMemo(() => ({ color }), [color]);
+  // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
+  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
   const withSelectAll = selectAll !== undefined && selectAll !== null;
   return (
     <ChoiceGroupContext.Provider value={context}>
@@ -151,10 +174,15 @@ export function CheckboxGroup({
         error={error}
         warning={warning}
         disabled={disabled}
+        required={required}
+        requiredMark={requiredMark}
+        optionalMark={optionalMark}
         className={[...choiceGroupMessagePull(captionPlacement), className]
           .filter(Boolean)
           .join(' ')}
         nativeLabel={false}
+        // グループのキャプションは、グループにだけ付ける。中のチェックボックス1つずつの説明には入れない（原則15）
+        registerCaption={false}
       >
         {(describedBy) => (
           <BaseCheckboxGroup

@@ -3,6 +3,7 @@ import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import { focusRing } from '../../internal/focus-styles';
 import { useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
@@ -62,6 +63,14 @@ const rowCaption =
 //   トラックは1行の margin を付けたまま中央にそろえるので、キャプションがなければ囲みなしと同じ位置
 const rowTrack = 'row-[1/-1] self-center';
 const rowLine = 'border-line';
+
+// 読み取り専用（軸 177）の上書き。トラックとノブは押せないときと同じ見た目のまま、ラベルだけ本文の色に戻す
+//   ラベルは読むための文字なので薄くしません（原則13）。カーソルも、押せないときの禁止の形にはしません
+const switchReadOnly = {
+  root: 'data-disabled:cursor-default',
+  label: 'group-data-disabled/field:cursor-default group-data-disabled/field:text-fg',
+  track: 'data-disabled:cursor-default',
+};
 
 // 1行の高さ（部品の高さ。frame があるときは線の内側）から、中身の高さを引いた上下の余白
 //   Tailwind がクラスを拾えるよう、ラベルとトラックの分を文字列のまま書く
@@ -212,7 +221,8 @@ const styles = tv({
 export interface SwitchProps
   extends
     Omit<ComponentProps<typeof BaseSwitch.Root>, 'className' | 'render' | 'color'>,
-    VariantProps<typeof styles> {
+    VariantProps<typeof styles>,
+    FieldMarkProps {
   label: ReactNode;
   caption?: ReactNode;
   className?: string;
@@ -250,6 +260,13 @@ export interface SwitchProps
    * @default 'plain'
    */
   captionAppearance?: SwitchCaptionAppearance;
+  /**
+   * 読み取り専用にします。トラックとノブは押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
+   * フォーカスでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも切り替わらず、hover や押したときの変化も出ません。
+   * フォームでは値が送られます（押せないトグルは送られません）
+   * @default false
+   */
+  readOnly?: boolean;
 }
 
 /** 行の形。Switch の frame */
@@ -271,13 +288,16 @@ export function Switch({
   frame = 'none',
   captionAppearance = 'plain',
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   'aria-disabled': ariaDisabled,
   ...props
 }: SwitchProps) {
   const s = styles({ color, togglePlacement, frame, captionAppearance });
-  // Form の送信中は、押せないトグルと同じ見た目にして切り替えを止める（Checkbox.tsx の useChoiceLock）
+  // Form の送信中と読み取り専用（軸 177）は、押せないトグルと同じ見た目にして切り替えを止める（Checkbox.tsx の useChoiceLock）
   //   ラベル・行の塗り（root）とノブも押せないときの規則で描くので、root・トラック・ノブの3つに印を付ける
-  const locked = useChoiceLock(disabled);
+  const locked = useChoiceLock(disabled, readOnly);
   // 行を明示する（キャプションがあれば2行）。囲みのあるトラックの row-[1/-1] の -1 は明示した行の最後の線を指すので、
   // 行を明示しないと 1 / -1（まとまりの中央）が 1行目だけになる
   const rows = caption ? 'grid-rows-[auto_auto]' : 'grid-rows-[auto]';
@@ -286,16 +306,24 @@ export function Switch({
       disabled={disabled}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
       data-switch-frame={frame === 'none' ? undefined : frame}
-      className={s.root({ className: [rows, className] })}
+      className={s.root({
+        className: [rows, locked.readOnlyLook && switchReadOnly.root, className],
+      })}
       {...locked.data}
     >
-      <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+      <BaseField.Label
+        className={s.label({ className: locked.readOnlyLook ? switchReadOnly.label : undefined })}
+      >
+        {label}
+        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
+      </BaseField.Label>
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
       <BaseSwitch.Root
-        className={s.track()}
+        className={s.track({ className: locked.readOnlyLook ? switchReadOnly.track : undefined })}
         disabled={disabled}
-        readOnly={locked.readOnly || readOnly}
-        aria-disabled={locked.readOnly || ariaDisabled}
+        required={required}
+        readOnly={locked.readOnly}
+        aria-disabled={locked.ariaDisabled || ariaDisabled}
         {...locked.data}
         {...props}
       >

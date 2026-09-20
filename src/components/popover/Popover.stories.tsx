@@ -22,7 +22,7 @@ const meta = {
           '押して開く、本体のそばに浮かぶ面です。補足の説明や、小さな設定をその場で見せます。ほかの操作は止めず、外を押すか Esc で閉じます。',
           '',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
-          '- `title`・`description` は省けます。渡すと、読み上げで開いた面の名前と説明になります。',
+          '- `title` は必ず渡します。開いた面の読み上げの名前になります。題を画面に出したくないときは `titleHidden` を付けます（読み上げの名前は残ります）。`description` は省けます。',
           '- `side`・`align` で出す場所を選びます。画面の端に当たるときは反対側に出します。どこから開いたかをはっきりさせたいときは `arrow` で本体を指す矢印を付けます。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。',
           '- マウスを載せるだけで出す短い補足は、Tooltip を使います。',
@@ -33,6 +33,7 @@ const meta = {
   args: {
     trigger: <Button appearance="outline">表示</Button>,
     title: '表示の設定',
+    titleHidden: false,
     description: 'この端末だけに保存されます。',
     side: 'bottom',
     align: 'center',
@@ -41,6 +42,7 @@ const meta = {
   },
   argTypes: {
     title: { control: 'text' },
+    titleHidden: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     description: { control: 'text' },
     side: {
       control: 'inline-radio',
@@ -127,13 +129,18 @@ export const Open: Story = {
 export const TextOnly: Story = {
   tags: ['visual'],
   name: '文だけ',
-  args: { title: undefined, description: undefined, presentation: 'popover' },
+  args: {
+    title: '送料について',
+    titleHidden: true,
+    description: undefined,
+    presentation: 'popover',
+  },
   parameters: {
-    controls: { include: ['presentation', 'title', 'description', 'side', 'align'] },
+    controls: { include: ['presentation', 'title', 'titleHidden', 'description', 'side', 'align'] },
     docs: {
       description: {
         story:
-          '題を省いて、文だけを見せる形です。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。シートで出すと、見出しには閉じる × だけが並びます。',
+          '題を画面に出さず（`titleHidden`）、文だけを見せる形です。読み上げの名前は題のままです。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。シートで出すと、見出しには閉じる × だけが並びます。',
       },
     },
   },
@@ -155,6 +162,12 @@ export const TextOnly: Story = {
         {(frame) => <div className="flex w-full justify-center pt-4">{popover(frame)}</div>}
       </ScreenFrame>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    // 題は見えないが、開いた面の読み上げの名前は題のまま
+    const popover = await body.findByRole('dialog', { name: '送料について' });
+    await expect(within(popover).getByText('送料について')).toHaveClass('sr-only');
   },
 };
 

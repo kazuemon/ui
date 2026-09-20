@@ -50,19 +50,52 @@ const RELATIVE_UNITS: [unit: Intl.RelativeTimeFormatUnit, seconds: number, limit
   ['year', 60 * 60 * 24 * 365, Number.POSITIVE_INFINITY],
 ];
 
-/** 「3 日前」「昨日」「今」のように、now からの隔たりを書く */
-export function formatRelative(date: Date, now: number, locale: string): string {
+/** timeZone の暦で見た、年・月・日 */
+function calendarYMD(date: Date, timeZone: string): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  return { year: get('year'), month: get('month'), day: get('day') };
+}
+
+/**
+ * timeZone の暦で、date が now から何日・何か月・何年へだたっているか
+ * 「昨日」「今月」などの言い回しの境界（0 の扱い）は、この暦の日付が変わったかどうかで決まる
+ */
+function calendarDiff(date: Date, now: number, timeZone: string) {
+  const a = calendarYMD(date, timeZone);
+  const b = calendarYMD(new Date(now), timeZone);
+  const days = Math.round(
+    (Date.UTC(a.year, a.month - 1, a.day) - Date.UTC(b.year, b.month - 1, b.day)) / 86_400_000
+  );
+  const months = (a.year - b.year) * 12 + (a.month - b.month);
+  return { days, months, years: a.year - b.year };
+}
+
+/**
+ * 「3 日前」「昨日」「今」のように、now からの隔たりを書く
+ * 秒・分・時間は経った時間そのもの、日・か月・年は timeZone の暦の差（「昨日」「今月」などの境界がその暦の日付替わりになる）
+ */
+export function formatRelative(date: Date, now: number, locale: string, timeZone: string): string {
   const diff = (date.getTime() - now) / 1000;
   const abs = Math.abs(diff);
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const calendar = calendarDiff(date, now, timeZone);
   for (const [unit, seconds, limit] of RELATIVE_UNITS) {
     if (abs < limit) {
       // 45 秒に満たないときは「今」にする
       if (unit === 'second') return rtf.format(0, 'second');
-      return rtf.format(Math.round(diff / seconds), unit);
+      if (unit === 'minute' || unit === 'hour') return rtf.format(Math.round(diff / seconds), unit);
+      if (unit === 'day') return rtf.format(calendar.days, 'day');
+      if (unit === 'month') return rtf.format(calendar.months, 'month');
+      return rtf.format(calendar.years, 'year');
     }
   }
-  return rtf.format(Math.round(diff / (60 * 60 * 24 * 365)), 'year');
+  return rtf.format(calendar.years, 'year');
 }
 
 /** 日付だけの値は UTC で、それ以外は timeZone で書く */
