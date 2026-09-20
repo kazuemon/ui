@@ -1,7 +1,7 @@
 import { type ComponentProps, type ReactNode, useId, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
-import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
+import { CopiedStatus, CopyErrorTooltip, CopyGlyph } from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { tv } from '../../internal/tv';
@@ -20,6 +20,7 @@ import { useScrollTabStops } from '../../internal/use-scrollable';
 // 題の帯とコピーのボタン（67 の A）: 帯は 52px で、下の線はその外に引く（ボタンが線に重ならない）
 //   ボタンは指で押せる 44px（原則11）で、帯の上・下・右に 4px 空ける。帯の中では塗らない
 //   題がないときは右上から 4px に浮かせ、下のコードを面の色で隠し、白いボタンと同じ細い輪郭を付ける
+//   写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CopyButton の吹き出しと同じ面）
 const codeBlock = tv({
   slots: {
     root: [
@@ -145,6 +146,11 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
    * @default 'コピーしました'
    */
   copiedLabel?: string;
+  /**
+   * 写せなかったとき（権限がない・安全でない接続）に、吹き出しに出して読み上げる文
+   * @default 'コピーできませんでした'
+   */
+  copyErrorLabel?: string;
 }
 
 /**
@@ -161,6 +167,7 @@ export function CodeBlock({
   copyText,
   copyLabel = 'コードをコピー',
   copiedLabel = 'コピーしました',
+  copyErrorLabel = 'コピーできませんでした',
   className,
   style,
   ...props
@@ -169,7 +176,7 @@ export function CodeBlock({
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const copyId = useId();
-  const { copied, copy } = useCopy(2000);
+  const { copied, failed, copy } = useCopy(2000);
 
   // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
   // 判定は表・Prose と同じ internal/use-scrollable。中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
@@ -213,29 +220,37 @@ export function CodeBlock({
         </div>
       )}
       {copyButton ? (
-        <button
-          type="button"
-          id={copyId}
-          className={styles.copy()}
-          data-copied={copied ? '' : undefined}
-          aria-label={copyLabel}
-          aria-labelledby={hasTitle ? `${copyId} ${titleId}` : undefined}
-          onClick={() => {
-            const text = copyText ?? (bodyRef.current ? codeTextOf(bodyRef.current) : '');
-            void copy(text);
-          }}
-        >
-          {copied ? (
-            <span aria-hidden="true" className={styles.copied()}>
-              {copiedLabel}
-            </span>
-          ) : null}
-          {/* アイコン単体なので Bold（design/adr/0018） */}
-          <CopyGlyph copied={copied} standalone />
-        </button>
+        // 写せなかったとき（軸 176）は、淡い赤の吹き出しで知らせる。濃い地の上では、ボタンの中では伝わらないため
+        <CopyErrorTooltip open={failed} label={copyErrorLabel}>
+          <button
+            type="button"
+            id={copyId}
+            className={styles.copy()}
+            data-copied={copied ? '' : undefined}
+            aria-label={copyLabel}
+            aria-labelledby={hasTitle ? `${copyId} ${titleId}` : undefined}
+            onClick={() => {
+              const text = copyText ?? (bodyRef.current ? codeTextOf(bodyRef.current) : '');
+              void copy(text);
+            }}
+          >
+            {copied ? (
+              <span aria-hidden="true" className={styles.copied()}>
+                {copiedLabel}
+              </span>
+            ) : null}
+            {/* アイコン単体なので Bold（design/adr/0018） */}
+            <CopyGlyph copied={copied} standalone />
+          </button>
+        </CopyErrorTooltip>
       ) : null}
-      {/* コピーしたことを読み上げる。箱は先に置いておき、中身だけを入れる */}
-      <CopiedStatus copied={copied} label={copiedLabel} />
+      {/* コピーの結果を読み上げる。箱は先に置いておき、中身だけを入れる */}
+      <CopiedStatus
+        copied={copied}
+        label={copiedLabel}
+        failed={failed}
+        errorLabel={copyErrorLabel}
+      />
     </figure>
   );
 }

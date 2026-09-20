@@ -1,6 +1,12 @@
 import { useState } from 'react';
 
-import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
+import {
+  CopiedStatus,
+  CopyErrorContent,
+  CopyErrorTooltip,
+  CopyGlyph,
+  copyErrorTooltipClass,
+} from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { Button, type ButtonProps, type ButtonShape } from '../button/Button';
 import { Tooltip } from '../tooltip/Tooltip';
@@ -13,7 +19,10 @@ import { Tooltip } from '../tooltip/Tooltip';
 //   label は「コピーしました」の文字をボタンの中に出す（CodeBlock と同じ）。文字の分だけ横に伸びる
 //   どちらも印はチェックに変わる。読み上げの名前はいつも label（aria-label）。「コピーしました」は読み上げの箱（CopiedStatus）で知らせる
 // 形（shape、軸 101）: アイコンだけのボタンの形。square（既定）は部品の角、round は丸
-// 押すと写せたあいだ（2 秒）だけ、コピーしたあとの見た目になる。写せなかったとき（権限がない・安全でない接続）は変わらない
+// 押すと写せたあいだ（2 秒）だけ、コピーしたあとの見た目になる
+// 写せなかったとき（権限がない・安全でない接続、軸 176）: 印は変えず、同じ長さだけ淡い赤の吹き出しで知らせる
+//   吹き出しは成功のものと同じ道（Tooltip）で出し、面と文字の色だけを差し替える。feedback="label" でも吹き出しで出す
+//   onCopyError を渡しているときは、使う側が知らせる前提なので、部品は何も出さない
 
 const COPIED_DURATION = 2000;
 
@@ -46,6 +55,12 @@ export interface CopyButtonProps extends Omit<
    */
   copiedLabel?: string;
   /**
+   * 写せなかったとき（権限がない・安全でない接続）に、吹き出しに出して読み上げる文。
+   * onCopyError を渡しているときは出しません
+   * @default 'コピーできませんでした'
+   */
+  errorLabel?: string;
+  /**
    * アイコンだけのボタンにします。部品の高さの正方形になり、label は読み上げの名前になります
    * @default false
    */
@@ -59,7 +74,8 @@ export interface CopyButtonProps extends Omit<
    * 写せたことの見せ方。どちらも印がチェックに変わり、読み上げでは copiedLabel を知らせます。
    * tooltip は吹き出しで「コピーしました」を出し、ボタンの幅は変わりません（アイコンだけのボタンでは、
    * マウスを載せたとき・キーボードでフォーカスしたときにも label を出します）。
-   * label は「コピーしました」の文字をボタンの中に出し、文字の分だけボタンが横に伸びます
+   * label は「コピーしました」の文字をボタンの中に出し、文字の分だけボタンが横に伸びます。
+   * 写せなかったことは、どちらでも同じ吹き出しで知らせます
    * @default 'tooltip'
    */
   feedback?: CopyButtonFeedback;
@@ -70,17 +86,22 @@ export interface CopyButtonProps extends Omit<
   appearance?: ButtonProps['appearance'];
   /** 写せたときに、写した文字列を受け取ります */
   onCopied?: (text: string) => void;
-  /** 写せなかったとき（権限がない・安全でない接続）に呼びます。見た目は変わらないので、必要なら使う側で知らせます */
+  /**
+   * 写せなかったとき（権限がない・安全でない接続）に呼びます。
+   * 渡すと、部品は吹き出しも読み上げも出しません（使う側が知らせる前提です）
+   */
   onCopyError?: () => void;
 }
 
 /**
- * 文字列をクリップボードに写すボタン。写せると印がチェックに変わり、読み上げでも知らせます
+ * 文字列をクリップボードに写すボタン。写せると印がチェックに変わり、読み上げでも知らせます。
+ * 写せなかったときは、淡い赤の吹き出しで知らせます
  */
 export function CopyButton({
   text,
   label = 'コピー',
   copiedLabel = 'コピーしました',
+  errorLabel = 'コピーできませんでした',
   iconOnly = false,
   feedback = 'tooltip',
   shape,
@@ -92,7 +113,9 @@ export function CopyButton({
   'aria-label': ariaLabel,
   ...props
 }: CopyButtonProps) {
-  const { copied, copy } = useCopy(COPIED_DURATION);
+  const { copied, failed, copy } = useCopy(COPIED_DURATION);
+  // onCopyError を渡しているときは、使う側が知らせる前提なので、部品は何も出さない
+  const showError = failed && !onCopyError;
   // アイコンだけのボタンの tooltip で、マウスを載せて名前を出しているか
   const [hovered, setHovered] = useState(false);
 
@@ -144,23 +167,38 @@ export function CopyButton({
     );
   }
 
+  // 写せなかったことは、feedback によらず同じ吹き出しで知らせる（軸 176）
+  //   tooltip では、写せたことと同じ吹き出しの色だけを差し替える
+  //   label では、出すあいだだけ Tooltip を動かす（止めているあいだは、マウスを載せたとき・長押ししたときの振る舞いが変わらない）
   if (feedback !== 'label') {
     button = (
       <Tooltip
-        content={copied ? copiedLabel : label}
-        open={copied || (iconOnly && hovered)}
+        content={showError ? <CopyErrorContent label={errorLabel} /> : copied ? copiedLabel : label}
+        className={showError ? copyErrorTooltipClass : undefined}
+        open={showError || copied || (iconOnly && hovered)}
         onOpenChange={setHovered}
         disabled={props.disabled}
       >
         {button}
       </Tooltip>
     );
+  } else {
+    button = (
+      <CopyErrorTooltip open={showError} label={errorLabel}>
+        {button}
+      </CopyErrorTooltip>
+    );
   }
 
   return (
     <>
       {button}
-      <CopiedStatus copied={copied} label={copiedLabel} />
+      <CopiedStatus
+        copied={copied}
+        label={copiedLabel}
+        failed={showError}
+        errorLabel={errorLabel}
+      />
     </>
   );
 }
