@@ -134,7 +134,8 @@ export interface DescriptionListProps extends ComponentProps<'dl'> {
   layout?: DescriptionListLayout;
   /**
    * 組と組の区切り。none は余白だけ、line は行のあいだの細い線、framed は外枠と行のあいだの線、
-   * X
+   * leader-dotted・leader-solid は、用語の右から説明の左までを行の上下中央で点線・細い実線でつなぐ形です。
+   * leader-* は横に並べたときだけ効きます（stacked では線を引きません）
    * @default 'none'
    */
   divider?: DescriptionListDivider;

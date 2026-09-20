@@ -1324,9 +1324,9 @@
      inline-gap: 日付と題を同じ行に並べるときの、日付と題のあいだ。title-gap: 題と説明のあいだ
      date-width・date-aside-gap: 点の左に日付の列を置くとき（datePlacement="aside"）の列の幅と、列と点のあいだ
        入れ物が狭いと列を置けないので、畳むかは部品の collapse で選ぶ（入れ物の幅で決める — 原則11）
-     marker-size-{sm,md,lg}: 点の大きさ（部品の size）。日付と題が主役なので、手順（Steps）の番号の丸より小さい
-     marker-gap: 点と文のあいだ。marker-ring: 輪郭の丸（marker="outline"）の線の太さ
-       点の種類（グレーの丸・輪郭の丸・Primary の丸）は部品の marker で選ぶ。名前と色は Steps の marker に合わせる
+     marker-size-{sm,md,lg}: 点の大きさ（部品の markerSize）。日付と題が主役なので、手順（Steps）の番号の丸より小さい
+     marker-gap: 点と文のあいだ。marker-ring: 輪郭の丸（markerType="outline"）の線の太さ
+       点の種類（グレーの丸・輪郭の丸・Primary の丸）は部品の markerType で選ぶ。名前と色は Steps の marker に合わせる
        color-marker は 3:1 のグレー。Steps の neutral は丸の中の数字が濃さを持つが、Timeline の点には中身がない
      emphasis-*: 強調する項目の点（TimelineItem の emphasis）。点の種類は変えず、淡い輪と大きさで示す（原則6・12）
        halo-mix は輪の濃さ。輪の色は、その点の色（markerType ごとの点の色）を薄めて作る
