@@ -10,16 +10,20 @@ import { tv } from '../tv';
 //   面は危険の淡い色、文字は危険の前景用の色（原則12: 文字は前景用）
 // 押せない欄でもラベルは薄くしないので、印も薄くしない（原則13）
 const mark = tv({
-  base: 'align-middle',
+  base: '',
   variants: {
     kind: {
       // タグと同じ形（rounded-pill・px-2・py-0.5・キャプションの大きさ・太字）
-      tag: 'ms-2 inline-flex items-center rounded-pill bg-danger-subtle px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) font-bold whitespace-nowrap text-fg-danger',
+      // 高さ（キャプションの行の高さ＋上下の余白）がラベルの行より大きいので、上下の余白を負にして、行を押し広げない
+      //   ラベルの行が伸びると、欄が下にずれる（必須の印が付いたときだけ）
+      // align-middle だと、文字の中心より 1.5〜2px 下に来る。レイアウトに影響しない relative で、見た目だけ 2px 上げる
+      tag: 'relative -top-0.5 -my-0.5 ms-2 inline-flex items-center rounded-pill bg-danger-subtle px-2 py-0.5 align-middle text-(length:--text-caption) leading-(--leading-caption) font-bold whitespace-nowrap text-fg-danger',
       // ラベルと同じ大きさの太字。ラベルとの間はタグより詰める
-      asterisk: 'ms-1 font-bold text-fg-danger',
+      // 文字なので、ラベルと基準線をそろえる（行を押し広げない）
+      asterisk: 'ms-1 align-baseline font-bold text-fg-danger',
       // 任意の欄の印。ラベルの太字には引きずられない
       optional:
-        'ms-2 text-(length:--text-caption) leading-(--leading-caption) font-normal text-fg-subtle',
+        'ms-2 align-middle text-(length:--text-caption) leading-(--leading-caption) font-normal text-fg-subtle',
     },
   },
 });
