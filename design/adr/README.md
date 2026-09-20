@@ -232,7 +232,7 @@
 | [0162](./0162-tree-guides.md)                            | 木の字下げと案内線                                                       | Accepted           |
 | [0163](./0163-tree-current.md)                           | 木のいまいる行の印                                                       | Accepted           |
 | [0164](./0164-principles-reorganization.md)              | 原則の整理（1〜12 を保ち、13〜21 を足す）                                | Accepted           |
-| [0165](./0165-button-emphasis-levels.md)                 | 押すものの強さは 3 段（色の塗り・グレーの塗り・枠線）                    | Accepted           |
+| [0165](./0165-button-emphasis-levels.md)                 | 押すものの強さは 3 段（色の塗り・グレーの塗り・枠線）                    | Superseded by 0193 |
 | [0166](./0166-press-sink-scope.md)                       | 押すと沈むものの範囲                                                     | Accepted           |
 | [0167](./0167-pressable-card-floats.md)                  | 全体が押せるカードは、浮いた押すものにする                               | Accepted           |
 | [0168](./0168-field-suffix-acts-on-value.md)             | 入力欄の suffix に入れるのは、値に作用するものだけ                       | Accepted           |
@@ -260,3 +260,10 @@
 | [0190](./0190-field-addon-kinds.md)                      | 欄の端に付くものの 3 種                                                  | Accepted           |
 | [0191](./0191-date-field-segment.md)                     | 日付の欄の区切り                                                         | Accepted           |
 | [0192](./0192-mask-field-hint.md)                        | MaskField の残りの桁の見本                                               | Accepted           |
+| [0193](./0193-underline-button.md)                       | いちばん軽い押すものは、文字に下線だけの形（4 段目）                     | Accepted           |
+| [0194](./0194-required-mark.md)                          | 必須の印は「必須」の pill（アスタリスクと「任意」も選べる）              | Accepted           |
+| [0195](./0195-copy-failure.md)                           | コピーできなかったときは、淡い赤の吹き出しで知らせる                     | Accepted           |
+| [0196](./0196-choice-readonly.md)                        | 選ぶ部品の読み取り専用は、押せないときと同じ見た目にする                 | Accepted           |
+| [0197](./0197-readonly-addon.md)                         | 読み取り専用の欄でも、端に付くボタンはグレー地を残す                     | Accepted           |
+| [0198](./0198-pagination-compact.md)                     | Pagination のいちばん狭い形は「10 / 20」                                 | Accepted           |
+| [0199](./0199-backlog-triage.md)                         | backlog の仕分け（原則と ADR から決めたこと）                            | Accepted           |
