@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
-import { expect, fn, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Pagination } from './Pagination';
 import { DensityPair, Specimen } from '../../stories/story-parts';
@@ -32,13 +32,17 @@ const meta = {
           '- リンクにするときは、`href` に番号から行き先を作る関数を渡します。Next.js の `Link` などは `render={(page) => <NextLink href={…} />}` で渡します。',
           '- ボタンにするときは、`href`・`render` を渡さずに `onChange` を渡します。押した番号を受け取って、`page` を差し替えます。',
           '- いまのページは `aria-current="page"` で読み上げます。',
-          '- いまのページの印は `currentIndicator` で選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字です。どれも文字は太字です。ふだんは `neutral` にし、いまの位置を強く見せたいときは `neutral-strong`、サイトの色を出したいときは `primary` にします。Navbar の `currentIndicator` とそろえると、行き先の並びどうしで印がそろいます。',
+          '- いまのページの印は `currentIndicator` で選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字、`secondary` は淡いピンクの塗りにピンクの文字です。どれも文字は太字です。ふだんは `neutral` にし、いまの位置を強く見せたいときは `neutral-strong`、サイトの色を出したいときは `primary`・`secondary` にします。Navbar の `currentIndicator` とそろえると、行き先の並びどうしで印がそろいます。',
           '- 番号と前へ・次への形は `shape` で選びます。`square`（既定）はボタンと同じ角、`round` は丸です。Navbar の行き先と並べるときは `round` にすると形がそろいます。',
           '- `outline` を付けると、番号ごとに細い枠線を引き、押せる範囲をふだんから見せます。',
           '- 端のページでは、前へ・次へは押せない見た目で残ります。並びの位置は動きません。',
           '- どのページにいても番号の数は同じです。ページを送っても、前へ・次へのボタンの位置が変わりません。',
           '- `siblings`（既定 1）はいまのページの左右に出す番号の数、`boundaries`（既定 1）は両端に出す番号の数です。',
-          '- 置いた場所の幅が狭いときは、いまのページの左右の番号を省き、前へ・次へを矢印だけにします。画面の幅ではなく、置いた場所の幅で決めます。',
+          '- 置いた場所の幅が狭いときは、前へ・次へを矢印だけにし、さらに狭いといまのページの左右の番号を省き、いちばん狭いところでは番号をやめて「5 / 10」だけにします。画面の幅ではなく、置いた場所の幅で決めます。',
+          '- いちばん狭いところの見せ方は `narrowDisplay` で選びます。`summary`（既定）は「5 / 10」だけ、`pages` は番号を並べたままにします。',
+          '- `ellipsisMenu` を付けると、省略（…）を押して間のページをメニューから選べます。押せるので、番号と同じ大きさになります。',
+          '- `pageInput` を付けると、`narrowDisplay="summary"` の「5 / 10」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。範囲の外の数では移らず、欄を離すと打った値はいまのページに戻ります。番号が並ばないいちばん狭いところでも、間のページへ行けます。',
+          '- `ellipsisMenu`・`pageInput` を `href` だけで使うときは、その行き先へそのまま移ります。ルーターで移すときは `onChange` も渡します（`render` のときは `onChange` だけで移します）。',
           '- `label` は並び（`nav`）の読み上げの名前です（既定は「ページ送り」）。`prevLabel`・`nextLabel`・`pageLabel` で文言を差し替えられます。',
           '- 記事の前後へ移るだけなら、Pager を使います。',
         ].join('\n'),
@@ -53,6 +57,9 @@ const meta = {
     currentIndicator: 'neutral',
     shape: 'square',
     outline: false,
+    narrowDisplay: 'summary',
+    ellipsisMenu: false,
+    pageInput: false,
   },
   argTypes: {
     page: { control: { type: 'number', min: 1 } },
@@ -69,7 +76,7 @@ const meta = {
     },
     currentIndicator: {
       control: 'inline-radio',
-      options: ['neutral', 'neutral-strong', 'primary'],
+      options: ['neutral', 'neutral-strong', 'primary', 'secondary'],
       table: { defaultValue: { summary: "'neutral'" } },
     },
     shape: {
@@ -78,9 +85,18 @@ const meta = {
       table: { defaultValue: { summary: "'square'" } },
     },
     outline: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    narrowDisplay: {
+      control: 'inline-radio',
+      options: ['summary', 'pages'],
+      table: { defaultValue: { summary: "'summary'" } },
+    },
+    ellipsisMenu: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    pageInput: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     label: { control: 'text', table: { defaultValue: { summary: "'ページ送り'" } } },
     prevLabel: { control: 'text', table: { defaultValue: { summary: "'前へ'" } } },
     nextLabel: { control: 'text', table: { defaultValue: { summary: "'次へ'" } } },
+    ellipsisLabel: { control: 'text', table: { defaultValue: { summary: "'間のページ'" } } },
+    pageInputLabel: { control: 'text', table: { defaultValue: { summary: "'ページ番号'" } } },
   },
 } satisfies Meta<typeof Pagination>;
 
@@ -129,7 +145,7 @@ export const States: Story = {
   ),
 };
 
-const indicators = ['neutral', 'neutral-strong', 'primary'] as const;
+const indicators = ['neutral', 'neutral-strong', 'primary', 'secondary'] as const;
 const shapes = ['square', 'round'] as const;
 const target = '[data-kind="page"][aria-label="4 ページ目"]';
 const currentPage = '[data-kind="page"][aria-current="page"]';
@@ -140,10 +156,15 @@ export const CurrentIndicators: Story = {
   name: 'いまのページの印',
   parameters: {
     pseudo: statePseudo({ hover: currentPage, focusVisible: target }),
+    // secondary を足して縦に長くなった分、撮る枠を高くする（既定は 1200×900）
+    viewport: {
+      defaultViewport: 'tall',
+      viewports: { tall: { name: 'tall', styles: { width: '1200px', height: '1250px' } } },
+    },
     docs: {
       description: {
         story:
-          '`currentIndicator` でいまのページの印を選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字です。',
+          '`currentIndicator` でいまのページの印を選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字、`secondary` は淡いピンクの塗りにピンクの文字です。',
       },
     },
   },
@@ -257,6 +278,13 @@ export const Ends: Story = {
 };
 
 // 置いた場所の幅で、番号の数と前へ・次への文字を変える（原則16: 構造は置いた場所の幅で決める）
+const widthLabels: [width: number, note: string][] = [
+  [560, '32rem 以上: 番号と、文字の付いた前へ・次へ'],
+  [480, '32rem 未満: 前へ・次へを矢印だけに'],
+  [400, '28rem 未満: いまのページの左右の番号を省く'],
+  [320, '24rem 未満: 番号をやめて「5 / 10」だけに'],
+];
+
 export const Narrow: Story = {
   tags: ['visual'],
   name: '狭いとき',
@@ -264,14 +292,14 @@ export const Narrow: Story = {
     docs: {
       description: {
         story:
-          '置いた場所が狭いと、前へ・次へを矢印だけにし、さらに狭いと、いまのページの左右の番号を省きます。画面の幅ではなく、置いた場所の幅で決めます。',
+          '置いた場所が狭いと、前へ・次へを矢印だけにし、さらに狭いと、いまのページの左右の番号を省き、いちばん狭いところでは番号をやめて「5 / 10」だけにします。画面の幅ではなく、置いた場所の幅で決めます。',
       },
     },
   },
   render: (args) => (
     <div className="flex flex-col items-start gap-8">
-      {[560, 480, 320].map((width) => (
-        <Specimen key={width} label={`幅 ${width}px`}>
+      {widthLabels.map(([width, note]) => (
+        <Specimen key={width} label={`幅 ${width}px — ${note}`}>
           <div className="border border-dashed border-line" style={{ width }}>
             <Pagination {...args} />
           </div>
@@ -279,6 +307,131 @@ export const Narrow: Story = {
       ))}
     </div>
   ),
+};
+
+// いちばん狭いところの選び方（narrowDisplay・pageInput・ellipsisMenu）
+export const NarrowOptions: Story = {
+  tags: ['visual'],
+  name: 'いちばん狭いときの選び方',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'いちばん狭いところ（24rem 未満）では、`narrowDisplay="summary"`（既定）が「5 / 10」だけを出します。番号が並ばない分、押せる場所が減るので、`pageInput` で数を打って移るか、`narrowDisplay="pages"` と `ellipsisMenu` で番号と間のページを残します。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col items-start gap-8">
+      {(
+        [
+          ['summary（既定）', {}],
+          ['summary・pageInput', { pageInput: true }],
+          ['pages', { narrowDisplay: 'pages' as const }],
+          ['pages・ellipsisMenu', { narrowDisplay: 'pages' as const, ellipsisMenu: true }],
+        ] as const
+      ).map(([label, extra]) => (
+        <Specimen key={label} label={`幅 320px・${label}`}>
+          <div className="border border-dashed border-line" style={{ width: 320 }}>
+            <Pagination {...args} {...extra} />
+          </div>
+        </Specimen>
+      ))}
+      <Specimen label="幅 560px・ellipsisMenu（省略が押せる大きさになる）">
+        <div className="border border-dashed border-line" style={{ width: 560 }}>
+          <Pagination {...args} ellipsisMenu />
+        </div>
+      </Specimen>
+    </div>
+  ),
+};
+
+function PageInputExample(props: { onChange: (page: number) => void }) {
+  const [page, setPage] = useState(5);
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <p className="text-body-sm text-fg-muted">いまのページ: {page}</p>
+      <div className="border border-dashed border-line" style={{ width: 320 }}>
+        <Pagination
+          page={page}
+          count={20}
+          pageInput
+          onChange={(next) => {
+            setPage(next);
+            props.onChange(next);
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// 数を打って移る欄（pageInput）
+export const PageInput: Story = {
+  name: 'ページ番号を打つ',
+  args: { href: undefined, onChange: fn() },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`pageInput` を付けると、いちばん狭いところの「5 / 20」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。ページの数より大きい数や 0 以下では移らず、欄を離すと打った値はいまのページに戻ります。',
+      },
+      source: sourceCode(`
+        const [page, setPage] = useState(5);
+        <Pagination page={page} count={20} pageInput onChange={setPage} />
+      `),
+    },
+  },
+  render: (args) => <PageInputExample onChange={args.onChange ?? (() => {})} />,
+  play: async ({ canvas, args }) => {
+    const input = canvas.getByRole('textbox', { name: 'ページ番号' });
+    await expect(input).toHaveValue('5');
+    // 範囲の中の数は、Enter で移る
+    await userEvent.clear(input);
+    await userEvent.type(input, '12{Enter}');
+    await expect(args.onChange).toHaveBeenLastCalledWith(12);
+    await expect(input).toHaveValue('12');
+    // 範囲の外の数では移らず、欄を離すといまのページに戻る
+    await userEvent.clear(input);
+    await userEvent.type(input, '99{Enter}');
+    await expect(args.onChange).toHaveBeenCalledTimes(1);
+    await userEvent.tab();
+    await expect(input).toHaveValue('12');
+  },
+};
+
+// 省略（…）を押して間のページを選ぶ（ellipsisMenu）
+export const EllipsisMenu: Story = {
+  name: '省略のメニュー',
+  args: { ellipsisMenu: true, count: 20, page: 10 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`ellipsisMenu` を付けると、省略（…）が押せるボタンになり、間のページをメニューから選べます。押せるので、番号と同じ大きさ（指で押せる大きさ）になります。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="border border-dashed border-line" style={{ width: 560 }}>
+      <Pagination {...args} />
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const triggers = canvas.getAllByRole('button', { name: '間のページ' });
+    await expect(triggers).toHaveLength(2);
+    await userEvent.click(triggers[0]);
+    const menu = await body.findByRole('menu');
+    // 最初の省略は 2〜8 ページを隠している
+    await expect(within(menu).getByRole('menuitem', { name: '2 ページ目' })).toHaveAttribute(
+      'href',
+      '#page-2'
+    );
+    await expect(within(menu).getAllByRole('menuitem')).toHaveLength(7);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('menu')).toBeNull());
+  },
 };
 
 export const Aligns: Story = {

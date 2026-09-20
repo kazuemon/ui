@@ -1,6 +1,6 @@
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { Tabs as BaseTabs } from '@base-ui/react/tabs';
-import type { ComponentProps, ReactElement, ReactNode } from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useEffect, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
@@ -20,6 +20,7 @@ import { useInlineCues } from '../../internal/use-inline-cues';
 //   押せないタブは、色を持たない押すものと同じく薄いグレーの文字（原則1）
 //   フォーカスの線（軸 120・決定、ADR-0148）: タブは内側に引く（--tabs-tab-focus-offset。外に離すと下の印・並びの線を越える）
 //     パネルは全体と同じ離れで、角を小さくする（--tabs-panel-radius。1 行のパネルでも pill に見えない）
+//   はじめに選んでおいたタブが見えている範囲の外にあるとき、マウント時にその位置までスクロールする（動きを減らす設定では滑らせない）
 
 export type TabsColor = 'neutral' | 'primary' | 'secondary';
 
@@ -233,6 +234,21 @@ export interface TabListProps extends Omit<
 export function TabList({ className, children, ...props }: TabListProps) {
   const s = tabs();
   const inlineCues = useInlineCues();
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // はじめに選んでおいたタブが、見えている範囲の外にあるとき、その位置までスクロールして見せる
+  // 動きを減らす設定では滑らせない。あとでタブを選び直したときは、Base UI のフォーカス移動でスクロールする
+  useEffect(() => {
+    const active = listRef.current?.querySelector<HTMLElement>('[data-slot="tab"][data-active]');
+    if (!active) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    active.scrollIntoView({
+      behavior: reduceMotion ? 'instant' : 'smooth',
+      inline: 'nearest',
+      block: 'nearest',
+    });
+  }, []);
+
   return (
     <BaseScrollArea.Root
       data-slot="tab-list-scroller"
@@ -241,7 +257,7 @@ export function TabList({ className, children, ...props }: TabListProps) {
       {/* 枠には Tab で止まらない（スクロールはタブへのフォーカスで起こる） */}
       <BaseScrollArea.Viewport ref={inlineCues} tabIndex={-1} className={scroll.viewport()}>
         <BaseScrollArea.Content className={s.content()}>
-          <BaseTabs.List data-slot="tab-list" className={s.list()} {...props}>
+          <BaseTabs.List ref={listRef} data-slot="tab-list" className={s.list()} {...props}>
             <BaseTabs.Indicator data-slot="tab-indicator" className={s.indicator()} />
             {children}
           </BaseTabs.List>

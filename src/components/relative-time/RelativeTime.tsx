@@ -85,7 +85,7 @@ export function RelativeTime({
 
   const absolute = formatAbsolute(parsed, dateTimeOptions({ withTime, format }), locale, timeZone);
   const now = nowProp !== undefined ? new Date(nowProp).getTime() : mountedNow;
-  const text = now === null ? absolute : formatRelative(parsed.date, now, locale);
+  const text = now === null ? absolute : formatRelative(parsed.date, now, locale, timeZone);
 
   return (
     <time

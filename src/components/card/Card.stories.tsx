@@ -7,6 +7,7 @@ import { landscape } from '../../samples/images';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Heading } from '../heading/Heading';
+import { Prose } from '../prose/Prose';
 import { Tag } from '../tag/Tag';
 import { Text } from '../text/Text';
 
@@ -40,6 +41,7 @@ const meta = {
           '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
           '- hover で画像を少し大きくしたいときは、`imageZoom` を渡します。',
           '- 幅は置いた場所に合わせます。一覧は grid で並べます。',
+          '- `Prose`（記事）の中にそのまま置けます。記事の中のリンクの見た目は、押せるカードには付きません。',
         ].join('\n'),
       },
     },
@@ -293,4 +295,43 @@ export const Accessibility: Story = {
       'DIV'
     );
   },
+};
+
+export const InProse: Story = {
+  tags: ['visual'],
+  name: '記事の中',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'MDX の記事では、段落のあいだにそのまま置きます。上下の余白は `Prose` が付けます。記事の中のリンクの見た目は、カードには付きません。',
+      },
+      source: sourceCode(`
+        前に書いた記事も読んでみてください。
+
+        <Card href="/works/1">
+          <CardImage src="/works/1.png" alt="" />
+          <CardBody>…</CardBody>
+        </Card>
+
+        ここから本題です。
+      `),
+    },
+  },
+  decorators: [(Story) => <div className="max-w-2xl">{Story()}</div>],
+  render: () => (
+    <Prose>
+      <p>
+        進め方の全体は、<a href="#">前に書いた記事</a>にまとめています。
+      </p>
+      <Card href="/works/1">
+        <CardImage src={landscape} alt="" />
+        <CardBody>
+          <Content />
+        </CardBody>
+      </Card>
+      <p>ここから本題です。今回は押せるカードを作りました。</p>
+    </Prose>
+  ),
 };

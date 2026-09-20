@@ -48,8 +48,9 @@ const meta = {
           '- その場で実行する項目は `MenuItem`、別の場所へ移る項目は `MenuLinkItem` です。`MenuLinkItem` に `target="_blank"` を付けると、後ろに右上向きの矢印が付きます。',
           '- `MenuItem` には `icon`（前のアイコン）、`shortcut`（後ろのショートカットの文字）、`description`（2 行目）を付けられます。ショートカットは表示だけで、キーの操作は使う側で付けます。',
           '- 削除のように取り消せない操作には `danger` を付けます。文字が赤くなり、hover で赤を淡く敷きます。',
-          '- 押せない項目は `disabled` にし、理由を `description` に書きます。',
+          '- 押せない項目は `disabled` にし、理由を `description` に書きます。`MenuLinkItem` も `disabled` にでき、押しても移りません。',
           '- 入・切を切り替える項目は `MenuCheckboxItem`、1 つだけを選ぶ項目は `MenuRadioGroup` の中の `MenuRadioItem` です。どちらも押しても閉じません。印の色は `color`、印の場所（前か右端か）は `markPlacement` で選びます。ラジオの印は `radioMark` で選びます（既定の `radio` はラジオと同じ丸、`dot` は選んだ項目に小さな点、`check` はチェック）。',
+          '- 印を持つ項目があるメニューでは、既定で印のない項目（`MenuItem`・`MenuLinkItem`・`MenuSubmenu`）にも印の場所を空け、文字の左をそろえます。そろえたくないときは `alignMarks={false}` にします。',
           '- 見出し付きのまとまりは `MenuGroup`、区切り線は `MenuSeparator` です。見出しの文字は `groupLabelStyle` で選びます（`label` は入力欄のラベルと同じ太字、`caption` はキャプションと同じ小さいグレー）。',
           '- 入れ子のメニューは `MenuSubmenu` です。マウスでは載せるだけで開きます。シートでの開き方は `submenuSheet` で選びます（既定の `fixed` は 1 枚のシートのまま中身が横に滑り、入れ子があるときだけ、高さは最初に開いたメニューの高さのまま、上のつまみで変えられます）。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。シートでは `title` を見出しに出し、ショートカットは出しません。',
@@ -66,6 +67,7 @@ const meta = {
     color: 'neutral',
     markPlacement: 'start',
     radioMark: 'radio',
+    alignMarks: true,
     groupLabelStyle: 'label',
     submenuSheet: 'fixed',
     closeOnSwipe: false,
@@ -102,6 +104,10 @@ const meta = {
       control: 'inline-radio',
       options: ['radio', 'dot', 'check'],
       table: { defaultValue: { summary: "'radio'" } },
+    },
+    alignMarks: {
+      control: 'boolean',
+      table: { defaultValue: { summary: 'true' } },
     },
     groupLabelStyle: {
       control: 'inline-radio',
@@ -322,6 +328,80 @@ export const MarkEndAndCaption: Story = {
   ),
 };
 
+// アイコンは付けない（アイコンの分だけ文字の位置がずれ、印の場所がそろっているかの確かめに向かないため）
+const mixedItems = (
+  <>
+    <MenuCheckboxItem defaultChecked>行番号</MenuCheckboxItem>
+    <MenuSeparator />
+    <MenuItem>名前を変える</MenuItem>
+    <MenuItem danger>削除</MenuItem>
+  </>
+);
+
+// 見た目の比較ではなく、そろう・そろわないの確かめ（play）だけなので撮らない
+export const AlignMarks: Story = {
+  name: '印のない項目の字下げ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '印を持つ項目（`MenuCheckboxItem`・`MenuRadioItem`）があるメニューでは、既定（`alignMarks`）で印のない項目にも印の場所を空け、文字の左をそろえます。`alignMarks={false}` にすると、印のない項目は字下げせず、印を持つ項目だけがそろいます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex gap-8">
+      <ScreenFrame height="h-[260px]">
+        {(frame) => (
+          <Menu
+            trigger={<Button appearance="outline">既定（そろう）</Button>}
+            presentation="popover"
+            container={frame}
+          >
+            {mixedItems}
+          </Menu>
+        )}
+      </ScreenFrame>
+      <ScreenFrame height="h-[260px]">
+        {(frame) => (
+          <Menu
+            trigger={<Button appearance="outline">alignMarks=false</Button>}
+            presentation="popover"
+            alignMarks={false}
+            container={frame}
+          >
+            {mixedItems}
+          </Menu>
+        )}
+      </ScreenFrame>
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+
+    async function labelLeft(triggerName: string, itemName: string) {
+      await userEvent.click(canvas.getByRole('button', { name: triggerName }));
+      const menu = await body.findByRole('menu');
+      const label = within(menu).getByText(itemName);
+      const left = label.getBoundingClientRect().left;
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(body.queryByRole('menu')).toBeNull());
+      return left;
+    }
+
+    // 既定（alignMarks 既定 true）: 印を持つ項目と持たない項目の文字の左がそろう
+    const checkedLeft = await labelLeft('既定（そろう）', '行番号');
+    const plainLeft = await labelLeft('既定（そろう）', '名前を変える');
+    await expect(plainLeft).toBe(checkedLeft);
+
+    // alignMarks=false: 印を持たない項目は字下げせず、左がそろわない
+    const checkedLeftOff = await labelLeft('alignMarks=false', '行番号');
+    const plainLeftOff = await labelLeft('alignMarks=false', '名前を変える');
+    await expect(plainLeftOff).toBeLessThan(checkedLeftOff);
+  },
+};
+
 export const Links: Story = {
   tags: ['visual'],
   name: 'リンクの項目',
@@ -330,12 +410,12 @@ export const Links: Story = {
     docs: {
       description: {
         story:
-          '別の場所へ移る項目は `MenuLinkItem` です。`target="_blank"` のときは右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します。',
+          '別の場所へ移る項目は `MenuLinkItem` です。`target="_blank"` のときは右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します。`disabled` にすると、押せない `MenuItem` と同じ見た目になり、押しても移りません。',
       },
     },
   },
   render: (_args, { viewMode }) => (
-    <ScreenFrame height="h-[280px]">
+    <ScreenFrame height="h-[320px]">
       {(frame) => (
         <Menu
           trigger={<Button appearance="outline">アカウント</Button>}
@@ -347,6 +427,9 @@ export const Links: Story = {
           <MenuLinkItem href="#settings">設定</MenuLinkItem>
           <MenuLinkItem href="https://example.com/help" target="_blank">
             ヘルプ
+          </MenuLinkItem>
+          <MenuLinkItem href="#billing" disabled description="管理者だけ移れます">
+            請求
           </MenuLinkItem>
         </Menu>
       )}
@@ -554,6 +637,9 @@ export const Accessibility: Story = {
           <MenuItem disabled description="公開してから書き出せます">
             書き出す
           </MenuItem>
+          <MenuLinkItem href="#billing" disabled description="管理者だけ移れます">
+            請求
+          </MenuLinkItem>
           <MenuSeparator />
           <MenuGroup label="表示">
             <MenuCheckboxItem>折り返し</MenuCheckboxItem>
@@ -588,6 +674,13 @@ export const Accessibility: Story = {
     await waitFor(() => expect(exporting).toHaveFocus());
     await expect(exporting).toHaveAttribute('aria-disabled', 'true');
     await expect(exporting).toHaveAccessibleDescription('公開してから書き出せます');
+
+    // 押せないリンクの項目（MenuLinkItem）も、href を持たず、押しても移らず閉じない
+    const billing = within(menu).getByRole('menuitem', { name: '請求' });
+    await expect(billing).toHaveAttribute('aria-disabled', 'true');
+    await expect(billing).not.toHaveAttribute('href');
+    await userEvent.click(billing);
+    await expect(menu).toBeVisible();
 
     // チェックの項目は押しても閉じず、状態が切り替わる
     const wrap = within(menu).getByRole('menuitemcheckbox', { name: '折り返し' });

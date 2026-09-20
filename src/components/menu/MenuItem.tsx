@@ -1,6 +1,9 @@
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import {
+  Children,
   type ComponentProps,
+  Fragment,
+  isValidElement,
   type MouseEvent,
   type ReactElement,
   type ReactNode,
@@ -12,7 +15,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import { ArrowUpRightIcon, CaretRightIcon, CheckIcon } from '../../internal/icons';
-import { NewTabNote } from '../../internal/link-parts';
+import { disabledAnchor, NewTabNote } from '../../internal/link-parts';
 import { type MenuRadioMark, useMenuContext } from './menu-context';
 import { menuGroupLabel, menuItem, menuSeparatorClass } from './menu-styles';
 import { MenuSurface } from './Menu';
@@ -72,7 +75,7 @@ function ItemContent({
   mark?: ReactNode;
   danger?: boolean;
 }) {
-  const { markPlacement } = useMenuContext();
+  const { markPlacement, reserveMarkSpace } = useMenuContext();
   const s = menuItem({ danger, described: description != null, markPlacement });
   return (
     <>
@@ -101,7 +104,7 @@ function ItemContent({
           {trailing}
         </span>
       )}
-      {mark != null && (
+      {(mark != null || reserveMarkSpace) && (
         <span aria-hidden className={s.mark()}>
           {mark}
         </span>
@@ -198,7 +201,7 @@ export function MenuItem({
   );
 }
 
-export interface MenuLinkItemProps extends MenuItemBaseProps {
+export interface MenuLinkItemProps extends MenuItemBaseProps, DisableableProps {
   href?: string;
   /** _blank のときは、後ろに右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します */
   target?: string;
@@ -212,7 +215,12 @@ export interface MenuLinkItemProps extends MenuItemBaseProps {
   closeOnClick?: boolean;
 }
 
-/** 別の場所へ移る項目。リンク（<a>）として描きます */
+/**
+ * 別の場所へ移る項目。リンク（<a>）として描きます
+ *
+ * `disabled` にすると、押せない MenuItem と同じ見た目になり、押しても移りません。Base UI のリンクは
+ * ネイティブの disabled を持たないため、href・render を外し、読み上げには aria-disabled で伝えます
+ */
 export function MenuLinkItem({
   children,
   icon,
@@ -222,6 +230,7 @@ export function MenuLinkItem({
   target,
   rel,
   render,
+  disabled = false,
   closeOnClick = true,
   className,
   style,
@@ -231,12 +240,14 @@ export function MenuLinkItem({
   return (
     <BaseMenu.LinkItem
       data-slot="menu-item"
-      href={href}
-      target={target}
-      rel={rel ?? (newTab ? 'noopener noreferrer' : undefined)}
-      render={render}
+      data-disabled={disabled || undefined}
+      aria-disabled={disabled || undefined}
+      href={disabled ? undefined : href}
+      target={disabled ? undefined : target}
+      rel={disabled ? undefined : (rel ?? (newTab ? 'noopener noreferrer' : undefined))}
+      render={disabled ? disabledAnchor(render) : render}
       label={typeaheadLabel(children, label)}
-      closeOnClick={closeOnClick}
+      closeOnClick={disabled ? false : closeOnClick}
       aria-labelledby={ids.labelledBy}
       aria-describedby={ids.describedBy}
       className={menuItem({ described: description != null }).root({ className })}
@@ -248,10 +259,10 @@ export function MenuLinkItem({
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
         shortcutId={ids.shortcutId}
-        trailing={newTab ? <ArrowUpRightIcon /> : undefined}
+        trailing={newTab && !disabled ? <ArrowUpRightIcon /> : undefined}
       >
         {children}
-        {newTab && <NewTabNote />}
+        {newTab && !disabled && <NewTabNote />}
       </ItemContent>
     </BaseMenu.LinkItem>
   );
@@ -594,4 +605,27 @@ function SlideSubmenu({
         )}
     </>
   );
+}
+
+/**
+ * children の中に、印を持つ項目（MenuCheckboxItem・MenuRadioGroup）があるか。Menu の alignMarks が読み、
+ * あるときだけ、印のない項目（MenuItem・MenuLinkItem・MenuSubmenu）にも印の場所を空けます
+ * MenuGroup・MenuSubmenu（自分の items）の中までは見ますが、利用者が作った別のコンポーネントの中までは見ません
+ */
+export function menuChildrenHaveMarks(children: ReactNode): boolean {
+  return Children.toArray(children).some((child) => {
+    if (!isValidElement(child)) return false;
+    if (child.type === MenuCheckboxItem || child.type === MenuRadioGroup) return true;
+    // <>…</> は開いて中の子を見る（Children.toArray は Fragment を開かない）
+    if (child.type === Fragment) {
+      return menuChildrenHaveMarks((child.props as { children?: ReactNode }).children);
+    }
+    if (child.type === MenuGroup) {
+      return menuChildrenHaveMarks((child.props as MenuGroupProps).children);
+    }
+    if (child.type === MenuSubmenu) {
+      return menuChildrenHaveMarks((child.props as MenuSubmenuProps).items);
+    }
+    return false;
+  });
 }

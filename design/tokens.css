@@ -1252,7 +1252,9 @@
      step-*: 前へ・次へ（矢印と文字のとき）の左右の余白と、矢印と文字のあいだ
      item-color: 番号と前へ・次への文字（Navbar の行き先と同じグレー）
      角（部品の shape）・枠線（outline）・いまのページの印（currentIndicator）は部品で選ぶ
-     ellipsis-*: 省略（…）の幅と色。押せないので部品の高さの正方形にしない */
+     ellipsis-*: 省略（…）の幅と色。押せないので部品の高さの正方形にしない
+       （押せるメニューにするとき（ellipsisMenu）は番号と同じ大きさになる — 原則17）
+     count-gap: いちばん狭いところの「5 / 10」の、数と「/ 10」のあいだ */
   --pagination-gap: var(--spacing);
   --pagination-item-px: calc(var(--spacing) * 2);
   --pagination-step-px: calc(var(--spacing) * 3);
@@ -1260,6 +1262,7 @@
   --pagination-item-color: var(--color-fg-muted);
   --pagination-ellipsis-width: calc(var(--spacing) * 6);
   --pagination-ellipsis-color: var(--color-fg-subtle);
+  --pagination-count-gap: var(--spacing);
   /* ── END pagination */
 
   /* ── TableOfContents — ADR-0183・0184 ── BEGIN table-of-contents */
