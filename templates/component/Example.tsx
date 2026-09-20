@@ -1,5 +1,7 @@
 // 部品の雛形。src/components/<kebab-name>/<Name>.tsx に写し、Example を部品の名前に置き換える
 // 手順と決まりは CLAUDE.md の「部品を作る」
+// フック・Base UI・イベントのハンドラ・関数を渡す props を使うなら、このファイルの先頭に 'use client'; を置く
+//   （React Server Components の境界。使わないならサーバーのまま描けるので、付けない）
 import type { ComponentProps } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 

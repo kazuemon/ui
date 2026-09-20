@@ -22,7 +22,7 @@
 部品ではなく、ライブラリとして使うときに要るものです。
 
 - [ ] ダークモード
-- [ ] Server Components 対応
+- [x] Server Components 対応
 - [ ] 多言語
 - [ ] Tailwind なしでの利用
 - [ ] スタイルの衝突を避ける（Tailwind あり・なし）
