@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { SheetMetrics } from '../../internal/sheet/use-sheet-drag';
+import type { SheetMetrics } from '../sheet/use-sheet-drag';
 import {
   CUE_RAMP,
   listContentLength,
@@ -14,23 +14,38 @@ import {
   screenHeight,
   SHEET_FULL,
   SHEET_HALF,
-} from './measure';
+} from './listbox-measure';
 
-export type { SheetMetrics } from '../../internal/sheet/use-sheet-drag';
+export type { SheetMetrics } from '../sheet/use-sheet-drag';
 
-interface PopupLayoutOptions {
+interface ListboxLayoutOptions {
   open: boolean;
   sheet: boolean;
   /** 浮かぶ選択肢の高さの上限を、画面の高さの半分に合わせるか（popoverMaxHeight="screen"） */
   popoverFit: boolean;
   container?: HTMLElement | null;
+  /** 画面の下から隠れている高さ（ソフトウェアキーボード）。見えている範囲だけを画面の高さとして数える */
+  insetBottom?: number;
 }
 
-// 開いた選択肢の寸法を測る。シートの高さ（metrics）、浮かぶ選択肢の高さの上限、上下の続きの印の濃さ
-export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayoutOptions) {
+/**
+ * 開いた選択肢の寸法を測る。シートの高さ（metrics）、浮かぶ選択肢の高さの上限、上下の続きの印の濃さ
+ * Base UI のどの部品かは問わない。返す ref を、見出し・一覧・読み込み中の行・面に付ける
+ *   headerRef: シートの見出し、listRef: 選択肢の一覧（スクロールする箱）、loadingRowRef: 一覧の下に出す行
+ *   measure: シートの面、observeCues: 浮かぶ面（どちらも Popup の ref）
+ */
+export function useListboxLayout({
+  open,
+  sheet,
+  popoverFit,
+  container,
+  insetBottom = 0,
+}: ListboxLayoutOptions) {
   // シートの高さ: 開いたときに見出しと選択肢の高さを測る
   const headerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  // 一覧の下に出す行（読み込み中）。高さの計算に入れる（design/adr/0042）
+  const loadingRowRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<SheetMetrics | null>(null);
   // 上下に続きがあることの印の濃さ（--cue-top・--cue-bottom、0〜1）。スクロールした量に合わせて濃くし、急に出さない
   // 印の左右の位置（--cue-left・--cue-right）: シートでは端から描き（内側の余白の分だけ外へ出す）、
@@ -61,10 +76,10 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
       parseFloat(style.paddingTop) +
       parseFloat(style.paddingBottom) +
       parseFloat(style.borderTopWidth) +
-      loadingRowLength(list);
+      loadingRowLength(loadingRowRef.current);
     const header = headerRef.current.offsetHeight;
     const heights = optionHeights(list, 44);
-    const screen = screenHeight(container);
+    const screen = Math.max(0, screenHeight(container) - insetBottom);
     const next = {
       content: frame + header + listContentLength(list),
       half: Math.round(
@@ -77,7 +92,7 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
         ? prev
         : next
     );
-  }, [container]);
+  }, [container, insetBottom]);
   // シートの Popup の ref
   const measure = useCallback(
     (popup: HTMLDivElement | null) => {
@@ -107,8 +122,10 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
     const maxRows = parseFloat(style.getPropertyValue('--select-popup-max-rows')) || Infinity;
     // 読み込み中の行は一覧の外にあるので、その分を一覧の上限から引く（行を含めた浮かぶ部分の高さを上限に収める）
     const limit =
-      Math.min(screenHeight(container) * POPOVER_MAX, rowsLength(heights, maxRows) + padding) -
-      loadingRowLength(list);
+      Math.min(
+        Math.max(0, screenHeight(container) - insetBottom) * POPOVER_MAX,
+        rowsLength(heights, maxRows) + padding
+      ) - loadingRowLength(loadingRowRef.current);
     if (list.scrollHeight > limit) {
       list.style.setProperty(
         '--select-popup-max-height',
@@ -117,7 +134,7 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
     } else {
       list.style.removeProperty('--select-popup-max-height');
     }
-  }, [container]);
+  }, [container, insetBottom]);
   // 浮かぶ選択肢の Popup の ref
   const observeCues = useCallback(
     (popup: HTMLDivElement | null) => {
@@ -127,7 +144,11 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
       const update = () => {
         const list = listRef.current;
         // 本体の下の空き（--available-height）での上限にも、読み込み中の行の分を入れる
-        if (list) list.style.setProperty('--select-popup-extra', `${loadingRowLength(list)}px`);
+        if (list)
+          list.style.setProperty(
+            '--select-popup-extra',
+            `${loadingRowLength(loadingRowRef.current)}px`
+          );
         if (popoverFit) fitPopover();
         updateCues();
       };
@@ -154,5 +175,5 @@ export function usePopupLayout({ open, sheet, popoverFit, container }: PopupLayo
     return () => window.removeEventListener('resize', onResize);
   }, [open, sheet, popoverFit, readSheetMetrics, fitPopover, updateCues]);
 
-  return { headerRef, listRef, metrics, updateCues, measure, observeCues };
+  return { headerRef, listRef, loadingRowRef, metrics, updateCues, measure, observeCues };
 }

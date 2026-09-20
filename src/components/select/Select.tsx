@@ -25,8 +25,18 @@ import { useFormSubmittingLock } from '../../internal/form-context';
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddon } from '../field-addon/FieldAddon';
 import { CaretDownIcon } from '../../internal/icons';
-import { type LoadingIndicator, Spinner } from '../loading/Loading';
-import { OWN_FOCUS, type SelectColor, selectedTokens } from './select-colors';
+import type { LoadingIndicator } from '../loading/Loading';
+import {
+  type ListboxColor,
+  OWN_FOCUS,
+  selectedTokens,
+} from '../../internal/listbox/listbox-colors';
+import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
+import {
+  listboxList,
+  type ListboxPresentation,
+  listboxPopup,
+} from '../../internal/listbox/listbox-styles';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
@@ -35,13 +45,16 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { SelectOption, type SelectItem } from './SelectOption';
-import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
-import { usePopupLayout } from './use-popup-layout';
+import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 
-export type { SelectColor } from './select-colors';
+/**
+ * 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047
+ */
+export type SelectColor = ListboxColor;
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SelectItem, SelectItemNote, SelectItemNoteKind } from './SelectOption';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
@@ -287,14 +300,17 @@ export function Select({
     return () => clearTimeout(id);
   }, [closing]);
 
+  // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
+  const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
   const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
-  const { headerRef, listRef, metrics, updateCues, measure, observeCues } = usePopupLayout({
-    open,
-    sheet,
-    popoverFit,
-    container: portalContainer,
-  });
+  const { headerRef, listRef, loadingRowRef, metrics, updateCues, measure, observeCues } =
+    useListboxLayout({
+      open,
+      sheet,
+      popoverFit,
+      container: portalContainer,
+    });
 
   // 選択肢が長いときだけ、半分の高さで開いてつまみを出す
   const long = sheet && sheetDetent === 'half' && !!metrics && metrics.content > metrics.half + 1;
@@ -469,7 +485,7 @@ export function Select({
               alignItemWithTrigger={false}
               collisionAvoidance={collisionAvoidance}
               sideOffset={popupSideOffset}
-              data-presentation={sheet ? 'sheet' : 'popover'}
+              data-presentation={listPresentation}
               data-density={densityScope.density}
               className={[
                 'z-10 outline-none',
@@ -489,33 +505,7 @@ export function Select({
                     ? { ...selected, height: drag.sheetHeight }
                     : selected
                 }
-                className={[
-                  // 選択肢の文字は欄の値と同じ大きさ（指でも 16px）。選んだ値が欄に入っても大きさが変わらない
-                  'p-(--select-popup-padding) text-input text-fg outline-none [--sheet-inset:var(--select-popup-padding)] [--spacing-icon:var(--spacing-icon-input)]',
-                  'border-(length:--border-width-thin) border-surface-line bg-surface',
-                  sheet
-                    ? [
-                        // シート: 上の角だけ丸め、下から滑り出る。高さはつまみに合わせて動く（引いているあいだは動きを止める）
-                        // 下端は端末の安全領域の分だけ空ける
-                        'flex min-h-0 w-full flex-col rounded-t-card border-x-0 border-b-0 shadow-sheet',
-                        // 下端の余白（端末の安全領域の分）は選択肢の内側に持たせ、続きの印がシートの下端に接するようにする
-                        'py-0',
-                        '[transition:translate_var(--duration-sheet)_var(--ease-sheet),height_var(--duration-sheet)_var(--ease-sheet)] data-dragging:[transition:none] motion-reduce:[transition:none]',
-                        'data-ending-style:translate-y-full data-starting-style:translate-y-full',
-                      ].join(' ')
-                    : [
-                        // 上下の余白は選択肢の内側に持たせ、続きの影が面の上下の端に接するようにする。角丸で切り抜く
-                        'min-w-(--anchor-width) overflow-clip rounded-control py-0 shadow-overlay',
-                        // 開閉の動き（--popup-duration-in・-out・-ease・-shift — ADR-0054 の D）
-                        // 本体の側から離れる向きにずれた位置から、濃さと一緒に滑る
-                        // 動きを減らす設定では動かさず、すぐに出す・消す（原則3）
-                        'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
-                        'data-ending-style:opacity-0 data-starting-style:opacity-0',
-                        'data-ending-style:[translate:0_calc(var(--popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--popup-shift)*-1)]',
-                        'data-[side=top]:data-ending-style:[translate:0_var(--popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--popup-shift)]',
-                        'motion-reduce:[transition:none]',
-                      ].join(' '),
-                ].join(' ')}
+                className={listboxPopup({ presentation: listPresentation })}
               >
                 {sheet && (
                   <SheetHeader
@@ -529,7 +519,7 @@ export function Select({
                     // 選ばずに閉じる。Tab では止まらない（開いた直後のフォーカスを選んだ項目に置くため）。キーボードでは Esc で閉じる
                     close={<SheetCloseButton tabIndex={-1} onClick={() => changeOpen(false)} />}
                   >
-                    <SelectSheetTitle
+                    <SheetFieldTitle
                       label={label}
                       caption={caption}
                       captionId={sheetCaptionId}
@@ -553,25 +543,7 @@ export function Select({
                       : messageIds
                   }
                   onScroll={sheet || popoverCue ? updateCues : undefined}
-                  // 「読み込んでいます」の行を出すときは、下の余白をその行に持たせる
-                  className={
-                    sheet
-                      ? [
-                          'min-h-0 flex-1 overflow-y-auto',
-                          !loadingRow &&
-                            'pb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')
-                      : // 浮かぶ選択肢の高さの上限（--select-popup-max-height）。未設定なら画面の端まで伸ばす
-                        [
-                          // --select-popup-extra は読み込み中の行の高さ（一覧の外にあるので、本体の下の空きから引く）
-                          'max-h-[min(calc(var(--available-height)-var(--select-popup-extra,0px)),var(--select-popup-max-height,var(--available-height)))] overflow-y-auto',
-                          loadingRow
-                            ? 'pt-(--select-popup-padding)'
-                            : 'py-(--select-popup-padding)',
-                        ].join(' ')
-                  }
+                  className={listboxList({ presentation: listPresentation, loadingRow })}
                 >
                   {items.map((item) => (
                     <SelectOption key={item.value} item={item} />
@@ -580,23 +552,16 @@ export function Select({
                 {(long || popoverCue) && (
                   <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )}
-                {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
-                  選択肢の一覧（listbox）の中には選択肢しか置けないので、一覧のすぐ下に置く
-                  読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため）
-                  シートでも浮かぶ選択肢と同じ行（ADR-0055）。下の余白だけ、端末の安全領域の分を空ける */}
+                {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）
+                  読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため） */}
                 {loadingRow && (
-                  <div
-                    data-slot="select-loading"
-                    className={[
-                      'flex h-(--spacing-control) shrink-0 items-center gap-2 px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
-                      sheet
-                        ? 'mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]'
-                        : 'mb-(--select-popup-padding)',
-                    ].join(' ')}
+                  <ListboxLoadingRow
+                    ref={loadingRowRef}
+                    slot="select-loading"
+                    presentation={listPresentation}
                   >
-                    <Spinner />
                     {loadingText}
-                  </div>
+                  </ListboxLoadingRow>
                 )}
               </BaseSelect.Popup>
             </BaseSelect.Positioner>
