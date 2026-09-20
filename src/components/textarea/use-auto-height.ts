@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 // CSS の field-sizing: content（中身の高さに合わせる）に対応していないか。描いたあと（ブラウザの中）でだけ呼ぶ

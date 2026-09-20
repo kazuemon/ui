@@ -1,3 +1,5 @@
+'use client';
+
 import { Meter as BaseMeter } from '@base-ui/react/meter';
 import { type ComponentProps, type ReactNode, useId } from 'react';
 import type { VariantProps } from 'tailwind-variants';

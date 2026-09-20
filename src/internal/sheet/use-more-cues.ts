@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useRef } from 'react';
 
 // 続きの印が最も濃くなるまでのスクロールの量（px）。Select と同じ — adr/0037

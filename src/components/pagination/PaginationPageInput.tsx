@@ -1,3 +1,5 @@
+'use client';
+
 import { type CSSProperties, type ReactElement, useEffect, useRef } from 'react';
 
 import { controlBox } from '../../internal/field/field-styles';

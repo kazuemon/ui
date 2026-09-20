@@ -1,3 +1,5 @@
+'use client';
+
 import { useUIConfig } from '../ui-config';
 import { DEFAULT_LOCALE, DEFAULT_TIME_ZONE } from './format-date';
 

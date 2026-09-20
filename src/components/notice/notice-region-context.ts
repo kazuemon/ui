@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext } from 'react';
 
 /** お知らせの領域（NoticeRegion）が先に置いた箱。中のお知らせは、自分の色の箱へ描かれる */

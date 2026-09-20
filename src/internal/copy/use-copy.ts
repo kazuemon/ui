@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, use, useCallback, useEffect, useRef, useState } from 'react';
 
 /** コピーの結果。idle は押す前（または知らせが消えたあと） */

@@ -1,3 +1,5 @@
+'use client';
+
 import { type RefObject, useEffect, useState } from 'react';
 
 // 横にはみ出しているか（スクロールできるか）の判定を 1 つにまとめる（表・複数行のコード・Prose の素の HTML で共通）

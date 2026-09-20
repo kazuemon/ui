@@ -1,3 +1,5 @@
+'use client';
+
 import { Affix } from '../affix/Affix';
 import { Container } from '../container/Container';
 import { Heading } from '../heading/Heading';

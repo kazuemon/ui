@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, createContext, type ReactNode, useContext } from 'react';
 
 import { headingStyles } from '../../internal/reading/heading';

@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, useMemo, useState } from 'react';
 
 import { NoticeRegionContext } from './notice-region-context';

@@ -1,3 +1,5 @@
+'use client';
+
 import { useUIConfig } from '../ui-config';
 import { tv } from '../tv';
 

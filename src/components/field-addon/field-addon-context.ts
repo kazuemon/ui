@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext } from 'react';
 
 /** prefix・suffix の形。attached: 本体の端に接する（既定）、floating: 本体の内側に浮かせる */

@@ -1,3 +1,5 @@
+'use client';
+
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 

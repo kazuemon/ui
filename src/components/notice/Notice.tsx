@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, type ReactNode, useContext, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { focusRing } from '../../internal/focus-styles';

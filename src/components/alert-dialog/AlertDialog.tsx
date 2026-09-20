@@ -1,3 +1,5 @@
+'use client';
+
 import { type ReactElement, type ReactNode, useState } from 'react';
 
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';

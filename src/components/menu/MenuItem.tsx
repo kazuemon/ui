@@ -1,3 +1,5 @@
+'use client';
+
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import {
   Children,

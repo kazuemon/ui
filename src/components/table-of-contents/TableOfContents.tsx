@@ -1,3 +1,5 @@
+'use client';
+
 import { type ComponentProps, type MouseEvent, useEffect, useMemo, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';

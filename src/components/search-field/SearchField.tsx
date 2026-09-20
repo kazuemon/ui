@@ -1,3 +1,5 @@
+'use client';
+
 import { type ReactNode, useState } from 'react';
 
 import { TextField, type TextFieldProps } from '../text-field/TextField';

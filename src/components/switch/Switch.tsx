@@ -1,3 +1,5 @@
+'use client';
+
 import { Field as BaseField } from '@base-ui/react/field';
 import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';

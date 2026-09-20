@@ -1,3 +1,5 @@
+'use client';
+
 import { OTPField } from '@base-ui/react/otp-field';
 import { Fragment, type ReactNode, useRef } from 'react';
 

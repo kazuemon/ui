@@ -1,3 +1,5 @@
+'use client';
+
 // 区切りの欄の状態とキー操作（DateField・TimeField）。値の形（PlainDate・PlainTime）は呼ぶ側が決める
 import { useRef, useState } from 'react';
 

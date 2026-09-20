@@ -1,3 +1,5 @@
+'use client';
+
 import type { MouseEvent } from 'react';
 
 import { FieldAddonButton } from '../../components/field-addon/FieldAddon';

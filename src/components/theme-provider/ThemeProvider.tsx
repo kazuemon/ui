@@ -1,3 +1,5 @@
+'use client';
+
 import { type ReactNode, useContext, useMemo } from 'react';
 
 import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark';

@@ -1,3 +1,5 @@
+'use client';
+
 // 全角の英数字を半角に直す処理と、直したことを知らせる仕組み（MaskField・NumberField・PinField・DateField・TimeField で共有）
 // 直すこと自体は黙って行い、知らせるかは使う側が halfWidthNotice で決める（既定は知らせない）
 import { type ReactNode, useCallback, useState } from 'react';

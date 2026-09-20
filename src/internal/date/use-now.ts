@@ -1,3 +1,5 @@
+'use client';
+
 import { useSyncExternalStore } from 'react';
 
 // 相対の書き方（RelativeTime）の「今」。ブラウザでだけ読み、1 分ごとに進める

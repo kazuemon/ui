@@ -1,3 +1,5 @@
+'use client';
+
 import { type ReactNode, useCallback, useRef } from 'react';
 
 import { Heading } from '../heading/Heading';

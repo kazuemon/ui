@@ -1,3 +1,5 @@
+'use client';
+
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { type ReactNode, useId } from 'react';
 

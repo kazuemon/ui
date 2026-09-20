@@ -1,3 +1,5 @@
+'use client';
+
 import { type ReactNode, useCallback, useId, useRef } from 'react';
 
 import { Button } from '../button/Button';

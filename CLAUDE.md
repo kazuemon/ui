@@ -59,6 +59,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
    - 見た目は `tv`（`src/internal/tv`）で書く。トークンは、役割（`@theme`）にあるものを先に使う。部品のトークン（`:root`）は、役割にない値か、部品の中で状態ごとに差し替える値のときだけ足し、生の値は尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`）を指す。`@theme` に名前を足したら `twMergeConfig` にも足す（`tv.test.ts` が確かめる）
    - 寸法は密度のトークン（`--spacing-control` など）で書く。フォーカスの線は `focusRing`、ラベル・キャプション・エラーの行は `internal/field` の `Field`、Form の送信中は `useFormSubmittingLock`・`useChoiceLock` を使う
    - props の説明と既定値（`@default`）は JSDoc に書く
+   - ブラウザが要るファイル（フック・Base UI・イベントのハンドラ・関数を渡す props）は、先頭に `'use client';` を置く。それを値として読むファイルにも要る（型だけの import と、再 export は伝播しない）。サーバーのまま描ける部品を減らさないよう、要らないファイルには付けない。付け忘れ・付けすぎは `src/internal/use-client.test.ts` が確かめる
    - 1 ファイルが大きくなったら、部品のフォルダの中で分ける（見た目の一部は `<Name>Part.tsx`、状態を持つ処理は `use-*.ts`、DOM を読むだけの計算は `*.ts`）。2 つ目の部品が使うようになったら `src/internal/` へ移す
 4. ストーリーを書く（タイトルは `Components/<Name>`）
    - Docs の文は使い方だけ。開発の経緯や ADR の番号は書かない

@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useRef } from 'react';
 
 // ストーリーで、ScrollArea のスクロールの位置を固定する（上の端・途中・下の端）。部品ではない

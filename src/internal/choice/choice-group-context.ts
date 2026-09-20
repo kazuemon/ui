@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext } from 'react';
 
 import type { ChoiceColor } from './choice-styles';
