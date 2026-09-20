@@ -227,3 +227,22 @@ export const ListIcon = ({ standalone }: IconProps) => (
     <line x1="40" y1="192" x2="216" y2="192" />
   </Icon>
 );
+
+// 鎖の輪 2 つを横に並べた形（Phosphor の LinkSimpleHorizontal）。見出しのページ内リンク（HeadingAnchor）に置く
+export const LinkSimpleHorizontalIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="96" y1="128" x2="160" y2="128" />
+    <path d="M104,80H80a48,48,0,0,0,0,96h24" />
+    <path d="M152,176h24a48,48,0,0,0,0-96H152" />
+  </Icon>
+);
+
+// 井げた（Phosphor の Hash）。見出しのページ内リンク（HeadingAnchor）の、もう 1 つの印
+export const HashIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="40" y1="96" x2="216" y2="96" />
+    <line x1="40" y1="160" x2="216" y2="160" />
+    <line x1="112" y1="40" x2="88" y2="216" />
+    <line x1="168" y1="40" x2="144" y2="216" />
+  </Icon>
+);

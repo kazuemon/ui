@@ -986,6 +986,15 @@
   --container-gutter-size: clamp(calc(var(--spacing) * 4), 5%, calc(var(--spacing) * 12));
   /* ── END container */
 
+  /* ── Stack — 軸 230 ── BEGIN stack */
+  /* 子を縦・横に並べるときの間隔の段。値は尺度（--spacing）の倍数。入力方式では変えない（押すものではなく、置き方の間隔のため） */
+  --stack-gap-xs: calc(var(--spacing) * 1); /* 4px */
+  --stack-gap-sm: calc(var(--spacing) * 2); /* 8px */
+  --stack-gap-md: calc(var(--spacing) * 4); /* 16px */
+  --stack-gap-lg: calc(var(--spacing) * 6); /* 24px */
+  --stack-gap-xl: calc(var(--spacing) * 10); /* 40px */
+  /* ── END stack */
+
   /* ── Navbar — 軸 104・105 ── BEGIN navbar */
   /* ページの上の帯。ロゴ・行き先・操作を 1 行に並べる。src/components/navbar
      height: 帯の高さ。入力方式では変えない（原則11: 部品の高さは指で押せる大きさのまま）
@@ -1308,6 +1317,45 @@
   --color-steps-line: var(--color-line);
   /* ── END steps */
 
+  /* ── Timeline ── BEGIN timeline */
+  /* 職歴・活動の年表。src/components/timeline
+     読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
+     gap: 項目と項目のあいだ。date-gap: 日付と題のあいだ（点の右に積むとき）
+     inline-gap: 日付と題を同じ行に並べるときの、日付と題のあいだ。title-gap: 題と説明のあいだ
+     date-width・date-aside-gap: 点の左に日付の列を置くとき（datePlacement="aside"）の列の幅と、列と点のあいだ
+       入れ物が狭いと列を置けないので、畳むかは部品の collapse で選ぶ（入れ物の幅で決める — 原則11）
+     marker-size-{sm,md,lg}: 点の大きさ（部品の markerSize）。日付と題が主役なので、手順（Steps）の番号の丸より小さい
+     marker-gap: 点と文のあいだ。marker-ring: 輪郭の丸（markerType="outline"）の線の太さ
+       点の種類（グレーの丸・輪郭の丸・Primary の丸）は部品の markerType で選ぶ。名前と色は Steps の marker に合わせる
+       color-marker は 3:1 のグレー。Steps の neutral は丸の中の数字が濃さを持つが、Timeline の点には中身がない
+     emphasis-*: 強調する項目の点（TimelineItem の emphasis）。点の種類は変えず、淡い輪と大きさで示す（原則6・12）
+       halo-mix は輪の濃さ。輪の色は、その点の色（markerType ごとの点の色）を薄めて作る
+     line-*: 項目をつなぐ縦の線。点の中心の下から次の項目の点の上まで。line-gap は点と線の端のあいだ
+       線の種類（実線・点線・なし）は部品の line で選ぶ。line-dotted-* は点線のときの太さと点とのあいだ
+     tail-length: 最後の項目のあとに点線を伸ばすとき（部品の tail="dotted"）の長さ */
+  --timeline-gap: calc(var(--spacing) * 6);
+  --timeline-date-gap: calc(var(--spacing) * 1);
+  --timeline-inline-gap: calc(var(--spacing) * 3);
+  --timeline-title-gap: calc(var(--spacing) * 1);
+  --timeline-date-width: calc(var(--spacing) * 24);
+  --timeline-date-aside-gap: calc(var(--spacing) * 3);
+  --timeline-marker-size-sm: calc(var(--spacing) * 2); /* 8px */
+  --timeline-marker-size-md: calc(var(--spacing) * 2.5); /* 10px */
+  --timeline-marker-size-lg: calc(var(--spacing) * 3.5); /* 14px */
+  --timeline-marker-gap: calc(var(--spacing) * 3);
+  --timeline-marker-ring: var(--border-width-medium);
+  --color-timeline-marker: var(--color-line-strong);
+  --timeline-emphasis-scale: 1.2;
+  --timeline-emphasis-halo: calc(var(--spacing) * 1);
+  --timeline-emphasis-halo-mix: 45%;
+  --timeline-line-width: var(--border-width-thin);
+  --timeline-line-gap: calc(var(--spacing) * 1);
+  --timeline-line-dotted-width: var(--border-width-thick);
+  --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
+  --timeline-tail-length: calc(var(--spacing) * 5);
+  --color-timeline-line: var(--color-line);
+  /* ── END timeline */
+
   /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */
   /* 地の上に値までを塗るバー。Meter（決まった範囲の中の量）と Progress（進み具合）が共有する。src/internal/bar
      押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
@@ -1438,6 +1486,68 @@
   --date-segment-focus-fg: var(--color-fg);
   --date-segment-focus-placeholder: var(--field-placeholder);
   /* ── END date-field */
+
+  /* ── HeadingAnchor — 軸 200・201 ── BEGIN heading-anchor */
+  /* 見出しに付くページ内リンク。文字の仲間なので、大きさは見出しの文字に比例する（原則21）
+     icon-size: 印の大きさ（見出しの文字に対する比）。gap: 文字と印のあいだ
+     rest-opacity: ふだんの濃さ（hover とフォーカスでは 1）。touch-opacity: 指（hover できない入力）のときのふだんの濃さ。
+       指では hover がないので、隠したままだと見つけられない。--density-coarse（指用の密度なら 1）で切り替える
+     color・color-hover: 印の色。ふだんは控えめな灰色、hover で Primary */
+  --heading-anchor-icon-size: 0.9em;
+  --heading-anchor-gap: 0.4em;
+  --heading-anchor-rest-opacity: 0;
+  --heading-anchor-touch-opacity: 1;
+  --heading-anchor-color: var(--color-fg-subtle);
+  --heading-anchor-color-hover: var(--color-primary);
+  --heading-anchor-duration: var(--duration-fast);
+  /* ── END heading-anchor */
+
+  /* ── 用語と説明の組（DescriptionList）。src/components/description-list/DescriptionList.tsx
+     並び（layout）・区切り（divider）・用語の寄せ方（termAlign）・用語の文字（termStyle）で、この値を差し替える
+     並び: --description-direction が row なら用語が左・説明が右、column なら用語の下に説明
+     区切り: --description-divider-width（行のあいだの線）・--description-frame-width（外枠）・
+             --description-leader-*（用語の右から説明までをつなぐ薄い線。divider="leader-dotted"・"leader-solid"）
+     用語: 名前なので太字（原則4）。大きさは本文か、Field のラベルと同じ 14px（termStyle="label"） */
+  --description-item-gap: calc(var(--spacing) * 3); /* 行のあいだ（区切りの線を出さないとき） */
+  --description-column-gap: calc(var(--spacing) * 4); /* 横に並べたときの、用語と説明のあいだ */
+  --description-row-gap: var(--spacing); /* 縦に並べたときの、用語と説明のあいだ */
+  --description-direction: row;
+  --description-item-align: baseline;
+  --description-term-width: calc(var(--spacing) * 32); /* 128px。用語の列の幅（横のときだけ効く） */
+  --description-term-align: start;
+  --description-term-display: block; /* leader-* のときは flex にして、中身の幅＋線にする */
+  --description-term-grow: 0;
+  --description-term-text: var(--text-body);
+  --description-term-leading: var(--leading-body);
+  --description-details-flex: 1 1 0%; /* leader-* のときは 0 1 auto（説明は中身の幅で右に付く） */
+  --description-pad-x: 0px;
+  --description-pad-y: 0px;
+  --description-divider-width: 0px;
+  --description-frame-width: 0px;
+  --color-description-line: var(--color-line);
+  /* 用語の右から説明までをつなぐ線（divider="leader-dotted"・"leader-solid"）。目次の点線 */
+  --description-leader-display: none;
+  --description-leader-gap: calc(var(--spacing) * 2); /* 線と、用語・説明のあいだ */
+  --description-leader-style: dotted; /* leader-solid は solid に差し替える */
+  --description-leader-width: var(--border-width-thin);
+  --color-description-leader: var(--color-line);
+  /* ── END description-list */
+
+  /* ── 数字とラベル（Stat）。src/components/stat/Stat.tsx
+     並びは Field・バーと同じ3層（原則4）: 上にラベル（太字）、真ん中に数字、下にキャプション（小さくグレー）
+     数字の大きさ: --stat-value-text・--stat-value-leading（size が文字の尺度の段を差し替える。密度でも一緒に変わる）
+     増減: 矢印の有無（deltaIcon）と淡い面の有無（deltaFill）は部品が持つ。色は tone（成功の緑・危険の赤・グレー） */
+  --stat-gap: var(--spacing); /* ラベルと数字のあいだ */
+  --stat-caption-gap: var(--spacing); /* 数字とキャプションのあいだ */
+  --stat-value-text: var(--text-heading-1);
+  --stat-value-leading: var(--leading-heading-1);
+  --stat-value-weight: var(--font-weight-heading);
+  --stat-value-gap: calc(var(--spacing) * 2); /* 数字と、単位・増減のあいだ */
+  --stat-delta-text: var(--text-body-sm);
+  --stat-delta-leading: var(--leading-body-sm);
+  --stat-delta-weight: 700;
+  --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
+  /* ── END stat */
 }
 
 /* ── toast keyframes */

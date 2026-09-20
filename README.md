@@ -44,7 +44,7 @@
 ### 文字
 
 - [x] Heading
-- [ ] HeadingAnchor
+- [x] HeadingAnchor
 - [x] Text
 - [x] Code
 - [x] Kbd
@@ -79,7 +79,7 @@
 - [x] Container
 - [x] Navbar
 - [ ] Sidebar
-- [ ] Stack
+- [x] Stack
 - [x] SkipLink
 - [x] Affix
 - [ ] Splitter
@@ -114,12 +114,12 @@
 - [x] Avatar
 - [x] Badge
 - [ ] Chip
-- [ ] Timeline
+- [x] Timeline
 - [x] Accordion
 - [x] Image
 - [ ] AvatarGroup
-- [ ] DescriptionList
-- [ ] Stat
+- [x] DescriptionList
+- [x] Stat
 - [x] Meter
 - [ ] Carousel
 - [ ] Indicator

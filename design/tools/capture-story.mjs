@@ -12,13 +12,18 @@
 // ふだんの動きの印を撮るときは --motion normal を渡す（移り変わりの途中で撮られないよう、撮る前に待つ時間はそのまま）。
 
 import { execFile, execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 import { parseArgs, promisify, styleText } from 'node:util';
-// 撮影に使う Chrome。Playwright が入れた headless shell を直に呼ぶ
-const CHROME = `${process.env.HOME}/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`;
+// 撮影に使う Chrome。Playwright が入れた headless shell を直に呼ぶ（版の番号は入れた時期で変わるので、あるものを探す）
+const PLAYWRIGHT_CACHE = `${process.env.HOME}/.cache/ms-playwright`;
+const shellDir = readdirSync(PLAYWRIGHT_CACHE)
+  .filter((name) => name.startsWith('chromium_headless_shell-'))
+  .sort()
+  .at(-1);
+const CHROME = `${PLAYWRIGHT_CACHE}/${shellDir}/chrome-headless-shell-linux64/chrome-headless-shell`;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
