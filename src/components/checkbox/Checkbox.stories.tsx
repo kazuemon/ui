@@ -27,6 +27,7 @@ const meta = {
           '- 「すべて選ぶ」の箱は、`CheckboxGroup` の `selectAll` と `allValues` で付けます。選んだ数に合わせて、箱が自分で選んだ状態・中間の状態に切り替わります。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。選んでいない箱は、色にかかわらず入力欄と同じグレーです。',
           '- グループの必須は、`caption` の文で書きます。',
+          '- `readOnly` にすると、箱が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -38,6 +39,7 @@ const meta = {
     label: 'メールで受け取る',
     color: 'neutral',
     disabled: false,
+    readOnly: false,
     required: false,
     defaultChecked: false,
     onCheckedChange: fn(),
@@ -53,6 +55,7 @@ const meta = {
       table: { defaultValue: { summary: "'neutral'" } },
     },
     disabled: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     required: { control: 'boolean' },
     defaultChecked: { control: 'boolean' },
     checked: { control: false },
@@ -251,6 +254,47 @@ export const Messages: Story = {
       <Checkbox label="お知らせのメールを受け取る" defaultChecked warning="週に数回届きます" />
     </div>
   ),
+};
+
+export const ReadOnly: Story = {
+  tags: ['visual'],
+  name: '読み取り専用',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`readOnly` の箱は、押せない箱と同じ見た目になります。横の文字は読むための文字なので、本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも値は変わりませんが、フォームでは値が送られます（押せない箱は送られません）。グループごと読み取り専用にするときは、`CheckboxGroup` に `readOnly` を渡します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-5">
+      <Checkbox label="お知らせのメールを受け取る" defaultChecked readOnly />
+      <CheckboxGroup label="連絡の方法" readOnly defaultValue={['mail']}>
+        <Checkbox value="mail" label="メール" />
+        <Checkbox value="tel" label="電話" caption="平日の 10 時から 18 時" />
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: 'お知らせのメールを受け取る' });
+    // 読み上げは「読み取り専用」。押せない（aria-disabled）とは伝えない
+    await expect(box).toHaveAttribute('aria-readonly', 'true');
+    await expect(box).not.toHaveAttribute('aria-disabled');
+    // 押しても値は変わらない
+    await userEvent.click(box);
+    await expect(box).toHaveAttribute('aria-checked', 'true');
+    // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
+    box.focus();
+    await expect(box).toHaveFocus();
+    box.blur();
+    // グループの readOnly は中の箱に伝わる
+    await expect(canvas.getByRole('checkbox', { name: '電話' })).toHaveAttribute(
+      'aria-readonly',
+      'true'
+    );
+  },
 };
 
 export const Densities: Story = {

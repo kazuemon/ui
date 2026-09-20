@@ -7,6 +7,7 @@ import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
   choiceGroupMessagePull,
+  choiceReadOnly,
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
@@ -24,6 +25,13 @@ export interface RadioProps extends Omit<
   label: ReactNode;
   /** 横の文字の下の説明。押せないときも読めるままです */
   caption?: ReactNode;
+  /**
+   * 読み取り専用にします。丸は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
+   * フォーカスでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも選び直せません。フォームでは値が送られます。
+   * ふつうは RadioGroup の readOnly で、グループごと読み取り専用にします
+   * @default false
+   */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -41,8 +49,9 @@ export function Radio({
 }: RadioProps) {
   const group = useContext(ChoiceGroupContext);
   const s = choiceStyles({ color: group?.color });
-  // Form の送信中は、押せない丸と同じ見た目にして切り替えを止める（form-context.ts の useChoiceLock。RadioGroup も止める）
-  const locked = useChoiceLock(disabled);
+  // Form の送信中と読み取り専用（軸 177）は、押せない丸と同じ見た目にして選び直しを止める
+  // 読み取り専用はグループ（RadioGroup の readOnly）からも来る
+  const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
   return (
     <BaseField.Item
       disabled={disabled}
@@ -50,15 +59,21 @@ export function Radio({
     >
       <BaseRadio.Root
         disabled={disabled}
-        readOnly={locked.readOnly || readOnly}
-        aria-disabled={locked.readOnly || ariaDisabled}
-        className={s.box({ className: 'rounded-pill' })}
+        readOnly={locked.readOnly}
+        aria-disabled={locked.ariaDisabled || ariaDisabled}
+        className={s.box({
+          className: ['rounded-pill', locked.readOnlyLook && choiceReadOnly.box],
+        })}
         {...locked.data}
         {...props}
       >
         <BaseRadio.Indicator className={s.dot()} />
       </BaseRadio.Root>
-      <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+      <BaseField.Label
+        className={s.label({ className: locked.readOnlyLook ? choiceReadOnly.label : undefined })}
+      >
+        {label}
+      </BaseField.Label>
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
     </BaseField.Item>
   );
@@ -88,6 +103,12 @@ export interface RadioGroupProps<Value> extends Omit<
    */
   required?: boolean;
   /**
+   * グループごと読み取り専用にします。丸は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
+   * フォーカスでき、読み上げではグループが「読み取り専用」と伝わります。矢印キーでも押しても選び直せません。フォームでは値が送られます
+   * @default false
+   */
+  readOnly?: boolean;
+  /**
    * 選んだときの色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（濃いグレー）を選べます（原則6）
    * @default 'neutral'
    */
@@ -114,9 +135,9 @@ export function RadioGroup<Value>({
   'aria-describedby': ariaDescribedBy,
   ...props
 }: RadioGroupProps<Value>) {
-  const context = useMemo(() => ({ color }), [color]);
-  // Form の送信中は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
-  const locked = useChoiceLock(disabled);
+  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
+  const locked = useChoiceLock(disabled, readOnly);
   return (
     <ChoiceGroupContext.Provider value={context}>
       <Field
@@ -135,7 +156,7 @@ export function RadioGroup<Value>({
           <BaseRadioGroup<Value>
             {...props}
             disabled={disabled}
-            readOnly={locked.readOnly || readOnly}
+            readOnly={locked.readOnly}
             aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
             className="flex flex-col"
           >

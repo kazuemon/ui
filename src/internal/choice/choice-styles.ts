@@ -127,6 +127,15 @@ export const choiceStyles = tv({
   defaultVariants: { color: 'neutral', layout: 'item' },
 });
 
+/**
+ * 読み取り専用（軸 177）の上書き。箱の見た目は押せないときと同じままで、横の文字だけ本文の色に戻す
+ * 横の文字は読むための文字なので薄くしません（原則13）。カーソルも、押せないときの禁止の形にはしません
+ */
+export const choiceReadOnly = {
+  box: 'data-disabled:cursor-default',
+  label: 'peer-data-disabled/box:cursor-default peer-data-disabled/box:text-fg',
+};
+
 /** 選んだときの色。Switch と同じ並び */
 export type ChoiceColor = NonNullable<VariantProps<typeof choiceStyles>['color']>;
 

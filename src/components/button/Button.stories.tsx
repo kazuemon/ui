@@ -4,12 +4,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 import { Button, type ButtonProps } from './Button';
+import { Card, CardBody } from '../card/Card';
 import { CheckIcon, CopyIcon, XIcon } from '../../internal/icons';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table/Table';
 import type { LoadingIndicator } from '../loading/Loading';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
-const appearances = ['filled', 'outline'] as const;
+const appearances = ['filled', 'outline', 'underline'] as const;
 const colors = ['primary', 'secondary', 'danger', 'neutral', 'white'] as const;
 const indicators: LoadingIndicator[] = ['spinner', 'bar'];
 // 送信中の形。回る円は、ラベルに重ねる（既定）か、inlineSpinner でラベルの左に置く
@@ -30,11 +32,11 @@ const meta = {
         component: [
           '押して操作を実行するボタンです。',
           '',
-          '- 画面の中で最も進めたい操作を `appearance="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。',
+          '- 画面の中で最も進めたい操作を `appearance="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。いちばん軽く見せたい操作には `underline`（文字に下線だけ）を使います。',
           '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`white` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
           '- アイコンだけのボタンは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="round"` で丸にできます。',
           '- 送信中は `loading` を付けます。押せないボタンと同じ見た目になり、押しても `onClick` を呼びません。`disabled` と違い、フォーカスは外れません。',
-          '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link appearance="button">` を使います（Components/Link の「ボタンの見た目」）。',
+          '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link appearance="button">`、下線の見た目が要るときは `<Link appearance="underline">` を使います（Components/Link）。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -100,13 +102,14 @@ export const Colors: Story = {
     docs: {
       description: {
         story:
-          '行が見た目（`appearance`）、列が色（`color`）です。枠線の `white` は `neutral` と同じ見た目です。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
+          '行が見た目（`appearance`）、列が色（`color`）です。枠線と下線の `white` は `neutral` と同じ見た目です。下線の文字は枠線とまったく同じで、枠線がない分だけ軽く見えます。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
       },
       source: sourceCode(`
-        {/* appearance: filled（既定）・outline / color: primary・secondary・danger・neutral（既定）・white */}
+        {/* appearance: filled（既定）・outline・underline / color: primary・secondary・danger・neutral（既定）・white */}
         <Button color="primary">保存する</Button>
         <Button appearance="outline">キャンセル</Button>
         <Button appearance="outline" color="danger">削除する</Button>
+        <Button appearance="underline">編集する</Button>
       `),
     },
   },
@@ -132,12 +135,13 @@ export const States: Story = {
     docs: {
       description: {
         story:
-          '塗りのボタンは hover で影が輪郭だけになり、押すと沈みます。枠線のボタンは hover と押下で文字の色を淡く敷きます。フォーカスの線はキーボードで操作したときだけ出ます。',
+          '塗りのボタンは hover で影が輪郭だけになり、押すと沈みます。枠線と下線のボタンは hover と押下で文字の色を淡く敷きます。下線のボタンでは、この塗りが押せる広さを見せます（下線は hover で変わりません）。押せないときは下線が外れます。フォーカスの線はキーボードで操作したときだけ出ます。',
       },
       source: sourceCode(`
         {/* hover・押下・フォーカスの見た目は部品が受け持つ */}
         <Button color="primary">保存する</Button>
         <Button appearance="outline" color="primary">保存する</Button>
+        <Button appearance="underline" color="primary">保存する</Button>
         <Button color="primary" disabled>
           保存する
         </Button>
@@ -258,6 +262,84 @@ export const WithIcon: Story = {
   ),
 };
 
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const Underline: Story = {
+  name: '下線のボタン',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '`appearance="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付くボタンです。押すものの中でいちばん軽く、操作がいくつも並ぶ場所（カードの右上、表の行末）で使います。',
+          '',
+          '- 文字は枠線のボタンとまったく同じ（色・太さ・大きさ・字間）で、違いは枠線がないことと下線が付くことだけです。寸法・左右の余白・角丸も枠線のボタンと同じです。',
+          '- 下線は文字にだけ引きます。アイコンには付かないので、アイコンだけのボタンは下線も枠線もない形になります。',
+          '- 押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出て、押せる広さが分かります。',
+          '- 移動するものは `<Link appearance="underline">` を使います（Components/Link の「下線のリンク」）。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xl flex-col gap-6">
+      {/* カードの右上の操作 */}
+      <Card>
+        <CardBody>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-bold text-fg">2026 年の作品</h3>
+              <p className="text-sm text-fg-muted">12 件</p>
+            </div>
+            <div className="-me-(--spacing-control-x) flex shrink-0">
+              <Button appearance="underline">編集</Button>
+              <Button appearance="underline" color="danger">
+                削除
+              </Button>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+      {/* 表の行末の操作 */}
+      <Table caption="公開中のページ">
+        <TableHead>
+          <TableRow>
+            <TableHeader>ページ</TableHeader>
+            <TableHeader>公開日</TableHeader>
+            <TableHeader align="right">操作</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {[
+            { title: 'はじめに', date: '2026-04-01' },
+            { title: '使い方', date: '2026-05-12' },
+            { title: 'よくある質問', date: '2026-06-30' },
+          ].map((page) => (
+            <TableRow key={page.title}>
+              <TableCell>{page.title}</TableCell>
+              <TableCell>{page.date}</TableCell>
+              <TableCell align="right">
+                <div className="-me-(--spacing-control-x) flex justify-end">
+                  <Button appearance="underline">編集</Button>
+                  <Button appearance="underline" color="danger">
+                    削除
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 文字には下線が付き、枠線は付かない
+    const [edit] = canvas.getAllByRole('button', { name: '編集' });
+    const style = getComputedStyle(edit);
+    await expect(style.textDecorationLine).toBe('underline');
+    await expect(style.borderTopWidth).toBe('0px');
+  },
+};
+
 // Show code: 表（Matrix）の中身は出ないので、代表の使い方を source.code に手で書く
 export const IconOnly: Story = {
   name: 'アイコンだけ',
@@ -268,7 +350,7 @@ export const IconOnly: Story = {
     docs: {
       description: {
         story:
-          '`iconOnly` を付けると、部品の高さの正方形になります。各セルの左が `shape="square"`（既定。文字のボタンと同じ角）、右が `shape="round"`（丸）です。文字がないので、`aria-label` で読み上げの名前を必ず付けます（付けないと型で止まります）。アイコンは単体の太い線（`standalone`）で置きます。',
+          '`iconOnly` を付けると、部品の高さの正方形になります。各セルの左が `shape="square"`（既定。文字のボタンと同じ角）、右が `shape="round"`（丸）です。文字がないので、`aria-label` で読み上げの名前を必ず付けます（付けないと型で止まります）。アイコンは単体の太い線（`standalone`）で置きます。下線（`underline`）は文字にだけ引くので、アイコンだけのときは下線も枠線もない形になり、hover の塗りで押せる広さが分かります。',
       },
       source: sourceCode(`
         <Button iconOnly appearance="outline" aria-label="閉じる">
@@ -345,6 +427,7 @@ export const Densities: Story = {
       <div className="flex flex-wrap gap-3">
         <Button {...args} color="primary" />
         <Button {...args} appearance="outline" />
+        <Button {...args} appearance="underline" />
         <Button {...args} />
       </div>
     </DensityPair>

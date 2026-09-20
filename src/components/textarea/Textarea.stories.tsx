@@ -67,6 +67,8 @@ const meta = {
           '- 1 行ぶんの高さと 1 行目の文字の位置は、TextField と同じです。',
           '- `placeholder` は、値と見分けられるよう「例: UI を作っています」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
           '- `showCount` を渡すと、本体の右下の下に「12 / 200」の形で文字数を出します。上限は `maxCount`（超えても打てる）か `maxLength`（ブラウザが打つのを止める）です。',
+          '- 上限まで残りわずかになると、`showCount` がなくても文字数を出し、数を警告の色にします。予告を出す残りの文字数は `warnRemaining` で変えられます（既定は上限の 10%）。警告は送信を止めないので、欄の見た目は変えません。',
+          '- 文字数は見えている文字（書記素）で数えます。絵文字や国旗も 1 文字です。',
           '- `maxCount` を超えると、`showCount` がなくても文字数を出し、数を赤にします。超えているあいだは欄もエラーの見た目（赤い枠線・`aria-invalid`）にし、読み上げでも知らせます。欄を変えたくないときは `overCountInvalid={false}` を渡します。送信を止めるときは、超えていたら `error` を渡します。',
           '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<textarea>` に渡ります。',
         ].join('\n'),
@@ -100,6 +102,7 @@ const meta = {
     maxRows: { control: { type: 'number', min: 1 } },
     maxCount: { control: { type: 'number', min: 1 } },
     overCountInvalid: { control: 'boolean' },
+    warnRemaining: { control: { type: 'number', min: 0 } },
     maxLength: { control: { type: 'number', min: 1 } },
     showCount: { control: 'boolean' },
     disabled: { control: 'boolean' },
@@ -217,6 +220,14 @@ export const Messages: Story = {
           showCount
         />
       </Specimen>
+      <Specimen label="上限に近づいた（showCount なし）">
+        <Textarea
+          {...args}
+          caption="30文字まで"
+          defaultValue="はじめまして。かずえもんです。ポートフォリオを見ました"
+          maxCount={30}
+        />
+      </Specimen>
       <Specimen label="上限を超えた（showCount なし）">
         <Textarea
           {...args}
@@ -288,6 +299,9 @@ export const Count: Story = {
     await userEvent.type(textarea, '{backspace}{backspace}{backspace}');
     await expect(live).toHaveTextContent('10文字以内に戻りました');
     await expect(textarea).not.toHaveAttribute('aria-invalid', 'true');
+    // 上限の手前（残り 1 文字）では、数を警告の色にして予告する
+    await expect(canvas.getByText('9')).toHaveClass('text-fg-warning');
+    await expect(textarea).toHaveAccessibleDescription('10文字まで。いま9文字。残り1文字');
   },
 };
 
@@ -318,9 +332,79 @@ export const CountForced: Story = {
     // 超えているあいだは欄をエラーの状態にする（エラーの行は出さない）
     await expect(textarea.closest('[data-invalid]')).not.toBeNull();
     await expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    // 上限に近づいているあいだ（残り 1 文字）は、予告として文字数を出したままにする
     await userEvent.type(textarea, '{backspace}{backspace}{backspace}');
-    await expect(canvas.queryByText('/ 10', { exact: false })).toBeNull();
+    await expect(canvas.getByText('9')).toHaveClass('text-fg-warning');
     await expect(textarea.closest('[data-invalid]')).toBeNull();
+    // 予告の手前まで消すと、文字数も消える
+    await userEvent.type(textarea, '{backspace}{backspace}');
+    await expect(canvas.queryByText('/ 10', { exact: false })).toBeNull();
+  },
+};
+
+export const CountNear: Story = {
+  name: '上限に近づいたとき',
+  args: { maxCount: 20, showCount: true },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '上限まで残りわずかになると、数を警告の色にして予告します。欄の見た目は変えません（警告は送信を止めないため）。予告を出す残りの文字数は `warnRemaining` で変えられます。既定は上限の 10% です。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-md">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, canvasElement }) => {
+    const textarea = canvas.getByLabelText('本文');
+    await userEvent.type(textarea, 'はじめまして。かずえもんです');
+    // 残り 6 文字。まだ予告しない（既定は残り 2 文字から）
+    await expect(canvas.getByText('14')).not.toHaveClass('text-fg-warning');
+    await userEvent.type(textarea, '。よろしく');
+    await expect(canvas.getByText('19')).toHaveClass('text-fg-warning');
+    await expect(textarea).toHaveAccessibleDescription('20文字まで。いま19文字。残り1文字');
+    // 予告では欄の見た目を変えない（エラーの状態にしない）
+    await expect(textarea.closest('[data-invalid]')).toBeNull();
+    await expect(textarea).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(canvasElement.querySelector('[id$="count"] > [aria-hidden]')).toHaveTextContent(
+      '19 / 20'
+    );
+  },
+};
+
+export const CountGraphemes: Story = {
+  name: '絵文字を数える',
+  args: { maxCount: 10, showCount: true, defaultValue: '🇯🇵👨‍👩‍👧‍👦' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '文字数は見えている文字（書記素）で数えます。国旗や家族の絵文字も 1 文字です。ブラウザが打つのを止める `maxLength` は、ブラウザの数え方（UTF-16）のままです。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-md">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, canvasElement }) => {
+    const textarea = canvas.getByLabelText('本文');
+    // 🇯🇵 と 👨‍👩‍👧‍👦 で 2 文字（String.length では 13）
+    await expect(canvasElement.querySelector('[id$="count"] > [aria-hidden]')).toHaveTextContent(
+      '2 / 10'
+    );
+    await userEvent.type(textarea, 'あ');
+    await expect(canvasElement.querySelector('[id$="count"] > [aria-hidden]')).toHaveTextContent(
+      '3 / 10'
+    );
   },
 };
 

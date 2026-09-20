@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
-import { expect, fn } from 'storybook/test';
+// userEvent は play の引数ではなく storybook/test から読む
+import { expect, fn, userEvent } from 'storybook/test';
 
 import { Switch } from './Switch';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
@@ -55,6 +56,7 @@ const meta = {
           '- `frame` を付けると、行の範囲を線で描き、行のどこを押しても切り替わります。このときトラックは行の縦の中央に置きます。',
           '- `color` は ON のときの色です。指定しないときは濃いグレー（`neutral`）です。OFF のトラックは、色にかかわらず入力欄と同じグレーです。',
           '- 押せないときは、トラックを薄くし、ラベルをほかの押せない文字と同じグレーにします。キャプションは説明なので、読めるままです。',
+          '- `readOnly` にすると、トラックとノブが押せないときと同じ見た目になります。ラベルは本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
           '- 状態は `defaultChecked` で部品に任せるか、`checked`・`onCheckedChange` で外から持ちます。',
         ].join('\n'),
       },
@@ -68,6 +70,7 @@ const meta = {
     captionAppearance: 'plain',
     frame: 'none',
     disabled: false,
+    readOnly: false,
     defaultChecked: false,
     onCheckedChange: fn(),
   },
@@ -84,6 +87,7 @@ const meta = {
     captionAppearance: { control: 'inline-radio', options: captionAppearances },
     frame: { control: 'inline-radio', options: frames },
     disabled: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     defaultChecked: { control: 'boolean' },
     checked: { control: false },
   },
@@ -331,6 +335,48 @@ export const States: Story = {
       renderCell={(checked) => <Switch {...args} defaultChecked={checked} />}
     />
   ),
+};
+
+export const ReadOnly: Story = {
+  name: '読み取り専用',
+  tags: ['visual'],
+  parameters: {
+    controls: { exclude: ['readOnly', 'defaultChecked'] },
+    docs: {
+      description: {
+        story:
+          '`readOnly` のトグルは、トラックとノブが押せないトグルと同じ見た目になります。ラベルは読むための文字なので、本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも切り替わりませんが、フォームでは値が送られます。',
+      },
+      source: sourceCode(`
+        <Switch label="お知らせを受け取る" readOnly />
+        <Switch label="お知らせを受け取る" defaultChecked readOnly />
+      `),
+    },
+  },
+  render: (args) => (
+    <Gallery columnWidth="14rem">
+      <Specimen label="OFF">
+        <Switch {...args} readOnly />
+      </Specimen>
+      <Specimen label="ON">
+        <Switch {...args} readOnly defaultChecked />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvas }) => {
+    const [off, on] = canvas.getAllByRole('switch');
+    // 読み上げは「読み取り専用」。押せない（aria-disabled）とは伝えない
+    await expect(off).toHaveAttribute('aria-readonly', 'true');
+    await expect(off).not.toHaveAttribute('aria-disabled');
+    // 押しても切り替わらない
+    await userEvent.click(off);
+    await expect(off).toHaveAttribute('aria-checked', 'false');
+    await expect(on).toHaveAttribute('aria-checked', 'true');
+    // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
+    off.focus();
+    await expect(off).toHaveFocus();
+    off.blur();
+  },
 };
 
 export const Densities: Story = {

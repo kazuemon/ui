@@ -9,12 +9,13 @@ import { type PlainDate, Temporal, todayIn } from '../../internal/date/plain-dat
 import { useLocale } from '../../internal/date/use-locale';
 import { Field } from '../../internal/field/Field';
 import { FieldBox } from '../../internal/field/FieldBox';
+import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
 export type { SegmentPlaceholder } from '../../internal/date-segments/labels';
 
-export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'> {
+export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, HalfWidthNoticeProps {
   /** 入っている日（制御するとき）。年・月・日がそろっていないときは null */
   value?: PlainDate | null;
   /** はじめに入れておく日 */
@@ -94,10 +95,13 @@ export function DateField({
   timeZone: timeZoneProp,
   color = 'neutral',
   onParseFail,
+  halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
 }: DateFieldProps) {
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  // 全角を半角に直したことの知らせ（既定は知らせない）。直すのは区切りの欄（NFKC）で、ここは知らせるだけ
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   const { locale, timeZone } = useLocale(localeProp, timeZoneProp);
   const layout = useMemo(() => dateLayout(locale), [locale]);
   // 範囲の外かどうかを決めるため、いまの値をここでも持つ
@@ -120,7 +124,7 @@ export function DateField({
       invalid={outOfRange}
       warning={warning}
       success={success}
-      info={info}
+      info={info ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -164,6 +168,7 @@ export function DateField({
                 return parsed && { ...parsed };
               }}
               onParseFail={onParseFail}
+              onHalfWidth={noticed}
               toFormValue={(date) => date?.toString() ?? ''}
               name={name}
               disabled={disabled}

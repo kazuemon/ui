@@ -6,6 +6,7 @@ import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
   choiceMessagePull,
+  choiceReadOnly,
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
@@ -84,6 +85,13 @@ export interface CheckboxProps extends Omit<
    * @default false
    */
   required?: boolean;
+  /**
+   * 読み取り専用にします。箱は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
+   * フォーカスでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも値は変わらず、hover や押したときの変化も出ません。
+   * フォームでは値が送られます（押せない箱は送られません）。CheckboxGroup の readOnly を渡すと、中の箱がすべて読み取り専用になります
+   * @default false
+   */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -115,15 +123,21 @@ export function CheckboxBase({
   const id = useId();
   const solo = !group;
   const s = choiceStyles({ color: color ?? group?.color, layout: solo ? 'solo' : 'item' });
-  const locked = useChoiceLock(disabled);
+  // Form の送信中と読み取り専用（軸 177）は、どちらも押せない箱と同じ見た目にして切り替えを止める
+  // 読み取り専用はグループ（CheckboxGroup の readOnly）からも来る
+  const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
+  // 読み取り専用では、横の文字を本文の色に戻す（箱は押せないときと同じ見た目のまま — 軸 177）
+  const labelReadOnly = locked.readOnlyLook ? choiceReadOnly.label : undefined;
   const box = (describedBy: string | undefined) => (
     <BaseCheckbox.Root
       disabled={disabled}
-      readOnly={locked.readOnly || readOnly}
-      aria-disabled={locked.readOnly || ariaDisabled}
+      readOnly={locked.readOnly}
+      aria-disabled={locked.ariaDisabled || ariaDisabled}
       parent={parent}
       aria-describedby={describedBy}
-      className={s.box({ className: 'rounded-(--checkbox-radius)' })}
+      className={s.box({
+        className: ['rounded-(--checkbox-radius)', locked.readOnlyLook && choiceReadOnly.box],
+      })}
       {...locked.data}
       {...props}
     >
@@ -140,7 +154,7 @@ export function CheckboxBase({
         className={s.item({ className: [choiceRows(caption), className] })}
       >
         {box(ariaDescribedBy)}
-        <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+        <BaseField.Label className={s.label({ className: labelReadOnly })}>{label}</BaseField.Label>
         {caption && (
           <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>
         )}
@@ -164,7 +178,7 @@ export function CheckboxBase({
       })}
     >
       {box(describedBy)}
-      <BaseField.Label data-slot="field-label" className={s.label()}>
+      <BaseField.Label data-slot="field-label" className={s.label({ className: labelReadOnly })}>
         {label}
       </BaseField.Label>
       {caption && (

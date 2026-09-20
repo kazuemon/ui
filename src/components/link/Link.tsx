@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { Button } from '../button/Button';
+import { Button, type ButtonShape } from '../button/Button';
 import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon } from '../../internal/icons';
 import {
@@ -36,6 +36,9 @@ import { tv } from '../../internal/tv';
 // ボタンの見た目のリンク（appearance="button" — design/adr/0046）: 見た目は Button（塗り）に任せ、要素は <a> のまま
 //   見た目のコードは Button に1つだけ置く。Link は Button を描くので、ボタンとリンクで見た目がずれない
 //   押せないときは、色を指定していても押せないグレーのボタンと同じ見た目にする（原則7）。Button に color="neutral" を渡して描く
+// 下線のリンク（appearance="underline" — 軸 174）: いちばん軽い押すもの。塗りも枠線もなく、文字に淡い下線だけが付く
+//   ボタンの見た目のリンクと同じく、見た目は Button（appearance="underline"）に任せる（原則18）
+//   寸法・角丸はボタンと同じで、形ではリンクと見分けられないので、↗ はボタンの見た目のリンクと同じくいつも付ける
 //   キャプション（caption）はこの見た目のときだけ使える。↗・新しいタブの名前・押せないリンクの作り方は Button のリンクの道と同じ
 // 幅いっぱいに広げた枠線のリンクの中身（contentAlign — design/adr/0046）。既定は center
 //   center: 文字とアイコンをまとめて中央（ボタンと同じ寄せ方）
@@ -62,6 +65,16 @@ import { tv } from '../../internal/tv';
 //     読み上げでもただの文字にする。role・aria-disabled を付けない（href のない <a> は HTML-AAM では generic になり、リンクと読まれない）
 //   枠線のリンク: 押せないグレーの枠線のボタンと同じ（文字 --color-outline-neutral-disabled-text、枠線 --color-outline-neutral-disabled-line — design/adr/0029）
 //     読み上げでは「リンク、利用不可」（role="link" aria-disabled="true"）
+// アイコンだけのリンクの形と余白（shape）: 部品の高さの正方形にし、左右の余白をなくす（アイコンだけのボタンと同じ — design/adr/0127）
+//   枠線のリンクの既定は丸（round）。枠線のリンクは pill なので、アイコンだけになっても丸のままにする（原則5）
+//   ボタンの見た目のリンクの既定は正方形（square）。見た目がボタンなら、リンクでもボタンの角（原則5）
+//   文字のリンクには効かない（大きさを持たないため）
+//   枠線のリンクの形は下の iconOnlyOutline、ボタンの見た目のリンクは Button の iconOnly に渡す
+const iconOnlyOutline = {
+  square: 'min-w-(--spacing-control) justify-center px-0 rounded-control',
+  round: 'min-w-(--spacing-control) justify-center px-0 rounded-pill',
+} as const;
+
 const link = tv({
   // キーボードで操作したときのフォーカス（design/adr/0031）。線は角丸（文字のリンクは --link-text-radius）に沿う
   base: ['cursor-pointer text-(color:--link-color)', ...focusRing],
@@ -93,8 +106,9 @@ const link = tv({
         'data-disabled:cursor-not-allowed data-disabled:[--link-color:var(--color-outline-neutral-disabled-text)]',
         'data-disabled:border-(color:--color-outline-neutral-disabled-line)',
       ],
-      // ボタンの見た目のリンク。見た目は Button（塗り）に任せるので、ここには置かない（下の Link が Button を描く）
+      // ボタンの見た目のリンクと下線のリンク。見た目は Button に任せるので、ここには置かない（下の Link が Button を描く）
       button: '',
+      underline: '',
     },
     // 利用者が選ぶ色（原則6）。指定しないときはグレー（neutral）— design/adr/0028
     // 色は --link-color に入れる（hover で濃くするときにもとの色を参照するため）
@@ -120,15 +134,17 @@ export type LinkContentAlign = NonNullable<VariantProps<typeof link>['contentAli
 
 export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantProps<typeof link> {
   /**
-   * 見た目。text は文章の中の文字のリンク、outline は枠線の pill、button はボタンと同じ見た目（塗り）です。
-   * 画面内で最も進めたい移動は button、密度の高い並び（More、SNS の一覧）は outline にします（原則5・原則7）。
-   * button は Button と同じ見た目・同じ寸法で描き、右上向きの矢印（↗）が付いてボタンと見分けられます。
+   * 見た目。text は文章の中の文字のリンク、outline は枠線の pill、button はボタンと同じ見た目（塗り）、
+   * underline は塗りも枠線もなく文字に淡い下線だけが付く、いちばん軽い見た目です。
+   * 画面内で最も進めたい移動は button、密度の高い並び（More、SNS の一覧）は outline、
+   * いちばん軽く見せたいもの（カードの右上の操作、表の行末）は underline にします（原則5・原則7）。
+   * button と underline は Button と同じ見た目・同じ寸法で描き、右上向きの矢印（↗）が付いてボタンと見分けられます。
    * 押せないとき（disabled）は、色を指定していても押せないグレーのボタンと同じ見た目になります（原則7）
    * @default 'text'
    */
   appearance?: VariantProps<typeof link>['appearance'];
   /**
-   * キャプション（原則4）。ボタンの見た目（appearance="button"）のときだけ使えます。リンクの下に中央寄せで、小さくグレーの文字で出します。
+   * キャプション（原則4）。ボタンの見た目（appearance="button"・"underline"）のときだけ使えます。リンクの下に中央寄せで、小さくグレーの文字で出します。
    * 「外部のサイトに移動します」のような補足に使います。押せないときも薄くしません（原則1）。
    * 読み上げでは、リンクの説明（aria-describedby）になります。
    * 渡すと、リンクとキャプションを包む要素ができ、className はその包みに付きます（幅いっぱいにするときは className="w-full"）
@@ -154,6 +170,14 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
    * 渡さないときは `<a>` を描く（href は Link に書く）
    */
   render?: ReactElement;
+  /**
+   * アイコンだけのリンク（読み上げの名前を aria-label か aria-labelledby で付け、子がアイコン 1 つだけのリンク）の形。
+   * square は部品の角の正方形、round は丸です。どちらも部品の高さの正方形になり、左右の余白は文字のリンクの分だけ広がりません。
+   * 枠線のリンク（outline）の既定は round、ボタンの見た目のリンク（button・underline）の既定は square です。
+   * 文字のリンクには効きません。下線のリンク（underline）をアイコンだけにすると、下線も枠線もない形になります
+   * @default 'round'（appearance="outline"）・'square'（appearance="button"・"underline"）
+   */
+  shape?: ButtonShape;
   /**
    * 押せないリンクにします。href を外した `<a>` を描き（渡した要素は描きません）、Tab では止まらず、押しても何もしません（design/adr/0046）。
    * 文字のリンクは、見た目も読み上げもただの文字になります。下線と ↗ を付けず、色は周りの文字のままで、リンクとは読まれません（role・aria-disabled を付けません）。
@@ -188,6 +212,16 @@ const TextNewTabArrow = () => (
 );
 
 /**
+ * アイコンだけのリンクか（名前を aria-label・aria-labelledby で付け、子が要素 1 つだけ）
+ * 文字の要素 1 つだけのリンクには名前を付けないので、アイコンだけとはみなさない
+ */
+function isIconOnly(props: LinkProps) {
+  if (props['aria-label'] === undefined && props['aria-labelledby'] === undefined) return false;
+  const only = flattenChildren(props.children);
+  return only.length === 1 && isValidElement(only[0]);
+}
+
+/**
  * リンクです。
  *
  * アイコンだけのリンクは、名前を aria-label で付けます（svg の title や見えない文字では付けません）。そのときは ↗ を足しません。
@@ -197,7 +231,8 @@ const TextNewTabArrow = () => (
  */
 export function Link(props: LinkProps) {
   // 見た目ごとに部品を分ける（Button と同じ形）。1つの部品の中で分けると、道によってフックの数と順が変わるため
-  if (props.appearance === 'button') return <ButtonLookLink {...props} />;
+  if (props.appearance === 'button' || props.appearance === 'underline')
+    return <ButtonLookLink {...props} />;
   return <PlainLink {...props} />;
 }
 
@@ -206,27 +241,31 @@ export function Link(props: LinkProps) {
 //   押せないときは、色を指定していても押せないグレーのボタンと同じ見た目にする（原則7）。Button の neutral がその見た目
 //   contentAlign・leadIconPlacement は枠線のリンクのものなので、ここでは効かない
 //   <a> の type（MIME タイプ）は使わない（Button の型でも止めている）
-function ButtonLookLink({
-  appearance: _appearance,
-  color,
-  contentAlign: _contentAlign,
-  leadIconPlacement: _leadIconPlacement,
-  className,
-  render,
-  disabled,
-  caption,
-  ref,
-  children,
-  type: _type,
-  ...anchor
-}: LinkProps) {
+function ButtonLookLink(props: LinkProps) {
+  const {
+    appearance,
+    color,
+    contentAlign: _contentAlign,
+    leadIconPlacement: _leadIconPlacement,
+    className,
+    render,
+    disabled,
+    caption,
+    shape = 'square',
+    ref,
+    children,
+    type: _type,
+    ...anchor
+  } = props;
   return (
     <Button
-      appearance="filled"
+      appearance={appearance === 'underline' ? 'underline' : 'filled'}
       color={disabled ? 'neutral' : (color ?? 'neutral')}
       caption={caption}
       className={className}
       disabled={disabled}
+      iconOnly={isIconOnly(props)}
+      shape={shape}
       render={render ?? <a />}
       ref={ref}
       {...anchor}
@@ -237,19 +276,21 @@ function ButtonLookLink({
 }
 
 // 文字のリンク（text）と枠線のリンク（outline）
-function PlainLink({
-  appearance,
-  color,
-  contentAlign,
-  leadIconPlacement = 'with-label',
-  className,
-  render,
-  disabled,
-  caption: _caption,
-  ref,
-  children,
-  ...props
-}: LinkProps) {
+function PlainLink(all: LinkProps) {
+  const {
+    appearance,
+    color,
+    contentAlign,
+    leadIconPlacement = 'with-label',
+    className,
+    render,
+    disabled,
+    caption: _caption,
+    shape = 'round',
+    ref,
+    children,
+    ...props
+  } = all;
   const noteId = useId();
   const outline = appearance === 'outline';
   const align = outline ? (contentAlign ?? 'center') : undefined;
@@ -262,14 +303,8 @@ function PlainLink({
   //     アイコンの見分け方は contentAlign の between・center-end と同じ（splitTrailing）。押せないときも残す
   const userArrow = endsWithElement(children, ArrowUpRightIcon);
   const textArrow = !outline && newTab && !userArrow;
-  // アイコンだけのリンク: 名前を aria-label・aria-labelledby で付け、子が要素1つだけのとき。そのアイコンを使い、↗ を足さない
-  //   文字の要素1つだけのリンクには名前を付けないので、いままでどおり ↗ が付く
-  const only = flattenChildren(children);
-  const iconOnly =
-    outline &&
-    (props['aria-label'] !== undefined || props['aria-labelledby'] !== undefined) &&
-    only.length === 1 &&
-    isValidElement(only[0]);
+  // アイコンだけのリンク: そのアイコンを使い、↗ を足さない。形と余白はアイコンだけのボタンと同じ（shape）
+  const iconOnly = outline && isIconOnly(all);
   const outlineArrow =
     outline && blank && !userArrow && !iconOnly && splitTrailing(children).trailing === null;
   // 部品が付ける ↗ も最後のアイコンとして扱い、between・center-end では右端に置く
@@ -352,6 +387,7 @@ function PlainLink({
         contentAlign,
         className: [
           balance,
+          iconOnly && iconOnlyOutline[shape],
           leadIconPlacement === 'start' && '[--link-lead-icon-follow:0]',
           // 読み上げだけの文（sr-only・絶対配置）の位置の基準。文字のリンクは、もとから relative
           newTab && appearance === 'outline' && 'relative',

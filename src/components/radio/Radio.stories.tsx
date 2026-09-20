@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+// userEvent は play の引数ではなく storybook/test から読む
+import { expect, userEvent } from 'storybook/test';
 
 import { Radio, RadioGroup } from './Radio';
 
@@ -18,6 +19,7 @@ const meta = {
           '- `required` で必須にします。グループに aria-required が付き、読み上げで必須と伝わります。見た目は変わらないので、必須であることは見出しかキャプションでも伝えます。',
           '- `error`・`warning` は選択肢の下に、入力欄と同じ行で出します。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
+          '- `readOnly` にすると、丸が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
         ].join('\n'),
       },
     },
@@ -26,6 +28,7 @@ const meta = {
     label: '配送の時間',
     color: 'neutral',
     disabled: false,
+    readOnly: false,
     required: false,
     children: null,
   },
@@ -40,6 +43,7 @@ const meta = {
       table: { defaultValue: { summary: "'neutral'" } },
     },
     disabled: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     required: { control: 'boolean' },
     children: { control: false },
   },
@@ -92,5 +96,37 @@ export const Messages: Story = {
           'エラーは選択肢の下に丸の「!」と赤い文字で出し、選んでいない丸の塗りを淡い赤にします。押せない選択肢（夜）は、エラーでも押せない丸の色のままです。行はグループの説明につながります。',
       },
     },
+  },
+};
+
+export const ReadOnly: Story = {
+  tags: ['visual'],
+  name: '読み取り専用',
+  args: { readOnly: true, defaultValue: 'am' },
+  parameters: {
+    controls: { exclude: ['readOnly'] },
+    docs: {
+      description: {
+        story:
+          '`readOnly` のグループは、丸が押せないときと同じ見た目になります。横の文字は読むための文字なので、本文の色のままです。フォーカスはでき、読み上げではグループが「読み取り専用」と伝わります。矢印キーでも押しても選び直せませんが、フォームでは値が送られます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    // 読み上げは「読み取り専用」（aria-readonly はグループが持つ。role="radio" は持てない）
+    const group = canvas.getByRole('radiogroup', { name: '配送の時間' });
+    await expect(group).toHaveAttribute('aria-readonly', 'true');
+    const am = canvas.getByRole('radio', { name: '午前' });
+    const pm = canvas.getByRole('radio', { name: '午後' });
+    // 押せない（aria-disabled）とは伝えない
+    await expect(am).not.toHaveAttribute('aria-disabled');
+    // 押しても選び直せない
+    await userEvent.click(pm);
+    await expect(am).toHaveAttribute('aria-checked', 'true');
+    await expect(pm).toHaveAttribute('aria-checked', 'false');
+    // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
+    am.focus();
+    await expect(am).toHaveFocus();
+    am.blur();
   },
 };

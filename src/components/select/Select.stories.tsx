@@ -104,6 +104,7 @@ const meta = {
           '- `prefix` には文字を渡せます（例: 都道府県を選んだあとの市区町村の欄に「東京都」）。',
           '- 選択肢を読み込んでいるあいだは `loading` を付けます。読み込んでいるあいだに開くと、読み上げで `loadingText` を知らせ、開いたまま読み込みが終わると選択肢の数（`loadedText`）を知らせます。',
           '- 値は `defaultValue` か、`value`・`onValueChange` で持ちます。',
+          '- `readOnly` にすると、文字を打つ欄の読み取り専用と同じ見た目（塗りなし・細い破線の輪郭・一段淡い値の文字）になります。フォーカスでき、値をなぞって写せます。選択肢は開かず値も変わりませんが、フォームでは送られます。',
           '- `placeholder` は、選んだ値と見分けられるよう「選んでください」のように、まだ選んでいないと分かる書き方にします。選択肢の名前をそのまま書くと、選んだ値に見えます。',
           '',
           '「開いた状態」などのストーリーは、ストーリーの画面では開いて表示します。このページでは閉じているので、本体を押して開いてください。',
@@ -120,6 +121,7 @@ const meta = {
     captionPlacement: 'top',
     addonShape: 'attached',
     disabled: false,
+    readOnly: false,
     disabledIcon: 'show',
     presentation: 'auto',
     sheetDetent: 'half',
@@ -152,6 +154,7 @@ const meta = {
     prefix: { control: 'text' },
     addonShape: { control: 'inline-radio', options: ['attached', 'floating'] },
     disabled: { control: 'boolean' },
+    readOnly: { control: 'boolean' },
     disabledIcon: { control: 'inline-radio', options: ['show', 'hide'] },
     presentation: { control: 'inline-radio', options: ['auto', 'popover', 'sheet'] },
     sheetDetent: { control: 'inline-radio', options: ['half', 'full'] },
@@ -390,6 +393,45 @@ export const Disabled: Story = {
       </Specimen>
     </Gallery>
   ),
+};
+
+export const ReadOnly: Story = {
+  tags: ['visual'],
+  name: '読み取り専用',
+  parameters: {
+    controls: { exclude: ['readOnly', 'disabled'] },
+    docs: {
+      description: {
+        story:
+          '`readOnly` の欄は、文字を打つ欄の読み取り専用と同じ見た目です。塗りを持たず、細い破線の輪郭と一段淡い値の文字になり、フォーカスすると破線が枠線に変わります。値はなぞって写せます。▼ は選ぶ欄だと分かるよう残しますが、押せるようには見せないので一段淡くします。押しても選択肢は開かず、キーボードでも値は変わりませんが、フォームでは値が送られます。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="値あり">
+        <Select {...args} readOnly defaultValue="ward-3" />
+      </Specimen>
+      <Specimen label="プレースホルダ">
+        <Select {...args} readOnly />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvas }) => {
+    const [trigger] = canvas.getAllByRole('combobox');
+    // 読み上げは「読み取り専用」。押せない（aria-disabled）とは伝えない
+    await expect(trigger).toHaveAttribute('aria-readonly', 'true');
+    await expect(trigger).not.toHaveAttribute('aria-disabled');
+    // 押しても選択肢は開かない
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // 文字の欄の読み取り専用と同じく、値はなぞって写せる（押せない欄では写せない）
+    await expect(getComputedStyle(trigger).userSelect).not.toBe('none');
+    // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
+    trigger.focus();
+    await expect(trigger).toHaveFocus();
+    trigger.blur();
+  },
 };
 
 // Show code: 表（Matrix）と枠（PopoverFrame）の中身は出ないので、使い方を source.code に手で書く

@@ -403,7 +403,7 @@ type ButtonColor = NonNullable<ButtonProps['color']>;
 type ButtonAppearance = NonNullable<ButtonProps['appearance']>;
 
 const buttonColors: ButtonColor[] = ['primary', 'secondary', 'danger', 'neutral', 'white'];
-const buttonAppearances: ButtonAppearance[] = ['filled', 'outline'];
+const buttonAppearances: ButtonAppearance[] = ['filled', 'outline', 'underline'];
 const buttonColorNote: Record<ButtonColor, string> = {
   primary: '色を持つ',
   secondary: '色を持つ',
@@ -500,7 +500,7 @@ type LinkColor = NonNullable<LinkProps['color']>;
 type LinkAppearance = NonNullable<LinkProps['appearance']>;
 
 const linkColors: LinkColor[] = ['primary', 'secondary', 'neutral'];
-const linkAppearances: LinkAppearance[] = ['text', 'outline'];
+const linkAppearances: LinkAppearance[] = ['text', 'outline', 'underline'];
 
 function LinkSample({
   appearance,
@@ -514,9 +514,9 @@ function LinkSample({
   newTab?: boolean;
 }) {
   const target = newTab ? { href: 'https://k6n.jp/', target: '_blank' } : { href: '#top' };
-  if (appearance === 'outline') {
+  if (appearance === 'outline' || appearance === 'underline') {
     return (
-      <Link appearance="outline" color={color} disabled={disabled} {...target}>
+      <Link appearance={appearance} color={color} disabled={disabled} {...target}>
         もっと見る
       </Link>
     );
@@ -1016,7 +1016,7 @@ export const Overview: Story = {
 
         <Section
           title="Link"
-          note="appearance × color。押せない文字のリンクはただの文字（下線と ↗ なし、周りの文字の色）。押せない枠線のリンクは、押せないグレーの枠線のボタンと同じ。ボタンの見た目（appearance の button）のリンクも、押せないときは色を指定していても押せないグレーのボタンと同じ（原則7）。上の Button の節に並べています。"
+          note="appearance × color。押せない文字のリンクはただの文字（下線と ↗ なし、周りの文字の色）。押せない枠線のリンクは、押せないグレーの枠線のボタンと同じ。下線のリンク（appearance の underline）は、押せないときに下線が外れ、押せないグレーのボタンと同じ文字の色になる。ボタンの見た目（appearance の button）のリンクも、押せないときは色を指定していても押せないグレーのボタンと同じ（原則7）。上の Button の節に並べています。"
         >
           <Table
             id="Link"
