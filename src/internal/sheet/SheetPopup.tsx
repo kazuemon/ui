@@ -98,10 +98,6 @@ export function SheetPopup({
     footerLayout === 'auto' ? (side === 'bottom' ? 'stack-reverse' : 'end') : footerLayout;
   const overlayId = useId();
   const bottom = side === 'bottom';
-  // 面のない場所（後ろの暗い面の側）に敷く、引く操作を無視する場所
-  // Base UI は Viewport の中を引く操作を拾うので、これがないと、空いた場所を引いてもシートを引いたことになる
-  //   （面は動かないのに、後ろの暗さだけが変わる）。押して閉じる（外を押す）のはそのまま効く
-  const swipeIgnore = <div aria-hidden data-base-ui-swipe-ignore className="flex-1 self-stretch" />;
   return (
     // 中身に入力欄を置くシートのために、ソフトウェアキーボードに合わせてスクロールを整える（Base UI）
     <BaseDrawer.VirtualKeyboardProvider>
@@ -111,17 +107,21 @@ export function SheetPopup({
         ほかの操作を止めないとき（modal=false）は、後ろを暗くしない（Base UI の非モーダルの例と同じ） */}
         {modal && (
           <BaseDrawer.Backdrop
+            // 空いた場所を引いてもシートは動かさない（面は動かないのに後ろの暗さだけが変わるため）
+            // Base UI は指を置いた要素から data-base-ui-swipe-ignore を探すので、暗い面そのものに付ける
+            // 面を置く枠（Viewport）の中に別の層を敷くと、押して閉じる操作まで吸ってしまう
+            data-base-ui-swipe-ignore
             className={[
               swipeFade ? 'opacity-[calc(1-var(--drawer-swipe-progress,0))]' : '',
               'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none',
             ].join(' ')}
           />
         )}
-        {/* 面を置く枠。ほかの操作を止めないときは枠を素通しにし、面だけが触れるようにする */}
+        {/* 面を置く枠。枠は素通しにし、面だけが触れるようにする
+        （枠が押す操作を受けると、後ろの暗い面まで届かず、外を押しても閉じない） */}
         <BaseDrawer.Viewport
           className={[
-            'fixed inset-0 z-10 flex',
-            !modal && 'pointer-events-none',
+            'fixed inset-0 z-10 flex pointer-events-none',
             bottom ? 'flex-col items-center justify-end' : 'items-stretch',
             side === 'left' && 'justify-start',
             side === 'right' && 'justify-end',
@@ -129,7 +129,6 @@ export function SheetPopup({
             .filter(Boolean)
             .join(' ')}
         >
-          {(bottom || side === 'right') && swipeIgnore}
           <BaseDrawer.Popup
             ref={popupRef}
             data-overlay-id={overlayId}
@@ -139,8 +138,7 @@ export function SheetPopup({
             data-density={densityScope.density}
             data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
             className={[
-              'relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
-              !modal && 'pointer-events-auto',
+              'pointer-events-auto relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
               overlayTitleLeading,
               // 閉じる向きと反対へ引いたときに、面が端から離れても隙間が見えないよう、画面の外側に面と同じ色を伸ばしておく
               // 引いた量は端数になるので、継ぎ目が見えないよう面に 1px 重ねる
@@ -238,7 +236,6 @@ export function SheetPopup({
               </div>
             )}
           </BaseDrawer.Popup>
-          {side === 'left' && swipeIgnore}
         </BaseDrawer.Viewport>
       </BaseDrawer.Portal>
     </BaseDrawer.VirtualKeyboardProvider>
