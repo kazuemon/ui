@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, waitFor } from 'storybook/test';
 
 import { markdownArticleHtml } from '../../samples/markdown-html';
 import { Prose } from './Prose';
@@ -28,7 +28,7 @@ const meta = {
           '- 要素のあいだの余白は、マウスで操作しているときは見出しと区切り線の上を広く、指で操作しているときは詰めます。',
           '- 脚注の一覧の上には、線などの区切りを付けません。付けるときは、変換のあとに自分で付けます。',
           '- 文字のリンクは、周りの文字の大きさ（本文の 16px）のままです。',
-          '- JavaScript の要る機能は付きません。コードのコピーのボタンは出ず、表と長いコードは CSS だけで横にスクロールします（スクロールしない表や短いコードにも Tab で移れることがあります）。幅に満たない表は、Table と違い中身の幅になります。',
+          '- 部品の機能は付きません。コードのコピーのボタンは出ず、表と長いコードは、それ自身が横にスクロールします。横にはみ出しているあいだだけ Tab で止まり、矢印キーで横に動かせます。幅に満たない表は、Table と違い中身の幅になります。',
           '- 囲み（`> [!NOTE]`）は変換しません。囲みや題の付いたコードを使うときは、Callout や CodeBlock を Prose の外に置きます。',
           '- `data-reading` を付けるので、中の本文は指で操作していても 16px です。表は指で 14px、コードはどちらも 14px です。',
           '- `as` で描く要素を選びます（既定は `div`。記事の本文は `article`）。',
@@ -111,6 +111,16 @@ export const Structure: Story = {
     await expect(table && getComputedStyle(table).overflowX).toBe('auto');
     const pre = root?.querySelector('pre');
     await expect(pre && getComputedStyle(pre).overflowX).toBe('auto');
+    // Tab で止まるのは、横にはみ出しているものだけ（Shiki が付けた tabindex は、はみ出していなければ外す）
+    const scrollers = Array.from(root?.querySelectorAll<HTMLElement>('table, pre') ?? []);
+    await expect(scrollers.length).toBeGreaterThan(0);
+    await waitFor(async () => {
+      for (const element of scrollers) {
+        await expect(element.hasAttribute('tabindex')).toBe(
+          element.scrollWidth > element.clientWidth + 1
+        );
+      }
+    });
     // pre は面の色を持つ（Shiki が style に書く地を面の色にする）
     await expect(pre && getComputedStyle(pre).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
 

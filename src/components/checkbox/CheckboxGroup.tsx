@@ -155,6 +155,8 @@ export function CheckboxGroup({
           .filter(Boolean)
           .join(' ')}
         nativeLabel={false}
+        // グループのキャプションは、グループにだけ付ける。中のチェックボックス1つずつの説明には入れない（原則15）
+        registerCaption={false}
       >
         {(describedBy) => (
           <BaseCheckboxGroup

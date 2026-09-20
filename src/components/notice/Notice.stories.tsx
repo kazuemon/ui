@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Link } from '../link/Link';
@@ -58,6 +58,7 @@ const meta = {
           '- 記事の中にはじめからある補足や注意には、読み上げで知らせない `Callout` を使います。',
           '- 操作は `actions` に、白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
           '- `onClose` を渡すと、右上に閉じるボタン（×）が出ます。読み上げの名前は `closeLabel`（既定は「閉じる」）で、題があるときは「閉じる 題」と読みます。',
+          '- × で閉じてお知らせが消えると、フォーカスはその次にあるフォーカスできるものへ移ります。なければ前のもの、それもなければ `NoticeRegion` そのものです。',
           '- 操作のあとで出すお知らせは、`NoticeRegion` の中に入れます。ページを開いたときからあるお知らせは、領域に入れずに置きます。',
         ].join('\n'),
       },
@@ -329,6 +330,60 @@ export const CloseLabel: Story = {
   },
 };
 
+// × で閉じたあとのフォーカスの例。閉じると、お知らせの次にあるボタンへ移る
+function CloseFocusExample() {
+  const [shown, setShown] = useState(true);
+  return (
+    <div className="flex max-w-xl flex-col items-start gap-4">
+      <Button appearance="outline">前のボタン</Button>
+      {shown && (
+        <Notice color="info" title={samples.info.title} onClose={() => setShown(false)}>
+          {samples.info.body}
+        </Notice>
+      )}
+      <Button appearance="outline">次のボタン</Button>
+    </div>
+  );
+}
+
+export const CloseFocus: Story = {
+  name: '閉じたあとのフォーカス',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '× で閉じてお知らせが消えると、フォーカスはその次にあるフォーカスできるものへ移ります。',
+          'なければ前のもの、それもなければ `NoticeRegion` そのものです。閉じてもお知らせを残すときは、フォーカスは × のままです。',
+        ].join('\n\n'),
+      },
+      source: sourceCode(`
+        function CloseFocusExample() {
+          const [shown, setShown] = useState(true);
+          return (
+            <div className="flex max-w-xl flex-col items-start gap-4">
+              <Button appearance="outline">前のボタン</Button>
+              {shown && (
+                <Notice color="info" title="メンテナンスのお知らせ" onClose={() => setShown(false)}>
+                  9月20日 2:00〜4:00 は、サービスを使えません。
+                </Notice>
+              )}
+              <Button appearance="outline">次のボタン</Button>
+            </div>
+          );
+        }
+      `),
+    },
+  },
+  render: () => <CloseFocusExample />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: `閉じる ${samples.info.title}` }));
+    await waitFor(async () => {
+      await expect(canvas.getByRole('button', { name: '次のボタン' })).toHaveFocus();
+    });
+  },
+};
+
 // 操作のあとでお知らせを出す例。領域は最初から置き、お知らせだけを出し入れする
 function RegionExample() {
   const [saved, setSaved] = useState(false);
@@ -415,5 +470,11 @@ export const InRegion: Story = {
 
     await userEvent.click(canvas.getByRole('button', { name: `閉じる ${samples.danger.title}` }));
     await expect(alertBox).toBeEmptyDOMElement();
+    // 閉じたあとのフォーカスは、次にあるフォーカスできるもの（残っているお知らせの ×）へ移る
+    await waitFor(async () => {
+      await expect(
+        canvas.getByRole('button', { name: `閉じる ${samples.success.title}` })
+      ).toHaveFocus();
+    });
   },
 };

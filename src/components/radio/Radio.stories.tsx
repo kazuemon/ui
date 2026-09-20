@@ -17,6 +17,7 @@ const meta = {
           '',
           '- `required` で必須にします。グループに aria-required が付き、読み上げで必須と伝わります。見た目は変わらないので、必須であることは見出しかキャプションでも伝えます。',
           '- `error`・`warning` は選択肢の下に、入力欄と同じ行で出します。',
+          '- グループの `caption`・`error`・`warning` は、グループの説明です。選択肢1つずつの説明は、その `Radio` の `caption`（2 行目）だけです。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
         ].join('\n'),
       },
@@ -74,9 +75,14 @@ export const Required: Story = {
     },
   },
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole('radiogroup', { name: '配送の時間' })).toHaveAttribute(
-      'aria-required',
-      'true'
+    const group = canvas.getByRole('radiogroup', { name: '配送の時間' });
+    await expect(group).toHaveAttribute('aria-required', 'true');
+    // グループのキャプションは、グループにだけ付く
+    await expect(group).toHaveAccessibleDescription('必ず選んでください');
+    // 1つずつのラジオの説明は、その選択肢の 2 行目だけ（グループのキャプションは二度読まない）
+    await expect(canvas.getByRole('radio', { name: '午前' })).toHaveAccessibleDescription('');
+    await expect(canvas.getByRole('radio', { name: '午後' })).toHaveAccessibleDescription(
+      '14 時から 18 時'
     );
   },
 };

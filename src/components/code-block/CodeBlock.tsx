@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, useEffect, useId, useRef } from 'react';
+import { type ComponentProps, type ReactNode, useId, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { CopiedStatus, CopyGlyph } from '../../internal/copy/copy-parts';
@@ -6,6 +6,7 @@ import { useCopy } from '../../internal/copy/use-copy';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { tv } from '../../internal/tv';
 import { codeTextOf } from '../../internal/reading/code-text';
+import { useScrollTabStops } from '../../internal/use-scrollable';
 
 // 複数行のコード（軸 64・66・67・68・69）
 // 色分けはブログ側がビルド時に Shiki で行い、この部品は色分けしたあとの HTML に見た目を付ける
@@ -171,22 +172,12 @@ export function CodeBlock({
   const { copied, copy } = useCopy(2000);
 
   // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
-  // 横のスクロールバーが場所を取っているか（pre の高さと中身の高さの差）を、外枠の data-scrollbar に書く
-  // 中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
-  useEffect(() => {
-    const pre = bodyRef.current?.querySelector('pre');
-    if (!pre) return undefined;
-    const measure = () => {
-      if (pre.scrollWidth > pre.clientWidth + 1) pre.setAttribute('tabindex', '0');
-      else pre.removeAttribute('tabindex');
-      const root = pre.closest('[data-slot="code-block"]');
-      if (pre.offsetHeight - pre.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
-      else root?.removeAttribute('data-scrollbar');
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(pre);
-    return () => observer.disconnect();
+  // 判定は表・Prose と同じ internal/use-scrollable。中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
+  // ついでに、横のスクロールバーが場所を取っているか（pre の高さと中身の高さの差）を、外枠の data-scrollbar に書く
+  useScrollTabStops(bodyRef, 'pre', (pre) => {
+    const root = pre.closest('[data-slot="code-block"]');
+    if (pre.offsetHeight - pre.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
+    else root?.removeAttribute('data-scrollbar');
   });
 
   const start = typeof lineNumbers === 'number' ? lineNumbers - 1 : undefined;

@@ -38,6 +38,7 @@ const meta = {
           '- 行き先は `href`（または `render` で Next.js の `Link` など）で渡します。いまいるページの行には `current` を付けます。',
           '- 行の頭のアイコンは `icon` で渡します。渡さないときは置きません。',
           '- Tab で入るのは 1 行だけです。↑ ↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移ります。子を持つ行は Space で開け閉めします。',
+          '- 文字を打つと、その文字で始まる行へ移ります。続けて打った文字は 1 語として扱い、少し間が空くと打ち直しになります。開いていない枝の中の行には移りません。',
           '- 開いている行を自分で持つときは `expanded`・`onExpandedChange` を使います。はじめから開けておくときは `defaultExpanded` です。',
           '- 字下げの案内線は `guides` で消せます。いまいる行の色は `color` で選びます。',
           '- 行の塗り（hover・いまいる行）は、既定では字下げの分だけ左を空けます。木の幅いっぱいに塗るときは `rowWidth="full"` にします。',
@@ -255,6 +256,64 @@ export const Accessibility: Story = {
         'aria-expanded',
         'true'
       );
+    });
+  },
+};
+
+// 型あたりの見本。頭文字の同じ行（Badge・Button）と、閉じたままの枝（docs）を並べる
+const files = (
+  <>
+    <TreeItem label="README.md" href="#readme" />
+    <TreeItem label="src" defaultExpanded>
+      <TreeItem label="Badge.tsx" href="#badge" />
+      <TreeItem label="Button.tsx" href="#button" />
+      <TreeItem label="Tree.tsx" href="#tree" />
+    </TreeItem>
+    <TreeItem label="docs">
+      <TreeItem label="Button.md" href="#button-md" />
+    </TreeItem>
+  </>
+);
+
+export const Typeahead: Story = {
+  name: '型あたり',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '文字を打つと、その文字で始まる行へ移ります。続けて打った文字は 1 語として扱うので、「bu」と打つと Badge ではなく Button へ移ります。',
+          '少し間が空くと打ち直しになり、次に打った文字から探し直します。開いていない枝の中の行（docs の中）には移りません。',
+        ].join('\n\n'),
+      },
+    },
+  },
+  render: (args) => (
+    <div className="w-64">
+      <Tree {...args} label="ファイル">
+        {files}
+      </Tree>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const rows = canvas.getAllByRole('treeitem');
+    rows[0]?.focus();
+    // 続けて打った文字は 1 語。「bu」は Badge.tsx ではなく Button.tsx に当たる
+    await userEvent.keyboard('bu');
+    await waitFor(async () => {
+      await expect(canvas.getByRole('treeitem', { name: 'Button.tsx' })).toHaveFocus();
+    });
+    // 間が空いたら打ち直し
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await userEvent.keyboard('d');
+    await waitFor(async () => {
+      await expect(canvas.getByRole('treeitem', { name: 'docs' })).toHaveFocus();
+    });
+    // 閉じている枝の中（docs の Button.md）は相手にしない。回り込んで src の Button.tsx へ移る
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await userEvent.keyboard('bu');
+    await waitFor(async () => {
+      await expect(canvas.getByRole('treeitem', { name: 'Button.tsx' })).toHaveFocus();
     });
   },
 };

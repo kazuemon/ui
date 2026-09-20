@@ -99,6 +99,8 @@ export interface RadioGroupProps<Value> extends Omit<
 /**
  * ラジオのグループ。見出し / 選択肢 / キャプション・エラー・警告の3層（原則4）
  * エラー・警告の行と読み上げは入力欄と同じ（design/adr/0041・0044）。行はグループの説明（aria-describedby）につなぐ
+ * キャプションと行はグループにだけ付け、中のラジオ1つずつの説明には入れない（原則15: 見えている文字を、二度読ませない）
+ * 選択肢ごとの説明は、その Radio の caption（2 行目）だけ
  */
 export function RadioGroup<Value>({
   label,
@@ -130,6 +132,8 @@ export function RadioGroup<Value>({
           .filter(Boolean)
           .join(' ')}
         nativeLabel={false}
+        // グループのキャプションは、グループにだけ付ける。中のラジオ1つずつの説明には入れない（原則15）
+        registerCaption={false}
       >
         {(describedBy) => (
           <BaseRadioGroup<Value>

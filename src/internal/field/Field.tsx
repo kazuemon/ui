@@ -198,6 +198,13 @@ export interface FieldProps {
   children: ReactNode | ((describedBy: string | undefined) => ReactNode);
   /** ラベルを <label> で描くか。Select のように本体がボタンの部品では false にする */
   nativeLabel?: boolean;
+  /**
+   * キャプションを Base UI の説明（Field.Description）として登録するか（既定は true）
+   * false では素の p で描き、id は children に渡す describedBy だけでつなぐ
+   * 中に選択肢（Field.Item）を並べるグループ（RadioGroup・CheckboxGroup）では false にする。
+   * 登録すると、グループの説明が選択肢1つずつの aria-describedby にも入り、同じ文が繰り返し読まれる（原則15: 見えている文字を、二度読ませない）
+   */
+  registerCaption?: boolean;
 }
 
 /**
@@ -221,6 +228,7 @@ export function Field({
   className,
   children,
   nativeLabel = true,
+  registerCaption = true,
 }: FieldProps) {
   const styles = fieldStyles();
   const id = useId();
@@ -234,10 +242,18 @@ export function Field({
   };
   const messages: Record<MessageKind, ReactNode> = { error, warning, success, info };
   const kinds = Object.keys(messages) as MessageKind[];
+  // グループ（registerCaption=false）では、Base UI に説明として登録しない。
+  // 登録すると Field.Item（中の選択肢）にも伝わり、グループの説明が1つずつの選択肢でも読まれる（原則15）
   const captionNode = caption ? (
-    <BaseField.Description id={captionId} className={styles.caption()}>
-      {caption}
-    </BaseField.Description>
+    registerCaption ? (
+      <BaseField.Description id={captionId} className={styles.caption()}>
+        {caption}
+      </BaseField.Description>
+    ) : (
+      <p id={captionId} className={styles.caption()}>
+        {caption}
+      </p>
+    )
   ) : null;
   // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
   const describedBy =
