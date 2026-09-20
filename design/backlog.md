@@ -60,9 +60,13 @@
 - 貼り付けた文字が日付・時刻として読めなかったときは、`onParseFail` を渡した側に伝えるだけです。決まった知らせ方（`info` に出すなど）はありません
 - `ja-JP` の 12 時間制の時刻の見本は、区切りが詰まって見えます
 
-### キーと値の組（まだない部品）
+### HeadingAnchor・DescriptionList・Stat・Timeline・Stack
 
-- 参照画像（`site-profile-mobile.webp`）の、名前の下に下線付きの値を並べる表示は、読み取り専用の入力欄ではなく、キーと値の組を示す部品です（2026-09-19 に分かりました）。部品にするか、レシピにするかは決めていません
+2026-09-20 に作りました。決定は [ADR-0200](./adr/0200-heading-anchor-placement.md)〜[ADR-0213](./adr/0213-stack-horizontal.md) です。
+
+- DescriptionList は、1 つの用語に複数の説明（`dd` を複数）を持たせる書き方を用意していません。1 つの `dd` の中に並べる形で足りるかは決めていません（[ADR-0202](./adr/0202-description-list-layout.md)）
+- DescriptionList は、狭い画面で横から縦へ自動で切り替える形を入れていません。使う側が `layout` を切り替えます（[ADR-0202](./adr/0202-description-list-layout.md)）
+- Timeline の畳むしきい値（入れ物 448px 未満）は、使う側が変えられません。props で変えられるようにするかは決めていません（[ADR-0211](./adr/0211-timeline-narrow-date.md)）
 
 ### Textarea
 
@@ -116,7 +120,7 @@
 
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
-- レシピに回す部品の見直し（Sidebar・Stack などが部品として要るか）は決めていません
+- レシピに回す部品の見直し（Sidebar が部品として要るか）は決めていません。Stack は部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
 
 ### Affix
 
@@ -297,6 +301,7 @@
   - お問い合わせフォーム: Form・TextField・Textarea で送り、結果を Toast で知らせる
   - 削除の確認: AlertDialog と送信中のボタン（非同期の確定）
   - 検索できる一覧: 検索の欄・List・Pagination と、結果がないときの表示
+  - Stat を横に並べる並べ方（指標の行）: Stat と Stack（未着手）
   - 読み込み・空・失敗の 3 つの状態: Skeleton・StatusPanel・Notice の出し分け
   - 狭い画面のメニュー: Navbar と Drawer（Navbar が持っていない分）
   - 言語の切り替え: Menu で切り替える（機能の多言語ができたら）
@@ -495,6 +500,12 @@
 ### 密度・全体
 
 - 余白（`gap-2`・`mt-1` など）と角丸のクラスは、tokens.css で Tailwind と同じ名前の px にしたので、部品のトークンと同じく px です（[ADR-0076](./adr/0076-token-structure.md)。前はクラスが rem で、html 20px のとき、お知らせの操作の間が 8→10px、上の余白が 4→5px になっていました）。文字の大きさのクラス（`text-xs` など）は Tailwind の既定の rem のままです
+
+### HeadingAnchor・DescriptionList・Stat・Timeline・Stack
+
+- HeadingAnchor の「指の入力ではいつも見せる」は、実機の指で確かめていません（[ADR-0200](./adr/0200-heading-anchor-placement.md)）。見出しの名前が「見出しの文字 + label」で読まれるかも、本物の読み上げソフトで確かめていません
+- DescriptionList の leader 線（`divider="leader-dotted"`・`"leader-solid"`）を、実機（指の密度・狭い幅）で確かめていません（[ADR-0203](./adr/0203-description-list-divider.md)）
+- Stack の間隔が入力方式（指・マウス）で変わらないことを、実機で確かめていません（[ADR-0212](./adr/0212-stack-gap.md)）
 
 ### 本文（Prose・CodeBlock など）
 
