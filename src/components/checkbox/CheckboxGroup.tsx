@@ -9,6 +9,7 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { tv } from '../../internal/tv';
 import { CheckboxBase } from './Checkbox';
 
@@ -91,12 +92,21 @@ export type CheckboxGroupProps = Omit<
   ComponentProps<typeof BaseCheckboxGroup>,
   'className' | 'render' | 'color' | 'allValues' | 'aria-required'
 > &
-  SelectAllProps & {
+  SelectAllProps &
+  FieldMarkProps & {
     /** グループの見出し（太字）。グループ（role="group"）の名前になります */
     label: ReactNode;
     /**
+     * 必須にします。見出しの後ろに印（既定は「必須」のタグ）を出します。
+     * グループ（role="group"）には aria-required を付けられず、印は読み上げから外れるので、
+     * 必須であることは caption の文でも伝えます（「1つ以上選んでください」など）
+     * @default false
+     */
+    required?: boolean;
+    /**
      * 見出しの補足（ヘルプテキスト）。エラー・警告のあいだも消えません。
-     * 必須のグループは、ここに文で書きます（「1つ以上選んでください」など）。role="group" には aria-required を付けられないためです
+     * 必須のグループは、ここに文でも書きます（「1つ以上選んでください」など）。
+     * required を渡すと見出しに印は出ますが、role="group" には aria-required を付けられず、印は読み上げから外れるためです
      */
     caption?: ReactNode;
     /**
@@ -122,7 +132,7 @@ export type CheckboxGroupProps = Omit<
  * 中には Checkbox を value 付きで置きます。選んだ value の並びが value（defaultValue）です
  * 「すべて選ぶ」の箱は selectAll と allValues で付けます。selectAllFrame で、グループを枠で囲めます
  * エラー・警告の行と読み上げは入力欄と同じ（design/adr/0041・0044）。行はグループの説明（aria-describedby）につなぐ
- * 必須は caption の文で書きます（グループには aria-required を付けられません）
+ * required は見出しに印を出すだけ（グループには aria-required を付けられない）。必須であることは caption の文でも書きます
  */
 export function CheckboxGroup({
   label,
@@ -137,6 +147,9 @@ export function CheckboxGroup({
   selectAll,
   allValues,
   selectAllFrame = 'none',
+  required,
+  requiredMark,
+  optionalMark,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupProps) {
@@ -151,6 +164,9 @@ export function CheckboxGroup({
         error={error}
         warning={warning}
         disabled={disabled}
+        required={required}
+        requiredMark={requiredMark}
+        optionalMark={optionalMark}
         className={[...choiceGroupMessagePull(captionPlacement), className]
           .filter(Boolean)
           .join(' ')}

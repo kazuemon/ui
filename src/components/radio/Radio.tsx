@@ -11,6 +11,7 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { useChoiceLock } from '../../internal/form-context';
 
 // ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
@@ -64,10 +65,8 @@ export function Radio({
   );
 }
 
-export interface RadioGroupProps<Value> extends Omit<
-  BaseRadioGroup.Props<Value>,
-  'className' | 'render' | 'color'
-> {
+export interface RadioGroupProps<Value>
+  extends Omit<BaseRadioGroup.Props<Value>, 'className' | 'render' | 'color'>, FieldMarkProps {
   /** グループの見出し（太字）。グループ（role="radiogroup"）の名前になります */
   label: ReactNode;
   /** 見出しの補足（ヘルプテキスト）。エラー・警告のあいだも消えません */
@@ -82,8 +81,8 @@ export interface RadioGroupProps<Value> extends Omit<
   /** 警告の内容。選択肢の下に三角とオリーブ色の文字で出します。丸の見た目は変えません */
   warning?: ReactNode;
   /**
-   * 必須にします。グループ（role="radiogroup"）に aria-required を付けます（読み上げで必須と伝わります）。
-   * 見た目は変わらないので、必須であることは見出しかキャプションでも伝えます
+   * 必須にします。グループ（role="radiogroup"）に aria-required を付け、見出しの後ろに印（既定は「必須」のタグ）を出します。
+   * 印は読み上げから外れ、必須であることは aria-required が伝えます
    * @default false
    */
   required?: boolean;
@@ -111,6 +110,9 @@ export function RadioGroup<Value>({
   className,
   children,
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: RadioGroupProps<Value>) {
@@ -126,6 +128,9 @@ export function RadioGroup<Value>({
         error={error}
         warning={warning}
         disabled={disabled}
+        required={required}
+        requiredMark={requiredMark}
+        optionalMark={optionalMark}
         className={[...choiceGroupMessagePull(captionPlacement), className]
           .filter(Boolean)
           .join(' ')}
@@ -135,6 +140,7 @@ export function RadioGroup<Value>({
           <BaseRadioGroup<Value>
             {...props}
             disabled={disabled}
+            required={required}
             readOnly={locked.readOnly || readOnly}
             aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
             className="flex flex-col"

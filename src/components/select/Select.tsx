@@ -37,6 +37,7 @@ import { type SheetMessage, SelectSheetTitle } from './SelectSheetTitle';
 import { usePopupLayout } from './use-popup-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 
 export type { SelectColor } from './select-colors';
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -46,7 +47,7 @@ export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
 export type SelectPresentation = OverlayPresentation;
 
-export interface SelectProps {
+export interface SelectProps extends FieldMarkProps {
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。シートでは見出しのラベルの下にも出す */
   caption?: ReactNode;
@@ -235,6 +236,9 @@ export function Select({
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   disabledIcon = 'show',
+  required,
+  requiredMark,
+  optionalMark,
   className,
   ...rootProps
 }: SelectProps) {
@@ -341,6 +345,9 @@ export function Select({
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
     >
@@ -348,6 +355,7 @@ export function Select({
         <BaseSelect.Root
           items={items}
           disabled={disabled}
+          required={required}
           readOnly={blocking || undefined}
           open={open}
           onOpenChange={(next, details) => changeOpen(next, details.reason)}

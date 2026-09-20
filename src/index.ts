@@ -340,6 +340,7 @@ export {
   type VisuallyHiddenProps,
 } from './components/visually-hidden/VisuallyHidden';
 export type { CaptionPlacement, FieldLoadingBehavior } from './internal/field/Field';
+export type { RequiredMark, OptionalMark } from './internal/field/FieldMark';
 export type { FormSubmittingBehavior } from './internal/form-context';
 /** 日付と時刻の値（Calendar・DateField・TimeField）。ブラウザに Temporal があればそれを、なければ polyfill を返す */
 export {

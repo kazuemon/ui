@@ -10,6 +10,7 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import { FieldMessageLine } from '../../internal/field/Field';
+import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import { useChoiceLock } from '../../internal/form-context';
 
 export type { ChoiceColor } from '../../internal/choice/choice-styles';
@@ -51,10 +52,10 @@ function CheckboxMark() {
   );
 }
 
-export interface CheckboxProps extends Omit<
-  ComponentProps<typeof BaseCheckbox.Root>,
-  'className' | 'render' | 'color' | 'parent'
-> {
+export interface CheckboxProps
+  extends
+    Omit<ComponentProps<typeof BaseCheckbox.Root>, 'className' | 'render' | 'color' | 'parent'>,
+    FieldMarkProps {
   /** 箱の横の文字。押しても切り替わります（本体の一部）。押せないときは箱と一緒にグレーになります */
   label: ReactNode;
   /** 横の文字の下の説明。押せないときも読めるままです */
@@ -79,8 +80,8 @@ export interface CheckboxProps extends Omit<
   warning?: ReactNode;
   /**
    * 必須にします。1つだけ置くとき（同意など）に使い、箱に aria-required を付けます（読み上げで必須と伝わります）。
-   * 見た目は変わらないので、必須であることは横の文字かキャプションでも伝えます。
-   * CheckboxGroup の必須は、グループの caption の文で書きます
+   * 横の文字の後ろに印（既定は「必須」のタグ）も出ます。印は読み上げから外れます。
+   * CheckboxGroup の必須は、グループの required と caption の文で書きます
    * @default false
    */
   required?: boolean;
@@ -106,6 +107,9 @@ export function CheckboxBase({
   className,
   disabled,
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   parent,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
@@ -122,6 +126,7 @@ export function CheckboxBase({
       readOnly={locked.readOnly || readOnly}
       aria-disabled={locked.readOnly || ariaDisabled}
       parent={parent}
+      required={required}
       aria-describedby={describedBy}
       className={s.box({ className: 'rounded-(--checkbox-radius)' })}
       {...locked.data}
@@ -140,7 +145,10 @@ export function CheckboxBase({
         className={s.item({ className: [choiceRows(caption), className] })}
       >
         {box(ariaDescribedBy)}
-        <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+        <BaseField.Label className={s.label()}>
+          {label}
+          <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
+        </BaseField.Label>
         {caption && (
           <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>
         )}
@@ -166,6 +174,7 @@ export function CheckboxBase({
       {box(describedBy)}
       <BaseField.Label data-slot="field-label" className={s.label()}>
         {label}
+        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
       {caption && (
         <BaseField.Description id={ids.caption} className={s.caption()}>

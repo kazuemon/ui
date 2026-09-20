@@ -15,7 +15,7 @@ const meta = {
         component: [
           '1つだけ選ぶ問いのラジオです。`RadioGroup` の中に `Radio` を `value` 付きで置きます。横の文字を押しても選ばれます。',
           '',
-          '- `required` で必須にします。グループに aria-required が付き、読み上げで必須と伝わります。見た目は変わらないので、必須であることは見出しかキャプションでも伝えます。',
+          '- `required` で必須にします。見出しの後ろに印（既定は「必須」のタグ）が出て、グループに aria-required が付きます。印は読み上げから外れ、必須であることは aria-required が伝えます。印の形は `requiredMark` で変えられます。',
           '- `error`・`warning` は選択肢の下に、入力欄と同じ行で出します。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
         ].join('\n'),
@@ -69,7 +69,7 @@ export const Required: Story = {
     docs: {
       description: {
         story:
-          '`required` を付けると、グループ（role="radiogroup"）に aria-required が付きます。見た目は変わらないので、キャプションでも必須と伝えます。',
+          '`required` を付けると、見出しの後ろに「必須」のタグが出て、グループ（role="radiogroup"）に aria-required が付きます。印は読み上げから外れます。印の形は `requiredMark`（`tag`・`asterisk`・`none`）で変えられます。',
       },
     },
   },

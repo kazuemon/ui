@@ -3,6 +3,7 @@ import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import { focusRing } from '../../internal/focus-styles';
 import { useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
@@ -212,7 +213,8 @@ const styles = tv({
 export interface SwitchProps
   extends
     Omit<ComponentProps<typeof BaseSwitch.Root>, 'className' | 'render' | 'color'>,
-    VariantProps<typeof styles> {
+    VariantProps<typeof styles>,
+    FieldMarkProps {
   label: ReactNode;
   caption?: ReactNode;
   className?: string;
@@ -271,6 +273,9 @@ export function Switch({
   frame = 'none',
   captionAppearance = 'plain',
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   'aria-disabled': ariaDisabled,
   ...props
 }: SwitchProps) {
@@ -289,11 +294,15 @@ export function Switch({
       className={s.root({ className: [rows, className] })}
       {...locked.data}
     >
-      <BaseField.Label className={s.label()}>{label}</BaseField.Label>
+      <BaseField.Label className={s.label()}>
+        {label}
+        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
+      </BaseField.Label>
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
       <BaseSwitch.Root
         className={s.track()}
         disabled={disabled}
+        required={required}
         readOnly={locked.readOnly || readOnly}
         aria-disabled={locked.readOnly || ariaDisabled}
         {...locked.data}

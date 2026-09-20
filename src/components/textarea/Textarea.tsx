@@ -12,6 +12,7 @@ import {
 } from 'react';
 
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { controlBox } from '../../internal/field/field-styles';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
@@ -70,10 +71,8 @@ const heightVars = (
   '--textarea-max-height': `calc(${maxRows} * var(--textarea-lh) + 2 * var(--textarea-py))`,
 });
 
-export interface TextareaProps extends Omit<
-  ComponentProps<'textarea'>,
-  'className' | 'children' | 'rows'
-> {
+export interface TextareaProps
+  extends Omit<ComponentProps<'textarea'>, 'className' | 'children' | 'rows'>, FieldMarkProps {
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
@@ -151,6 +150,9 @@ export function Textarea({
   overCountInvalid = true,
   showCount = false,
   readOnly,
+  required,
+  requiredMark,
+  optionalMark,
   style,
   value,
   defaultValue,
@@ -230,6 +232,9 @@ export function Textarea({
       success={success}
       info={info}
       disabled={disabled}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
       className={className}
     >
       {(messageIds) => (
@@ -270,6 +275,7 @@ export function Textarea({
                     className={styles.input({ className: blocking && 'cursor-progress' })}
                     style={style}
                     disabled={disabled}
+                    required={required}
                     readOnly={blocking || readOnly}
                     aria-disabled={blocking || ariaDisabled}
                     aria-invalid={(over && overCountInvalid) || ariaInvalid}

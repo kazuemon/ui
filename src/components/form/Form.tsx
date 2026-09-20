@@ -9,8 +9,10 @@ import {
   useState,
 } from 'react';
 
+import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark';
 import { focusRing } from '../../internal/focus-styles';
 import { FormSubmitContext, type FormSubmittingBehavior } from '../../internal/form-context';
+import { UIConfigContext, useUIConfig } from '../../internal/ui-config';
 import { Link } from '../link/Link';
 import { Notice } from '../notice/Notice';
 import {
@@ -65,6 +67,18 @@ export interface FormProps extends ComponentProps<'form'> {
    * @default 'blocking'
    */
   submittingBehavior?: FormSubmittingBehavior;
+  /**
+   * このフォームの欄の、必須の印の形の既定。欄の requiredMark を書いたときは、そちらが勝ちます。
+   * asterisk（赤い「*」）にするときは、「* は必須の項目です」の一文をフォームの先頭などに置いてください（文は使う側が書きます）
+   * @default 'tag'
+   */
+  requiredMark?: RequiredMark;
+  /**
+   * このフォームの欄の、任意の印の形の既定。text は required でない欄の見出しの後ろに「任意」を出します。
+   * 欄の optionalMark を書いたときは、そちらが勝ちます
+   * @default 'none'
+   */
+  optionalMark?: OptionalMark;
 }
 
 /**
@@ -80,6 +94,8 @@ export function Form({
   noValidate = true,
   submitting = false,
   submittingBehavior = 'blocking',
+  requiredMark,
+  optionalMark,
   onSubmit,
   ref,
   children,
@@ -183,6 +199,19 @@ export function Form({
     return () => observer.disconnect();
   }, [summaryShown]);
 
+  // 印の既定は、外の ThemeProvider に重ねる（書いた値だけが勝つ）
+  const outerConfig = useUIConfig();
+  const uiConfig = useMemo(
+    () =>
+      requiredMark === undefined && optionalMark === undefined
+        ? outerConfig
+        : {
+            ...outerConfig,
+            requiredMark: requiredMark ?? outerConfig.requiredMark,
+            optionalMark: optionalMark ?? outerConfig.optionalMark,
+          },
+    [outerConfig, requiredMark, optionalMark]
+  );
   const context = useMemo(
     () => ({
       focusCount,
@@ -194,49 +223,51 @@ export function Form({
   );
   return (
     <FormSubmitContext.Provider value={context}>
-      <form {...props} ref={setRefs} noValidate={noValidate} onSubmit={handleSubmit}>
-        {summary && (
-          // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く
-          // フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない。移ると「題、グループ」と中身が読まれる
-          <div
-            ref={summaryRef}
-            tabIndex={-1}
-            role="group"
-            aria-labelledby={titleId}
-            data-slot="form-error-summary"
-            className={[
-              'rounded-control',
-              ...focusRing,
-              '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
-            ].join(' ')}
-          >
-            <Notice
-              color="danger"
-              live={false}
-              title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
+      <UIConfigContext value={uiConfig}>
+        <form {...props} ref={setRefs} noValidate={noValidate} onSubmit={handleSubmit}>
+          {summary && (
+            // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く
+            // フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない。移ると「題、グループ」と中身が読まれる
+            <div
+              ref={summaryRef}
+              tabIndex={-1}
+              role="group"
+              aria-labelledby={titleId}
+              data-slot="form-error-summary"
+              className={[
+                'rounded-control',
+                ...focusRing,
+                '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
+              ].join(' ')}
             >
-              {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
+              <Notice
+                color="danger"
+                live={false}
+                title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
+              >
+                {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
                 題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
-              <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">
-                {summary.entries.map((entry) => (
-                  <li key={entry.messageId}>
-                    <Link
-                      href={entry.controlId ? `#${entry.controlId}` : '#'}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        if (formRef.current) focusField(formRef.current, entry.messageId, false);
-                      }}
-                    >
-                      {entryText(entry)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Notice>
-          </div>
-        )}
-        {children}
-      </form>
+                <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">
+                  {summary.entries.map((entry) => (
+                    <li key={entry.messageId}>
+                      <Link
+                        href={entry.controlId ? `#${entry.controlId}` : '#'}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          if (formRef.current) focusField(formRef.current, entry.messageId, false);
+                        }}
+                      >
+                        {entryText(entry)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Notice>
+            </div>
+          )}
+          {children}
+        </form>
+      </UIConfigContext>
     </FormSubmitContext.Provider>
   );
 }
