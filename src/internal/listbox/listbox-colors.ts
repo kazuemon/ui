@@ -1,13 +1,16 @@
 import type { CSSProperties } from 'react';
 
-/** 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047 */
-export type SelectColor = 'primary' | 'secondary' | 'neutral';
+/**
+ * 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047
+ * Select・Combobox・Autocomplete など、選択肢を出す部品が共有する
+ */
+export type ListboxColor = 'primary' | 'secondary' | 'neutral';
 
 // 選んだ項目の印の色（design/adr/0047）。face は淡い面、ink は文字とチェック
 // neutral の面は、hover のグレー（入力欄の塗り）と見分けられる濃さのグレー（--color-select-neutral-selected）
 // focus は、フォーカスの枠線と線を部品の色に従わせるとき（--focus-follow-color: 1 — 後半の軸 41）の色。線なので、ピンクは前景用
 //   neutral は持たない（--color-focus のまま）。本体には OWN_FOCUS のクラスで、浮かぶ部分（シートの × など）には style で置く
-const TONES: Record<SelectColor, { face: string; ink: string; focus?: string }> = {
+const TONES: Record<ListboxColor, { face: string; ink: string; focus?: string }> = {
   primary: {
     face: 'var(--color-primary-subtle)',
     ink: 'var(--color-on-primary-subtle)',
@@ -21,8 +24,11 @@ const TONES: Record<SelectColor, { face: string; ink: string; focus?: string }> 
   neutral: { face: 'var(--color-select-neutral-selected)', ink: 'var(--color-fg)' },
 };
 
-// 本体（Trigger）に置く --color-own-focus。TONES の focus と同じ値（Tailwind が読めるよう、クラスは文字列のまま書く）
-export const OWN_FOCUS: Record<SelectColor, string> = {
+/**
+ * 本体（Trigger・入力欄）に置く --color-own-focus。TONES の focus と同じ値
+ * （Tailwind が読めるよう、クラスは文字列のまま書く）
+ */
+export const OWN_FOCUS: Record<ListboxColor, string> = {
   primary: '[--color-own-focus:var(--color-primary)]',
   secondary: '[--color-own-focus:var(--color-fg-secondary)]',
   neutral: '',
@@ -31,7 +37,11 @@ export const OWN_FOCUS: Record<SelectColor, string> = {
 // 選んだ項目の見た目を、部品の色から作る（ADR-0053: 淡い面＋部品の色の文字とチェック）。浮かぶ部分（Popup）に置き、項目のクラスが読む
 type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
-export function selectedTokens(color: SelectColor): TokenStyle {
+/**
+ * 選んだ項目の面・文字・チェックの色を、部品の色から作って返す。浮かぶ部分（Popup）の style に置く
+ * 項目のクラス（listboxOption）が、ここで置いた変数を読む
+ */
+export function selectedTokens(color: ListboxColor): TokenStyle {
   const { face, ink, focus } = TONES[color];
   return {
     ...(focus ? { '--color-own-focus': focus } : {}),

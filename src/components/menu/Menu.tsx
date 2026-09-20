@@ -33,8 +33,8 @@ import {
 } from '../../internal/sheet/use-narrow-screen';
 import { useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
-// シートの寸法の計算は Select と共有（つまみを引く操作は src/internal/sheet/use-sheet-drag.ts）
-import { SHEET_FULL, screenHeight } from '../select/measure';
+// シートの寸法の計算は選択肢の一覧と共有（つまみを引く操作は src/internal/sheet/use-sheet-drag.ts）
+import { SHEET_FULL, screenHeight } from '../../internal/listbox/listbox-measure';
 import {
   type MenuColor,
   MenuContext,

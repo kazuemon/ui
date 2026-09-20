@@ -1,0 +1,1084 @@
+'use client';
+
+import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { type DensityScope, readDensityScope } from '../../internal/density-scope';
+import {
+  type CaptionPlacement,
+  Field,
+  type FieldLoadingBehavior,
+  FieldLoadingBar,
+  FieldSpinner,
+  FieldSuccessMark,
+} from '../../internal/field/Field';
+import { controlBox } from '../../internal/field/field-styles';
+import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import { useFormSubmittingLock } from '../../internal/form-context';
+import { CaretDownIcon, CheckMarkIcon, XIcon } from '../../internal/icons';
+import {
+  type ListboxColor,
+  OWN_FOCUS,
+  selectedTokens,
+} from '../../internal/listbox/listbox-colors';
+import { SHEET_FULL } from '../../internal/listbox/listbox-measure';
+import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
+import {
+  listboxEmptyClass,
+  listboxGroupLabel,
+  listboxList,
+  type ListboxPresentation,
+  listboxPopup,
+  listboxSeparatorClass,
+} from '../../internal/listbox/listbox-styles';
+import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
+import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { SheetHeader } from '../../internal/sheet/SheetHeader';
+import { sheetCloseButtonClass } from '../../internal/sheet/sheet-styles';
+import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
+import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
+import { useKeyboardInset, useKeyboardShrink } from '../../internal/sheet/use-keyboard-inset';
+import {
+  type OverlayPresentation,
+  useSheetPresentation,
+} from '../../internal/sheet/use-narrow-screen';
+import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
+import { usePortalContainer } from '../../internal/ui-config';
+import { Chip, ChipRemove } from '../chip/Chip';
+import { FieldAddonButton } from '../field-addon/FieldAddon';
+import type { LoadingIndicator } from '../loading/Loading';
+import {
+  type ComboboxGroup,
+  type ComboboxItem,
+  type ComboboxItems,
+  flattenItems,
+  isGroupedItems,
+} from './combobox-items';
+import { ComboboxOption } from './ComboboxOption';
+
+export type {
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxItemNote,
+  ComboboxItemNoteKind,
+  ComboboxItems,
+} from './combobox-items';
+
+/**
+ * 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047
+ */
+export type ComboboxColor = ListboxColor;
+
+/** まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレー */
+export type ComboboxGroupLabelStyle = 'label' | 'caption';
+
+/** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
+export type ComboboxPresentation = OverlayPresentation;
+
+/**
+ * シートのときの、打つ欄の置き場所
+ * field: 欄に残す（欄にフォーカスとキーボードが残り、選択肢だけがシートに出る）
+ * inside: シートの中に移す（欄はボタンになり、シートの見出しの下に打つ欄が出る）
+ */
+export type ComboboxSheetInput = 'field' | 'inside';
+
+/**
+ * 打った文字と選択肢を突き合わせる関数。`Combobox.useFilter`（Base UI）の `contains` などを渡す
+ * null を渡すと、部品の中では絞り込まず、渡された選択肢をそのまま出す（外で絞り込むとき）
+ */
+export type ComboboxFilter = (
+  item: ComboboxItem,
+  query: string,
+  itemToString?: (item: ComboboxItem) => string
+) => boolean;
+
+export interface ComboboxProps extends FieldMarkProps {
+  label: ReactNode;
+  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
+  caption?: ReactNode;
+  /**
+   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
+   * @default 'top'
+   */
+  captionPlacement?: CaptionPlacement;
+  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
+  error?: ReactNode;
+  /**
+   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
+   * error と両方あるときは、エラーの行の下に出す
+   */
+  warning?: ReactNode;
+  /**
+   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   */
+  success?: ReactNode;
+  /**
+   * 成功のとき、本体の ▼ の左にチェックを置くか。false では下の行だけを出します
+   * @default true
+   */
+  successMark?: boolean;
+  /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
+  info?: ReactNode;
+  disabled?: boolean;
+  /**
+   * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
+   * 一段淡い値の文字になります。フォーカスでき、値をなぞって写せます。
+   * 打っても選択肢は開かず、値も変わりません。消去のボタンとチップの × も出しません。フォームでは値が送られます
+   * @default false
+   */
+  readOnly?: boolean;
+  /**
+   * 選んだ項目の印（面・文字・チェック）とチップの色。利用者が選ぶ primary・secondary に加え、
+   * 色を持たない neutral（グレー）を選べます（原則6）。hover とキーボードの選択は、色を指定していても入力欄と同じグレーです
+   * @default 'neutral'
+   */
+  color?: ComboboxColor;
+  /**
+   * 選択肢。`ComboboxItem[]`（そのまま並べる）か `ComboboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられます（design/adr/0044）
+   */
+  items: ComboboxItems;
+  /**
+   * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
+   * @default 'label'
+   */
+  groupLabelStyle?: ComboboxGroupLabelStyle;
+  /**
+   * まとまりのあいだに区切り線を引くか
+   * @default false
+   */
+  groupSeparator?: boolean;
+  /**
+   * 空の欄に出す見本の文字。選んだ値と見分けられるよう、「探して選んでください」のように、
+   * まだ選んでいないと分かる書き方にします
+   */
+  placeholder?: string;
+  /**
+   * 複数選べるようにします。選んだ項目は欄の中にチップで並び、欄の高さが伸びます。
+   * 値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * @default false
+   */
+  multiple?: boolean;
+  /** 選んだ値。単数では `string | null`、`multiple` では `string[]` */
+  value?: string | string[] | null;
+  /** はじめの値（制御しないとき） */
+  defaultValue?: string | string[] | null;
+  /** 値が変わったとき */
+  onValueChange?: (value: string | string[] | null) => void;
+  /** 打っている文字（制御するとき）。外で絞り込むときに使う */
+  inputValue?: string;
+  /** はじめの打っている文字（制御しないとき） */
+  defaultInputValue?: string;
+  /** 打っている文字が変わったとき。外で絞り込むときは、この文字で問い合わせる */
+  onInputValueChange?: (inputValue: string) => void;
+  /**
+   * 打った文字と選択肢を突き合わせる関数。書かないときは Base UI の既定（前後の空白を無視した部分一致）です。
+   * null にすると部品の中では絞り込まず、`items`（または `filteredItems`）をそのまま出します
+   */
+  filter?: ComboboxFilter | null;
+  /**
+   * 外で絞り込んだ選択肢。渡すと、部品の中の絞り込みの代わりにこれを出します。
+   * `items` には、選んだ項目を残したままにします（選んだ値のラベルを引けなくなるため）
+   */
+  filteredItems?: ComboboxItems;
+  /**
+   * 打ち始めたときに、最初に当たった選択肢へ自動で印を移すか
+   * @default false
+   */
+  autoHighlight?: boolean;
+  /**
+   * 欄を押したときに選択肢を開くか。false では ▼ を押すか、文字を打ったときだけ開きます
+   * @default true
+   */
+  openOnInputClick?: boolean;
+  /**
+   * 値を消すボタン（×）を欄の端に出すか。単数では選んだ値と打った文字を、`multiple` では選んだ項目をすべて消します。
+   * 何も選んでいないときと、読み取り専用の欄では出しません
+   * @default true
+   */
+  clearable?: boolean;
+  /**
+   * 消すボタンの読み上げの名前。書かないときは、単数では「入力内容を消去」、`multiple` では「選んだ項目をすべて消去」です
+   */
+  clearLabel?: string;
+  /**
+   * チップの × の読み上げの名前を作る関数。何を外すのかが分かる文にします
+   * @default (label) => `${label} を外す`
+   */
+  chipRemoveLabel?: (label: string) => string;
+  /**
+   * 欄に並ぶチップのまとまりの読み上げの名前
+   * @default '選んだ項目'
+   */
+  chipsLabel?: string;
+  /** 当たる選択肢がないときに出す文 */
+  emptyText?: ReactNode;
+  /** 選択肢を開いているか。開閉を外から決めるときに使う */
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
+   * @default false
+   */
+  modal?: boolean;
+  /**
+   * 浮かぶ選択肢を描く場所
+   * 本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも、浮かぶ選択肢に写します
+   * @default document.body
+   */
+  container?: HTMLElement | null;
+  /** 画面の端に当たったとき、選択肢を反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
+  collisionAvoidance?: ComponentProps<typeof BaseCombobox.Positioner>['collisionAvoidance'];
+  /**
+   * 選択肢の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
+   * sheet はいつもシートにします。シートにするのは指の動きを減らすためで、狭さそのものが理由ではありません（design/adr/0037）
+   * 書かないときは ThemeProvider の presentation に従います
+   * @default 'auto'
+   */
+  presentation?: ComboboxPresentation;
+  /**
+   * シートのときの、打つ欄の置き場所。Combobox は打って絞り込むので、シートとソフトウェアキーボードが同時に出ます
+   * field: 欄に残します。欄にフォーカスとキーボードが残り、選択肢だけがシートに出ます。シートは、キーボードに隠れない高さに収めます
+   * inside: シートの中に移します。欄は押すと開くボタンになり、シートの見出しの下に打つ欄が出ます（複数選ぶときのチップもシートの中です）
+   * @default 'inside'
+   */
+  sheetInput?: ComboboxSheetInput;
+  /**
+   * シートの中に打つ欄を移したとき（sheetInput="inside"）、開いた瞬間に打つ欄へフォーカスを当てるか。
+   * true では、開くとすぐソフトウェアキーボードが出て、その上に選択肢が見えます。false では、シートの面にフォーカスが残り、
+   * 打つ欄を押すまでキーボードは出ません（選択肢を眺めて選ぶだけの使い方に向きます）
+   * @default true
+   */
+  sheetAutoFocus?: boolean;
+  /**
+   * シートの見出しの閉じるボタンのアイコン。check は ✓（選び終えた）、x は ×、chevron は下向きの矢印（下げる）です。
+   * null はアイコンを出さず、文字だけにします（sheetCloseText も null のときは × を出します）
+   * 欄の中の消去 ×（値を消す）と見分けるため、既定は ✓ です
+   * @default 'check'
+   */
+  sheetCloseIcon?: 'check' | 'x' | 'chevron' | null;
+  /**
+   * シートの見出しの閉じるボタンの文字。そのまま見える文字で、読み上げの名前にもなります。
+   * null は文字を出さず、アイコンだけにします（読み上げの名前は「閉じる」です）
+   * @default '完了'
+   */
+  sheetCloseText?: string | null;
+  /**
+   * シートを開いたときの高さ。half は選択肢が長いときに半分の高さで開き、つまみを出します。full は高さいっぱいで開きます
+   * つまみを引くと高さが変わります。上へはじくと高さいっぱいに広がり、下へはじくと、引いた距離が短くても一段下がります（半分からは閉じる）
+   * 打つ欄をシートの中に置くとき（sheetInput="inside"）の既定は full、欄に残すとき（"field"）の既定は half です。
+   * 欄に残すときに full で開くと、シートが欄を覆ってしまいます
+   * @default 'full'（sheetInput="inside"）、'half'（sheetInput="field"）
+   */
+  sheetDetent?: SheetDetent;
+  /**
+   * シートで、選択肢の上下に続きがあることの見せ方。下の端はどれも内側の影です。上の端は、shadow は内側の影、
+   * divider は区切り線（スクロールすると出る）、divider-always はいつも出す区切り線、
+   * divider-shadow・divider-always-shadow は区切り線と内側の影の組み合わせです
+   * @default 'divider-always-shadow'
+   */
+  sheetMoreCue?: SheetMoreCueKind;
+  /**
+   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
+   * @default 'shadow'
+   */
+  popoverMoreCue?: 'none' | 'shadow';
+  /**
+   * 浮かぶ選択肢の高さの上限
+   * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
+   * @default 'screen'
+   */
+  popoverMaxHeight?: 'none' | 'screen';
+  /**
+   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
+   * non-blocking: 止めない。打てるままで、開くと選択肢の最後に loadingText の行を出す。回る円は ▼ の左
+   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し、開けない
+   * @default 'non-blocking'
+   */
+  loadingBehavior?: FieldLoadingBehavior;
+  /**
+   * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
+   * @default 'spinner'
+   */
+  loadingIndicator?: LoadingIndicator;
+  /**
+   * 読み込んでいるあいだの文。blocking ではプレースホルダの場所に、non-blocking では開いた選択肢の行に出す
+   * @default '読み込んでいます'
+   */
+  loadingText?: string;
+  /**
+   * 読み込みが終わったときに、読み上げで知らせる文です。選択肢の数を受け取って返します
+   * @default (count) => `${count} 件の選択肢`
+   */
+  loadedText?: (count: number) => string;
+  /**
+   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色で出し、hide は隠します
+   * @default 'show'
+   */
+  disabledIcon?: 'show' | 'hide';
+  /**
+   * 欄の端の ▼ の出し方。show はいつも出し、hide は出さず、empty-only は値（消すボタン）があるあいだ隠します
+   * @default 'show'
+   */
+  chevron?: 'show' | 'hide' | 'empty-only';
+  /**
+   * `multiple` のチップの最大幅（CSS の長さ。例: '120px'、'10rem'）。超えた文字は … で省略します。
+   * 書かないときはチップを切らず、欄の幅いっぱいまで伸びます（欄の幅を超える分だけ … で省略します）
+   */
+  chipMaxWidth?: string;
+  /**
+   * `multiple` のチップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくします
+   * @default 'compact'
+   */
+  chipSize?: 'compact' | 'regular';
+  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
+  name?: string;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  className?: string;
+}
+
+const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
+const defaultChipRemoveLabel = (label: string) => `${label} を外す`;
+
+// 読み込みの知らせ（design/adr/0042、ADR-0055）。本体のそばにいつも置く、見えない status の箱の中身
+//   読み込んでいるあいだに開いた: loadingText。開いたまま読み込みが終わった: loadedText（選択肢の数）。閉じたら空に戻す
+interface LoadingAnnouncement {
+  open: boolean;
+  loading: boolean;
+  text: string;
+}
+
+// 本体の内側の余白（枠線の内側から数える）
+const inset = 'px-[calc(var(--spacing-control-x)-var(--field-border-width))]';
+const insetEnd = 'pe-[calc(var(--spacing-control-x)-var(--field-border-width))]';
+
+/**
+ * 選択肢を打って絞り込み、選ぶ入力欄
+ */
+export function Combobox({
+  label,
+  caption,
+  captionPlacement,
+  error,
+  warning,
+  success,
+  successMark = true,
+  info,
+  disabled,
+  readOnly,
+  color = 'neutral',
+  items,
+  groupLabelStyle = 'label',
+  groupSeparator = false,
+  placeholder,
+  multiple = false,
+  value,
+  defaultValue,
+  onValueChange,
+  inputValue,
+  defaultInputValue,
+  onInputValueChange,
+  filter,
+  filteredItems,
+  autoHighlight = false,
+  openOnInputClick = true,
+  clearable = true,
+  clearLabel,
+  chipRemoveLabel = defaultChipRemoveLabel,
+  chipsLabel = '選んだ項目',
+  emptyText,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  modal = false,
+  container,
+  collisionAvoidance,
+  presentation,
+  sheetInput = 'inside',
+  sheetAutoFocus = true,
+  sheetCloseIcon = 'check',
+  sheetCloseText = '完了',
+  sheetDetent: sheetDetentProp,
+  sheetMoreCue = 'divider-always-shadow',
+  popoverMoreCue = 'shadow',
+  popoverMaxHeight = 'screen',
+  loading = false,
+  loadingBehavior = 'non-blocking',
+  loadingIndicator = 'spinner',
+  loadingText = '読み込んでいます',
+  loadedText = defaultLoadedText,
+  disabledIcon = 'show',
+  chevron = 'show',
+  chipMaxWidth,
+  chipSize = 'compact',
+  name,
+  form,
+  required,
+  requiredMark,
+  optionalMark,
+  className,
+}: ComboboxProps) {
+  // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない
+  const loadingBlocking = loading && loadingBehavior === 'blocking';
+  const loadingRow = loading && !loadingBlocking;
+  // Form の送信中も、同じく開けず値も変えられない（見た目は Field の data-loading="blocking"）
+  const formLock = useFormSubmittingLock();
+  const blocking = loadingBlocking || formLock.blocking;
+  // 読み取り専用（ADR-0170）: 文字を打つ欄の読み取り専用と同じ見た目にし、選択肢は開かない
+  const locked = blocking || !!readOnly;
+  const portalContainer = usePortalContainer(container);
+
+  // 選択肢の出し方（design/adr/0037・原則16）。指で操作していて画面が狭いときはシート
+  const sheet = useSheetPresentation(presentation);
+  // シートの中に打つ欄を移すか（sheetInput="inside"）。欄は押すと開くボタンになる
+  const inputInSheet = sheet && sheetInput === 'inside';
+  const sheetDetent: SheetDetent = sheetDetentProp ?? (sheetInput === 'inside' ? 'full' : 'half');
+  // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときはエラー → 警告の順
+  const sheetId = useId();
+  const sheetCaptionId = `${sheetId}caption`;
+  const sheetMessages: SheetMessage[] = [];
+  if (error) sheetMessages.push({ kind: 'error', content: error, id: `${sheetId}error` });
+  if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
+
+  // 開閉は部品の中でも持つ（止めているあいだ開かせないため・シートの × とつまみで閉じるため）
+  // 開いているあいだは本体をフォーカス中と同じ見た目にする
+  const [openState, setOpenState] = useState(defaultOpen);
+  const open = locked ? false : (openProp ?? openState);
+  // 開く前のスクロール位置。キーボードの出入りでブラウザがページをずらすので、閉じたあとに元へ戻す（sheetAutoFocus）
+  const scrollBeforeOpen = useRef<{ x: number; y: number } | null>(null);
+  const changeOpen = (next: boolean) => {
+    if (next && locked) return;
+    if (next) drag.reset();
+    if (inputInSheet && sheetAutoFocus) {
+      if (next) {
+        const saved = { x: window.scrollX, y: window.scrollY };
+        scrollBeforeOpen.current = saved;
+        // 見えない入力欄にフォーカスが当たると、ブラウザは、キーボードに隠れない位置までページをスクロールする。
+        // シートは画面に固定されていて、ページの位置とは関係ないので、開いているあいだは元の位置へ戻し続ける
+        for (const delay of [0, 100, 300, 600, 1000]) {
+          window.setTimeout(() => {
+            if (scrollBeforeOpen.current === saved) {
+              window.scrollTo({ left: saved.x, top: saved.y, behavior: 'instant' });
+            }
+          }, delay);
+        }
+      } else if (scrollBeforeOpen.current) {
+        const { x, y } = scrollBeforeOpen.current;
+        scrollBeforeOpen.current = null;
+        // キーボードが引っ込むあいだにも、ブラウザが位置を直すことがある。閉じた直後と、動きが落ち着いたあとの 2 回戻す
+        const restore = () => window.scrollTo({ left: x, top: y, behavior: 'instant' });
+        requestAnimationFrame(restore);
+        window.setTimeout(restore, 400);
+      }
+    }
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
+
+  // 値は文字（value）で持つ。Base UI には、項目から値とラベルを引く collection を渡す
+  //   こうすると、選んだ値・フォームに送る値・絞り込みの当たり先が、すべて items の label・value から決まる
+  const collection = useMemo(
+    () =>
+      BaseCombobox.createItems<ComboboxItem, string>(items, {
+        getValue: (item) => item.value,
+        getLabel: (item) => item.label,
+      }),
+    [items]
+  );
+  // 値からラベルを引く（チップの文字）。外で絞り込んで項目が消えても、items に残っていれば引ける
+  const flat = useMemo(() => flattenItems(items), [items]);
+  const labelOf = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of flat) map.set(item.value, item.label);
+    return map;
+  }, [flat]);
+
+  // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
+  const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
+  // 浮かぶ選択肢の寸法（高さの上限・続きの印）
+  const popoverCue = !sheet && popoverMoreCue === 'shadow';
+  const popoverFit = !sheet && popoverMaxHeight === 'screen';
+  // ソフトウェアキーボードが隠している高さ。シートは、その分だけ持ち上げて見えている範囲に収める
+  const keyboardInset = useKeyboardInset(sheet);
+  const keyboardShrink = useKeyboardShrink(sheet);
+  const { headerRef, listRef, loadingRowRef, metrics, updateCues, measure, observeCues } =
+    useListboxLayout({
+      open,
+      sheet,
+      popoverFit,
+      container: portalContainer,
+      insetBottom: keyboardShrink,
+    });
+
+  // 選択肢が長いときだけ、半分の高さで開いてつまみを出す（design/adr/0037）
+  const long = sheet && sheetDetent === 'half' && !!metrics && metrics.content > metrics.half + 1;
+  const drag = useSheetDrag({ sheetDetent, metrics, long, onClose: () => changeOpen(false) });
+
+  // 読み込みの知らせ（design/adr/0042、ADR-0055）。閉じていても消えない status の箱（Combobox.Status）の中身を入れ替える
+  const [announcement, setAnnouncement] = useState<LoadingAnnouncement>(() => ({
+    open,
+    loading: loadingRow,
+    text: open && loadingRow ? loadingText : '',
+  }));
+  if (announcement.open !== open || announcement.loading !== loadingRow) {
+    let { text } = announcement;
+    if (!open) text = '';
+    else if (loadingRow) text = loadingText;
+    else if (announcement.open && announcement.loading) text = loadedText(flat.length);
+    setAnnouncement({ open, loading: loadingRow, text });
+  }
+
+  // 本体の祖先に付いた data-density・coarse-large を、開くたびに読み、浮かぶ部分に写す
+  // 本体は、ふだんは打つ欄（InputGroup）、シートの中に打つ欄を移したときは押すボタン（Trigger）
+  const fieldRef = useRef<HTMLElement | null>(null);
+  // ソフトウェアキーボードを開く操作の中で出すための、見えない打つ欄（sheetAutoFocus）
+  const keyboardProxyRef = useRef<HTMLInputElement>(null);
+  const setFieldElement = (el: HTMLElement | null) => {
+    fieldRef.current = el;
+  };
+  const [densityScope, setDensityScope] = useState<DensityScope>({ large: false });
+  useLayoutEffect(() => {
+    if (!open) return;
+    const next = readDensityScope(fieldRef.current);
+    setDensityScope((prev) =>
+      prev.density === next.density && prev.large === next.large ? prev : next
+    );
+  }, [open]);
+
+  // 浮かぶ選択肢と本体の間（4px）。エラーの欄は、本体の外に離した線を引くので、線の外側から同じ間をあける
+  const popupSideOffset = () => {
+    const gap = 4;
+    const el = fieldRef.current;
+    if (el?.closest('[data-invalid]') == null) return gap;
+    const style = getComputedStyle(el);
+    const width = parseFloat(style.outlineWidth);
+    return width > 0 ? gap + width + parseFloat(style.outlineOffset) : gap;
+  };
+
+  const chipStyle: CSSProperties | undefined =
+    chipMaxWidth || chipSize === 'regular'
+      ? {
+          ...(chipMaxWidth ? { maxWidth: chipMaxWidth } : {}),
+          ...(chipSize === 'regular'
+            ? ({
+                '--combobox-chip-height': 'calc(var(--spacing-control) - var(--spacing) * 2)',
+              } as CSSProperties)
+            : {}),
+        }
+      : undefined;
+  const selected = selectedTokens(color);
+  const grouped = isGroupedItems(filteredItems ?? items);
+
+  // 欄の中身（入力欄・チップ）。multiple ではチップと入力欄を Chips の中に並べる（← で チップへ移れる）
+  const inputClass = [
+    'min-w-0 flex-1 bg-transparent text-input outline-none placeholder:text-(color:--field-placeholder)',
+    'disabled:cursor-not-allowed',
+    blocking && 'cursor-progress',
+    readOnly && 'cursor-default',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  // シートの見出しの閉じるボタン。選んだ内容は、選んだ時点で反映されているので、閉じるだけ（キーボードでは Esc でも閉じる）
+  //   アイコンと文字の組み合わせは、sheetCloseIcon・sheetCloseText で選ぶ
+  const renderSheetClose = () => {
+    const close = () => changeOpen(false);
+    // どちらも出さない指定のときは、× だけを出す（閉じる手段がなくならないように）
+    const icon = sheetCloseIcon === null && sheetCloseText === null ? 'x' : sheetCloseIcon;
+    const Icon =
+      icon === 'check'
+        ? CheckMarkIcon
+        : icon === 'chevron'
+          ? CaretDownIcon
+          : icon === 'x'
+            ? XIcon
+            : null;
+    const hasText = sheetCloseText !== null;
+    return (
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label={hasText ? undefined : '閉じる'}
+        onClick={close}
+        className={
+          hasText
+            ? sheetCloseButtonClass.replace(
+                'size-(--spacing-control)',
+                'h-(--spacing-control) min-w-(--spacing-control) gap-1 px-3 font-bold text-fg'
+              )
+            : sheetCloseButtonClass
+        }
+      >
+        {Icon && <Icon standalone />}
+        {hasText && sheetCloseText}
+      </button>
+    );
+  };
+
+  const renderClear = () =>
+    clearable && !readOnly ? (
+      <BaseCombobox.Clear
+        tabIndex={0}
+        // 中身は render に渡す要素の側に置く（Base UI は、渡した要素の children をそのまま使う）
+        render={
+          <FieldAddonButton>
+            <XIcon standalone />
+          </FieldAddonButton>
+        }
+        disabled={blocking || disabled || undefined}
+        data-slot="combobox-clear"
+        aria-label={clearLabel ?? (multiple ? '選んだ項目をすべて消去' : '入力内容を消去')}
+      />
+    ) : null;
+
+  // 本体（原則2・8）。ふだんはグレーの塗りで枠線なし、フォーカスで枠線が付く
+  // 選択肢を開いているあいだ（data-popup-open）も、フォーカス中と同じ見た目にする
+  const controlClass = (extra: (string | false)[]) =>
+    controlBox({
+      className: [
+        loading && 'relative',
+        'data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
+        // エラーの欄の離した線は、開いているあいだもフォーカス中と同じに引く
+        'data-popup-open:[outline-style:solid] data-popup-open:[outline-width:var(--control-ring-width,0px)]',
+        'data-popup-open:[outline-offset:var(--focus-ring-offset)] data-popup-open:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
+        'data-popup-open:ring-[length:var(--control-ring-inner,0px)] data-popup-open:ring-[color:var(--color-focus-ring-inner)]',
+        // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
+        OWN_FOCUS[color],
+        ...extra,
+      ],
+    });
+
+  // 欄の中身（打つ欄・チップ・端のボタン）。multiple ではチップと打つ欄を Chips の中に並べる（← でチップへ移れる）
+  // シートの中に打つ欄を移すとき（sheetInput="inside"）は、同じものをシートの見出しの下に置く
+  // 余白は打つ欄とチップの側に持たせ、欄のどこを押しても打てるようにする（端のボタンは端に接する）
+  const renderControl = (place: 'field' | 'sheet', messageIds: string | undefined) => {
+    const inSheet = place === 'sheet';
+    return (
+      <BaseCombobox.InputGroup
+        ref={inSheet ? undefined : setFieldElement}
+        data-slot={inSheet ? 'combobox-sheet-input' : 'control'}
+        data-field-readonly={readOnly || undefined}
+        className={controlClass([
+          'group/cbx gap-0 px-0',
+          multiple && 'h-auto min-h-(--spacing-control) flex-wrap',
+        ])}
+      >
+        {multiple ? (
+          <BaseCombobox.Value>
+            {(values: string[]) => (
+              <BaseCombobox.Chips
+                aria-label={values.length > 0 ? chipsLabel : undefined}
+                className={`flex min-w-0 flex-1 flex-wrap items-center gap-(--spacing) py-(--spacing) ${inset}`}
+              >
+                {values.map((item) => {
+                  const text = labelOf.get(item) ?? item;
+                  return (
+                    <BaseCombobox.Chip
+                      key={item}
+                      render={
+                        <Chip
+                          color={color}
+                          readOnly={readOnly}
+                          disabled={disabled || blocking}
+                          style={chipStyle}
+                          // 欄の中のチップは、部品の高さより一段小さくする（--combobox-chip-*）
+                          className="max-w-full min-w-0 [--spacing-control-x:var(--combobox-chip-padding-x)] [--spacing-control:var(--combobox-chip-height)]"
+                        />
+                      }
+                    >
+                      <span className="min-w-0 truncate">{text}</span>
+                      {!readOnly && (
+                        <BaseCombobox.ChipRemove
+                          render={<ChipRemove aria-label={chipRemoveLabel(text)} />}
+                          disabled={disabled || blocking || undefined}
+                        />
+                      )}
+                    </BaseCombobox.Chip>
+                  );
+                })}
+                <BaseCombobox.Input
+                  aria-describedby={messageIds}
+                  aria-disabled={blocking || undefined}
+                  aria-busy={loading || undefined}
+                  placeholder={loadingBlocking ? loadingText : values.length > 0 ? '' : placeholder}
+                  className={`${inputClass} h-(--combobox-chip-height) min-w-16`}
+                />
+              </BaseCombobox.Chips>
+            )}
+          </BaseCombobox.Value>
+        ) : (
+          <BaseCombobox.Input
+            aria-describedby={messageIds}
+            aria-disabled={blocking || undefined}
+            aria-busy={loading || undefined}
+            placeholder={loadingBlocking ? loadingText : placeholder}
+            className={`${inputClass} h-full ${inset}`}
+          />
+        )}
+        {/* 待っているあいだの印（design/adr/0042）。回る円は ▼ の左、線は本体の下端 */}
+        {loading && loadingIndicator === 'spinner' && (
+          <FieldSpinner className={loadingBlocking ? insetEnd : 'me-2'} />
+        )}
+        {/* 成功のチェック（ADR-0058 の C）。回る円と同じ場所 */}
+        {success && successMark && !error && !loading && <FieldSuccessMark className="me-2" />}
+        {/* ▼（原則8: 塗りのないアイコンは押せない意味の印）。欄のどこを押しても開くので、それ自体は押すものにしない
+            シートの中の打つ欄には出さない（すでに開いていて、押して開くものではないため） */}
+        {!inSheet &&
+          chevron !== 'hide' &&
+          !(loadingBlocking || (disabled && disabledIcon === 'hide')) && (
+            <BaseCombobox.Icon
+              className={[
+                'flex shrink-0 group-data-disabled/field:text-fg-subtle',
+                readOnly ? 'text-fg-subtle' : 'text-fg-muted',
+                'group-data-[loading=blocking]/field:text-fg-subtle',
+                insetEnd,
+                chevron === 'empty-only' && 'group-has-data-[slot=combobox-clear]/cbx:hidden',
+              ].join(' ')}
+            >
+              <CaretDownIcon />
+            </BaseCombobox.Icon>
+          )}
+        {renderClear()}
+        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+      </BaseCombobox.InputGroup>
+    );
+  };
+
+  // 見えない打つ欄を、押した欄の位置に合わせて、フォーカスを当てる（押した操作の中で、同期的に行う）
+  const focusKeyboardProxy = (trigger: HTMLElement) => {
+    const proxy = keyboardProxyRef.current;
+    if (!proxy) return;
+    const rect = trigger.getBoundingClientRect();
+    proxy.style.top = `${rect.top}px`;
+    proxy.style.left = `${rect.left}px`;
+    proxy.style.width = `${rect.width}px`;
+    proxy.style.height = `${rect.height}px`;
+    proxy.focus({ preventScroll: true });
+  };
+
+  // シートの中に打つ欄を移したとき（sheetInput="inside"）の本体。押すと開くボタンで、形は Select の本体と同じ
+  // 選んだ値は文字（単数）かチップ（multiple）で出す。チップの × はボタンの中に置けないので、外す操作はシートの中で行う
+  const renderTrigger = (messageIds: string | undefined) => (
+    <>
+      <BaseCombobox.Trigger
+        ref={setFieldElement}
+        onClick={sheetAutoFocus ? (event) => focusKeyboardProxy(event.currentTarget) : undefined}
+        aria-describedby={messageIds}
+        aria-disabled={blocking || undefined}
+        aria-busy={loading || undefined}
+        data-slot="control"
+        data-field-readonly={readOnly || undefined}
+        className={controlClass([
+          'text-left',
+          multiple && 'h-auto min-h-(--spacing-control) flex-wrap py-(--spacing)',
+          blocking ? 'cursor-progress' : readOnly ? 'cursor-default' : 'cursor-pointer',
+        ])}
+      >
+        <BaseCombobox.Value>
+          {(selectedValue: string | string[] | null) => {
+            const values = Array.isArray(selectedValue) ? selectedValue : [];
+            if (multiple && values.length > 0) {
+              return (
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-(--spacing)">
+                  {values.map((item) => (
+                    <Chip
+                      key={item}
+                      color={color}
+                      disabled={disabled || blocking}
+                      style={chipStyle}
+                      className="max-w-full min-w-0 [--spacing-control-x:var(--combobox-chip-padding-x)] [--spacing-control:var(--combobox-chip-height)]"
+                    >
+                      <span className="min-w-0 truncate">{labelOf.get(item) ?? item}</span>
+                    </Chip>
+                  ))}
+                </span>
+              );
+            }
+            const single = !multiple && typeof selectedValue === 'string' ? selectedValue : null;
+            if (single) {
+              return (
+                <span className="min-w-0 flex-1 truncate">{labelOf.get(single) ?? single}</span>
+              );
+            }
+            return (
+              <span className="min-w-0 flex-1 truncate text-(color:--field-placeholder)">
+                {loadingBlocking ? loadingText : placeholder}
+              </span>
+            );
+          }}
+        </BaseCombobox.Value>
+        {loading && loadingIndicator === 'spinner' && (
+          <FieldSpinner className={loadingBlocking ? undefined : 'me-2'} />
+        )}
+        {success && successMark && !error && !loading && <FieldSuccessMark className="me-2" />}
+        {chevron !== 'hide' && !(loadingBlocking || (disabled && disabledIcon === 'hide')) && (
+          <BaseCombobox.Icon
+            className={[
+              'flex shrink-0 group-data-disabled/field:text-fg-subtle',
+              readOnly ? 'text-fg-subtle' : 'text-fg-muted',
+              'group-data-[loading=blocking]/field:text-fg-subtle',
+            ].join(' ')}
+          >
+            <CaretDownIcon />
+          </BaseCombobox.Icon>
+        )}
+        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+      </BaseCombobox.Trigger>
+      {sheetAutoFocus && (
+        // スマホのブラウザは、ユーザーの操作の中で同期的に当たったフォーカスにだけキーボードを出す。
+        // 押した瞬間にここへフォーカスを当てておき、シートが開いたら本物の打つ欄へ移す（キーボードは出たままになる）
+        <input
+          ref={keyboardProxyRef}
+          aria-hidden
+          tabIndex={-1}
+          autoComplete="off"
+          data-slot="combobox-keyboard-proxy"
+          // 押した欄の真上に重ねる（画面の隅に置くと、フォーカスでブラウザが見えている範囲をそこへずらす）
+          // 欄を包む位置指定の箱は作らない（作ると、container に出した面より手前に描かれる）。見えない fixed の要素だけを置く
+          className="pointer-events-none fixed opacity-0"
+          style={{ fontSize: 16, caretColor: 'transparent' }}
+        />
+      )}
+    </>
+  );
+
+  return (
+    <Field
+      label={label}
+      caption={caption}
+      captionPlacement={captionPlacement}
+      error={error}
+      warning={warning}
+      success={success}
+      info={info}
+      disabled={disabled}
+      loading={loading}
+      loadingBehavior={loadingBehavior}
+      required={required}
+      requiredMark={requiredMark}
+      optionalMark={optionalMark}
+      className={className}
+      // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない（Select と同じ）
+      nativeLabel={!inputInSheet}
+    >
+      {(messageIds) => (
+        <BaseCombobox.Root<string, boolean, ComboboxItem>
+          items={collection}
+          multiple={multiple}
+          value={value}
+          defaultValue={defaultValue}
+          onValueChange={(next) => onValueChange?.(next)}
+          inputValue={inputValue}
+          defaultInputValue={defaultInputValue}
+          onInputValueChange={(next) => onInputValueChange?.(next)}
+          filter={filter}
+          filteredItems={filteredItems}
+          autoHighlight={autoHighlight}
+          openOnInputClick={openOnInputClick}
+          disabled={disabled}
+          readOnly={locked || undefined}
+          required={required}
+          name={name}
+          form={form}
+          modal={modal}
+          open={open}
+          onOpenChange={(next) => changeOpen(next)}
+          // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
+          onOpenChangeComplete={(next) => {
+            if (!next) drag.clearDragHeight();
+          }}
+        >
+          {inputInSheet ? renderTrigger(messageIds) : renderControl('field', messageIds)}
+          {/* 読み込みの知らせ（ADR-0055）。Combobox を描いているあいだずっと置く、見えない status の箱 */}
+          <BaseCombobox.Status data-slot="combobox-status" className="sr-only">
+            {announcement.text}
+          </BaseCombobox.Status>
+          <BaseCombobox.Portal container={portalContainer}>
+            {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする（design/adr/0037）
+                欄に打つ欄を残すとき（sheetInput="field"）は暗くしない。欄はシートの外にあり、打っているあいだも読めるようにするため */}
+            {inputInSheet && (
+              <BaseCombobox.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+            )}
+            {/* シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
+                ソフトウェアキーボードが隠している分（--visualViewport）だけ持ち上げ、残りの高さに収める */}
+            <BaseCombobox.Positioner
+              collisionAvoidance={collisionAvoidance}
+              sideOffset={popupSideOffset}
+              data-presentation={listPresentation}
+              data-density={densityScope.density}
+              style={
+                sheet
+                  ? {
+                      bottom: keyboardInset,
+                      maxHeight: `calc((100% - ${keyboardShrink}px) * ${SHEET_FULL})`,
+                      // full は、中身が短くても上限の高さまで広げて開く
+                      ...(sheetDetent === 'full'
+                        ? { height: `calc((100% - ${keyboardShrink}px) * ${SHEET_FULL})` }
+                        : {}),
+                    }
+                  : undefined
+              }
+              className={[
+                'z-10 outline-none',
+                densityScope.large && 'coarse-large',
+                sheet &&
+                  'inset-x-0! top-auto! left-0! flex flex-col [position:fixed]! [transform:none]!',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <BaseCombobox.Popup
+                finalFocus={
+                  inputInSheet && sheetAutoFocus
+                    ? () => {
+                        // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
+                        fieldRef.current?.focus({ preventScroll: true });
+                        return false;
+                      }
+                    : undefined
+                }
+                initialFocus={
+                  inputInSheet && sheetAutoFocus
+                    ? () =>
+                        document.querySelector<HTMLElement>(
+                          '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
+                        )
+                    : undefined
+                }
+                ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
+                data-slot="combobox-popup"
+                data-dragging={drag.dragging || undefined}
+                style={
+                  drag.sheetHeight !== undefined
+                    ? { ...selected, height: drag.sheetHeight }
+                    : // full は、外枠（Positioner）を目いっぱいの高さにしているので、面も同じ高さまで広げる
+                      sheet && sheetDetent === 'full'
+                      ? { ...selected, height: '100%' }
+                      : selected
+                }
+                className={listboxPopup({ presentation: listPresentation })}
+              >
+                {/* シートの見出し（design/adr/0037）: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の ×
+                    打つ欄をシートに移したときは、その下に打つ欄を置く。高さを測る箱は見出しと打つ欄の両方を囲む */}
+                {sheet && (
+                  <div ref={headerRef} className="flex shrink-0 flex-col">
+                    <SheetHeader
+                      handle={long}
+                      onPointerDown={drag.handlers.onPointerDown}
+                      onPointerMove={drag.handlers.onPointerMove}
+                      onPointerUp={drag.handlers.onPointerUp}
+                      onPointerCancel={drag.handlers.onPointerUp}
+                      className={long ? 'cursor-grab touch-none' : undefined}
+                      close={
+                        // 閉じるは、見出しとヘルプテキストのまとまりの上下中央に置く。
+                        // 見出しの行の中央からは、ヘルプテキストの行（と間の 2px）の半分だけ下がる。エラー・警告の行は数えない（出入りで動かないように）
+                        caption || inputInSheet ? (
+                          <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
+                            {renderSheetClose()}
+                          </div>
+                        ) : (
+                          renderSheetClose()
+                        )
+                      }
+                    >
+                      <SheetFieldTitle
+                        label={label}
+                        caption={caption}
+                        captionId={sheetCaptionId}
+                        messages={sheetMessages}
+                        reserveCaption={inputInSheet}
+                      />
+                    </SheetHeader>
+                    {inputInSheet && (
+                      <div className="px-[calc(var(--sheet-padding-x)-var(--select-popup-padding))] pt-2 pb-(--select-popup-padding)">
+                        {renderControl('sheet', undefined)}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* 当たる選択肢がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
+                <BaseCombobox.Empty className="[&:not(:empty)]:py-(--select-popup-padding)">
+                  {emptyText && !loading ? (
+                    <div className={listboxEmptyClass}>{emptyText}</div>
+                  ) : null}
+                </BaseCombobox.Empty>
+                {(long || popoverCue) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
+                {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
+                    シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
+                <BaseCombobox.List
+                  ref={listRef}
+                  aria-describedby={
+                    sheet
+                      ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
+                          .filter(Boolean)
+                          .join(' ') || undefined
+                      : messageIds
+                  }
+                  onScroll={sheet || popoverCue ? updateCues : undefined}
+                  className={listboxList({
+                    presentation: listPresentation,
+                    loadingRow,
+                    className: 'data-empty:py-0',
+                  })}
+                >
+                  {grouped
+                    ? (group: ComboboxGroup, index: number) => (
+                        <BaseCombobox.Group key={index} items={group.items} className="block">
+                          {groupSeparator && index > 0 && (
+                            <BaseCombobox.Separator className={listboxSeparatorClass} />
+                          )}
+                          <BaseCombobox.GroupLabel
+                            className={listboxGroupLabel({ style: groupLabelStyle })}
+                          >
+                            {group.label}
+                          </BaseCombobox.GroupLabel>
+                          <BaseCombobox.Collection>
+                            {(item: ComboboxItem) => (
+                              <ComboboxOption key={item.value} item={item} />
+                            )}
+                          </BaseCombobox.Collection>
+                        </BaseCombobox.Group>
+                      )
+                    : (item: ComboboxItem) => <ComboboxOption key={item.value} item={item} />}
+                </BaseCombobox.List>
+                {(long || popoverCue) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
+                {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042） */}
+                {loadingRow && (
+                  <ListboxLoadingRow
+                    ref={loadingRowRef}
+                    slot="combobox-loading"
+                    presentation={listPresentation}
+                  >
+                    {loadingText}
+                  </ListboxLoadingRow>
+                )}
+              </BaseCombobox.Popup>
+            </BaseCombobox.Positioner>
+          </BaseCombobox.Portal>
+        </BaseCombobox.Root>
+      )}
+    </Field>
+  );
+}

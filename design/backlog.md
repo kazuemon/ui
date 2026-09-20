@@ -185,7 +185,22 @@
 ### Select
 
 - 読み取り専用の Select は、押しても開きません。破線の輪郭と淡い ▼ から、開かないことを使う人が予想できるかは分かっていません。書き方（Docs）で補うかを決めます（[ADR-0196](./adr/0196-choice-readonly.md)）
-- 選択肢の群（Base UI の `Select.Group`）は欲しい、と決まりました。作るときに、`items` の配列に群を持たせるか、children で組み立てて中を context でつなぐ形にするかを決めます（[ADR-0037](./adr/0037-select-sheet.md)）
+- 選択肢の群（Base UI の `Select.Group`）の形は、Combobox の [ADR-0214](./adr/0214-combobox-scope.md) で決まりました。`items` に、`label` と `items` を持つまとまりの配列を渡す形です（children で組み立てて context でつなぐ形は採りません）。Select にはまだ足していません。同じ形で足します（[ADR-0037](./adr/0037-select-sheet.md)）
+- Select の浮かぶ面と項目は、Combobox と同じ `src/internal/listbox` に乗せ替えました（見た目は変えていません）。`--select-popup-*` のトークン名を `--listbox-popup-*` に寄せるかは決めていません
+
+### Combobox・Chip
+
+2026-09-20・21 に作りました。決定は [ADR-0214](./adr/0214-combobox-scope.md)〜[ADR-0221](./adr/0221-combobox-sheet-close.md) です。
+
+- Combobox に、新しい選択肢を作る形（creatable）・仮想化・`limit`・grid・inline は渡していません。Autocomplete も含めていません
+- 複数選ぶ欄で、欄の先頭で ← を押すとチップへ移れることを伝える読み上げの文（`aria-description` の prop）は作っていません。変換中に先頭で ← を押したときにチップへ移ってしまうかは、実機で確かめていません
+- 長いチップを、切らずに折り返して見せる形は決めていません（部品の直しが要ります）。省略は `chipMaxWidth` だけです
+- Chip の押せる・選べる形（pressable・selected）は作っていません
+- 読み取り専用の Chip（グレーの地）は「一旦」の見た目です。文字と面の比が 3.96:1 で、AA の 4.5:1 に届きません。見た目を確定するときに文字色を直します（[ADR-0219](./adr/0219-chip-look.md)）
+- シートの閉じるの「完了」は、部品が持つ既定の文です（`sheetCloseText` で差し替えられます）。多言語の対応は決めていません
+- シートを開いたあと、ヘルプ・エラーの行が出入りすると打つ欄が動きます。そのままにしています
+- 選べない選択肢の理由・警告・欄のエラーの文の書き方は、Select と同じく、部品のドキュメントで示す前提です。まだ書いていません（[ADR-0044](./adr/0044-message-announce.md)）
+- 2 つ目の部品が使うようになったら `src/internal/` へ移すものがあります。欄の中のチップ一式（Chips・Chip・ChipRemove・大きさのトークン）、入力欄型の本体の並び、読み込みの知らせの状態機械（Select と Combobox でコピー）、`sideOffset` の計算（Select とコピー）、まとまりの描画と `groupLabelStyle` の型（Menu にもあります）
 
 ### Menu
 
@@ -214,7 +229,7 @@
 
 ### Switch・Tag・Badge・Chip
 
-- Chip（押せる・消せる小物。ボタンと同じ部品の高さの pill）は、要るときに作ります
+- Chip は 2026-09-21 に Combobox と一緒に作りました（[ADR-0217](./adr/0217-combobox-chips.md)・[ADR-0219](./adr/0219-chip-look.md)）。残りは「Combobox・Chip」にあります
 - Badge の数がその場で変わっても、読み上げでは知らせません。数がその場で増える通知のボタンを作るときに決めます
 - 「99+」のような横長の Badge は、角を中心に左右へ伸びます。右寄せにして左へ伸ばすかは比べていません
 
@@ -456,6 +471,10 @@
 - 祖先の `data-density`・`coarse-large` は開くときに読んで写すので、開いたまま祖先の属性やクラスが変わっても写し直しません
 - シートの読み込み中の行を、選択肢が 0 件のときだけ高くするかは比べていません
 - 読み取り専用の Select では、右端の ▼ を一段淡くして残しました（[ADR-0196](./adr/0196-choice-readonly.md)）。押せそうに見えないか、使ってみて見直します
+
+### Combobox
+
+- キーボードとみなす縮みの下限（120px）は、画面の高さが小さい端末で足りるか分かっていません
 
 ### Menu
 

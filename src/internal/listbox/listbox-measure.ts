@@ -1,4 +1,5 @@
 // 浮かぶ選択肢とシートの寸法の計算。DOM を読むが、状態は持たない
+// 選択肢は role="option" で数えるので、Base UI のどの部品（Select・Combobox・Autocomplete）でも同じように測れる
 // つまみを引く操作のしきい値は src/internal/sheet/use-sheet-drag.ts（Select と Menu が共有）
 
 // シートの高さの上限と、半分で開くときの目安（画面の高さに対する割合）
@@ -55,8 +56,7 @@ export function listContentLength(list: HTMLElement) {
 }
 
 // 一覧の下に置いた「読み込んでいます」の行の高さ（下の余白を含む）。高さの上限の計算に入れる（design/adr/0042）
-export function loadingRowLength(list: HTMLElement) {
-  const row = list.parentElement?.querySelector<HTMLElement>('[data-slot="select-loading"]');
+export function loadingRowLength(row: HTMLElement | null | undefined) {
   if (!row) return 0;
   return row.offsetHeight + parseFloat(getComputedStyle(row).marginBottom);
 }

@@ -77,6 +77,20 @@ export {
   type CollapsibleIndicator,
   type CollapsibleProps,
 } from './components/collapsible/Collapsible';
+export {
+  Combobox,
+  type ComboboxColor,
+  type ComboboxFilter,
+  type ComboboxGroup,
+  type ComboboxGroupLabelStyle,
+  type ComboboxItem,
+  type ComboboxItemNote,
+  type ComboboxItemNoteKind,
+  type ComboboxItems,
+  type ComboboxPresentation,
+  type ComboboxProps,
+  type ComboboxSheetInput,
+} from './components/combobox/Combobox';
 export { Code, type CodeProps } from './components/code/Code';
 export { CodeBlock, type CodeBlockProps } from './components/code-block/CodeBlock';
 export {
@@ -290,6 +304,7 @@ export {
   type StepsMarker,
   type StepsProps,
 } from './components/steps/Steps';
+export { Chip, ChipRemove, type ChipProps, type ChipRemoveProps } from './components/chip/Chip';
 export { Tag, type TagProps } from './components/tag/Tag';
 export {
   Tab,
