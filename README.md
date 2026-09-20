@@ -113,7 +113,7 @@
 - [x] RelativeTime
 - [x] Avatar
 - [x] Badge
-- [ ] Chip
+- [x] Chip
 - [x] Timeline
 - [x] Accordion
 - [x] Image
@@ -143,7 +143,7 @@
 - [x] Checkbox
 - [x] Radio
 - [ ] Fieldset
-- [ ] Combobox
+- [x] Combobox
 - [ ] Segmented Control
 - [ ] Slider
 - [x] NumberField

@@ -185,7 +185,7 @@
 ### Select
 
 - 読み取り専用の Select は、押しても開きません。破線の輪郭と淡い ▼ から、開かないことを使う人が予想できるかは分かっていません。書き方（Docs）で補うかを決めます（[ADR-0196](./adr/0196-choice-readonly.md)）
-- 選択肢の群（Base UI の `Select.Group`）は欲しい、と決まりました。作るときに、`items` の配列に群を持たせるか、children で組み立てて中を context でつなぐ形にするかを決めます（[ADR-0037](./adr/0037-select-sheet.md)）
+- 選択肢の群（Base UI の `Select.Group`）は欲しい、と決まりました。形は Combobox を作るときに決めました。`items` に、`label` と `items` を持つまとまりの配列を渡す形です（children で組み立てて context でつなぐ形は採りません）。Select にも同じ形で足します（[ADR-0037](./adr/0037-select-sheet.md)）
 
 ### Menu
 

@@ -814,6 +814,23 @@
   --popup-duration-out: 150ms;
   --popup-ease: var(--ease-sheet);
   --popup-shift: calc(var(--spacing) * 2);
+  /* Combobox の欄の中のチップ（複数選ぶとき）— まだ決めていない（比較のストーリーで決める）
+     欄の中に並ぶので、部品の高さ（--spacing-control）そのままでは欄に対して大きい。一段小さい高さと、それに合う左右の余白にする
+     高さと余白はチップ自身が読む --spacing-control・--spacing-control-x を差し替えて渡すので、× の丸も一緒に縮む
+     最大幅は既定では決めない（欄の幅まで）。切りたいときは Combobox の chipMaxWidth prop で渡す */
+  --combobox-chip-height: calc(var(--spacing-control) - var(--spacing) * 3);
+  --combobox-chip-padding-x: calc(var(--spacing) * 2);
+  /* Chip の見た目。src/components/chip/
+     白い面に、文字の色を薄めた細い縁。グレーの欄の上でも、ページの上でも輪郭が見える
+     読み取り専用は縁をなくし、入力欄の付属部分と同じグレーの面にする。押せないときは縁を薄い線の色にする
+     bg・fg のほか、disabled-*・readonly-* の残りは未設定が既定（ふだんの値に従う） */
+  --chip-bg: var(--color-surface);
+  --chip-border-width: var(--border-width-thin);
+  --chip-border-style: solid;
+  --chip-border-color: color-mix(in oklab, currentColor 45%, transparent);
+  --chip-disabled-border-color: var(--color-line);
+  --chip-readonly-bg: var(--color-field-addon);
+  --chip-readonly-border-color: transparent;
   /* ── Menu — 軸 121・124 で決定（ADR-0149・0152） ── BEGIN menu */
   /* 押して開く操作の一覧（Menu）。src/components/menu/
      面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay・部品の角）。余白・本体との間も同じ
