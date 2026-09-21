@@ -831,6 +831,25 @@
   --chip-disabled-border-color: var(--color-line);
   --chip-readonly-bg: var(--color-field-addon);
   --chip-readonly-border-color: transparent;
+  /* ── TagsInput ── BEGIN tags-input */
+  /* 打った文字をタグにして並べる欄。src/components/tags-input/
+     欄とチップの大きさは、複数選ぶ Combobox と同じ（--combobox-chip-*・ADR-0217）。ここは TagsInput だけが持つ差し替え
+     wrap・max-height・chip-shrink・content-min-width: タグが増えたときの伸び方。
+     既定は Combobox と同じ折り返し（上限なし）で、行数を決めたとき（maxRows）だけ部品が欄の style で差し替える
+     チップは ScrollArea の枠（軸 93）に入れてあり、上限を決めるとそこからはみ出した分がスクロールする
+     1 行にしたときは、チップを縮めず（chip-shrink: 0）、中身を最大の幅に広げて（content-min-width）横に流す */
+  --tags-input-wrap: wrap;
+  --tags-input-max-height: none;
+  --tags-input-chip-shrink: 1;
+  --tags-input-content-min-width: 0px;
+  /* 弾いたとき（重複・validate 失敗）の合図。すでにあるチップを一瞬だけ強調する色
+     間違いというより「もうある」ことなので、エラーの赤ではなく、落ち着いたグレーの面にする
+     duration は部品も読む（use-tags-flash.ts） */
+  --tags-input-flash-duration: 900ms;
+  --tags-input-flash-bg: var(--color-neutral);
+  --tags-input-flash-fg: var(--color-fg);
+  --tags-input-flash-border-color: var(--color-fg-muted);
+  /* ── END tags-input */
   /* ── Menu — 軸 121・124 で決定（ADR-0149・0152） ── BEGIN menu */
   /* 押して開く操作の一覧（Menu）。src/components/menu/
      面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay・部品の角）。余白・本体との間も同じ
@@ -1629,5 +1648,17 @@
   }
   to {
     background-position: var(--progress-stripe-size) 0;
+  }
+}
+
+/* ── tags-input keyframes */
+/* タグにならなかったときの合図
+   すでにあるチップを一瞬だけ強調し、元の色へ戻る（戻り先は書かない ＝ そのチップのふだんの色） */
+@keyframes tags-input-flash {
+  0%,
+  55% {
+    border-color: var(--tags-input-flash-border-color);
+    background-color: var(--tags-input-flash-bg);
+    color: var(--tags-input-flash-fg);
   }
 }

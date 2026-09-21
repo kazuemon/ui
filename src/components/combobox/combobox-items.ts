@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-
+import type { ListboxGroup, ListboxItems } from '../../internal/listbox/listbox-items';
 import type {
   ListboxItem,
   ListboxItemNote,
@@ -26,25 +25,10 @@ export type ComboboxItem = ListboxItem;
  * 選択肢のまとまり。`label` が見出しの文字、`items` がその中の選択肢
  * まとまりで渡すか、選択肢をそのまま並べるかは、`items` に渡した配列の形で決まる
  */
-export type ComboboxGroup = {
-  /** まとまりの見出し */
-  label: ReactNode;
-  /** まとまりの中の選択肢 */
-  items: ComboboxItem[];
-};
+export type ComboboxGroup = ListboxGroup;
 
 /**
  * 選択肢。`ComboboxItem[]`（そのまま並べる）か `ComboboxGroup[]`（まとまりに分ける）のどちらかで渡す
  * 2つを混ぜることはできない。`items` を持つ要素があるかどうかで、まとまりかどうかを見分ける
  */
-export type ComboboxItems = ComboboxItem[] | ComboboxGroup[];
-
-/** まとまりで渡されたか */
-export function isGroupedItems(items: ComboboxItems): items is ComboboxGroup[] {
-  return items.length > 0 && 'items' in items[0];
-}
-
-/** まとまりをほどいた選択肢の並び。値からラベルを引くときと、選択肢の数を数えるときに使う */
-export function flattenItems(items: ComboboxItems): ComboboxItem[] {
-  return isGroupedItems(items) ? items.flatMap((group) => group.items) : items;
-}
+export type ComboboxItems = ListboxItems;

@@ -1,14 +1,11 @@
 'use client';
 
-import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
-import { type ReactNode, type Ref, useCallback, useImperativeHandle, useState } from 'react';
+import { type ReactNode, type Ref, useImperativeHandle, useState } from 'react';
 
-import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
-import { useMoreCues } from '../../internal/sheet/use-more-cues';
-import { scrollAreaStyles } from '../../internal/scroll-area-styles';
-import { useInlineCues } from '../../internal/use-inline-cues';
+import { ScrollFrame } from '../../internal/ScrollFrame';
 
-// スクロールする枠 — 軸 93。見た目の考えと値は internal/scroll-area-styles.ts（Textarea と共有する）
+// スクロールする枠 — 軸 93。中身と見た目は internal/ScrollFrame.tsx・internal/scroll-area-styles.ts
+//   （部品の中でスクロールさせる場所（TagsInput の欄・Autocomplete の候補）とも共有する）
 
 export type ScrollAreaScrollbar = 'scroll' | 'always';
 
@@ -53,61 +50,22 @@ export function ScrollArea({
   label,
   viewportRef,
 }: ScrollAreaProps) {
-  // 影がないときは、つまみで続きを伝える
-  const styles = scrollAreaStyles({ scrollbar: edgeShadow ? scrollbar : 'always' });
-  const moreCues = useMoreCues();
-  const inlineCues = useInlineCues();
-  // スクロールする要素を、影の計算と利用者の viewportRef に渡す
-  const [viewport, setViewportElement] = useState<HTMLDivElement | null>(null);
+  // スクロールする要素を、使う側の viewportRef に渡す
+  const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(viewportRef, () => viewport, [
     viewport,
   ]);
-  const setViewport = useCallback(
-    (element: HTMLDivElement | null) => {
-      moreCues(element);
-      inlineCues(element);
-      setViewportElement(element);
-    },
-    [moreCues, inlineCues]
-  );
   return (
-    <BaseScrollArea.Root data-slot="scroll-area" className={styles.root({ className })}>
-      <BaseScrollArea.Viewport
-        ref={setViewport}
-        data-slot="scroll-area-viewport"
-        className={styles.viewport()}
-        {...(label != null && { role: 'region', 'aria-label': label })}
-      >
-        <BaseScrollArea.Content className={contentClassName}>{children}</BaseScrollArea.Content>
-      </BaseScrollArea.Viewport>
-      {edgeShadow && (
-        <div className={styles.edges()}>
-          {/* 上下の端の影。Select・シートと同じ部品で描く */}
-          <div className="absolute inset-x-0 top-0">
-            <SheetMoreCue edge="top" sheet={false} sheetMoreCue="shadow" />
-          </div>
-          <div className="absolute inset-x-0 bottom-0">
-            <SheetMoreCue edge="bottom" sheet={false} sheetMoreCue="shadow" />
-          </div>
-          {/* 左右の端の影 */}
-          <div
-            aria-hidden
-            className={styles.edgeX({ className: 'left-0 bg-linear-to-r' })}
-            style={{ opacity: 'var(--cue-x-start)' }}
-          />
-          <div
-            aria-hidden
-            className={styles.edgeX({ className: 'right-(--cue-right) bg-linear-to-l' })}
-            style={{ opacity: 'var(--cue-x-end)' }}
-          />
-        </div>
-      )}
-      <BaseScrollArea.Scrollbar orientation="vertical" className={styles.scrollbar()}>
-        <BaseScrollArea.Thumb data-slot="scroll-area-thumb" className={styles.thumb()} />
-      </BaseScrollArea.Scrollbar>
-      <BaseScrollArea.Scrollbar orientation="horizontal" className={styles.scrollbar()}>
-        <BaseScrollArea.Thumb data-slot="scroll-area-thumb" className={styles.thumb()} />
-      </BaseScrollArea.Scrollbar>
-    </BaseScrollArea.Root>
+    <ScrollFrame
+      className={className}
+      contentClassName={contentClassName}
+      edgeShadow={edgeShadow}
+      // 影がないときは、つまみで続きを伝える
+      scrollbar={edgeShadow ? scrollbar : 'always'}
+      label={label}
+      onViewport={setViewport}
+    >
+      {children}
+    </ScrollFrame>
   );
 }

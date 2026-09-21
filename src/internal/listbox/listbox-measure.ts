@@ -60,3 +60,14 @@ export function loadingRowLength(row: HTMLElement | null | undefined) {
   if (!row) return 0;
   return row.offsetHeight + parseFloat(getComputedStyle(row).marginBottom);
 }
+
+// 浮かぶ選択肢と本体の間（4px）。エラーの欄は、開いているあいだも本体の外に離した線を引くので（後半の軸 41 の M）、
+// 線の外側から同じ間をあける。線の太さと離し方は、描いている線（outline）から読む
+// Base UI の Positioner の sideOffset に、本体の要素を渡して呼ぶ
+export function popupSideOffset(el: HTMLElement | null | undefined) {
+  const gap = 4;
+  if (el?.closest('[data-invalid]') == null) return gap;
+  const style = getComputedStyle(el);
+  const width = parseFloat(style.outlineWidth);
+  return width > 0 ? gap + width + parseFloat(style.outlineOffset) : gap;
+}

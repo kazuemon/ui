@@ -3,6 +3,7 @@
 import { createContext, use } from 'react';
 
 import type { DensityScope } from '../../internal/density-scope';
+import type { GroupLabelStyle } from '../../internal/listbox/listbox-styles';
 
 /** 選んだ印（チェック・ラジオ）の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（原則6） */
 export type MenuColor = 'primary' | 'secondary' | 'neutral';
@@ -19,7 +20,7 @@ export type MenuMarkPlacement = 'start' | 'end';
 export type MenuRadioMark = 'radio' | 'dot' | 'check';
 
 /** グループの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレー */
-export type MenuGroupLabelStyle = 'label' | 'caption';
+export type MenuGroupLabelStyle = GroupLabelStyle;
 
 /**
  * シートで入れ子のメニューを開く形

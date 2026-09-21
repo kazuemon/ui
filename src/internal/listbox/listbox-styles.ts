@@ -11,6 +11,12 @@ import { tv } from '../tv';
 export type ListboxPresentation = 'popover' | 'sheet';
 
 /**
+ * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレー
+ * 選択肢の一覧と Menu で同じ2つから選ぶ（見出しの余白は部品ごとの面の余白から作る）
+ */
+export type GroupLabelStyle = 'label' | 'caption';
+
+/**
  * 浮かぶ選択肢とシートの面（Base UI の Popup に渡す）
  * popover: 角は部品の角、影は --shadow-overlay。本体の側から離れる向きにずれた位置から、濃さと一緒に滑る（ADR-0054 の D）
  * sheet: 上の角だけカードの角、影は --shadow-sheet。下から滑り出て、つまみに合わせて高さが動く

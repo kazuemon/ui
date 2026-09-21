@@ -1,17 +1,9 @@
 'use client';
 
 import { Select as BaseSelect } from '@base-ui/react/select';
-import {
-  type ComponentProps,
-  type ReactNode,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type ComponentProps, type ReactNode, useEffect, useId, useState } from 'react';
 
-import { type DensityScope, readDensityScope } from '../../internal/density-scope';
+import { useDensityScope } from '../../internal/density-scope';
 import {
   type CaptionPlacement,
   Field,
@@ -31,12 +23,14 @@ import {
   OWN_FOCUS,
   selectedTokens,
 } from '../../internal/listbox/listbox-colors';
+import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
+import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
@@ -215,15 +209,6 @@ export interface SelectProps extends FieldMarkProps {
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
-// 読み込みの知らせ（design/adr/0042）。本体のそばにいつも置く、見えない status の箱の中身
-//   読み込んでいるあいだに開いた（開いているあいだに読み込みを始めた）: loadingText
-//   開いたまま読み込みが終わった: loadedText（選択肢の数）。閉じたら空に戻す
-interface LoadingAnnouncement {
-  open: boolean;
-  loading: boolean;
-  text: string;
-}
-
 /**
  * 選択肢から1つを選ぶ入力欄
  */
@@ -324,43 +309,18 @@ export function Select({
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
   };
 
-  // 読み込みの知らせ（design/adr/0042）。開くと同時に DOM に入る箱は、読み上げソフトによっては読まれない。
-  // aria-busy も多くの読み上げソフトで読まれない。そこで、閉じていても消えない見えない status の箱を本体のそばに置き、中身だけを入れ替える
-  // 見える読み込み中の行は role の箱にしない（二重に読まないため）
-  const [announcement, setAnnouncement] = useState<LoadingAnnouncement>(() => ({
+  // 読み込みの知らせ（design/adr/0042）。閉じていても消えない見えない status の箱の中身を入れ替える
+  const announcement = useLoadingAnnouncement({
     open,
-    loading: loadingRow,
-    text: open && loadingRow ? loadingText : '',
-  }));
-  if (announcement.open !== open || announcement.loading !== loadingRow) {
-    let { text } = announcement;
-    if (!open) text = '';
-    else if (loadingRow) text = loadingText;
-    else if (announcement.open && announcement.loading) text = loadedText(items.length);
-    setAnnouncement({ open, loading: loadingRow, text });
-  }
+    loadingRow,
+    loadingText,
+    loadedText,
+    count: items.length,
+  });
 
   // 本体の祖先に付いた data-density・coarse-large を、開くたびに読み、浮かぶ部分（Positioner）に写す
   // 描く前（layout effect）に読むので、開いた最初の描画から同じ高さになる
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  // 浮かぶ選択肢と本体の間（4px）。エラーの欄は、開いているあいだも本体の外に離した線を引くので（後半の軸 41 の M）、線の外側から同じ間をあける
-  // 線の太さと離し方は、描いている線（outline）から読む
-  const popupSideOffset = () => {
-    const gap = 4;
-    const el = triggerRef.current;
-    if (el?.closest('[data-invalid]') == null) return gap;
-    const style = getComputedStyle(el);
-    const width = parseFloat(style.outlineWidth);
-    return width > 0 ? gap + width + parseFloat(style.outlineOffset) : gap;
-  };
-  const [densityScope, setDensityScope] = useState<DensityScope>({ large: false });
-  useLayoutEffect(() => {
-    if (!open) return;
-    const next = readDensityScope(triggerRef.current);
-    setDensityScope((prev) =>
-      prev.density === next.density && prev.large === next.large ? prev : next
-    );
-  }, [open]);
+  const { anchorRef: triggerRef, scope: densityScope } = useDensityScope(open);
 
   const selected = selectedTokens(color);
 
@@ -484,7 +444,7 @@ export function Select({
             <BaseSelect.Positioner
               alignItemWithTrigger={false}
               collisionAvoidance={collisionAvoidance}
-              sideOffset={popupSideOffset}
+              sideOffset={() => popupSideOffset(triggerRef.current)}
               data-presentation={listPresentation}
               data-density={densityScope.density}
               className={[
@@ -569,7 +529,7 @@ export function Select({
           {/* 読み込みの知らせ（design/adr/0042）。Select を描いているあいだずっと置く、見えない status の箱（本体のすぐ後ろ）
               絶対配置なので、欄の並び（flex の間）には入らない。浮かぶ部分の外にあるが、Select は外を読み上げから隠さない（modal でも） */}
           <span role="status" data-slot="select-status" className="sr-only">
-            {announcement.text}
+            {announcement}
           </span>
         </BaseSelect.Root>
       )}

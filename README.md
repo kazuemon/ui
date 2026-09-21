@@ -152,9 +152,9 @@
 - [ ] Dropzone
 - [x] SearchField
 - [x] PasswordField
-- [ ] Autocomplete
+- [x] Autocomplete
 - [x] PinField
-- [ ] TagsInput
+- [x] TagsInput
 - [x] TimeField
 - [ ] TimePicker
 - [ ] ColorPicker
