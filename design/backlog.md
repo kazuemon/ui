@@ -192,7 +192,7 @@
 
 2026-09-20・21 に作りました。決定は [ADR-0214](./adr/0214-combobox-scope.md)〜[ADR-0221](./adr/0221-combobox-sheet-close.md) です。
 
-- Combobox に、新しい選択肢を作る形（creatable）・仮想化・`limit`・grid・inline は渡していません。Autocomplete も含めていません
+- Combobox に、新しい選択肢を作る形（creatable）・仮想化・`limit`・grid・inline は渡していません。文字を値にする形は Autocomplete、タグを作る形は TagsInput に分けました（[ADR-0222](./adr/0222-autocomplete-scope.md)・[ADR-0230](./adr/0230-tags-input-scope.md)）
 - 複数選ぶ欄で、欄の先頭で ← を押すとチップへ移れることを伝える読み上げの文（`aria-description` の prop）は作っていません。変換中に先頭で ← を押したときにチップへ移ってしまうかは、実機で確かめていません
 - 長いチップを、切らずに折り返して見せる形は決めていません（部品の直しが要ります）。省略は `chipMaxWidth` だけです
 - Chip の押せる・選べる形（pressable・selected）は作っていません
@@ -202,6 +202,18 @@
 - 選べない選択肢の理由・警告・欄のエラーの文の書き方は、Select と同じく、部品のドキュメントで示す前提です。まだ書いていません（[ADR-0044](./adr/0044-message-announce.md)）
 - Autocomplete と TagsInput が使う分は `src/internal/` へ移しました（見た目は変えていません）。浮かぶ面とシートの外枠・キーボード用の見えない打つ欄・開閉のスクロールの戻し・シートの閉じるボタン・空の行・まとまりの描画は `src/internal/combobox-base/`、欄の中のチップ一式と入力欄型の本体のクラスも同じ場所、選択肢の形（`items`）・読み込みの知らせ・`sideOffset` の計算・`groupLabelStyle` の型は `src/internal/listbox/` です
 - 欄の中のチップの大きさのトークン（`--combobox-chip-*`）は、TagsInput も使いますが名前は変えていません。`--select-popup-*` と同じで、名前を部品から切り離すかは色のばらつきを整えるときにまとめて決めます
+
+### Autocomplete・TagsInput
+
+2026-09-21 に作りました。決定は [ADR-0222](./adr/0222-autocomplete-scope.md)〜[ADR-0226](./adr/0226-autocomplete-list-scroll.md)、[ADR-0230](./adr/0230-tags-input-scope.md)〜[ADR-0234](./adr/0234-tags-input-pending.md) です。
+
+- Autocomplete の `side`（候補を上に出す）は、入れていません。PC の IME の変換候補が入力欄の下に出て、候補と重なるためです。実機（Windows の IME）で兼ね合いを確かめてから決めます。TagsInput にも要るかは、同じときに決めます
+- 候補を上に出すと、欄のラベルに重なる場合の扱いは決めていません（`side` を入れるとき）
+- Autocomplete の候補の一覧は ScrollArea の見た目ですが、Select・Combobox の一覧には適用していません。適用するか、`popoverMoreCue` を外すかは決めていません（[ADR-0226](./adr/0226-autocomplete-list-scroll.md)）
+- Autocomplete で、選んだ候補の印（完全一致のときだけチェック）は外しました。必要になったら再検討します（[ADR-0223](./adr/0223-autocomplete-filter.md)）
+- TagsInput の、弾いた Chip の上・下にツールチップの見た目で文を出す案（[ADR-0232](./adr/0232-tags-input-reject.md) の F・G）は採っていません。live region とセットが要ること、上はラベルに、下は次の行の Chip に重なることが分かっています。文に名前を入れる方が、目でも耳でも同じ文になります
+- TagsInput の、「、」を既定の区切りに入れるか（IME の変換で入るため）、`max` に達したときの見せ方、追加・弾いたことの読み上げ（`rejectMessage` は使う側が書く）は決めていません
+- 実機で確かめていないもの: `enterKeyHint`（Android の「次へ」）、`side` の IME との兼ね合い（Windows）
 
 ### Menu
 
