@@ -79,7 +79,6 @@
 
 2026-09-19 に作りました。決定は [ADR-0128](./adr/0128-copy-button.md)・[ADR-0195](./adr/0195-copy-failure.md) です。
 
-- 写せなかったときの知らせの文言を渡す props の名前が、CopyButton（`errorLabel`）と CodeBlock・CodeGroup（`copyErrorLabel`）でそろっていません。どちらかにそろえるかは決めていません
 - 失敗の知らせを出しておく長さは、「コピーしました」と同じ 2 秒です。読み落としやすいので長くするかは決めていません（[ADR-0195](./adr/0195-copy-failure.md)）
 - 失敗の知らせは、いまの読み上げに割り込みません（原則15 で割り込むのは、あとから出た危険のお知らせだけ）。コピーの失敗を割り込ませるかは決めていません
 - 貼り付けなど、コピー以外の失敗の知らせ方をそろえるかは決めていません
@@ -235,7 +234,6 @@
 
 ### Form・読み上げ
 
-- `<Form>` は Base UI の Form を包まない自前の部品で、「一旦」の形です。サーバーのエラー（errors）をまとめて受け取る形を作るときに見直します（[ADR-0044](./adr/0044-message-announce.md)）
 - 必須・任意の印の文言は「必須」「任意」で固定です（[ADR-0194](./adr/0194-required-mark.md)）。英語などに差し替える口（props やテーマ）を作るかは決めていません
 - 1 つのフォームで、必須の印と任意の印を混ぜてよいかは決めていません。どちらか一方にそろえる勧め方を書くかも含めて決めます（[ADR-0194](./adr/0194-required-mark.md)）
 - 赤い「\*」を選んだときに要る「\* は必須の項目です」の一文は、使う側が書く前提です。見本のページと Docs のどこに、どう置いて見せるかは決めていません
@@ -291,7 +289,7 @@
 
 - スクロールの判定は `src/internal/use-scrollable.ts` にまとめ、横にはみ出しているあいだだけ Tab で止まるようにしました。CodeBlock のスクロールそのものを外側の包みに移すかは決めていません（いまはコードの要素がスクロールします）
 - Steps: 段の間（32px）・題と本文の間（4px）・題の大きさ（見出しの段に従う）・印と文字の間（12px）は、原則にない判断として仮に置いています
-- Steps と Timeline の点の props の名前をそろえます。Timeline は、点の props を `markerType`（点の種類）・`markerSize`（点の大きさ）にしました（`size` だと文字の大きさに読めるため）。Steps の `marker` も `markerType` に、必要なら `line` も合わせて変えます。Steps の `size` の扱い（見出しの段に従う）も、点の大きさとの関係を含めて決めます。Steps と Timeline は同時に変えます（2026-09-20）
+- Steps の `size` の扱い（見出しの段に従う）は、点の大きさとの関係を含めて決めます
 
 ### 機能（README の「つくりたい機能」）
 
@@ -302,6 +300,30 @@
 - 対応環境: React のバージョンと、ブラウザの下限（Tailwind v4 は Safari 16.4 以降が前提）を決めて書きます
 - ほかの候補: ハイコントラストモード（`forced-colors` で枠やフォーカスの線が消えないようにする）、アイコンの差し替え（部品の中のアイコンを使う側のセットに替える）
 - 公開: npm に公開します（機能の一覧には置きません）。いまは package.json の `exports` がビルド前の `src/index.ts` を指し、`peerDependencies` に `react`・`react-dom` がありません。ビルドの手順（ESM と型）と一緒に整えます。ツリーシェイクと Server Components 対応は、ビルドのやり方と一緒に決めます
+
+### props の決まり（2026-09-21 の監査で残ったもの）
+
+props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./adr/0235-color-status-trend.md)〜[0257](./adr/0257-frame.md) で決めました。次はまだ決めていません。
+
+- `as` と `render` の使い分け（タグ名を選ぶだけなら `as`、部品を差し替えるなら `render`、という暗黙の線引きのままです。polymorphism の扱いを詰めます。N-16）
+- 見本の入口 `@kazuemon/ui/samples`（`src/samples/` と見本用の fixtures をそこへ寄せるかは決めていません。M-12）
+- `render` に渡した要素の `target` を部品が読む作り（サーバーコンポーネントから渡すと読めません。対応策は別途検討します。M-18）
+- Fieldset と Field の公開（`InputFieldProps` の型は公開しましたが、`Field` 自体の公開は Fieldset を作るときに検討します。M-13）
+- Tabs の縦向きの見た目（`orientation` は型から塞いだままです。見た目を決める軸として比べます。P-17）
+- Tag・Badge・Chip の大きさの 1 本の軸（いまは Chip だけ大きさの props がありません。軸として比べます。M-30）
+- Text の variant の段（`body`・`muted`・`subtle`・`label`・`caption`。名前は variant に決まりましたが、それぞれの見た目は軸として比べていません）
+- Menu の項目の照合文字の `label` の扱い（typeahead 用に別名にするか、Base UI と同じ意味のまま残すかは決めていません）
+
+### props の直し（記録済み、未実装）
+
+2026-09-21 の props の監査で決めた改名・渡し方・足す props は、[`design/props.md`](./props.md) と [ADR-0250](./adr/0250-props-passthrough.md)〜[0255](./adr/0255-form-on-base-ui.md) に記録しました。コードはまだ直していません。直す順は次のとおりです。
+
+1. ref バグ: 利用者の `ref` が内部の `ref` を黙って上書きする 4 件（Navbar・Tree・TableOfContents・TabList）を直します
+2. 改名: 色・variant・shape・show/hide・文字の props など、名前を変える一覧を当てます
+3. 渡し方: rest の流し方、`<部位>Props`、Base UI の props の名前をそろえます（ADR-0250、0251）
+4. 足す props: 足すと決めた props の一覧を当てます（ADR-0254）
+5. 見本と JSDoc: 見本のページの書き直しと、JSDoc の定型文を当てます（ADR-0253）
+6. Form: Base UI の Form の上に作り直します。設計を含むので最後にします（ADR-0255）
 
 ## レシピの案
 

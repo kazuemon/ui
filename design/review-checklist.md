@@ -43,15 +43,18 @@ AI が部品の PR をレビューするときに使う点検表です。人が�
 
 ## 2. props と API の決まり
 
-- 色の props は `color` です。`tone`・`variant` などの別名を作りません。利用者が選ぶ色は `primary`・`secondary`、状態の色は `info`・`success`・`warning`・`danger` です（ADR-0051）
-- 待っているあいだは `loading`（真偽値）で表し、印の形は `loadingIndicator`（`spinner`・`bar`）、欄を止めるかは `loadingBehavior`（`blocking`・`non-blocking`）です（ADR-0034、0042、0051）
-- 配置を選ぶ props は `<何>Placement` の形で、値は `start`・`end` です（ADR-0049）
-- 浮かぶ UI の構造は `presentation` で固定できます（ADR-0037）
-- 既定値は部品の引数の既定値で持ち、JSDoc の `@default` と Storybook の `argTypes` の `table.defaultValue` に同じ値を書きます
-- props の説明は JSDoc に書きます。何のための props か、どの原則に沿うかを 1〜2 文で書き、値は書きません
-- 素の要素の props（`className`・`aria-*`・`data-*`）を通します。`className` は `tv` の `className` に渡し、`twMerge` で足せるようにします
-- 部品が組み立てる文（エラーの文、読み上げの文）を持ちません。渡された文をそのまま出します（原則 20）
-- 公開するものを `src/index.ts` に足しています。部品と props の型の両方です。内部の部品（`src/internal/`）は公開しません
+名前と渡し方の詳しい語彙・規則は [`props.md`](./props.md) にあります。ここでは部品のレビューでよく見る点だけを挙げます。
+
+- 色は `color` の 1 本（パレットの色＋意味の色）です。意味の色しか受けない部品は `status`、Stat の増減は `trend` です（ADR-0235）
+- 見た目の型は `variant` です。`appearance` という別名は使いません（ADR-0236）
+- 出す／出さないの真偽値は、既定と逆の語で `show<何>`・`hide<何>` にします。裸の名詞（`arrow`・`closeButton` など）は使いません（ADR-0239）
+- 差し替える文字は、`label`（画面に出る見出し）・`accessibleName`（読み上げだけの名前）と、語尾 `<何>Label`・`<何>Name`・`<何>Text`・`<何>Title` で分けます（ADR-0240）
+- 欄の状態メッセージは `errorText`・`warningText`・`successText`・`infoText` です。渡されていれば出し、真偽値では受けません（ADR-0242）
+- 値の変化の通知は `on<何>Change`（「何」は対になる props の名前、引数は値の 1 つ）です。起きたことの通知は過去形の `on<何>ed` にします（ADR-0243、0244）
+- DOM を組む部品は、知らない props（`id`・`data-*`・`aria-*`）をいちばん外の要素へ流します。Base UI を包む部品は rest を持たず、手で選んだ props と `<部位>Props` の口だけを持ちます。`className` はその部品の見た目の主役に付きます（ADR-0250）
+- 重なる部品（Dialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）の Base UI 由来の props は、`dismissible`・`closeOnEscape`・`modal`・`autoFocus`・`returnFocus` のように名前と型をそろえます（ADR-0251）
+- 共有の型はその名前のまま公開し、部品ごとの別名（`SelectColor = ListboxColor` など）は作りません。props に出る型はすべて `src/index.ts` から公開します（ADR-0252）
+- すべての props に JSDoc を 1 行書きます。`@default` は値だけを書き、条件は本文に移します。`children` は「何を入れるか」を書きます（ADR-0253）
 
 ## 3. 構造の決まり
 
