@@ -7,8 +7,13 @@ import { useDensityScope } from '../../internal/density-scope';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
+import {
+  focusTargetRef,
+  type OverlayFocusTarget,
+  type OverlayModal,
+  type PopupProps,
+} from '../../internal/overlay/overlay-props';
 import { type OverlayRole, OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
-import { PopupRole } from '../../internal/overlay/popup-role';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import {
   overlayTitleLeading,
@@ -19,43 +24,62 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
+import { cn } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
 import { usePortalContainer } from '../../internal/ui-config';
 
-export type DialogPresentation = OverlayPresentation;
+export type {
+  OverlayFocusTarget,
+  OverlayModal,
+  PopupProps,
+} from '../../internal/overlay/overlay-props';
 
 export interface DialogProps {
   /** 見出しの題。読み上げでは、開いた面の名前になる */
   title: ReactNode;
   /** 題の下の説明。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
-  /** 中身 */
+  /** 面の中身（読ませる文や、答えてもらう欄） */
   children?: ReactNode;
   /** 下の端に右寄せで並べる操作（ボタン）。押して閉じるボタンは OverlayClose の render に渡す */
   actions?: ReactNode;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
   trigger?: ReactElement;
+  /** 開いているか（制御） */
   open?: boolean;
+  /**
+   * はじめに開いているか（非制御）
+   * @default false
+   */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、次の値を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも中央に浮かべ、sheet はいつもシートにします
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: DialogPresentation;
+  presentation?: OverlayPresentation;
   /**
-   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
+   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか。
+   * passive は、裏を止めず後ろも暗くしませんが、外を押しても閉じません（後ろを見せたまま開いたままにするとき）
    * @default true
    */
-  modal?: boolean;
+  modal?: OverlayModal;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc と × では閉じます）
-   * 画面の下から出すシートで出すときは、下へはじいて閉じる操作もこれに従います
    * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
    * @default true
    */
   dismissible?: boolean;
+  /**
+   * 画面の下から出すシートで出すときに、下へはじいて閉じられるか
+   * @default dismissible と同じ
+   */
+  closeOnSwipe?: boolean;
   /**
    * 画面の下から出すシートで出すときの、下の操作（actions）の並べ方。既定の auto は、幅いっぱいで縦に積みます
    * （最後に渡した主な操作が上）。渡した順に上から積むときは stack、横に並べるときは end（右寄せ）か fill（幅を等分）です。
@@ -69,20 +93,27 @@ export interface DialogProps {
    */
   closeOnEscape?: boolean;
   /**
-   * 右上に閉じる × を置くか。false のときは、actions に閉じる手段を置きます
-   * @default true
+   * 右上の閉じる × を消すか。消すときは、actions に閉じる手段を置きます
+   * @default false
    */
-  closeButton?: boolean;
+  hideCloseButton?: boolean;
   /**
    * 閉じる × の読み上げの名前
    * @default '閉じる'
    */
-  closeLabel?: string;
+  closeName?: string;
+  /** 開いた直後に焦点を当てる要素。要素そのものか、要素の ref を渡します。書かないときは面の中の最初のもの */
+  autoFocus?: OverlayFocusTarget;
+  /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
+  returnFocus?: OverlayFocusTarget;
   /**
-   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します
+   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
+   * まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
    */
-  container?: HTMLElement | null;
+  portalContainer?: HTMLElement | null;
+  /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
+  popupProps?: PopupProps;
   /** 面（Popup）に足すクラス。幅を変えるときは w-* を渡す */
   className?: string;
 }
@@ -93,6 +124,7 @@ export interface DialogProps {
 export function Dialog({
   presentation,
   dismissible = true,
+  closeOnSwipe,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -119,7 +151,7 @@ export function Dialog({
   const sheet = useSheetPresentation(presentation);
   // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer と同じ面）にする — 原則11
   // シートは中身の高さで開く（半分で止めない）。Dialog の中身は、上から順に読んで答えるものなので
-  // 下へはじいて閉じるのは、後ろの画面を押して閉じるのと同じ扱い（dismissible）
+  // 下へはじいて閉じるのは、既定では後ろの画面を押して閉じるのと同じ扱い（dismissible）
   if (sheet) {
     return (
       <Drawer
@@ -128,11 +160,9 @@ export function Dialog({
         open={open}
         onOpenChange={changeOpen}
         dismissible={dismissible}
-        closeOnSwipe={dismissible}
+        closeOnSwipe={closeOnSwipe ?? dismissible}
         detent="full"
       >
-        {/* シートの面は役割を props で受け取らないので、中身から書き換える */}
-        {role !== 'dialog' && <PopupRole role={role} />}
         {inner(children)}
       </Drawer>
     );
@@ -155,7 +185,7 @@ export function Dialog({
 
 // 中央に浮かべる形
 //   面は浮かぶ面と同じ（白・細い輪郭・やわらかい影 — 原則1）。部品（ボタン）を包むので、角はカードの角（原則5）
-//   後ろの画面は暗くする（--color-backdrop）
+//   後ろの画面は暗くする（--color-backdrop）。裏を止めないとき（modal が false・passive）は暗くせず、面の外は触れたままにする
 //   見出しはシートと同じ並び（題・説明のまとまりと、右上に固定した ×）。余白は --dialog-padding
 //   開閉は浮かぶ面と同じ動き（下に --popup-shift 寄った位置から、濃さと一緒に滑る）。動きを減らす設定では動かさない
 //   中身が画面より高いときは、面ごと画面の中でスクロールする
@@ -168,14 +198,18 @@ function CenteredDialog({
   trigger,
   open,
   onOpenChange: changeOpen,
+  onOpenChangeComplete,
   modal = true,
   dismissible,
   closeOnEscape = true,
-  closeButton = true,
-  closeLabel,
-  container,
+  hideCloseButton = false,
+  closeName,
+  autoFocus,
+  returnFocus,
+  portalContainer: container,
+  popupProps,
   className,
-}: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange'> & {
+}: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange' | 'closeOnSwipe'> & {
   role: OverlayRole;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -183,6 +217,10 @@ function CenteredDialog({
   const portalContainer = usePortalContainer(container);
   const { anchorRef, scope } = useDensityScope(open);
   const overlayId = useId();
+  const popupRef = useMergedRefs<HTMLDivElement>(popupProps?.ref);
+  // passive は、裏を止めず後ろも暗くしないが、外を押しても（フォーカスが外れても）閉じない
+  const passive = modal === 'passive';
+  const { className: popupClassName, ref: _popupRef, ...restPopupProps } = popupProps ?? {};
   return (
     <BaseDialog.Root
       open={open}
@@ -194,21 +232,36 @@ function CenteredDialog({
         }
         changeOpen(next);
       }}
-      modal={modal}
-      disablePointerDismissal={!dismissible}
+      onOpenChangeComplete={onOpenChangeComplete}
+      modal={passive ? false : modal}
+      disablePointerDismissal={!dismissible || passive}
     >
       {trigger && <BaseDialog.Trigger ref={anchorRef} render={trigger} />}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <BaseDialog.Portal container={portalContainer}>
-          <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-ending-style:duration-(--popup-duration-out) data-starting-style:opacity-0 motion-reduce:transition-none" />
-          <BaseDialog.Viewport className="fixed inset-0 z-10 grid place-items-center overflow-y-auto p-(--dialog-margin)">
+          {/* 裏を止めるときだけ、後ろを暗くする */}
+          {modal === true && (
+            <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+          )}
+          {/* 裏を止めないときは、面を置く枠を素通しにし、面だけが触れるようにする */}
+          <BaseDialog.Viewport
+            className={[
+              'fixed inset-0 z-10 grid place-items-center overflow-y-auto p-(--dialog-margin)',
+              modal !== true && 'pointer-events-none',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             <BaseDialog.Popup
               data-overlay-id={overlayId}
-              initialFocus={initialFocusOf(overlayId, 'dialog')}
+              initialFocus={focusTargetRef(autoFocus) ?? initialFocusOf(overlayId, 'dialog')}
+              finalFocus={focusTargetRef(returnFocus)}
               // 読み上げの役割（Base UI の既定は dialog。AlertDialog が包んだときは alertdialog）
               role={role}
               data-slot="dialog"
               data-density={scope.density}
+              {...restPopupProps}
+              ref={popupRef}
               className={[
                 'relative flex w-(--dialog-width) max-w-full flex-col rounded-card pb-(--dialog-padding) border-(length:--border-width-thin) border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg shadow-overlay outline-none',
                 overlayTitleLeading,
@@ -217,8 +270,9 @@ function CenteredDialog({
                 'data-ending-style:opacity-0 data-starting-style:opacity-0',
                 'data-ending-style:[translate:0_var(--popup-shift)] data-starting-style:[translate:0_var(--popup-shift)]',
                 'motion-reduce:[transition:none]',
+                modal !== true && 'pointer-events-auto',
                 scope.large && 'coarse-large',
-                className,
+                cn(className, popupClassName),
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -229,12 +283,12 @@ function CenteredDialog({
                 handle={null}
                 className="pt-(--sheet-close-inset)"
                 close={
-                  closeButton ? (
+                  hideCloseButton ? null : (
                     <BaseDialog.Close
-                      render={<SheetCloseButton label={closeLabel} />}
+                      render={<SheetCloseButton label={closeName} />}
                       data-slot="dialog-close"
                     />
-                  ) : null
+                  )
                 }
               >
                 <BaseDialog.Title className={sheetTitleClass}>{title}</BaseDialog.Title>

@@ -11,7 +11,7 @@ import type { LoadingIndicator } from '../loading/Loading';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
-const appearances = ['filled', 'outline', 'underline'] as const;
+const variants = ['filled', 'outline', 'underline'] as const;
 const colors = ['primary', 'secondary', 'danger', 'neutral', 'white'] as const;
 const indicators: LoadingIndicator[] = ['spinner', 'bar'];
 // 送信中の形。回る円は、ラベルに重ねる（既定）か、inlineSpinner でラベルの左に置く
@@ -32,11 +32,11 @@ const meta = {
         component: [
           '押して操作を実行するボタンです。',
           '',
-          '- 画面の中で最も進めたい操作を `appearance="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。いちばん軽く見せたい操作には `underline`（文字に下線だけ）を使います。',
+          '- 画面の中で最も進めたい操作を `variant="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。いちばん軽く見せたい操作には `underline`（文字に下線だけ）を使います。',
           '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`white` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
-          '- アイコンだけのボタンは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="round"` で丸にできます。',
+          '- アイコンだけのボタンは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="circle"` で丸にできます。',
           '- 送信中は `loading` を付けます。押せないボタンと同じ見た目になり、押しても `onClick` を呼びません。`disabled` と違い、フォーカスは外れません。',
-          '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link appearance="button">`、下線の見た目が要るときは `<Link appearance="underline">` を使います（Components/Link）。',
+          '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link variant="button">`、下線の見た目が要るときは `<Link variant="underline">` を使います（Components/Link）。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -46,7 +46,7 @@ const meta = {
   // Controls で既定の値を選んだ状態から始める（部品の既定と同じ値）
   args: {
     children: '保存する',
-    appearance: 'filled',
+    variant: 'filled',
     color: 'neutral',
     disabled: false,
     loading: false,
@@ -57,10 +57,10 @@ const meta = {
   },
   argTypes: {
     children: { control: 'text' },
-    // props がリンクとの union なので、表の「Default」が読み取られない。ここで補う
-    appearance: {
+    // props がアイコンだけのボタンとの union なので、表の「Default」が読み取られない。ここで補う
+    variant: {
       control: 'inline-radio',
-      options: appearances,
+      options: variants,
       table: { defaultValue: { summary: "'filled'" } },
     },
     color: {
@@ -81,12 +81,11 @@ const meta = {
       options: ['button', 'submit', 'reset'],
       table: { defaultValue: { summary: "'button'" } },
     },
-    render: { control: false },
   },
 } satisfies Meta<ButtonProps>;
 
 export default meta;
-// component から引数の型を取ると、リンクの props との union になる。ストーリーはボタンの props で書く
+// component から引数の型を取ると、アイコンだけのボタンの props との union になる。ストーリーはボタンの props で書く
 type Story = StoryObj<Meta<ButtonProps>>;
 
 export const Playground: Story = {
@@ -98,29 +97,27 @@ export const Colors: Story = {
   name: '色と見た目',
   tags: ['visual'],
   parameters: {
-    controls: { exclude: ['appearance', 'color'] },
+    controls: { exclude: ['variant', 'color'] },
     docs: {
       description: {
         story:
-          '行が見た目（`appearance`）、列が色（`color`）です。枠線と下線の `white` は `neutral` と同じ見た目です。下線の文字は枠線とまったく同じで、枠線がない分だけ軽く見えます。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
+          '行が見た目（`variant`）、列が色（`color`）です。枠線と下線の `white` は `neutral` と同じ見た目です。下線の文字は枠線とまったく同じで、枠線がない分だけ軽く見えます。右のパネルで `disabled`・`loading` を変えると、すべてに効きます。',
       },
       source: sourceCode(`
-        {/* appearance: filled（既定）・outline・underline / color: primary・secondary・danger・neutral（既定）・white */}
+        {/* variant: filled（既定）・outline・underline / color: primary・secondary・danger・neutral（既定）・white */}
         <Button color="primary">保存する</Button>
-        <Button appearance="outline">キャンセル</Button>
-        <Button appearance="outline" color="danger">削除する</Button>
-        <Button appearance="underline">編集する</Button>
+        <Button variant="outline">キャンセル</Button>
+        <Button variant="outline" color="danger">削除する</Button>
+        <Button variant="underline">編集する</Button>
       `),
     },
   },
   render: (args) => (
     <Matrix
-      rows={appearances}
-      rowLabel={(appearance) => appearance}
+      rows={variants}
+      rowLabel={(variant) => variant}
       columns={colorColumns}
-      renderCell={(appearance, { color }) => (
-        <Button {...args} appearance={appearance} color={color} />
-      )}
+      renderCell={(variant, { color }) => <Button {...args} variant={variant} color={color} />}
     />
   ),
 };
@@ -131,7 +128,7 @@ export const States: Story = {
   tags: ['visual'],
   parameters: {
     pseudo: statePseudo({ hover: 'button', active: 'button', focusVisible: 'button' }),
-    controls: { exclude: ['appearance', 'color', 'disabled'] },
+    controls: { exclude: ['variant', 'color', 'disabled'] },
     docs: {
       description: {
         story:
@@ -140,8 +137,8 @@ export const States: Story = {
       source: sourceCode(`
         {/* hover・押下・フォーカスの見た目は部品が受け持つ */}
         <Button color="primary">保存する</Button>
-        <Button appearance="outline" color="primary">保存する</Button>
-        <Button appearance="underline" color="primary">保存する</Button>
+        <Button variant="outline" color="primary">保存する</Button>
+        <Button variant="underline" color="primary">保存する</Button>
         <Button color="primary" disabled>
           保存する
         </Button>
@@ -150,11 +147,11 @@ export const States: Story = {
   },
   render: (args) => (
     <Matrix
-      rows={appearances.flatMap((appearance) => colors.map((color) => ({ appearance, color })))}
-      rowLabel={({ appearance, color }) => `${appearance} / ${color}`}
+      rows={variants.flatMap((variant) => colors.map((color) => ({ variant, color })))}
+      rowLabel={({ variant, color }) => `${variant} / ${color}`}
       columns={pressColumns}
-      renderCell={({ appearance, color }, { disabled }) => (
-        <Button {...args} appearance={appearance} color={color} disabled={disabled} />
+      renderCell={({ variant, color }, { disabled }) => (
+        <Button {...args} variant={variant} color={color} disabled={disabled} />
       )}
     />
   ),
@@ -254,7 +251,7 @@ export const WithIcon: Story = {
         <CheckIcon />
         完了にする
       </Button>
-      <Button {...args} appearance="outline">
+      <Button {...args} variant="outline">
         <CheckIcon />
         完了にする
       </Button>
@@ -270,12 +267,12 @@ export const Underline: Story = {
     docs: {
       description: {
         story: [
-          '`appearance="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付くボタンです。押すものの中でいちばん軽く、操作がいくつも並ぶ場所（カードの右上、表の行末）で使います。',
+          '`variant="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付くボタンです。押すものの中でいちばん軽く、操作がいくつも並ぶ場所（カードの右上、表の行末）で使います。',
           '',
           '- 文字は枠線のボタンとまったく同じ（色・太さ・大きさ・字間）で、違いは枠線がないことと下線が付くことだけです。寸法・左右の余白・角丸も枠線のボタンと同じです。',
           '- 下線は文字にだけ引きます。アイコンには付かないので、アイコンだけのボタンは下線も枠線もない形になります。',
           '- 押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出て、押せる広さが分かります。',
-          '- 移動するものは `<Link appearance="underline">` を使います（Components/Link の「下線のリンク」）。',
+          '- 移動するものは `<Link variant="underline">` を使います（Components/Link の「下線のリンク」）。',
         ].join('\n'),
       },
     },
@@ -291,8 +288,8 @@ export const Underline: Story = {
               <p className="text-sm text-fg-muted">12 件</p>
             </div>
             <div className="-me-(--spacing-control-x) flex shrink-0">
-              <Button appearance="underline">編集</Button>
-              <Button appearance="underline" color="danger">
+              <Button variant="underline">編集</Button>
+              <Button variant="underline" color="danger">
                 削除
               </Button>
             </div>
@@ -305,7 +302,7 @@ export const Underline: Story = {
           <TableRow>
             <TableHeader>ページ</TableHeader>
             <TableHeader>公開日</TableHeader>
-            <TableHeader align="right">操作</TableHeader>
+            <TableHeader align="end">操作</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -317,10 +314,10 @@ export const Underline: Story = {
             <TableRow key={page.title}>
               <TableCell>{page.title}</TableCell>
               <TableCell>{page.date}</TableCell>
-              <TableCell align="right">
+              <TableCell align="end">
                 <div className="-me-(--spacing-control-x) flex justify-end">
-                  <Button appearance="underline">編集</Button>
-                  <Button appearance="underline" color="danger">
+                  <Button variant="underline">編集</Button>
+                  <Button variant="underline" color="danger">
                     削除
                   </Button>
                 </div>
@@ -346,17 +343,17 @@ export const IconOnly: Story = {
   tags: ['visual'],
   parameters: {
     pseudo: statePseudo({ hover: 'button', active: 'button', focusVisible: 'button' }),
-    controls: { exclude: ['appearance', 'color', 'disabled', 'children'] },
+    controls: { exclude: ['variant', 'color', 'disabled', 'children'] },
     docs: {
       description: {
         story:
-          '`iconOnly` を付けると、部品の高さの正方形になります。各セルの左が `shape="square"`（既定。文字のボタンと同じ角）、右が `shape="round"`（丸）です。文字がないので、`aria-label` で読み上げの名前を必ず付けます（付けないと型で止まります）。アイコンは単体の太い線（`standalone`）で置きます。下線（`underline`）は文字にだけ引くので、アイコンだけのときは下線も枠線もない形になり、hover の塗りで押せる広さが分かります。',
+          '`iconOnly` を付けると、部品の高さの正方形になります。各セルの左が `shape="square"`（既定。文字のボタンと同じ角）、右が `shape="circle"`（丸）です。文字がないので、`aria-label` で読み上げの名前を必ず付けます（付けないと型で止まります）。アイコンは単体の太い線（`standalone`）で置きます。下線（`underline`）は文字にだけ引くので、アイコンだけのときは下線も枠線もない形になり、hover の塗りで押せる広さが分かります。',
       },
       source: sourceCode(`
-        <Button iconOnly appearance="outline" aria-label="閉じる">
+        <Button iconOnly variant="outline" aria-label="閉じる">
           <Icon icon={XIcon} standalone />
         </Button>
-        <Button iconOnly shape="round" appearance="outline" aria-label="コピー">
+        <Button iconOnly shape="circle" variant="outline" aria-label="コピー">
           <Icon icon={CopyIcon} standalone />
         </Button>
       `),
@@ -364,19 +361,19 @@ export const IconOnly: Story = {
   },
   render: (args) => (
     <Matrix
-      rows={appearances.flatMap((appearance) =>
-        (['primary', 'neutral'] as const).map((color) => ({ appearance, color }))
+      rows={variants.flatMap((variant) =>
+        (['primary', 'neutral'] as const).map((color) => ({ variant, color }))
       )}
-      rowLabel={({ appearance, color }) => `${appearance} / ${color}`}
+      rowLabel={({ variant, color }) => `${variant} / ${color}`}
       columns={pressColumns}
       columnWidth="5rem"
-      renderCell={({ appearance, color }, { disabled }) => (
+      renderCell={({ variant, color }, { disabled }) => (
         <div className="flex gap-3">
           <Button
             {...args}
             iconOnly
             aria-label="閉じる"
-            appearance={appearance}
+            variant={variant}
             color={color}
             disabled={disabled}
           >
@@ -385,9 +382,9 @@ export const IconOnly: Story = {
           <Button
             {...args}
             iconOnly
-            shape="round"
+            shape="circle"
             aria-label="コピー"
-            appearance={appearance}
+            variant={variant}
             color={color}
             disabled={disabled}
           >
@@ -402,10 +399,10 @@ export const IconOnly: Story = {
     const button = canvas.getAllByRole('button', { name: '閉じる' })[0];
     const { width, height } = button.getBoundingClientRect();
     await expect(width).toBe(height);
-    // shape="round" は丸
-    const round = canvas.getAllByRole('button', { name: 'コピー' })[0];
-    await expect(round).toHaveAttribute('data-icon-only', 'round');
-    await expect(getComputedStyle(round).borderTopLeftRadius).not.toBe(
+    // shape="circle" は丸
+    const circle = canvas.getAllByRole('button', { name: 'コピー' })[0];
+    await expect(circle).toHaveAttribute('data-icon-only', 'circle');
+    await expect(getComputedStyle(circle).borderTopLeftRadius).not.toBe(
       getComputedStyle(button).borderTopLeftRadius
     );
   },
@@ -426,8 +423,8 @@ export const Densities: Story = {
     <DensityPair>
       <div className="flex flex-wrap gap-3">
         <Button {...args} color="primary" />
-        <Button {...args} appearance="outline" />
-        <Button {...args} appearance="underline" />
+        <Button {...args} variant="outline" />
+        <Button {...args} variant="underline" />
         <Button {...args} />
       </div>
     </DensityPair>

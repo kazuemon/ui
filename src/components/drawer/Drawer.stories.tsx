@@ -45,7 +45,8 @@ const meta = {
           '- 中身が長いときはスクロールし、上の端に区切り線、上下の端に続きの影を出します。',
           '- 下に並べるボタンは `actions` に渡します。中身をスクロールしても動きません。押して閉じるボタンは `OverlayClose` の `render` に渡します。並べ方は `actionsLayout` で選びます。既定の `auto` は、下から出すシートでは幅いっぱいで縦に積み（最後に渡した主な操作が上）、横から出すパネルでは右に寄せます。渡した順に上から積むときは `stack`、横に並べるときは `end`（右寄せ）か `fill`（幅を等分）です。',
           '- 開いた直後は面そのものにフォーカスが移ります。中身の要素に `autoFocus` を付けると、その要素に移ります。',
-          '- 開いているあいだ、後ろの画面は暗くなり、押すと閉じます（`dismissible={false}` で閉じないようにできます）。Esc で閉じないようにするときは `closeOnEscape={false}`、右上の × を置かないときは `closeButton={false}` を渡し、`actions` に閉じる手段を置きます。',
+          '- 開いているあいだ、後ろの画面は暗くなり、押すと閉じます（`dismissible={false}` で閉じないようにできます）。Esc で閉じないようにするときは `closeOnEscape={false}`、右上の × を置かないときは `hideCloseButton` を渡し、`actions` に閉じる手段を置きます。',
+          '- 後ろを見せたまま開いたままにするときは `modal="passive"` にします。裏を止めず後ろも暗くせず、外を押しても閉じません。',
         ].join('\n'),
       },
     },
@@ -59,8 +60,8 @@ const meta = {
     dismissible: true,
     closeOnEscape: true,
     closeOnSwipe: true,
-    closeButton: true,
-    closeLabel: '閉じる',
+    hideCloseButton: false,
+    closeName: '閉じる',
   },
   argTypes: {
     title: { control: 'text' },
@@ -83,7 +84,7 @@ const meta = {
     trigger: { control: false },
     actions: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Drawer>;
 
@@ -127,7 +128,7 @@ export const Bottom: Story = {
           {...args}
           trigger={<Button>通知の設定</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {settings}
         </Drawer>
@@ -152,7 +153,7 @@ export const Long: Story = {
         'description',
         'closeOnEscape',
         'closeOnSwipe',
-        'closeButton',
+        'hideCloseButton',
       ],
     },
     docs: {
@@ -171,7 +172,7 @@ export const Long: Story = {
           trigger={<Button>利用規約</Button>}
           actions={<OverlayClose render={<Button color="primary">同意する</Button>} />}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {longText}
         </Drawer>
@@ -200,7 +201,7 @@ export const NoSwipe: Story = {
           {...args}
           trigger={<Button>通知の設定</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {settings}
         </Drawer>
@@ -230,7 +231,7 @@ export const Side: Story = {
           {...args}
           trigger={<Button>メニュー</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <nav className="flex flex-col items-start gap-2">
             {pages.map((page) => (

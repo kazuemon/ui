@@ -4,10 +4,10 @@ import { expect, userEvent, waitFor } from 'storybook/test';
 
 import {
   ToastProvider,
-  type ToastAppearance,
   type ToastOptions,
   type ToastPosition,
   type ToastStack,
+  type ToastVariant,
   useToast,
 } from './Toast';
 import { ScreenFrame, Specimen } from '../../stories/story-parts';
@@ -41,23 +41,23 @@ function Demo({
   limit?: number;
   position?: ToastPosition;
   stack?: ToastStack;
-  appearance?: ToastAppearance;
-  outline?: boolean;
+  variant?: ToastVariant;
+  hideOutline?: boolean;
 }) {
   return (
-    <ToastProvider container={container} {...props}>
+    <ToastProvider portalContainer={container} {...props}>
       {toasts ? <ShowOnMount toasts={toasts} /> : null}
       {children}
     </ToastProvider>
   );
 }
 
-const saved: ToastOptions = { color: 'success', title: '保存しました' };
+const saved: ToastOptions = { status: 'success', title: '保存しました' };
 const sample: ToastOptions[] = [
-  { color: 'info', title: '下書きを保存しました', description: '3 分前の内容に戻せます。' },
-  { color: 'success', title: '記事を公開しました' },
+  { status: 'info', title: '下書きを保存しました', description: '3 分前の内容に戻せます。' },
+  { status: 'success', title: '記事を公開しました' },
   {
-    color: 'danger',
+    status: 'danger',
     title: '保存できませんでした',
     description: '通信を確かめて、もう一度お試しください。',
   },
@@ -74,19 +74,20 @@ const meta = {
           '一定の時間で消えるお知らせです。操作した結果を、画面を止めずに知らせるときに使います。',
           '',
           '- アプリ全体を `ToastProvider` で包み、どこからでも `useToast().show({ … })` で出します。',
-          '- 色は状態の色（`info`・`success`・`warning`・`danger`）と、色を持たない `neutral` です。危険だけが読み上げに割り込み、ほかは静かに知らせます。',
+          '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレーになります。危険だけが読み上げに割り込み、ほかは静かに知らせます。',
           '- 既定では自動で消えません（`timeout` は 0）。消えるまでの時間を決めると、その時間で消え、面の下に残り時間の線が出ます。読んでいるあいだ（マウスを載せている・触れている・キーボードで入っている）は、時間も線も止まります。',
           '- 時間は、全体（`ToastProvider` の `timeout`）でも、トーストごと（`useToast().show({ timeout })`）でも決められます。',
           '- 出る場所は `position` です。`auto`（既定）は、指で操作していて画面が狭いときは下の中央、それ以外は右下に出します。',
           '- 積み方は `stack` です。`auto`（既定）は、3 枚までは縦に並べ、4 枚めからは重ねます。いちど重ねたら、全部消えるまで重ねたままです（読んでいる途中で形が変わらないように）。重ねると手前の 1 枚だけが見え、載せる・触れる・キーボードで入ると開いて全部見えます。',
-          '- 面は `appearance`（`soft`（既定）・`filled`）と `outline`（細い輪郭。既定はあり）で決めます。',
+          '- 面は `variant`（`soft`（既定）・`filled`）と `hideOutline`（細い輪郭。既定は出す）で決めます。',
           '- はじく（スワイプする）と消せます。× でも閉じられます。',
+          '- `useToast().promise` に Promise を渡すと、待ち・成功・失敗のトーストを順に出せます。',
           '- 押して何かをさせたいとき（「元に戻す」など）は `actions` にボタンかリンクを渡します。読まないと困ることは、消えてしまうトーストではなく `Notice` に置きます。',
         ].join('\n'),
       },
     },
   },
-  args: { position: 'auto', stack: 'auto', timeout: 0, limit: 5, appearance: 'soft' },
+  args: { position: 'auto', stack: 'auto', timeout: 0, limit: 5, variant: 'soft' },
   argTypes: {
     position: {
       control: 'inline-radio',
@@ -100,8 +101,8 @@ const meta = {
       ],
     },
     stack: { control: 'inline-radio', options: ['auto', 'stacked', 'list'] },
-    appearance: { control: 'inline-radio', options: ['soft', 'filled'] },
-    outline: { control: 'boolean' },
+    variant: { control: 'inline-radio', options: ['soft', 'filled'] },
+    hideOutline: { control: 'boolean' },
     timeout: { control: 'number' },
     limit: { control: 'number' },
     children: { control: false },
@@ -117,10 +118,10 @@ function Buttons() {
     <div className="flex flex-wrap gap-2">
       <Button onClick={() => toast.show(saved)}>保存する</Button>
       <Button
-        appearance="outline"
+        variant="outline"
         onClick={() =>
           toast.show({
-            color: 'danger',
+            status: 'danger',
             title: '保存できませんでした',
             description: '通信を確かめて、もう一度お試しください。',
           })
@@ -129,10 +130,10 @@ function Buttons() {
         失敗させる
       </Button>
       <Button
-        appearance="outline"
+        variant="outline"
         onClick={() =>
           toast.show({
-            color: 'info',
+            status: 'info',
             title: '下書きを保存しました',
             actions: <Link href="#">元に戻す</Link>,
           })
@@ -141,8 +142,8 @@ function Buttons() {
         操作つきで出す
       </Button>
       <Button
-        appearance="outline"
-        onClick={() => toast.show({ color: 'neutral', title: '5 秒で消えます', timeout: 5000 })}
+        variant="outline"
+        onClick={() => toast.show({ title: '5 秒で消えます', timeout: 5000 })}
       >
         時間つきで出す
       </Button>
@@ -177,18 +178,18 @@ export const Colors: Story = {
           stack="list"
           toasts={[
             {
-              color: 'info',
+              status: 'info',
               title: '下書きを保存しました',
               description: '3 分前の内容に戻せます。',
             },
-            { color: 'success', title: '記事を公開しました' },
+            { status: 'success', title: '記事を公開しました' },
             {
-              color: 'warning',
+              status: 'warning',
               title: '画像が大きすぎます',
               description: '2MB まで縮めて載せました。',
             },
-            { color: 'danger', title: '保存できませんでした' },
-            { color: 'neutral', title: '同期しています' },
+            { status: 'danger', title: '保存できませんでした' },
+            { title: '同期しています' },
           ]}
         />
       )}
@@ -210,11 +211,11 @@ export const Appearances: Story = {
     <div className="flex flex-wrap gap-8">
       {(
         [
-          ['soft（既定）', 'soft', true],
-          ['filled', 'filled', true],
-          ['soft・輪郭なし', 'soft', false],
+          ['soft（既定）', 'soft', false],
+          ['filled', 'filled', false],
+          ['soft・輪郭なし', 'soft', true],
         ] as const
-      ).map(([label, appearance, outline]) => (
+      ).map(([label, variant, hideOutline]) => (
         <Specimen key={label} label={label}>
           <ScreenFrame height="h-[300px]">
             {(frame) => (
@@ -224,11 +225,11 @@ export const Appearances: Story = {
                 limit={3}
                 position="bottom-end"
                 stack="list"
-                appearance={appearance}
-                outline={outline}
+                variant={variant}
+                hideOutline={hideOutline}
                 toasts={[
-                  { color: 'success', title: '記事を公開しました' },
-                  { color: 'danger', title: '保存できませんでした' },
+                  { status: 'success', title: '記事を公開しました' },
+                  { status: 'danger', title: '保存できませんでした' },
                 ]}
               />
             )}
@@ -264,8 +265,8 @@ export const Timed: Story = {
           position="bottom-end"
           stack="list"
           toasts={[
-            { color: 'success', title: '記事を公開しました', timeout: 5000 },
-            { color: 'info', title: '下書きを保存しました', timeout: 10000 },
+            { status: 'success', title: '記事を公開しました', timeout: 5000 },
+            { status: 'info', title: '下書きを保存しました', timeout: 10000 },
           ]}
         />
       )}

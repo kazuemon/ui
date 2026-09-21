@@ -12,7 +12,7 @@ import {
 } from 'react';
 
 import {
-  type ComboboxChipSize,
+  type ChipSize,
   comboboxChipStyle,
   comboboxControl,
   comboboxInputClass,
@@ -38,11 +38,25 @@ import {
   FieldSuccessMark,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
-import { flattenItems, isGroupedItems, labelMap } from '../../internal/listbox/listbox-items';
+import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
+import {
+  type ListboxGroup,
+  type ListboxItems,
+  flattenItems,
+  isGroupedItems,
+  labelMap,
+} from '../../internal/listbox/listbox-items';
+import {
+  type ListboxInputProps,
+  type ListboxSlotProps,
+  mergeSlotClass,
+} from '../../internal/listbox/listbox-slot-props';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -64,6 +78,8 @@ import {
 } from '../../internal/sheet/use-narrow-screen';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useMergedRefs } from '../../internal/use-merged-refs';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import {
@@ -72,48 +88,29 @@ import {
   takeTags,
   type TagsInputRejectReason,
 } from './tags-input-commit';
-import type { TagsInputGroup, TagsInputItem, TagsInputItems } from './tags-input-items';
 import { TagsInputChips } from './TagsInputChips';
 import { useTagsFlash } from './use-tags-flash';
 
-export type {
-  TagsInputGroup,
-  TagsInputItem,
-  TagsInputItemNote,
-  TagsInputItemNoteKind,
-  TagsInputItems,
-} from './tags-input-items';
 export type { TagsInputRejectReason } from './tags-input-commit';
-
-/** チップと、候補の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー） */
-export type TagsInputColor = ListboxColor;
-
-/** まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレー */
-export type TagsInputGroupLabelStyle = GroupLabelStyle;
-
-/** 候補の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
-export type TagsInputPresentation = OverlayPresentation;
-
-/** チップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくする */
-export type TagsInputChipSize = ComboboxChipSize;
 
 /**
  * 打った文字と候補を突き合わせる関数。`Combobox.useFilter`（Base UI）の `contains` などを渡す
  * null を渡すと、部品の中では絞り込まず、渡された候補をそのまま出す（外で絞り込むとき）
  */
 export type TagsInputFilter = (
-  item: TagsInputItem,
+  item: ListboxItem,
   query: string,
-  itemToString?: (item: TagsInputItem) => string
+  itemToString?: (item: ListboxItem) => string
 ) => boolean;
 
 const defaultSeparators = [','];
 const defaultLoadedText = (count: number) => `${count} 件の候補`;
-const defaultChipRemoveLabel = (label: string) => `${label} を外す`;
+const defaultChipRemoveName = (label: string) => `${label} を外す`;
 // 貼り付けでは、区切りの文字に加えて、改行とタブでも分ける
 const pasteBreaks = ['\r\n', '\n', '\r', '\t'];
 
 export interface TagsInputProps extends FieldMarkProps {
+  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
@@ -123,24 +120,28 @@ export interface TagsInputProps extends FieldMarkProps {
    */
   captionPlacement?: CaptionPlacement;
   /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  error?: ReactNode;
+  errorText?: FieldMessage;
   /**
    * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * error と両方あるときは、エラーの行の下に出す
+   * errorText と両方あるときは、エラーの行の下に出す
    */
-  warning?: ReactNode;
+  warningText?: FieldMessage;
   /**
    * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の端（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
    */
-  success?: ReactNode;
+  successText?: FieldMessage;
   /**
-   * 成功のとき、本体の端にチェックを置くか。false では下の行だけを出します
-   * @default true
+   * 成功のとき、本体の端に置くチェックを隠すか。true では下の行だけを出します
+   * @default false
    */
-  successMark?: boolean;
+  hideSuccessMark?: boolean;
   /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  info?: ReactNode;
+  infoText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。打てず、候補も開かず、フォームでは値が送られません
+   * @default false
+   */
   disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
@@ -153,18 +154,18 @@ export interface TagsInputProps extends FieldMarkProps {
    * チップと候補の印の色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（グレー）を選べます（原則6）
    * @default 'neutral'
    */
-  color?: TagsInputColor;
-  /** いまのタグ（制御するとき）。onValueChange と組にします */
+  color?: ListboxColor;
+  /** いまのタグ（制御） */
   value?: string[];
-  /** はじめのタグ（制御しないとき） */
+  /** はじめのタグ（非制御） */
   defaultValue?: string[];
-  /** タグが変わったとき */
+  /** タグが変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: string[]) => void;
-  /** 打っている文字（制御するとき） */
+  /** 打っている文字（制御） */
   inputValue?: string;
-  /** はじめの打っている文字（制御しないとき） */
+  /** はじめの打っている文字（非制御） */
   defaultInputValue?: string;
-  /** 打っている文字が変わったとき。外で候補を引くときは、この文字で問い合わせます */
+  /** 打っている文字が変わるときに、次の文字を渡して呼びます。外で候補を引くときは、この文字で問い合わせます */
   onInputValueChange?: (inputValue: string) => void;
   /**
    * タグの区切りにする文字。打っている途中でも、貼り付けたときでも、この文字で分けてタグにします。
@@ -215,24 +216,24 @@ export interface TagsInputProps extends FieldMarkProps {
    * 打っているあいだに出す候補。渡さないときは候補を出しません（打った文字だけがタグになります）。
    * 候補にない文字も、そのままタグになります
    */
-  items?: TagsInputItems;
+  items?: ListboxItems;
   /**
    * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
    * @default 'label'
    */
-  groupLabelStyle?: TagsInputGroupLabelStyle;
+  groupLabelStyle?: GroupLabelStyle;
   /**
    * まとまりのあいだに区切り線を引くか
    * @default false
    */
-  groupSeparator?: boolean;
+  showGroupSeparator?: boolean;
   /**
    * 打った文字と候補を突き合わせる関数。書かないときは Base UI の既定（前後の空白を無視した部分一致）です。
    * null にすると部品の中では絞り込まず、`items`（または `filteredItems`）をそのまま出します
    */
   filter?: TagsInputFilter | null;
   /** 外で絞り込んだ候補。渡すと、部品の中の絞り込みの代わりにこれを出します */
-  filteredItems?: TagsInputItems;
+  filteredItems?: ListboxItems;
   /**
    * 打ち始めたときに、最初に当たった候補へ自動で印を移すか。
    * true では、打ってすぐ Enter を押すと、打った文字ではなく印の付いた候補がタグになります
@@ -253,27 +254,27 @@ export interface TagsInputProps extends FieldMarkProps {
    * 消すボタンの読み上げの名前
    * @default 'タグをすべて消去'
    */
-  clearLabel?: string;
+  clearName?: string;
   /**
    * チップの × の読み上げの名前を作る関数。何を外すのかが分かる文にします
    * @default (label) => `${label} を外す`
    */
-  chipRemoveLabel?: (label: string) => string;
+  chipRemoveName?: (label: string) => string;
   /**
    * 欄に並ぶチップのまとまりの読み上げの名前
    * @default '追加したタグ'
    */
-  chipsLabel?: string;
+  chipsName?: string;
   /**
    * チップの最大幅（CSS の長さ。例: '120px'、'10rem'）。超えた文字は … で省略します。
    * 書かないときはチップを切らず、欄の幅いっぱいまで伸びます
    */
   chipMaxWidth?: string;
   /**
-   * チップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくします
-   * @default 'compact'
+   * チップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくします
+   * @default 'sm'
    */
-  chipSize?: TagsInputChipSize;
+  chipSize?: ChipSize;
   /**
    * 欄の中にタグを並べる行数の上限。書かないときは、行が増えるたびに欄が高くなります（既定）。
    * 指定すると、その行数で欄の高さが止まり、あふれた分は縦にスクロールします。
@@ -285,29 +286,57 @@ export interface TagsInputProps extends FieldMarkProps {
   maxRows?: number;
   /** 当たる候補がないときに出す文 */
   emptyText?: ReactNode;
-  /** 候補を開いているか。開閉を外から決めるときに使う */
+  /** 候補を開いているか（制御） */
   open?: boolean;
+  /** はじめに開いているか（非制御） */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、そのときの開閉を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
    * @default false
    */
   modal?: boolean;
   /**
-   * 浮かぶ候補を描く場所
+   * 外を押したときに閉じるか。false では、選ぶか Esc（と×・つまみ）でしか閉じません
+   * @default true
+   */
+  dismissible?: boolean;
+  /**
+   * Esc（Android の戻る操作を含む）で閉じるか
+   * @default true
+   */
+  closeOnEscape?: boolean;
+  /**
+   * 浮かぶ候補を描く場所。ThemeProvider でまとめて指定できます
    * @default document.body
    */
-  container?: HTMLElement | null;
-  /** 画面の端に当たったとき、候補を反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
-  collisionAvoidance?: ComponentProps<typeof BaseCombobox.Positioner>['collisionAvoidance'];
+  portalContainer?: HTMLElement | null;
+  /**
+   * 浮かぶ候補の面（Popup）に広げる props。id・data-*・aria-* や、面だけに足すクラスを渡します。
+   * className は部品のクラスに重ねます
+   */
+  popupProps?: ListboxSlotProps;
+  /**
+   * 浮かぶ候補の位置を決める要素（Positioner）に広げる props。画面の端に当たったときの逃がし方（collisionAvoidance）も、ここに渡します。
+   * className は部品のクラスに重ねます
+   */
+  positionerProps?: ListboxSlotProps &
+    Pick<ComponentProps<typeof BaseCombobox.Positioner>, 'collisionAvoidance' | 'anchor'>;
+  /**
+   * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
+   * className は部品のクラスに重ねます
+   */
+  inputProps?: ListboxInputProps;
   /**
    * 候補の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
    * sheet はいつもシートにします。打つ欄は欄に残り、候補だけがシートに出ます（design/adr/0037）
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: TagsInputPresentation;
+  presentation?: OverlayPresentation;
   /**
    * シートを開いたときの高さ。half は候補が長いときに半分の高さで開き、つまみを出します。full は高さいっぱいで開きます
    * 打つ欄は欄に残るので、既定は half です（full で開くと、シートが欄を覆います）
@@ -361,6 +390,7 @@ export interface TagsInputProps extends FieldMarkProps {
   name?: string;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
+  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
 
@@ -371,11 +401,11 @@ export function TagsInput({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   readOnly,
   color = 'neutral',
@@ -396,25 +426,30 @@ export function TagsInput({
   placeholder,
   items,
   groupLabelStyle = 'label',
-  groupSeparator = false,
+  showGroupSeparator = false,
   filter,
   filteredItems,
   autoHighlight = false,
   openOnInputClick = false,
   clearable = true,
-  clearLabel = 'タグをすべて消去',
-  chipRemoveLabel = defaultChipRemoveLabel,
-  chipsLabel = '追加したタグ',
+  clearName = 'タグをすべて消去',
+  chipRemoveName = defaultChipRemoveName,
+  chipsName = '追加したタグ',
   chipMaxWidth,
-  chipSize = 'compact',
+  chipSize = 'sm',
   maxRows,
   emptyText,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  onOpenChangeComplete,
   modal = false,
-  container,
-  collisionAvoidance,
+  dismissible = true,
+  closeOnEscape = true,
+  portalContainer: portalContainerProp,
+  popupProps,
+  positionerProps,
+  inputProps,
   presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
@@ -440,7 +475,7 @@ export function TagsInput({
   const blocking = loadingBlocking || formLock.blocking;
   // 読み取り専用（ADR-0170）: 文字を打つ欄の読み取り専用と同じ見た目にし、候補は開かない
   const locked = blocking || !!readOnly;
-  const portalContainer = usePortalContainer(container);
+  const portalContainer = usePortalContainer(portalContainerProp);
   // 候補を渡さないときは、浮かぶ部分をいっさい描かない（打った文字だけがタグになる）
   const hasItems = items !== undefined;
 
@@ -541,7 +576,7 @@ export function TagsInput({
   const collection = useMemo(
     () =>
       items
-        ? BaseCombobox.createItems<TagsInputItem, string>(items, {
+        ? BaseCombobox.createItems<ListboxItem, string>(items, {
             getValue: (item) => item.value,
             getLabel: (item) => item.label,
           })
@@ -554,7 +589,7 @@ export function TagsInput({
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
-  const shownError = error ?? invalidMessage;
+  const shownError = errorText ?? invalidMessage;
   // 弾いたことを、本体の下の行でも一瞬だけ知らせる。文は呼び出し側が書く（原則20）
   const rejected = flash && rejectMessage ? rejectMessage(flash.reason, flash.tag) : null;
   const rejectText = rejected === false ? null : rejected;
@@ -562,20 +597,21 @@ export function TagsInput({
   //   行は読み上げの箱（aria-live）なので、文をそのまま差し替えると、弾いた文と、戻ってきた元の info の両方が読まれる。
   //   そこで、読み上げに渡る中身（元の info）は見えない形で置いたままにし、見える文だけを差し替える。
   //   弾いた文の読み上げは、下の見えない status の箱が担う（1 回だけ読まれる）
-  const infoConflict = rejectText != null && Boolean(info);
+  const infoConflict = rejectText != null && Boolean(infoText);
   const shownInfo = infoConflict ? (
     <>
-      <span className="sr-only">{info}</span>
+      <span className="sr-only">{infoText}</span>
       <span aria-hidden>{rejectText}</span>
     </>
   ) : (
-    (rejectText ?? info)
+    (rejectText ?? infoText)
   );
   // 見えている行が読み上げないとき（元の info と入れ替わるとき）だけ、見えない箱で知らせる
-  const announceReject = Boolean(rejectMessage) && Boolean(info);
+  const announceReject = Boolean(rejectMessage) && Boolean(infoText);
   const sheetMessages: SheetMessage[] = [];
   if (shownError) sheetMessages.push({ kind: 'error', content: shownError, id: `${sheetId}error` });
-  if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
+  if (warningText)
+    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
 
   // 候補の出し方（design/adr/0037・原則16）。打つ欄は欄に残り、候補だけがシートに出る
   const sheet = useSheetPresentation(presentation) && hasItems;
@@ -612,7 +648,7 @@ export function TagsInput({
 
   const chipStyle = comboboxChipStyle(chipMaxWidth, chipSize);
   // 行数の上限（maxRows）。欄に置いた変数を、チップを並べる枠（TagsInputChips）が読む
-  //   2 行以上: その行数の高さで止めて縦にスクロールする。1 行分の高さはチップの高さ（ADR-0217。regular は一段大きい）
+  //   2 行以上: その行数の高さで止めて縦にスクロールする。1 行分の高さはチップの高さ（ADR-0217。md は一段大きい）
   //   1 行: 折り返さず、横にスクロールする（1 行で折り返すと、1 つ足すたびに見える中身が入れ替わる）
   const rowsStyle = useMemo<CSSProperties | undefined>(() => {
     if (maxRows === undefined) return undefined;
@@ -624,7 +660,7 @@ export function TagsInput({
       } as CSSProperties;
     }
     const rowHeight =
-      chipSize === 'regular'
+      chipSize === 'md'
         ? 'calc(var(--spacing-control) - var(--spacing) * 2)'
         : 'var(--combobox-chip-height)';
     return {
@@ -636,14 +672,30 @@ export function TagsInput({
   const grouped = isGroupedItems(filteredItems ?? items ?? []);
   const inputClass = comboboxInputClass({ blocking, readOnly });
 
+  // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
+  const {
+    className: popupClassName,
+    ref: popupUserRef,
+    style: popupStyle,
+    ...popupRest
+  } = popupProps ?? {};
+  const {
+    className: positionerClassName,
+    style: positionerStyle,
+    ...positionerRest
+  } = positionerProps ?? {};
+  const { className: inputClassName, ...inputRest } = inputProps ?? {};
+  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
+
   return (
     <Field
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
       error={shownError}
-      warning={warning}
-      success={success}
+      warning={warningText}
+      success={successText}
       info={shownInfo}
       disabled={disabled}
       loading={loading}
@@ -654,7 +706,7 @@ export function TagsInput({
       className={className}
     >
       {(messageIds) => (
-        <BaseCombobox.Root<string, true, TagsInputItem>
+        <BaseCombobox.Root<string, true, ListboxItem>
           items={collection}
           multiple
           value={values}
@@ -675,9 +727,21 @@ export function TagsInput({
           form={form}
           modal={modal}
           open={open}
-          onOpenChange={(next) => changeOpen(next)}
+          onOpenChange={(next, details) => {
+            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            changeOpen(next);
+          }}
           onOpenChangeComplete={(next) => {
             if (!next) drag.clearDragHeight();
+            onOpenChangeComplete?.(next);
           }}
         >
           <BaseCombobox.InputGroup
@@ -696,8 +760,8 @@ export function TagsInput({
           >
             <TagsInputChips
               labelOf={labelOf}
-              chipsLabel={chipsLabel}
-              chipRemoveLabel={chipRemoveLabel}
+              chipsName={chipsName}
+              chipRemoveName={chipRemoveName}
               color={color}
               readOnly={readOnly}
               disabled={disabled || blocking}
@@ -778,14 +842,18 @@ export function TagsInput({
                       return;
                     commitText();
                   }}
-                  className={`${inputClass} h-(--combobox-chip-height) min-w-16`}
+                  {...inputRest}
+                  className={mergeSlotClass(
+                    `${inputClass} h-(--combobox-chip-height) min-w-16`,
+                    inputClassName
+                  )}
                 />
               )}
             </TagsInputChips>
             {loading && loadingIndicator === 'spinner' && (
               <FieldSpinner className={loadingBlocking ? controlInsetEnd : 'me-2'} />
             )}
-            {success && successMark && !shownError && !loading && (
+            {successText && !hideSuccessMark && !shownError && !loading && (
               <FieldSuccessMark className="me-2" />
             )}
             {clearable && !readOnly && (
@@ -798,7 +866,7 @@ export function TagsInput({
                 }
                 disabled={blocking || disabled || undefined}
                 data-slot="tags-input-clear"
-                aria-label={clearLabel}
+                aria-label={clearName}
               />
             )}
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
@@ -818,24 +886,34 @@ export function TagsInput({
               </BaseCombobox.Status>
               <BaseCombobox.Portal container={portalContainer}>
                 <BaseCombobox.Positioner
-                  collisionAvoidance={collisionAvoidance}
                   sideOffset={() => popupSideOffset(fieldRef.current)}
+                  {...positionerRest}
                   data-presentation={listPresentation}
                   data-density={densityScope.density}
-                  style={comboboxPositionerStyle(popupShell)}
-                  className={comboboxPositionerClass(popupShell)}
+                  style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+                  className={mergeSlotClass(
+                    comboboxPositionerClass(popupShell),
+                    positionerClassName
+                  )}
                 >
                   <BaseCombobox.Popup
-                    ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
+                    {...popupRest}
+                    ref={popupRef}
                     data-slot="tags-input-popup"
                     data-dragging={drag.dragging || undefined}
-                    style={comboboxPopupStyle({
-                      selected,
-                      sheet,
-                      sheetDetent,
-                      dragHeight: drag.sheetHeight,
-                    })}
-                    className={listboxPopup({ presentation: listPresentation })}
+                    style={{
+                      ...comboboxPopupStyle({
+                        selected,
+                        sheet,
+                        sheetDetent,
+                        dragHeight: drag.sheetHeight,
+                      }),
+                      ...popupStyle,
+                    }}
+                    className={mergeSlotClass(
+                      listboxPopup({ presentation: listPresentation }),
+                      popupClassName
+                    )}
                   >
                     {/* シートの見出し（design/adr/0037）。打つ欄は欄に残る（欄にフォーカスとキーボードが残り、
                         候補だけがシートに出る）ので、シートの中に打つ欄は置かない */}
@@ -889,17 +967,17 @@ export function TagsInput({
                       })}
                     >
                       {grouped
-                        ? (group: TagsInputGroup, index: number) => (
+                        ? (group: ListboxGroup, index: number) => (
                             <ComboboxGroupSection
                               key={index}
                               group={group}
-                              separator={groupSeparator && index > 0}
+                              separator={showGroupSeparator && index > 0}
                               labelStyle={groupLabelStyle}
                             >
                               {(item) => <ComboboxOption key={item.value} item={item} />}
                             </ComboboxGroupSection>
                           )
-                        : (item: TagsInputItem) => <ComboboxOption key={item.value} item={item} />}
+                        : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
                     </BaseCombobox.List>
                     {(long || popoverCue) && (
                       <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />

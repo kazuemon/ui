@@ -12,7 +12,7 @@ import { tv } from '../../internal/tv';
 const numberFormat = tv({
   variants: {
     size: textStyles.size,
-    tone: textStyles.tone,
+    variant: textStyles.variant,
   },
 });
 
@@ -62,9 +62,9 @@ export interface NumberFormatProps
    */
   size?: VariantProps<typeof numberFormat>['size'];
   /**
-   * 濃さ。指定しなければ周りの文字のままです
+   * 見た目（濃さ）。body は本文、muted は補足、subtle は目立たせない文です。指定しなければ周りの文字のままです
    */
-  tone?: VariantProps<typeof numberFormat>['tone'];
+  variant?: VariantProps<typeof numberFormat>['variant'];
   /**
    * 書く文字を自分で決めるときに渡します。value 属性は value から作ります
    */
@@ -85,7 +85,7 @@ export function NumberFormat({
   format,
   locale: localeProp,
   size,
-  tone,
+  variant,
   className,
   children,
   ...props
@@ -109,7 +109,7 @@ export function NumberFormat({
   }).format(value);
 
   return (
-    <data value={String(value)} className={numberFormat({ size, tone, className })} {...props}>
+    <data value={String(value)} className={numberFormat({ size, variant, className })} {...props}>
       {children ?? text}
     </data>
   );

@@ -6,7 +6,7 @@ import type { ComponentProps, ReactElement, ReactNode } from 'react';
 import { CaretDownIcon } from '../../internal/icons';
 import { collapsibleStyles } from '../../internal/collapsible-styles';
 
-export type CollapsibleAppearance = 'plain' | 'open-filled' | 'filled' | 'divided';
+export type CollapsibleVariant = 'plain' | 'open-filled' | 'filled' | 'divided';
 export type CollapsibleIndicator = 'end' | 'start';
 
 export interface CollapsibleProps extends Omit<
@@ -30,22 +30,24 @@ export interface CollapsibleProps extends Omit<
    * filled と divided は、行を間をあけずに続けて（兄弟として）置いてください。trigger を渡すときは使いません
    * @default 'plain'
    */
-  appearance?: CollapsibleAppearance;
+  variant?: CollapsibleVariant;
   /**
-   * 開閉の印の位置。見た目（appearance）とは別に選べます
+   * 開閉の印の位置。見た目（variant）とは別に選べます
    * - end: 題の右。閉じているときは下向きで、開くと上を向きます
    * - start: 題の左。閉じているときは右向きで、開くと下を向きます。中身は題の頭にそろえて字下げします。ファイルの木のように、入れ子で並べるときに向きます
    * @default 'end'
    */
   indicator?: CollapsibleIndicator;
-  /** 開いたときに出す中身 */
+  /** 開いたときに出す中身。文章でも、入力欄や一覧でも置けます */
   children?: ReactNode;
+  /** 開いているか（制御） */
   open?: boolean;
   /**
-   * はじめから開いておくか
+   * はじめは開いているか（非制御）
    * @default false
    */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
   /**
    * 押せなくします。題は押せない文字の色になります
@@ -63,10 +65,13 @@ export interface CollapsibleProps extends Omit<
    * @default false
    */
   keepMounted?: boolean;
-  /** 外側の要素に足すクラス */
+  /** いちばん外の要素（行と中身を包む div）に付きます */
   className?: string;
-  /** 中身（開閉する部分）の内側に足すクラス。余白を変えるときに使います */
-  panelClassName?: string;
+  /**
+   * 中身（開閉する部分）の内側の要素に渡す props。余白を変えるときや、id・data-* を付けるときに使います。
+   * className は部品の見た目に重ねます
+   */
+  panelProps?: ComponentProps<'div'>;
 }
 
 /**
@@ -81,15 +86,16 @@ export function Collapsible({
   defaultOpen,
   onOpenChange,
   disabled,
-  appearance = 'plain',
+  variant = 'plain',
   indicator = 'end',
   hiddenUntilFound = false,
   keepMounted = false,
   className,
-  panelClassName,
+  panelProps,
   ...props
 }: CollapsibleProps) {
-  const styles = collapsibleStyles({ appearance, indicator });
+  const { className: panelClassName, ...panelRest } = panelProps ?? {};
+  const styles = collapsibleStyles({ variant, indicator });
   return (
     <BaseCollapsible.Root
       {...props}
@@ -116,7 +122,10 @@ export function Collapsible({
         keepMounted={keepMounted}
         className={styles.panel()}
       >
-        <div className={trigger ? panelClassName : styles.content({ className: panelClassName })}>
+        <div
+          {...panelRest}
+          className={trigger ? panelClassName : styles.content({ className: panelClassName })}
+        >
           {children}
         </div>
       </BaseCollapsible.Panel>

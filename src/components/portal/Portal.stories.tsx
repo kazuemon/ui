@@ -35,7 +35,7 @@ function SelectionBar({ container }: { container: HTMLElement }) {
             <Text as="span" className="grow">
               {selected.length} 件を選んでいます
             </Text>
-            <Button appearance="outline" onClick={() => setSelected([])}>
+            <Button variant="outline" onClick={() => setSelected([])}>
               選ぶのをやめる
             </Button>
             <Button color="danger">削除</Button>
@@ -70,7 +70,7 @@ const meta = {
         component: [
           '中身を、書いた場所ではなく別の場所（既定は `document.body`）に描きます。',
           '',
-          '- Select・Dialog・Popover・Tooltip・Drawer は自分で描く場所を移すので、Portal で包みません。描く場所を変えるときは、それぞれの `container` か、ThemeProvider の `portalContainer` を使います。',
+          '- Select・Dialog・Popover・Tooltip・Drawer は自分で描く場所を移すので、Portal で包みません。描く場所を変えるときは、それぞれの `portalContainer`（ThemeProvider でまとめて決めることもできます）を使います。',
           '- 自前の重なるもの（画面の下に貼り付く操作の帯、全画面の画像など）を、スクロールする枠や `overflow: hidden` の外に出したいときに使います。',
           '- `container`（既定は ThemeProvider の `portalContainer`、なければ `document.body`）で描く場所を決めます。',
           '- 書いた場所の祖先の密度（`data-density`）を、描く場所でも引き継ぎます。',

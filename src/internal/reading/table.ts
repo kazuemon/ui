@@ -14,7 +14,9 @@ export const tableStyles = {
   ],
   // 中の要素（table と Prose の根のどちらに付けても、中のセルに効く）
   cells: [
-    '[&_:is(th,td)]:px-3 [&_:is(th,td)]:py-2 [&_:is(th,td)]:text-start [&_:is(th,td)]:align-top',
+    '[&_:is(th,td)]:px-3 [&_:is(th,td)]:py-2 [&_:is(th,td)]:text-start',
+    // 縦の寄せ（verticalAlign）。表・行・セルのどこで --table-valign を決めても、いちばん内側の指定が効く
+    '[&_:is(th,td)]:[vertical-align:var(--table-valign,top)]',
     // 狭い列で 1〜2 文字ずつ折れないよう、和文は文節の切れ目で折る（lang="ja" の中で効く。対応しないブラウザでは普通に折る）
     '[&_:is(th,td)]:[word-break:auto-phrase]',
     '[&_:is(th,td)]:border-0 [&_:is(th,td)]:border-solid [&_:is(th,td)]:border-line',

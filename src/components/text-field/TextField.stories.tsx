@@ -15,12 +15,12 @@ type Sample = MatrixColumn & { props: Partial<TextFieldProps> };
 const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '値あり', props: { defaultValue: 'かずえもん' } },
-  { label: 'エラー', props: { error: '表示名を入力してください' } },
+  { label: 'エラー', props: { errorText: '表示名を入力してください' } },
   {
     label: '警告',
     props: {
       defaultValue: 'かずえもん（Kazuya Miyamoto）',
-      warning: '20文字を超えると、一覧では途中で切れます',
+      warningText: '20文字を超えると、一覧では途中で切れます',
     },
   },
   { label: '押せない', props: { defaultValue: 'かずえもん', disabled: true } },
@@ -48,7 +48,7 @@ const addonColumns: Sample[] = [
       label: 'Web サイト',
       prefix: 'https://',
       defaultValue: 'example',
-      error: 'URL の形が正しくありません',
+      errorText: 'URL の形が正しくありません',
     },
   },
   {
@@ -85,13 +85,13 @@ const meta = {
           '1行のテキストを入力する欄です。ラベル・キャプション（補足）・本体を縦に積みます。',
           '',
           '- `caption` は補足で、エラーや警告が出ても消えません。`captionPlacement` で、ラベルの下（既定）か本体の下かを選びます。',
-          '- `error` を渡すと、欄が赤い枠線になり、本体の下に丸の「!」と文を出します。`warning` は欄の見た目を変えず、三角と文を出します。どちらも出たときに読み上げで知らせます。',
+          '- `errorText` を渡すと、欄が赤い枠線になり、本体の下に丸の「!」と文を出します。`warningText` は欄の見た目を変えず、三角と文を出します。どちらも出たときに読み上げで知らせます。',
           '- `prefix`・`suffix` に文字を渡すと、本体の端にグレーのラベルが付きます。ボタンは `FieldAddonButton` を渡します。suffix のボタンは、パスワードの表示のように入力欄そのものを操作するものに限り、検索のように値を送るボタンは欄の外に置きます。',
           '- 値を確かめているあいだは `loading` を付けます。',
           '- 押せない欄（`disabled`）の文字は選べません。値を読んで写せるようにするときは `readOnly` を使います。読み取り専用の欄はフォーカスでき、値を選んで写せます。',
           '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、`<input>` に required が付きます。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決め、フォーム全体は `Form`・`ThemeProvider` でそろえられます。',
           '- `placeholder` は、値と見分けられるよう「例: かずえもん」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
-          '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<input>` に渡ります。',
+          '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<input>` に渡ります。`<input>` の class や `data-*` だけを足したいときは `inputProps` を使います（`className` は欄の外枠に付きます）。',
         ].join('\n'),
       },
     },
@@ -118,8 +118,8 @@ const meta = {
       table: { defaultValue: { summary: "'top'" } },
     },
     placeholder: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
     prefix: { control: 'text' },
     suffix: { control: 'text' },
     addonShape: { control: 'inline-radio', options: shapes },
@@ -161,11 +161,11 @@ export const States: Story = {
         {/* hover・フォーカスの見た目は部品が受け持つ */}
         <TextField label="表示名" placeholder="例: かずえもん" />
         <TextField label="表示名" defaultValue="かずえもん" />
-        <TextField label="表示名" error="表示名を入力してください" />
+        <TextField label="表示名" errorText="表示名を入力してください" />
         <TextField
           label="表示名"
           defaultValue="かずえもん（Kazuya Miyamoto）"
-          warning="20文字を超えると、一覧では途中で切れます"
+          warningText="20文字を超えると、一覧では途中で切れます"
         />
         <TextField label="表示名" defaultValue="かずえもん" disabled />
         <TextField label="表示名" defaultValue="かずえもん" readOnly />
@@ -227,29 +227,29 @@ export const Messages: Story = {
       <Specimen label="caption（下）">
         <TextField {...args} caption="一覧とプロフィールに出ます" captionPlacement="bottom" />
       </Specimen>
-      <Specimen label="error">
+      <Specimen label="errorText">
         <TextField
           {...args}
           caption="一覧とプロフィールに出ます"
-          error="表示名を入力してください"
+          errorText="表示名を入力してください"
         />
       </Specimen>
-      <Specimen label="warning">
+      <Specimen label="warningText">
         <TextField
           {...args}
           caption="一覧とプロフィールに出ます"
           defaultValue="かずえもん（Kazuya Miyamoto）"
-          warning="20文字を超えると、一覧では途中で切れます"
+          warningText="20文字を超えると、一覧では途中で切れます"
         />
       </Specimen>
-      <Specimen label="error と warning">
+      <Specimen label="errorText と warningText">
         <TextField
           {...args}
           label="ユーザー名"
           caption="プロフィールの URL に使います"
           defaultValue="Kazuemon"
-          error="このユーザー名はすでに使われています"
-          warning="大文字は小文字にそろえて登録します"
+          errorText="このユーザー名はすでに使われています"
+          warningText="大文字は小文字にそろえて登録します"
         />
       </Specimen>
     </Gallery>

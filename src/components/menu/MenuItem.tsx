@@ -138,6 +138,9 @@ function useItemDescription(description: ReactNode, shortcut: ReactNode) {
 const typeaheadLabel = (children: ReactNode, label: string | undefined) =>
   label ?? (typeof children === 'string' ? children : undefined);
 
+/** 項目の状態。danger は、削除など取り消せない操作 */
+export type MenuItemStatus = 'danger';
+
 export interface MenuItemProps extends MenuItemBaseProps, DisableableProps {
   /** 押したときの処理 */
   onClick?: (event: MouseEvent<HTMLElement>) => void;
@@ -146,10 +149,9 @@ export interface MenuItemProps extends MenuItemBaseProps, DisableableProps {
    */
   shortcut?: ReactNode;
   /**
-   * 削除など、取り消せない操作。文字とアイコンを危険の色にし、hover で赤を淡く敷きます
-   * @default false
+   * 削除など、取り消せない操作の状態。danger は文字とアイコンを危険の色にし、hover で赤を淡く敷きます
    */
-  danger?: boolean;
+  status?: MenuItemStatus;
   /**
    * 押したあと一覧を閉じるか
    * @default true
@@ -164,7 +166,7 @@ export function MenuItem({
   description,
   label,
   shortcut,
-  danger = false,
+  status,
   disabled,
   onClick,
   closeOnClick,
@@ -172,13 +174,14 @@ export function MenuItem({
   style,
 }: MenuItemProps) {
   const { sheet } = useMenuContext();
+  const danger = status === 'danger';
   // 指で操作するシートでは、キーボードのショートカットを出さない
   const shownShortcut = sheet ? undefined : shortcut;
   const ids = useItemDescription(description, shownShortcut);
   return (
     <BaseMenu.Item
       data-slot="menu-item"
-      data-danger={danger || undefined}
+      data-status={status}
       disabled={disabled}
       label={typeaheadLabel(children, label)}
       onClick={onClick}
@@ -204,9 +207,11 @@ export function MenuItem({
 }
 
 export interface MenuLinkItemProps extends MenuItemBaseProps, DisableableProps {
+  /** 移る先 */
   href?: string;
   /** _blank のときは、後ろに右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します */
   target?: string;
+  /** リンクと先の関係。target="_blank" のときは noopener noreferrer を自動で足します */
   rel?: string;
   /** ルーターのリンクの部品などで描くとき、その要素を渡す（Base UI の render） */
   render?: ReactElement;
@@ -271,8 +276,14 @@ export function MenuLinkItem({
 }
 
 export interface MenuCheckboxItemProps extends MenuItemBaseProps, DisableableProps {
+  /** 入っているか（制御） */
   checked?: boolean;
+  /**
+   * はじめに入っているか（非制御）
+   * @default false
+   */
   defaultChecked?: boolean;
+  /** 入・切が変わるときに、次の値を渡して呼びます */
   onCheckedChange?: (checked: boolean) => void;
   /**
    * 押したあと一覧を閉じるか。続けて切り替えられるよう、既定では閉じません
@@ -331,8 +342,11 @@ export function MenuCheckboxItem({
 export interface MenuRadioGroupProps {
   /** MenuRadioItem を並べる */
   children?: ReactNode;
+  /** 選んでいる項目の値（制御） */
   value?: string;
+  /** はじめに選んでいる項目の値（非制御） */
   defaultValue?: string;
+  /** 値が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: string) => void;
   /**
    * グループの項目をすべて押せなくする
@@ -352,6 +366,7 @@ export function MenuRadioGroup({ onValueChange, ...props }: MenuRadioGroupProps)
 }
 
 export interface MenuRadioItemProps extends MenuItemBaseProps, DisableableProps {
+  /** この項目の値。MenuRadioGroup の value と同じなら、選んだ印を出します */
   value: string;
   /**
    * 押したあと一覧を閉じるか
@@ -427,6 +442,7 @@ function RadioMark({ mark }: { mark: MenuRadioMark }) {
 export interface MenuGroupProps {
   /** 見出し。読み上げでは、まとまりの名前になります */
   label?: ReactNode;
+  /** まとまりに入れる項目 */
   children?: ReactNode;
 }
 

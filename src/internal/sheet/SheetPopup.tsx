@@ -4,12 +4,16 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 
 import { initialFocusOf } from '../overlay/initial-focus';
+import { focusTargetRef, type OverlayFocusTarget, type PopupProps } from '../overlay/overlay-props';
+import type { OverlayRole } from '../overlay/overlay-role-context';
 
 import type { DensityScope } from '../density-scope';
 import { SheetCloseButton, SheetHeader } from './SheetHeader';
 import { SheetMoreCue } from './SheetMoreCue';
 import { overlayTitleLeading, sheetDescriptionClass, sheetTitleClass } from './sheet-styles';
 import { useMoreCues } from './use-more-cues';
+import { cn } from '../tv';
+import { useMergedRefs } from '../use-merged-refs';
 import { usePortalContainer } from '../ui-config';
 
 /**
@@ -25,6 +29,8 @@ export type SheetSide = 'bottom' | 'left' | 'right';
 
 interface SheetPopupProps {
   side: SheetSide;
+  /** 読み上げの役割。alertdialog は、取り消せない操作の確かめ（AlertDialog が包んだとき） */
+  role?: OverlayRole;
   title?: ReactNode;
   description?: ReactNode;
   children?: ReactNode;
@@ -53,12 +59,18 @@ interface SheetPopupProps {
    */
   modal?: boolean;
   /** 閉じる × の読み上げの名前 */
-  closeLabel?: string;
-  /** 右上に閉じる × を置くか */
-  closeButton?: boolean;
-  container?: HTMLElement | null;
+  closeName?: string;
+  /** 右上の閉じる × を消すか */
+  hideCloseButton?: boolean;
+  /** 開いた直後に焦点を当てる要素 */
+  autoFocus?: OverlayFocusTarget;
+  /** 閉じたあとに焦点を戻す要素 */
+  returnFocus?: OverlayFocusTarget;
+  portalContainer?: HTMLElement | null;
   densityScope: DensityScope;
   popupRef?: Ref<HTMLDivElement>;
+  /** 面（Popup）に足す props */
+  popupProps?: PopupProps;
   className?: string;
 }
 
@@ -75,6 +87,7 @@ interface SheetPopupProps {
 //   動きを減らす設定では動かさない（原則3）
 export function SheetPopup({
   side,
+  role,
   title,
   description,
   children,
@@ -84,15 +97,20 @@ export function SheetPopup({
   swipeLocked = false,
   swipeFade = true,
   modal = true,
-  closeLabel,
-  closeButton = true,
-  container,
+  closeName,
+  hideCloseButton = false,
+  autoFocus,
+  returnFocus,
+  portalContainer: container,
   densityScope,
   popupRef,
+  popupProps,
   className,
 }: SheetPopupProps) {
   const portalContainer = usePortalContainer(container);
   const cues = useMoreCues();
+  const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
+  const mergedPopupRef = useMergedRefs<HTMLDivElement>(popupRef, userPopupRef);
   // auto: 下から出すシートは縦に積み（主な操作が上）、横から出すパネルは右寄せ
   const layout =
     footerLayout === 'auto' ? (side === 'bottom' ? 'stack-reverse' : 'end') : footerLayout;
@@ -130,13 +148,17 @@ export function SheetPopup({
             .join(' ')}
         >
           <BaseDrawer.Popup
-            ref={popupRef}
             data-overlay-id={overlayId}
-            initialFocus={initialFocusOf(overlayId, 'drawer')}
+            initialFocus={focusTargetRef(autoFocus) ?? initialFocusOf(overlayId, 'drawer')}
+            finalFocus={focusTargetRef(returnFocus)}
+            // 読み上げの役割（Base UI の既定は dialog。AlertDialog が包んだときは alertdialog）
+            role={role}
             data-slot="sheet"
             data-side={side}
             data-density={densityScope.density}
             data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
+            {...restPopupProps}
+            ref={mergedPopupRef}
             className={[
               'pointer-events-auto relative flex min-h-0 flex-col border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
               overlayTitleLeading,
@@ -172,7 +194,7 @@ export function SheetPopup({
                 'data-ending-style:[transform:translateX(100%)] data-starting-style:[transform:translateX(100%)]',
                 'data-ending-style:[box-shadow:none]',
               ],
-              className,
+              cn(className, popupClassName),
             ]
               .flat()
               .filter(Boolean)
@@ -183,12 +205,12 @@ export function SheetPopup({
               handle={bottom && handle}
               className={bottom ? undefined : 'pt-[env(safe-area-inset-top)]'}
               close={
-                closeButton ? (
+                hideCloseButton ? null : (
                   <BaseDrawer.Close
-                    render={<SheetCloseButton label={closeLabel} />}
+                    render={<SheetCloseButton label={closeName} />}
                     data-slot="sheet-close"
                   />
-                ) : null
+                )
               }
             >
               {title != null && (

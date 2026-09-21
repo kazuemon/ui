@@ -14,13 +14,12 @@ import {
 } from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
-import { tv } from '../../internal/tv';
+import { cn, tv } from '../../internal/tv';
 import { hintRest } from './mask-hint';
 
-// Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
-type ControlProps = ComponentProps<typeof BaseField.Control>;
+type InputProps = ComponentProps<'input'>;
 type InputEventOf<K extends 'onChange' | 'onCompositionStart' | 'onCompositionEnd'> = Parameters<
-  NonNullable<ControlProps[K]>
+  NonNullable<InputProps[K]>
 >[0];
 
 /** 書式。'###-####' のような文字列、桁で書式が変わるときは配列か、値から書式を返す関数 */
@@ -45,10 +44,7 @@ export interface MaskFieldValueDetails {
 
 export interface MaskFieldProps
   extends
-    Omit<
-      ComponentProps<typeof BaseField.Control>,
-      'className' | 'render' | 'prefix' | 'value' | 'defaultValue' | 'onValueChange'
-    >,
+    Omit<ComponentProps<'input'>, 'className' | 'prefix' | 'value' | 'defaultValue'>,
     InputFieldProps,
     HalfWidthNoticeProps {
   /**
@@ -58,12 +54,14 @@ export interface MaskFieldProps
   mask: MaskFieldMask;
   /** 桁の記号を足す・置き換える（maska の tokens）。例: `{ A: { pattern: /[A-Z]/ } }` */
   tokens?: MaskTokens;
-  /** 値（制御するとき）。書式付きでも、記号を除いた値でも、書式を当てて出します */
+  /** 値（制御）。書式付きでも、記号を除いた値でも、書式を当てて出します */
   value?: string;
-  /** はじめの値（制御しないとき） */
+  /** はじめの値（非制御） */
   defaultValue?: string;
-  /** 値が変わったとき。書式付きの値と、記号を除いた値・埋まったかを渡します */
+  /** 値が変わるときに、次の値（書式付き）と、記号を除いた値・埋まったかを渡して呼びます */
   onValueChange?: (value: string, details: MaskFieldValueDetails) => void;
+  /** 中の input に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'input'>;
   /**
    * 残りの桁の見本（000-0000）の出し方。always はいつも、focus はフォーカスしているあいだだけ、none は出しません。
    * 見本はプレースホルダーと同じ淡さで、見本を出しているあいだはプレースホルダーを出しません
@@ -135,11 +133,11 @@ export function MaskField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   className,
   prefix,
@@ -154,6 +152,7 @@ export function MaskField({
   optionalMark,
   placeholder,
   inputMode,
+  inputProps,
   onChange,
   onCompositionStart,
   onCompositionEnd,
@@ -164,6 +163,7 @@ export function MaskField({
 }: MaskFieldProps) {
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
   // 書式を当てる処理。配列の書式は、中身が同じなら作り直さない
   const maskKey = typeof mask === 'function' ? mask : JSON.stringify(mask);
   const masker = useMemo(
@@ -267,10 +267,10 @@ export function MaskField({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info ?? notice}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -288,9 +288,9 @@ export function MaskField({
           disabled={disabled}
           loading={loading}
           loadingIndicator={loadingIndicator}
-          success={success}
-          successMark={successMark}
-          error={error}
+          success={successText}
+          successMark={!hideSuccessMark}
+          error={errorText}
           describedBy={ariaDescribedBy}
           messageIds={messageIds}
           // フォーカスしているあいだだけ見本を出す（focus）ための目印。状態の固定（pseudo-states）も本体に当たる
@@ -299,7 +299,7 @@ export function MaskField({
           {(describedBy) => (
             <div ref={wrapper} className="relative flex h-full min-w-0 flex-1 items-center">
               <BaseField.Control
-                className={[
+                className={cn(
                   'h-full w-full min-w-0 bg-transparent outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
                   fieldInset,
                   maskText({ hintStyle: maskHintStyle }),
@@ -309,9 +309,8 @@ export function MaskField({
                   showHint &&
                     maskHint === 'focus' &&
                     'group-focus-within/mask:placeholder:text-transparent',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                  inputProps?.className
+                )}
                 value={value}
                 placeholder={placeholder}
                 inputMode={inputMode ?? (numericOnly(mask) ? 'numeric' : undefined)}
@@ -320,9 +319,10 @@ export function MaskField({
                 readOnly={blocking || readOnly}
                 aria-disabled={blocking || ariaDisabled}
                 aria-busy={loading || ariaBusy}
-                aria-describedby={describedBy}
                 spellCheck={false}
+                {...inputPropsRest}
                 {...props}
+                aria-describedby={describedBy}
                 onChange={handleChange}
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}

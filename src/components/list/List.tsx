@@ -13,7 +13,7 @@ const list = tv({
   base: listStyles.base,
   variants: {
     // 箇条書きの印。dash は短い線（既定）、dot は濃紺の丸（入れ子は白抜きの丸）。入れ子のリストは外側の選び方を引き継ぐ
-    marker: {
+    markerType: {
       dash: '',
       dot: [
         '[--color-list-bullet:var(--color-fg)] [--list-bullet-height:6px] [--list-bullet-width:6px]',
@@ -21,7 +21,7 @@ const list = tv({
       ],
     },
     // 済んだ項目の文。subtle は薄く（既定）、default は本文と同じ色
-    checkedTone: {
+    checkedVariant: {
       subtle: '',
       default: '[--color-list-task-done:currentColor]',
     },
@@ -33,22 +33,29 @@ const list = tv({
   defaultVariants: { as: 'ul' },
 });
 
+/** 描く要素 */
+export type ListAs = NonNullable<VariantProps<typeof list>['as']>;
+/** 箇条書きの印 */
+export type ListMarkerType = NonNullable<VariantProps<typeof list>['markerType']>;
+/** 済んだ項目の文の見た目 */
+export type ListCheckedVariant = NonNullable<VariantProps<typeof list>['checkedVariant']>;
+
 export interface ListProps extends Omit<ComponentProps<'ul'>, 'ref'> {
   /**
    * 描く要素。ul は箇条書き、ol は番号付きです。入れ子にするときは ListItem の中に List を置きます
    * @default 'ul'
    */
-  as?: NonNullable<VariantProps<typeof list>['as']>;
+  as?: ListAs;
   /**
    * 箇条書きの印。dash は薄いグレーの短い線（入れ子は小さい点）、dot は濃紺の丸（入れ子は白抜きの丸）です。入れ子のリストは外側の印を引き継ぎます
    * @default 'dash'
    */
-  marker?: NonNullable<VariantProps<typeof list>['marker']>;
+  markerType?: ListMarkerType;
   /**
    * チェックリストで、済んだ項目の文の色。subtle は薄いグレー、default は本文と同じ色です
    * @default 'subtle'
    */
-  checkedTone?: NonNullable<VariantProps<typeof list>['checkedTone']>;
+  checkedVariant?: ListCheckedVariant;
   /** 番号付き（ol）の最初の番号 */
   start?: number;
   /**
@@ -56,6 +63,10 @@ export interface ListProps extends Omit<ComponentProps<'ul'>, 'ref'> {
    * @default false
    */
   task?: boolean;
+  /** 項目（ListItem）を並べます */
+  children?: ReactNode;
+  /** 一覧の要素（ul・ol）に付きます */
+  className?: string;
 }
 
 /**
@@ -65,15 +76,15 @@ export function List({
   as = 'ul',
   start,
   task = false,
-  marker,
-  checkedTone,
+  markerType,
+  checkedVariant,
   className,
   ...props
 }: ListProps) {
   const classes = list({
     as,
-    marker,
-    checkedTone,
+    markerType,
+    checkedVariant,
     className: [task ? 'contains-task-list' : '', className ?? ''].join(' ').trim(),
   });
   if (as === 'ol') {
@@ -87,7 +98,10 @@ export interface ListItemProps extends ComponentProps<'li'> {
    * チェックリストの項目にします。true は済み、false はまだです。箱は押せません（記事の中の表示です）
    */
   checked?: boolean;
+  /** 項目の文。入れ子のリストは、この中に List を置きます */
   children?: ReactNode;
+  /** 項目の要素（li）に付きます */
+  className?: string;
 }
 
 /**

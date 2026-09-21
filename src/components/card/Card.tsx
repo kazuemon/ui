@@ -44,7 +44,7 @@ const styles = tv({
     ],
   },
   variants: {
-    appearance: {
+    variant: {
       default: { root: '[--card-body-padding:var(--card-padding)]' },
       nested: {
         root: [
@@ -69,21 +69,21 @@ const styles = tv({
   },
   compoundVariants: [
     // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
-    { appearance: 'default', interactive: true, class: { root: 'p-0' } },
+    { variant: 'default', interactive: true, class: { root: 'p-0' } },
   ],
-  defaultVariants: { appearance: 'default', interactive: false },
+  defaultVariants: { variant: 'default', interactive: false },
 });
 
-export type CardAppearance = 'default' | 'nested';
+export type CardVariant = 'default' | 'nested';
 
-const CardContext = createContext<CardAppearance>('default');
+const CardContext = createContext<CardVariant>('default');
 
 export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
   /**
    * 型。default は画像をカードの端まで届かせ、nested は画像をカードの内側に収めます
    * @default 'default'
    */
-  appearance?: CardAppearance;
+  variant?: CardVariant;
   /** 渡すと、カード全体が 1 つのリンクになります。一覧（記事・作品）のカードに使います */
   href?: string;
   /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
@@ -100,13 +100,17 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
    * article・li などにするときも使います
    */
   render?: ReactElement;
+  /** カードの中身。CardImage と CardBody を並べます */
+  children?: ReactNode;
+  /** いちばん外の要素（href を渡したときは a）に付きます */
+  className?: string;
 }
 
 /**
  * 画像と文をまとめて見せる面。href を渡すと、カード全体が 1 つのリンクになります
  */
 export function Card({
-  appearance = 'default',
+  variant = 'default',
   href,
   target,
   rel,
@@ -120,7 +124,7 @@ export function Card({
   const newTab = target === '_blank' || opensNewTab(render);
   const noteId = useId();
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
-  const s = styles({ appearance, interactive });
+  const s = styles({ variant, interactive });
   const element = useRender({
     render,
     defaultTagName: href != null ? 'a' : 'div',
@@ -129,7 +133,7 @@ export function Card({
       ...(href != null && { href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel }),
       ...naming?.props,
       'data-slot': 'card',
-      'data-appearance': appearance,
+      'data-variant': variant,
       'data-interactive': interactive || undefined,
       'data-image-zoom': (interactive && imageZoom) || undefined,
       className: s.root({ className }),
@@ -141,11 +145,14 @@ export function Card({
       ),
     },
   });
-  return <CardContext value={appearance}>{element}</CardContext>;
+  return <CardContext value={variant}>{element}</CardContext>;
 }
 
 export interface CardBodyProps extends ComponentProps<'div'> {
+  /** カードの文。見出し・本文・操作を縦に並べます */
   children?: ReactNode;
+  /** 文の部分の要素（div）に付きます */
+  className?: string;
 }
 
 /**
@@ -155,7 +162,7 @@ export function CardBody({ className, ...props }: CardBodyProps) {
   return <div data-slot="card-body" className={styles().body({ className })} {...props} />;
 }
 
-export type CardImageProps = Omit<ImageProps, 'radius' | 'outline'>;
+export type CardImageProps = Omit<ImageProps, 'radius' | 'hideOutline'>;
 
 /**
  * カードの画像。比率はカードで共通の 16:9 で、はみ出た分を切ります。角はカードの型に合わせます
@@ -163,21 +170,24 @@ export type CardImageProps = Omit<ImageProps, 'radius' | 'outline'>;
 export function CardImage({
   ratio = 'var(--card-media-aspect)',
   className,
-  frameClassName,
+  frameProps,
   ...props
 }: CardImageProps) {
-  const appearance = useContext(CardContext);
-  const nested = appearance === 'nested';
+  const variant = useContext(CardContext);
+  const nested = variant === 'nested';
   return (
     <Image
       ratio={ratio}
       radius={nested ? 'nested' : 'none'}
       // 端まで届かせるときは、カードの輪郭がそのまま画像の縁になる
-      outline={nested}
+      hideOutline={!nested}
       className={styles().image({ className })}
-      // hover で大きくした画像を、枠の角で切る（入れ子の型の同心の角を保つ）
-      frameClassName={['rounded-(--image-radius)', frameClassName].filter(Boolean).join(' ')}
       {...props}
+      // hover で大きくした画像を、枠の角で切る（入れ子の型の同心の角を保つ）
+      frameProps={{
+        ...frameProps,
+        className: ['rounded-(--image-radius)', frameProps?.className].filter(Boolean).join(' '),
+      }}
     />
   );
 }

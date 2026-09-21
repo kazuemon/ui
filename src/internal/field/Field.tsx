@@ -34,7 +34,7 @@ export function FieldSpinner({ className }: { className?: string }) {
 
 /**
  * 成功のとき欄の右端に置くチェック（ADR-0058 の C）。回る円と同じ場所に置く
- * 出すかどうかは、部品の successMark で決める。読み上げは下の成功の行が担うので、読ませない
+ * 出すかどうかは、部品の hideSuccessMark で決める。読み上げは下の成功の行が担うので、読ませない
  */
 export function FieldSuccessMark({ className }: { className?: string }) {
   return (

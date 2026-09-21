@@ -3,7 +3,8 @@ import { Code } from '../components/code/Code';
 import { Heading } from '../components/heading/Heading';
 import { Kbd } from '../components/kbd/Kbd';
 import { Link } from '../components/link/Link';
-import { Callout, type CalloutAppearance } from '../components/callout/Callout';
+import { Callout } from '../components/callout/Callout';
+import type { NoticeVariant } from '../internal/notice-surface/notice-surface';
 import { Tag } from '../components/tag/Tag';
 import { Text } from '../components/text/Text';
 
@@ -25,10 +26,10 @@ export const QuotesIcon = () => (
 );
 
 /** 記事の中の囲みの見た目。soft-no-icon は soft からアイコンを外した形 */
-export type CalloutStyle = CalloutAppearance | 'soft-no-icon';
+export type CalloutStyle = NoticeVariant | 'soft-no-icon';
 
 export interface ArticleOptions {
-  blockquote?: Pick<BlockquoteProps, 'appearance' | 'color'> & { icon?: boolean };
+  blockquote?: Pick<BlockquoteProps, 'variant' | 'color'> & { icon?: boolean };
   callout?: CalloutStyle;
 }
 
@@ -39,7 +40,7 @@ export const ArticleScreen = ({
   full = false,
 }: ArticleOptions & { full?: boolean }) => (
   <article className="flex flex-col">
-    <Text size="sm" tone="subtle">
+    <Text size="sm" variant="subtle">
       2026年9月17日・Design
     </Text>
     <Heading level={1} className="mt-1">
@@ -66,7 +67,7 @@ export const ArticleScreen = ({
       <>
         <Blockquote
           className="mt-5"
-          appearance={blockquote.appearance}
+          variant={blockquote.variant}
           color={blockquote.color}
           icon={blockquote.icon ? <QuotesIcon /> : undefined}
           source="— @kazuemon/ui の README"
@@ -75,9 +76,9 @@ export const ArticleScreen = ({
           ライブラリがつくりたい。
         </Blockquote>
         <Callout
-          appearance={callout === 'soft-no-icon' ? 'soft' : callout}
+          variant={callout === 'soft-no-icon' ? 'soft' : callout}
           icon={callout === 'soft-no-icon' ? false : undefined}
-          color="info"
+          status="info"
           title="補足"
           className="mt-5"
         >
@@ -95,9 +96,9 @@ export const ArticleScreen = ({
     {full && (
       <>
         <Callout
-          appearance={callout === 'soft-no-icon' ? 'soft' : callout}
+          variant={callout === 'soft-no-icon' ? 'soft' : callout}
           icon={callout === 'soft-no-icon' ? false : undefined}
-          color="warning"
+          status="warning"
           title="注意"
           className="mt-5"
         >
@@ -115,16 +116,15 @@ export const ArticleScreen = ({
     <Text className="mt-2">Select は、画面の下から出る Bottom Sheet になります。</Text>
     {full && (
       <Callout
-        appearance={callout === 'soft-no-icon' ? 'soft' : callout}
+        variant={callout === 'soft-no-icon' ? 'soft' : callout}
         icon={callout === 'soft-no-icon' ? false : undefined}
-        color="neutral"
         title="メモ"
         className="mt-5"
       >
         タブレットとマウスでは、浮かぶ選択肢のままです。
       </Callout>
     )}
-    <Text size="sm" tone="subtle" className="mt-3">
+    <Text size="sm" variant="subtle" className="mt-3">
       ※ 画面の幅ではなく、入力方式で判定します。
     </Text>
   </article>

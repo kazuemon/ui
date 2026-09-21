@@ -16,19 +16,19 @@ const meta = {
           '記事の中の箇条書き・番号付きリスト・チェックリストです。Markdown を変換した HTML と同じ要素（`ul`・`ol`・`li`、チェックリストは `li.task-list-item` の中の押せない `input`）を出します。',
           '',
           '- `as` は `ul`（既定、箇条書き）と `ol`（番号付き）です。`start` で最初の番号を決めます。',
-          '- `marker` は箇条書きの印です。`dash`（既定）は薄いグレーの短い線、`dot` は濃紺の丸です。入れ子のリストは外側の印を引き継ぎます。',
+          '- `markerType` は箇条書きの印です。`dash`（既定）は薄いグレーの短い線、`dot` は濃紺の丸です。入れ子のリストは外側の印を引き継ぎます。',
           '- 番号は薄いグレーで右揃えです。10 以上の番号でも「.」の位置がそろいます。',
           '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
-          '- `checkedTone` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
+          '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
         ].join('\n'),
       },
     },
   },
-  args: { as: 'ul', marker: 'dash' },
+  args: { as: 'ul', markerType: 'dash' },
   argTypes: {
     as: { control: 'inline-radio', options: ['ul', 'ol'] },
-    marker: { control: 'inline-radio', options: ['dash', 'dot'] },
-    checkedTone: { control: 'inline-radio', options: ['subtle', 'default'] },
+    markerType: { control: 'inline-radio', options: ['dash', 'dot'] },
+    checkedVariant: { control: 'inline-radio', options: ['subtle', 'default'] },
   },
   render: (args) => (
     <div data-reading className="max-w-xl">
@@ -50,8 +50,8 @@ export const Playground: Story = {
   name: '基本',
 };
 
-const Nested = ({ marker }: { marker?: 'dash' | 'dot' }) => (
-  <List marker={marker}>
+const Nested = ({ markerType }: { markerType?: 'dash' | 'dot' }) => (
+  <List markerType={markerType}>
     <ListItem>エディタ</ListItem>
     <ListItem>
       下書きを置く場所。Markdown で書いて、あとから探しやすくまとめます。
@@ -74,7 +74,7 @@ export const Kinds: Story = {
           <Nested />
         </Specimen>
         <Specimen label="箇条書き（dot）">
-          <Nested marker="dot" />
+          <Nested markerType="dot" />
         </Specimen>
         <Specimen label="番号付き（start=9）">
           <List as="ol" start={9}>
@@ -83,13 +83,13 @@ export const Kinds: Story = {
             <ListItem>公開する</ListItem>
           </List>
         </Specimen>
-        <Specimen label="チェックリスト（checkedTone）">
+        <Specimen label="チェックリスト（checkedVariant）">
           <div className="flex flex-col gap-4">
             <List task>
               <ListItem checked>本文を書く（subtle）</ListItem>
               <ListItem checked={false}>OGP の画像を作る</ListItem>
             </List>
-            <List task checkedTone="default">
+            <List task checkedVariant="default">
               <ListItem checked>本文を書く（default）</ListItem>
               <ListItem checked={false}>OGP の画像を作る</ListItem>
             </List>

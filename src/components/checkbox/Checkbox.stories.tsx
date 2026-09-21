@@ -22,8 +22,8 @@ const meta = {
         component: [
           'チェックボックスです。箱と横の文字（とキャプション）を並べます。横の文字を押しても切り替わります。',
           '',
-          '- 1つだけ置くとき（同意など）はそのまま置きます。`error`・`warning` を渡すと、箱の行の下に入力欄と同じ行で出します。`required` で必須にすると、横の文字の後ろに印（既定は「必須」のタグ）が出て、箱に aria-required が付きます。印は読み上げから外れます。',
-          '- 複数を1つの問いにまとめるときは、`CheckboxGroup` の中に `value` 付きで置きます。エラー・警告はグループに渡します。',
+          '- 1つだけ置くとき（同意など）はそのまま置きます。`errorText`・`warningText`・`infoText` を渡すと、箱の行の下に入力欄と同じ行で出します。`required` で必須にすると、横の文字の後ろに印（既定は「必須」のタグ）が出て、箱に aria-required が付きます。印は読み上げから外れます。',
+          '- 複数を1つの問いにまとめるときは、`CheckboxGroup` の中に `value` 付きで置きます。エラー・警告・情報はグループに渡します。',
           '- 「すべて選ぶ」の箱は、`CheckboxGroup` の `selectAll` と `allValues` で付けます。選んだ数に合わせて、箱が自分で選んだ状態・中間の状態に切り替わります。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。選んでいない箱は、色にかかわらず入力欄と同じグレーです。',
           '- グループの必須は、`caption` の文で書きます。',
@@ -48,8 +48,9 @@ const meta = {
   argTypes: {
     label: { control: 'text' },
     caption: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    infoText: { control: 'text' },
     color: {
       control: 'inline-radio',
       options: colors,
@@ -167,7 +168,7 @@ function ConsentForm() {
           setAgreed(checked);
           if (checked) setError(undefined);
         }}
-        error={error}
+        errorText={error}
       />
       <Button type="submit" color="primary" className="self-start">
         登録する
@@ -184,7 +185,7 @@ export const Consent: Story = {
     docs: {
       description: {
         story:
-          '同意のように1つだけ置く箱は、`required` で必須にし（横の文字の後ろに印が出て、箱に aria-required が付きます）、`error` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。「登録する」を押して確かめてください。',
+          '同意のように1つだけ置く箱は、`required` で必須にし（横の文字の後ろに印が出て、箱に aria-required が付きます）、`errorText` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。「登録する」を押して確かめてください。',
       },
       source: sourceCode(`
         function ConsentForm() {
@@ -205,7 +206,7 @@ export const Consent: Story = {
                   setAgreed(checked);
                   if (checked) setError(undefined);
                 }}
-                error={error}
+                errorText={error}
               />
               <Button type="submit" color="primary" className="self-start">
                 登録する
@@ -251,8 +252,8 @@ export const Messages: Story = {
   },
   render: () => (
     <div className="flex max-w-sm flex-col gap-5">
-      <Checkbox label="利用規約に同意する" required error="利用規約に同意してください" />
-      <Checkbox label="お知らせのメールを受け取る" defaultChecked warning="週に数回届きます" />
+      <Checkbox label="利用規約に同意する" required errorText="利用規約に同意してください" />
+      <Checkbox label="お知らせのメールを受け取る" defaultChecked warningText="週に数回届きます" />
     </div>
   ),
 };

@@ -25,7 +25,7 @@ import { tv } from '../../internal/tv';
 //   値の文字は出さない。読み上げの値の文（aria-valuetext）も付けない（Base UI の英語の既定を出さない）
 // 記事の読了のバー（Affix で上端に留める使い方）向けに、Progress だけが持つもの
 //   size="xs": 2px。送信中の流れる線と同じ細さ。Meter は範囲の色を見せるので、この細さは持たない
-//   track: 地を敷くか。地を消すと、読んだ分だけの線になる。Meter は範囲の中の位置を見せるので、地はいつも敷く
+//   hideTrack: 地を消すと、読んだ分だけの線になる。Meter は範囲の中の位置を見せるので、地はいつも敷く
 //   shape="square": 端を丸めない。画面の端に接する線なので、丸い端が浮いて見えないようにする。ふだんのバーは pill のまま
 const progress = tv({
   extend: barStyles,
@@ -62,11 +62,11 @@ const progress = tv({
       },
     },
     shape: {
-      round: {},
+      circle: {},
       square: { track: 'rounded-none', indicator: 'rounded-none' },
     },
   },
-  defaultVariants: { track: true, animation: 'sweep', shape: 'round' },
+  defaultVariants: { track: true, animation: 'sweep', shape: 'circle' },
 });
 
 /** Progress の太さ。xs は読了のバー向けのいちばん細い線です */
@@ -76,7 +76,7 @@ export type ProgressSize = 'xs' | BarSize;
 export type ProgressAnimation = 'sweep' | 'shuttle' | 'stripes';
 
 /** バーの端の形。square は読了のバーのための、端を丸めない形です */
-export type ProgressShape = 'round' | 'square';
+export type ProgressShape = 'circle' | 'square';
 
 export interface ProgressProps extends Omit<
   ComponentProps<'div'>,
@@ -102,10 +102,11 @@ export interface ProgressProps extends Omit<
   /** バーの下に置く補足（「残り 3 ファイル」など） */
   caption?: ReactNode;
   /**
-   * 値の文字をラベルの行の右端に出すか。終わりが分からないとき（value が null）は出しません
-   * @default true
+   * 値の文字を出さなくします。値の文字は、ふだんラベルの行の右端に出ます
+   * （終わりが分からないとき（value が null）は、はじめから出ません）
+   * @default false
    */
-  showValue?: boolean;
+  hideValue?: boolean;
   /**
    * 値の文字を作る関数。見えている文字と読み上げの文の両方に使います（例: (_, v) => `${v} / 12 ファイル`）。
    * 渡さないときは、format で整えた値（format もなければ割合の「45%」）です
@@ -136,17 +137,19 @@ export interface ProgressProps extends Omit<
    */
   animation?: ProgressAnimation;
   /**
-   * バーの端の形。round は丸い端です。square は端を丸めない形で、記事の上端に留める読了のバーのような、
+   * バーの端の形。circle は丸い端です。square は端を丸めない形で、記事の上端に留める読了のバーのような、
    * 画面の端に接する線でだけ使います
-   * @default 'round'
+   * @default 'circle'
    */
   shape?: ProgressShape;
   /**
-   * 地（まだ進んでいない分のグレー）を敷くか。false にすると、進んだ分だけの線になります。
+   * 地（まだ進んでいない分のグレー）を消します。消すと、進んだ分だけの線になります。
    * 記事の上端に留める読了のバーを軽く見せたいときに使います
-   * @default true
+   * @default false
    */
-  track?: boolean;
+  hideTrack?: boolean;
+  /** いちばん外の要素に付きます */
+  className?: string;
 }
 
 /**
@@ -158,20 +161,20 @@ export function Progress({
   max = 100,
   label,
   caption,
-  showValue = true,
+  hideValue = false,
   getValueText,
   format,
   locale,
   color,
   size,
-  track = true,
+  hideTrack = false,
   animation,
   shape,
   className,
   'aria-describedby': describedByProp,
   ...props
 }: ProgressProps) {
-  const styles = progress({ color, size, track, animation, shape });
+  const styles = progress({ color, size, track: !hideTrack, animation, shape });
   const captionId = `${useId()}caption`;
   const indeterminate = value === null || !Number.isFinite(value);
   return (
@@ -194,7 +197,7 @@ export function Progress({
       {...props}
     >
       {label ? <BaseProgress.Label className={styles.label()}>{label}</BaseProgress.Label> : null}
-      {showValue && !indeterminate ? (
+      {!hideValue && !indeterminate ? (
         <BaseProgress.Value className={styles.value()}>
           {getValueText
             ? (formatted, raw) => (raw === null ? '' : getValueText(formatted ?? '', raw))

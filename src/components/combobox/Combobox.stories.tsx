@@ -4,11 +4,13 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Combobox, type ComboboxGroup, type ComboboxItem, type ComboboxProps } from './Combobox';
+import type { ListboxGroup } from '../../internal/listbox/listbox-items';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import { Combobox, type ComboboxProps } from './Combobox';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
 
-const wards: ComboboxItem[] = [
+const wards: ListboxItem[] = [
   '千代田区',
   '中央区',
   '港区',
@@ -34,7 +36,7 @@ const wards: ComboboxItem[] = [
   '江戸川区',
 ].map((label, i) => ({ label, value: `ward-${i + 1}` }));
 
-const areas: ComboboxItem[] = [
+const areas: ListboxItem[] = [
   { label: '千代田区', value: 'chiyoda' },
   { label: '中央区', value: 'chuo' },
   { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
@@ -47,7 +49,7 @@ const areas: ComboboxItem[] = [
   { label: '港区', value: 'minato' },
 ];
 
-const skills: ComboboxItem[] = [
+const skills: ListboxItem[] = [
   { label: 'デザイン', value: 'design' },
   { label: 'フロントエンド', value: 'frontend' },
   { label: 'バックエンド', value: 'backend' },
@@ -56,7 +58,7 @@ const skills: ComboboxItem[] = [
   { label: 'ライティング', value: 'writing' },
 ];
 
-const prefectures: ComboboxGroup[] = [
+const prefectures: ListboxGroup[] = [
   {
     label: '関東',
     items: [
@@ -90,7 +92,7 @@ const prefectures: ComboboxGroup[] = [
 ];
 
 // Show code に出す選択肢の並び（先頭の数件だけ）
-const wardsSource = `const wards: ComboboxItem[] = [
+const wardsSource = `const wards: ListboxItem[] = [
   { label: '千代田区', value: 'ward-1' },
   { label: '中央区', value: 'ward-2' },
   { label: '港区', value: 'ward-3' },
@@ -136,6 +138,7 @@ const meta = {
           '- 選択肢を読み込んでいるあいだは `loading` を付けます。読み込んでいるあいだに開くと、読み上げで `loadingText` を知らせ、開いたまま読み込みが終わると選択肢の数（`loadedText`）を知らせます。',
           '- 絞り込みを外でするときは、`onInputValueChange` で打った文字を受け取り、`filteredItems` に結果を渡します。`filter` に `null` を渡すと、部品の中では絞り込みません。',
           '- `readOnly` にすると、文字を打つ欄の読み取り専用と同じ見た目になります。フォーカスでき、値をなぞって写せますが、選択肢は開かず値も変わりません。フォームでは値が送られます。',
+          '- 浮かぶ選択肢そのものに props を足すときは `popupProps`、位置の決め方（画面の端での逃がし方など）は `positionerProps`、打つ欄には `inputProps` を渡します。外を押して閉じるかは `dismissible`、Esc で閉じるかは `closeOnEscape` です。',
           '',
           '「開いた状態」などのストーリーは、ストーリーの画面では開いて表示します。このページでは閉じているので、欄を押して開いてください。',
         ].join('\n'),
@@ -157,8 +160,8 @@ const meta = {
     openOnInputClick: true,
     autoHighlight: false,
     groupLabelStyle: 'label',
-    groupSeparator: false,
-    disabledIcon: 'show',
+    showGroupSeparator: false,
+    hideCaretOnDisabled: false,
     popoverMoreCue: 'shadow',
     popoverMaxHeight: 'screen',
     loading: false,
@@ -180,24 +183,24 @@ const meta = {
     },
     placeholder: { control: 'text' },
     emptyText: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    success: { control: 'text' },
-    successMark: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    successText: { control: 'text' },
+    hideSuccessMark: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    infoText: { control: 'text' },
     color: { control: 'inline-radio', options: ['primary', 'secondary', 'neutral'] },
     multiple: { control: 'boolean' },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
     clearable: { control: 'boolean' },
-    clearLabel: { control: 'text' },
-    chipsLabel: { control: 'text' },
-    chipRemoveLabel: { control: false },
+    clearName: { control: 'text' },
+    chipsName: { control: 'text' },
+    chipRemoveName: { control: false },
     openOnInputClick: { control: 'boolean' },
     autoHighlight: { control: 'boolean' },
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
-    groupSeparator: { control: 'boolean' },
-    disabledIcon: { control: 'inline-radio', options: ['show', 'hide'] },
+    showGroupSeparator: { control: 'boolean' },
+    hideCaretOnDisabled: { control: 'boolean' },
     popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
@@ -215,8 +218,10 @@ const meta = {
     defaultInputValue: { control: false },
     open: { control: false },
     defaultOpen: { control: false },
-    container: { control: false },
-    collisionAvoidance: { control: false },
+    portalContainer: { control: false },
+    positionerProps: { control: false },
+    popupProps: { control: false },
+    inputProps: { control: false },
   },
 } satisfies Meta<typeof Combobox>;
 
@@ -339,14 +344,14 @@ export const Grouped: Story = {
     emptyText: '当てはまる都道府県がありません',
   },
   parameters: {
-    controls: { include: ['groupLabelStyle', 'groupSeparator'] },
+    controls: { include: ['groupLabelStyle', 'showGroupSeparator'] },
     docs: {
       description: {
         story:
-          '`items` に `label` と `items` を持つまとまりの並びを渡すと、見出し付きのまとまりに分かれます。絞り込んだときは、当たる選択肢を持つまとまりだけが残ります。見出しの文字は `groupLabelStyle`、まとまりのあいだの区切り線は `groupSeparator` で選びます。',
+          '`items` に `label` と `items` を持つまとまりの並びを渡すと、見出し付きのまとまりに分かれます。絞り込んだときは、当たる選択肢を持つまとまりだけが残ります。見出しの文字は `groupLabelStyle`、まとまりのあいだの区切り線は `showGroupSeparator` で選びます。',
       },
       source: sourceCode(`
-        const prefectures: ComboboxGroup[] = [
+        const prefectures: ListboxGroup[] = [
           { label: '関東', items: [{ label: '東京都', value: 'tokyo' }, { label: '神奈川県', value: 'kanagawa' }] },
           { label: '近畿', items: [{ label: '大阪府', value: 'osaka' }, { label: '京都府', value: 'kyoto' }] },
         ];
@@ -359,11 +364,11 @@ export const Grouped: Story = {
     <PopoverFrame>
       {(container) => (
         <Combobox
-          key={`${args.groupLabelStyle}-${String(args.groupSeparator)}`}
+          key={`${args.groupLabelStyle}-${String(args.showGroupSeparator)}`}
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -416,8 +421,8 @@ export const Open: Story = {
           key={`${args.popoverMaxHeight}-${args.popoverMoreCue}-${args.color}`}
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -433,10 +438,10 @@ export const ItemNotes: Story = {
     docs: {
       description: {
         story:
-          '`disabled` の選択肢は押せない文字の色になり、押しても選ばれません。`note` の `reason` は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある選択肢だけ高くなります。',
+          '`disabled` の選択肢は押せない文字の色になり、押しても選ばれません。`note` の `description`（ただの説明）と `reason`（選べない理由）は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある選択肢だけ高くなります。',
       },
       source: sourceCode(`
-        const areas: ComboboxItem[] = [
+        const areas: ListboxItem[] = [
           { label: '千代田区', value: 'chiyoda' },
           { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
           { label: '八王子市', value: 'hachioji', disabled: true, note: { kind: 'reason', text: 'お届けできません' } },
@@ -452,8 +457,8 @@ export const ItemNotes: Story = {
         <Combobox
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -490,8 +495,8 @@ export const Empty: Story = {
         <Combobox
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -516,22 +521,22 @@ export const Messages: Story = {
       <Specimen label="caption（下）">
         <Combobox {...args} caption="お届けは23区内だけです" captionPlacement="bottom" />
       </Specimen>
-      <Specimen label="error">
-        <Combobox {...args} caption="お届けは23区内だけです" error="市区町村を選んでください" />
+      <Specimen label="errorText">
+        <Combobox {...args} caption="お届けは23区内だけです" errorText="市区町村を選んでください" />
       </Specimen>
-      <Specimen label="warning">
+      <Specimen label="warningText">
         <Combobox
           {...args}
           caption="お届けは23区内だけです"
           defaultValue="arakawa"
-          warning="荒川区は、お届けが翌日になります"
+          warningText="荒川区は、お届けが翌日になります"
         />
       </Specimen>
-      <Specimen label="success">
-        <Combobox {...args} defaultValue="chiyoda" success="この住所にお届けできます" />
+      <Specimen label="successText">
+        <Combobox {...args} defaultValue="chiyoda" successText="この住所にお届けできます" />
       </Specimen>
-      <Specimen label="info">
-        <Combobox {...args} defaultValue="chiyoda" info="前回と同じ住所を選んでいます" />
+      <Specimen label="infoText">
+        <Combobox {...args} defaultValue="chiyoda" infoText="前回と同じ住所を選んでいます" />
       </Specimen>
     </Gallery>
   ),
@@ -541,11 +546,11 @@ export const Disabled: Story = {
   tags: ['visual'],
   name: '押せない',
   parameters: {
-    controls: { exclude: ['disabled', 'disabledIcon'] },
+    controls: { exclude: ['disabled', 'hideCaretOnDisabled'] },
     docs: {
       description: {
         story:
-          '選んだ値は押せない文字の色になり、プレースホルダの文はふだんの色のままです。消すボタンも押せなくなります。▼ は `disabledIcon="hide"` で隠せます。',
+          '選んだ値は押せない文字の色になり、プレースホルダの文はふだんの色のままです。消すボタンも押せなくなります。▼ は `hideCaretOnDisabled` で隠せます。',
       },
     },
   },
@@ -657,8 +662,8 @@ export const Loading: Story = {
               {...args}
               items={wards.slice(0, 4)}
               defaultOpen={openOnLoad(viewMode)}
-              container={container}
-              collisionAvoidance={{ side: 'none', align: 'none' }}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
             />
           )}
         </PopoverFrame>
@@ -669,7 +674,7 @@ export const Loading: Story = {
 
 // はじめて開いたときに選択肢を読み込み、1.5 秒で終わる
 function LoadOnOpenCombobox({ onOpenChange, ...props }: Omit<ComboboxProps, 'items' | 'loading'>) {
-  const [items, setItems] = useState<ComboboxItem[]>([]);
+  const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
     <Combobox
@@ -713,7 +718,7 @@ export const LoadOnOpen: Story = {
       source: sourceCode(`
         // はじめて開いたときに選択肢を読み込む
         function AreaCombobox() {
-          const [items, setItems] = useState<ComboboxItem[]>([]);
+          const [items, setItems] = useState<ListboxItem[]>([]);
           const [loading, setLoading] = useState(false);
           return (
             <Combobox
@@ -742,8 +747,8 @@ export const LoadOnOpen: Story = {
       {(container) => (
         <LoadOnOpenCombobox
           {...args}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -767,7 +772,7 @@ export const LoadOnOpen: Story = {
 
 // 打った文字を外に渡し、返ってきた結果を filteredItems で出す（絞り込みを外でする）
 function AsyncCombobox(props: Omit<ComboboxProps, 'items' | 'loading' | 'filteredItems'>) {
-  const [results, setResults] = useState<ComboboxItem[]>([]);
+  const [results, setResults] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
     <Combobox
@@ -811,7 +816,7 @@ export const AsyncFilter: Story = {
       },
       source: sourceCode(`
         function WardCombobox() {
-          const [results, setResults] = useState<ComboboxItem[]>([]);
+          const [results, setResults] = useState<ListboxItem[]>([]);
           const [loading, setLoading] = useState(false);
           return (
             <Combobox
@@ -847,8 +852,8 @@ export const AsyncFilter: Story = {
       {(container) => (
         <AsyncCombobox
           {...args}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>

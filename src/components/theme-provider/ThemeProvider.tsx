@@ -18,7 +18,8 @@ export interface ThemeProviderProps {
    */
   presentation?: OverlayPresentation;
   /**
-   * 浮かぶ部分（選択肢・Dialog・Popover・Tooltip・Drawer）と Portal を描く場所の既定。部品の container を書いたときは、そちらが勝ちます
+   * 浮かぶ部分（選択肢・Dialog・Popover・Tooltip・Drawer）と Portal を描く場所の既定。
+   * 部品の portalContainer（Portal は container）を書いたときは、そちらが勝ちます
    * @default document.body
    */
   portalContainer?: HTMLElement | null;
@@ -49,6 +50,7 @@ export interface ThemeProviderProps {
    * @default 'none'
    */
   optionalMark?: OptionalMark;
+  /** 既定をまとめて渡す範囲。ふつうはアプリ全体を入れます */
   children?: ReactNode;
 }
 

@@ -12,8 +12,9 @@ import {
 } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { tv } from '../../internal/tv';
-import { CheckboxBase } from './Checkbox';
+import { Checkbox } from './Checkbox';
 
 /** 「すべて選ぶ」のグループの枠の形。CheckboxGroup の selectAllFrame */
 export type ChoiceFrame = 'none' | 'options' | 'notched' | 'all';
@@ -91,8 +92,8 @@ type SelectAllProps =
     };
 
 export type CheckboxGroupProps = Omit<
-  ComponentProps<typeof BaseCheckboxGroup>,
-  'className' | 'render' | 'color' | 'allValues' | 'aria-required'
+  ComponentProps<'div'>,
+  'className' | 'color' | 'defaultValue' | 'onChange' | 'children' | 'aria-required'
 > &
   SelectAllProps &
   FieldMarkProps & {
@@ -117,9 +118,22 @@ export type CheckboxGroupProps = Omit<
      */
     captionPlacement?: CaptionPlacement;
     /** エラーの内容。選択肢の下に丸の「!」と赤い文字で出し、選んでいない箱の塗りを淡い赤にします。押せない箱は、押せない色のままです */
-    error?: ReactNode;
+    errorText?: FieldMessage;
     /** 警告の内容。選択肢の下に三角とオリーブ色の文字で出します。箱の見た目は変えません */
-    warning?: ReactNode;
+    warningText?: FieldMessage;
+    /** 情報の内容。選択肢の下に丸の「i」と青い文字で出します。箱の見た目は変えません */
+    infoText?: FieldMessage;
+    /** 選んだ値の並び（制御） */
+    value?: string[];
+    /** はじめに選んでいる値の並び（非制御） */
+    defaultValue?: string[];
+    /** 選び方が変わるときに、次の値を渡して呼びます */
+    onValueChange?: (value: string[]) => void;
+    /**
+     * グループごと押せない（Disabled）状態にします。中の箱がすべてグレーになります
+     * @default false
+     */
+    disabled?: boolean;
     /**
      * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
      * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
@@ -133,7 +147,9 @@ export type CheckboxGroupProps = Omit<
      * @default 'neutral'
      */
     color?: ChoiceColor;
+    /** グループの外枠（見出し・選択肢・下の行をまとめた縦の並び）に付きます */
     className?: string;
+    /** 中に置く選択肢。Checkbox を value 付きで並べます */
     children: ReactNode;
   };
 
@@ -148,8 +164,12 @@ export function CheckboxGroup({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
+  errorText,
+  warningText,
+  infoText,
+  value,
+  defaultValue,
+  onValueChange,
   disabled,
   readOnly,
   color,
@@ -173,8 +193,9 @@ export function CheckboxGroup({
         label={label}
         caption={caption}
         captionPlacement={captionPlacement}
-        error={error}
-        warning={warning}
+        error={errorText}
+        warning={warningText}
+        info={infoText}
         disabled={disabled}
         required={required}
         requiredMark={requiredMark}
@@ -189,6 +210,9 @@ export function CheckboxGroup({
         {(describedBy) => (
           <BaseCheckboxGroup
             {...props}
+            value={value}
+            defaultValue={defaultValue}
+            onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
             allValues={withSelectAll ? allValues : undefined}
             disabled={disabled}
             aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
@@ -225,7 +249,7 @@ function SelectAllItems({
     case 'options':
       return (
         <>
-          <CheckboxBase parent label={selectAll} />
+          <Checkbox parent label={selectAll} />
           <div data-choice-frame="" className={f.box()}>
             {children}
           </div>
@@ -234,21 +258,21 @@ function SelectAllItems({
     case 'all':
       return (
         <div data-choice-frame="" className={f.box()}>
-          <CheckboxBase parent label={selectAll} />
+          <Checkbox parent label={selectAll} />
           {indented}
         </div>
       );
     case 'notched':
       return (
         <div data-choice-frame="" className={f.notched()}>
-          <CheckboxBase parent label={selectAll} className={f.legend()} />
+          <Checkbox parent label={selectAll} className={f.legend()} />
           <div className={f.body()}>{children}</div>
         </div>
       );
     default:
       return (
         <>
-          <CheckboxBase parent label={selectAll} />
+          <Checkbox parent label={selectAll} />
           {indented}
         </>
       );

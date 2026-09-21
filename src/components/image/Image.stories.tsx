@@ -39,18 +39,18 @@ const meta = {
           '- `src` を書かずにおくと、読み込み中の面を出します。画像の URL をまだ読み込んでいるあいだに使います。',
           '- 読み込みに失敗したときは、面の上に破れた画像のアイコンと「読み込みに失敗しました」を出します。文は `errorText` で変えられます。',
           '- `radius` は角です。`card`（既定）はカードの角、`nested` は入れ子のカードの内側の角、`none` はカードの端まで届かせる画像です。',
-          '- `outline`（既定は `true`）で細い輪郭を付けます。白っぽい画像が白地に溶けないようにするためです。',
+          '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。外すときは `hideOutline` を渡します。',
           '- Next.js の `Image` は `render` に渡します。',
         ].join('\n'),
       },
     },
   },
-  args: { src: landscape, alt: '空と山の絵', outline: true, radius: 'card' },
+  args: { src: landscape, alt: '空と山の絵', radius: 'card' },
   argTypes: {
     src: { control: false },
     ratio: { control: 'inline-radio', options: [undefined, '16 / 9', '4 / 3', '1'] },
     radius: { control: 'inline-radio', options: ['card', 'nested', 'none'] },
-    outline: { control: 'boolean' },
+    hideOutline: { control: 'boolean' },
   },
 } satisfies Meta<typeof Image>;
 
@@ -154,7 +154,7 @@ export const InCards: Story = {
             <Heading level={3} size={4}>
               {radius === 'none' ? '標準の型' : '入れ子の型'}
             </Heading>
-            <Text size="sm" tone="subtle">
+            <Text size="sm" variant="subtle">
               2026.09.18
             </Text>
             <div className="flex gap-1">

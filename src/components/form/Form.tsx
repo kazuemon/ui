@@ -37,9 +37,9 @@ export interface FormProps extends ComponentProps<'form'> {
    * true: フォームの上にエラーの一覧（危険のお知らせ。題と、各欄へのリンク「欄の名前: エラーの文」）を出し、一覧へフォーカスを移す。長いフォーム向け
    * @default false
    */
-  errorSummary?: boolean;
+  showErrorSummary?: boolean;
   /**
-   * エラーの一覧の題です。errorSummary が true のときだけ使います
+   * エラーの一覧の題です。showErrorSummary が true のときだけ使います
    * @default (count) => `入力を確かめてください（${count}件）`
    */
   errorSummaryTitle?: (count: number) => string;
@@ -55,7 +55,7 @@ export interface FormProps extends ComponentProps<'form'> {
    * 中の送信のボタン（type="submit" の Button）は、loading を渡さなくても送信中になります。
    * 回る円は押したボタンにだけ出し、ほかの送信のボタンは押せない見た目にするだけです。
    * Enter で送ったときは、フォームの最初の送信のボタンに出します（ブラウザの既定と同じ）。
-   * true から false に戻した描画でエラーの行があれば、送信したときと同じく、最初のエラーの欄（errorSummary のときはエラーの一覧）へフォーカスを移します。
+   * true から false に戻した描画でエラーの行があれば、送信したときと同じく、最初のエラーの欄（showErrorSummary のときはエラーの一覧）へフォーカスを移します。
    * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡してください。先に渡すと、送っているあいだに読み上げられ、フォーカスが移った先でもう一度読まれます。あとに渡すと、フォーカスは移りません。
    * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡します。
    * 送ったときの場所（押した送信のボタン、Enter を押した欄）にフォーカスが残っているときだけ移し、送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます
@@ -91,7 +91,7 @@ export interface FormProps extends ComponentProps<'form'> {
  * 既定では noValidate（ブラウザの吹き出しを出さず、欄の下の行で知らせる）
  */
 export function Form({
-  errorSummary = false,
+  showErrorSummary = false,
   errorSummaryTitle = defaultSummaryTitle,
   noValidate = true,
   submitting = false,
@@ -109,9 +109,9 @@ export function Form({
   const [submitCount, setSubmitCount] = useState(0);
   // エラーの一覧。focus は、一覧へフォーカスを移した送信の回数（送信のたびに移す。中身が変わっただけでは移さない）
   const [summary, setSummary] = useState<{ entries: ErrorEntry[]; focus: number } | null>(null);
-  const errorSummaryRef = useRef(errorSummary);
+  const errorSummaryRef = useRef(showErrorSummary);
   useLayoutEffect(() => {
-    errorSummaryRef.current = errorSummary;
+    errorSummaryRef.current = showErrorSummary;
   });
   const setRefs = useCallback(
     (node: HTMLFormElement | null) => {
@@ -243,7 +243,7 @@ export function Form({
               ].join(' ')}
             >
               <Notice
-                color="danger"
+                status="danger"
                 live={false}
                 title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
               >

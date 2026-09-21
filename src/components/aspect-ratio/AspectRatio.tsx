@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import type { ComponentProps, ReactElement } from 'react';
+import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 export interface AspectRatioProps extends ComponentProps<'div'> {
   /**
@@ -11,6 +11,10 @@ export interface AspectRatioProps extends ComponentProps<'div'> {
   ratio?: number | string;
   /** 描く要素（Base UI の render と同じ）。既定は div です */
   render?: ReactElement;
+  /** 枠の中に入れるもの（画像・動画・埋め込み）。枠いっぱいに広がります */
+  children?: ReactNode;
+  /** 枠の要素（render を渡したときはその要素）に付きます */
+  className?: string;
 }
 
 /**

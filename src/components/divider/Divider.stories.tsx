@@ -15,7 +15,7 @@ const meta = {
         component: [
           '文章の話題の切れ目に置く区切り線です。Markdown の `---` と同じ `<hr>` を出します。',
           '',
-          '- `appearance` は見た目です。`full`（既定）は幅いっぱいの細い線、`short` は中央の短い細い線、`accent` は中央の色のある短い太い線です。',
+          '- `variant` は見た目です。`full`（既定）は幅いっぱいの細い線、`short` は中央の短い細い線、`accent` は中央の色のある短い太い線です。',
           '- `color` は `accent` の線の色です。`brand`（既定、水色）・`primary`・`secondary` から選びます。ほかの色は `style` で `--divider-accent` を上書きします。',
           '- 上下の余白は持ちません。置く側で決めます。',
           '- 飾りとして置くときは `decorative` を付けると、読み上げで区切りと伝えません。',
@@ -23,9 +23,9 @@ const meta = {
       },
     },
   },
-  args: { appearance: 'full', color: 'brand' },
+  args: { variant: 'full', color: 'brand' },
   argTypes: {
-    appearance: { control: 'inline-radio', options: ['full', 'short', 'accent'] },
+    variant: { control: 'inline-radio', options: ['full', 'short', 'accent'] },
     color: { control: 'inline-radio', options: ['brand', 'primary', 'secondary'] },
   },
   render: (args) => (
@@ -44,7 +44,7 @@ export const Playground: Story = {
   name: '基本',
 };
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目',
   parameters: { controls: { disable: true } },
@@ -54,16 +54,16 @@ export const Appearances: Story = {
         <Divider />
       </Specimen>
       <Specimen label="short">
-        <Divider appearance="short" />
+        <Divider variant="short" />
       </Specimen>
       <Specimen label="accent・brand">
-        <Divider appearance="accent" />
+        <Divider variant="accent" />
       </Specimen>
       <Specimen label="accent・primary">
-        <Divider appearance="accent" color="primary" />
+        <Divider variant="accent" color="primary" />
       </Specimen>
       <Specimen label="accent・secondary">
-        <Divider appearance="accent" color="secondary" />
+        <Divider variant="accent" color="secondary" />
       </Specimen>
     </Gallery>
   ),

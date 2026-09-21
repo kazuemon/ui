@@ -29,21 +29,21 @@ const meta = {
           'ページ番号のナビです。ブログの記事一覧などの下に置き、前へ・番号・省略（…）・次へを 1 行に並べます。',
           '',
           '- `page`（いまのページ、1 から数える）と `count`（ページの数）を渡します。',
-          '- リンクにするときは、`href` に番号から行き先を作る関数を渡します。Next.js の `Link` などは `render={(page) => <NextLink href={…} />}` で渡します。',
-          '- ボタンにするときは、`href`・`render` を渡さずに `onChange` を渡します。押した番号を受け取って、`page` を差し替えます。',
+          '- リンクにするときは、`href` に番号から行き先を作る関数を渡します。Next.js の `Link` などは `renderPage={(page) => <NextLink href={…} />}` で渡します。',
+          '- ボタンにするときは、`href`・`renderPage` を渡さずに `onPageChange` を渡します。押した番号を受け取って、`page` を差し替えます。`page` を渡さないときは、部品が中でいまのページを持ちます（`defaultPage` ではじめのページを決めます）。',
           '- いまのページは `aria-current="page"` で読み上げます。',
           '- いまのページの印は `currentIndicator` で選びます。`neutral`（既定）はグレーの塗り、`neutral-strong` は濃いグレーの塗りに白い文字、`primary` は淡い青の塗りに青い文字、`secondary` は淡いピンクの塗りにピンクの文字です。どれも文字は太字です。ふだんは `neutral` にし、いまの位置を強く見せたいときは `neutral-strong`、サイトの色を出したいときは `primary`・`secondary` にします。Navbar の `currentIndicator` とそろえると、行き先の並びどうしで印がそろいます。',
-          '- 番号と前へ・次への形は `shape` で選びます。`square`（既定）はボタンと同じ角、`round` は丸です。Navbar の行き先と並べるときは `round` にすると形がそろいます。',
-          '- `outline` を付けると、番号ごとに細い枠線を引き、押せる範囲をふだんから見せます。',
+          '- 番号と前へ・次への形は `shape` で選びます。`square`（既定）はボタンと同じ角、`circle` は丸です。Navbar の行き先と並べるときは `circle` にすると形がそろいます。',
+          '- `showOutline` を付けると、番号ごとに細い枠線を引き、押せる範囲をふだんから見せます。',
           '- 端のページでは、前へ・次へは押せない見た目で残ります。並びの位置は動きません。',
           '- どのページにいても番号の数は同じです。ページを送っても、前へ・次へのボタンの位置が変わりません。',
           '- `siblings`（既定 1）はいまのページの左右に出す番号の数、`boundaries`（既定 1）は両端に出す番号の数です。',
           '- 置いた場所の幅が狭いときは、前へ・次へを矢印だけにし、さらに狭いといまのページの左右の番号を省き、いちばん狭いところでは番号をやめて「5 / 10」だけにします。画面の幅ではなく、置いた場所の幅で決めます。',
           '- いちばん狭いところの見せ方は `narrowDisplay` で選びます。`summary`（既定）は「5 / 10」だけ、`pages` は番号を並べたままにします。',
           '- `ellipsisMenu` を付けると、省略（…）を押して間のページをメニューから選べます。押せるので、番号と同じ大きさになります。',
-          '- `pageInput` を付けると、`narrowDisplay="summary"` の「5 / 10」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。範囲の外の数では移らず、欄を離すと打った値はいまのページに戻ります。番号が並ばないいちばん狭いところでも、間のページへ行けます。',
-          '- `ellipsisMenu`・`pageInput` を `href` だけで使うときは、その行き先へそのまま移ります。ルーターで移すときは `onChange` も渡します（`render` のときは `onChange` だけで移します）。',
-          '- `label` は並び（`nav`）の読み上げの名前です（既定は「ページ送り」）。`prevLabel`・`nextLabel`・`pageLabel` で文言を差し替えられます。',
+          '- `showPageInput` を付けると、`narrowDisplay="summary"` の「5 / 10」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。範囲の外の数では移らず、欄を離すと打った値はいまのページに戻ります。番号が並ばないいちばん狭いところでも、間のページへ行けます。',
+          '- `ellipsisMenu`・`showPageInput` を `href` だけで使うときは、その行き先へそのまま移ります。ルーターで移すときは `onPageChange` も渡します（`renderPage` のときは `onPageChange` だけで移します）。',
+          '- `accessibleName` は並び（`nav`）の読み上げの名前です（既定は「ページ送り」）。`prevLabel`・`nextLabel`・`pageName` で文言を差し替えられます。',
           '- 記事の前後へ移るだけなら、Pager を使います。',
         ].join('\n'),
       },
@@ -56,10 +56,10 @@ const meta = {
     align: 'center',
     currentIndicator: 'neutral',
     shape: 'square',
-    outline: false,
+    showOutline: false,
     narrowDisplay: 'summary',
     ellipsisMenu: false,
-    pageInput: false,
+    showPageInput: false,
   },
   argTypes: {
     page: { control: { type: 'number', min: 1 } },
@@ -81,22 +81,22 @@ const meta = {
     },
     shape: {
       control: 'inline-radio',
-      options: ['square', 'round'],
+      options: ['square', 'circle'],
       table: { defaultValue: { summary: "'square'" } },
     },
-    outline: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    showOutline: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     narrowDisplay: {
       control: 'inline-radio',
       options: ['summary', 'pages'],
       table: { defaultValue: { summary: "'summary'" } },
     },
     ellipsisMenu: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
-    pageInput: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
-    label: { control: 'text', table: { defaultValue: { summary: "'ページ送り'" } } },
+    showPageInput: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    accessibleName: { control: 'text', table: { defaultValue: { summary: "'ページ送り'" } } },
     prevLabel: { control: 'text', table: { defaultValue: { summary: "'前へ'" } } },
     nextLabel: { control: 'text', table: { defaultValue: { summary: "'次へ'" } } },
-    ellipsisLabel: { control: 'text', table: { defaultValue: { summary: "'間のページ'" } } },
-    pageInputLabel: { control: 'text', table: { defaultValue: { summary: "'ページ番号'" } } },
+    ellipsisName: { control: 'text', table: { defaultValue: { summary: "'間のページ'" } } },
+    pageInputName: { control: 'text', table: { defaultValue: { summary: "'ページ番号'" } } },
   },
 } satisfies Meta<typeof Pagination>;
 
@@ -146,7 +146,7 @@ export const States: Story = {
 };
 
 const indicators = ['neutral', 'neutral-strong', 'primary', 'secondary'] as const;
-const shapes = ['square', 'round'] as const;
+const shapes = ['square', 'circle'] as const;
 const target = '[data-kind="page"][aria-label="4 ページ目"]';
 const currentPage = '[data-kind="page"][aria-current="page"]';
 
@@ -192,7 +192,7 @@ export const Shapes: Story = {
     docs: {
       description: {
         story:
-          '`shape` で番号と前へ・次への形を選びます。`square`（既定）はボタンと同じ角、`round` は丸です。2 桁以上の番号と、文字の付いた前へ・次へは、両端の丸い形になります。',
+          '`shape` で番号と前へ・次への形を選びます。`square`（既定）はボタンと同じ角、`circle` は丸です。2 桁以上の番号と、文字の付いた前へ・次へは、両端の丸い形になります。',
       },
     },
   },
@@ -207,8 +207,8 @@ export const Shapes: Story = {
           </Specimen>
         ))
       )}
-      <Specimen label="round・3 桁のページ（120 / 240）">
-        <Pagination {...args} shape="round" page={120} count={240} />
+      <Specimen label="circle・3 桁のページ（120 / 240）">
+        <Pagination {...args} shape="circle" page={120} count={240} />
       </Specimen>
     </div>
   ),
@@ -218,13 +218,13 @@ export const Shapes: Story = {
 export const Outline: Story = {
   tags: ['visual'],
   name: '枠線',
-  args: { outline: true },
+  args: { showOutline: true },
   parameters: {
     pseudo: statePseudo({ hover: target, active: target, focusVisible: target }),
     docs: {
       description: {
         story:
-          '`outline` を付けると、番号と前へ・次へに細い枠線を引き、押せる範囲をふだんから見せます。',
+          '`showOutline` を付けると、番号と前へ・次へに細い枠線を引き、押せる範囲をふだんから見せます。',
       },
     },
   },
@@ -309,7 +309,7 @@ export const Narrow: Story = {
   ),
 };
 
-// いちばん狭いところの選び方（narrowDisplay・pageInput・ellipsisMenu）
+// いちばん狭いところの選び方（narrowDisplay・showPageInput・ellipsisMenu）
 export const NarrowOptions: Story = {
   tags: ['visual'],
   name: 'いちばん狭いときの選び方',
@@ -317,7 +317,7 @@ export const NarrowOptions: Story = {
     docs: {
       description: {
         story:
-          'いちばん狭いところ（24rem 未満）では、`narrowDisplay="summary"`（既定）が「5 / 10」だけを出します。番号が並ばない分、押せる場所が減るので、`pageInput` で数を打って移るか、`narrowDisplay="pages"` と `ellipsisMenu` で番号と間のページを残します。',
+          'いちばん狭いところ（24rem 未満）では、`narrowDisplay="summary"`（既定）が「5 / 10」だけを出します。番号が並ばない分、押せる場所が減るので、`showPageInput` で数を打って移るか、`narrowDisplay="pages"` と `ellipsisMenu` で番号と間のページを残します。',
       },
     },
   },
@@ -326,7 +326,7 @@ export const NarrowOptions: Story = {
       {(
         [
           ['summary（既定）', {}],
-          ['summary・pageInput', { pageInput: true }],
+          ['summary・showPageInput', { showPageInput: true }],
           ['pages', { narrowDisplay: 'pages' as const }],
           ['pages・ellipsisMenu', { narrowDisplay: 'pages' as const, ellipsisMenu: true }],
         ] as const
@@ -346,7 +346,7 @@ export const NarrowOptions: Story = {
   ),
 };
 
-function PageInputExample(props: { onChange: (page: number) => void }) {
+function PageInputExample(props: { onPageChange: (page: number) => void }) {
   const [page, setPage] = useState(5);
   return (
     <div className="flex flex-col items-start gap-3">
@@ -355,10 +355,10 @@ function PageInputExample(props: { onChange: (page: number) => void }) {
         <Pagination
           page={page}
           count={20}
-          pageInput
-          onChange={(next) => {
+          showPageInput
+          onPageChange={(next) => {
             setPage(next);
-            props.onChange(next);
+            props.onPageChange(next);
           }}
         />
       </div>
@@ -366,35 +366,35 @@ function PageInputExample(props: { onChange: (page: number) => void }) {
   );
 }
 
-// 数を打って移る欄（pageInput）
+// 数を打って移る欄（showPageInput）
 export const PageInput: Story = {
   name: 'ページ番号を打つ',
-  args: { href: undefined, onChange: fn() },
+  args: { href: undefined, onPageChange: fn() },
   parameters: {
     docs: {
       description: {
         story:
-          '`pageInput` を付けると、いちばん狭いところの「5 / 20」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。ページの数より大きい数や 0 以下では移らず、欄を離すと打った値はいまのページに戻ります。',
+          '`showPageInput` を付けると、いちばん狭いところの「5 / 20」の 5 が、数を打って移る欄になります。Enter か IME の確定で移ります。ページの数より大きい数や 0 以下では移らず、欄を離すと打った値はいまのページに戻ります。',
       },
       source: sourceCode(`
         const [page, setPage] = useState(5);
-        <Pagination page={page} count={20} pageInput onChange={setPage} />
+        <Pagination page={page} count={20} showPageInput onPageChange={setPage} />
       `),
     },
   },
-  render: (args) => <PageInputExample onChange={args.onChange ?? (() => {})} />,
+  render: (args) => <PageInputExample onPageChange={args.onPageChange ?? (() => {})} />,
   play: async ({ canvas, args }) => {
     const input = canvas.getByRole('textbox', { name: 'ページ番号' });
     await expect(input).toHaveValue('5');
     // 範囲の中の数は、Enter で移る
     await userEvent.clear(input);
     await userEvent.type(input, '12{Enter}');
-    await expect(args.onChange).toHaveBeenLastCalledWith(12);
+    await expect(args.onPageChange).toHaveBeenLastCalledWith(12);
     await expect(input).toHaveValue('12');
     // 範囲の外の数では移らず、欄を離すといまのページに戻る
     await userEvent.clear(input);
     await userEvent.type(input, '99{Enter}');
-    await expect(args.onChange).toHaveBeenCalledTimes(1);
+    await expect(args.onPageChange).toHaveBeenCalledTimes(1);
     await userEvent.tab();
     await expect(input).toHaveValue('12');
   },
@@ -466,7 +466,7 @@ export const Densities: Story = {
   ),
 };
 
-function ButtonsExample(props: { onChange: (page: number) => void }) {
+function ButtonsExample(props: { onPageChange: (page: number) => void }) {
   const [page, setPage] = useState(1);
   return (
     <div className="flex max-w-[40rem] flex-col gap-3">
@@ -474,9 +474,9 @@ function ButtonsExample(props: { onChange: (page: number) => void }) {
       <Pagination
         page={page}
         count={8}
-        onChange={(next) => {
+        onPageChange={(next) => {
           setPage(next);
-          props.onChange(next);
+          props.onPageChange(next);
         }}
       />
     </div>
@@ -486,20 +486,20 @@ function ButtonsExample(props: { onChange: (page: number) => void }) {
 // ボタンで使う（その場で一覧を差し替えるとき）
 export const Buttons: Story = {
   name: 'ボタンで使う',
-  args: { href: undefined, onChange: fn() },
+  args: { href: undefined, onPageChange: fn() },
   parameters: {
     docs: {
       description: {
         story:
-          '`href`・`render` を渡さずに `onChange` を渡すと、ボタンで描きます。押した番号を受け取って `page` を差し替えます。',
+          '`href`・`renderPage` を渡さずに `onPageChange` を渡すと、ボタンで描きます。押した番号を受け取って `page` を差し替えます。',
       },
       source: sourceCode(`
         const [page, setPage] = useState(1);
-        <Pagination page={page} count={8} onChange={setPage} />
+        <Pagination page={page} count={8} onPageChange={setPage} />
       `),
     },
   },
-  render: (args) => <ButtonsExample onChange={args.onChange ?? (() => {})} />,
+  render: (args) => <ButtonsExample onPageChange={args.onPageChange ?? (() => {})} />,
   play: async ({ canvas, args }) => {
     const prev = canvas.getByRole('button', { name: '前へ' });
     await expect(prev).toBeDisabled();
@@ -508,16 +508,16 @@ export const Buttons: Story = {
       'page'
     );
     await userEvent.click(canvas.getByRole('button', { name: '次へ' }));
-    await expect(args.onChange).toHaveBeenLastCalledWith(2);
+    await expect(args.onPageChange).toHaveBeenLastCalledWith(2);
     await expect(canvas.getByRole('button', { name: '2 ページ目' })).toHaveAttribute(
       'aria-current',
       'page'
     );
     // いまのページを押しても呼ばない
     await userEvent.click(canvas.getByRole('button', { name: '2 ページ目' }));
-    await expect(args.onChange).toHaveBeenCalledTimes(1);
+    await expect(args.onPageChange).toHaveBeenCalledTimes(1);
     await userEvent.click(canvas.getByRole('button', { name: '8 ページ目' }));
-    await expect(args.onChange).toHaveBeenLastCalledWith(8);
+    await expect(args.onPageChange).toHaveBeenLastCalledWith(8);
     await expect(canvas.getByRole('button', { name: '次へ' })).toBeDisabled();
   },
 };

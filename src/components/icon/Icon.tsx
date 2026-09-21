@@ -59,10 +59,10 @@ interface IconOwnProps<C extends ElementType> {
   /** icon を渡さないときに描く <svg>。1 つだけ置きます */
   children?: ReactElement;
   /**
-   * 読み上げる名前。書くと画像（role="img"）として読まれ、書かないと飾りとして読み上げから外します。
+   * 読み上げの名前。画面には出ません。書くと画像（role="img"）として読まれ、書かないと飾りとして読み上げから外します。
    * アイコンだけのボタンやリンクでは、ここではなく、ボタンやリンクに aria-label で名前を付けます
    */
-  label?: string;
+  accessibleName?: string;
   /**
    * 大きさ。text は周りの文字の大きさに比例します（文字の 1.25 倍）。文の流れの中に置くと、アイコンの中心が漢字の中心にそろいます。
    * control は周りの部品と同じ、部品の中の文字と並ぶ大きさで、密度で変わります。文字の大きさと関係なく部品にそろえたいときに使います。sm・md・lg は密度で変わらない段です
@@ -75,6 +75,7 @@ interface IconOwnProps<C extends ElementType> {
    * @default false
    */
   standalone?: boolean;
+  /** アイコン（svg）に付きます。色は className（text-fg-danger など）で付けます */
   className?: string;
 }
 
@@ -90,7 +91,7 @@ export type IconProps<C extends ElementType = 'svg'> = IconOwnProps<C> &
 export function Icon<C extends ElementType = 'svg'>({
   icon: IconComponent,
   children,
-  label,
+  accessibleName,
   size,
   standalone,
   className,
@@ -98,8 +99,8 @@ export function Icon<C extends ElementType = 'svg'>({
 }: IconProps<C>) {
   // weight（Phosphor）を渡したときは、その太さのまま描く
   const weighted = !('weight' in props);
-  const a11y = label
-    ? { role: 'img', 'aria-label': label }
+  const a11y = accessibleName
+    ? { role: 'img', 'aria-label': accessibleName }
     : { 'aria-hidden': true as const, focusable: 'false' };
   // 型は IconProps で確かめているので、描くときは要素の種類として扱う
   const Component: ElementType | undefined = IconComponent;

@@ -39,9 +39,9 @@ interface TagsInputChipsProps {
   /** 値からラベルを引く表。候補から選んだタグは、候補のラベルで出す */
   labelOf: Map<string, string>;
   /** チップのまとまりの読み上げの名前 */
-  chipsLabel: string;
+  chipsName: string;
   /** チップの × の読み上げの名前を作る関数 */
-  chipRemoveLabel: (label: string) => string;
+  chipRemoveName: (label: string) => string;
   /** チップの色（原則6） */
   color: ListboxColor;
   /** 読み取り専用。× を出さない */
@@ -59,8 +59,8 @@ interface TagsInputChipsProps {
 /** 欄の中のチップと打つ欄（Base UI の Chips）。← でチップへ移れる */
 export function TagsInputChips({
   labelOf,
-  chipsLabel,
-  chipRemoveLabel,
+  chipsName,
+  chipRemoveName,
   color,
   readOnly,
   disabled,
@@ -87,8 +87,8 @@ export function TagsInputChips({
   return (
     <ComboboxChips
       labelOf={labelOf}
-      chipsLabel={chipsLabel}
-      chipRemoveLabel={chipRemoveLabel}
+      chipsName={chipsName}
+      chipRemoveName={chipRemoveName}
       color={color}
       readOnly={readOnly}
       disabled={disabled}

@@ -81,14 +81,14 @@ export function SamplePage({ guides = false }: { guides?: boolean }) {
                   <Heading level={3} size={4}>
                     {title}
                   </Heading>
-                  <Text size="sm" tone="muted">
+                  <Text size="sm" variant="muted">
                     {text}
                   </Text>
                 </div>
               ))}
             </div>
             <div>
-              <Button appearance="outline">もっと見る</Button>
+              <Button variant="outline">もっと見る</Button>
             </div>
           </div>
         </Container>
@@ -96,7 +96,7 @@ export function SamplePage({ guides = false }: { guides?: boolean }) {
       <footer className="mt-auto border-t border-line">
         <Container className={`${guide} py-6`}>
           <div className={inner}>
-            <Text size="sm" tone="subtle">
+            <Text size="sm" variant="subtle">
               © 2026 kazuemon
             </Text>
           </div>

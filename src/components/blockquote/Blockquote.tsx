@@ -18,7 +18,7 @@ const blockquote = tv({
     cite: 'text-body-sm text-fg-subtle',
   },
   variants: {
-    appearance: {
+    variant: {
       line: {
         body: blockquoteStyles.line,
         cite: 'pl-4',
@@ -43,33 +43,41 @@ const blockquote = tv({
       },
     },
   },
-  defaultVariants: { appearance: 'line', color: 'neutral' },
+  defaultVariants: { variant: 'line', color: 'neutral' },
 });
 
-export interface BlockquoteProps
-  extends Omit<ComponentProps<'blockquote'>, 'color'>, VariantProps<typeof blockquote> {
+/** 引用の見た目 */
+export type BlockquoteVariant = NonNullable<VariantProps<typeof blockquote>['variant']>;
+/** 線とアイコンの色 */
+export type BlockquoteColor = NonNullable<VariantProps<typeof blockquote>['color']>;
+
+export interface BlockquoteProps extends Omit<ComponentProps<'blockquote'>, 'color'> {
   /**
    * 見た目。line は左に線、surface は入力欄と同じグレーの面です
    * @default 'line'
    */
-  appearance?: VariantProps<typeof blockquote>['appearance'];
+  variant?: BlockquoteVariant;
   /**
    * 線とアイコンの色。neutral はグレー、brand は水色、primary・secondary は利用者が選ぶ色です。
    * surface では面の色は変わらず、アイコンの色だけが変わります
    * @default 'neutral'
    */
-  color?: VariantProps<typeof blockquote>['color'];
+  color?: BlockquoteColor;
   /** 1 行目の左に置くアイコン（引用符など）。文と並ぶので、線の細い形を使います */
   icon?: ReactNode;
   /** 出典。引用の下に小さく出します。URL は cite 属性に渡します */
   source?: ReactNode;
+  /** 引用の文。段落が複数あるときは p を並べます。出典は source に渡します */
+  children?: ReactNode;
+  /** 引用の要素（blockquote）に付くクラス。出典を渡したときは、外側の figure に付きます */
+  className?: string;
 }
 
 /**
  * 引用
  */
 export function Blockquote({
-  appearance,
+  variant,
   color,
   icon,
   source,
@@ -77,9 +85,10 @@ export function Blockquote({
   children,
   ...props
 }: BlockquoteProps) {
-  const styles = blockquote({ appearance, color });
+  const styles = blockquote({ variant, color });
   const quote = (
     <blockquote
+      data-slot="blockquote"
       className={styles.body({ className: source == null ? className : undefined })}
       {...props}
     >

@@ -4,12 +4,13 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Select, type SelectItem, type SelectProps } from './Select';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import { Select, type SelectProps } from './Select';
 import { TextField } from '../text-field/TextField';
 import { Gallery, Matrix, PhoneFrame, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
 
-const wards: SelectItem[] = [
+const wards: ListboxItem[] = [
   '千代田区',
   '中央区',
   '港区',
@@ -35,11 +36,11 @@ const wards: SelectItem[] = [
   '江戸川区',
 ].map((label, i) => ({ label, value: `ward-${i + 1}` }));
 
-const times: SelectItem[] = ['午前中', '14〜16時', '16〜18時', '18〜20時', '19〜21時'].map(
+const times: ListboxItem[] = ['午前中', '14〜16時', '16〜18時', '18〜20時', '19〜21時'].map(
   (label, i) => ({ label, value: `time-${i + 1}` })
 );
 
-const areas: SelectItem[] = [
+const areas: ListboxItem[] = [
   { label: '千代田区', value: 'chiyoda' },
   { label: '中央区', value: 'chuo' },
   { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
@@ -59,7 +60,7 @@ const areas: SelectItem[] = [
 ];
 
 // Show code に出す選択肢の並び（先頭の数件だけ）
-const wardsSource = `const wards: SelectItem[] = [
+const wardsSource = `const wards: ListboxItem[] = [
   { label: '千代田区', value: 'ward-1' },
   { label: '中央区', value: 'ward-2' },
   { label: '港区', value: 'ward-3' },
@@ -99,7 +100,7 @@ const meta = {
         component: [
           '選択肢から1つを選ぶ欄です。ラベル・キャプション・エラー・警告の形は TextField と同じです。',
           '',
-          '- 選択肢は `items`（`label`・`value`）で渡します。選べない選択肢には `disabled` を、ラベルの下の2行目には `note` を付けます。`note` の `kind` は、選べない理由なら `reason`、選べるが選ぶ前に知っておいてほしいことなら `warning` です。文は呼び出し側で組み立てて渡します。',
+          '- 選択肢は `items`（`label`・`value`）で渡します。選べない選択肢には `disabled` を、ラベルの下の2行目には `note` を付けます。`note` の `kind` は、ただの説明なら `description`、選べない理由なら `reason`、選べるが選ぶ前に知っておいてほしいことなら `warning` です。文は呼び出し側で組み立てて渡します。',
           '- 選択肢の出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。それ以外では本体の下に浮かべます。',
           '- `prefix` には文字を渡せます（例: 都道府県を選んだあとの市区町村の欄に「東京都」）。',
           '- 選択肢を読み込んでいるあいだは `loading` を付けます。読み込んでいるあいだに開くと、読み上げで `loadingText` を知らせ、開いたまま読み込みが終わると選択肢の数（`loadedText`）を知らせます。',
@@ -107,6 +108,9 @@ const meta = {
           '- `readOnly` にすると、文字を打つ欄の読み取り専用と同じ見た目（塗りなし・細い破線の輪郭・一段淡い値の文字）になります。フォーカスでき、値をなぞって写せます。選択肢は開かず値も変わりませんが、フォームでは送られます。',
           '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、本体に aria-required が付きます。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決めます。',
           '- `placeholder` は、選んだ値と見分けられるよう「選んでください」のように、まだ選んでいないと分かる書き方にします。選択肢の名前をそのまま書くと、選んだ値に見えます。',
+          '',
+          '- 複数選ぶときは `multiple` を付けます。値は文字の配列になり、フォームでは `name` の名前で複数送られます。',
+          '- 浮かぶ選択肢そのものに props を足すときは `popupProps`、位置の決め方（画面の端での逃がし方など）は `positionerProps` に渡します。外を押して閉じるかは `dismissible`、Esc で閉じるかは `closeOnEscape` です。',
           '',
           '「開いた状態」などのストーリーは、ストーリーの画面では開いて表示します。このページでは閉じているので、本体を押して開いてください。',
         ].join('\n'),
@@ -123,7 +127,7 @@ const meta = {
     addonShape: 'attached',
     disabled: false,
     readOnly: false,
-    disabledIcon: 'show',
+    hideCaretOnDisabled: false,
     presentation: 'auto',
     sheetDetent: 'half',
     sheetMoreCue: 'divider-always-shadow',
@@ -147,16 +151,16 @@ const meta = {
       table: { defaultValue: { summary: "'top'" } },
     },
     placeholder: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    success: { control: 'text' },
-    successMark: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    successText: { control: 'text' },
+    hideSuccessMark: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    infoText: { control: 'text' },
     prefix: { control: 'text' },
     addonShape: { control: 'inline-radio', options: ['attached', 'floating'] },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
-    disabledIcon: { control: 'inline-radio', options: ['show', 'hide'] },
+    hideCaretOnDisabled: { control: 'boolean' },
     presentation: { control: 'inline-radio', options: ['auto', 'popover', 'sheet'] },
     sheetDetent: { control: 'inline-radio', options: ['half', 'full'] },
     sheetMoreCue: {
@@ -176,8 +180,9 @@ const meta = {
     defaultValue: { control: false },
     open: { control: false },
     defaultOpen: { control: false },
-    container: { control: false },
-    collisionAvoidance: { control: false },
+    portalContainer: { control: false },
+    positionerProps: { control: false },
+    popupProps: { control: false },
   },
 } satisfies Meta<typeof Select>;
 
@@ -257,8 +262,8 @@ export const Open: Story = {
           defaultValue="ward-3"
           defaultOpen={openOnLoad(viewMode)}
           modal={false}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -274,10 +279,10 @@ export const ItemNotes: Story = {
     docs: {
       description: {
         story:
-          '`disabled` の選択肢は押せない文字の色になり、押しても選ばれません。矢印キーでは止まり、選べないことと理由が読まれます。`note` の `reason` は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある選択肢だけ高くなります。',
+          '`disabled` の選択肢は押せない文字の色になり、押しても選ばれません。矢印キーでは止まり、選べないことと理由が読まれます。`note` の `description`（ただの説明）と `reason`（選べない理由）は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある選択肢だけ高くなります。',
       },
       source: sourceCode(`
-        const areas: SelectItem[] = [
+        const areas: ListboxItem[] = [
           { label: '千代田区', value: 'chiyoda' },
           { label: '中央区', value: 'chuo' },
           // 選べるが、選ぶ前に知っておいてほしいこと
@@ -301,8 +306,8 @@ export const ItemNotes: Story = {
           defaultValue="chiyoda"
           defaultOpen={openOnLoad(viewMode)}
           modal={false}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -321,15 +326,15 @@ export const Messages: Story = {
       <Specimen label="caption（下）">
         <Select {...args} caption="お届けは23区内だけです" captionPlacement="bottom" />
       </Specimen>
-      <Specimen label="error">
-        <Select {...args} caption="お届けは23区内だけです" error="市区町村を選んでください" />
+      <Specimen label="errorText">
+        <Select {...args} caption="お届けは23区内だけです" errorText="市区町村を選んでください" />
       </Specimen>
-      <Specimen label="warning">
+      <Specimen label="warningText">
         <Select
           {...args}
           caption="お届けは23区内だけです"
           defaultValue="arakawa"
-          warning="荒川区は、お届けが翌日になります"
+          warningText="荒川区は、お届けが翌日になります"
         />
       </Specimen>
     </Gallery>
@@ -340,29 +345,29 @@ export const SuccessInfo: Story = {
   name: '成功・情報',
   args: { label: 'お届けの時間帯', prefix: undefined, items: times, defaultValue: 'time-2' },
   parameters: {
-    controls: { exclude: ['success', 'successMark', 'info'] },
+    controls: { exclude: ['successText', 'hideSuccessMark', 'infoText'] },
     docs: {
       description: {
         story:
-          '`success` は本体の下に丸のチェックと緑の文字で出し、▼ の左にもチェックを置きます。下の行だけにするときは `successMark={false}` を付けます。`info` は丸の「i」と青い文字の行です。どちらも欄の枠線は変えません。',
+          '`successText` は本体の下に丸のチェックと緑の文字で出し、▼ の左にもチェックを置きます。下の行だけにするときは `hideSuccessMark` を付けます。`infoText` は丸の「i」と青い文字の行です。どちらも欄の枠線は変えません。',
       },
     },
   },
   render: (args) => (
     <Gallery>
-      <Specimen label="success">
-        <Select {...args} success="この時間帯にお届けできます" />
+      <Specimen label="successText">
+        <Select {...args} successText="この時間帯にお届けできます" />
       </Specimen>
-      <Specimen label="successMark={false}">
-        <Select {...args} success="この時間帯にお届けできます" successMark={false} />
+      <Specimen label="hideSuccessMark">
+        <Select {...args} successText="この時間帯にお届けできます" hideSuccessMark />
       </Specimen>
-      <Specimen label="info">
-        <Select {...args} info="前回と同じ時間帯を選んでいます" />
+      <Specimen label="infoText">
+        <Select {...args} infoText="前回と同じ時間帯を選んでいます" />
       </Specimen>
     </Gallery>
   ),
   play: async ({ canvasElement }) => {
-    // チェックは success の欄にだけ出る（successMark={false} と info では出ない）
+    // チェックは successText の欄にだけ出る（hideSuccessMark と infoText では出ない）
     const marks = canvasElement.querySelectorAll('[data-slot="field-success-mark"]');
     await expect(marks).toHaveLength(1);
     await expect(marks[0]).toBeVisible();
@@ -373,11 +378,11 @@ export const Disabled: Story = {
   tags: ['visual'],
   name: '押せない',
   parameters: {
-    controls: { exclude: ['disabled', 'disabledIcon'] },
+    controls: { exclude: ['disabled', 'hideCaretOnDisabled'] },
     docs: {
       description: {
         story:
-          '選んだ値は押せない文字の色になり、プレースホルダの文はふだんの色のままです。値が入った押せない欄と、文を出している欄を見分けられます。▼ は `disabledIcon="hide"` で隠せます。',
+          '選んだ値は押せない文字の色になり、プレースホルダの文はふだんの色のままです。値が入った押せない欄と、文を出している欄を見分けられます。▼ は `hideCaretOnDisabled` で隠せます。',
       },
     },
   },
@@ -389,8 +394,8 @@ export const Disabled: Story = {
       <Specimen label="プレースホルダ">
         <Select {...args} disabled placeholder="先に都道府県を選んでください" />
       </Specimen>
-      <Specimen label='disabledIcon="hide"'>
-        <Select {...args} disabled disabledIcon="hide" defaultValue="ward-3" />
+      <Specimen label="hideCaretOnDisabled">
+        <Select {...args} disabled hideCaretOnDisabled defaultValue="ward-3" />
       </Specimen>
     </Gallery>
   ),
@@ -482,8 +487,8 @@ export const Loading: Story = {
               presentation="popover"
               defaultOpen={openOnLoad(viewMode)}
               modal={false}
-              container={container}
-              collisionAvoidance={{ side: 'none', align: 'none' }}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
             />
           )}
         </PopoverFrame>
@@ -493,8 +498,11 @@ export const Loading: Story = {
 };
 
 // はじめて開いたときに選択肢を読み込み、1.5 秒で終わる
-function LoadOnOpenSelect({ onOpenChange, ...props }: Omit<SelectProps, 'items' | 'loading'>) {
-  const [items, setItems] = useState<SelectItem[]>([]);
+function LoadOnOpenSelect({
+  onOpenChange,
+  ...props
+}: Omit<SelectProps<boolean>, 'items' | 'loading'>) {
+  const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
     <Select
@@ -532,7 +540,7 @@ export const LoadOnOpen: Story = {
         ].join('\n'),
       },
       source: sourceCode(`
-        const times: SelectItem[] = [
+        const times: ListboxItem[] = [
           { label: '午前中', value: 'time-1' },
           { label: '14〜16時', value: 'time-2' },
           { label: '16〜18時', value: 'time-3' },
@@ -542,7 +550,7 @@ export const LoadOnOpen: Story = {
 
         // はじめて開いたときに選択肢を読み込む
         function DeliveryTimeSelect() {
-          const [items, setItems] = useState<SelectItem[]>([]);
+          const [items, setItems] = useState<ListboxItem[]>([]);
           const [loading, setLoading] = useState(false);
           return (
             <Select
@@ -571,8 +579,8 @@ export const LoadOnOpen: Story = {
         <LoadOnOpenSelect
           {...args}
           presentation="popover"
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -643,7 +651,7 @@ export const Sheet: Story = {
             defaultValue="ward-3"
             defaultOpen={openOnLoad(viewMode)}
             modal={false}
-            container={frame}
+            portalContainer={frame}
           />
         </>
       )}
@@ -720,7 +728,7 @@ export const SheetFling: Story = {
           defaultValue="ward-3"
           defaultOpen={openOnLoad(viewMode)}
           modal={false}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </PhoneFrame>
@@ -803,7 +811,7 @@ export const DensityScope: Story = {
         defaultValue="ward-3"
         defaultOpen={openOnLoad(viewMode)}
         modal={false}
-        collisionAvoidance={{ side: 'none', align: 'none' }}
+        positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
       />
     </div>
   ),

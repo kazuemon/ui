@@ -54,7 +54,7 @@ export const InText: Story = {
         <Text>
           <Code>onKeyDown</Code> で <Kbd>Enter</Kbd> を受け取ります。
         </Text>
-        <Text size="sm" tone="subtle">
+        <Text size="sm" variant="subtle">
           注記の中の <Kbd>Tab</Kbd>
         </Text>
       </div>

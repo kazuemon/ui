@@ -16,7 +16,7 @@ const stateRows: Sample[] = [
   { label: '空', props: { defaultValue: undefined, placeholder: '例: 3' } },
   { label: '値あり', props: { defaultValue: 3 } },
   { label: '上限に届いた', props: { defaultValue: 99 } },
-  { label: 'エラー', props: { defaultValue: 0, error: '1 個以上にしてください' } },
+  { label: 'エラー', props: { defaultValue: 0, errorText: '1 個以上にしてください' } },
   { label: '押せない', props: { defaultValue: 3, disabled: true } },
   { label: '読み取り専用', props: { defaultValue: 3, readOnly: true } },
 ];
@@ -67,8 +67,8 @@ const meta = {
     label: { control: 'text' },
     caption: { control: 'text' },
     placeholder: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
     prefix: { control: 'text' },
     suffix: { control: 'text' },
     stepper: { control: 'inline-radio', options: steppers },
@@ -122,7 +122,7 @@ export const States: Story = {
         <NumberField label="数量" min={0} max={99} placeholder="例: 3" />
         <NumberField label="数量" min={0} max={99} defaultValue={3} />
         <NumberField label="数量" min={0} max={99} defaultValue={99} />
-        <NumberField label="数量" min={0} max={99} defaultValue={0} error="1 個以上にしてください" />
+        <NumberField label="数量" min={0} max={99} defaultValue={0} errorText="1 個以上にしてください" />
         <NumberField label="数量" defaultValue={3} disabled />
         <NumberField label="数量" defaultValue={3} readOnly />
       `),

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, type Ref, useImperativeHandle, useState } from 'react';
+import type { ComponentProps, ReactNode, Ref, UIEventHandler } from 'react';
 
 import { ScrollFrame } from '../../internal/ScrollFrame';
 
@@ -9,32 +9,50 @@ import { ScrollFrame } from '../../internal/ScrollFrame';
 
 export type ScrollAreaScrollbar = 'scroll' | 'always';
 
+/** つまみを出す向き。both は縦横、vertical は縦だけ、horizontal は横だけ */
+export type ScrollAreaOrientation = 'both' | 'vertical' | 'horizontal';
+
 export interface ScrollAreaProps {
-  /** 中身 */
+  /** 枠の中に置く中身。はみ出した分がスクロールします */
   children?: ReactNode;
   /**
-   * 枠に足すクラス。高さ（h-*・max-h-*）か幅を決めて、はみ出した分をスクロールさせます
+   * 枠（いちばん外の要素）に付きます。高さ（h-*・max-h-*）か幅を決めて、はみ出した分をスクロールさせます
    */
   className?: string;
-  /** 中身を包む要素に足すクラス。内側の余白（p-*）はここに付けます */
-  contentClassName?: string;
   /**
-   * 続きがある端に、内側の影を落とします。false にすると影を出さず、代わりにつまみをいつも出します（`scrollbar` は効きません）
-   * @default true
+   * 中身を包む要素に渡す props。内側の余白（p-*）は `contentProps` の className に付けます。
+   * className は部品の見た目に重ねます
    */
-  edgeShadow?: boolean;
+  contentProps?: ComponentProps<'div'>;
+  /**
+   * スクロールする要素（Viewport）に渡す props。スクロールの位置を読む・変えるときは `viewportProps.ref` を使います。
+   * className は部品の見た目に重ねます
+   */
+  viewportProps?: ComponentProps<'div'>;
+  /**
+   * 続きがある端の内側の影を消します。影を消すと、代わりにつまみをいつも出します（`scrollbar` は効きません）
+   * @default false
+   */
+  hideEdgeShadow?: boolean;
   /**
    * つまみの出し方。scroll は枠にマウスを載せたとき・スクロールしているあいだ・キーボードで止まったときだけ、always はいつも出します。
-   * `edgeShadow={false}` のときは、指定にかかわらずいつも出します
+   * `hideEdgeShadow` のときは、指定にかかわらずいつも出します
    * @default 'scroll'
    */
   scrollbar?: ScrollAreaScrollbar;
   /**
-   * 枠の名前。キーボードで止まったときに読み上げられます。付けると、枠は名前付きの領域（region）になります
+   * つまみを出す向き。both は縦横、vertical は縦だけ、horizontal は横だけです
+   * @default 'both'
    */
-  label?: string;
-  /** スクロールする要素。スクロールの位置を読む・変えるときに使います */
-  viewportRef?: Ref<HTMLDivElement>;
+  orientation?: ScrollAreaOrientation;
+  /**
+   * 枠の読み上げの名前。付けると、枠は名前付きの領域（region）になり、キーボードで止まったときに読み上げられます
+   */
+  accessibleName?: string;
+  /** スクロールしたときに呼ばれます（スクロールする要素の onScroll） */
+  onScroll?: UIEventHandler<HTMLDivElement>;
+  /** 枠（いちばん外の要素）に付きます */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -44,26 +62,26 @@ export interface ScrollAreaProps {
 export function ScrollArea({
   children,
   className,
-  contentClassName,
-  edgeShadow = true,
+  contentProps,
+  viewportProps,
+  hideEdgeShadow = false,
   scrollbar = 'scroll',
-  label,
-  viewportRef,
+  orientation = 'both',
+  accessibleName,
+  onScroll,
+  ref,
 }: ScrollAreaProps) {
-  // スクロールする要素を、使う側の viewportRef に渡す
-  const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
-  useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(viewportRef, () => viewport, [
-    viewport,
-  ]);
   return (
     <ScrollFrame
+      ref={ref}
       className={className}
-      contentClassName={contentClassName}
-      edgeShadow={edgeShadow}
+      contentProps={contentProps}
+      viewportProps={onScroll ? { ...viewportProps, onScroll } : viewportProps}
+      edgeShadow={!hideEdgeShadow}
       // 影がないときは、つまみで続きを伝える
-      scrollbar={edgeShadow ? scrollbar : 'always'}
-      label={label}
-      onViewport={setViewport}
+      scrollbar={hideEdgeShadow ? 'always' : scrollbar}
+      orientation={orientation}
+      label={accessibleName}
     >
       {children}
     </ScrollFrame>

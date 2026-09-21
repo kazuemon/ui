@@ -40,11 +40,11 @@ export const InContext: Story = {
   render: () => (
     <div className="flex max-w-[28rem] flex-col gap-6">
       <div className="flex items-center gap-3">
-        <Button appearance="outline">
+        <Button variant="outline">
           <MagnifyingGlassIcon aria-hidden weight="bold" className="size-(--spacing-icon)" />
           <VisuallyHidden>記事を検索</VisuallyHidden>
         </Button>
-        <Text as="span" size="sm" tone="subtle">
+        <Text as="span" size="sm" variant="subtle">
           アイコンだけのボタンの名前
         </Text>
       </div>
@@ -61,7 +61,7 @@ export const InContext: Story = {
             <VisuallyHidden>タグ: </VisuallyHidden>UI
           </Tag>
         </div>
-        <Text size="sm" tone="subtle">
+        <Text size="sm" variant="subtle">
           見出しとタグに、見えている文字に続けて読む補足を足す
         </Text>
       </div>
@@ -89,7 +89,7 @@ export const SkipLink: Story = {
   },
   render: () => (
     <div className="flex flex-col gap-4">
-      <VisuallyHidden focusable render={<Link href="#main" appearance="outline" />}>
+      <VisuallyHidden focusable render={<Link href="#main" variant="outline" />}>
         本文へスキップ
       </VisuallyHidden>
       <nav className="flex gap-4">

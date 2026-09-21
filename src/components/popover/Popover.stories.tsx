@@ -22,27 +22,29 @@ const meta = {
           '押して開く、本体のそばに浮かぶ面です。補足の説明や、小さな設定をその場で見せます。ほかの操作は止めず、外を押すか Esc で閉じます。',
           '',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
-          '- `title` は必ず渡します。開いた面の読み上げの名前になります。題を画面に出したくないときは `titleHidden` を付けます（読み上げの名前は残ります）。`description` は省けます。',
-          '- `side`・`align` で出す場所を選びます。画面の端に当たるときは反対側に出します。どこから開いたかをはっきりさせたいときは `arrow` で本体を指す矢印を付けます。',
+          '- `title` は必ず渡します。開いた面の読み上げの名前になります。題を画面に出したくないときは `hideTitle` を付けます（読み上げの名前は残ります）。`description` は省けます。',
+          '- `side`・`align` で出す場所を選びます。画面の端に当たるときは反対側に出します。どこから開いたかをはっきりさせたいときは `showArrow` で本体を指す矢印を出します。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。',
+          '- 外を押しても閉じないようにするときは `dismissible={false}`、Esc で閉じないようにするときは `closeOnEscape={false}` です。中に入力や一覧を置くときは `modal` で裏を止め、焦点を面の中に閉じ込められます（`passive` は裏を止めず、外を押しても閉じません）。',
+          '- 位置を細かく決めるときは `positionerProps`（`anchor`・`sideOffset` など）、面に `id`・`data-*` を付けるときは `popupProps` を使います。',
           '- マウスを載せるだけで出す短い補足は、Tooltip を使います。',
         ].join('\n'),
       },
     },
   },
   args: {
-    trigger: <Button appearance="outline">表示</Button>,
+    trigger: <Button variant="outline">表示</Button>,
     title: '表示の設定',
-    titleHidden: false,
+    hideTitle: false,
     description: 'この端末だけに保存されます。',
     side: 'bottom',
     align: 'center',
-    arrow: false,
+    showArrow: false,
     presentation: 'auto',
   },
   argTypes: {
     title: { control: 'text' },
-    titleHidden: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    hideTitle: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     description: { control: 'text' },
     side: {
       control: 'inline-radio',
@@ -61,7 +63,7 @@ const meta = {
     },
     trigger: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Popover>;
 
@@ -83,7 +85,7 @@ export const Playground: Story = {
         <Popover
           title="表示の設定"
           description="この端末だけに保存されます。"
-          trigger={<Button appearance="outline">表示</Button>}
+          trigger={<Button variant="outline">表示</Button>}
         >
           <Switch label="画像を表示" defaultChecked />
         </Popover>
@@ -91,7 +93,7 @@ export const Playground: Story = {
     },
   },
   render: (args) => (
-    <Popover {...args} trigger={<Button appearance="outline">表示</Button>}>
+    <Popover {...args} trigger={<Button variant="outline">表示</Button>}>
       {content}
     </Popover>
   ),
@@ -101,7 +103,7 @@ export const Open: Story = {
   tags: ['visual'],
   name: '開いた状態',
   parameters: {
-    controls: { include: ['title', 'description', 'side', 'align', 'arrow'] },
+    controls: { include: ['title', 'description', 'side', 'align', 'showArrow'] },
     docs: {
       description: { story: '本体のそばに浮かべた形です。' },
     },
@@ -114,9 +116,9 @@ export const Open: Story = {
             key={`${args.side}-${args.align}`}
             {...args}
             presentation="popover"
-            trigger={<Button appearance="outline">表示</Button>}
+            trigger={<Button variant="outline">表示</Button>}
             defaultOpen={openOnLoad(viewMode)}
-            container={frame}
+            portalContainer={frame}
           >
             {content}
           </Popover>
@@ -131,16 +133,16 @@ export const TextOnly: Story = {
   name: '文だけ',
   args: {
     title: '送料について',
-    titleHidden: true,
+    hideTitle: true,
     description: undefined,
     presentation: 'popover',
   },
   parameters: {
-    controls: { include: ['presentation', 'title', 'titleHidden', 'description', 'side', 'align'] },
+    controls: { include: ['presentation', 'title', 'hideTitle', 'description', 'side', 'align'] },
     docs: {
       description: {
         story:
-          '題を画面に出さず（`titleHidden`）、文だけを見せる形です。読み上げの名前は題のままです。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。シートで出すと、見出しには閉じる × だけが並びます。',
+          '題を画面に出さず（`hideTitle`）、文だけを見せる形です。読み上げの名前は題のままです。押して開くので、指で操作していても読めます（マウスを載せるだけで出す Tooltip とは違います）。シートで出すと、見出しには閉じる × だけが並びます。',
       },
     },
   },
@@ -148,9 +150,9 @@ export const TextOnly: Story = {
     const popover = (frame: HTMLElement) => (
       <Popover
         {...args}
-        trigger={<Button appearance="outline">送料について</Button>}
+        trigger={<Button variant="outline">送料について</Button>}
         defaultOpen={openOnLoad(viewMode)}
-        container={frame}
+        portalContainer={frame}
       >
         3,000円以上のご注文で送料が無料になります。沖縄県と離島は別の料金です。
       </Popover>
@@ -189,9 +191,9 @@ export const Sheet: Story = {
         <Popover
           {...args}
           presentation="sheet"
-          trigger={<Button appearance="outline">表示</Button>}
+          trigger={<Button variant="outline">表示</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {content}
         </Popover>
@@ -204,7 +206,7 @@ export const Accessibility: Story = {
   name: '読み上げとキーボード',
   parameters: { controls: { disable: true } },
   render: (args) => (
-    <Popover {...args} presentation="popover" trigger={<Button appearance="outline">表示</Button>}>
+    <Popover {...args} presentation="popover" trigger={<Button variant="outline">表示</Button>}>
       {content}
     </Popover>
   ),

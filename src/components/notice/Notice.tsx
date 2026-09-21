@@ -6,21 +6,23 @@ import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
 import { NoticeIcon } from '../../internal/notice-surface/NoticeIcon';
 import {
-  type NoticeAppearance,
-  type NoticeColor,
+  type NoticeStatus,
+  type NoticeSurfaceStatus,
+  type NoticeVariant,
   noticeSurface,
 } from '../../internal/notice-surface/notice-surface';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { planFocusAfterClose } from './next-focus';
 import { NoticeRegionContext } from './notice-region-context';
 
-export type { NoticeAppearance, NoticeColor };
+export type { NoticeStatus, NoticeVariant };
 
 // お知らせ（design/adr/0043）。見た目は internal/notice-surface（Callout と共有）。ここは読み上げ（role・領域）と、閉じる・操作を持つ
 
 // 読み上げ: 題・本文・操作を role の箱に入れる。危険は alert（割り込む）、ほかは status（区切りを待つ）
 // あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる。
 // そのため領域（NoticeRegion）の中では、自分では箱を出さず、領域が先に置いた同じ role の箱の中へ描く（二重に読まない）
-const roleOf: Record<NoticeColor, 'alert' | 'status'> = {
+const roleOf: Record<NoticeSurfaceStatus, 'alert' | 'status'> = {
   info: 'status',
   success: 'status',
   warning: 'status',
@@ -33,41 +35,41 @@ export interface NoticeProps extends Omit<
   'title' | 'role' | 'children' | 'color'
 > {
   /**
-   * 色。状態の色（info・success・warning・danger）から選びます。info・success・warning は role="status"、
-   * danger は割り込んで読む role="alert" になります（design/adr/0043）。利用者が選ぶ primary・secondary・neutral は持ちません
+   * 状態。info・success・warning は role="status"、danger は割り込んで読む role="alert" になります（design/adr/0043）。
+   * 書かないときは色を持たないグレーで、role="status" です。利用者が選ぶ primary・secondary の色は持ちません
    */
-  color: NoticeColor;
+  status?: NoticeStatus;
   /**
    * 見た目。soft はタグと同じ淡い面、filled は白文字が載る濃い塗り（警告だけは黄色地に濃紺）、
-   * outline は白い面に状態の色の枠線です。どの場面でどれを使うかは呼び出し側が選びます（design/adr/0043）
+   * outline は白い面に状態の色の枠線、muted はグレーの面に小さな題です（design/adr/0043）
    * @default 'soft'
    */
-  appearance?: NoticeAppearance;
+  variant?: NoticeVariant;
   /**
-   * 1 行目の左に置くアイコン。指定しないときは、状態の色ごとのアイコン（muted と neutral ではなし）です。
+   * 1 行目の左に置くアイコン。書かないときは、状態ごとのアイコン（muted と状態なしではなし）です。
    * false でアイコンを出さず、文が左端から始まります
    */
   icon?: ReactNode | false;
   /** 太字の題。soft・muted では状態の色、filled・outline では本文と同じ色。muted では小さくなります */
   title?: ReactNode;
-  /** 本文 */
+  /** お知らせの本文 */
   children?: ReactNode;
   /** 本文の下に置く操作。白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
   actions?: ReactNode;
   /**
-   * 渡すと右上に × を出す。読み上げの名前は `closeLabel`。× は role の箱の外に置く
+   * 渡すと右上に × を出し、押して閉じたあとに呼びます。読み上げの名前は `closeName`。× は role の箱の外に置く
    * （お知らせの領域 `NoticeRegion` の中では、お知らせ全体が領域の箱の中に入るので、× も箱の中になります）
    *
    * 押してお知らせが消えたときは、フォーカスをその次にあるフォーカスできるもの（なければ前のもの、
    * それもなければ領域 `NoticeRegion` 自身）へ移します。消さなかったときは × に置いたままです
    */
-  onClose?: () => void;
+  onClosed?: () => void;
   /**
    * × の読み上げの名前。題（`title`）があるときは、この名前のあとに題を続けて「閉じる メンテナンスのお知らせ」のように読みます。
    * ページに × が並んでも、どれを閉じるのかが分かります。題がないときは、この名前だけです
    * @default '閉じる'
    */
-  closeLabel?: string;
+  closeName?: string;
   /**
    * 題・本文・操作を role の箱（危険は alert、ほかは status）に入れるか
    * false は、出したお知らせにフォーカスを移して読ませるときに使う（Form のエラーの一覧 — design/adr/0044）。箱に入れたままだと、出たときとフォーカスが移ったときの2回読まれる
@@ -77,26 +79,30 @@ export interface NoticeProps extends Omit<
    * @default true
    */
   live?: boolean;
+  /** お知らせの面に足すクラス */
+  className?: string;
 }
 
 /**
  * お知らせ
  */
 export function Notice({
-  color,
-  appearance = 'soft',
+  status,
+  variant = 'soft',
   icon,
   title,
   children,
   actions,
-  onClose,
-  closeLabel = '閉じる',
+  onClosed,
+  closeName = '閉じる',
   live = true,
   className,
   ref,
   ...props
 }: NoticeProps) {
   const titleId = useId();
+  // 状態を書かないときは、色を持たないグレー
+  const surfaceStatus: NoticeSurfaceStatus = status ?? 'neutral';
   const closeId = useId();
   // 領域の中では、領域が先に置いた箱へ描く。live={false} は箱に入れない（その場に描く）
   const region = useContext(NoticeRegionContext);
@@ -110,27 +116,23 @@ export function Notice({
       element && active instanceof HTMLElement && element.contains(active)
         ? planFocusAfterClose(element, region?.root)
         : null;
-    onClose?.();
+    onClosed?.();
     // 消えるのは呼び出し側なので、描き直したあとに見る
     if (moveFocus) requestAnimationFrame(moveFocus);
   };
-  const setRefs = (node: HTMLDivElement | null) => {
-    rootRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  };
+  const setRefs = useMergedRefs<HTMLDivElement>(rootRef, ref);
   const element = (
     <div
       ref={setRefs}
       data-slot="notice"
-      data-color={color}
-      data-appearance={appearance}
+      data-status={surfaceStatus}
+      data-variant={variant}
       {...props}
-      className={noticeSurface({ appearance, color, className })}
+      className={noticeSurface({ variant, status: surfaceStatus, className })}
     >
-      <NoticeIcon color={color} appearance={appearance} icon={icon} />
+      <NoticeIcon status={surfaceStatus} variant={variant} icon={icon} />
       <div
-        role={live && !inRegion ? roleOf[color] : undefined}
+        role={live && !inRegion ? roleOf[surfaceStatus] : undefined}
         className="flex min-w-0 flex-1 flex-col gap-0.5"
       >
         {title ? (
@@ -151,13 +153,13 @@ export function Notice({
           </div>
         ) : null}
       </div>
-      {onClose && (
+      {onClosed && (
         <button
           type="button"
           id={closeId}
           // 名前は「× の名前 題」。自分を先に指すと、自分の分は aria-label が使われる（accname の aria-labelledby の決まり）
           // 操作の名前を先にする: Tab で移ったとき、何をするボタンかが先に聞こえる。音声操作で「閉じる」と言ったときも名前の頭で当たる
-          aria-label={closeLabel}
+          aria-label={closeName}
           aria-labelledby={title ? `${closeId} ${titleId}` : undefined}
           onClick={close}
           className={[
@@ -181,6 +183,6 @@ export function Notice({
   );
   if (!inRegion) return element;
   // 箱は領域を描いたあとに決まる。決まるまでは描かない（領域はページを開いたときから置くので、出すころには決まっている）
-  const box = region[roleOf[color]];
+  const box = region[roleOf[surfaceStatus]];
   return box ? createPortal(element, box) : null;
 }

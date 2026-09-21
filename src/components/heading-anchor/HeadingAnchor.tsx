@@ -14,7 +14,7 @@ import { tv } from '../../internal/tv';
 // 位置（placement）: end は文字の後ろ（見出しの最後の子）。start は見出しの左の余白へ張り出す（見出しの最初の子）
 //   張り出す分は余白がないと切れるので、左に余白がある読みものの中で使う
 // 動き: 現れる・消えるは opacity を速く（原則14）。位置は動かさない。動きを減らす設定では、すぐに切り替える
-// 読み上げ: 見出しの中に置くので、見出しの名前は「見出しの文字 + label」になる
+// 読み上げ: 見出しの中に置くので、見出しの名前は「見出しの文字 + accessibleName」になる
 // 縦の位置は Icon と同じ: 印の中心を、漢字の枠の中心（ベースラインから --icon-text-center の高さ）に置く
 const headingAnchor = tv({
   base: [
@@ -50,8 +50,14 @@ const headingAnchor = tv({
   defaultVariants: { reveal: 'hover', placement: 'end' },
 });
 
-export interface HeadingAnchorProps
-  extends Omit<ComponentProps<'a'>, 'children' | 'href'>, VariantProps<typeof headingAnchor> {
+/** 現れ方 */
+export type HeadingAnchorReveal = NonNullable<VariantProps<typeof headingAnchor>['reveal']>;
+/** 置く場所 */
+export type HeadingAnchorPlacement = NonNullable<VariantProps<typeof headingAnchor>['placement']>;
+/** 出すアイコン */
+export type HeadingAnchorIcon = 'link' | 'hash';
+
+export interface HeadingAnchorProps extends Omit<ComponentProps<'a'>, 'children' | 'href'> {
   /** 移る先。見出しの id を指します（例: `#usage`） */
   href: string;
   /**
@@ -59,26 +65,28 @@ export interface HeadingAnchorProps
    * 見出しの文字を含めない、短い文にします
    * @default 'このセクションへのリンク'
    */
-  label?: string;
+  accessibleName?: string;
   /**
    * 現れ方。hover は、見出しに hover したときと、キーボードでフォーカスしたときだけ現れ、ふだんは見えません（Tab では止まります）。
    * always は、ふだんから見せます。指で操作しているときは、hover がないので、どちらでもいつも見えます
    * @default 'hover'
    */
-  reveal?: VariantProps<typeof headingAnchor>['reveal'];
+  reveal?: HeadingAnchorReveal;
   /**
    * 置く場所。end は文字の後ろで、見出しの最後の子に置きます。start は見出しの左の余白へ張り出し、見出しの最初の子に置きます。
    * start は左の余白がないと切れます
    * @default 'end'
    */
-  placement?: VariantProps<typeof headingAnchor>['placement'];
+  placement?: HeadingAnchorPlacement;
   /**
-   * 印の形。link は鎖、hash は井げた（#）です。色と大きさは同じです
+   * 出すアイコン。link は鎖、hash は井げた（#）です。色と大きさは同じです
    * @default 'link'
    */
-  mark?: 'link' | 'hash';
-  /** 印の差し替え。指定すると `mark` より優先します。アイコン（`<Icon>` や `<svg>`）を渡すと置き換えます。大きさは見出しの文字に合わせます */
+  icon?: HeadingAnchorIcon;
+  /** アイコンの差し替え。入れると `icon` より優先します。アイコン（`<Icon>` や `<svg>`）を渡すと置き換えます。大きさは見出しの文字に合わせます */
   children?: ReactNode;
+  /** リンクの要素（a）に付きます */
+  className?: string;
 }
 
 /**
@@ -86,10 +94,10 @@ export interface HeadingAnchorProps
  */
 export function HeadingAnchor({
   href,
-  label = 'このセクションへのリンク',
+  accessibleName = 'このセクションへのリンク',
   reveal,
   placement,
-  mark = 'link',
+  icon = 'link',
   className,
   children,
   ...props
@@ -98,11 +106,11 @@ export function HeadingAnchor({
     <a
       {...props}
       href={href}
-      aria-label={label}
+      aria-label={accessibleName}
       data-slot="heading-anchor"
       className={headingAnchor({ reveal, placement, className })}
     >
-      {children ?? (mark === 'hash' ? <HashIcon /> : <LinkSimpleHorizontalIcon />)}
+      {children ?? (icon === 'hash' ? <HashIcon /> : <LinkSimpleHorizontalIcon />)}
     </a>
   );
 }

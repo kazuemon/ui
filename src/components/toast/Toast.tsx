@@ -8,11 +8,13 @@ import { useNarrowScreen } from '../../internal/sheet/use-narrow-screen';
 import { XIcon } from '../../internal/icons';
 import { NoticeIcon } from '../../internal/notice-surface/NoticeIcon';
 import {
-  type NoticeAppearance,
-  type NoticeColor,
+  type NoticeStatus,
+  type NoticeSurfaceStatus,
+  type NoticeVariant,
   noticeSurface,
 } from '../../internal/notice-surface/notice-surface';
 import { tv } from '../../internal/tv';
+import { usePortalContainer } from '../../internal/ui-config';
 
 // 一定の時間で消えるお知らせ（トースト）— 軸 147・148
 //   見た目はお知らせ（Notice）と同じ面（src/internal/notice-surface）。働きが同じものは同じ見た目にする
@@ -25,9 +27,8 @@ import { tv } from '../../internal/tv';
 //   既定では自動で消えない。消えるまでの時間を決めたときだけ、面の下に残り時間の線を引く（読んでいるあいだは止まる）
 //   はじいて消せる（Base UI の swipeDirection）。出入りは浮かぶ面と同じ動き（--popup-*）で、動きを減らす設定では動かさない
 
-export type ToastColor = NoticeColor;
 /** 面の見た目（軸 147）。soft は淡い色の面、filled は白文字が載る濃い塗り */
-export type ToastAppearance = Extract<NoticeAppearance, 'soft' | 'filled'>;
+export type ToastVariant = Extract<NoticeVariant, 'soft' | 'filled'>;
 
 /** 出る場所。auto は、指で操作していて画面が狭いときは下の中央、それ以外は右下 */
 export type ToastPosition =
@@ -201,20 +202,33 @@ const toastStyles = tv({
   defaultVariants: { position: 'bottom-end', stack: 'list', outline: true },
 });
 
+/**
+ * React の外（fetch の中など）からトーストを出すための道具。`ToastProvider` の `toastManager` に渡して使います
+ */
+export function createToastManager() {
+  return BaseToast.createToastManager<ToastData>();
+}
+
+/** `createToastManager()` が返す道具 */
+export type ToastManager = ReturnType<typeof createToastManager>;
+
 /** トーストに持たせる内容。Base UI の toast の data に入れる */
 export interface ToastData {
-  /** 色。状態の色から選びます。指定しないときはグレーです */
-  color?: ToastColor;
-  /** 見た目。指定しないときは ToastProvider の appearance です */
-  appearance?: ToastAppearance;
-  /** 1 行目の左のアイコン。指定しないときは色ごとのアイコン、false でなし */
+  /** 状態。情報・成功・警告・危険の色です。書かないときは色を持たないグレーです */
+  status?: NoticeStatus;
+  /** 面の見た目。書かないときは ToastProvider の variant です */
+  variant?: ToastVariant;
+  /** 1 行目の左に置くアイコン。書かないときは状態ごとのアイコン、false でなし */
   icon?: ReactNode | false;
   /** 本文の下に置く操作（白いボタンか文字のリンク） */
   actions?: ReactNode;
 }
 
 export interface ToastProviderProps {
+  /** トーストを出せるようにする範囲。ふつうはアプリ全体を入れます */
   children?: ReactNode;
+  /** 出す・閉じる・書き換えるための道具。React の外（fetch の中など）からトーストを出すときに、`createToastManager()` で作って渡します */
+  toastManager?: ToastManager;
   /**
    * 消えるまでの時間（ミリ秒）。既定の 0 は、閉じるまで消えません。
    * 0 より大きい値を渡すと、その時間で消え、面の下に残り時間の線が出ます（読んでいるあいだは止まります）。
@@ -243,19 +257,22 @@ export interface ToastProviderProps {
    * 面の見た目。soft は状態の色の淡い面、filled は白文字が載る濃い塗り（警告だけは黄色に濃紺）です
    * @default 'soft'
    */
-  appearance?: ToastAppearance;
+  variant?: ToastVariant;
   /**
-   * 面に細い輪郭を付けるか。影だけで浮かせたいときは false にします
-   * @default true
+   * 面の細い輪郭を消すか。影だけで浮かせたいときに書きます
+   * @default false
    */
-  outline?: boolean;
+  hideOutline?: boolean;
   /**
    * × の読み上げの名前
    * @default '閉じる'
    */
-  closeLabel?: string;
-  /** トーストを描く場所 @default document.body */
-  container?: HTMLElement | null;
+  closeName?: string;
+  /**
+   * 描く場所。書かないときは ThemeProvider の portalContainer に従います
+   * @default document.body
+   */
+  portalContainer?: HTMLElement | null;
 }
 
 /**
@@ -263,25 +280,27 @@ export interface ToastProviderProps {
  */
 export function ToastProvider({
   children,
+  toastManager,
   timeout = 0,
   limit = 5,
   position = 'auto',
   stack = 'auto',
-  appearance = 'soft',
-  outline = true,
-  closeLabel = '閉じる',
-  container,
+  variant = 'soft',
+  hideOutline = false,
+  closeName = '閉じる',
+  portalContainer,
 }: ToastProviderProps) {
+  const target = usePortalContainer(portalContainer);
   return (
-    <BaseToast.Provider timeout={timeout} limit={limit}>
+    <BaseToast.Provider timeout={timeout} limit={limit} toastManager={toastManager}>
       {children}
-      <BaseToast.Portal container={container}>
+      <BaseToast.Portal container={target}>
         <ToastViewport
           position={position}
           stack={stack}
-          appearance={appearance}
-          outline={outline}
-          closeLabel={closeLabel}
+          variant={variant}
+          hideOutline={hideOutline}
+          closeName={closeName}
           timeout={timeout}
         />
       </BaseToast.Portal>
@@ -292,16 +311,16 @@ export function ToastProvider({
 function ToastViewport({
   position,
   stack,
-  appearance,
-  outline,
-  closeLabel,
+  variant,
+  hideOutline,
+  closeName,
   timeout,
 }: {
   position: ToastPosition;
   stack: ToastStack;
-  appearance: ToastAppearance;
-  outline: boolean;
-  closeLabel: string;
+  variant: ToastVariant;
+  hideOutline: boolean;
+  closeName: string;
   timeout: number;
 }) {
   const { toasts } = BaseToast.useToastManager();
@@ -325,7 +344,7 @@ function ToastViewport({
 
   const layout: Exclude<ToastStack, 'auto'> =
     stack === 'auto' ? (shouldStack ? 'stacked' : 'list') : stack;
-  const s = toastStyles({ position: place, stack: layout, outline });
+  const s = toastStyles({ position: place, stack: layout, outline: !hideOutline });
   const fromTop = place.startsWith('top');
   return (
     <BaseToast.Viewport
@@ -340,8 +359,9 @@ function ToastViewport({
     >
       {toasts.map((toast) => {
         const data: ToastData = toast.data ?? {};
-        const color = data.color ?? 'neutral';
-        const look = data.appearance ?? appearance;
+        // 状態を書かないときは、色を持たないグレー
+        const status: NoticeSurfaceStatus = data.status ?? 'neutral';
+        const look = data.variant ?? variant;
         // 消えるまでの時間を決めたトーストにだけ、残り時間の線を出す
         const left = toast.timeout ?? timeout;
         return (
@@ -350,18 +370,18 @@ function ToastViewport({
             toast={toast}
             swipeDirection={fromTop ? ['up', 'right'] : ['down', 'right']}
             data-slot="toast"
-            data-color={color}
+            data-status={status}
             className={s.root()}
           >
             <BaseToast.Content
               data-slot="toast-content"
               className={noticeSurface({
-                appearance: look,
-                color,
+                variant: look,
+                status,
                 className: s.content(),
               })}
             >
-              <NoticeIcon color={color} appearance={look} icon={data.icon} />
+              <NoticeIcon status={status} variant={look} icon={data.icon} />
               <div className={s.text()}>
                 {toast.title ? (
                   <BaseToast.Title data-slot="toast-title" className={s.title()} />
@@ -382,7 +402,7 @@ function ToastViewport({
                   />
                 </div>
               ) : null}
-              <BaseToast.Close aria-label={closeLabel} className={s.close()}>
+              <BaseToast.Close aria-label={closeName} className={s.close()}>
                 {/* アイコン単体なので Bold（design/adr/0018） */}
                 <XIcon standalone />
               </BaseToast.Close>
@@ -404,35 +424,40 @@ export interface ToastOptions extends ToastData {
   timeout?: number;
   /** 同じ id で出すと、前のトーストを書き換えて時間を数え直します */
   id?: string;
-  /** 閉じたときに呼ばれます */
-  onClose?: () => void;
+  /** 閉じたあとに呼ばれます */
+  onClosed?: () => void;
 }
 
 /**
  * トーストを出す・閉じる・書き換える。`ToastProvider` の中で使います
  *
- * 危険（`color: 'danger'`）だけは読み上げに割り込み、ほかは静かに知らせます（原則6）
+ * 危険（`status: 'danger'`）だけは読み上げに割り込み、ほかは静かに知らせます（原則6）
  */
 export function useToast() {
   const manager = BaseToast.useToastManager<ToastData>();
   return {
     /** トーストを出す。返る id で、あとから閉じたり書き換えたりできます */
-    show: ({ title, description, timeout, id, onClose, ...data }: ToastOptions) =>
+    show: ({ title, description, timeout, id, onClosed, ...data }: ToastOptions) =>
       manager.add({
         title,
         description,
         timeout,
         id,
-        onClose,
+        onClose: onClosed,
         // 危険だけが割り込む（原則6）
-        priority: data.color === 'danger' ? 'high' : 'low',
-        type: data.color ?? 'neutral',
+        priority: data.status === 'danger' ? 'high' : 'low',
+        type: data.status ?? 'neutral',
         data,
       }),
     /** トーストを閉じる。id を渡さないと、出ているものをすべて閉じます */
     close: manager.close,
     /** 出したトーストを書き換える */
     update: manager.update,
+    /**
+     * Promise の間、待ち・成功・失敗のトーストを順に出します。
+     * それぞれに、題や本文（`ToastOptions` と同じもの）か、文字だけを渡します
+     */
+    promise: manager.promise,
     /** いま出ているトースト */
     toasts: manager.toasts,
   };

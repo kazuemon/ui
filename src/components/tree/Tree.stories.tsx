@@ -34,13 +34,14 @@ const meta = {
         component: [
           '入れ子の行き先を木の形で並べます。ドキュメントの目次や、ファイルの一覧に使います。',
           '',
-          '- `Tree` に読み上げの名前（`label`）を渡し、中に `TreeItem` を並べます。`TreeItem` の中に `TreeItem` を入れると、開け閉めできる行になります。',
+          '- `Tree` に読み上げの名前（`accessibleName`）を渡し、中に `TreeItem` を並べます。`TreeItem` の中に `TreeItem` を入れると、開け閉めできる行になります。',
           '- 行き先は `href`（または `render` で Next.js の `Link` など）で渡します。いまいるページの行には `current` を付けます。',
+          '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- 行の頭のアイコンは `icon` で渡します。渡さないときは置きません。',
           '- Tab で入るのは 1 行だけです。↑ ↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移ります。子を持つ行は Space で開け閉めします。',
           '- 文字を打つと、その文字で始まる行へ移ります。続けて打った文字は 1 語として扱い、少し間が空くと打ち直しになります。開いていない枝の中の行には移りません。',
           '- 開いている行を自分で持つときは `expanded`・`onExpandedChange` を使います。はじめから開けておくときは `defaultExpanded` です。',
-          '- 字下げの案内線は `guides` で消せます。いまいる行の色は `color` で選びます。',
+          '- 字下げの案内線は `hideGuides` で消せます。いまいる行の色は `color` で選びます。',
           '- 行の塗り（hover・いまいる行）は、既定では字下げの分だけ左を空けます。木の幅いっぱいに塗るときは `rowWidth="full"` にします。',
           '- いまいる行の印は `currentIndicator` です。`fill`（既定）は淡い面と太字、`text` は太字だけです。',
           '- 開け閉めは中身の高さが動きます（`panelMotion="none"` ですぐ切り替わります）。',
@@ -50,9 +51,9 @@ const meta = {
     },
   },
   args: {
-    label: 'ドキュメント',
+    accessibleName: 'ドキュメント',
     color: 'neutral',
-    guides: true,
+    hideGuides: false,
     rowWidth: 'indent',
     currentIndicator: 'fill',
     panelMotion: 'collapse',
@@ -60,7 +61,7 @@ const meta = {
   },
   argTypes: {
     color: { control: 'inline-radio', options: ['primary', 'secondary', 'neutral'] },
-    guides: { control: 'boolean' },
+    hideGuides: { control: 'boolean' },
     rowWidth: { control: 'inline-radio', options: ['indent', 'full'] },
     currentIndicator: { control: 'inline-radio', options: ['fill', 'text'] },
     panelMotion: { control: 'inline-radio', options: ['collapse', 'none'] },
@@ -128,9 +129,9 @@ export const Colors: Story = {
           </div>
         </Specimen>
       ))}
-      <Specimen label="案内線なし（guides={false}）">
+      <Specimen label="案内線なし（hideGuides）">
         <div className="w-56">
-          <Tree {...args} guides={false}>
+          <Tree {...args} hideGuides>
             {docs}
           </Tree>
         </div>
@@ -145,7 +146,7 @@ export const WithIcons: Story = {
   parameters: { controls: { disable: true } },
   render: (args) => (
     <div className="w-64">
-      <Tree {...args} label="ファイル">
+      <Tree {...args} accessibleName="ファイル">
         <TreeItem label="src" icon={<Icon icon={FolderIcon} size="control" />} defaultExpanded>
           <TreeItem label="index.ts" icon={<Icon icon={FileTextIcon} size="control" />} href="#a" />
           <TreeItem
@@ -290,7 +291,7 @@ export const Typeahead: Story = {
   },
   render: (args) => (
     <div className="w-64">
-      <Tree {...args} label="ファイル">
+      <Tree {...args} accessibleName="ファイル">
         {files}
       </Tree>
     </div>

@@ -8,9 +8,11 @@ import { usePortalContainer } from '../../internal/ui-config';
 
 export interface PortalProps {
   /**
-   * 描く場所。書かないときは ThemeProvider の portalContainer、それもなければ document.body です
+   * 描く場所。まとめて決めるときは ThemeProvider の portalContainer を使います
+   * @default document.body
    */
   container?: HTMLElement | null;
+  /** 別の場所に描く中身 */
   children?: ReactNode;
 }
 

@@ -29,8 +29,8 @@ const meta = {
           '- 見出しに `id` を付けるのは、使う側の仕事です。`href` は `#` に `id` をつないだ文字列です。',
           '- `reveal` は現れ方です。既定の `hover` は、見出しに hover したときとキーボードでフォーカスしたときだけ現します。隠しているあいだも Tab では止まり、止まると現れます。`always` はふだんから見せます。指で操作しているときは hover がないので、どちらでもいつも見えます。',
           '- `placement` は置き場所です。既定の `end` は文字の後ろで、見出しの最後の子に置きます。`start` は見出しの左の余白へ張り出し、見出しの最初の子に置きます。左に余白がないと切れます。',
-          '- 印の形は `mark` で選びます。既定の `link` は鎖で、`hash` は井げたです。`children` にアイコンを渡すと、それに置き換えます。大きさは見出しの文字に合わせます。',
-          '- 見出しの名前は「見出しの文字 + `label`」と読み上げられます。`label` は見出しの文字を含めない短い文にします。',
+          '- アイコンは `icon` で選びます。既定の `link` は鎖で、`hash` は井げたです。`children` にアイコンを渡すと、それに置き換えます。大きさは見出しの文字に合わせます。',
+          '- 見出しの名前は「見出しの文字 + `accessibleName`」と読み上げられます。`accessibleName` は見出しの文字を含めない短い文にします。',
           '- 押せる範囲は、印とその周りだけです。見出しの文字は押せません。',
         ].join('\n'),
       },
@@ -48,12 +48,12 @@ const meta = {
       options: ['end', 'start'],
       table: { defaultValue: { summary: "'end'" } },
     },
-    mark: {
+    icon: {
       control: 'inline-radio',
       options: ['link', 'hash'],
       table: { defaultValue: { summary: "'link'" } },
     },
-    label: { control: 'text' },
+    accessibleName: { control: 'text' },
     children: { control: false },
   },
 } satisfies Meta<typeof HeadingAnchor>;
@@ -159,7 +159,7 @@ export const Variants: Story = {
     docs: {
       description: {
         story:
-          '`placement="start"` は見出しの左の余白へ張り出し、文字の位置は動きません。`mark="hash"` は印を井げたにします。`children` に別のアイコンを渡すと、印を置き換えます。',
+          '`placement="start"` は見出しの左の余白へ張り出し、文字の位置は動きません。`icon="hash"` はアイコンを井げたにします。`children` に別のアイコンを渡すと、アイコンを置き換えます。',
       },
     },
   },
@@ -173,13 +173,13 @@ export const Variants: Story = {
           </Heading>
         </div>
       </Specimen>
-      <Specimen label='mark="hash"（井げた）'>
+      <Specimen label='icon="hash"（井げた）'>
         <Heading level={2} data-reading="">
           使い方
-          <HeadingAnchor href="#usage" reveal="always" mark="hash" />
+          <HeadingAnchor href="#usage" reveal="always" icon="hash" />
         </Heading>
       </Specimen>
-      <Specimen label="印を差し替える（children）">
+      <Specimen label="アイコンを差し替える（children）">
         <Heading level={2} data-reading="">
           使い方
           <HeadingAnchor href="#usage" reveal="always">

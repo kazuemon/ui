@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { type ComponentProps, type Ref, useMemo, useState } from 'react';
 
 import { type DateSegmentColor, dateSegmentColorClass } from '../../internal/date-segments/colors';
 import { DateSegmentGroup } from '../../internal/date-segments/DateSegmentGroup';
@@ -16,15 +16,15 @@ import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
 export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'>, HalfWidthNoticeProps {
-  /** 入っている時刻（制御するとき）。時・分がそろっていないときは null */
+  /** 値（制御）。時・分がそろっていないときは null */
   value?: PlainTime | null;
-  /** はじめに入れておく時刻 */
+  /** はじめの値（非制御） */
   defaultValue?: PlainTime | null;
-  /** 時・分（秒）がそろったとき（そろった値を消したときは null） */
+  /** 値が変わるときに、次の値を渡して呼びます（時・分（秒）がそろったとき。そろった値を消したときは null） */
   onValueChange?: (value: PlainTime | null) => void;
   /**
    * 入れてよいいちばん早い時刻。これより前の時刻が入ると、欄をエラーの見た目（赤い枠線・aria-invalid）にします。
-   * 区切りの増減は止めません。理由の文は `error` で渡します
+   * 区切りの増減は止めません。理由の文は `errorText` で渡します
    */
   min?: PlainTime;
   /** 入れてよいいちばん遅い時刻。扱いは min と同じ */
@@ -44,15 +44,24 @@ export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
    * @default 1
    */
   minuteStep?: number;
+  /** 中の区切りを並べる要素の id */
+  id?: string;
+  /** 中の区切りを並べる要素への ref */
+  ref?: Ref<HTMLDivElement>;
+  /** 中の区切りを並べる要素に渡すもの（class・data-* など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'div'>;
   /** フォームに送る名前。値は ISO 8601 の時刻（「15:05」、秒を出すときは「15:05:30」）で、そろっていないときは空 */
   name?: string;
+  /** 押せない（Disabled）状態にします */
   disabled?: boolean;
+  /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
   /**
    * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
+  /** 描いたあとに、最初の区切りへフォーカスを移します */
   autoFocus?: boolean;
   /**
    * 空の区切りに出す見本の書き方。letters は「hh:mm」、units は「時:分」、dashes は「--:--」
@@ -70,8 +79,8 @@ export interface TimeFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
    * @default 'neutral'
    */
   color?: DateSegmentColor;
-  /** 貼り付けた文字が時刻として読めなかったとき。値は変えません。`info` などで知らせるときに使います */
-  onParseFail?: (text: string) => void;
+  /** 貼り付けた文字が時刻として読めなかったあとに呼びます。値は変えません。`infoText` などで知らせるときに使います */
+  onParseFailed?: (text: string) => void;
   'aria-describedby'?: string;
 }
 
@@ -82,11 +91,11 @@ export function TimeField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   readOnly,
   required,
@@ -109,10 +118,13 @@ export function TimeField({
   showSeconds = false,
   minuteStep = 1,
   name,
+  id,
+  ref,
+  inputProps,
   segmentPlaceholder = 'letters',
   locale: localeProp,
   color = 'neutral',
-  onParseFail,
+  onParseFailed,
   halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
 }: TimeFieldProps) {
@@ -137,11 +149,11 @@ export function TimeField({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
+      error={errorText}
       invalid={outOfRange}
-      warning={warning}
-      success={success}
-      info={info ?? notice}
+      warning={warningText}
+      success={successText}
+      info={infoText ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -160,9 +172,9 @@ export function TimeField({
           disabled={disabled}
           loading={loading}
           loadingIndicator={loadingIndicator}
-          success={success}
-          successMark={successMark}
-          error={error}
+          success={successText}
+          successMark={!hideSuccessMark}
+          error={errorText}
           describedBy={ariaDescribedBy}
           messageIds={messageIds}
           className={dateSegmentColorClass[color]}
@@ -190,16 +202,19 @@ export function TimeField({
                 return parsed && fromPlainTime(parsed, layout);
               }}
               steps={{ minute: minuteStep }}
-              onParseFail={onParseFail}
+              onParseFailed={onParseFailed}
               onHalfWidth={noticed}
               toFormValue={(time) =>
                 time?.toString({ smallestUnit: showSeconds ? 'second' : 'minute' }) ?? ''
               }
               name={name}
+              id={id}
+              ref={ref}
+              groupProps={inputProps}
               disabled={disabled}
               readOnly={readOnly}
               blocking={blocking}
-              invalid={!!error || outOfRange}
+              invalid={!!errorText || outOfRange}
               required={required}
               autoFocus={autoFocus}
               busy={loading}

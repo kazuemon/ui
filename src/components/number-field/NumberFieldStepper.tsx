@@ -10,8 +10,10 @@ import { tv } from '../../internal/tv';
 // 押せるかは Base UI が決める（押せない欄・読み取り専用・min / max に届いた向き）。見た目は disabled 属性で表す
 
 /** 増減ボタンの読み上げの名前 */
-export interface StepperLabels {
+export interface StepperNames {
+  /** 増やすボタンの、読み上げの名前 */
   increment: string;
+  /** 減らすボタンの、読み上げの名前 */
   decrement: string;
 }
 
@@ -96,14 +98,14 @@ function StackedStepButton({
 /**
  * stacked: 本体の右端に、上下に割った ▲ と ▼
  */
-export function StackedStepper({ labels, locked }: { labels: StepperLabels; locked: boolean }) {
+export function StackedStepper({ names, locked }: { names: StepperNames; locked: boolean }) {
   return (
     <FieldAddon
       data-stepper="stacked"
       className="w-(--number-field-stepper-width) flex-col items-stretch overflow-hidden px-0"
     >
-      <StackedStepButton direction="increment" label={labels.increment} locked={locked} />
-      <StackedStepButton direction="decrement" label={labels.decrement} locked={locked} />
+      <StackedStepButton direction="increment" label={names.increment} locked={locked} />
+      <StackedStepButton direction="decrement" label={names.decrement} locked={locked} />
     </FieldAddon>
   );
 }

@@ -13,7 +13,7 @@ import { tv } from '../../internal/tv';
 // children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--badge-ring-width）で相手と切り離す
 //   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
 //   相手が丸い（overlap="circular"）ときは、角からの内側ではなく、Badge の中心を相手の円周上（右上 45°）に置く。既定（square）は今のまま
-// 読み上げ: label を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）で label を読ませる
+// 読み上げ: accessibleName を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）でその文を読ませる
 //   sr-only は絶対配置なので、Badge 自身を位置の基準にする（重ねるときは absolute、置くだけのときは relative）
 const badge = tv({
   base: 'inline-flex shrink-0 items-center justify-center rounded-pill font-bold whitespace-nowrap tabular-nums',
@@ -68,13 +68,13 @@ export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'chil
    */
   color?: VariantProps<typeof badge>['color'];
   /**
-   * 読み上げの文です。渡すと、見えている数字の代わりにこの文を読み上げます（画面には出ない文字です）。
-   * 文字の横やボタンの中に置いて、数字だけでは意味が伝わらないときに使います（例: label={(count) => `（未読 ${count} 件）`}）。
+   * 読み上げの名前。画面には出ません。渡すと、見えている数字の代わりにこの文を読み上げます。
+   * 文字の横やボタンの中に置いて、数字だけでは意味が伝わらないときに使います（例: accessibleName={(count) => `（未読 ${count} 件）`}）。
    * 関数を渡すと、数を受け取って文を返します。数は max で丸める前の値です。点（count なし）には文字列を渡します（関数は使いません）。
    * 渡さないときは、見えている数字（「3」「99+」）をそのまま読み、点は何も読みません。
-   * 重ねるとき（children）は label ではなく、相手の名前に数を含めます
+   * 重ねるとき（children）は、Badge ではなく相手の名前に数を含めます
    */
-  label?: string | ((count: number) => string);
+  accessibleName?: string | ((count: number) => string);
   /**
    * 重ねる相手（アイコンのボタン、アバターなど）。渡すと、その右上の角に重ねます。
    * 重ねるときは Badge に aria-hidden="true" を付けて読ませず、相手の名前に数を含めます
@@ -88,21 +88,23 @@ export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'chil
    * @default 'square'
    */
   overlap?: 'square' | 'circular';
+  /** 数の丸・点に付きます */
+  className?: string;
 }
 
 /**
  * 数と小さな状態の点を出します。文字のラベル（分類や「公開中」などの状態）には Tag を使います。
  *
  * - 数（通知の件数など）は count で渡します。点は count を渡さないときに出ます
- * - 点は色だけで意味を伝えないよう、隣に文字（「稼働中」など）を置くか、label で読み上げの文を付けます
+ * - 点は色だけで意味を伝えないよう、隣に文字（「稼働中」など）を置くか、accessibleName で読み上げの文を付けます
  * - 重ねるとき（children）は、Badge を aria-hidden にして、相手の名前に数を含めます
- * - 文字の横やボタンの中に置くときは、label で数の意味を読み上げます
+ * - 文字の横やボタンの中に置くときは、accessibleName で数の意味を読み上げます
  */
 export function Badge({
   count,
   max = 99,
   color,
-  label,
+  accessibleName,
   children,
   overlap = 'square',
   className,
@@ -112,7 +114,11 @@ export function Badge({
   const shown = count === undefined || count > 0;
   const text = count === undefined ? null : count > max ? `${max}+` : count;
   const spoken =
-    typeof label === 'function' ? (count === undefined ? undefined : label(count)) : label;
+    typeof accessibleName === 'function'
+      ? count === undefined
+        ? undefined
+        : accessibleName(count)
+      : accessibleName;
   const mark = shown ? (
     <span
       className={badge({

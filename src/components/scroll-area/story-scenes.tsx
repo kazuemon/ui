@@ -9,7 +9,7 @@ import { type ScrollPosition, useScrollPosition } from './story-scroll';
 // ストーリーで使う場面（部品ではない）
 
 /** 場面の ScrollArea に渡す、影とつまみの出し方 */
-export type SceneOptions = Pick<ScrollAreaProps, 'edgeShadow' | 'scrollbar'>;
+export type SceneOptions = Pick<ScrollAreaProps, 'hideEdgeShadow' | 'scrollbar'>;
 
 const topics = [
   ['design', 'デザイン'],
@@ -42,10 +42,10 @@ export function TopicCard({
       {/* 枠をカードの端まで広げ、余白は中身に付ける。影がカードの幅いっぱいに出る */}
       <ScrollArea
         {...options}
-        viewportRef={ref}
-        label="興味のある話題"
+        viewportProps={{ ref }}
+        accessibleName="興味のある話題"
         className="h-[248px]"
-        contentClassName="p-4"
+        contentProps={{ className: 'p-4' }}
       >
         <CheckboxGroup label="興味のある話題" defaultValue={['design', 'a11y']}>
           {topics.map(([value, label]) => (
@@ -82,7 +82,7 @@ export function TagRow({
 }) {
   const ref = useScrollPosition(position, 'x');
   return (
-    <ScrollArea {...options} viewportRef={ref} label="使った技術" className={width}>
+    <ScrollArea {...options} viewportProps={{ ref }} accessibleName="使った技術" className={width}>
       <div className="flex gap-2 pb-3">
         {tags.map((tag) => (
           <Tag key={tag}>{tag}</Tag>

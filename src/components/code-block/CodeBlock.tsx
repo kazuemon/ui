@@ -17,7 +17,7 @@ import { useScrollTabStops } from '../../internal/use-scrollable';
 //   強調行 .line.highlighted・差分 .line.diff.add / .line.diff.remove・フォーカス .line.focused・語の強調 .highlighted-word
 //   色は createCssVariablesTheme の CSS 変数（style="color: var(--shiki-token-keyword)"）
 // 面（root）と中身（body）の見た目のクラス列は src/internal/reading/code-block.ts（Prose が素の pre.shiki に同じ見た目を当てる）
-// 見た目（appearance）: surface（既定）は入力欄のグレーの面・部品の角・上の帯（軸 64 の現行版）。dark は濃紺の地（64 の D）
+// 見た目（variant）: surface（既定）は入力欄のグレーの面・部品の角・上の帯（軸 64 の現行版）。dark は濃紺の地（64 の D）
 // 色分けの色は GitHub のテーマ（軸 68 の D）、行番号は地と強調行・差分の面の上で 4.5:1（69 の B）。値は tokens の --palette-code-*
 // 題の帯とコピーのボタン（67 の A）: 帯は 52px で、下の線はその外に引く（ボタンが線に重ならない）
 //   ボタンは指で押せる 44px（原則11）で、帯の上・下・右に 4px 空ける。帯の中では塗らない
@@ -66,7 +66,7 @@ const codeBlock = tv({
     copied: 'text-body-sm font-bold',
   },
   variants: {
-    appearance: {
+    variant: {
       surface: {
         root: codeBlockStyles.surfaceColors,
       },
@@ -103,8 +103,11 @@ const codeBlock = tv({
       false: {},
     },
   },
-  defaultVariants: { appearance: 'surface', lineNumbers: false },
+  defaultVariants: { variant: 'surface', lineNumbers: false },
 });
+
+/** コードの面の見た目 */
+export type CodeBlockVariant = 'surface' | 'dark';
 
 export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' | 'children'> {
   /**
@@ -123,7 +126,7 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
    * 見た目。surface は入力欄と同じグレーの面、dark は濃紺の地です。色分けの色も地に合わせて変わります
    * @default 'surface'
    */
-  appearance?: 'surface' | 'dark';
+  variant?: CodeBlockVariant;
   /** ファイル名などの題。コードの上の帯に出し、コピーのボタンを帯の右に置きます */
   title?: ReactNode;
   /**
@@ -132,10 +135,10 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
    */
   lineNumbers?: boolean | number;
   /**
-   * コピーのボタンを出します
-   * @default true
+   * コピーのボタンを出さないようにします
+   * @default false
    */
-  copyButton?: boolean;
+  hideCopyButton?: boolean;
   /**
    * コピーする文字列。渡さないときは、表示している行の文字を改行でつなぎます（差分で消した行は除きます）
    */
@@ -144,17 +147,19 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
    * コピーのボタンの読み上げの名前。題があるときは、この名前のあとに題を続けて読みます
    * @default 'コードをコピー'
    */
-  copyLabel?: string;
+  copyName?: string;
   /**
    * コピーしたあとに、ボタンに出して読み上げる文
    * @default 'コピーしました'
    */
-  copiedLabel?: string;
+  copiedText?: string;
   /**
    * 写せなかったとき（権限がない・安全でない接続）に、吹き出しに出して読み上げる文
    * @default 'コピーできませんでした'
    */
-  copyErrorLabel?: string;
+  copyErrorText?: string;
+  /** コードを包む要素（figure）に付きます */
+  className?: string;
 }
 
 /**
@@ -164,19 +169,19 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
 export function CodeBlock({
   html,
   children,
-  appearance,
+  variant,
   title,
   lineNumbers = false,
-  copyButton = true,
+  hideCopyButton = false,
   copyText,
-  copyLabel = 'コードをコピー',
-  copiedLabel = 'コピーしました',
-  copyErrorLabel = 'コピーできませんでした',
+  copyName = 'コードをコピー',
+  copiedText = 'コピーしました',
+  copyErrorText = 'コピーできませんでした',
   className,
   style,
   ...props
 }: CodeBlockProps) {
-  const styles = codeBlock({ appearance, lineNumbers: lineNumbers !== false });
+  const styles = codeBlock({ variant, lineNumbers: lineNumbers !== false });
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const copyId = useId();
@@ -198,9 +203,9 @@ export function CodeBlock({
     <figure
       className={styles.root({ className })}
       data-slot="code-block"
-      data-appearance={appearance ?? 'surface'}
+      data-variant={variant ?? 'surface'}
       data-titled={hasTitle ? '' : undefined}
-      data-copy={copyButton ? '' : undefined}
+      data-copy={hideCopyButton ? undefined : ''}
       data-line-numbers={lineNumbers !== false ? '' : undefined}
       style={start == null ? style : { ...style, ['--cb-start' as string]: start }}
       {...props}
@@ -224,15 +229,15 @@ export function CodeBlock({
           <pre>{children}</pre>
         </div>
       )}
-      {copyButton ? (
+      {hideCopyButton ? null : (
         // 写せなかったとき（軸 176）は、淡い赤の吹き出しで知らせる。濃い地の上では、ボタンの中では伝わらないため
-        <CopyErrorTooltip open={failed} label={copyErrorLabel}>
+        <CopyErrorTooltip open={failed} text={copyErrorText}>
           <button
             type="button"
             id={copyId}
             className={styles.copy()}
             data-copied={copied ? '' : undefined}
-            aria-label={copyLabel}
+            aria-label={copyName}
             aria-labelledby={hasTitle ? `${copyId} ${titleId}` : undefined}
             onClick={() => {
               const text = copyText ?? (bodyRef.current ? codeTextOf(bodyRef.current) : '');
@@ -241,20 +246,20 @@ export function CodeBlock({
           >
             {copied ? (
               <span aria-hidden="true" className={styles.copied()}>
-                {copiedLabel}
+                {copiedText}
               </span>
             ) : null}
             {/* アイコン単体なので Bold（design/adr/0018） */}
             <CopyGlyph copied={copied} standalone />
           </button>
         </CopyErrorTooltip>
-      ) : null}
+      )}
       {/* コピーの結果を読み上げる。箱は先に置いておき、中身だけを入れる */}
       <CopiedStatus
         copied={copied}
-        label={copiedLabel}
+        copiedText={copiedText}
         failed={failed}
-        errorLabel={copyErrorLabel}
+        copyErrorText={copyErrorText}
       />
     </figure>
   );

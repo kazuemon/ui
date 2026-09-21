@@ -5,21 +5,26 @@ import { type ReactNode, useId } from 'react';
 import { listboxOption } from './listbox-styles';
 
 /**
- * 選択肢に付く文の種類（design/adr/0044）
- * reason: 選べない理由。キャプションと同じ灰色の文字だけ（アイコンなし）。disabled の選択肢に付ける
+ * 選択肢に付く文の種類（design/adr/0044、ADR-0254）
+ * description: ただの説明（Checkbox・Radio の caption にあたるもの）。キャプションと同じ灰色の文字だけ（アイコンなし）
+ * reason: 選べない理由。description と同じ見た目で、意味だけが違う。disabled の選択肢に付ける
  * warning: 選べるが、選ぶ前に知っておくこと。本体の下の警告の行と同じ三角とオリーブ色の文字
  */
-export type ListboxItemNoteKind = 'reason' | 'warning';
+export type ListboxItemNoteKind = 'description' | 'reason' | 'warning';
 
 /** 選択肢に付く文（ラベルの下の2行目）。文は呼び出し側が渡す。部品は文を組み立てない */
 export interface ListboxItemNote {
+  /** 文の種類。description はただの説明、reason は選べない理由、warning は選ぶ前に知っておくこと */
   kind: ListboxItemNoteKind;
+  /** 出す文 */
   text: ReactNode;
 }
 
-/** 選択肢。Select・Combobox・Autocomplete が共有する形 */
+/** 選択肢。Select・Combobox・Autocomplete・TagsInput が共有する形 */
 export interface ListboxItem {
+  /** 選択肢に出る文字。読み上げの名前にもなり、打って絞り込むときの当たり先にもなる */
   label: string;
+  /** 選んだことを表す値。フォームに送られ、value・defaultValue でも指す */
   value: string;
   /**
    * 選べない（design/adr/0044）。ラベルを押せない文字の色にし、押しても選ばれない

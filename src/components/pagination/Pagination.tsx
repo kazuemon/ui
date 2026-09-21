@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import { type ComponentProps, type ReactElement, type ReactNode, useId } from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
@@ -13,12 +13,12 @@ import { PaginationPageInput } from './PaginationPageInput';
 
 // ページ番号のナビ（ブログの記事一覧など）— ADR-0177・0178 で決めた
 //   構造: <nav aria-label><ul><li>。前へ・番号・省略（…）・次へを 1 行に並べる
-//     リンク（href に番号から行き先を作る関数を渡す）とボタン（onChange）の両方で使える
+//     リンク（href に番号から行き先を作る関数を渡す）とボタン（onPageChange）の両方で使える
 //     いまのページは aria-current="page"。リンクのときもリンクのまま残す（Navbar のいまいるページと同じ）
 //   番号と前へ・次へは平らな押すもの（原則3）。hover で文字の色を淡く敷き、押すと濃くして 1px 沈む。影はない（原則1）
 //     高さと幅の下限は部品の高さ（原則11・原則17: 押せる範囲は見た目の範囲）。数字は等幅にし、ページを送っても幅が変わらない
-//     形は shape と outline で選ぶ（ADR-0178）。square（既定）は部品の角（原則5「見た目がボタンなら部品の角」）、
-//       round は pill（Navbar の行き先・Calendar の round と同じ）。outline は番号ごとに細い境界線を引く
+//     形は shape と showOutline で選ぶ（ADR-0178）。square（既定）は部品の角（原則5「見た目がボタンなら部品の角」）、
+//       circle は pill（Navbar の行き先・Calendar の circle と同じ）。showOutline は番号ごとに細い境界線を引く
 //   いまのページの印は currentIndicator で選ぶ（ADR-0177。Navbar の currentIndicator と同じ名前）。どの印でも太字
 //     neutral（既定）はグレーの塗りに本文の色（色を持たない部品の選んだ印はグレー — 原則6。Tree のいまいる行と同じ地）
 //     neutral-strong は濃いグレーに白い文字（トグルの ON と同じ）、primary は淡い青に青い文字（Navbar の primary と同じ）
@@ -31,7 +31,7 @@ import { PaginationPageInput } from './PaginationPageInput';
 //     32rem 未満: 前へ・次へを矢印だけにする（文字は読み上げに残す）。アイコンだけなので太い線（原則21）
 //     28rem 未満: いまのページの左右の番号を出さない（1 … 5 … 10）。項目の数を 7 から 5 に減らす
 //     24rem 未満: 番号をやめて「5 / 10」だけにする（narrowDisplay="summary"。既定）。前へ・次へは残す
-//       番号が並ばない分、押せる場所が減るので、pageInput（数を打って移る欄）か ellipsisMenu で間のページへ行けるようにする
+//       番号が並ばない分、押せる場所が減るので、showPageInput（数を打って移る欄）か ellipsisMenu で間のページへ行けるようにする
 //       narrowDisplay="pages" にすると、24rem 未満でも番号を並べたまま（28rem 未満と同じ並び）にする
 //     幅ごとの並びを描き分け、幅でどれかを見せる（display: none の側は読み上げにも出ない）
 //   どのページにいても項目の数は同じ（pagination-items.ts）。ページを送っても前へ・次へが動かない
@@ -102,7 +102,7 @@ const styles = tv({
     // 番号と前へ・次への角
     shape: {
       square: { root: '[--pagination-item-radius:var(--radius-control)]' },
-      round: { root: '[--pagination-item-radius:var(--radius-pill)]' },
+      circle: { root: '[--pagination-item-radius:var(--radius-pill)]' },
     },
     // 番号と前へ・次への細い境界線（押せる範囲をふだんから見せる — 原則17）
     outline: {
@@ -136,12 +136,19 @@ type Styles = ReturnType<typeof styles>;
 
 export type PaginationAlign = 'start' | 'center' | 'end';
 export type PaginationCurrentIndicator = 'neutral' | 'neutral-strong' | 'primary' | 'secondary';
-export type PaginationShape = 'square' | 'round';
+export type PaginationShape = 'square' | 'circle';
 export type PaginationNarrowDisplay = 'summary' | 'pages';
 
 export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' | 'onChange'> {
-  /** いまのページ（1 から数える） */
-  page: number;
+  /** いまのページ（1 から数える。制御） */
+  page?: number;
+  /**
+   * はじめのページ（1 から数える。非制御）
+   * @default 1
+   */
+  defaultPage?: number;
+  /** ページが変わるときに、次の値を渡して呼びます */
+  onPageChange?: (page: number) => void;
   /** ページの数 */
   count: number;
   /**
@@ -150,14 +157,9 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
   href?: (page: number) => string;
   /**
    * 番号ごとに描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に見た目を重ねます
-   * （例: `render={(page) => <NextLink href={\`/blog/page/${page}\`} />}`）。渡すと、リンクで描きます
+   * （例: `renderPage={(page) => <NextLink href={\`/blog/page/${page}\`} />}`）。渡すと、リンクで描きます
    */
-  render?: (page: number) => ReactElement;
-  /**
-   * 番号・前へ・次へを押したときに、行き先のページを渡して呼びます。href も render も渡さないときは、ボタン（`<button>`）で描きます。
-   * リンクのときも呼びます（移る動きは止めません）。いまのページを押しても呼びません
-   */
-  onChange?: (page: number) => void;
+  renderPage?: (page: number) => ReactElement;
   /**
    * いまのページの左右に出す番号の数。置いた場所が狭いとき（28rem 未満）は 0 にします
    * @default 1
@@ -180,7 +182,7 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
    */
   currentIndicator?: PaginationCurrentIndicator;
   /**
-   * 番号と前へ・次への形。square はボタンと同じ角、round は丸です（2 桁以上の番号と、文字の付いた前へ・次へは両端の丸い形）
+   * 番号と前へ・次への形。square はボタンと同じ角、circle は丸です（2 桁以上の番号と、文字の付いた前へ・次へは両端の丸い形）
    * @default 'square'
    */
   shape?: PaginationShape;
@@ -188,7 +190,7 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
    * 番号と前へ・次へに細い枠線を引き、押せる範囲をふだんから見せます
    * @default false
    */
-  outline?: boolean;
+  showOutline?: boolean;
   /**
    * 置いた場所がいちばん狭いとき（24rem 未満）の見せ方。
    * `summary` は番号をやめて「5 / 10」だけを出します（前へ・次へは残ります）。
@@ -205,15 +207,15 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
   /**
    * いちばん狭いとき（`narrowDisplay="summary"`）の「5 / 10」の 5 を、数を打って移る欄にします。
    * Enter か IME の確定で移ります。ページの数より大きい数や 0 以下では移らず、欄を離すと打った値はいまのページに戻ります。
-   * `href` だけを渡しているときはその行き先へそのまま移ります。ルーターで移すときは `onChange`（`render` のときは `onChange` だけ）を渡します
+   * `href` だけを渡しているときはその行き先へそのまま移ります。ルーターで移すときは `onPageChange`（`renderPage` のときは `onPageChange` だけ）を渡します
    * @default false
    */
-  pageInput?: boolean;
+  showPageInput?: boolean;
   /**
-   * 並び（nav）の読み上げの名前
+   * 並び（nav）の読み上げの名前。画面には出ません
    * @default 'ページ送り'
    */
-  label?: string;
+  accessibleName?: string;
   /**
    * 前へのボタンの文字。置いた場所が狭いとき（32rem 未満）は矢印だけになり、文字は読み上げにだけ残ります
    * @default '前へ'
@@ -228,22 +230,24 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
    * 番号の読み上げの名前を作る関数。見えている数字を含めます
    * @default (page) => `${page} ページ目`
    */
-  pageLabel?: (page: number) => string;
+  pageName?: (page: number) => string;
   /**
    * いちばん狭いときの「5 / 10」を読み上げる文を作る関数。いまのページと総数を伝えます
    * @default (page, count) => `${count} ページ中 ${page} ページ目`
    */
-  summaryLabel?: (page: number, count: number) => string;
+  summaryText?: (page: number, count: number) => string;
   /**
    * `ellipsisMenu` のとき、省略（…）を開くボタンの読み上げの名前
    * @default '間のページ'
    */
-  ellipsisLabel?: string;
+  ellipsisName?: string;
   /**
-   * `pageInput` のとき、数を打って移る欄の読み上げの名前
+   * `showPageInput` のとき、数を打って移る欄の読み上げの名前
    * @default 'ページ番号'
    */
-  pageInputLabel?: string;
+  pageInputName?: string;
+  /** いちばん外の要素（nav）に付きます */
+  className?: string;
 }
 
 interface ControlProps {
@@ -332,38 +336,51 @@ function ButtonControl({
 
 /**
  * ページ番号のナビです。前へ・番号・省略・次へを 1 行に並べます。
- * リンク（href・render）でもボタン（onChange）でも使えます。狭いところでは番号を減らし、前へ・次へを矢印だけにします。
- * いちばん狭いところでは「5 / 10」だけにし、数を打つ欄（`pageInput`）や省略のメニュー（`ellipsisMenu`）で間のページへ行けます。
+ * リンク（href・renderPage）でもボタン（onPageChange）でも使えます。狭いところでは番号を減らし、前へ・次へを矢印だけにします。
+ * いちばん狭いところでは「5 / 10」だけにし、数を打つ欄（`showPageInput`）や省略のメニュー（`ellipsisMenu`）で間のページへ行けます。
  */
 export function Pagination({
-  page,
+  page: controlledPage,
+  defaultPage = 1,
+  onPageChange,
   count,
   href,
-  render,
-  onChange,
+  renderPage,
   siblings = 1,
   boundaries = 1,
   align,
   currentIndicator,
   shape,
-  outline,
+  showOutline,
   narrowDisplay = 'summary',
   ellipsisMenu = false,
-  pageInput = false,
-  label = 'ページ送り',
+  showPageInput = false,
+  accessibleName = 'ページ送り',
   prevLabel = '前へ',
   nextLabel = '次へ',
-  pageLabel = (value) => `${value} ページ目`,
-  summaryLabel = (value, total) => `${total} ページ中 ${value} ページ目`,
-  ellipsisLabel = '間のページ',
-  pageInputLabel = 'ページ番号',
+  pageName = (value) => `${value} ページ目`,
+  summaryText = (value, total) => `${total} ページ中 ${value} ページ目`,
+  ellipsisName = '間のページ',
+  pageInputName = 'ページ番号',
   className,
   ...props
 }: PaginationProps) {
-  const s = styles({ align, currentIndicator, shape, outline, narrowDisplay });
-  const asLink = href != null || render != null;
+  const s = styles({ align, currentIndicator, shape, outline: showOutline, narrowDisplay });
+  // 制御（page）と非制御（defaultPage）の両方で使える
+  const [uncontrolledPage, setUncontrolledPage] = useState(defaultPage);
+  const managed = controlledPage === undefined;
+  const page = controlledPage ?? uncontrolledPage;
+  // 外から page を持っていて、知らせ先もないときは、押しても何もしない（リンクの移動だけ）
+  const changePage =
+    managed || onPageChange
+      ? (next: number) => {
+          if (managed) setUncontrolledPage(next);
+          onPageChange?.(next);
+        }
+      : undefined;
+  const asLink = href != null || renderPage != null;
   const Control = asLink ? LinkControl : ButtonControl;
-  const shared = { s, href, render, onChange };
+  const shared = { s, href, render: renderPage, onChange: changePage };
   const summaryId = useId();
 
   const steps = (children: ReactNode) => (
@@ -395,7 +412,7 @@ export function Pagination({
                 target={slot}
                 kind="page"
                 current={slot === page}
-                ariaLabel={pageLabel(slot)}
+                ariaLabel={pageName(slot)}
               >
                 {slot}
               </Control>
@@ -405,11 +422,11 @@ export function Pagination({
               <PaginationEllipsisMenu
                 pages={ellipsisRange(slots, index, count)}
                 className={s.item()}
-                label={ellipsisLabel}
-                pageLabel={pageLabel}
+                label={ellipsisName}
+                pageLabel={pageName}
                 href={href}
-                render={render}
-                onChange={onChange}
+                render={renderPage}
+                onChange={changePage}
               />
             </li>
           ) : (
@@ -431,17 +448,17 @@ export function Pagination({
         <li className="flex">
           <span data-slot="pagination-summary" className={s.count()}>
             <span id={summaryId} className="sr-only">
-              {summaryLabel(page, count)}
+              {summaryText(page, count)}
             </span>
-            {pageInput ? (
+            {showPageInput ? (
               <PaginationPageInput
                 page={page}
                 count={count}
-                label={pageInputLabel}
+                label={pageInputName}
                 describedBy={summaryId}
                 href={href}
-                render={render}
-                onChange={onChange}
+                render={renderPage}
+                onChange={changePage}
               />
             ) : (
               <span aria-hidden="true" className={s.countCurrent()}>
@@ -458,7 +475,12 @@ export function Pagination({
   );
 
   return (
-    <nav aria-label={label} data-slot="pagination" className={s.root({ className })} {...props}>
+    <nav
+      {...props}
+      aria-label={accessibleName}
+      data-slot="pagination"
+      className={s.root({ className })}
+    >
       {list(paginationSlots(page, count, siblings, boundaries), s.wideList())}
       {list(paginationSlots(page, count, 0, boundaries), s.narrowList())}
       {narrowDisplay === 'summary' && summaryList}

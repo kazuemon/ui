@@ -21,7 +21,7 @@ const palePhoto = svg(
 const broken = 'data:image/png;base64,AAAA';
 
 const sizes = ['sm', 'md', 'lg', 'xl'] as const;
-const shapes = ['circle', 'rounded'] as const;
+const shapes = ['circle', 'square'] as const;
 const colors = ['neutral', 'primary', 'secondary'] as const;
 const fallbacks = ['initials', 'icon'] as const;
 
@@ -33,8 +33,8 @@ type SizeColumn = MatrixColumn & {
 const sizeColumns: SizeColumn[] = [
   { label: '画像（丸）', shape: 'circle', kind: 'image' },
   { label: '頭文字（丸）', shape: 'circle', kind: 'initials' },
-  { label: '画像（四角）', shape: 'rounded', kind: 'image' },
-  { label: '頭文字（四角）', shape: 'rounded', kind: 'initials' },
+  { label: '画像（四角）', shape: 'square', kind: 'image' },
+  { label: '頭文字（四角）', shape: 'square', kind: 'initials' },
 ];
 
 const meta = {
@@ -52,9 +52,9 @@ const meta = {
           '- `name` を渡すと、画像がないとき・読み込めないときに頭文字を出します。和文は 1 文字、欧文は語頭 2 文字までです（「かずえもん」→「か」、`Kazuya Miyamoto` → `KM`）。',
           '- `fallback` は、画像がないとき・読み込めないときに出すものです。`initials`（既定）は頭文字、`icon` は人のアイコンです。ほかのものを置くときは `children` に渡します。',
           '- `size` は大きさの段です（`sm`・`md`（既定）・`lg`・`xl`）。押すものではないので、入力方式では変わりません。',
-          '- `shape` は形です。`circle`（既定）は丸、`rounded` は四角です。四角の角は大きさの段に従い、`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角になります。',
+          '- `shape` は形です。`circle`（既定）は丸、`square` は四角です。四角の角は大きさの段に従い、`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角になります。',
           '- `color` は頭文字の色です。`neutral`（既定）はグレー、`primary`・`secondary` は淡い面に濃い文字です。名前から色を自動で決めることはしません。',
-          '- `outline`（既定は `true`）で細い輪郭を付けます。白っぽい画像が白地に溶けないようにするためです。',
+          '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。`hideOutline` で消せます。',
         ].join('\n'),
       },
       source: { type: 'dynamic' },
@@ -69,7 +69,7 @@ const meta = {
     size: 'md',
     shape: 'circle',
     color: 'neutral',
-    outline: true,
+    hideOutline: false,
   },
   argTypes: {
     src: { control: 'text' },
@@ -97,7 +97,7 @@ const meta = {
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
     },
-    outline: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
+    hideOutline: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
   },
 } satisfies Meta<typeof Avatar>;
 
@@ -117,12 +117,12 @@ export const Sizes: Story = {
     docs: {
       description: {
         story:
-          '四角（`shape="rounded"`）の角は大きさの段に従います。`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角です。',
+          '四角（`shape="square"`）の角は大きさの段に従います。`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角です。',
       },
       source: sourceCode(`
         <Avatar size="lg" src={photo} alt="かずえもん" />
         <Avatar size="lg" name="かずえもん" />
-        <Avatar size="lg" shape="rounded" src={photo} alt="かずえもん" />
+        <Avatar size="lg" shape="square" src={photo} alt="かずえもん" />
       `),
     },
   },
@@ -254,7 +254,7 @@ export const Fallback: Story = {
       <Specimen label="白っぽい画像（輪郭あり・なし）">
         <div className="flex items-center gap-4">
           <Avatar size="lg" src={palePhoto} alt="かずえもん" />
-          <Avatar size="lg" src={palePhoto} alt="かずえもん" outline={false} />
+          <Avatar size="lg" src={palePhoto} alt="かずえもん" hideOutline />
         </div>
       </Specimen>
     </Gallery>
@@ -278,7 +278,7 @@ export const Densities: Story = {
         <Avatar size="sm" src={photo} alt="かずえもん" />
         <Avatar size="md" name="かずえもん" />
         <Avatar size="lg" name="Kazuya Miyamoto" color="primary" />
-        <Avatar size="xl" shape="rounded" src={photo} alt="かずえもん" />
+        <Avatar size="xl" shape="square" src={photo} alt="かずえもん" />
       </div>
     </DensityPair>
   ),

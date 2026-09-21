@@ -35,9 +35,12 @@ const meter = tv({
   defaultVariants: { regionColor: 'status' },
 });
 
-type MeterColor = NonNullable<VariantProps<typeof meter>['color']>;
-type MeterSize = NonNullable<VariantProps<typeof meter>['size']>;
-type MeterRegionColor = NonNullable<VariantProps<typeof meter>['regionColor']>;
+/** 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレー */
+export type MeterColor = NonNullable<VariantProps<typeof meter>['color']>;
+/** バーの太さ */
+export type MeterSize = NonNullable<VariantProps<typeof meter>['size']>;
+/** low・high・optimum を渡したときの、範囲ごとの塗りの色 */
+export type MeterRegionColor = NonNullable<VariantProps<typeof meter>['regionColor']>;
 
 export interface MeterProps extends Omit<
   ComponentProps<'div'>,
@@ -71,10 +74,10 @@ export interface MeterProps extends Omit<
   /** バーの下に置く補足。範囲の意味（「90% を超えると保存できなくなります」など）もここに書きます */
   caption?: ReactNode;
   /**
-   * 値の文字をラベルの行の右端に出すか
-   * @default true
+   * 値の文字を出さなくします。値の文字は、ふだんラベルの行の右端に出ます
+   * @default false
    */
-  showValue?: boolean;
+  hideValue?: boolean;
   /**
    * 値の文字を作る関数。見えている文字と読み上げの文の両方に使います（例: (_, v) => `${v} / 50 GB`）。
    * 渡さないときは、format で整えた値（format もなければ割合の「45%」）です
@@ -103,6 +106,8 @@ export interface MeterProps extends Omit<
    * @default 'status'
    */
   regionColor?: MeterRegionColor;
+  /** いちばん外の要素に付きます */
+  className?: string;
 }
 
 /**
@@ -117,7 +122,7 @@ export function Meter({
   optimum,
   label,
   caption,
-  showValue = true,
+  hideValue = false,
   getValueText,
   format,
   locale,
@@ -147,7 +152,7 @@ export function Meter({
       {...props}
     >
       {label ? <BaseMeter.Label className={styles.label()}>{label}</BaseMeter.Label> : null}
-      {showValue ? (
+      {!hideValue ? (
         <BaseMeter.Value className={styles.value()}>
           {getValueText ? (formatted, raw) => getValueText(formatted, raw) : undefined}
         </BaseMeter.Value>

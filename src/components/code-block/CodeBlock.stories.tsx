@@ -27,10 +27,10 @@ const meta = {
           '- `html` はそのまま HTML として入れます。ビルド時に自分で作った HTML だけを渡し、利用者が書いた文や外から取ってきた文をエスケープせずに渡さないでください。',
           '- MDX の `pre` を差し替えるときは、`html` の代わりに `children` に pre の中身を渡せます。Shiki で色分けしていない素の `<code>` でも、同じ余白で並びます。',
           '- `title` でファイル名などの題を上の帯に出し、コピーのボタンを帯の右に置きます。題がないときは、ボタンを右上に浮かせます。',
-          '- `appearance` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地です。',
+          '- `variant` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地です。',
           '- `lineNumbers` で行番号を出します。数を渡すと、その番号から数えます。',
           '- コピーのボタンは、表示している行の文字を写します（差分で消した行は写しません）。`copyText` で写す文字を決められます。押すと「コピーしました」に変わり、読み上げでも伝えます。',
-          '- 写せなかったとき（権限がない・安全でない接続）は、ボタンの下に淡い赤の吹き出しで知らせます。文は `copyErrorLabel` で変えられます。',
+          '- 写せなかったとき（権限がない・安全でない接続）は、ボタンの下に淡い赤の吹き出しで知らせます。文は `copyErrorText` で変えられます。',
           '- 文字はパソコンでもスマホでも 14px です。長い行は、コードの部分だけが横にスクロールします。',
         ].join('\n'),
       },
@@ -39,11 +39,11 @@ const meta = {
   args: {
     html: typescriptHtml,
     title: 'src/lib/posts.ts',
-    appearance: 'surface',
+    variant: 'surface',
     lineNumbers: false,
   },
   argTypes: {
-    appearance: { control: 'inline-radio', options: ['surface', 'dark'] },
+    variant: { control: 'inline-radio', options: ['surface', 'dark'] },
     lineNumbers: { control: 'boolean' },
     title: { control: 'text' },
     html: { control: false },
@@ -62,18 +62,18 @@ export const Playground: Story = {
   name: '基本',
 };
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目と題',
   parameters: { controls: { disable: true } },
   render: () => (
     <Gallery columnWidth="28rem">
-      {(['surface', 'dark'] as const).map((appearance) => (
-        <Specimen key={appearance} label={appearance}>
+      {(['surface', 'dark'] as const).map((variant) => (
+        <Specimen key={variant} label={variant}>
           <div data-reading className="flex flex-col gap-4">
-            <CodeBlock appearance={appearance} title="src/lib/posts.ts" html={typescriptHtml} />
-            <CodeBlock appearance={appearance} html={shellHtml} />
-            <CodeBlock appearance={appearance} html={shellOneLineHtml} />
+            <CodeBlock variant={variant} title="src/lib/posts.ts" html={typescriptHtml} />
+            <CodeBlock variant={variant} html={shellHtml} />
+            <CodeBlock variant={variant} html={shellOneLineHtml} />
           </div>
         </Specimen>
       ))}
@@ -88,13 +88,13 @@ export const PlainCode: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Gallery columnWidth="28rem">
-      {(['surface', 'dark'] as const).map((appearance) => (
-        <Specimen key={appearance} label={appearance}>
+      {(['surface', 'dark'] as const).map((variant) => (
+        <Specimen key={variant} label={variant}>
           <div data-reading className="flex flex-col gap-4">
-            <CodeBlock appearance={appearance}>
+            <CodeBlock variant={variant}>
               <code>pnpm add @kazuemon/ui</code>
             </CodeBlock>
-            <CodeBlock appearance={appearance} title="terminal">
+            <CodeBlock variant={variant} title="terminal">
               <code>{'pnpm add @kazuemon/ui\npnpm add -D shiki @shikijs/transformers'}</code>
             </CodeBlock>
           </div>
@@ -110,17 +110,12 @@ export const LineDecorations: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Gallery columnWidth="28rem">
-      {(['surface', 'dark'] as const).map((appearance) => (
-        <Specimen key={appearance} label={appearance}>
+      {(['surface', 'dark'] as const).map((variant) => (
+        <Specimen key={variant} label={variant}>
           <div data-reading className="flex flex-col gap-4">
-            <CodeBlock
-              appearance={appearance}
-              title="astro.config.ts"
-              html={diffHtml}
-              lineNumbers
-            />
-            <CodeBlock appearance={appearance} title="code-block.css" html={focusHtml} />
-            <CodeBlock appearance={appearance} title="src/pages/index.ts" html={wordHtml} />
+            <CodeBlock variant={variant} title="astro.config.ts" html={diffHtml} lineNumbers />
+            <CodeBlock variant={variant} title="code-block.css" html={focusHtml} />
+            <CodeBlock variant={variant} title="src/pages/index.ts" html={wordHtml} />
           </div>
         </Specimen>
       ))}

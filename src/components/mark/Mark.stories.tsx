@@ -65,13 +65,13 @@ export const Grounds: Story = {
             <Mark>指で操作しているとき</Mark>は、部品を大きくします。
             <Link href="#density">密度について</Link>
           </Text>
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             注記の中の <Mark>Mark</Mark>
           </Text>
         </div>
       </Specimen>
       <Specimen label="グレーの面">
-        <Blockquote appearance="surface">
+        <Blockquote variant="surface">
           色は<Mark>役割で持ちます</Mark>。
         </Blockquote>
       </Specimen>

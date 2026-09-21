@@ -32,17 +32,17 @@ const meta = {
           '',
           '- 画像の枠は幅いっぱいに取ります。`ratio` も `width`・`height` もないときは、読み込み中と失敗したときは 16:9 の枠を取り、読み込めたら画像本来の比の高さに変わります（このとき下の内容が動きます。動かしたくないときは `width`・`height` か `ratio` を書きます）。角はカードと同じ角です。',
           '- 読み込むまでは読み込み中の面を置き、読み込みに失敗したときは「読み込みに失敗しました」を出します（`errorText` で変えられます）。画像の props は Image と同じです。',
-          '- `outline`（既定は `true`）で細い輪郭を付けます。白っぽい画像が白地に溶けないようにするためです。写真のように縁がはっきりした画像では `false` にできます。',
+          '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。写真のように縁がはっきりした画像では `hideOutline` で外せます。',
           '- `caption` は画像の下の中央に小さく出します。`alt` と同じ文にはしません。',
         ].join('\n'),
       },
     },
   },
-  args: { src: landscape, alt: '空と山の絵', caption: '図 1. 空と山', outline: true },
+  args: { src: landscape, alt: '空と山の絵', caption: '図 1. 空と山' },
   argTypes: {
     src: { control: false },
     caption: { control: 'text' },
-    outline: { control: 'boolean' },
+    hideOutline: { control: 'boolean' },
   },
   decorators: [
     (Story) => (
@@ -69,12 +69,7 @@ export const Outline: Story = {
     <DensityPair>
       <div data-reading className="flex w-[20rem] flex-col gap-6">
         <Figure src={whiteScreen} alt="白っぽい画面の絵" caption="輪郭あり（既定）" />
-        <Figure
-          src={whiteScreen}
-          alt="白っぽい画面の絵"
-          caption="outline={false}"
-          outline={false}
-        />
+        <Figure src={whiteScreen} alt="白っぽい画面の絵" caption="hideOutline" hideOutline />
         <Figure src={landscape} alt="空と山の絵" />
       </div>
     </DensityPair>

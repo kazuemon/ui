@@ -13,7 +13,7 @@ type Sample = MatrixColumn & { props: Partial<SearchFieldProps> };
 const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '値あり', props: { defaultValue: 'デザイン' } },
-  { label: 'エラー', props: { defaultValue: 'あ', error: '2文字以上で検索してください' } },
+  { label: 'エラー', props: { defaultValue: 'あ', errorText: '2文字以上で検索してください' } },
   { label: '押せない', props: { defaultValue: 'デザイン', disabled: true } },
   { label: '読み取り専用', props: { defaultValue: 'デザイン', readOnly: true } },
   {
@@ -28,7 +28,7 @@ const stateColumns: MatrixColumn[] = [
   { label: 'フォーカス', state: 'focus' },
 ];
 
-const icons = ['inline', 'none'] as const;
+const searchIcons = [false, true] as const;
 const shapes = ['attached', 'floating'] as const;
 
 const meta = {
@@ -41,8 +41,8 @@ const meta = {
         component: [
           '検索の語を打つ欄です。値があるあいだ右端に消去のボタンが出て、Esc でも消せます。',
           '',
-          '- 制御するときは `value` と `onValueChange`、しないときは `defaultValue` を使います。消去のボタンと Esc で消したときは、`onValueChange` に空の文字を渡したあと `onClear` を呼びます。',
-          '- 虫眼鏡の置き方は `icon` で選びます。`inline`（既定）は本体の内側に塗りのない印を置き、`none` は置きません。虫眼鏡は押せない印なので塗りを付けず、グレー地の消去のボタン（押せる）と見分けられるようにしています。',
+          '- 制御するときは `value` と `onValueChange`、しないときは `defaultValue` を使います。消去のボタンと Esc で消したときは、`onValueChange` に空の文字を渡したあと `onCleared` を呼びます。',
+          '- 虫眼鏡は既定で本体の内側に置きます。`hideSearchIcon` を付けると置きません。虫眼鏡は押せない印なので塗りを付けず、グレー地の消去のボタン（押せる）と見分けられるようにしています。',
           '- 「検索」のように実行するボタンは、欄の中に入れず、欄の外に色か枠線のボタンとして置きます。Enter はフォームを送ります（スマートフォンのキーボードには「検索」が出ます）。',
           '- 欄を止めているあいだ（押せない・`loadingBehavior="blocking"`・フォームの送信中）は、消去のボタンを押せない形で出し、Esc でも消しません。読み取り専用の欄には、消去のボタンを出しません。',
           '- そのほかの props は TextField と同じです。',
@@ -53,7 +53,7 @@ const meta = {
   args: {
     label: 'サイト内を検索',
     placeholder: '例: デザイン',
-    icon: 'inline',
+    hideSearchIcon: false,
     addonShape: 'attached',
     disabled: false,
     readOnly: false,
@@ -63,8 +63,8 @@ const meta = {
     label: { control: 'text' },
     caption: { control: 'text' },
     placeholder: { control: 'text' },
-    error: { control: 'text' },
-    icon: { control: 'inline-radio', options: icons },
+    errorText: { control: 'text' },
+    hideSearchIcon: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     addonShape: { control: 'inline-radio', options: shapes },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -122,15 +122,15 @@ export const Icons: Story = {
   tags: ['visual'],
   name: '虫眼鏡の置き方',
   parameters: {
-    controls: { exclude: ['icon', 'addonShape'] },
+    controls: { exclude: ['hideSearchIcon', 'addonShape'] },
     docs: {
       description: {
         story:
-          '列が虫眼鏡の置き方（`icon`）、行が消去のボタンの形（`addonShape`）です。`none` のときは、`prefix` に別のものを置けます。',
+          '列が虫眼鏡を出すかどうか（`hideSearchIcon`）、行が消去のボタンの形（`addonShape`）です。隠したときは、`prefix` に別のものを置けます。',
       },
       source: sourceCode(`
         <SearchField label="サイト内を検索" />
-        <SearchField label="サイト内を検索" icon="none" />
+        <SearchField label="サイト内を検索" hideSearchIcon />
         <SearchField label="サイト内を検索" addonShape="floating" />
       `),
     },
@@ -139,10 +139,18 @@ export const Icons: Story = {
     <Matrix
       rows={shapes}
       rowLabel={(shape) => shape}
-      columns={icons.map((icon) => ({ label: icon, icon }))}
+      columns={searchIcons.map((hideSearchIcon) => ({
+        label: hideSearchIcon ? 'hideSearchIcon' : '既定',
+        hideSearchIcon,
+      }))}
       columnWidth="16rem"
-      renderCell={(shape, { icon }) => (
-        <SearchField {...args} defaultValue="デザイン" icon={icon} addonShape={shape} />
+      renderCell={(shape, { hideSearchIcon }) => (
+        <SearchField
+          {...args}
+          defaultValue="デザイン"
+          hideSearchIcon={hideSearchIcon}
+          addonShape={shape}
+        />
       )}
     />
   ),
@@ -217,7 +225,7 @@ export const WithSubmitButton: Story = {
 
 export const Clear: Story = {
   name: '消す',
-  args: { onValueChange: fn(), onClear: fn() },
+  args: { onValueChange: fn(), onCleared: fn() },
   parameters: {
     docs: {
       description: {
@@ -243,13 +251,13 @@ export const Clear: Story = {
     await expect(input).toHaveValue('');
     await expect(input).toHaveFocus();
     await expect(args.onValueChange).toHaveBeenLastCalledWith('');
-    await expect(args.onClear).toHaveBeenCalledTimes(1);
+    await expect(args.onCleared).toHaveBeenCalledTimes(1);
     await expect(canvas.queryByRole('button', { name: '入力内容を消去' })).toBeNull();
 
     await userEvent.type(input, 'えもん');
     await userEvent.keyboard('{Escape}');
     await expect(input).toHaveValue('');
-    await expect(args.onClear).toHaveBeenCalledTimes(2);
+    await expect(args.onCleared).toHaveBeenCalledTimes(2);
   },
 };
 

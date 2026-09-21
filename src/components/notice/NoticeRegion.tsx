@@ -2,6 +2,7 @@
 
 import { type ComponentProps, useMemo, useState } from 'react';
 
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { NoticeRegionContext } from './notice-region-context';
 
 // お知らせの領域（live region）
@@ -31,14 +32,16 @@ export interface NoticeRegionProps extends Omit<ComponentProps<'div'>, 'role'> {
  * - 中のお知らせを × で閉じると、フォーカスはその次にあるフォーカスできるものへ移ります。
  *   なければ前のもの、それもなければ領域そのものです（Tab では止まりません）
  */
-export function NoticeRegion({ children, className, ...props }: NoticeRegionProps) {
+export function NoticeRegion({ children, className, ref, ...props }: NoticeRegionProps) {
   const [alert, setAlert] = useState<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<HTMLDivElement | null>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const boxes = useMemo(() => ({ alert, status, root }), [alert, status, root]);
+  // 利用者の ref は、中で使う ref とつなぐ（ADR-0250）
+  const setRefs = useMergedRefs<HTMLDivElement>(setRoot, ref);
   return (
     <div
-      ref={setRoot}
+      ref={setRefs}
       data-slot="notice-region"
       // × で閉じたあと、前にも後ろにもフォーカスできるものがないときの行き先（原則15）。Tab では止まらない
       tabIndex={-1}

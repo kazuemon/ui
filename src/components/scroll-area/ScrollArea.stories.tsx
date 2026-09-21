@@ -20,23 +20,23 @@ const meta = {
           '- 高さ（`h-*`・`max-h-*`）か幅を `className` で決めます。はみ出した分がスクロールします。',
           '- 続きがあることは、端に落ちる内側の影で見せます。影はスクロールした量に合わせて濃くなります。横にスクロールするときは左右の端にも出ます。',
           '- つまみは中身の上に重なり、枠にマウスを載せたときと、スクロールしているあいだに出ます。`scrollbar="always"` にすると、いつも出ます。見えているつまみが、そのままつかめる範囲です。つまみに載せると内側へ太くなり、太くなった姿がそのままつかめる範囲になります。',
-          '- 影が合わない場所（影を落とす余白がない面など）では `edgeShadow={false}` にします。影の代わりに、つまみをいつも出します。',
-          '- スクロールできるときだけ、キーボードの Tab で枠に止まり、矢印キーでスクロールできます。`label` を付けると、止まったときに枠の名前が読み上げられます。',
-          '- 内側の余白は `contentClassName` に付けます。',
+          '- 影が合わない場所（影を落とす余白がない面など）では `hideEdgeShadow` を付けます。影の代わりに、つまみをいつも出します。',
+          '- スクロールできるときだけ、キーボードの Tab で枠に止まり、矢印キーでスクロールできます。`accessibleName` を付けると、止まったときに枠の名前が読み上げられます。',
+          "- 内側の余白は `contentProps={{ className: 'p-4' }}` に付けます。スクロールの位置を読む・変えるときは `viewportProps={{ ref }}` を使います。",
         ].join('\n'),
       },
     },
   },
   args: {
-    label: '更新の記録',
+    accessibleName: '更新の記録',
     className: 'h-[160px] w-[280px]',
-    edgeShadow: true,
+    hideEdgeShadow: false,
     scrollbar: 'scroll',
   },
   argTypes: {
-    edgeShadow: { control: 'boolean' },
+    hideEdgeShadow: { control: 'boolean' },
     scrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
-    label: { control: 'text' },
+    accessibleName: { control: 'text' },
     className: { control: 'text' },
   },
 } satisfies Meta<typeof ScrollArea>;
@@ -59,7 +59,7 @@ export const Playground: Story = {
   parameters: {
     docs: {
       source: sourceCode(`
-        <ScrollArea label="更新の記録" className="h-[160px] w-[280px]">
+        <ScrollArea accessibleName="更新の記録" className="h-[160px] w-[280px]">
           <ul>…</ul>
         </ScrollArea>
       `),
@@ -141,7 +141,7 @@ export const Options: Story = {
     docs: {
       description: {
         story:
-          '既定では、つまみは動かしたときだけ出ます。`scrollbar="always"` でいつも出します。`edgeShadow={false}` では影を出さず、つまみをいつも出します。',
+          '既定では、つまみは動かしたときだけ出ます。`scrollbar="always"` でいつも出します。`hideEdgeShadow` では影を出さず、つまみをいつも出します。',
       },
     },
   },
@@ -153,8 +153,8 @@ export const Options: Story = {
       <Specimen label='scrollbar="always"'>
         <TopicCard position="middle" options={{ scrollbar: 'always' }} />
       </Specimen>
-      <Specimen label="edgeShadow={false}">
-        <TopicCard position="middle" options={{ edgeShadow: false }} />
+      <Specimen label="hideEdgeShadow">
+        <TopicCard position="middle" options={{ hideEdgeShadow: true }} />
       </Specimen>
     </Gallery>
   ),
@@ -186,7 +186,7 @@ export const Accessibility: Story = {
   name: '読み上げ',
   render: () => (
     <div className="flex flex-col gap-4">
-      <ScrollArea label="更新の記録" className="h-[120px] w-[280px]">
+      <ScrollArea accessibleName="更新の記録" className="h-[120px] w-[280px]">
         <ul className="flex flex-col gap-2">
           {log.map((line) => (
             <li key={line}>
@@ -195,7 +195,7 @@ export const Accessibility: Story = {
           ))}
         </ul>
       </ScrollArea>
-      <ScrollArea label="短い記録" className="h-[120px] w-[280px]">
+      <ScrollArea accessibleName="短い記録" className="h-[120px] w-[280px]">
         <Text size="sm">1 行だけ</Text>
       </ScrollArea>
     </div>

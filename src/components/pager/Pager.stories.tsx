@@ -23,7 +23,7 @@ const longNext = {
 // 幅を決めた枠（記事の下に置いたところ）。狭い幅で縦に積むところは Narrow で見る
 const frame = (children: ReactNode) => <div className="max-w-[40rem]">{children}</div>;
 
-const appearances = ['card', 'text'] as const;
+const variants = ['card', 'text'] as const;
 
 const stateRows: { label: string; state?: PreviewState }[] = [
   { label: '通常' },
@@ -43,25 +43,25 @@ const meta = {
           '記事の前後へ移るナビです。ブログ記事の下に置き、前の記事と次の記事の 2 つの行き先を並べます。',
           '',
           '- `prev`・`next` に `{ href, title }` を渡します。`title` は記事の題、`label` は題の上の小さい見出しです（既定は「前の記事」「次の記事」）。',
-          '- `appearance` は見た目です。`card`（既定）は押せるカードと同じ面で、`text` は面も枠線もない、矢印付きの文字のリンクです。`text` の押せる範囲は矢印と文字の幅だけで、左右に寄せた空きでは反応しません。',
+          '- `variant` は見た目です。`card`（既定）は押せるカードと同じ面で、`text` は面も枠線もない、矢印付きの文字のリンクです。`text` の押せる範囲は矢印と文字の幅だけで、左右に寄せた空きでは反応しません。',
           '- 文字の外側のアイコンは、既定では外向きの矢印（← →）です。`prev`・`next` の `icon` に `<Icon icon={…} />` を渡すと差し替えられます。置き場所（前は左、次は右）は変わりません。',
           '- 片方だけ渡すと、その行き先だけを出します。`keepSpace`（既定 `true`）は、もう片方の場所を空けて位置を保ちます。`false` にすると、1 つのときは幅いっぱいに広がります。',
           '- Next.js の `Link` などは、行き先の `render` に渡します（`href` は渡す要素に書きます）。',
-          '- `label` は並び（`nav`）の読み上げの名前です（既定は「前後の記事」）。ページの中に並びが複数あるときに見分けられます。',
+          '- `accessibleName` は並び（`nav`）の読み上げの名前です（既定は「前後の記事」）。ページの中に並びが複数あるときに見分けられます。',
           '- 置いた場所の幅が狭いときは、2 つを縦に積みます。画面の幅ではなく、置いた場所の幅で決めます。',
           '- ページ番号を並べる部品ではありません。行き先は前と次の 2 つだけです。',
         ].join('\n'),
       },
     },
   },
-  args: { prev, next, appearance: 'card', keepSpace: true },
+  args: { prev, next, variant: 'card', keepSpace: true },
   argTypes: {
-    appearance: {
+    variant: {
       control: 'inline-radio',
-      options: appearances,
+      options: variants,
       table: { defaultValue: { summary: "'card'" } },
     },
-    label: { control: 'text', table: { defaultValue: { summary: "'前後の記事'" } } },
+    accessibleName: { control: 'text', table: { defaultValue: { summary: "'前後の記事'" } } },
     keepSpace: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
     prev: { control: 'object' },
     next: { control: 'object' },
@@ -97,7 +97,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態（card）',
   parameters: {
-    controls: { exclude: ['appearance'] },
+    controls: { exclude: ['variant'] },
     pseudo: statePseudoTargets,
     docs: {
       description: {
@@ -111,7 +111,7 @@ export const States: Story = {
       {stateRows.map((row) => (
         <Specimen key={row.label} label={row.label}>
           <div data-preview={row.state}>
-            <Pager {...args} appearance="card" />
+            <Pager {...args} variant="card" />
           </div>
         </Specimen>
       ))}
@@ -124,7 +124,7 @@ export const TextStates: Story = {
   tags: ['visual'],
   name: '状態（text）',
   parameters: {
-    controls: { exclude: ['appearance'] },
+    controls: { exclude: ['variant'] },
     pseudo: statePseudoTargets,
     docs: {
       description: {
@@ -138,7 +138,7 @@ export const TextStates: Story = {
       {stateRows.map((row) => (
         <Specimen key={row.label} label={row.label}>
           <div data-preview={row.state} className="rounded-card border border-dashed border-line">
-            <Pager {...args} appearance="text" />
+            <Pager {...args} variant="text" />
           </div>
         </Specimen>
       ))}

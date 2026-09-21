@@ -17,8 +17,8 @@ const meta = {
           '1つだけ選ぶ問いのラジオです。`RadioGroup` の中に `Radio` を `value` 付きで置きます。横の文字を押しても選ばれます。',
           '',
           '- `required` で必須にします。見出しの後ろに印（既定は「必須」のタグ）が出て、グループに aria-required が付きます。印は読み上げから外れ、必須であることは aria-required が伝えます。印の形は `requiredMark` で変えられます。',
-          '- `error`・`warning` は選択肢の下に、入力欄と同じ行で出します。',
-          '- グループの `caption`・`error`・`warning` は、グループの説明です。選択肢1つずつの説明は、その `Radio` の `caption`（2 行目）だけです。',
+          '- `errorText`・`warningText`・`infoText` は選択肢の下に、入力欄と同じ行で出します。',
+          '- グループの `caption`・`errorText`・`warningText` は、グループの説明です。選択肢1つずつの説明は、その `Radio` の `caption`（2 行目）だけです。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
           '- `readOnly` にすると、丸が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
         ].join('\n'),
@@ -36,8 +36,9 @@ const meta = {
   argTypes: {
     label: { control: 'text' },
     caption: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    infoText: { control: 'text' },
     color: {
       control: 'inline-radio',
       options: colors,
@@ -94,7 +95,7 @@ export const Required: Story = {
 export const Messages: Story = {
   tags: ['visual'],
   name: 'エラー',
-  args: { required: true, error: '配送の時間を選んでください' },
+  args: { required: true, errorText: '配送の時間を選んでください' },
   parameters: {
     docs: {
       description: {

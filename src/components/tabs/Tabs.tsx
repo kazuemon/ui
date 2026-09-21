@@ -8,6 +8,7 @@ import { focusRing } from '../../internal/focus-styles';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { tv } from '../../internal/tv';
 import { useInlineCues } from '../../internal/use-inline-cues';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // タブ。値は design/tokens.css の --tabs-*
 //   振る舞い（矢印キーで移る・読み上げの tablist/tab/tabpanel）は Base UI の Tabs
@@ -34,6 +35,12 @@ export type TabsIndicator = 'line' | 'underline' | 'subtle' | 'segmented' | 'tex
 
 /** 選んだタブが変わったときの印の動き。slide: 印が滑って移る（既定）。none: 動かさずすぐ切り替える */
 export type TabsIndicatorMotion = 'slide' | 'none';
+
+/** タブの値。Tab と TabPanel を結び付けます */
+export type TabValue = string | number | null;
+
+/** タブの並びと中身のあいだの余白。段は Stack の gap と同じです */
+export type TabsPanelGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const tabs = tv({
   slots: {
@@ -88,7 +95,8 @@ const tabs = tv({
     ],
     panel: [
       // 角は小さく、1 行でもフォーカスの線が pill に見えない（軸 120）
-      'mt-(--tabs-panel-gap) rounded-(--tabs-panel-radius)',
+      // 中身の上の余白は panelGap（既定は Stack の md と同じ）。Tabs が --tabs-panel-pad に配る（ADR-0254 の M-04）
+      'mt-(--tabs-panel-gap) rounded-(--tabs-panel-radius) pt-(--tabs-panel-pad)',
       '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
@@ -155,25 +163,36 @@ const tabs = tv({
       slide: { root: '[--tabs-indicator-duration:var(--duration-normal)]' },
       none: { root: '[--tabs-indicator-duration:0ms]' },
     },
+    // 並びと中身のあいだの余白（ADR-0254 の M-04）。段は Stack の gap と同じ値を使う
+    panelGap: {
+      none: { root: '[--tabs-panel-pad:0px]' },
+      xs: { root: '[--tabs-panel-pad:var(--stack-gap-xs)]' },
+      sm: { root: '[--tabs-panel-pad:var(--stack-gap-sm)]' },
+      md: { root: '[--tabs-panel-pad:var(--stack-gap-md)]' },
+      lg: { root: '[--tabs-panel-pad:var(--stack-gap-lg)]' },
+      xl: { root: '[--tabs-panel-pad:var(--stack-gap-xl)]' },
+    },
   },
-  defaultVariants: { color: 'neutral', indicator: 'line', indicatorMotion: 'slide' },
+  defaultVariants: {
+    color: 'neutral',
+    indicator: 'line',
+    indicatorMotion: 'slide',
+    panelGap: 'md',
+  },
 });
 
 const scroll = scrollAreaStyles({ scrollbar: 'scroll' });
 
-export interface TabsProps extends Omit<
-  ComponentProps<typeof BaseTabs.Root>,
-  'className' | 'color' | 'orientation' | 'render'
-> {
-  /** 選んでいるタブの value（外で持つとき）。onValueChange と組みます */
-  value?: BaseTabs.Root.Props['value'];
+export interface TabsProps extends Omit<ComponentProps<'div'>, 'color' | 'defaultValue'> {
+  /** 選んでいるタブの value（制御） */
+  value?: TabValue;
   /**
-   * はじめに選んでおくタブの value（外で持たないとき）
+   * はじめに選んでいるタブの value（非制御）
    * @default 0
    */
-  defaultValue?: BaseTabs.Root.Props['defaultValue'];
-  /** 選ぶタブが変わったとき */
-  onValueChange?: BaseTabs.Root.Props['onValueChange'];
+  defaultValue?: TabValue;
+  /** 選ぶタブが変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: TabValue) => void;
   /**
    * 色。選んだタブの印とフォーカスの線の色です。primary・secondary は利用者が選ぶ色で、指定しないときはグレー（neutral）です
    * @default 'neutral'
@@ -190,6 +209,13 @@ export interface TabsProps extends Omit<
    * @default 'slide'
    */
   indicatorMotion?: TabsIndicatorMotion;
+  /**
+   * 中身（TabPanel）の上の余白。段は Stack の gap と同じで、none にすると余白がなくなります。
+   * すべての TabPanel に配ります
+   * @default 'md'
+   */
+  panelGap?: TabsPanelGap;
+  /** いちばん外の要素（div）に付きます */
   className?: string;
   /** TabList と TabPanel を並べます */
   children?: ReactNode;
@@ -198,20 +224,30 @@ export interface TabsProps extends Omit<
 /**
  * タブ。見出し（Tab）を 1 列に並べ、選んだものの中身（TabPanel）だけを出します
  */
-export function Tabs({ color, indicator, indicatorMotion, className, ...props }: TabsProps) {
+export function Tabs({
+  value,
+  defaultValue,
+  onValueChange,
+  color,
+  indicator,
+  indicatorMotion,
+  panelGap,
+  className,
+  ...props
+}: TabsProps) {
   return (
     <BaseTabs.Root
-      data-slot="tabs"
-      className={tabs({ color, indicator, indicatorMotion }).root({ className })}
       {...props}
+      data-slot="tabs"
+      value={value}
+      defaultValue={defaultValue}
+      onValueChange={onValueChange ? (next: TabValue) => onValueChange(next) : undefined}
+      className={tabs({ color, indicator, indicatorMotion, panelGap }).root({ className })}
     />
   );
 }
 
-export interface TabListProps extends Omit<
-  ComponentProps<typeof BaseTabs.List>,
-  'className' | 'render'
-> {
+export interface TabListProps extends ComponentProps<'div'> {
   /**
    * 矢印キーで移ったとき、すぐにそのタブを選ぶか。false のときは Enter か Space で選びます。
    * 中身を出すのが軽いときは true にすると、見比べやすくなります
@@ -227,16 +263,19 @@ export interface TabListProps extends Omit<
   'aria-label'?: string;
   /** 並べる Tab */
   children?: ReactNode;
+  /** 並びの枠（横にスクロールする外側の要素）に付きます */
   className?: string;
 }
 
 /**
  * Tab を横に並べる列。入り切らないときは横にスクロールします
  */
-export function TabList({ className, children, ...props }: TabListProps) {
+export function TabList({ className, children, ref, ...props }: TabListProps) {
   const s = tabs();
   const inlineCues = useInlineCues();
   const listRef = useRef<HTMLDivElement>(null);
+  // 内部の ref（はじめのスクロールに使う）と、利用者が渡した ref をつなぐ（ADR-0250）
+  const mergedRef = useMergedRefs(listRef, ref);
 
   // はじめに選んでおいたタブが、見えている範囲の外にあるとき、その位置までスクロールして見せる
   // 動きを減らす設定では滑らせない。あとでタブを選び直したときは、Base UI のフォーカス移動でスクロールする
@@ -259,7 +298,7 @@ export function TabList({ className, children, ...props }: TabListProps) {
       {/* 枠には Tab で止まらない（スクロールはタブへのフォーカスで起こる） */}
       <BaseScrollArea.Viewport ref={inlineCues} tabIndex={-1} className={scroll.viewport()}>
         <BaseScrollArea.Content className={s.content()}>
-          <BaseTabs.List ref={listRef} data-slot="tab-list" className={s.list()} {...props}>
+          <BaseTabs.List {...props} ref={mergedRef} data-slot="tab-list" className={s.list()}>
             <BaseTabs.Indicator data-slot="tab-indicator" className={s.indicator()} />
             {children}
           </BaseTabs.List>
@@ -284,12 +323,9 @@ export function TabList({ className, children, ...props }: TabListProps) {
   );
 }
 
-export interface TabProps extends Omit<
-  ComponentProps<typeof BaseTabs.Tab>,
-  'className' | 'render' | 'nativeButton' | 'children'
-> {
+export interface TabProps extends Omit<ComponentProps<'button'>, 'children' | 'value'> {
   /** このタブの値。同じ値の TabPanel を出します */
-  value: BaseTabs.Tab.Props['value'];
+  value: TabValue;
   /**
    * 押せなくします。矢印キーでは止まり（読み上げで「利用不可」と分かる）、選べません
    * @default false
@@ -303,6 +339,7 @@ export interface TabProps extends Omit<
    * 描く要素（Base UI の render と同じ）。ページを移るタブにするときは、リンク（Next.js の Link など）を渡します
    */
   render?: ReactElement;
+  /** タブ（button。render を渡したときはその要素）に付きます */
   className?: string;
 }
 
@@ -319,11 +356,11 @@ export function Tab({ icon, children, render, className, ...props }: TabProps) {
   );
   return (
     <BaseTabs.Tab
+      {...props}
       data-slot="tab"
       render={render}
       nativeButton={render === undefined}
       className={s.tab({ className })}
-      {...props}
     >
       <span className={s.tabInner()}>
         <span className={s.tabLabel()}>{content}</span>
@@ -335,18 +372,20 @@ export function Tab({ icon, children, render, className, ...props }: TabProps) {
   );
 }
 
-export interface TabPanelProps extends Omit<
-  ComponentProps<typeof BaseTabs.Panel>,
-  'className' | 'render'
-> {
+export interface TabPanelProps extends Omit<ComponentProps<'div'>, 'value' | 'defaultValue'> {
   /** 対応する Tab の value */
-  value: BaseTabs.Panel.Props['value'];
+  value: TabValue;
   /**
    * 選んでいないあいだも中身を DOM に残すか（入力した値やスクロールの位置を残したいとき）
    * @default false
    */
   keepMounted?: boolean;
+  /** 中身。上の余白は Tabs の panelGap で決まります */
+  children?: ReactNode;
+  /** 中身の要素（div）に付きます */
   className?: string;
+  /** 描く要素（Base UI の render と同じ） */
+  render?: ReactElement;
 }
 
 /**
@@ -356,6 +395,6 @@ export interface TabPanelProps extends Omit<
  */
 export function TabPanel({ className, ...props }: TabPanelProps) {
   return (
-    <BaseTabs.Panel data-slot="tab-panel" className={tabs().panel({ className })} {...props} />
+    <BaseTabs.Panel {...props} data-slot="tab-panel" className={tabs().panel({ className })} />
   );
 }

@@ -69,7 +69,7 @@ export const Columns: Story = {
                 </ul>
               </nav>
             </div>
-            <Text size="sm" tone="subtle">© 2026 kazuemon</Text>
+            <Text size="sm" variant="subtle">© 2026 kazuemon</Text>
           </Container>
         </footer>
       `),
@@ -99,7 +99,7 @@ export const Columns: Story = {
             </nav>
           ))}
         </div>
-        <Text size="sm" tone="subtle">
+        <Text size="sm" variant="subtle">
           © 2026 kazuemon
         </Text>
       </Container>
@@ -124,7 +124,7 @@ export const Compact: Story = {
       source: sourceCode(`
         <footer className="border-t border-line">
           <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
-            <Text size="sm" tone="subtle">© 2026 kazuemon</Text>
+            <Text size="sm" variant="subtle">© 2026 kazuemon</Text>
             <nav aria-label="フッター">
               <ul className="flex gap-4">
                 <li><Link href="/privacy">プライバシー</Link></li>
@@ -139,7 +139,7 @@ export const Compact: Story = {
   render: () => (
     <footer className="border-t border-line">
       <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
-        <Text size="sm" tone="subtle">
+        <Text size="sm" variant="subtle">
           © 2026 kazuemon
         </Text>
         <nav aria-label="フッター">

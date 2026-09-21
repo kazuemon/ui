@@ -30,9 +30,9 @@ interface ComboboxChipsProps extends ChipLookProps {
   /** 値からラベルを引く表。外で絞り込んで項目が消えても、items に残っていれば引ける */
   labelOf: Map<string, string>;
   /** チップのまとまりの読み上げの名前 */
-  chipsLabel: string;
+  chipsName: string;
   /** チップの × の読み上げの名前を作る関数 */
-  chipRemoveLabel: (label: string) => string;
+  chipRemoveName: (label: string) => string;
   /**
    * 箱（Base UI の Chips）に足すクラス。折り返し方はここで渡す
    * @default 'flex-wrap'
@@ -51,8 +51,8 @@ interface ComboboxChipsProps extends ChipLookProps {
 /** 欄の中のチップと打つ欄（Base UI の Chips）。選んだ値は Base UI の Value から受け取る */
 export function ComboboxChips({
   labelOf,
-  chipsLabel,
-  chipRemoveLabel,
+  chipsName,
+  chipRemoveName,
   color,
   readOnly,
   disabled,
@@ -69,7 +69,7 @@ export function ComboboxChips({
       {(values: string[]) => {
         const chips = (
           <BaseCombobox.Chips
-            aria-label={values.length > 0 ? chipsLabel : undefined}
+            aria-label={values.length > 0 ? chipsName : undefined}
             className={`${comboboxChipsClass} ${className}`}
           >
             {values.map((item) => {
@@ -91,7 +91,7 @@ export function ComboboxChips({
                   <span className="min-w-0 truncate">{text}</span>
                   {!readOnly && (
                     <BaseCombobox.ChipRemove
-                      render={<ChipRemove aria-label={chipRemoveLabel(text)} />}
+                      render={<ChipRemove aria-label={chipRemoveName(text)} />}
                       disabled={disabled || undefined}
                     />
                   )}

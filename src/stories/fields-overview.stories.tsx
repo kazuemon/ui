@@ -26,7 +26,7 @@ interface FieldRow {
 interface RowState {
   label: string;
   filled: boolean;
-  error?: string;
+  errorText?: string;
   disabled?: boolean;
   readOnly?: boolean;
 }
@@ -38,7 +38,7 @@ const columns: StateColumn[] = [
   { label: '値あり', values: { filled: true } },
   { label: 'hover', state: 'hover', values: { filled: true } },
   { label: 'フォーカス', state: 'focus', values: { filled: true } },
-  { label: 'エラー', values: { filled: true, error: '確かめてください' } },
+  { label: 'エラー', values: { filled: true, errorText: '確かめてください' } },
   { label: '押せない', values: { filled: true, disabled: true } },
   { label: '読み取り専用', values: { filled: true, readOnly: true } },
 ];

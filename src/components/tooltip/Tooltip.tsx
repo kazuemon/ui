@@ -4,11 +4,14 @@ import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 import { type ReactElement, type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
-import { tv } from '../../internal/tv';
+import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
 export type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
+export type TooltipAlign = 'start' | 'center' | 'end';
 
 // 面はほかの浮かぶ面と同じ白に細い輪郭（原則1）。角は浮かぶ面なので部品の角（原則5）— ADR-0106
 // 小さいので影は小さく淡い（--shadow-tooltip）。文字は部品のキャプションと同じ大きさ
@@ -39,6 +42,11 @@ export interface TooltipProps {
    */
   side?: TooltipSide;
   /**
+   * 本体に対して、どこにそろえるか
+   * @default 'center'
+   */
+  align?: TooltipAlign;
+  /**
    * マウスを載せてから出るまで（ms）。キーボードでフォーカスしたときは待たずに出ます
    * @default 400
    */
@@ -53,21 +61,37 @@ export interface TooltipProps {
    * @default 'top'
    */
   longPressSide?: TooltipSide | false;
+  /** 出ているか（制御） */
   open?: boolean;
+  /**
+   * はじめから出ているか（非制御）
+   * @default false
+   */
   defaultOpen?: boolean;
+  /** 出る・消えるが変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
-  /** 出さない */
+  /** 出入りの動きが終わったあとに、次の値を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
+  /**
+   * 出さないか
+   * @default false
+   */
   disabled?: boolean;
   /**
-   * 影を付けるか。false では細い輪郭だけで、下の内容と切り分けます
-   * @default true
+   * 影を消すか。細い輪郭だけで下の内容と切り分けるときに書きます
+   * @default false
    */
-  shadow?: boolean;
+  hideShadow?: boolean;
   /**
-   * 描く場所。本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも写します
+   * 描く場所。本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
+   * まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
    */
-  container?: HTMLElement | null;
+  portalContainer?: HTMLElement | null;
+  /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
+  popupProps?: PopupProps;
+  /** 位置を決める要素（Positioner）に足す props（anchor・collisionAvoidance・sideOffset など） */
+  positionerProps?: PositionerProps;
   /** 面（Popup）に足すクラス */
   className?: string;
 }
@@ -82,20 +106,32 @@ export function Tooltip({
   content,
   children,
   side = 'bottom',
+  align = 'center',
   delay = 400,
   longPressDelay = 500,
   longPressSide = 'top',
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  onOpenChangeComplete,
   disabled,
-  shadow = true,
-  container,
+  hideShadow = false,
+  portalContainer: container,
+  popupProps,
+  positionerProps,
   className,
 }: TooltipProps) {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   const portalContainer = usePortalContainer(container);
+  const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
+  const {
+    className: positionerClassName,
+    ref: userPositionerRef,
+    ...restPositionerProps
+  } = positionerProps ?? {};
+  const popupRef = useMergedRefs<HTMLDivElement>(userPopupRef);
+  const positionerRef = useMergedRefs<HTMLDivElement>(userPositionerRef);
   const { anchorRef, scope } = useDensityScope(open);
   const changeOpen = (next: boolean) => {
     setOpenState(next);
@@ -139,6 +175,7 @@ export function Tooltip({
         if (!next) setLongPressed(false);
         changeOpen(next);
       }}
+      onOpenChangeComplete={onOpenChangeComplete}
     >
       <BaseTooltip.Trigger
         ref={anchorRef}
@@ -177,13 +214,26 @@ export function Tooltip({
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
           side={longPressed && longPressSide ? longPressSide : side}
+          align={align}
           sideOffset={() => readTokenLength('--tooltip-offset')}
           collisionPadding={8}
           data-density={scope.density}
-          className={['z-10', scope.large && 'coarse-large'].filter(Boolean).join(' ')}
+          {...restPositionerProps}
+          ref={positionerRef}
+          className={['z-10', scope.large && 'coarse-large', positionerClassName]
+            .filter(Boolean)
+            .join(' ')}
         >
           {/* 面は浮かぶ面と同じ白・細い輪郭（原則1）。小さいので影は小さく淡い（--shadow-tooltip）。文字は部品のキャプションと同じ大きさ */}
-          <BaseTooltip.Popup data-slot="tooltip" className={tooltipPopup({ shadow, className })}>
+          <BaseTooltip.Popup
+            data-slot="tooltip"
+            {...restPopupProps}
+            ref={popupRef}
+            className={tooltipPopup({
+              shadow: !hideShadow,
+              className: cn(className, popupClassName),
+            })}
+          >
             {content}
           </BaseTooltip.Popup>
         </BaseTooltip.Positioner>

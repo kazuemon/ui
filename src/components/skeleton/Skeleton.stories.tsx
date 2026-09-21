@@ -19,7 +19,7 @@ const meta = {
         component: [
           '読み込み中の場所取りです。実物と同じ形と大きさの面を先に置き、読み込んだら実物に差し替えます。',
           '',
-          '- `shape` で形を選びます。`block`（既定）は画像・ボタン・入力欄の代わりの面、`text` は文字の行、`circle` は顔の画像の代わりの丸です。',
+          '- `variant` で形を選びます。`block`（既定）は画像・ボタン・入力欄の代わりの面、`text` は文字の行、`circle` は顔の画像の代わりの丸です。',
           '- `block` の幅は幅いっぱい、高さは `className`（`h-40`・`h-control` など）で決めます。`radius` は代わりに置くものの角に合わせます。ボタンと入力欄は `control`（既定）、画像とカードは `card`、タグとトグルは `pill` です。',
           '- `text` は、周りの文字の大きさと行の高さを受け継ぎます。`className` に `text-body` などを付けるか、Text の中に置きます。`lines` で行の数を決め、2 行以上のときは最後の行が短くなります。',
           '- 読み上げには出しません。包む要素に `aria-busy` を付け、読み込み中であることは VisuallyHidden の文で知らせます。',
@@ -30,14 +30,14 @@ const meta = {
     },
   },
   args: {
-    shape: 'block',
+    variant: 'block',
     radius: 'control',
     animation: 'sweep',
     lines: 1,
     className: 'h-(--spacing-control)',
   },
   argTypes: {
-    shape: { control: 'inline-radio', options: ['block', 'text', 'circle'] },
+    variant: { control: 'inline-radio', options: ['block', 'text', 'circle'] },
     radius: { control: 'inline-radio', options: ['control', 'card', 'pill', 'none'] },
     animation: { control: 'inline-radio', options: ['sweep', 'sweep-viewport', 'pulse'] },
     lines: { control: { type: 'number', min: 1, max: 6 } },
@@ -58,7 +58,7 @@ export const Playground: Story = {
   name: '基本',
 };
 
-export const Shapes: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '形',
   parameters: { controls: { disable: true } },
@@ -75,13 +75,13 @@ export const Shapes: Story = {
         <Skeleton radius="pill" className="h-(--leading-caption) w-16" />
       </Specimen>
       <Specimen label="circle（顔）">
-        <Skeleton shape="circle" />
+        <Skeleton variant="circle" />
       </Specimen>
       <Specimen label="text・lines=3（本文）">
-        <Skeleton shape="text" lines={3} className="text-body" />
+        <Skeleton variant="text" lines={3} className="text-body" />
       </Specimen>
       <Specimen label="text（見出し）">
-        <Skeleton shape="text" className="w-2/3 text-heading-3" />
+        <Skeleton variant="text" className="w-2/3 text-heading-3" />
       </Specimen>
     </Gallery>
   ),
@@ -96,8 +96,8 @@ export const MatchesText: Story = {
     <DensityPair>
       <div className="grid w-[36rem] grid-cols-2 gap-6">
         <div className="flex flex-col gap-3">
-          <Skeleton shape="text" className="w-1/2 text-heading-3" />
-          <Skeleton shape="text" lines={3} className="text-body" />
+          <Skeleton variant="text" className="w-1/2 text-heading-3" />
+          <Skeleton variant="text" lines={3} className="text-body" />
           <Skeleton className="h-(--spacing-control) w-28" />
         </div>
         <div className="flex flex-col gap-3">
@@ -136,14 +136,14 @@ export const Animations: Story = {
     <div className="flex flex-col gap-8">
       {animations.map(([animation, label]) => (
         <section key={animation} className="flex flex-col gap-2">
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             {`animation="${animation}"・${label}`}
           </Text>
           <div aria-busy className="grid w-[36rem] grid-cols-3 gap-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex flex-col gap-2">
                 <Skeleton animation={animation} radius="card" className="aspect-video" />
-                <Skeleton animation={animation} shape="text" lines={2} className="text-body" />
+                <Skeleton animation={animation} variant="text" lines={2} className="text-body" />
               </div>
             ))}
           </div>
@@ -179,12 +179,12 @@ function LoadingProfile() {
         ) : (
           <>
             <VisuallyHidden>プロフィールを読み込んでいます</VisuallyHidden>
-            <Skeleton shape="circle" />
-            <Skeleton shape="text" className="w-32 text-body" />
+            <Skeleton variant="circle" />
+            <Skeleton variant="text" className="w-32 text-body" />
           </>
         )}
       </div>
-      <Button appearance="outline" onClick={() => setLoaded((value) => !value)}>
+      <Button variant="outline" onClick={() => setLoaded((value) => !value)}>
         {loaded ? '読み込み中に戻す' : '読み込みを終える'}
       </Button>
     </div>
@@ -219,7 +219,7 @@ export const Usage: Story = {
 
 export const Accessibility: Story = {
   name: '読み上げ',
-  args: { shape: 'text', lines: 3, className: 'text-body' },
+  args: { variant: 'text', lines: 3, className: 'text-body' },
   play: async ({ canvasElement }) => {
     const skeleton = canvasElement.querySelector('[data-slot="skeleton"]');
     await expect(skeleton).toHaveAttribute('aria-hidden', 'true');

@@ -266,10 +266,10 @@ export function LinkCard({
                 {...(typeof image === 'string' ? { src: image, alt: imageAlt } : { render: image })}
                 ratio="auto"
                 radius="none"
-                outline={false}
+                hideOutline
                 errorText=""
                 className={s.image()}
-                frameClassName="h-full"
+                frameProps={{ className: 'h-full' }}
               />
             </span>
           )}

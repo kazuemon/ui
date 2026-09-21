@@ -5,7 +5,7 @@ import { tv } from './tv';
 // 値は design/tokens.css の --collapsible-*
 //   行: 行全体を押せるので、hover で行を淡く塗り、押しても濃くしない（原則3。一覧の項目と同じグレー）
 //     塗りは --collapsible-row-fill に置き、background-color ではなく変数を動かす（ADR-0112）
-//     ふだん・開いているとき・hover・開いていて hover の塗りは、見た目（appearance）ごとに root で決める
+//     ふだん・開いているとき・hover・開いていて hover の塗りは、見た目（variant）ごとに root で決める
 //     押せる範囲は見えている行の範囲（原則7）。区切り線か塗りで範囲を見せる
 //   フォーカスの線はキーボードのときだけ行に出す（原則2。focusRing）
 //   開閉の印は題の右（▼ → ▲）か左（▶ → ▼）。動きを減らす設定では回さずに切り替える
@@ -60,7 +60,7 @@ export const collapsibleStyles = tv({
     ],
   },
   variants: {
-    appearance: {
+    variant: {
       // 塗りなし。hover だけ入力欄のグレーを敷く
       plain: {
         root: '[--collapsible-fill-hover:var(--color-field)] [--collapsible-fill-open-hover:var(--color-field)] [--collapsible-fill-open:transparent] [--collapsible-fill:transparent]',
@@ -98,5 +98,5 @@ export const collapsibleStyles = tv({
       },
     },
   },
-  defaultVariants: { appearance: 'plain', indicator: 'end' },
+  defaultVariants: { variant: 'plain', indicator: 'end' },
 });

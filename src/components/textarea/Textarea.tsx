@@ -6,19 +6,18 @@ import {
   type ComponentProps,
   type CSSProperties,
   type PointerEvent,
-  type ReactNode,
   useCallback,
   useId,
   useRef,
   useState,
 } from 'react';
 
-import { type CaptionPlacement, Field } from '../../internal/field/Field';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import { Field, FieldLoadingBar, FieldSpinner, FieldSuccessMark } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
+import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
-import { tv } from '../../internal/tv';
+import { cn, tv } from '../../internal/tv';
 import { countGraphemes } from './count-graphemes';
 import { useAutoHeight } from './use-auto-height';
 
@@ -77,29 +76,22 @@ const heightVars = (
 });
 
 export interface TextareaProps
-  extends Omit<ComponentProps<'textarea'>, 'className' | 'children' | 'rows'>, FieldMarkProps {
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
+  extends
+    Omit<ComponentProps<'textarea'>, 'className' | 'children' | 'rows' | 'value' | 'defaultValue'>,
+    Omit<InputFieldProps, 'prefix' | 'suffix' | 'addonShape'> {
   /**
    * 空の欄に出す見本の文字。値と見分けられるよう、「例: UI を作っています」のように、見本だと分かる書き方にします。
    * 色は、文字の基準（4.5:1）を保つ淡さまでしか淡くできないため、書き方でも値と区別します
    */
   placeholder?: string;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  error?: ReactNode;
-  /** 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない */
-  warning?: ReactNode;
-  /** 成功の内容。本体の下に丸のチェックと緑の文字で出す。欄の見た目は変えない */
-  success?: ReactNode;
-  /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  info?: ReactNode;
-  className?: string;
+  /** 値（制御） */
+  value?: string;
+  /** はじめの値（非制御） */
+  defaultValue?: string;
+  /** 値が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: string) => void;
+  /** 中の textarea に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'textarea'>;
   /**
    * いちばん低いときの行数。空のときもこの高さです
    * @default 3
@@ -148,12 +140,17 @@ export function Textarea({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   className,
+  loading = false,
+  loadingBehavior = 'non-blocking',
+  loadingIndicator = 'spinner',
+  inputProps,
   minRows = 3,
   maxRows = 8,
   resizable = true,
@@ -170,15 +167,19 @@ export function Textarea({
   defaultValue,
   maxLength,
   onChange,
+  onValueChange,
   ref,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-invalid': ariaInvalid,
+  'aria-busy': ariaBusy,
   ...props
 }: TextareaProps) {
   const id = useId();
   // Form の送信中（ADR-0059）。押せない欄と同じ見た目にし、書き換えを止める。フォーカスは外さない
-  const blocking = useFormSubmittingLock().blocking;
+  // 待っているあいだ（loading）の blocking も同じ（design/adr/0042）
+  const formLock = useFormSubmittingLock();
+  const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
   const [manual, setManual] = useState(false);
   // 押せないとき・止めているあいだは、つまみも使えない
   const canResize = resizable && !disabled && !blocking;
@@ -214,8 +215,8 @@ export function Textarea({
   };
 
   // 文字数。値を渡されたときはその長さ、渡されないときは打った長さを数える。数えるのは見えている文字（書記素）
-  const [typed, setTyped] = useState(() => countGraphemes(String(defaultValue ?? '')));
-  const length = value != null ? countGraphemes(String(value)) : typed;
+  const [typed, setTyped] = useState(() => countGraphemes(defaultValue ?? ''));
+  const length = value != null ? countGraphemes(value) : typed;
   // 上限は、柔らかい上限（maxCount）を先に使う。maxLength はブラウザが打つのを止めるので、超えない
   const limit = maxCount ?? maxLength;
   const over = maxCount != null && length > maxCount;
@@ -242,12 +243,14 @@ export function Textarea({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
+      error={errorText}
       invalid={over && overCountInvalid}
-      warning={warning}
-      success={success}
-      info={info}
+      warning={warningText}
+      success={successText}
+      info={infoText}
       disabled={disabled}
+      loading={loading}
+      loadingBehavior={loadingBehavior}
       required={required}
       requiredMark={requiredMark}
       optionalMark={optionalMark}
@@ -277,6 +280,7 @@ export function Textarea({
                     // textarea の props（onChange・ref など）は描く要素に渡し、Base UI が自分の props と合わせる（ハンドラーは両方呼ぶ）
                     render={
                       <textarea
+                        {...inputProps}
                         {...props}
                         ref={setInput}
                         rows={low}
@@ -288,16 +292,21 @@ export function Textarea({
                         }}
                       />
                     }
-                    className={styles.input({ className: blocking && 'cursor-progress' })}
+                    className={cn(
+                      styles.input({ className: blocking && 'cursor-progress' }),
+                      inputProps?.className
+                    )}
                     style={style}
                     disabled={disabled}
                     required={required}
                     readOnly={blocking || readOnly}
                     aria-disabled={blocking || ariaDisabled}
                     aria-invalid={(over && overCountInvalid) || ariaInvalid}
+                    aria-busy={loading || ariaBusy}
                     aria-describedby={describe(messageIds)}
                     value={value}
                     defaultValue={defaultValue}
+                    onValueChange={onValueChange && ((next) => onValueChange(next))}
                   />
                 </BaseScrollArea.Content>
               </BaseScrollArea.Viewport>
@@ -308,6 +317,15 @@ export function Textarea({
                 />
               </BaseScrollArea.Scrollbar>
             </BaseScrollArea.Root>
+            {/* 待っているあいだの印と成功のチェック（design/adr/0042・ADR-0058）。
+                1 行の欄では右端（suffix の前）に置くが、Textarea は高さがあるので、本体の右上に置く */}
+            {(loading && loadingIndicator === 'spinner') ||
+            (successText && !hideSuccessMark && !errorText && !loading) ? (
+              <span className="pointer-events-none absolute end-0 top-0 flex h-(--spacing-control) items-center pe-[calc(var(--spacing-control-x)-var(--field-border-width))]">
+                {loading ? <FieldSpinner /> : <FieldSuccessMark />}
+              </span>
+            ) : null}
+            {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
           </div>
           {counted && (
             // 読み上げは欄の説明として、フォーカスしたときに 1 回読む（打つたびには知らせない）

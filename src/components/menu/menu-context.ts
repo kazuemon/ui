@@ -47,8 +47,8 @@ export interface MenuContextValue {
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;
-  closeLabel?: string;
-  backLabel?: string;
+  closeName?: string;
+  backName?: string;
   closeAll: () => void;
 }
 

@@ -26,7 +26,7 @@ const meta = {
           '選んだ値や入力した語を並べる、消せる小さな印です。複数選択の欄や、語を並べて入力する欄の中で使います。',
           '',
           '- 色は `Tag` と同じです。`primary`・`secondary`・`neutral`（既定）と、状態を表す `info`・`success`・`warning`・`danger` があります。',
-          '- `onRemove` を渡すと右端に消すボタン（×）が出ます。読み上げの名前を `removeLabel` で必ず渡します（「デザインを外す」など）。',
+          '- `onRemove` を渡すと右端に消すボタン（×）が出ます。読み上げの名前を `removeName` で必ず渡します（「デザインを外す」など）。',
           '- `disabled` は押せない見た目で、消すボタンも押せません。`readOnly` は消すボタンを出しません。',
           '- Base UI の `Combobox.Chip` の `render` に `Chip` を、`Combobox.ChipRemove` の `render` に `ChipRemove` を渡して、複数選択の欄に組み込めます。',
         ].join('\n'),
@@ -37,7 +37,7 @@ const meta = {
     children: 'デザイン',
     color: 'neutral',
     onRemove: fn(),
-    removeLabel: 'デザインを外す',
+    removeName: 'デザインを外す',
   },
   argTypes: {
     children: { control: 'text' },
@@ -90,7 +90,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    controls: { exclude: ['color', 'disabled', 'readOnly', 'onRemove', 'removeLabel'] },
+    controls: { exclude: ['color', 'disabled', 'readOnly', 'onRemove', 'removeName'] },
     pseudo: statePseudo({
       hover: '[data-slot="chip-remove"]',
       focusVisible: '[data-slot="chip-remove"]',

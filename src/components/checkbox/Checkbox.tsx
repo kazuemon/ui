@@ -2,7 +2,7 @@
 
 import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox';
 import { Field as BaseField } from '@base-ui/react/field';
-import { type ComponentProps, type ReactNode, useContext, useId } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useContext, useId } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
@@ -14,16 +14,17 @@ import {
 } from '../../internal/choice/choice-styles';
 import { FieldMessageLine } from '../../internal/field/Field';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 
 export type { ChoiceColor } from '../../internal/choice/choice-styles';
 
-// 1つだけ置くチェックボックスの行。上下の行が行の余白（--choice-row-pad-y — design/adr/0101）。最後の2行がエラー・警告の行
-//   エラー・警告の行は、最後の2行に置く（位置を決めないと、上の余白の空いた行に入ってしまう）
+// 1つだけ置くチェックボックスの行。上下の行が行の余白（--choice-row-pad-y — design/adr/0101）。最後の3行がエラー・警告・情報の行
+//   下の行は、最後の3行に置く（位置を決めないと、上の余白の空いた行に入ってしまう）
 const soloRows = (caption: ReactNode) =>
   caption
-    ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto]'
-    : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto]';
+    ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto_auto]'
+    : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto_auto]';
 
 // チェック（✓）と中間の横線。線の太さは画面の px（--checkbox-mark-width）で、箱の大きさによらない
 function CheckboxMark() {
@@ -57,7 +58,10 @@ function CheckboxMark() {
 
 export interface CheckboxProps
   extends
-    Omit<ComponentProps<typeof BaseCheckbox.Root>, 'className' | 'render' | 'color' | 'parent'>,
+    Omit<
+      ComponentProps<'span'>,
+      'color' | 'onChange' | 'defaultChecked' | 'defaultValue' | 'children'
+    >,
     FieldMarkProps {
   /** 箱の横の文字。押しても切り替わります（本体の一部）。押せないときは箱と一緒にグレーになります */
   label: ReactNode;
@@ -69,18 +73,57 @@ export interface CheckboxProps
    * @default 'neutral'
    */
   color?: ChoiceColor;
+  /** 選んでいるか（制御） */
+  checked?: boolean;
+  /** はじめに選んでいるか（非制御） */
+  defaultChecked?: boolean;
+  /** 選んだ・外したときに、次の値を渡して呼びます */
+  onCheckedChange?: (checked: boolean) => void;
+  /**
+   * 中間の状態（選んだものと外したものが混ざっている）にします。箱には横線を出します
+   * @default false
+   */
+  indeterminate?: boolean;
+  /** CheckboxGroup に送る値。書かないときは name を使います */
+  value?: string;
+  /** フォームに送るときの名前 */
+  name?: string;
+  /** 箱が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  /** 隠れた input の id */
+  id?: string;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
+  /** 外したままでもフォームに送る値。書かないときは、外した箱は何も送りません */
+  uncheckedValue?: string;
+  /**
+   * CheckboxGroup の「すべて選ぶ」の箱にします。子がすべて選ばれていれば選んだ状態、
+   * いくつかなら中間の状態に、部品が自分で切り替えます。CheckboxGroup の allValues と組で使います
+   * @default false
+   */
+  parent?: boolean;
   /**
    * エラーの内容。1つだけ置くとき（同意など）に使います。箱の行の下に丸の「!」と赤い文字で出し、選んでいない箱の塗りを淡い赤にします。
    * 行は箱の説明（aria-describedby）につなぎ、読み上げと出る・消える動きは入力欄と同じです。
    * Form で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。
-   * CheckboxGroup の中では使いません（グループの error を使います）
+   * CheckboxGroup の中では使いません（グループの errorText を使います）
    */
-  error?: ReactNode;
+  errorText?: FieldMessage;
   /**
    * 警告の内容。1つだけ置くときに使います。箱の行の下に三角とオリーブ色の文字で出します。箱の見た目は変えません。
-   * error と両方あるときは、エラーの行が上です。CheckboxGroup の中では使いません（グループの warning を使います）
+   * errorText と両方あるときは、エラーの行が上です。CheckboxGroup の中では使いません（グループの warningText を使います）
    */
-  warning?: ReactNode;
+  warningText?: FieldMessage;
+  /**
+   * 情報の内容。1つだけ置くときに使います。箱の行の下に丸の「i」と青い文字で出します。箱の見た目は変えません。
+   * エラー・警告の行の下に出ます。CheckboxGroup の中では使いません（グループの infoText を使います）
+   */
+  infoText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。箱と横の文字がグレーになり、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
   /**
    * 必須にします。1つだけ置くとき（同意など）に使い、箱に aria-required を付けます（読み上げで必須と伝わります）。
    * 横の文字の後ろに印（既定は「必須」のタグ）も出ます。印は読み上げから外れます。
@@ -95,25 +138,32 @@ export interface CheckboxProps
    * @default false
    */
   readOnly?: boolean;
+  /** 箱と横の文字を並べた行に付きます */
   className?: string;
 }
 
 /**
  * チェックボックス。箱と横の文字（とキャプション）を並べる。横の文字を押しても切り替わる
  * 1つだけ置くとき（同意など）はそのまま、複数を1つの問いにまとめるときは CheckboxGroup の中に置く
- * 中間の状態は indeterminate で表します。「すべて選ぶ」の箱は、CheckboxGroup の selectAll で部品が持ちます
+ * 中間の状態は indeterminate で表します。「すべて選ぶ」の箱は、CheckboxGroup の selectAll と allValues で付けます
  */
-export function Checkbox(props: CheckboxProps) {
-  return <CheckboxBase {...props} />;
-}
-
-// parent: CheckboxGroup の「すべて選ぶ」の箱（Base UI の親の箱）。部品の中だけで使う
-export function CheckboxBase({
+export function Checkbox({
   label,
   caption,
   color,
-  error,
-  warning,
+  checked,
+  defaultChecked,
+  onCheckedChange,
+  indeterminate,
+  value,
+  name,
+  form,
+  id: idProp,
+  inputRef,
+  uncheckedValue,
+  errorText,
+  warningText,
+  infoText,
   className,
   disabled,
   readOnly,
@@ -124,7 +174,7 @@ export function CheckboxBase({
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   ...props
-}: CheckboxProps & { parent?: boolean }) {
+}: CheckboxProps) {
   const group = useContext(ChoiceGroupContext);
   const id = useId();
   const solo = !group;
@@ -136,6 +186,16 @@ export function CheckboxBase({
   const labelReadOnly = locked.readOnlyLook ? choiceReadOnly.label : undefined;
   const box = (describedBy: string | undefined) => (
     <BaseCheckbox.Root
+      checked={checked}
+      defaultChecked={defaultChecked}
+      onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
+      indeterminate={indeterminate}
+      value={value}
+      name={name}
+      form={form}
+      id={idProp}
+      inputRef={inputRef}
+      uncheckedValue={uncheckedValue}
       disabled={disabled}
       readOnly={locked.readOnly}
       aria-disabled={locked.ariaDisabled || ariaDisabled}
@@ -171,18 +231,29 @@ export function CheckboxBase({
       </BaseField.Item>
     );
   }
-  // 1つだけ置くときは自分の Field.Root。エラー・警告の行（入力欄と同じ — design/adr/0041・0044）を箱の行の下に置き、
-  // 箱の説明を見た目の順（キャプション → エラー → 警告）でつなぐ
+  // 1つだけ置くときは自分の Field.Root。エラー・警告・情報の行（入力欄と同じ — design/adr/0041・0044）を箱の行の下に置き、
+  // 箱の説明を見た目の順（キャプション → エラー → 警告 → 情報）でつなぐ
   // data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（Field と同じ）
-  const ids = { caption: `${id}caption`, error: `${id}error`, warning: `${id}warning` };
+  const ids = {
+    caption: `${id}caption`,
+    error: `${id}error`,
+    warning: `${id}warning`,
+    info: `${id}info`,
+  };
   const describedBy =
-    [ariaDescribedBy, caption && ids.caption, error && ids.error, warning && ids.warning]
+    [
+      ariaDescribedBy,
+      caption && ids.caption,
+      errorText && ids.error,
+      warningText && ids.warning,
+      infoText && ids.info,
+    ]
       .filter(Boolean)
       .join(' ') || undefined;
   return (
     <BaseField.Root
       disabled={disabled}
-      invalid={error ? true : undefined}
+      invalid={errorText ? true : undefined}
       className={s.item({
         className: [soloRows(caption), ...choiceMessagePull, className],
       })}
@@ -199,14 +270,20 @@ export function CheckboxBase({
       )}
       <FieldMessageLine
         kind="error"
-        content={error}
+        content={errorText}
         id={ids.error}
-        className={s.message({ className: 'row-start-[-3]' })}
+        className={s.message({ className: 'row-start-[-4]' })}
       />
       <FieldMessageLine
         kind="warning"
-        content={warning}
+        content={warningText}
         id={ids.warning}
+        className={s.message({ className: 'row-start-[-3]' })}
+      />
+      <FieldMessageLine
+        kind="info"
+        content={infoText}
+        id={ids.info}
         className={s.message({ className: 'row-start-[-2]' })}
       />
     </BaseField.Root>

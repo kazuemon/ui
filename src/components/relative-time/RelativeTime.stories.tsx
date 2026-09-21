@@ -34,7 +34,7 @@ const meta = {
     dateTime: { control: 'text' },
     withTime: { control: 'boolean' },
     size: { control: 'inline-radio', options: ['md', 'sm'] },
-    tone: { control: 'inline-radio', options: ['default', 'muted', 'subtle'] },
+    variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
     timeZone: { control: 'text' },
   },

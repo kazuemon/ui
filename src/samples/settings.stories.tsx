@@ -10,6 +10,7 @@ import { Link } from '../components/link/Link';
 import { Notice } from '../components/notice/Notice';
 import { Radio, RadioGroup } from '../components/radio/Radio';
 import { Select } from '../components/select/Select';
+import { Stack } from '../components/stack/Stack';
 import { Switch } from '../components/switch/Switch';
 import { Tab, TabList, TabPanel, Tabs } from '../components/tabs/Tabs';
 import { Text } from '../components/text/Text';
@@ -22,27 +23,27 @@ import { SamplePage, densityOf } from './SamplePage';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4">
+    <Stack gap="md" render={<section />}>
       <Heading level={2} size={3}>
         {title}
       </Heading>
       {children}
-    </section>
+    </Stack>
   );
 }
 
 function SaveBar({ label = '保存する' }: { label?: string }) {
   const toast = useToast();
   return (
-    <div className="flex gap-2">
+    <Stack direction="horizontal" gap="sm">
       <Button
         color="primary"
-        onClick={() => toast.show({ color: 'success', title: '保存しました', timeout: 4000 })}
+        onClick={() => toast.show({ status: 'success', title: '保存しました', timeout: 4000 })}
       >
         {label}
       </Button>
-      <Button appearance="outline">キャンセル</Button>
-    </div>
+      <Button variant="outline">キャンセル</Button>
+    </Stack>
   );
 }
 
@@ -71,7 +72,7 @@ function AccountPanel() {
           defaultValue="ja"
         />
       </Section>
-      <Text size="sm" tone="subtle">
+      <Text size="sm" variant="subtle">
         メールアドレスの変更は、<Link href="#security">セキュリティ</Link>から行います。
       </Text>
       <SaveBar />
@@ -83,10 +84,10 @@ function NotificationPanel() {
   return (
     <div className="flex flex-col gap-8">
       <Section title="通知の方法">
-        <div className="flex flex-col gap-2">
+        <Stack gap="sm">
           <Switch label="メールで受け取る" caption="週に 1 回、まとめて届きます" defaultChecked />
           <Switch label="プッシュ通知" />
-        </div>
+        </Stack>
       </Section>
       <Section title="通知するできごと">
         <CheckboxGroup
@@ -129,12 +130,12 @@ function DangerPanel() {
   const [deleted, setDeleted] = useState(false);
   const toast = useToast();
   return (
-    <div className="flex flex-col gap-6">
-      <Notice color="warning" title="この操作は元に戻せません">
+    <Stack gap="lg">
+      <Notice status="warning" title="この操作は元に戻せません">
         アカウントを削除すると、投稿と設定がすべて消えます。
       </Notice>
       {deleted ? (
-        <Text tone="muted">アカウントを削除しました。</Text>
+        <Text variant="muted">アカウントを削除しました。</Text>
       ) : (
         <div>
           <AlertDialog
@@ -143,24 +144,24 @@ function DangerPanel() {
             actionLabel="削除する"
             onAction={() => {
               setDeleted(true);
-              toast.show({ color: 'danger', title: 'アカウントを削除しました', timeout: 4000 });
+              toast.show({ status: 'danger', title: 'アカウントを削除しました', timeout: 4000 });
             }}
             trigger={<Button color="danger">アカウントを削除する</Button>}
           />
         </div>
       )}
-    </div>
+    </Stack>
   );
 }
 
 function SettingsScreen() {
   return (
-    <div className="flex flex-col gap-6">
+    <Stack gap="lg">
       <div>
         <Heading level={1} size={2}>
           設定
         </Heading>
-        <Text tone="muted" className="mt-1">
+        <Text variant="muted" className="mt-1">
           アカウントと通知、表示の設定です。
         </Text>
       </div>
@@ -171,20 +172,20 @@ function SettingsScreen() {
           <Tab value="display">表示</Tab>
           <Tab value="danger">危険な操作</Tab>
         </TabList>
-        <TabPanel value="account" className="pt-6">
+        <TabPanel value="account">
           <AccountPanel />
         </TabPanel>
-        <TabPanel value="notification" className="pt-6">
+        <TabPanel value="notification">
           <NotificationPanel />
         </TabPanel>
-        <TabPanel value="display" className="pt-6">
+        <TabPanel value="display">
           <DisplayPanel />
         </TabPanel>
-        <TabPanel value="danger" className="pt-6">
+        <TabPanel value="danger">
           <DangerPanel />
         </TabPanel>
       </Tabs>
-    </div>
+    </Stack>
   );
 }
 

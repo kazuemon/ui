@@ -23,8 +23,8 @@ const meta = {
           '- 本体は `children` に要素を1つ（`Button` など）渡します。出す文は `content` に書きます。',
           '- 指で操作する人は、長押ししないと読めません。欠かせない情報は Tooltip に置かず、押して開く Popover や、キャプションで見せます。',
           '- 長押しで出したときは、指を離しても本体を実行しません。ほかの場所に触れると閉じます。指と手で隠れないよう、上に出します（`longPressSide`。`false` で `side` のままにできます）。',
-          '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。',
-          '- 影を付けたくないときは `shadow={false}` にします。細い輪郭だけで下の内容と切り分けます。',
+          '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。その辺に沿った寄せは `align` です。',
+          '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
         ].join('\n'),
       },
     },
@@ -36,7 +36,7 @@ const meta = {
     longPressDelay: 500,
     longPressSide: 'top',
     disabled: false,
-    shadow: true,
+    hideShadow: false,
     children: <Button>共有</Button>,
   },
   argTypes: {
@@ -47,7 +47,7 @@ const meta = {
       table: { defaultValue: { summary: "'bottom'" } },
     },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Tooltip>;
 
@@ -88,7 +88,7 @@ export const Sides: Story = {
           {sides.map((side) => (
             <div key={side} className="flex justify-center">
               {/* Tooltip は同時に1つしか出ないので、並べるときは open で固定する */}
-              <Tooltip {...args} side={side} open={openOnLoad(viewMode)} container={frame}>
+              <Tooltip {...args} side={side} open={openOnLoad(viewMode)} portalContainer={frame}>
                 <Button>{side}</Button>
               </Tooltip>
             </div>
@@ -113,7 +113,7 @@ export const Long: Story = {
     <ScreenFrame height="h-[200px]">
       {(frame) => (
         <div className="flex w-full justify-center pt-2">
-          <Tooltip {...args} defaultOpen={openOnLoad(viewMode)} container={frame}>
+          <Tooltip {...args} defaultOpen={openOnLoad(viewMode)} portalContainer={frame}>
             <Button>公開する</Button>
           </Tooltip>
         </div>
@@ -125,16 +125,16 @@ export const Long: Story = {
 export const NoShadow: Story = {
   tags: ['visual'],
   name: '影なし',
-  args: { shadow: false },
+  args: { hideShadow: true },
   parameters: {
-    controls: { include: ['content', 'shadow'] },
-    docs: { description: { story: '`shadow={false}` で影を外し、細い輪郭だけにした形です。' } },
+    controls: { include: ['content', 'hideShadow'] },
+    docs: { description: { story: '`hideShadow` で影を外し、細い輪郭だけにした形です。' } },
   },
   render: (args, { viewMode }) => (
     <ScreenFrame height="h-[160px]">
       {(frame) => (
         <div className="flex w-full justify-center pt-2">
-          <Tooltip {...args} open={openOnLoad(viewMode)} container={frame}>
+          <Tooltip {...args} open={openOnLoad(viewMode)} portalContainer={frame}>
             <Button>共有</Button>
           </Tooltip>
         </div>

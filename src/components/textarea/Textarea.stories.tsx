@@ -26,12 +26,12 @@ const longText = [
 const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '値あり', props: { defaultValue: 'はじめまして。\nかずえもんです。' } },
-  { label: 'エラー', props: { error: '本文を入力してください' } },
+  { label: 'エラー', props: { errorText: '本文を入力してください' } },
   {
     label: '警告',
     props: {
       defaultValue: 'はじめまして。',
-      warning: '短い文は、一覧では前後の文とつながって見えます',
+      warningText: '短い文は、一覧では前後の文とつながって見えます',
     },
   },
   { label: '押せない', props: { defaultValue: 'はじめまして。', disabled: true } },
@@ -69,8 +69,9 @@ const meta = {
           '- `showCount` を渡すと、本体の右下の下に「12 / 200」の形で文字数を出します。上限は `maxCount`（超えても打てる）か `maxLength`（ブラウザが打つのを止める）です。',
           '- 上限まで残りわずかになると、`showCount` がなくても文字数を出し、数を警告の色にします。予告を出す残りの文字数は `warnRemaining` で変えられます（既定は上限の 10%）。警告は送信を止めないので、欄の見た目は変えません。',
           '- 文字数は見えている文字（書記素）で数えます。絵文字や国旗も 1 文字です。',
-          '- `maxCount` を超えると、`showCount` がなくても文字数を出し、数を赤にします。超えているあいだは欄もエラーの見た目（赤い枠線・`aria-invalid`）にし、読み上げでも知らせます。欄を変えたくないときは `overCountInvalid={false}` を渡します。送信を止めるときは、超えていたら `error` を渡します。',
-          '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<textarea>` に渡ります。',
+          '- `maxCount` を超えると、`showCount` がなくても文字数を出し、数を赤にします。超えているあいだは欄もエラーの見た目（赤い枠線・`aria-invalid`）にし、読み上げでも知らせます。欄を変えたくないときは `overCountInvalid={false}` を渡します。送信を止めるときは、超えていたら `errorText` を渡します。',
+          '- 値を確かめているあいだは `loading` を付けます。印は本体の右上（`loadingIndicator="bar"` では下端）に出ます。`loadingBehavior="blocking"` では、押せない欄と同じ見た目にし、書き換えを止めます。',
+          '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<textarea>` に渡ります。`<textarea>` の class や `data-*` だけを足したいときは `inputProps` を使います（`className` は欄の外枠に付きます）。',
         ].join('\n'),
       },
     },
@@ -85,6 +86,9 @@ const meta = {
     showCount: false,
     disabled: false,
     readOnly: false,
+    loading: false,
+    loadingBehavior: 'non-blocking',
+    loadingIndicator: 'spinner',
   },
   argTypes: {
     label: { control: 'text' },
@@ -95,8 +99,8 @@ const meta = {
       table: { defaultValue: { summary: "'top'" } },
     },
     placeholder: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
     minRows: { control: { type: 'number', min: 1 } },
     resizable: { control: 'boolean' },
     maxRows: { control: { type: 'number', min: 1 } },
@@ -107,6 +111,9 @@ const meta = {
     showCount: { control: 'boolean' },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
+    loading: { control: 'boolean' },
+    loadingBehavior: { control: 'inline-radio', options: ['non-blocking', 'blocking'] },
+    loadingIndicator: { control: 'inline-radio', options: ['spinner', 'bar'] },
   },
 } satisfies Meta<typeof Textarea>;
 
@@ -138,7 +145,7 @@ export const States: Story = {
       },
       source: sourceCode(`
         <Textarea label="本文" placeholder="ご用件をお書きください" />
-        <Textarea label="本文" error="本文を入力してください" />
+        <Textarea label="本文" errorText="本文を入力してください" />
         <Textarea label="本文" defaultValue="はじめまして。" disabled />
       `),
     },
@@ -251,7 +258,7 @@ export const Messages: Story = {
           defaultValue="よろしく"
           maxCount={200}
           showCount
-          error="10文字以上で入力してください"
+          errorText="10文字以上で入力してください"
         />
       </Specimen>
       <Specimen label="1 行の TextField と並べる">

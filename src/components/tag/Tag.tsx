@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { tv } from '../../internal/tv';
@@ -32,6 +32,10 @@ export interface TagProps extends Omit<ComponentProps<'span'>, 'color'>, Variant
    * @default 'neutral'
    */
   color?: VariantProps<typeof tag>['color'];
+  /** タグの文字（分類や「公開中」などの状態） */
+  children?: ReactNode;
+  /** タグ（span）に付きます */
+  className?: string;
 }
 
 /**

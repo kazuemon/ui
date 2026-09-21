@@ -5,8 +5,15 @@ import type { FieldMarkProps } from './FieldMark';
 import type { AddonShape } from '../../components/field-addon/field-addon-context';
 import type { LoadingIndicator } from '../../components/loading/Loading';
 
+/**
+ * 欄の下に出す状態メッセージ（errorText・warningText・successText・infoText）の型。
+ * 文を渡すと出ます。真偽値は受けません（design/adr/0242）
+ */
+export type FieldMessage = Exclude<ReactNode, boolean>;
+
 /** 文字を打つ欄（TextField・NumberField・DateField など）に共通の props */
 export interface InputFieldProps extends FieldMarkProps {
+  /** 本体の上に置く見出し。読み上げの名前にもなります */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
@@ -20,22 +27,23 @@ export interface InputFieldProps extends FieldMarkProps {
    * @default 'top'
    */
   captionPlacement?: CaptionPlacement;
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  error?: ReactNode;
-  /** 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない。error と両方あるときは、エラーの行の下に出す */
-  warning?: ReactNode;
+  /** エラーの内容。渡すと本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
+  errorText?: FieldMessage;
+  /** 警告の内容。渡すと本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない。errorText と両方あるときは、エラーの行の下に出す */
+  warningText?: FieldMessage;
   /**
-   * 成功の内容（「使えるユーザー名です」など）。本体の下に丸のチェックと緑の文字で出し、欄の右端（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   * 成功の内容（「使えるユーザー名です」など）。渡すと本体の下に丸のチェックと緑の文字で出し、欄の右端（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
    */
-  success?: ReactNode;
+  successText?: FieldMessage;
   /**
-   * 成功のとき、欄の右端にチェックを置くか。false では下の行だけを出します
-   * @default true
+   * 成功のとき、欄の右端に置くチェックを隠すか。下の行だけを出したいときに付けます
+   * @default false
    */
-  successMark?: boolean;
-  /** 情報の内容（「全角の数字を半角に直しました」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  info?: ReactNode;
+  hideSuccessMark?: boolean;
+  /** 情報の内容（「全角の数字を半角に直しました」など）。渡すと本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
+  infoText?: FieldMessage;
+  /** ラベル・本体・キャプション・下の行を包むいちばん外の要素に付きます */
   className?: string;
   /**
    * 入力欄の前に付くもの。文字を渡すとグレーのラベルになる。ボタンは FieldAddonButton を渡す。

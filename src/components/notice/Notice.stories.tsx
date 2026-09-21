@@ -6,17 +6,18 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Link } from '../link/Link';
-import { Notice, type NoticeAppearance, type NoticeColor, type NoticeProps } from './Notice';
+import { Notice, type NoticeProps, type NoticeStatus, type NoticeVariant } from './Notice';
 import { NoticeRegion } from './NoticeRegion';
 import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 
-const colors: NoticeColor[] = ['info', 'success', 'warning', 'danger'];
-const appearances: NoticeAppearance[] = ['soft', 'filled', 'outline'];
-const allColors: NoticeColor[] = [...colors, 'neutral'];
-const allAppearances: NoticeAppearance[] = [...appearances, 'muted'];
+// 状態を書かないとき（色を持たないグレー）は neutral として並べる
+type NoticeSample = NoticeStatus | 'neutral';
+const statuses: NoticeStatus[] = ['info', 'success', 'warning', 'danger'];
+const variants: NoticeVariant[] = ['soft', 'filled', 'outline'];
+const allVariants: NoticeVariant[] = [...variants, 'muted'];
 
-const samples: Record<NoticeColor, { title: string; body: string }> = {
+const samples: Record<NoticeSample, { title: string; body: string }> = {
   info: { title: 'メンテナンスのお知らせ', body: '9月20日 2:00〜4:00 は、サービスを使えません。' },
   success: { title: '保存しました', body: '変更は、すぐにプロフィールに反映されます。' },
   warning: {
@@ -38,7 +39,7 @@ const sampleActions = (
   </>
 );
 
-// ストーリーの中だけの引数。actions と onClose を、パネルのスイッチで付け外しする
+// ストーリーの中だけの引数。actions と onClosed を、パネルのスイッチで付け外しする
 type NoticeStoryArgs = NoticeProps & { showActions: boolean; closable: boolean };
 
 const meta = {
@@ -51,13 +52,13 @@ const meta = {
         component: [
           '情報・成功・警告・危険を知らせる帯です。お知らせそのものは押せず、押せるのは中の操作だけです。',
           '',
-          '- `color` は状態の色（`info`・`success`・`warning`・`danger`）と、色を持たないグレー（`neutral`）から選びます。利用者が選ぶ `primary`・`secondary` は持ちません。',
+          '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレーになります。利用者が選ぶ `primary`・`secondary` は持ちません。',
           '- 題・本文・操作は読み上げの箱に入ります。`danger` は `role="alert"`（割り込んで読む）、ほかは `role="status"`（区切りを待って読む）です。',
-          '- `appearance` は見た目です。`soft`（既定）は淡い面、`filled` は濃い塗り、`outline` は白い面に状態の色の枠線、`muted` はグレーの面に状態の色の小さな題です。',
+          '- `variant` は見た目です。`soft`（既定）は淡い面、`filled` は濃い塗り、`outline` は白い面に状態の色の枠線、`muted` はグレーの面に状態の色の小さな題です。',
           '- アイコンは状態の色ごとに付きます（`neutral` と `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
           '- 記事の中にはじめからある補足や注意には、読み上げで知らせない `Callout` を使います。',
           '- 操作は `actions` に、白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
-          '- `onClose` を渡すと、右上に閉じるボタン（×）が出ます。読み上げの名前は `closeLabel`（既定は「閉じる」）で、題があるときは「閉じる 題」と読みます。',
+          '- `onClosed` を渡すと、右上に閉じるボタン（×）が出ます。読み上げの名前は `closeName`（既定は「閉じる」）で、題があるときは「閉じる 題」と読みます。',
           '- × で閉じてお知らせが消えると、フォーカスはその次にあるフォーカスできるものへ移ります。なければ前のもの、それもなければ `NoticeRegion` そのものです。',
           '- 操作のあとで出すお知らせは、`NoticeRegion` の中に入れます。ページを開いたときからあるお知らせは、領域に入れずに置きます。',
         ].join('\n'),
@@ -67,18 +68,18 @@ const meta = {
     },
   },
   args: {
-    color: 'info',
-    appearance: 'soft',
+    status: 'info',
+    variant: 'soft',
     title: samples.info.title,
     children: samples.info.body,
     live: true,
     showActions: false,
     closable: false,
-    onClose: fn(),
+    onClosed: fn(),
   },
   argTypes: {
-    color: { control: 'inline-radio', options: allColors },
-    appearance: { control: 'inline-radio', options: allAppearances },
+    status: { control: 'inline-radio', options: statuses },
+    variant: { control: 'inline-radio', options: allVariants },
     title: { control: 'text' },
     children: { control: 'text' },
     live: { control: 'boolean' },
@@ -89,17 +90,17 @@ const meta = {
     },
     closable: {
       control: 'boolean',
-      description: 'ストーリー用: `onClose` を渡して × を出す',
+      description: 'ストーリー用: `onClosed` を渡して × を出す',
       table: { category: 'ストーリー' },
     },
     actions: { control: false },
-    onClose: { control: false },
+    onClosed: { control: false },
   },
-  render: ({ showActions, closable, onClose, ...args }) => (
+  render: ({ showActions, closable, onClosed, ...args }) => (
     <Notice
       {...args}
       actions={showActions ? sampleActions : undefined}
-      onClose={closable ? onClose : undefined}
+      onClosed={closable ? onClosed : undefined}
     />
   ),
 } satisfies Meta<NoticeStoryArgs>;
@@ -127,16 +128,16 @@ export const ColorsAndAppearances: Story = {
     docs: {
       description: {
         story:
-          '行が色（`color`）、列が見た目（`appearance`）です。`filled` の警告だけは、黄色の塗りに濃い文字です。',
+          '行が状態（`status`）、列が見た目（`variant`）です。`filled` の警告だけは、黄色の塗りに濃い文字です。',
       },
       source: sourceCode(`
-        {/* color: info・success・warning・danger / appearance: soft（既定）・filled・outline */}
-        <Notice color="info" title="メンテナンスのお知らせ">
+        {/* status: info・success・warning・danger / variant: soft（既定）・filled・outline */}
+        <Notice status="info" title="メンテナンスのお知らせ">
           9月20日 2:00〜4:00 は、サービスを使えません。
         </Notice>
         <Notice
-          color="danger"
-          appearance="filled"
+          status="danger"
+          variant="filled"
           title="保存できませんでした"
           actions={
             <>
@@ -147,24 +148,24 @@ export const ColorsAndAppearances: Story = {
         >
           通信が切れた可能性があります。時間をおいて、もう一度お試しください。
         </Notice>
-        <Notice color="success" appearance="outline" title="保存しました" />
+        <Notice status="success" variant="outline" title="保存しました" />
       `),
     },
   },
   render: () => (
     <Matrix
-      rows={colors}
-      rowLabel={(color) => color}
-      columns={appearances.map((appearance) => ({ label: appearance, appearance }))}
+      rows={statuses}
+      rowLabel={(status) => status}
+      columns={variants.map((variant) => ({ label: variant, variant }))}
       columnWidth="20rem"
-      renderCell={(color, { appearance }) => (
+      renderCell={(status, { variant }) => (
         <Notice
-          color={color}
-          appearance={appearance}
-          title={samples[color].title}
+          status={status}
+          variant={variant}
+          title={samples[status].title}
           actions={sampleActions}
         >
-          {samples[color].body}
+          {samples[status].body}
         </Notice>
       )}
     />
@@ -179,13 +180,13 @@ export const MutedAndNeutral: Story = {
     docs: {
       description: {
         story:
-          '左が `muted`（グレーの面に状態の色の小さな題）、右が色を持たない `neutral` の各見た目です。どちらも既定ではアイコンを出しません。',
+          '左が `muted`（グレーの面に状態の色の小さな題）、右が状態を書かないとき（色を持たないグレー）の各見た目です。どちらも既定ではアイコンを出しません。',
       },
       source: sourceCode(`
-        <Notice color="warning" appearance="muted" title="保存していない変更があります">
+        <Notice status="warning" variant="muted" title="保存していない変更があります">
           このページを離れると、変更が消えます。
         </Notice>
-        <Notice color="neutral" title="メモ">
+        <Notice title="メモ">
           タブレットとマウスでは、浮かぶ選択肢のままです。
         </Notice>
       `),
@@ -194,20 +195,15 @@ export const MutedAndNeutral: Story = {
   render: () => (
     <div className="flex flex-wrap items-start gap-8">
       <div className="flex w-[20rem] flex-col gap-3">
-        {colors.map((color) => (
-          <Notice key={color} color={color} appearance="muted" title={samples[color].title}>
-            {samples[color].body}
+        {statuses.map((status) => (
+          <Notice key={status} status={status} variant="muted" title={samples[status].title}>
+            {samples[status].body}
           </Notice>
         ))}
       </div>
       <div className="flex w-[20rem] flex-col gap-3">
-        {allAppearances.map((appearance) => (
-          <Notice
-            key={appearance}
-            color="neutral"
-            appearance={appearance}
-            title={samples.neutral.title}
-          >
+        {allVariants.map((variant) => (
+          <Notice key={variant} variant={variant} title={samples.neutral.title}>
             {samples.neutral.body}
           </Notice>
         ))}
@@ -224,10 +220,10 @@ export const Icons: Story = {
     docs: {
       description: {
         story:
-          '`icon={false}` でアイコンを消すと、文が左端から始まります。`muted` と `neutral` は、既定でアイコンを出しません。',
+          '`icon={false}` でアイコンを消すと、文が左端から始まります。`muted` と、状態を書かないときは、既定でアイコンを出しません。',
       },
       source: sourceCode(`
-        <Notice color="info" icon={false} title="メンテナンスのお知らせ">
+        <Notice status="info" icon={false} title="メンテナンスのお知らせ">
           9月20日 2:00〜4:00 は、サービスを使えません。
         </Notice>
       `),
@@ -236,12 +232,12 @@ export const Icons: Story = {
   render: () => (
     <Gallery columnWidth="20rem">
       <Specimen label="icon なし">
-        <Notice color="info" icon={false} title={samples.info.title}>
+        <Notice status="info" icon={false} title={samples.info.title}>
           {samples.info.body}
         </Notice>
       </Specimen>
       <Specimen label="既定（アイコンあり）">
-        <Notice color="info" title={samples.info.title}>
+        <Notice status="info" title={samples.info.title}>
           {samples.info.body}
         </Notice>
       </Specimen>
@@ -253,7 +249,7 @@ export const Icons: Story = {
 export const WithClose: Story = {
   name: '操作と閉じるボタン',
   args: {
-    color: 'danger',
+    status: 'danger',
     title: samples.danger.title,
     children: samples.danger.body,
     showActions: true,
@@ -276,20 +272,20 @@ export const WithClose: Story = {
   ],
   play: async ({ args, canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '閉じる 保存できませんでした' }));
-    await expect(args.onClose).toHaveBeenCalledOnce();
+    await expect(args.onClosed).toHaveBeenCalledOnce();
   },
 };
 
 export const TextOnly: Story = {
   name: '題だけ・本文だけ',
-  parameters: { controls: { include: ['appearance'] } },
-  render: ({ appearance }) => (
+  parameters: { controls: { include: ['variant'] } },
+  render: ({ variant }) => (
     <Gallery columnWidth="20rem">
       <Specimen label="題だけ">
-        <Notice color="success" appearance={appearance} title={samples.success.title} />
+        <Notice status="success" variant={variant} title={samples.success.title} />
       </Specimen>
       <Specimen label="本文だけ">
-        <Notice color="info" appearance={appearance}>
+        <Notice status="info" variant={variant}>
           {samples.info.body}
         </Notice>
       </Specimen>
@@ -304,19 +300,19 @@ export const CloseLabel: Story = {
     docs: {
       description: {
         story:
-          '× の読み上げの名前は `closeLabel` で変えられます（既定は「閉じる」）。題があるときは名前のあとに題が続き、「閉じる メンテナンスのお知らせ」と読みます。題がないときは名前だけです。',
+          '× の読み上げの名前は `closeName` で変えられます（既定は「閉じる」）。題があるときは名前のあとに題が続き、「閉じる メンテナンスのお知らせ」と読みます。題がないときは名前だけです。',
       },
     },
   },
-  render: ({ onClose }) => (
+  render: ({ onClosed }) => (
     <Gallery columnWidth="20rem">
       <Specimen label="題あり（既定）">
-        <Notice color="info" title={samples.info.title} onClose={onClose}>
+        <Notice status="info" title={samples.info.title} onClosed={onClosed}>
           {samples.info.body}
         </Notice>
       </Specimen>
-      <Specimen label='closeLabel="非表示にする"・題なし'>
-        <Notice color="success" closeLabel="非表示にする" onClose={onClose}>
+      <Specimen label='closeName="非表示にする"・題なし'>
+        <Notice status="success" closeName="非表示にする" onClosed={onClosed}>
           {samples.success.body}
         </Notice>
       </Specimen>
@@ -335,13 +331,13 @@ function CloseFocusExample() {
   const [shown, setShown] = useState(true);
   return (
     <div className="flex max-w-xl flex-col items-start gap-4">
-      <Button appearance="outline">前のボタン</Button>
+      <Button variant="outline">前のボタン</Button>
       {shown && (
-        <Notice color="info" title={samples.info.title} onClose={() => setShown(false)}>
+        <Notice status="info" title={samples.info.title} onClosed={() => setShown(false)}>
           {samples.info.body}
         </Notice>
       )}
-      <Button appearance="outline">次のボタン</Button>
+      <Button variant="outline">次のボタン</Button>
     </div>
   );
 }
@@ -362,13 +358,13 @@ export const CloseFocus: Story = {
           const [shown, setShown] = useState(true);
           return (
             <div className="flex max-w-xl flex-col items-start gap-4">
-              <Button appearance="outline">前のボタン</Button>
+              <Button variant="outline">前のボタン</Button>
               {shown && (
-                <Notice color="info" title="メンテナンスのお知らせ" onClose={() => setShown(false)}>
+                <Notice status="info" title="メンテナンスのお知らせ" onClosed={() => setShown(false)}>
                   9月20日 2:00〜4:00 は、サービスを使えません。
                 </Notice>
               )}
-              <Button appearance="outline">次のボタン</Button>
+              <Button variant="outline">次のボタン</Button>
             </div>
           );
         }
@@ -396,12 +392,12 @@ function RegionExample() {
       </div>
       <NoticeRegion>
         {saved && (
-          <Notice color="success" title={samples.success.title} onClose={() => setSaved(false)}>
+          <Notice status="success" title={samples.success.title} onClosed={() => setSaved(false)}>
             {samples.success.body}
           </Notice>
         )}
         {failed && (
-          <Notice color="danger" title={samples.danger.title} onClose={() => setFailed(false)}>
+          <Notice status="danger" title={samples.danger.title} onClosed={() => setFailed(false)}>
             {samples.danger.body}
           </Notice>
         )}
@@ -436,12 +432,12 @@ export const InRegion: Story = {
               {/* 領域は最初から置き、お知らせだけを出し入れする */}
               <NoticeRegion>
                 {saved && (
-                  <Notice color="success" title="保存しました" onClose={() => setSaved(false)}>
+                  <Notice status="success" title="保存しました" onClosed={() => setSaved(false)}>
                     変更は、すぐにプロフィールに反映されます。
                   </Notice>
                 )}
                 {failed && (
-                  <Notice color="danger" title="保存できませんでした" onClose={() => setFailed(false)}>
+                  <Notice status="danger" title="保存できませんでした" onClosed={() => setFailed(false)}>
                     通信が切れた可能性があります。時間をおいて、もう一度お試しください。
                   </Notice>
                 )}

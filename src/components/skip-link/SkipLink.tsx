@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import type { ComponentProps, ReactElement } from 'react';
+import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
@@ -39,6 +39,13 @@ export interface SkipLinkProps extends ComponentProps<'a'> {
   href?: string;
   /** 描く要素（Base UI の render と同じ）。ルーターのリンクを渡すときに使います */
   render?: ReactElement;
+  /**
+   * リンクの文字
+   * @default '本文へ移動'
+   */
+  children?: ReactNode;
+  /** リンク（a）に付きます */
+  className?: string;
 }
 
 /**

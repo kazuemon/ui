@@ -17,7 +17,7 @@ const skeleton = tv({
     bar: [skeletonSurface, 'block h-(--skeleton-text-bar) w-full rounded-(--skeleton-text-radius)'],
   },
   variants: {
-    shape: {
+    variant: {
       block: { root: [skeletonSurface, 'w-full'] },
       circle: { root: [skeletonSurface, 'size-(--spacing-control) shrink-0 rounded-full'] },
       text: { root: 'w-full' },
@@ -37,24 +37,27 @@ const skeleton = tv({
   compoundVariants: [
     // 面を持つのは、block・circle では root（text では帯。帯は animation の variant で付ける）
     ...(['sweep', 'sweep-viewport', 'pulse'] as const).map((animation) => ({
-      shape: ['block' as const, 'circle' as const],
+      variant: ['block' as const, 'circle' as const],
       animation,
       class: { root: skeletonMotion[animation] },
     })),
-    { shape: 'block', radius: 'control', class: { root: 'rounded-control' } },
-    { shape: 'block', radius: 'card', class: { root: 'rounded-card' } },
-    { shape: 'block', radius: 'pill', class: { root: 'rounded-pill' } },
+    { variant: 'block', radius: 'control', class: { root: 'rounded-control' } },
+    { variant: 'block', radius: 'card', class: { root: 'rounded-card' } },
+    { variant: 'block', radius: 'pill', class: { root: 'rounded-pill' } },
   ],
-  defaultVariants: { shape: 'block', radius: 'control', animation: 'sweep' },
+  defaultVariants: { variant: 'block', radius: 'control', animation: 'sweep' },
 });
+
+/** 何の代わりに置くか（block は面、text は文字の行、circle は丸） */
+export type SkeletonVariant = NonNullable<VariantProps<typeof skeleton>['variant']>;
 
 export interface SkeletonProps extends ComponentProps<'span'>, VariantProps<typeof skeleton> {
   /**
-   * 形。block は面（画像・ボタン・入力欄の代わり）、text は文字の行、circle は丸（顔の画像の代わり）です。
+   * 何の代わりに置くか。block は面（画像・ボタン・入力欄の代わり）、text は文字の行、circle は丸（顔の画像の代わり）です。
    * block の幅は既定で幅いっぱい、高さは className（h-40・h-control など）で決めます。circle の大きさの既定は部品の高さです
    * @default 'block'
    */
-  shape?: VariantProps<typeof skeleton>['shape'];
+  variant?: SkeletonVariant;
   /**
    * block の角。代わりに置くものの角に合わせます。control はボタン・入力欄、card は画像・カード、pill はタグ・トグルです
    * @default 'control'
@@ -74,6 +77,10 @@ export interface SkeletonProps extends ComponentProps<'span'>, VariantProps<type
    * @default 1
    */
   lines?: number;
+  /**
+   * いちばん外の要素（span）に付きます。幅と高さはここで決めます（w-40・h-control など）
+   */
+  className?: string;
 }
 
 /**
@@ -82,15 +89,15 @@ export interface SkeletonProps extends ComponentProps<'span'>, VariantProps<type
  * 読み上げには出しません。包む要素に `aria-busy` を付け、読み込み中であることは読み上げにだけ届ける文で知らせます。
  */
 export function Skeleton({
-  shape,
+  variant,
   radius,
   animation,
   lines = 1,
   className,
   ...props
 }: SkeletonProps) {
-  const styles = skeleton({ shape, radius, animation });
-  if (shape !== 'text') {
+  const styles = skeleton({ variant, radius, animation });
+  if (variant !== 'text') {
     return (
       <span aria-hidden data-slot="skeleton" className={styles.root({ className })} {...props} />
     );

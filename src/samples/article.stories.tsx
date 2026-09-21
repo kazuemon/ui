@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../components/button/Button';
 import { Heading } from '../components/heading/Heading';
 import { Prose } from '../components/prose/Prose';
+import { Stack } from '../components/stack/Stack';
 import { Text } from '../components/text/Text';
 import { TextField } from '../components/text-field/TextField';
 import { SamplePage, densityOf } from './SamplePage';
@@ -14,7 +15,7 @@ import { ArticleScreen, type CalloutStyle } from './screens';
 
 interface PageArgs {
   callout: CalloutStyle;
-  blockquoteAppearance: 'line' | 'surface';
+  blockquoteVariant: 'line' | 'surface';
   blockquoteColor: 'neutral' | 'brand' | 'primary' | 'secondary';
   blockquoteIcon: boolean;
 }
@@ -32,7 +33,7 @@ const meta = {
   },
   args: {
     callout: 'soft',
-    blockquoteAppearance: 'line',
+    blockquoteVariant: 'line',
     blockquoteColor: 'neutral',
     blockquoteIcon: false,
   },
@@ -51,8 +52,8 @@ const meta = {
       },
       options: ['soft', 'soft-no-icon', 'muted', 'outline', 'filled'],
     },
-    blockquoteAppearance: {
-      name: '引用: appearance',
+    blockquoteVariant: {
+      name: '引用: variant',
       control: 'inline-radio',
       options: ['line', 'surface'],
     },
@@ -78,13 +79,13 @@ export const Article: Story = {
           full
           callout={args.callout}
           blockquote={{
-            appearance: args.blockquoteAppearance,
+            variant: args.blockquoteVariant,
             color: args.blockquoteColor,
             icon: args.blockquoteIcon,
           }}
         />
       </div>
-      <section className="mt-12 flex flex-col gap-4 border-t border-line pt-8">
+      <Stack gap="md" className="mt-12 border-t border-line pt-8" render={<section />}>
         <Heading level={2} size={3}>
           コメント
         </Heading>
@@ -93,7 +94,7 @@ export const Article: Story = {
         <div>
           <Button color="primary">送信する</Button>
         </div>
-      </section>
+      </Stack>
     </SamplePage>
   ),
 };
@@ -112,7 +113,7 @@ export const MarkdownProse: Story = {
   render: (_args, { globals }) => (
     <SamplePage density={densityOf(globals)}>
       <article className="flex flex-col">
-        <Text size="sm" tone="subtle">
+        <Text size="sm" variant="subtle">
           2026年9月17日・Design
         </Text>
         <Heading level={1} className="mt-1">

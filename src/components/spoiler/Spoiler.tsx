@@ -35,7 +35,7 @@ const spoiler = tv({
     ],
   },
   variants: {
-    appearance: { hatched: {}, soft: {}, blur: {} },
+    variant: { hatched: {}, soft: {}, blur: {} },
     revealed: {
       false: {
         root: 'cursor-pointer select-none active:top-(--flat-press-depth)',
@@ -53,7 +53,7 @@ const spoiler = tv({
   },
   compoundVariants: [
     {
-      appearance: 'hatched',
+      variant: 'hatched',
       revealed: false,
       class: {
         root: '[background:var(--spoiler-hatched-fill)] hover:[background:var(--spoiler-hatched-fill-hover)]',
@@ -61,7 +61,7 @@ const spoiler = tv({
       },
     },
     {
-      appearance: 'soft',
+      variant: 'soft',
       revealed: false,
       class: {
         root: '[background:var(--spoiler-soft-fill)] hover:[background:var(--spoiler-soft-fill-hover)]',
@@ -69,7 +69,7 @@ const spoiler = tv({
       },
     },
     {
-      appearance: 'blur',
+      variant: 'blur',
       revealed: false,
       class: {
         root: '[background:var(--spoiler-blur-fill)] hover:[background:var(--spoiler-blur-fill-hover)]',
@@ -87,10 +87,10 @@ const spoiler = tv({
       },
     },
   ],
-  defaultVariants: { appearance: 'hatched', revealed: false, toggleable: false },
+  defaultVariants: { variant: 'hatched', revealed: false, toggleable: false },
 });
 
-export type SpoilerAppearance = 'hatched' | 'soft' | 'blur';
+export type SpoilerVariant = 'hatched' | 'soft' | 'blur';
 
 export interface SpoilerProps extends Omit<ComponentProps<'span'>, 'children'> {
   /** 隠しておく言葉 */
@@ -100,12 +100,12 @@ export interface SpoilerProps extends Omit<ComponentProps<'span'>, 'children'> {
    * blur は文字をぼかすので、おおよその長さと形が見えます（短い数字や英字は形から推し量れることがあります）
    * @default 'hatched'
    */
-  appearance?: SpoilerAppearance;
+  variant?: SpoilerVariant;
   /**
    * 隠しているあいだの、読み上げでの名前。中身は読ませず、この名前のボタンとして読みます
    * @default 'ネタバレを表示'
    */
-  label?: string;
+  accessibleName?: string;
   /**
    * もう一度押したら隠し直すか。true のときは、見せたあともボタンのままで、読み上げでは開閉（aria-expanded）として読みます。
    * 見せたあとは、押せることが分かるよう点線の下線を残します。false のときは、見せたあとは跡を残さず、周りの文と同じに見えます
@@ -126,6 +126,8 @@ export interface SpoilerProps extends Omit<ComponentProps<'span'>, 'children'> {
   revealed?: boolean;
   /** 押して見せたとき・隠し直したときに呼ばれます */
   onRevealedChange?: (revealed: boolean) => void;
+  /** 隠す言葉を包む要素（span）に付きます */
+  className?: string;
 }
 
 /**
@@ -133,8 +135,8 @@ export interface SpoilerProps extends Omit<ComponentProps<'span'>, 'children'> {
  */
 export function Spoiler({
   children,
-  appearance = 'hatched',
-  label = 'ネタバレを表示',
+  variant = 'hatched',
+  accessibleName = 'ネタバレを表示',
   toggleable = false,
   duration = 0,
   defaultRevealed = false,
@@ -151,7 +153,7 @@ export function Spoiler({
   const hidden = !revealed;
   // 押せるのは、隠しているあいだと、隠し直せるときの見せたあと
   const pressable = hidden || toggleable;
-  const styles = spoiler({ appearance, revealed, toggleable });
+  const styles = spoiler({ variant, revealed, toggleable });
 
   const setRevealed = (next: boolean) => {
     if (revealedProp === undefined) setRevealedState(next);
@@ -188,7 +190,7 @@ export function Spoiler({
       data-revealed={revealed ? '' : undefined}
       role={pressable ? 'button' : undefined}
       // 見せたあとは、中身がボタンの名前になる（隠し直せるとき）
-      aria-label={hidden ? label : undefined}
+      aria-label={hidden ? accessibleName : undefined}
       aria-expanded={toggleable ? revealed : undefined}
       tabIndex={pressable ? 0 : -1}
       {...props}

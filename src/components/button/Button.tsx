@@ -41,7 +41,7 @@ import { tv } from '../../internal/tv';
 //   印は src/components/Loading.tsx（入力欄と共有）。動きを減らす設定では、回る円は3秒で1周、線は幅いっぱいで明滅する（design/adr/0042）
 // hover と押下は、押せるとき（:disabled でも data-disabled でもない）で送信中でないとき（not-data-loading）だけ
 //   not-[:disabled,[data-disabled]] は :not(:is(:disabled, [data-disabled]))。:not(:disabled) と詳細度は同じ
-// ボタンの見た目のリンク（render — design/adr/0046）: 下の ButtonLink
+// ボタンの見た目のリンク（Link の variant="button" — design/adr/0046）: 下の ButtonLink。Link が中で使う
 //   押せないリンク（<a> は :disabled にならない）には data-disabled を付け、disabled: と同じ Disabled を data-disabled: で当てる
 const button = tv({
   base: [
@@ -63,7 +63,7 @@ const button = tv({
     'data-loading:cursor-progress data-loading:overflow-hidden',
   ],
   variants: {
-    appearance: {
+    variant: {
       filled: [
         'text-(color:--button-text) [--button-bg:var(--button-fill)]',
         '[--button-accent:var(--button-fill)] [--button-ink:var(--button-text)]',
@@ -119,23 +119,23 @@ const button = tv({
   },
   compoundVariants: [
     {
-      appearance: 'filled',
+      variant: 'filled',
       color: 'primary',
       class: '[--button-fill:var(--color-primary)] [--button-text:var(--color-on-primary)]',
     },
     // 白文字を載せるので、ピンクは前景用（原則12）
     {
-      appearance: 'filled',
+      variant: 'filled',
       color: 'secondary',
       class: '[--button-fill:var(--color-fg-secondary)] [--button-text:var(--color-on-secondary)]',
     },
     {
-      appearance: 'filled',
+      variant: 'filled',
       color: 'danger',
       class: '[--button-fill:var(--color-danger)] [--button-text:var(--color-on-danger)]',
     },
     {
-      appearance: 'filled',
+      variant: 'filled',
       color: 'neutral',
       // グレーのボタンの Disabled は、薄くせず、塗りと文字の色を近づける（design/adr/0026）
       class: [
@@ -149,7 +149,7 @@ const button = tv({
       ],
     },
     {
-      appearance: 'filled',
+      variant: 'filled',
       color: 'white',
       class: [
         '[--button-accent:var(--color-fg)] [--button-fill:var(--color-surface)] [--button-text:var(--color-fg)]',
@@ -159,24 +159,24 @@ const button = tv({
     },
     // 枠線のボタンと下線のボタンは、文字の色を共有する（軸 174）。枠線のボタンの --button-line が、下線のボタンの文字の色になる
     {
-      appearance: ['outline', 'underline'],
+      variant: ['outline', 'underline'],
       color: 'primary',
       class: '[--button-line:var(--color-primary)]',
     },
     {
-      appearance: ['outline', 'underline'],
+      variant: ['outline', 'underline'],
       color: 'secondary',
       class: '[--button-line:var(--color-fg-secondary)]',
     },
     {
-      appearance: ['outline', 'underline'],
+      variant: ['outline', 'underline'],
       color: 'danger',
       class: '[--button-line:var(--color-fg-danger)]',
     },
     // 色を持たない枠線のボタンは、枠線を細い境界線の色に、文字を本文の色にする
     // Disabled は、色を持つ枠線のボタン（薄くする）とは別に指定する — design/adr/0029
     {
-      appearance: ['outline', 'underline'],
+      variant: ['outline', 'underline'],
       color: ['neutral', 'white'],
       class: [
         'text-fg [--button-accent:var(--color-fg)] [--button-ink:var(--color-fg)] [--button-line:var(--color-line)]',
@@ -189,16 +189,16 @@ const button = tv({
       ],
     },
   ],
-  defaultVariants: { appearance: 'filled', color: 'neutral' },
+  defaultVariants: { variant: 'filled', color: 'neutral' },
 });
 
 // アイコンだけのボタン（iconOnly）: 部品の高さの正方形（幅の下限を高さと同じにし、左右の余白をなくす）
-//   形（shape）: square（既定）は文字のボタンと同じ部品の角、round は丸（pill）— 軸 101
+//   形（shape）: square（既定）は文字のボタンと同じ部品の角、circle は丸（pill）— 軸 101
 //   中に文字が加わったとき（CopyButton の「コピーしました」）は、使う側が左右の余白を足して横に伸ばす
 //   アイコンは単体なので太い線（design/adr/0018）。読み上げの名前（aria-label）は型で必須にする
 const iconOnlyClass = {
   square: 'min-w-(--spacing-control) px-0 rounded-control',
-  round: 'min-w-(--spacing-control) px-0 rounded-pill',
+  circle: 'min-w-(--spacing-control) px-0 rounded-pill',
 } as const;
 
 /** アイコンだけのボタンの形 */
@@ -250,9 +250,8 @@ function joinIds(...lists: unknown[]) {
   return [...new Set(ids)].join(' ') || undefined;
 }
 
-// Props は、ボタン（render なし — ButtonProps）とリンク（render あり — ButtonLinkProps）の2つの形に分ける（design/adr/0046）
-// リンクは送信中を持たないので、render と一緒には loading・loadingIndicator・inlineSpinner・type を渡せない（型で止める）
-// ButtonProps は、いままでどおりボタンの props の名前（interface で extends できるよう、2つをまとめた union にはしない）
+// Button は押すもの（<button>）だけを描く。移動するものは Link で作る（`<Link variant="button">` — ADR-0253）
+// ボタンの見た目のリンクは、Link が中で使う ButtonLink（この下）。公開の入口には出さない
 // ButtonLinkProps は、リンク（<a>）の属性をもとにする。form・name などボタンだけの属性は通さず、onClick の要素は HTMLAnchorElement
 type ButtonBaseProps = Omit<ComponentProps<'button'>, 'color' | 'type'> &
   VariantProps<typeof button>;
@@ -274,7 +273,20 @@ interface ButtonCaptionProps {
 
 /** ボタン（<button>）の props */
 export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
-  /** @default 'button' */
+  /**
+   * ボタンの中身。文字と、その前後に置くアイコンを並べます。
+   * アイコンは生の svg ではなく Icon で包みます（`<Icon icon={PlusIcon} />`。アイコンだけのボタンは `standalone` を付けます）。
+   * 移動するもの（href で移るもの）はボタンではなく Link で作ります（`<Link variant="button">`）
+   */
+  children?: ReactNode;
+  /**
+   * いちばん外の要素（button）に付きます。caption を渡したときは、ボタンとキャプションの包みに付きます
+   */
+  className?: string;
+  /**
+   * ボタンの種類（素の HTML と同じ）。submit は Form を送ります
+   * @default 'button'
+   */
   type?: ComponentProps<'button'>['type'];
   /**
    * アイコンだけのボタンにします。部品の高さの正方形になります。
@@ -311,7 +323,7 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    * underline の文字は outline とまったく同じで、hover と押下も同じです（押せる範囲は部品の大きさのまま）。
    * @default 'filled'
    */
-  appearance?: VariantProps<typeof button>['appearance'];
+  variant?: VariantProps<typeof button>['variant'];
   /**
    * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
    * danger は削除など危険な操作に使います。white は白いボタンで、枠線と影で押せることを示します
@@ -319,7 +331,6 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    * @default 'neutral'
    */
   color?: VariantProps<typeof button>['color'];
-  render?: undefined;
 }
 
 /** アイコンだけのボタン（iconOnly）の props。読み上げの名前（aria-label）が要ります */
@@ -330,8 +341,8 @@ export interface ButtonIconOnlyProps extends Omit<
   /** アイコンだけのボタンにします。部品の高さの正方形になります */
   iconOnly: true;
   /**
-   * 形。square は文字のボタンと同じ角の正方形、round は丸です。
-   * 中に文字が加わって横に伸びたときは、square は同じ角のまま、round は両端の丸い形になります
+   * 形。square は文字のボタンと同じ角の正方形、circle は丸です。
+   * 中に文字が加わって横に伸びたときは、square は同じ角のまま、circle は両端の丸い形になります
    * @default 'square'
    */
   shape?: ButtonShape;
@@ -339,15 +350,15 @@ export interface ButtonIconOnlyProps extends Omit<
   'aria-label': string;
 }
 
-/** ボタンの見た目のリンク（render を渡す）の props */
+/**
+ * ボタンの見た目のリンク（ButtonLink）の props。公開しない
+ * 利用者は Link（`<Link variant="button">`）を使う。この型は Link が中で使う
+ */
 export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps {
   /**
    * 描く要素（Base UI の render と同じ）。`<a href>` や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
-   * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは Button の children に書く。
+   * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは children に書く。
    * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
-   *
-   * @deprecated 移動するものは Link で作ります（`<Link appearance="button">`）。この形は、Link が中で使うのと、
-   * 過去の比較のストーリーを比べたときの見た目のまま描くために残しています
    */
   render: ReactElement;
   /**
@@ -363,12 +374,12 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
   type?: never;
   /**
    * アイコンだけのリンクにします。部品の高さの正方形になり、右上向きの矢印（↗）は付けません（入る場所がないため）。
-   * 読み上げの名前は aria-label で付けます。移動するものは Link で作ります（`<Link appearance="button">`）
+   * 読み上げの名前は aria-label で付けます。移動するものは Link で作ります（`<Link variant="button">`）
    * @default false
    */
   iconOnly?: boolean;
   /**
-   * アイコンだけのリンクの形。square は文字のボタンと同じ角の正方形、round は丸です
+   * アイコンだけのリンクの形。square は文字のボタンと同じ角の正方形、circle は丸です
    * @default 'square'
    */
   shape?: ButtonShape;
@@ -378,7 +389,7 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
    * ボタンの見た目のリンクでも角丸は 12px のままで、リンクは pill という規則の例外にはなりません（design/adr/0046）。
    * @default 'filled'
    */
-  appearance?: VariantProps<typeof button>['appearance'];
+  variant?: VariantProps<typeof button>['variant'];
   /**
    * 利用者が選ぶ色（原則6）。primary は進めたい操作、secondary は用途を限定しない選べる色、
    * danger は削除など危険な操作に使います。white は白いボタンで、枠線と影で押せることを示します
@@ -389,7 +400,8 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
 }
 
 /**
- * ボタンの見た目のリンク（Button に render を渡したとき — design/adr/0046）
+ * ボタンの見た目のリンク（Link の variant="button"・"underline" — design/adr/0046）。公開しない
+ * 利用者は Link で作る（`<Link variant="button">`）。Link がこの部品を描く
  * 見た目は Button と同じで、要素だけが渡した要素（<a>）になる。キーボードではリンクのまま（Enter で移り、Space では移らない）
  * 右上向きの矢印（↗）を必ず最後に付け、ボタンと見分ける。飾りなので読み上げない（aria-hidden）
  *   利用者が最後に ArrowUpRightIcon を置いたときは、足さない（2つにならない）。ほかのアイコンは、その後ろに ↗ が付く
@@ -400,8 +412,8 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
  * リンクは送信中を持たない。loading・loadingIndicator・inlineSpinner・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
  * キャプション（caption）はボタンと同じく、リンクの下に出し、リンクの説明（aria-describedby）につなぐ（包みは withCaption）
  */
-function ButtonLink({
-  appearance,
+export function ButtonLink({
+  variant,
   color,
   className,
   render,
@@ -419,14 +431,13 @@ function ButtonLink({
 }: ButtonLinkProps) {
   if (loading !== undefined || loadingIndicator !== undefined || inlineSpinner !== undefined)
     warnOnce(
-      'Button: リンク（render）は送信中を持ちません。loading は無視します（design/adr/0046）'
+      'Link: ボタンの見た目のリンクは送信中を持ちません。loading は無視します（design/adr/0046）'
     );
-  if (type !== undefined)
-    warnOnce('Button: リンク（render）には type を付けません（design/adr/0046）');
+  if (type !== undefined) warnOnce('Link: リンクには type を付けません（design/adr/0046）');
   const captionId = useId();
   const noteId = useId();
   // 新しいタブで開くかは、渡した要素（render）と、部品に渡された props の両方で見る
-  // （Link の appearance="button" は、href・target を props で受けて、ここに渡す）
+  // （Link の variant="button" は、href・target を props で受けて、ここに渡す）
   const newTab = !disabled && (opensNewTab(render) || props.target === '_blank');
   // 新しいタブで開くときの名前と、読み上げだけの文（Link と同じ）
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
@@ -450,7 +461,7 @@ function ButtonLink({
       'data-icon-only': iconOnly ? shape : undefined,
       // キャプションがあるときは、className は包みに付ける
       className: button({
-        appearance,
+        variant,
         color,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       }),
@@ -469,28 +480,29 @@ function ButtonLink({
 }
 
 /**
- * ボタン。render を渡すと、同じ見た目のリンクになる（上の ButtonLink）
- * 型はボタンとリンクの2つの形で重ねる（overload）。props を union 1つにすると、render に要素（JSX）を渡したときに
- * どちらの形か決まらず、onClick={(e) => …} の e が any になる（JSX の要素は union を見分ける値にならない）
+ * ボタンです。移動するもの（href で移るもの）は Link で作ります（`<Link variant="button">`）。
+ *
+ * 中のアイコンは Icon で包みます（`<Icon icon={PlusIcon} />`）。アイコンだけのボタン（iconOnly）は、
+ * 読み上げの名前を aria-label で付け、アイコンに `standalone` を付けます。
+ *
+ * 型はふつうのボタンとアイコンだけのボタンの 2 つで重ねます（overload）。アイコンだけのボタンでは aria-label が要ります
  */
 export function Button(props: ButtonIconOnlyProps): ReactElement;
 export function Button(props: ButtonProps): ReactElement;
-export function Button(props: ButtonLinkProps): ReactElement;
-export function Button(allProps: ButtonProps | ButtonIconOnlyProps | ButtonLinkProps) {
-  // リンクのときは別の部品で描く。ボタンのときは、キャプションがなければ <button> をそのまま返す（比較のストーリーが class を読むため）
-  if (allProps.render) return <ButtonLink {...allProps} />;
+export function Button(allProps: ButtonProps | ButtonIconOnlyProps) {
+  // キャプションがなければ <button> をそのまま返す（比較のストーリーが class を読むため）
   return <NativeButton {...allProps} />;
 }
 
 /**
- * ボタン（<button>）。Button に render を渡さないとき
+ * ボタン（<button>）
  * Form の中の送信のボタン（type="submit"）は、loading を渡さなければ Form の送信中（submitting）を受け取る
  *   押したボタン（Form が配る submitter）は送信中そのもの（印・aria-busy）。ほかの送信のボタンは、送信中と同じ押せない見た目にし、
  *   押しても送らない（aria-disabled）が、印は出さない。どのボタンが押されたかは、自分の要素と submitter を比べて決める
  *   loading を渡したときは、その値を優先する（false なら Form が送っていても押せる）
  */
 function NativeButton({
-  appearance,
+  variant,
   color,
   className,
   type = 'button',
@@ -503,7 +515,6 @@ function NativeButton({
   onClick,
   children,
   ref,
-  render: _render,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: ButtonProps | ButtonIconOnlyProps) {
@@ -548,7 +559,7 @@ function NativeButton({
       // キャプションがあるときは、className は包みに付ける
       data-icon-only={iconOnly ? shape : undefined}
       className={button({
-        appearance,
+        variant,
         color,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       })}

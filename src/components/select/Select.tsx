@@ -1,7 +1,7 @@
 'use client';
 
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { type ComponentProps, type ReactNode, useEffect, useId, useState } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useEffect, useId, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import {
@@ -23,6 +23,9 @@ import {
   OWN_FOCUS,
   selectedTokens,
 } from '../../internal/listbox/listbox-colors';
+import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
+import { type ListboxSlotProps, mergeSlotClass } from '../../internal/listbox/listbox-slot-props';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -38,25 +41,28 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { SelectOption, type SelectItem } from './SelectOption';
+import { SelectOption } from './SelectOption';
 import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useMergedRefs } from '../../internal/use-merged-refs';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 
-/**
- * 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047
- */
-export type SelectColor = ListboxColor;
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
-export type { SelectItem, SelectItemNote, SelectItemNoteKind } from './SelectOption';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 
-/** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
-export type SelectPresentation = OverlayPresentation;
+/**
+ * Select の値の型。単数では `string | null`、`multiple` では `string[]` です
+ */
+export type SelectValue<Multiple extends boolean = false> = Multiple extends true
+  ? string[]
+  : string | null;
 
-export interface SelectProps extends FieldMarkProps {
+export interface SelectProps<Multiple extends boolean = false> extends FieldMarkProps {
+  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。シートでは見出しのラベルの下にも出す */
   caption?: ReactNode;
@@ -69,25 +75,29 @@ export interface SelectProps extends FieldMarkProps {
    * エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする
    * シートでは、見出しのヘルプテキストの下にも同じ行を出す（浮かぶ選択肢には出さない — design/adr/0044）
    */
-  error?: ReactNode;
+  errorText?: FieldMessage;
   /**
    * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * error と両方あるときは、エラーの行の下に出す（design/adr/0041 の追記）
-   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（error と同じ。両方あるときはエラー → 警告）
+   * errorText と両方あるときは、エラーの行の下に出す（design/adr/0041 の追記）
+   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（errorText と同じ。両方あるときはエラー → 警告）
    */
-  warning?: ReactNode;
+  warningText?: FieldMessage;
   /**
    * 成功の内容（「お届けできます」など）。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
    */
-  success?: ReactNode;
+  successText?: FieldMessage;
   /**
-   * 成功のとき、本体の ▼ の左にチェックを置くか。false では下の行だけを出します
-   * @default true
+   * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
+   * @default false
    */
-  successMark?: boolean;
+  hideSuccessMark?: boolean;
   /** 情報の内容（「前回と同じ時間帯を選んでいます」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  info?: ReactNode;
+  infoText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。押しても選択肢は開かず、フォームでは値が送られません
+   * @default false
+   */
   disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と一段淡い値の文字になります。
@@ -101,12 +111,12 @@ export interface SelectProps extends FieldMarkProps {
    * hover とキーボードの選択は、色を指定していても入力欄と同じグレーです。指定しないときは既定のグレー（neutral）になります
    * @default 'neutral'
    */
-  color?: SelectColor;
+  color?: ListboxColor;
   /**
    * 選択肢。各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
    * 選べない理由や警告の文は、呼び出し側が組み立てて渡す（書き方は実装ガイドラインで決める）。部品は渡された文をそのまま出す
    */
-  items: SelectItem[];
+  items: ListboxItem[];
   /**
    * 何も選んでいないときに出す文字。選んだ値と見分けられるよう、「選んでください」のように、まだ選んでいないと分かる書き方にします。
    * 選択肢の名前（「東京都」など）をそのまま書くと、選んだ値に見えます
@@ -119,33 +129,71 @@ export interface SelectProps extends FieldMarkProps {
    * @default 'attached'
    */
   addonShape?: AddonShape;
-  defaultValue?: string;
-  value?: string | null;
-  onValueChange?: (value: string | null) => void;
-  /** 選択肢を開いているか。開閉を外から決めるときに使う */
+  /**
+   * 複数選べるようにします。値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * @default false
+   */
+  multiple?: Multiple;
+  /** 選んだ値（制御）。単数では `string | null`、`multiple` では `string[]` */
+  value?: SelectValue<Multiple>;
+  /** はじめの値（非制御）。単数では `string | null`、`multiple` では `string[]` */
+  defaultValue?: SelectValue<Multiple>;
+  /** 値が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: SelectValue<Multiple>) => void;
+  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
+  name?: string;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
+  /** 選択肢を開いているか（制御） */
   open?: boolean;
+  /** はじめに開いているか（非制御） */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、そのときの開閉を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
    * @default true
    */
   modal?: boolean;
   /**
+   * 外を押したときに閉じるか。false では、選ぶか Esc（と×・つまみ）でしか閉じません
+   * @default true
+   */
+  dismissible?: boolean;
+  /**
+   * Esc（Android の戻る操作を含む）で閉じるか
+   * @default true
+   */
+  closeOnEscape?: boolean;
+  /**
    * 浮かぶ選択肢（popover）・シート（sheet）を描く場所
    * 本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも、浮かぶ選択肢とシートに写します
+   * ThemeProvider でまとめて指定できます
    * @default document.body
    */
-  container?: HTMLElement | null;
-  /** 画面の端に当たったとき、選択肢を反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
-  collisionAvoidance?: ComponentProps<typeof BaseSelect.Positioner>['collisionAvoidance'];
+  portalContainer?: HTMLElement | null;
+  /**
+   * 浮かぶ選択肢の面（Popup）に広げる props。id・data-*・aria-* や、面だけに足すクラスを渡します。
+   * className は部品のクラスに重ねます
+   */
+  popupProps?: ListboxSlotProps;
+  /**
+   * 浮かぶ選択肢の位置を決める要素（Positioner）に広げる props。画面の端に当たったときの逃がし方（collisionAvoidance）も、ここに渡します。
+   * className は部品のクラスに重ねます
+   */
+  positionerProps?: ListboxSlotProps &
+    Pick<ComponentProps<typeof BaseSelect.Positioner>, 'collisionAvoidance' | 'anchor'>;
   /**
    * 選択肢の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
    * sheet はいつもシートにします。シートにするのは指の動きを減らすためで、狭さそのものが理由ではありません（design/adr/0037）
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: SelectPresentation;
+  presentation?: OverlayPresentation;
   /**
    * シートを開いたときの高さ。half は選択肢が長いときに半分の高さで開き、つまみを出します。full は高さいっぱいで開きます
    * つまみを引くと高さが変わります。上へはじくと高さいっぱいに広がり、下へはじくと、引いた距離が短くても一段下がります（半分からは閉じる）
@@ -200,27 +248,39 @@ export interface SelectProps extends FieldMarkProps {
    */
   loadedText?: (count: number) => string;
   /**
-   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色（--color-fg-subtle）で出し、hide は隠します
-   * @default 'show'
+   * 押せないとき（Disabled）の ▼ を隠すか。false ではプレースホルダの場所の文と同じ色（--color-fg-subtle）で出します
+   * @default false
    */
-  disabledIcon?: 'show' | 'hide';
+  hideCaretOnDisabled?: boolean;
+  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
 /**
+ * Base UI から来た値を onValueChange に渡す
+ * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
+ */
+function emitValue<Multiple extends boolean>(
+  onValueChange: (value: SelectValue<Multiple>) => void,
+  next: string | string[] | null
+) {
+  (onValueChange as (value: string | string[] | null) => void)(next);
+}
+
+/**
  * 選択肢から1つを選ぶ入力欄
  */
-export function Select({
+export function Select<Multiple extends boolean = false>({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   readOnly,
   color = 'neutral',
@@ -228,11 +288,23 @@ export function Select({
   placeholder,
   prefix,
   addonShape = 'attached',
+  multiple,
+  value,
+  defaultValue,
+  onValueChange,
+  name,
+  form,
+  inputRef,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
-  container,
-  collisionAvoidance,
+  onOpenChangeComplete,
+  modal,
+  dismissible = true,
+  closeOnEscape = true,
+  portalContainer: portalContainerProp,
+  popupProps,
+  positionerProps,
   presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
@@ -243,13 +315,12 @@ export function Select({
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
-  disabledIcon = 'show',
+  hideCaretOnDisabled = false,
   required,
   requiredMark,
   optionalMark,
   className,
-  ...rootProps
-}: SelectProps) {
+}: SelectProps<Multiple>) {
   const sheet = useSheetPresentation(presentation);
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない（readOnly）。フォーカスは外さない
   // non-blocking は、開いた選択肢の最後に「読み込んでいます」の行を出す
@@ -257,7 +328,7 @@ export function Select({
   const loadingRow = loading && !loadingBlocking;
   // Form の送信中（後半の軸 38）も、同じく開けず値も変えられない。見た目は Field の data-loading="blocking"（押せない欄）
   // 読み込みと違い、選んだ値はそのまま出し（loadingText に置き換えない）、回る円は出さず、▼ は押せない Select と同じ色で残す
-  const portalContainer = usePortalContainer(container);
+  const portalContainer = usePortalContainer(portalContainerProp);
   const formLock = useFormSubmittingLock();
   const blocking = loadingBlocking || formLock.blocking;
   // 読み取り専用（軸 177）。見た目は文字を打つ欄の読み取り専用にそろえる（ADR-0170。本体に data-field-readonly を置き、
@@ -269,8 +340,9 @@ export function Select({
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
   const sheetMessages: SheetMessage[] = [];
-  if (error) sheetMessages.push({ kind: 'error', content: error, id: `${sheetId}error` });
-  if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
+  if (errorText) sheetMessages.push({ kind: 'error', content: errorText, id: `${sheetId}error` });
+  if (warningText)
+    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
 
   // 開閉は部品の中でも持つ（シートの × とつまみで閉じるため）
   const [openState, setOpenState] = useState(defaultOpen);
@@ -324,15 +396,26 @@ export function Select({
 
   const selected = selectedTokens(color);
 
+  // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
+  const {
+    className: popupClassName,
+    ref: popupUserRef,
+    style: popupStyle,
+    ...popupRest
+  } = popupProps ?? {};
+  const { className: positionerClassName, ...positionerRest } = positionerProps ?? {};
+  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
+
   return (
     <Field
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -343,18 +426,37 @@ export function Select({
       nativeLabel={false}
     >
       {(messageIds) => (
-        <BaseSelect.Root
+        <BaseSelect.Root<string, boolean>
           items={items}
+          multiple={multiple}
+          value={value}
+          defaultValue={defaultValue}
+          onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
+          name={name}
+          form={form}
+          inputRef={inputRef}
+          modal={modal}
           disabled={disabled}
           required={required}
           readOnly={locked || undefined}
           open={open}
-          onOpenChange={(next, details) => changeOpen(next, details.reason)}
+          onOpenChange={(next, details) => {
+            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            changeOpen(next, details.reason);
+          }}
           // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
           onOpenChangeComplete={(next) => {
             if (!next) drag.clearDragHeight();
+            onOpenChangeComplete?.(next);
           }}
-          {...rootProps}
         >
           {/* 選択肢を開いているあいだも、フォーカス中と同じ見た目にする */}
           {/* prefix は本体の左の余白を打ち消して、端から置く（--field-addon-pad） */}
@@ -410,10 +512,10 @@ export function Select({
               />
             )}
             {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
-            {success && successMark && !error && !loading && (
+            {successText && !hideSuccessMark && !errorText && !loading && (
               <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
             )}
-            {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。disabledIcon="hide" で隠す）
+            {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。hideCaretOnDisabled で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
               止めて読み込んでいるあいだは隠す
               読み取り専用（軸 177）では残すが、押せない Select と同じ色まで淡くする。塗りのないアイコンは押せない意味の印（ADR-0190）で、
@@ -423,7 +525,7 @@ export function Select({
                 'flex group-data-disabled/field:text-fg-subtle',
                 readOnly ? 'text-fg-subtle' : 'text-fg-muted',
                 'group-data-[loading=blocking]/field:text-fg-subtle',
-                (loadingBlocking || (disabled && disabledIcon === 'hide')) && 'hidden',
+                (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -443,29 +545,36 @@ export function Select({
               本体の祖先に付いた data-density・coarse-large を写し、項目の高さと文字を本体とそろえる（readDensityScope） */}
             <BaseSelect.Positioner
               alignItemWithTrigger={false}
-              collisionAvoidance={collisionAvoidance}
               sideOffset={() => popupSideOffset(triggerRef.current)}
+              {...positionerRest}
               data-presentation={listPresentation}
               data-density={densityScope.density}
-              className={[
-                'z-10 outline-none',
-                densityScope.large && 'coarse-large',
-                sheet &&
-                  'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              className={mergeSlotClass(
+                [
+                  'z-10 outline-none',
+                  densityScope.large && 'coarse-large',
+                  sheet &&
+                    'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
+                ]
+                  .filter(Boolean)
+                  .join(' '),
+                positionerClassName
+              )}
             >
               <BaseSelect.Popup
-                ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
+                {...popupRest}
+                ref={popupRef}
                 data-slot="select-popup"
                 data-dragging={drag.dragging || undefined}
                 style={
                   drag.sheetHeight !== undefined
-                    ? { ...selected, height: drag.sheetHeight }
-                    : selected
+                    ? { ...selected, height: drag.sheetHeight, ...popupStyle }
+                    : { ...selected, ...popupStyle }
                 }
-                className={listboxPopup({ presentation: listPresentation })}
+                className={mergeSlotClass(
+                  listboxPopup({ presentation: listPresentation }),
+                  popupClassName
+                )}
               >
                 {sheet && (
                   <SheetHeader

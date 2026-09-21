@@ -9,16 +9,17 @@ const styles = fieldStyles();
 // 2行目の並びと文字（項目の高さに関わらない slot）
 const optionSlots = listboxOption();
 
-// 選択肢の2行目（design/adr/0044）。文の大きさと行の高さはキャプションと同じ
-//   reason: 選べない理由。キャプションと同じ灰色（--color-fg-subtle）の文字だけ
+// 選択肢の2行目（design/adr/0044、ADR-0254）。文の大きさと行の高さはキャプションと同じ
+//   description: ただの説明。キャプションと同じ灰色（--color-fg-subtle）の文字だけ
+//   reason: 選べない理由。description と同じ見た目で、意味だけが違う
 //   warning: 本体の下の警告の行と同じ形（三角＋ --color-fg-warning）。選んだ項目の青い文字の中でも、警告の色のまま
 function ListboxOptionNote({ note, id }: { note: ListboxItemNote; id: string }) {
-  if (note.kind === 'reason')
+  if (note.kind === 'description' || note.kind === 'reason')
     return (
       <span
         id={id}
         data-slot="select-item-note"
-        data-kind="reason"
+        data-kind={note.kind}
         className={optionSlots.reason()}
       >
         {note.text}

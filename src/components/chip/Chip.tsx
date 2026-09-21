@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -59,10 +59,12 @@ const chipRemove = tv({
 });
 
 export interface ChipRemoveProps extends Omit<ComponentProps<'button'>, 'aria-label'> {
-  /**
-   * 読み上げの名前。「デザインを外す」のように、何を消すのかが分かる文を渡します。部品は文を作りません
-   */
+  /** 読み上げの名前。「デザインを外す」のように、何を消すのかが分かる文を渡します。部品は文を作りません */
   'aria-label': string;
+  /** 中身。書かないときは × のアイコンを置きます */
+  children?: ReactNode;
+  /** ボタンそのものに付きます */
+  className?: string;
 }
 
 /**
@@ -77,13 +79,16 @@ export function ChipRemove({ className, type = 'button', children, ...props }: C
   );
 }
 
+/** チップの色。primary・secondary・neutral は利用者が選ぶ色、info・success・warning・danger は状態を表す色（Tag と同じ） */
+export type ChipColor = NonNullable<VariantProps<typeof chip>['color']>;
+
 interface ChipBaseProps
   extends Omit<ComponentProps<'span'>, 'color' | 'onChange'>, VariantProps<typeof chip> {
   /**
    * 色。primary・secondary・neutral は利用者が選ぶ色、info・success・warning・danger は状態を表す色です（`Tag` と同じ）
    * @default 'neutral'
    */
-  color?: VariantProps<typeof chip>['color'];
+  color?: ChipColor;
   /**
    * 押せない。薄くなり、消すボタンも押せなくなります
    * @default false
@@ -94,6 +99,10 @@ interface ChipBaseProps
    * @default false
    */
   readOnly?: boolean;
+  /** チップの中に入れる文字。長い文字は … で省略されます */
+  children?: ReactNode;
+  /** チップそのもの（pill の面）に付きます */
+  className?: string;
 }
 
 export interface ChipProps extends ChipBaseProps {
@@ -103,7 +112,7 @@ export interface ChipProps extends ChipBaseProps {
    * 消すボタンの読み上げの名前。`onRemove` を渡すときは必ず渡します（例: 「デザインを外す」）。
    * 部品は文を作らないので、渡さないと名前のないボタンになり、開発時に警告が出ます
    */
-  removeLabel?: string;
+  removeName?: string;
 }
 
 /**
@@ -114,14 +123,14 @@ export function Chip({
   disabled = false,
   readOnly = false,
   onRemove,
-  removeLabel,
+  removeName,
   className,
   children,
   ...props
 }: ChipProps) {
-  if (onRemove && !readOnly && !removeLabel) {
+  if (onRemove && !readOnly && !removeName) {
     warnOnce(
-      'Chip: onRemove を渡すときは、消すボタンの読み上げの名前 removeLabel も渡してください。'
+      'Chip: onRemove を渡すときは、消すボタンの読み上げの名前 removeName も渡してください。'
     );
   }
   return (
@@ -133,7 +142,7 @@ export function Chip({
     >
       {children}
       {onRemove && !readOnly && (
-        <ChipRemove aria-label={removeLabel ?? ''} disabled={disabled} onClick={() => onRemove()} />
+        <ChipRemove aria-label={removeName ?? ''} disabled={disabled} onClick={() => onRemove()} />
       )}
     </span>
   );

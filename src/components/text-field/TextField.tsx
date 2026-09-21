@@ -7,11 +7,21 @@ import { Field } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
+import { cn } from '../../internal/tv';
 
 export interface TextFieldProps
   extends
-    Omit<ComponentProps<typeof BaseField.Control>, 'className' | 'render' | 'prefix'>,
-    InputFieldProps {}
+    Omit<ComponentProps<'input'>, 'className' | 'prefix' | 'value' | 'defaultValue'>,
+    InputFieldProps {
+  /** 値（制御） */
+  value?: string;
+  /** はじめの値（非制御） */
+  defaultValue?: string;
+  /** 値が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: string) => void;
+  /** 中の input に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'input'>;
+}
 
 /**
  * 1行のテキスト入力
@@ -20,11 +30,11 @@ export function TextField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   className,
   prefix,
@@ -37,6 +47,8 @@ export function TextField({
   required,
   requiredMark,
   optionalMark,
+  onValueChange,
+  inputProps,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -46,15 +58,16 @@ export function TextField({
   const formLock = useFormSubmittingLock();
   // 止めているあいだは、Disabled と同じく書き換えられない。disabled 属性は付けないので、フォーカスは外れない
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  const { className: inputClassName, ...restInputProps } = inputProps ?? {};
   return (
     <Field
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -72,28 +85,30 @@ export function TextField({
           disabled={disabled}
           loading={loading}
           loadingIndicator={loadingIndicator}
-          success={success}
-          successMark={successMark}
-          error={error}
+          success={successText}
+          successMark={!hideSuccessMark}
+          error={errorText}
           describedBy={ariaDescribedBy}
           messageIds={messageIds}
         >
           {(describedBy) => (
             <BaseField.Control
-              className={[
+              className={cn(
                 'h-full w-full min-w-0 bg-transparent outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
                 fieldInset,
                 blocking && 'cursor-progress',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+                inputClassName
+              )}
               disabled={disabled}
               required={required}
               readOnly={blocking || readOnly}
               aria-disabled={blocking || ariaDisabled}
               aria-busy={loading || ariaBusy}
-              aria-describedby={describedBy}
+              {...restInputProps}
               {...props}
+              // 説明のつながりは部品が決める（prefix・suffix・キャプション・下の行の順）
+              aria-describedby={describedBy}
+              onValueChange={onValueChange && ((value) => onValueChange(value))}
             />
           )}
         </FieldBox>

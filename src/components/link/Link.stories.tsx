@@ -7,7 +7,7 @@ import { Link } from './Link';
 import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
-const appearances = ['text', 'outline', 'button', 'underline'] as const;
+const variants = ['text', 'outline', 'button', 'underline'] as const;
 const colors = ['primary', 'secondary', 'neutral'] as const;
 const aligns = ['center', 'between', 'center-end'] as const;
 const accounts = ['GitHub', 'Zenn', 'X（旧 Twitter）'];
@@ -27,12 +27,12 @@ const meta = {
         component: [
           '別のページや場所へ移るリンクです。',
           '',
-          '- `appearance="text"`（既定）は、文章の中に置く文字のリンクです。大きさは周りの文字のままです。',
+          '- `variant="text"`（既定）は、文章の中に置く文字のリンクです。大きさは周りの文字のままです。',
           '- `outline` は枠線の pill です。「More」や SNS のアカウント一覧のように、並べて置くリンクに使います。寸法は枠線のボタンと同じです。',
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
           '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
-          '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`round`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
+          '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`circle`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
           '- `underline` は塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目です。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
           '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。ボタンと見分けられるよう、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
@@ -46,7 +46,7 @@ const meta = {
   args: {
     children: '使い方のページ',
     href: '#guide',
-    appearance: 'text',
+    variant: 'text',
     color: 'neutral',
     contentAlign: 'center',
     target: '_self',
@@ -56,9 +56,9 @@ const meta = {
     children: { control: 'text' },
     href: { control: 'text' },
     // 表の「Default」は、部品の引数の既定値からしか読まれない。既定値を持たない props はここで補う
-    appearance: {
+    variant: {
       control: 'inline-radio',
-      options: appearances,
+      options: variants,
       table: { defaultValue: { summary: "'text'" } },
     },
     color: {
@@ -87,7 +87,7 @@ export const Playground: Story = {
 export const InText: Story = {
   name: '文章の中',
   parameters: {
-    controls: { exclude: ['appearance', 'color', 'contentAlign'] },
+    controls: { exclude: ['variant', 'color', 'contentAlign'] },
     docs: {
       description: {
         story:
@@ -114,7 +114,7 @@ export const Outline: Story = {
   tags: ['visual'],
   name: '枠線のリンク',
   parameters: {
-    controls: { exclude: ['appearance', 'color'] },
+    controls: { exclude: ['variant', 'color'] },
     docs: {
       description: {
         story: '最後にアイコンを置けます。hover と押下で文字の色を淡く敷き、押すと沈みます。',
@@ -124,7 +124,7 @@ export const Outline: Story = {
   render: (args) => (
     <div className="flex flex-wrap gap-3">
       {colors.map((color) => (
-        <Link key={color} {...args} appearance="outline" color={color}>
+        <Link key={color} {...args} variant="outline" color={color}>
           More
           <CaretRightIcon />
         </Link>
@@ -136,7 +136,7 @@ export const Outline: Story = {
 export const ContentAlign: Story = {
   name: '幅いっぱいのときの寄せ方',
   parameters: {
-    controls: { exclude: ['appearance', 'contentAlign'] },
+    controls: { exclude: ['variant', 'contentAlign'] },
     docs: {
       description: {
         story: [
@@ -156,7 +156,7 @@ export const ContentAlign: Story = {
       {aligns.map((align) => (
         <Specimen key={align} label={align}>
           {accounts.map((name) => (
-            <Link key={name} {...args} appearance="outline" contentAlign={align} className="w-full">
+            <Link key={name} {...args} variant="outline" contentAlign={align} className="w-full">
               {name}
               <CaretRightIcon />
             </Link>
@@ -195,14 +195,14 @@ export const NewTab: Story = {
         にあります。
       </p>
       <div className="flex flex-wrap gap-3">
-        <Link appearance="outline" color="primary" href="https://example.com" target="_blank">
+        <Link variant="outline" color="primary" href="https://example.com" target="_blank">
           GitHub
         </Link>
-        <Link appearance="outline" href="https://example.com" target="_blank">
+        <Link variant="outline" href="https://example.com" target="_blank">
           Zenn
           <CaretRightIcon />
         </Link>
-        <Link appearance="outline" aria-label="使い方" href="https://example.com" target="_blank">
+        <Link variant="outline" aria-label="使い方" href="https://example.com" target="_blank">
           <InfoIcon />
         </Link>
       </div>
@@ -211,7 +211,7 @@ export const NewTab: Story = {
           作品の一覧
         </h3>
         <Link
-          appearance="outline"
+          variant="outline"
           aria-labelledby="new-tab-works-title"
           href="https://example.com"
           target="_blank"
@@ -249,8 +249,8 @@ export const IconOnly: Story = {
         story: [
           '名前を `aria-label` で付け、子をアイコン 1 つだけにすると、アイコンだけのリンクになります。部品の高さの正方形で、左右の余白はアイコンだけのボタンと同じです。',
           '',
-          '- 枠線のリンクの既定は丸（`shape="round"`）です。リンクであることを形でも見分けられます。`shape="square"` で部品の角の正方形にできます。',
-          '- ボタンの見た目のリンクと下線のリンクの既定は正方形（`shape="square"`）で、アイコンだけのボタンと同じです。`shape="round"` で丸にできます。下線は文字にだけ引くので、下線のリンクをアイコンだけにすると、下線も枠線もない形になります。',
+          '- 枠線のリンクの既定は丸（`shape="circle"`）です。リンクであることを形でも見分けられます。`shape="square"` で部品の角の正方形にできます。',
+          '- ボタンの見た目のリンクと下線のリンクの既定は正方形（`shape="square"`）で、アイコンだけのボタンと同じです。`shape="circle"` で丸にできます。下線は文字にだけ引くので、下線のリンクをアイコンだけにすると、下線も枠線もない形になります。',
           '- アイコンだけのリンクには ↗ を付けません。`target="_blank"` のときは、名前の後ろに「（新しいタブで開きます）」が入ります。',
           '- アイコンは単体の太い線（`standalone`）で置きます。',
         ].join('\n'),
@@ -259,22 +259,22 @@ export const IconOnly: Story = {
   },
   render: () => (
     <div className="flex flex-wrap items-center gap-3">
-      <Link appearance="outline" color="primary" aria-label="使い方" href="#guide">
+      <Link variant="outline" color="primary" aria-label="使い方" href="#guide">
         <InfoIcon standalone />
       </Link>
-      <Link appearance="outline" shape="square" color="primary" aria-label="使い方" href="#guide">
+      <Link variant="outline" shape="square" color="primary" aria-label="使い方" href="#guide">
         <InfoIcon standalone />
       </Link>
-      <Link appearance="outline" aria-label="使い方" href="#guide" disabled>
+      <Link variant="outline" aria-label="使い方" href="#guide" disabled>
         <InfoIcon standalone />
       </Link>
-      <Link appearance="button" color="primary" aria-label="使い方" href="#guide">
+      <Link variant="button" color="primary" aria-label="使い方" href="#guide">
         <InfoIcon standalone />
       </Link>
-      <Link appearance="button" shape="round" color="primary" aria-label="使い方" href="#guide">
+      <Link variant="button" shape="circle" color="primary" aria-label="使い方" href="#guide">
         <InfoIcon standalone />
       </Link>
-      <Link appearance="underline" color="primary" aria-label="使い方" href="#guide">
+      <Link variant="underline" color="primary" aria-label="使い方" href="#guide">
         <InfoIcon standalone />
       </Link>
     </div>
@@ -295,7 +295,7 @@ export const IconOnly: Story = {
 export const Disabled: Story = {
   name: '押せない',
   parameters: {
-    controls: { exclude: ['appearance', 'disabled'] },
+    controls: { exclude: ['variant', 'disabled'] },
     docs: {
       description: {
         story:
@@ -313,7 +313,7 @@ export const Disabled: Story = {
         はまだ開けません。
       </p>
       <div className="flex flex-wrap gap-3">
-        <Link {...args} appearance="outline" disabled>
+        <Link {...args} variant="outline" disabled>
           More
           <CaretRightIcon />
         </Link>
@@ -340,14 +340,14 @@ export const States: Story = {
   name: '状態',
   parameters: {
     pseudo: statePseudo({ hover: 'a', active: 'a', focusVisible: 'a' }),
-    controls: { exclude: ['appearance', 'color', 'disabled'] },
+    controls: { exclude: ['variant', 'color', 'disabled'] },
     docs: {
       source: sourceCode(`
         {/* hover・押下・フォーカスの見た目は部品が受け持つ */}
         <Link href="/guide" color="primary">
           使い方のページ
         </Link>
-        <Link href="/works" appearance="outline" color="primary">
+        <Link href="/works" variant="outline" color="primary">
           More
           <CaretRightIcon />
         </Link>
@@ -359,24 +359,24 @@ export const States: Story = {
   },
   render: (args) => (
     <Matrix
-      rows={appearances.flatMap((appearance) => colors.map((color) => ({ appearance, color })))}
-      rowLabel={({ appearance, color }) => `${appearance} / ${color}`}
+      rows={variants.flatMap((variant) => colors.map((color) => ({ variant, color })))}
+      rowLabel={({ variant, color }) => `${variant} / ${color}`}
       columns={pressColumns}
-      renderCell={({ appearance, color }, { disabled }) => {
-        if (appearance === 'outline')
+      renderCell={({ variant, color }, { disabled }) => {
+        if (variant === 'outline')
           return (
-            <Link {...args} appearance="outline" color={color} disabled={disabled}>
+            <Link {...args} variant="outline" color={color} disabled={disabled}>
               More
               <CaretRightIcon />
             </Link>
           );
-        if (appearance === 'button' || appearance === 'underline')
+        if (variant === 'button' || variant === 'underline')
           return (
-            <Link {...args} appearance={appearance} color={color} disabled={disabled}>
+            <Link {...args} variant={variant} color={color} disabled={disabled}>
               作品を見る
             </Link>
           );
-        return <Link {...args} appearance="text" color={color} disabled={disabled} />;
+        return <Link {...args} variant="text" color={color} disabled={disabled} />;
       }}
     />
   ),
@@ -391,7 +391,7 @@ export const ButtonLook: Story = {
     docs: {
       description: {
         story: [
-          '`appearance="button"` は、ボタンと同じ見た目（塗り）のリンクです。画面内で最も進めたい移動に使います。見た目は Button のものをそのまま使うので、ボタンと並べてもずれません。',
+          '`variant="button"` は、ボタンと同じ見た目（塗り）のリンクです。画面内で最も進めたい移動に使います。見た目は Button のものをそのまま使うので、ボタンと並べてもずれません。',
           '',
           '- 最後に右上向きの矢印（↗）が付き、ボタンと見分けられます。',
           '- `caption` で、リンクの下に補足を出せます（「外部のサイトに移動します」など）。読み上げではリンクの説明になります。',
@@ -404,17 +404,17 @@ export const ButtonLook: Story = {
   },
   render: () => (
     <div className="flex flex-wrap items-start gap-3">
-      <Link appearance="button" color="primary" href="#works">
+      <Link variant="button" color="primary" href="#works">
         作品を見る
       </Link>
-      <Link appearance="button" color="secondary" href="#works">
+      <Link variant="button" color="secondary" href="#works">
         プロフィール
       </Link>
-      <Link appearance="button" href="#works">
+      <Link variant="button" href="#works">
         一覧に戻る
       </Link>
       <Link
-        appearance="button"
+        variant="button"
         color="primary"
         href="https://example.com"
         target="_blank"
@@ -422,7 +422,7 @@ export const ButtonLook: Story = {
       >
         くわしく見る
       </Link>
-      <Link appearance="button" color="primary" href="#works" disabled>
+      <Link variant="button" color="primary" href="#works" disabled>
         作品を見る
       </Link>
     </div>
@@ -437,7 +437,7 @@ export const UnderlineLook: Story = {
     docs: {
       description: {
         story: [
-          '`appearance="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目のリンクです。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
+          '`variant="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目のリンクです。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
           '',
           '- 寸法・左右の余白・角丸は枠線のボタンと同じで、押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出ます。',
           '- 最後に右上向きの矢印（↗）が付き、同じ見た目のボタンと見分けられます。',
@@ -451,22 +451,22 @@ export const UnderlineLook: Story = {
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-bold text-fg">2026 年の作品</h3>
         <div className="-me-(--spacing-control-x) flex shrink-0">
-          <Link appearance="underline" href="#works">
+          <Link variant="underline" href="#works">
             一覧
           </Link>
-          <Link appearance="underline" color="primary" href="#works">
+          <Link variant="underline" color="primary" href="#works">
             くわしく
           </Link>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Link appearance="underline" color="primary" href="https://example.com" target="_blank">
+        <Link variant="underline" color="primary" href="https://example.com" target="_blank">
           外部のサイト
         </Link>
-        <Link appearance="underline" color="secondary" href="#works">
+        <Link variant="underline" color="secondary" href="#works">
           プロフィール
         </Link>
-        <Link appearance="underline" href="#works" disabled>
+        <Link variant="underline" href="#works" disabled>
           公開前
         </Link>
       </div>
@@ -500,7 +500,7 @@ export const RenderElement: Story = {
       <Link color="primary" render={<RouterLink to="#works" />}>
         作品の一覧
       </Link>
-      <Link appearance="outline" render={<RouterLink to="#works" />}>
+      <Link variant="outline" render={<RouterLink to="#works" />}>
         More
         <CaretRightIcon />
       </Link>

@@ -24,7 +24,7 @@ import { tv } from '../../internal/tv';
 //     置かれるのはページの本文の上で、本文より小さい注記にあたる。読む文字の尺度に乗せると、
 //     置いた場所の文字とそろい、記事の中（読みもの）では指でもマウスと同じ大きさのままになる（原則11）
 //   行き先のリンクは平らな押すもの（原則3）。押すと 1px 沈む。キーボードのフォーカスは、ボタン・リンクと同じ離した線（focusRing）
-//     見た目は appearance で選ぶ（軸 144）。既定は underline（文字のリンクと同じ淡い下線で、hover で下線だけが濃くなる）
+//     見た目は variant で選ぶ（軸 144）。既定は underline（文字のリンクと同じ淡い下線で、hover で下線だけが濃くなる）
 //       hover-underline: ふだんは下線を引かず、hover で濃い下線が出る
 //       pill: Navbar の行き先と同じ平らな pill。下線を引かず、hover で文字の色を淡く敷き、押すと濃くする
 //     どの見た目も、--breadcrumb-link-*（下線の色・敷く塗り・角丸・余白）の差だけで作る。値は design/tokens.css
@@ -66,7 +66,7 @@ const breadcrumb = tv({
   },
   variants: {
     // 行き先の見た目（軸 144）。差し替える値は nav に置き、行き先といまいるページの両方に効かせる
-    appearance: {
+    variant: {
       // 既定。design/tokens.css の値をそのまま使う
       underline: {},
       'hover-underline': { root: '[--breadcrumb-link-underline:transparent]' },
@@ -80,7 +80,7 @@ const breadcrumb = tv({
       },
     },
   },
-  defaultVariants: { appearance: 'underline' },
+  defaultVariants: { variant: 'underline' },
 });
 
 const BreadcrumbContext = createContext<{ first: boolean; separator: ReactNode }>({
@@ -92,7 +92,7 @@ const BreadcrumbContext = createContext<{ first: boolean; separator: ReactNode }
 export type BreadcrumbSeparatorName = 'caret' | 'slash';
 
 /** 行き先の見た目（軸 144） */
-export type BreadcrumbAppearance = NonNullable<VariantProps<typeof breadcrumb>['appearance']>;
+export type BreadcrumbVariant = NonNullable<VariantProps<typeof breadcrumb>['variant']>;
 
 // 用意してある区切りの印。ほかの形は ReactNode を渡して差し替える
 const separators: Record<BreadcrumbSeparatorName, ReactNode> = {
@@ -105,10 +105,10 @@ const isSeparatorName = (value: ReactNode): value is BreadcrumbSeparatorName =>
 
 export interface BreadcrumbProps extends Omit<ComponentProps<'nav'>, 'children'> {
   /**
-   * 並び（nav）の読み上げの名前
+   * 並び（nav）の読み上げの名前。画面には出ません
    * @default '現在の場所'
    */
-  label?: string;
+  accessibleName?: string;
   /**
    * 項目のあいだに置く区切りの印。読み上げからは外れます。
    * 用意してある印（BreadcrumbSeparatorName）は 'caret' と 'slash' で、caret は右向きの山（›。ページをたどる向きが出ます）、
@@ -122,26 +122,33 @@ export interface BreadcrumbProps extends Omit<ComponentProps<'nav'>, 'children'>
    * pill は、ページの上の帯（Navbar）の行き先と同じ平らな pill です（帯とそろえたいとき）
    * @default 'underline'
    */
-  appearance?: BreadcrumbAppearance;
+  variant?: BreadcrumbVariant;
   /** いまの場所までの道。BreadcrumbItem を、上の階層から順に並べます */
   children?: ReactNode;
+  /** いちばん外の要素（nav）に付きます */
+  className?: string;
 }
 
 /**
  * いまいるページまでの道を並べる案内です。最後の項目はいまいるページで、リンクにしません
  */
 export function Breadcrumb({
-  label = '現在の場所',
+  accessibleName = '現在の場所',
   separator = 'caret',
-  appearance,
+  variant,
   children,
   className,
   ...props
 }: BreadcrumbProps) {
-  const s = breadcrumb({ appearance });
+  const s = breadcrumb({ variant });
   const mark = isSeparatorName(separator) ? separators[separator] : separator;
   return (
-    <nav aria-label={label} data-slot="breadcrumb" className={s.root({ className })} {...props}>
+    <nav
+      {...props}
+      aria-label={accessibleName}
+      data-slot="breadcrumb"
+      className={s.root({ className })}
+    >
       <ol className={s.list()}>
         {Children.map(children, (child, index) => (
           <BreadcrumbContext value={{ first: index === 0, separator: mark }}>
@@ -154,6 +161,10 @@ export function Breadcrumb({
 }
 
 export interface BreadcrumbItemProps extends ComponentProps<'a'> {
+  /** 行き先の名前。文字を書きます */
+  children?: ReactNode;
+  /** リンク（a。いまいるページでは span）に付きます */
+  className?: string;
   /**
    * いまいるページか。true のときはリンクにせず、aria-current="page" を付けた文字にします
    * @default false

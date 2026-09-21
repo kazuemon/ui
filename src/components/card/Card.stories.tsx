@@ -11,11 +11,11 @@ import { Prose } from '../prose/Prose';
 import { Tag } from '../tag/Tag';
 import { Text } from '../text/Text';
 
-const appearances = ['default', 'nested'] as const;
+const variants = ['default', 'nested'] as const;
 
 const Content = ({ title = 'やった仕事のタイトルがここに入ります' }: { title?: string }) => (
   <>
-    <Text size="sm" tone="subtle">
+    <Text size="sm" variant="subtle">
       2026.09.19
     </Text>
     <Heading level={3} size={4}>
@@ -35,7 +35,7 @@ const meta = {
           '画像と文をまとめて見せる面です。作品や記事の一覧に使います。',
           '',
           '- 画像は `CardImage`、文は `CardBody` に入れます。画像は 16:9 の枠に収め、はみ出た分を切ります。',
-          '- `appearance` は型です。`default`（既定）は画像をカードの端まで届かせ、`nested` は画像をカードの内側に余白を空けて収めます。',
+          '- `variant` は型です。`default`（既定）は画像をカードの端まで届かせ、`nested` は画像をカードの内側に余白を空けて収めます。',
           '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js の `Link` は `render` に渡します。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
           '- カード全体がリンクになるので、中にほかのリンクやボタンは置けません。置きたいときは `href` を渡さず、題をリンクにします。',
           '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
@@ -46,11 +46,11 @@ const meta = {
       },
     },
   },
-  args: { appearance: 'default', imageZoom: false },
+  args: { variant: 'default', imageZoom: false },
   argTypes: {
-    appearance: {
+    variant: {
       control: 'inline-radio',
-      options: appearances,
+      options: variants,
       table: { defaultValue: { summary: "'default'" } },
     },
     href: { control: 'text' },
@@ -74,7 +74,7 @@ export const Playground: Story = {
         <Card href="/works/1">
           <CardImage src="/works/1.png" alt="" />
           <CardBody>
-            <Text size="sm" tone="subtle">2026.09.19</Text>
+            <Text size="sm" variant="subtle">2026.09.19</Text>
             <Heading level={3} size={4}>やった仕事のタイトルがここに入ります</Heading>
           </CardBody>
         </Card>
@@ -92,11 +92,11 @@ export const Playground: Story = {
   ),
 };
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '型',
   parameters: {
-    controls: { exclude: ['appearance'] },
+    controls: { exclude: ['variant'] },
     docs: {
       description: {
         story:
@@ -107,18 +107,18 @@ export const Appearances: Story = {
   decorators: [(Story) => <div className="max-w-3xl">{Story()}</div>],
   render: (args) => (
     <div className="grid grid-cols-3 gap-6">
-      {appearances.map((appearance) => (
-        <Card key={appearance} {...args} appearance={appearance}>
+      {variants.map((variant) => (
+        <Card key={variant} {...args} variant={variant}>
           <CardImage src={landscape} alt="" />
           <CardBody>
-            <Content title={appearance} />
+            <Content title={variant} />
           </CardBody>
         </Card>
       ))}
       <Card {...args}>
         <CardBody>
           <Content title="画像のないカード" />
-          <Text size="sm" tone="muted">
+          <Text size="sm" variant="muted">
             文だけを並べることもできます。
           </Text>
         </CardBody>
@@ -138,7 +138,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '押せるカードの状態',
   parameters: {
-    controls: { exclude: ['appearance', 'href'] },
+    controls: { exclude: ['variant', 'href'] },
     pseudo: statePseudo({
       hover: '[data-slot="card"]',
       active: '[data-slot="card"]',
@@ -148,12 +148,12 @@ export const States: Story = {
   decorators: [(Story) => <div className="max-w-5xl">{Story()}</div>],
   render: (args) => (
     <Matrix
-      rows={appearances}
+      rows={variants}
       columns={stateColumns}
       columnWidth="12rem"
-      rowLabel={(appearance) => appearance}
-      renderCell={(appearance) => (
-        <Card {...args} appearance={appearance} href="#">
+      rowLabel={(variant) => variant}
+      renderCell={(variant) => (
+        <Card {...args} variant={variant} href="#">
           <CardImage src={landscape} alt="" />
           <CardBody>
             <Content />

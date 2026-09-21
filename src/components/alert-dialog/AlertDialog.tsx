@@ -3,12 +3,14 @@
 import { type ReactElement, type ReactNode, useState } from 'react';
 
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
+import type { OverlayFocusTarget, PopupProps } from '../../internal/overlay/overlay-props';
 import { Button } from '../button/Button';
-import { Dialog, type DialogPresentation } from '../dialog/Dialog';
+import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
+import { Dialog } from '../dialog/Dialog';
 import type { OverlayActionsLayout } from '../drawer/Drawer';
 
-/** 実行する側のボタンの色。danger は危険の色、primary は主な色 */
-export type AlertDialogTone = 'danger' | 'primary';
+/** 実行する側のボタンの色。パレットの色と意味を持った色を 1 つの軸に並べる（ADR-0235） */
+export type AlertDialogColor = 'danger' | 'primary';
 
 export interface AlertDialogProps {
   /** 見出しの題。何をするかを問いの形で書く。読み上げでは、開いた面の名前になる */
@@ -30,32 +32,45 @@ export interface AlertDialogProps {
    */
   onAction?: () => unknown;
   /**
-   * 実行する側のボタンの色。消す・外すなど失うものがある操作は danger、失うものはないが取り消せない操作（送信・公開など）は primary にします
+   * 実行する側のボタンの色。消す・外すなど失うものがある操作は danger、
+   * 失うものはないが取り消せない操作（送信・公開など）は primary にします
    * @default 'danger'
    */
-  tone?: AlertDialogTone;
+  color?: AlertDialogColor;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
   trigger?: ReactElement;
+  /** 開いているか（制御） */
   open?: boolean;
+  /**
+   * はじめに開いているか（非制御）
+   * @default false
+   */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、次の値を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも中央に浮かべ、sheet はいつもシートにします
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: DialogPresentation;
+  presentation?: OverlayPresentation;
   /**
    * 画面の下から出すシートで出すときの、2 つのボタンの並べ方。既定の auto は、幅いっぱいで縦に積み、実行する側を上にします。
    * 中央に浮かべるときは、いつも右に寄せ、実行する側を右端にします
    * @default 'auto'
    */
   actionsLayout?: OverlayActionsLayout;
+  /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
+  returnFocus?: OverlayFocusTarget;
   /**
-   * 描く場所
+   * 描く場所。まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
    */
-  container?: HTMLElement | null;
+  portalContainer?: HTMLElement | null;
+  /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
+  popupProps?: PopupProps;
   /** 面（Popup）に足すクラス */
   className?: string;
 }
@@ -70,7 +85,7 @@ export function AlertDialog({
   actionLabel,
   cancelLabel = 'キャンセル',
   onAction,
-  tone = 'danger',
+  color = 'danger',
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -109,12 +124,12 @@ export function AlertDialog({
         // 閉じるのは下のボタンだけ（後ろの画面・下へはじく操作・Esc・× では閉じない）
         dismissible={false}
         closeOnEscape={false}
-        closeButton={false}
+        hideCloseButton
         actions={
           <>
             {/* 開いた直後のフォーカスは取り消す側に置く（うっかり Enter で実行しないため） */}
             <Button
-              appearance="outline"
+              variant="outline"
               autoFocus
               disabled={pending}
               data-slot="alert-dialog-cancel"
@@ -123,7 +138,7 @@ export function AlertDialog({
               {cancelLabel}
             </Button>
             <Button
-              color={tone}
+              color={color}
               loading={pending}
               data-slot="alert-dialog-action"
               onClick={() => void run()}

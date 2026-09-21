@@ -3,6 +3,12 @@ import { expect, waitFor } from 'storybook/test';
 
 import { markdownArticleHtml } from '../../samples/markdown-html';
 import { Prose } from './Prose';
+import { Blockquote } from '../blockquote/Blockquote';
+import { Divider } from '../divider/Divider';
+import { Heading } from '../heading/Heading';
+import { List, ListItem } from '../list/List';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table/Table';
+import { Text } from '../text/Text';
 import { DensityPair } from '../../stories/story-parts';
 
 const meta = {
@@ -31,6 +37,7 @@ const meta = {
           '- 部品の機能は付きません。コードのコピーのボタンは出ず、表と長いコードは、それ自身が横にスクロールします。横にはみ出しているあいだだけ Tab で止まり、矢印キーで横に動かせます。幅に満たない表は、Table と違い中身の幅になります。',
           '- 囲み（`> [!NOTE]`）は変換しません。囲みや題の付いたコードを使うときは、Callout や CodeBlock を Prose の外に置きます。',
           '- `data-reading` を付けるので、中の本文は指で操作していても 16px です。表は指で 14px、コードはどちらも 14px です。',
+          '- 部品（Heading・Text・List・Blockquote・CodeBlock・Table・Figure・Divider）を手で並べたときも、同じ余白が付きます。部品の見た目は部品のままです（`variant` などで選んだ見た目は変わりません）。',
           '- `as` で描く要素を選びます（既定は `div`。記事の本文は `article`）。',
         ].join('\n'),
       },
@@ -126,5 +133,59 @@ export const Structure: Story = {
 
     // チェックリストの箱は押せない
     for (const box of canvas.getAllByRole('checkbox')) await expect(box).toBeDisabled();
+  },
+};
+
+// 部品を手で並べた記事。素の HTML と同じ余白が付き、部品の見た目は部品のまま（ADR-0254 の M-05）
+export const WithComponents: Story = {
+  tags: ['visual'],
+  name: '部品を並べた記事',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Markdown を変換した HTML の代わりに、部品を手で並べたときも、要素のあいだの余白は同じです。部品の見た目（引用の面、表の罫線）は部品のままです。',
+      },
+    },
+  },
+  render: () => (
+    <Prose as="article" className="max-w-[720px]">
+      <Heading level={2}>部品で組んだ記事</Heading>
+      <Text>見出しと段落のあいだの余白は、変換した HTML のときと同じです。</Text>
+      <List>
+        <ListItem>リストの上の余白も同じです</ListItem>
+        <ListItem>入れ子のリストもそのままです</ListItem>
+      </List>
+      <Blockquote variant="surface">部品の引用は、部品の見た目のままです。</Blockquote>
+      <Table variant="framed" accessibleName="部品の高さ">
+        <TableHead>
+          <TableRow>
+            <TableHeader>部品</TableHeader>
+            <TableHeader align="end">高さ</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <TableCell>ボタン</TableCell>
+            <TableCell align="end">44px</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+      <Divider />
+      <Text variant="subtle">区切り線の上下も、変換した HTML と同じだけ空きます。</Text>
+    </Prose>
+  ),
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('[data-prose]');
+    // 部品の引用は flex のまま（素の blockquote だけを block にする）
+    const quote = root?.querySelector('blockquote');
+    await expect(quote && getComputedStyle(quote).display).toBe('flex');
+    // 部品の表は、包みの div が横にスクロールする（table そのものは block にしない）
+    const table = root?.querySelector('table');
+    await expect(table && getComputedStyle(table).display).toBe('table');
+    // 見出しの後ろの余白が付く
+    const paragraph = root?.querySelector('h2 + p');
+    await expect(paragraph && getComputedStyle(paragraph).marginTop).not.toBe('0px');
   },
 };

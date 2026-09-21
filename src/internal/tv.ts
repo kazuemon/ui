@@ -1,4 +1,9 @@
-import type { ConfigExtension, DefaultClassGroupIds, DefaultThemeGroupIds } from 'tailwind-merge';
+import {
+  type ConfigExtension,
+  type DefaultClassGroupIds,
+  type DefaultThemeGroupIds,
+  extendTailwindMerge,
+} from 'tailwind-merge';
 import { createTV } from 'tailwind-variants';
 
 // tailwind-merge に、design/tokens.css の @theme で足したクラスの名前を知らせる — design/adr/0077
@@ -51,3 +56,9 @@ export const twMergeConfig = {
 
 /** 部品の見た目を書く tv。上の設定で className をまとめる */
 export const tv = createTV({ twMergeConfig });
+
+/**
+ * クラス名をまとめる（上の設定の tailwind-merge）。あとに渡したクラスが勝つ
+ * tv を使えない場所（部位の props で受け取った className を、部品が組み立てたクラスに重ねるとき）で使う
+ */
+export const cn = extendTailwindMerge(twMergeConfig);

@@ -10,18 +10,21 @@ import {
   type ReactNode,
   use,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
-import { ListIcon } from '../../internal/icons';
+import { ArrowUpRightIcon, ListIcon } from '../../internal/icons';
+import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
 import { Container, type ContainerSize } from '../container/Container';
-import { Drawer, type DrawerSide } from '../drawer/Drawer';
+import { Drawer, type SheetSide } from '../drawer/Drawer';
 
 // ページの上の帯 — 軸 104・105
 //   ロゴ（brand）・行き先（NavbarLink）・操作（actions）を 1 行に並べる。中身の幅と左右の余白は Container と同じ
@@ -170,25 +173,27 @@ export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> 
    */
   stickyBackdrop?: NavbarStickyBackdrop;
   /**
-   * 行き先の並び（nav）の読み上げの名前
+   * 行き先の並び（nav）の読み上げの名前。画面には出ません
    * @default 'メイン'
    */
-  label?: string;
+  accessibleName?: string;
   /**
-   * 帯が狭いときに出すメニューのボタンの読み上げの名前と、開いた面の題
+   * 帯が狭いときに出すメニューの題。開いた面の題になり、メニューのボタンの読み上げの名前にもなります
    * @default 'メニュー'
    */
-  menuLabel?: string;
+  menuTitle?: string;
   /**
    * メニューを出す向き。auto は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです
    * @default 'auto'
    */
-  menuSide?: 'auto' | DrawerSide;
+  menuSide?: 'auto' | SheetSide;
   /**
-   * メニューの面を描く場所（Drawer の container と同じ）
+   * メニューの面を描く場所。ThemeProvider の portalContainer でまとめて指定できます
    * @default document.body
    */
-  container?: HTMLElement | null;
+  portalContainer?: HTMLElement | null;
+  /** いちばん外の要素（header）に付きます */
+  className?: string;
 }
 
 /**
@@ -203,11 +208,12 @@ export function Navbar({
   currentIndicator = 'text',
   stickyEdge,
   stickyBackdrop,
-  label = 'メイン',
-  menuLabel = 'メニュー',
+  accessibleName = 'メイン',
+  menuTitle = 'メニュー',
   menuSide = 'auto',
-  container,
+  portalContainer,
   className,
+  ref,
   ...props
 }: NavbarProps) {
   const s = navbar({ sticky, stickyEdge, stickyBackdrop });
@@ -216,6 +222,8 @@ export function Navbar({
   const [open, setOpen] = useState(false);
   const hasLinks = Children.count(children) > 0;
   const rootRef = useRef<HTMLElement>(null);
+  // 内部の ref（帯の幅を測る）と、利用者が渡した ref をつなぐ（ADR-0250）
+  const mergedRef = useMergedRefs(rootRef, ref);
 
   // 開いたまま帯が広がり、行き先が帯に戻ったら、メニューを閉じる
   useEffect(() => {
@@ -230,7 +238,7 @@ export function Navbar({
   }, [open]);
 
   return (
-    <header ref={rootRef} data-slot="navbar" className={s.root({ className })} {...props}>
+    <header {...props} ref={mergedRef} data-slot="navbar" className={s.root({ className })}>
       <Container size={size} className={s.inner()}>
         {brand && (
           <div data-slot="navbar-brand" className={s.brand()}>
@@ -238,7 +246,7 @@ export function Navbar({
           </div>
         )}
         {hasLinks && (
-          <nav aria-label={label} className={s.barNav()}>
+          <nav aria-label={accessibleName} className={s.barNav()}>
             <ul className={s.barList()}>
               <NavbarContext value={{ placement: 'bar', indicator: currentIndicator }}>
                 {children}
@@ -250,23 +258,23 @@ export function Navbar({
           {actions}
           {hasLinks && (
             <Drawer
-              title={menuLabel}
+              title={menuTitle}
               side={side}
               open={open}
               onOpenChange={setOpen}
-              container={container}
+              portalContainer={portalContainer}
               trigger={
                 <Button
                   iconOnly
-                  appearance="outline"
-                  aria-label={menuLabel}
+                  variant="outline"
+                  aria-label={menuTitle}
                   className={s.menuButton()}
                 >
                   <ListIcon standalone />
                 </Button>
               }
             >
-              <NavbarMenuList label={label} currentIndicator={currentIndicator}>
+              <NavbarMenuList accessibleName={accessibleName} currentIndicator={currentIndicator}>
                 {children}
               </NavbarMenuList>
             </Drawer>
@@ -281,17 +289,17 @@ export function Navbar({
  * メニューの面の中身（行き先を縦に並べる）。Navbar が Drawer の中に描く。公開しない（比較のストーリーでも使う）
  */
 export function NavbarMenuList({
-  label,
+  accessibleName,
   currentIndicator = 'text',
   children,
 }: {
-  label: string;
+  accessibleName: string;
   currentIndicator?: NavbarCurrentIndicator;
   children?: ReactNode;
 }) {
   return (
     <NavbarContext value={{ placement: 'menu', indicator: currentIndicator }}>
-      <nav aria-label={label}>
+      <nav aria-label={accessibleName}>
         <ul className={navbar().menuList()}>{children}</ul>
       </nav>
     </NavbarContext>
@@ -299,6 +307,10 @@ export function NavbarMenuList({
 }
 
 export interface NavbarLinkProps extends ComponentProps<'a'> {
+  /** 行き先の名前。文字を書きます */
+  children?: ReactNode;
+  /** リンク（a）に付きます */
+  className?: string;
   /**
    * いまいるページか。true のとき aria-current="page" を付け、印を出します
    * @default false
@@ -316,15 +328,24 @@ export function NavbarLink({
   render,
   className,
   onClick,
+  children,
   ...props
 }: NavbarLinkProps) {
   const { placement, indicator } = use(NavbarContext);
   const close = use(OverlayCloseContext);
+  const noteId = useId();
+  // 新しいタブで開く行き先（Link と同じ扱い — ADR-0254 の M-17）
+  //   ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
+  const newTab = props.target === '_blank' || opensNewTab(render);
+  const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const link = useRender({
-    render,
+    // 渡した要素に名前（aria-label・aria-labelledby）があるときは、要素の側も書き換える（要素の props が勝つため）
+    render: naming ? withRenderOverrides(render, naming.props) : render,
     defaultTagName: 'a',
     props: {
       ...props,
+      ...naming?.props,
+      ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
       'aria-current': current ? 'page' : undefined,
       'data-slot': 'navbar-link',
       onClick: (event: MouseEvent<HTMLAnchorElement>) => {
@@ -334,6 +355,14 @@ export function NavbarLink({
         if (placement === 'menu') close?.();
       },
       className: navbarLink({ placement, indicator, className }),
+      children: (
+        <>
+          {children}
+          {/* 新しいタブで開く行き先の ↗（飾り。読み上げは下の文で足す） */}
+          {newTab && <ArrowUpRightIcon className="ms-1 size-(--spacing-icon) shrink-0" />}
+          {naming?.note}
+        </>
+      ),
     },
   });
   return <li className="flex">{link}</li>;
