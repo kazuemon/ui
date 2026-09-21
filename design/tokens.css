@@ -831,6 +831,40 @@
   --chip-disabled-border-color: var(--color-line);
   --chip-readonly-bg: var(--color-field-addon);
   --chip-readonly-border-color: transparent;
+  /* ── TagsInput — 軸 260〜263 はまだ決めていない ── BEGIN tags-input */
+  /* 打った文字をタグにして並べる欄。src/components/tags-input/
+     欄とチップの大きさは、複数選ぶ Combobox と同じ（--combobox-chip-*・ADR-0217）。ここは TagsInput だけが持つ差し替え
+     wrap・max-height: チップが増えたときの伸び方（軸 260）。既定は Combobox と同じ折り返し（上限なし）
+     チップは ScrollArea の枠（軸 93）に入れてあり、上限を決めるとそこからはみ出した分がスクロールする
+     chip-shrink・content-min-width: 1 行で横に流す案のためのつまみ。チップを縮めず、中身を最大の幅に広げる */
+  --tags-input-wrap: wrap;
+  --tags-input-max-height: none;
+  --tags-input-chip-shrink: 1;
+  --tags-input-content-min-width: 0px;
+  /* 弾いたとき（重複・validate 失敗）の合図（軸 261）。flash-* はすでにあるチップを一瞬強調する色、
+     shake-* は欄を揺らす動き（distance が 0 のあいだは揺れない）。flash-duration は部品も読む（use-tags-flash.ts） */
+  --tags-input-flash-duration: 900ms;
+  --tags-input-flash-bg: var(--color-danger-subtle);
+  --tags-input-flash-fg: var(--color-fg-danger);
+  --tags-input-flash-border-color: var(--color-fg-danger);
+  --tags-input-shake-distance: 0px;
+  --tags-input-shake-duration: var(--duration-normal);
+  /* Backspace の1回目で選んだチップの見え方（軸 262）。既定はキーボードのフォーカスの線だけ */
+  --tags-input-chip-selected-ring-width: var(--focus-ring-width);
+  --tags-input-chip-selected-ring-color: var(--color-focus-ring);
+  --tags-input-chip-selected-veil: transparent;
+  /* 確定前の文字の見せ方（軸 263）。既定は素の文字（予告を出さない）
+     sizing・grow: 打つ欄を文字の幅に縮めるか。content と 0 にすると、予告が文字を包む形になる
+     （field-sizing を知らないブラウザでは、これまでどおり幅いっぱいのまま） */
+  --tags-input-pending-sizing: auto;
+  --tags-input-pending-grow: 1;
+  --tags-input-pending-bg: transparent;
+  --tags-input-pending-border-width: 0px;
+  --tags-input-pending-border-style: dashed;
+  --tags-input-pending-border-color: color-mix(in oklab, currentColor 45%, transparent);
+  --tags-input-pending-radius: var(--radius-pill);
+  --tags-input-pending-padding-x: 0px;
+  /* ── END tags-input */
   /* ── Menu — 軸 121・124 で決定（ADR-0149・0152） ── BEGIN menu */
   /* 押して開く操作の一覧（Menu）。src/components/menu/
      面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay・部品の角）。余白・本体との間も同じ
@@ -1629,5 +1663,36 @@
   }
   to {
     background-position: var(--progress-stripe-size) 0;
+  }
+}
+
+/* ── tags-input keyframes */
+/* タグにならなかったときの合図（軸 261）
+   tags-input-flash: すでにあるチップを一瞬だけ強調し、元の色へ戻る（戻り先は書かない ＝ そのチップのふだんの色）
+   tags-input-shake: 欄を左右に振る。--tags-input-shake-distance が 0 のあいだは動かない */
+@keyframes tags-input-flash {
+  0%,
+  55% {
+    border-color: var(--tags-input-flash-border-color);
+    background-color: var(--tags-input-flash-bg);
+    color: var(--tags-input-flash-fg);
+  }
+}
+@keyframes tags-input-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(calc(var(--tags-input-shake-distance) * -1));
+  }
+  40% {
+    transform: translateX(var(--tags-input-shake-distance));
+  }
+  60% {
+    transform: translateX(calc(var(--tags-input-shake-distance) * -0.5));
+  }
+  80% {
+    transform: translateX(calc(var(--tags-input-shake-distance) * 0.5));
   }
 }
