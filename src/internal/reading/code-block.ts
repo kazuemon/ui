@@ -45,6 +45,8 @@ export const codeBlockStyles = {
     '[&_pre]:outline-none [&_pre:focus-visible]:[outline:var(--focus-ring-width)_solid_var(--color-focus-ring)] [&_pre:focus-visible]:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     // code: 行を 1 行ずつの箱にし、いちばん長い行の幅まで広げる（強調行の面がスクロールの端まで届く）
     '[&_pre_code]:grid [&_pre_code]:w-max [&_pre_code]:min-w-full [&_pre_code]:[counter-reset:codeblock-line_var(--cb-start,0)] [&_pre_code]:[font:inherit]',
+    // Shiki を通さないコード（行の .line がない）は、code に行と同じ左右の余白を付ける
+    '[&_pre_code:not(:has(.line))]:px-4',
     // 差分があるときだけ、印の場所を左に 12px 空ける（--cb-diff。ないときは 0）
     '[&_pre_code:has(.diff)]:[--cb-diff:calc(var(--spacing)*3)]',
     // 行。行番号の幅は --cb-gutter（ないときは 0）

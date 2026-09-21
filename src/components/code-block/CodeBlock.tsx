@@ -32,6 +32,8 @@ const codeBlock = tv({
       //   重ねて出るスクロールバー（macOS の既定など）は場所を取らないので、角は丸いまま
       'data-scrollbar:rounded-b-none',
       ...codeBlockStyles.surface,
+      // 題がなくボタンを浮かせるときは、pre をボタンと上下 4px の高さまで伸ばし、行を縦の中央に置く（1 行でもボタンの上下がそろう）
+      '[&[data-copy]:not([data-titled])_pre]:min-h-[calc(var(--spacing-control)+var(--spacing)*2)] [&[data-copy]:not([data-titled])_pre]:content-center',
     ],
     head: [
       'flex items-center px-4',
@@ -198,6 +200,7 @@ export function CodeBlock({
       data-slot="code-block"
       data-appearance={appearance ?? 'surface'}
       data-titled={hasTitle ? '' : undefined}
+      data-copy={copyButton ? '' : undefined}
       data-line-numbers={lineNumbers !== false ? '' : undefined}
       style={start == null ? style : { ...style, ['--cb-start' as string]: start }}
       {...props}

@@ -2,7 +2,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { CodeBlock } from './CodeBlock';
-import { diffHtml, focusHtml, shellHtml, typescriptHtml, wordHtml } from './fixtures';
+import {
+  diffHtml,
+  focusHtml,
+  shellHtml,
+  shellOneLineHtml,
+  typescriptHtml,
+  wordHtml,
+} from './fixtures';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 const meta = {
@@ -18,7 +25,7 @@ const meta = {
           "- Shiki は `createCssVariablesTheme`（`variablePrefix: '--shiki-'`）で色分けします。色はこの部品が入れます。ブランドの色は混ざらず、GitHub のテーマに近い専用の色の組で、明るい地と濃い地の両方を持ちます。",
           '- 強調行・差分・フォーカス・語の強調は、`@shikijs/transformers` の `transformerNotationHighlight`・`transformerNotationDiff`・`transformerNotationFocus`・`transformerNotationWordHighlight` の書き方（`// [!code highlight]` など）で付けます。',
           '- `html` はそのまま HTML として入れます。ビルド時に自分で作った HTML だけを渡し、利用者が書いた文や外から取ってきた文をエスケープせずに渡さないでください。',
-          '- MDX の `pre` を差し替えるときは、`html` の代わりに `children` に pre の中身を渡せます。',
+          '- MDX の `pre` を差し替えるときは、`html` の代わりに `children` に pre の中身を渡せます。Shiki で色分けしていない素の `<code>` でも、同じ余白で並びます。',
           '- `title` でファイル名などの題を上の帯に出し、コピーのボタンを帯の右に置きます。題がないときは、ボタンを右上に浮かせます。',
           '- `appearance` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地です。',
           '- `lineNumbers` で行番号を出します。数を渡すと、その番号から数えます。',
@@ -66,6 +73,30 @@ export const Appearances: Story = {
           <div data-reading className="flex flex-col gap-4">
             <CodeBlock appearance={appearance} title="src/lib/posts.ts" html={typescriptHtml} />
             <CodeBlock appearance={appearance} html={shellHtml} />
+            <CodeBlock appearance={appearance} html={shellOneLineHtml} />
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+// Shiki で色分けしていないコード（MDX の pre を差し替えたときなど）。行の .line がなくても、同じ余白になる
+export const PlainCode: Story = {
+  tags: ['visual'],
+  name: '色分けなし',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Gallery columnWidth="28rem">
+      {(['surface', 'dark'] as const).map((appearance) => (
+        <Specimen key={appearance} label={appearance}>
+          <div data-reading className="flex flex-col gap-4">
+            <CodeBlock appearance={appearance}>
+              <code>pnpm add @kazuemon/ui</code>
+            </CodeBlock>
+            <CodeBlock appearance={appearance} title="terminal">
+              <code>{'pnpm add @kazuemon/ui\npnpm add -D shiki @shikijs/transformers'}</code>
+            </CodeBlock>
           </div>
         </Specimen>
       ))}
@@ -106,6 +137,7 @@ export const Densities: Story = {
       <div data-reading className="flex w-[20rem] flex-col gap-4">
         <CodeBlock title="src/lib/posts.ts" html={typescriptHtml} />
         <CodeBlock html={shellHtml} />
+        <CodeBlock html={shellOneLineHtml} />
       </div>
     </DensityPair>
   ),
