@@ -19,7 +19,7 @@
 
 ## 決定
 
-**B を採用します。** パレットの色（`primary`・`secondary`・`neutral`・`brand`・`white`）と意味の色（`info`・`success`・`warning`・`danger`）を合わせて `color` の 1 本の軸とし、意味の色しか受けない部品（`Notice`・`Callout`・`Toast`・`AlertDialog`・`MenuItem`）は `status` にします。`AlertDialog` の `tone` は `status`（`danger` のときだけ指定）に、`MenuItem` の真偽値 `danger` は `status="danger"` にします。`Stat` の増減は色の意味とは別ものなので `trend`（`positive`・`negative`・`neutral`）にします。Text 系の `tone`（濃さ）は色ではないので、色の決定からは外し `variant`（[0236](./0236-variant.md)）に移します。
+**B を採用します。** パレットの色（`primary`・`secondary`・`neutral`・`brand`・`white`）と意味の色（`info`・`success`・`warning`・`danger`）を合わせて `color` の 1 本の軸とし、意味の色しか受けない部品（`Notice`・`Callout`・`Toast`・`MenuItem`）は `status` にします。`AlertDialog` の `tone`（`danger`・`primary`）はパレットの色も取るので `color`（既定 `danger`）に、`MenuItem` の真偽値 `danger` は `status="danger"` にします。`Stat` の増減は色の意味とは別ものなので `trend`（`positive`・`negative`・`neutral`）にします。Text 系の `tone`（濃さ）は色ではないので、色の決定からは外し `variant`（[0236](./0236-variant.md)）に移します。
 
 ## 理由
 
@@ -40,7 +40,7 @@
 
 ## 影響
 
-`AlertDialog`（`tone` → `status`。型 `AlertDialogTone` を直します）、`MenuItem`（真偽値 `danger` → `status="danger"`）、`Stat`（`tone` → `trend`。型 `StatDeltaTone` を直します）、`Notice`・`Callout`・`Toast`（`color` → `status`。型 `NoticeColor` を直します）を直します。`--color-*` のトークン名は変えません。コードはまだ直していないので、これから直します。
+`AlertDialog`（`tone` → `color`。型 `AlertDialogTone` → `AlertDialogColor`）、`MenuItem`（真偽値 `danger` → `status="danger"`）、`Stat`（`tone` → `trend`。型 `StatDeltaTone` → `StatTrend`。矢印の向きを表していた既存の `trend` は `deltaIndicator` に改名します）、`Notice`・`Callout`・`Toast`（`color` → `status`。型 `NoticeColor` を直します）を直します。`--color-*` のトークン名は変えません。コードはまだ直していないので、これから直します。
 
 ## 原則への反映
 

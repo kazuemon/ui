@@ -17,7 +17,7 @@
 | 名前      | 意味                                                                                                                                                                                                                                         | 値                                                                                          |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `color`   | 色。パレットの色と意味を持った色を 1 つの軸に並べます。部品はこのうち取れる値だけを型で絞ります                                                                                                                                              | `primary`・`secondary`・`neutral`・`brand`・`white`・`info`・`success`・`warning`・`danger` |
-| `status`  | 意味を持った色しか受けない部品の色（Notice・Callout・Toast・AlertDialog・MenuItem）                                                                                                                                                          | `info`・`success`・`warning`・`danger`                                                      |
+| `status`  | 意味を持った色しか受けない部品の色（Notice・Callout・Toast・MenuItem）                                                                                                                                                                       | `info`・`success`・`warning`・`danger`                                                      |
 | `trend`   | 増減の良し悪し（Stat）。増えたことが良いか悪いかは場面で違うので、使う側が選びます                                                                                                                                                           | `positive`・`negative`・`neutral`                                                           |
 | `variant` | その部品の見た目の型。面の見せ方（塗り・枠線・下線）、線の長さ、罫線、配色、隠し方、複数の軸をまとめた既定の組（Text の label・caption・濃さ）など、部品ごとに 1 つの軸にまとめます。値の意味は部品ごとで、型名 `<部品>Variant` で区別します | 部品ごと                                                                                    |
 | `weight`  | 文字の太さ                                                                                                                                                                                                                                   | `normal`・`medium`・`bold`                                                                  |
@@ -96,9 +96,9 @@
 
 色は `color` の 1 本です。パレットの色（`primary`・`secondary`・`neutral`・`brand`・`white`）と意味を持った色（`info`・`success`・`warning`・`danger`）を同じ軸に並べ、部品はそのうち取れる値だけを型で絞ります。Tag・Badge・Chip は両方を取り、Button はパレットと `danger` を取ります。
 
-意味を持った色しか受けない部品は `status` です。Notice・Callout・Toast・AlertDialog・MenuItem がこれです。AlertDialog の実行ボタンの色は `status="danger"`、MenuItem の危険な項目も `status="danger"` で、真偽値の `danger` は持ちません。
+意味を持った色しか受けない部品は `status` です。Notice・Callout・Toast・MenuItem がこれです。MenuItem の危険な項目は `status="danger"` で、真偽値の `danger` は持ちません。AlertDialog の実行ボタンは `primary` も取るので `color`（`danger`・`primary`、既定は `danger`）です。
 
-Stat の増減は `trend` です。値の意味（増えたことが良いか悪いか）は使う側が選びます。
+Stat の増減の良し悪しは `trend` です。値の意味（増えたことが良いか悪いか）は使う側が選びます。矢印の向き（`up`・`down`・`flat`）は別の軸で、`deltaIndicator` です。
 
 文字の濃さ（default・muted・subtle）は色の軸ではなく、Text の `variant` に入ります。
 
@@ -158,9 +158,9 @@ Base UI の props のうち、名前を変えて出すものです。
 | `finalFocus`                     | `returnFocus`     | 閉じたあとに焦点を戻す要素                                                               |
 | `container`                      | `portalContainer` | 浮かぶものを描く場所（Portal 部品だけ `container`）                                      |
 
-重なる部品（Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）は、`dismissible`・`closeOnEscape`・`modal`・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` を同じ名前・同じ型で持ちます。シートを開いたとき入力欄に焦点を当てるかは `focusInputOnOpen`（真偽値）で、`autoFocus` とは別です。
+重なる部品（Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）は、`dismissible`・`closeOnEscape`・`modal`・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` のうち、土台が持つものを同じ名前・同じ型で持ちます（Menu は Base UI に `initialFocus` がないので `autoFocus` を持ちません。Tooltip は焦点を持たないので焦点の props を持ちません）。シートを開いたとき入力欄に焦点を当てるかは `focusInputOnOpen`（真偽値）で、`autoFocus` とは別です。
 
-入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps` を同じ名前で持ちます。1 つの部品だけ欠けているのは直します。
+入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps` を同じ名前で持ちます（Select は Base UI に input の部位がないので `inputProps` の代わりに `inputRef` です）。1 つの部品だけ欠けているのは直します。
 
 ## props を足すか、className に任せるか
 
@@ -173,7 +173,7 @@ Base UI の props のうち、名前を変えて出すものです。
 
 ## 型名
 
-- props の型は `<部品名>Props` です。Button だけ `ButtonProps`・`ButtonIconOnlyProps`・`ButtonLinkProps` の 3 つです
+- props の型は `<部品名>Props` です。Button だけ `ButtonProps`・`ButtonIconOnlyProps` の 2 つです（ボタンの見た目のリンクは Link の `variant="button"` で、Button は `render` を持ちません）
 - 軸の型は `<部品><軸>`（`TabsColor`・`SkeletonVariant`）です
 - 共有の型（`NoticeColor`・`ChoiceColor`・`SheetDetent`・`LoadingIndicator`）はその名前のまま公開し、部品ごとの別名（`SelectColor = ListboxColor`）は作りません
 - props に現れる型は、すべて `src/index.ts` から公開します

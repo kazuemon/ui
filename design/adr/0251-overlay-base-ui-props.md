@@ -52,7 +52,7 @@ M-23（Drawer の `modal` を 1 つの値にする）と P-30（`closeOnSwipe` �
 
 ## 影響
 
-- Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox: `dismissible`・`closeOnEscape`・`modal`（`true`・`false`・`'passive'`）・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` を直します
+- Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox: `dismissible`・`closeOnEscape`・`modal`（`true`・`false`・`'passive'`）・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` のうち、土台が持つものを直します（Base UI 1.8 の Menu には `initialFocus` がないので、Menu の `autoFocus` は足しません）
 - Dialog: `closeOnSwipe` を足します
 - Combobox: `sheetAutoFocus` を `focusInputOnOpen` に改名します
 - 分かっていること: `actionsRef`・`keepMounted` は足しません

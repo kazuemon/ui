@@ -95,7 +95,7 @@
 - 重なる部品（Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）に `dismissible`・`closeOnEscape`・`modal`・`popupProps`・`positionerProps` を足します
 - Select に `name`・`form`・`multiple` を足し、`...rootProps`（暗黙の経路）を消します
 - NumberField・PinField・DateField・TimeField・Calendar に `ref` を足します
-- 入力欄すべてに `inputProps` を足します
+- 入力欄すべてに `inputProps` を足します（Select は Base UI に input の部位がないので `inputRef`）
 - ScrollArea・Accordion・Collapsible・Figure・Image・Avatar の `xxxClassName`・`xxxRef` を `xxxProps` に畳みます（旧名は残しません）
 - Table・TableRow・TableCell に `verticalAlign` を足します（ADR-0246 とあわせて直します）
 - Tabs・Radio・RadioGroup・Switch・Checkbox・CheckboxGroup の Base UI 型の継承をやめ、DOM の型＋明示の props にします
