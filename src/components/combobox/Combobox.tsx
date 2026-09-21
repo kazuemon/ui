@@ -164,6 +164,12 @@ export interface ComboboxProps extends FieldMarkProps {
    */
   placeholder?: string;
   /**
+   * スマホのキーボードの実行キーの表示。
+   * Enter は候補の選択に使うので、欄が並んでいても「次へ」にせず、Enter を欄へ届けます
+   * @default 'enter'
+   */
+  enterKeyHint?: ComponentProps<'input'>['enterKeyHint'];
+  /**
    * 複数選べるようにします。選んだ項目は欄の中にチップで並び、欄の高さが伸びます。
    * 値は文字の配列になり、フォームでは同じ名前で複数送られます
    * @default false
@@ -389,6 +395,7 @@ export function Combobox({
   groupLabelStyle = 'label',
   groupSeparator = false,
   placeholder,
+  enterKeyHint = 'enter',
   multiple = false,
   value,
   defaultValue,
@@ -716,6 +723,7 @@ export function Combobox({
                 })}
                 <BaseCombobox.Input
                   aria-describedby={messageIds}
+                  enterKeyHint={enterKeyHint}
                   aria-disabled={blocking || undefined}
                   aria-busy={loading || undefined}
                   placeholder={loadingBlocking ? loadingText : values.length > 0 ? '' : placeholder}
@@ -727,6 +735,7 @@ export function Combobox({
         ) : (
           <BaseCombobox.Input
             aria-describedby={messageIds}
+            enterKeyHint={enterKeyHint}
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
             placeholder={loadingBlocking ? loadingText : placeholder}

@@ -257,6 +257,8 @@ export const Single: Story = {
     const page = within(canvasElement.ownerDocument.body);
     // 読み上げの名前はラベル
     await expect(canvas.getByLabelText('お届け先の区')).toBe(input);
+    // スマホの実行キーを「次へ」にしない（Enter は候補の選択に使う）
+    await expect(input).toHaveAttribute('enterkeyhint', 'enter');
     // 打つと絞り込まれる
     await userEvent.click(input);
     await userEvent.type(input, '世田');
@@ -310,6 +312,7 @@ export const Multiple: Story = {
     const input = canvas.getByRole('combobox');
     const page = within(canvasElement.ownerDocument.body);
     await expect(canvas.getByText('デザイン')).toBeVisible();
+    await expect(input).toHaveAttribute('enterkeyhint', 'enter');
     // もう1つ選ぶ。選んでも選択肢は開いたまま
     await userEvent.click(input);
     await userEvent.click(await page.findByRole('option', { name: 'インフラ' }));
