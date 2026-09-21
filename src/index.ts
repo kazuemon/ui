@@ -367,6 +367,7 @@ export {
   type TabsColor,
   type TabsIndicator,
   type TabsIndicatorMotion,
+  type TabsOrientation,
   type TabsPanelGap,
   type TabsProps,
   type TabValue,
