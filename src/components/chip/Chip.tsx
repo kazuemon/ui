@@ -16,9 +16,13 @@ import { tv } from '../../internal/tv';
 // 押せない（原則13）: 色を持つものは色を残して薄くし、グレーは塗りと文字を近づける。読み取り専用は消すボタンを出さない
 const chip = tv({
   base: [
-    'inline-flex h-(--spacing-control) max-w-full items-center rounded-pill pl-(--spacing-control-x) text-(length:--text-control) leading-(--leading-control) font-bold whitespace-nowrap',
+    'inline-flex max-w-full items-center rounded-pill font-bold whitespace-nowrap',
+    // 大きさは --chip-height・--chip-pad-x・--chip-font・--chip-leading で差し替えられる（tokens.css）。
+    // 未設定なら部品の高さ（--spacing-control）と部品の中の文字に従う。欄の中のチップは、Combobox が --spacing-control 側を差し替える
+    'h-[var(--chip-height,var(--spacing-control))] pl-[var(--chip-pad-x,var(--spacing-control-x))]',
+    'text-[length:var(--chip-font,var(--text-control))] leading-[var(--chip-leading,var(--leading-control))]',
     // 消すボタンがあるとき、右は ×（丸）の分だけ空ける。丸は上下左右とも 6px 内側に置く（フォーカスの線がチップの外に出ない）
-    'pr-(--spacing-control-x) has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5',
+    'pr-[var(--chip-pad-x,var(--spacing-control-x))] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う
     'bg-(--chip-bg,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
@@ -48,7 +52,11 @@ const chip = tv({
 
 const chipRemove = tv({
   base: [
-    'relative inline-flex size-[calc(var(--spacing-control)-var(--spacing)*3)] shrink-0 cursor-pointer items-center justify-center rounded-pill bg-transparent p-0 text-current',
+    // 丸の大きさはチップの高さから決める。中の × は丸より大きくしない（チップを小さくしたとき、×がチップからはみ出さない）
+    '[--chip-remove-size:calc(var(--chip-height,var(--spacing-control))_-_var(--spacing)_*_3)]',
+    '[--chip-remove-icon:min(var(--spacing-icon),var(--chip-remove-size))]',
+    'relative inline-flex size-(--chip-remove-size) shrink-0 cursor-pointer items-center justify-center rounded-pill bg-transparent p-0 text-current',
+    '[&>svg]:size-[var(--chip-remove-icon,var(--spacing-icon))]',
     ...focusRing,
     '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',

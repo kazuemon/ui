@@ -29,7 +29,7 @@ const badge = tv({
     },
     shape: {
       count:
-        'h-(--badge-size) min-w-(--badge-size) px-(--badge-pad-x) text-(length:--text-caption) leading-(--badge-size)',
+        'h-(--badge-size) min-w-(--badge-size) px-(--badge-pad-x) text-[length:var(--badge-font,var(--text-caption))] leading-(--badge-size)',
       dot: 'size-(--badge-dot)',
     },
     overlay: {

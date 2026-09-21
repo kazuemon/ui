@@ -75,6 +75,7 @@ const meta = {
           '- `color` は選んだタブの印とフォーカスの線の色です。指定しないときはグレー（`neutral`）で、`primary`・`secondary` を選べます。',
           '- `indicator` は選んだタブの印です。既定は `line`（下の線＋並び全体の下の境界線）で、`underline`（下の線だけ）・`subtle`（部品の色の淡い面の pill）・`segmented`（溝と白いつまみ）・`text`（印なし、文字の色だけ）を選べます。',
           '- `indicatorMotion` は選んだタブが変わったときの印の動きです。既定は `slide`（滑って移る）で、`none`（すぐ切り替える）を選べます。',
+          '- `orientation` は並べる向きです。既定は `horizontal`（横に並べ、中身は下）で、`vertical`（縦に積み、中身は右）を選べます。縦のときは上下の矢印キーで移ります。',
           '- キーボードでは、Tab で並びに入り、左右の矢印キーでタブを移ります。Enter か Space で選びます。`activateOnFocus` を付けると、矢印キーで移ったタブをすぐ選びます。',
           '- 並びが入り切らない幅では、横にスクロールします。続きがある端には影が出ます。',
           '- `Tab` の `icon` に見出しの前のアイコンを、見出しの後ろに `Badge`（件数）を置けます。',
@@ -100,6 +101,11 @@ const meta = {
       control: 'inline-radio',
       options: ['slide', 'none'],
       table: { defaultValue: { summary: "'slide'" } },
+    },
+    orientation: {
+      control: 'inline-radio',
+      options: ['horizontal', 'vertical'],
+      table: { defaultValue: { summary: "'horizontal'" } },
     },
     children: { control: false },
   },
@@ -253,6 +259,53 @@ export const Overflow: Story = {
     const active = canvas.getByRole('tab', { name: 'お問い合わせ' });
     await waitFor(() => expect(active.getBoundingClientRect().right).toBeGreaterThan(0));
   },
+};
+
+export const Vertical: Story = {
+  name: '縦向き',
+  parameters: {
+    controls: { include: ['color', 'indicator'] },
+    docs: {
+      description: {
+        story:
+          '`orientation="vertical"` にすると、タブを縦に積み、中身を右に置きます。選んだタブの印は縦の棒になり、`subtle`・`segmented` ではタブ全体の塗りになります。上下の矢印キーでタブを移ります。',
+      },
+      source: sourceCode(`
+        <Tabs orientation="vertical" defaultValue="overview">
+          <TabList aria-label="プロフィール">
+            <Tab value="overview">概要</Tab>
+            <Tab value="works">作品</Tab>
+            <Tab value="blog">ブログ</Tab>
+          </TabList>
+          <TabPanel value="overview">…</TabPanel>
+          <TabPanel value="works">…</TabPanel>
+          <TabPanel value="blog">…</TabPanel>
+        </Tabs>
+      `),
+    },
+  },
+  render: (args) => (
+    <Tabs orientation="vertical" color={args.color} indicator={args.indicator} defaultValue="works">
+      <TabList aria-label="プロフィール">
+        <Tab value="overview">概要</Tab>
+        <Tab value="works">作品</Tab>
+        <Tab value="blog">ブログ</Tab>
+        <Tab value="contact">お問い合わせ</Tab>
+      </TabList>
+      <TabPanel value="overview" className={panelClass}>
+        かずえもんの概要です。
+      </TabPanel>
+      <TabPanel value="works" className={panelClass}>
+        作ったものの一覧です。
+      </TabPanel>
+      <TabPanel value="blog" className={panelClass}>
+        書いた記事の一覧です。
+      </TabPanel>
+      <TabPanel value="contact" className={panelClass}>
+        連絡先です。
+      </TabPanel>
+    </Tabs>
+  ),
 };
 
 export const Densities: Story = {

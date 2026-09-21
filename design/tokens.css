@@ -447,6 +447,20 @@
   --leading-heading-4-fine: 28px;
   --leading-heading-4-coarse: 24px;
 
+  /* 読む文字の variant の組（Text の label・caption）— 軸 266 で決めるまでは仮
+     既定は欄のラベル・キャプション（src/internal/field/field-styles.ts）と同じ値。大きさ・行の高さ・太さ・色を 4 つで持ち、
+     比較のストーリーはこの 4 つの上書きだけで候補を作る。決まったら部品で決まった値に畳み、ここから消す
+     ラベルとキャプションの大きさは、いまはマウスと指で同じ値（--text-label・--text-caption）なので、ここで解いても密度で変わらない */
+  --text-variant-label-size: var(--text-label);
+  --text-variant-label-leading: var(--leading-label);
+  --text-variant-label-weight: 700;
+  --text-variant-label-color: var(--color-fg);
+  --text-variant-caption-size: var(--text-caption);
+  --text-variant-caption-leading: var(--leading-caption);
+  /* 太さを持たない（周りの文字のまま）。weight を渡せば上書きできる */
+  --text-variant-caption-weight: inherit;
+  --text-variant-caption-color: var(--color-fg-subtle);
+
   /* キー（Kbd）— 軸 53 の B。白い面に白いボタンと同じ細い輪郭、下辺だけを太くしてキーの厚みを線で見せる。影は付けない（押せないので原則1のまま）
      大きさと余白は周りの文字に対する比 */
   --kbd-size: 0.8125em;
@@ -757,6 +771,15 @@
   --color-choice-frame-notch-bg: var(--color-surface);
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
+
+  /* ── 小物（Tag・Badge・Chip）の大きさ ── 軸 265 で比べている最中。まだ段（サイズの props）は決めていない
+     3 つとも、高さ・左右の余白・文字の大きさを部品のトークンで読む。既定は今までの値で、どれも未設定（部品の中に既定を書いてある）。
+     比較のストーリー（design/stories/axis-265-small-parts-size.stories.tsx）が、行ごとにこれらを上書きして段を作る。
+     軸が決まったら、選んだ段を部品の size の props に畳んで、この節は消す
+       --tag-height・--tag-pad-x・--tag-font・--tag-leading     未設定なら 20px・8px・--text-caption・--leading-caption
+       --badge-size・--badge-pad-x・--badge-dot・--badge-font   --badge-font だけ未設定（--text-caption）。残りは下の Badge の節にある
+       --chip-height・--chip-pad-x・--chip-font・--chip-leading 未設定なら --spacing-control・--spacing-control-x・--text-control・--leading-control
+       （欄の中のチップは Combobox が --spacing-control 側を差し替えるので、--chip-height を決めるとそちらが勝つ） */
 
   /* Badge（数と小さな状態の点）の形 — ADR-0061 で A 案（16px の濃い塗り、重ねるときは縁 2px）に決めた
      文字はタグと同じキャプション。高さは密度で変えない */
@@ -1079,6 +1102,13 @@
      パネルは離れは全体と同じで、角を小さくする。1 行のパネルでも pill にならず、角丸の四角に見える */
   --tabs-tab-focus-offset: calc(var(--spacing) * -1);
   --tabs-panel-radius: var(--radius-md);
+  /* 縦向き（orientation="vertical"）— 軸 264・比べている途中。決まったら部品の値に畳んで、この 3 つは消す
+     side: 選んだタブの印と並びの線を立てる側（1 = 中身に近い側、0 = 外側）
+     tab-align: 並びの中でのタブの寄せ（start・end・stretch。stretch はタブを並びの幅いっぱいにし、文字は行頭から）
+     list-width: 並びの幅（max-content なら、いちばん長いタブに合わせる） */
+  --tabs-vertical-side: 1;
+  --tabs-vertical-tab-align: start;
+  --tabs-vertical-list-width: max-content;
   /* ── END tabs */
 
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */

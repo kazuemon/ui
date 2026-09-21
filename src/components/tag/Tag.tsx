@@ -10,7 +10,14 @@ import { tv } from '../../internal/tv';
 // 状態を表す色（info・success・warning・danger）は、利用者が選ぶ色とは別。お知らせの soft と同じ面と文字
 //   warning — design/adr/0038。info・success・danger — design/adr/0043（info は primary と同じ値）
 const tag = tv({
-  base: 'inline-flex items-center rounded-pill px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) font-bold whitespace-nowrap',
+  base: [
+    'inline-flex items-center rounded-pill font-bold whitespace-nowrap',
+    // 大きさは --tag-*（tokens.css）で差し替えられる。未設定なら今までの値（高さ 20px・左右 8px・キャプションの文字）
+    'h-[var(--tag-height,calc(var(--tag-leading,var(--leading-caption))_+_var(--spacing)))]',
+    'px-[var(--tag-pad-x,calc(var(--spacing)_*_2))]',
+    'text-[length:var(--tag-font,var(--text-caption))]',
+    'leading-[var(--tag-leading,var(--leading-caption))]',
+  ],
   variants: {
     color: {
       primary: 'bg-primary-subtle text-on-primary-subtle',
