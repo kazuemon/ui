@@ -95,8 +95,8 @@ const tabs = tv({
     ],
     panel: [
       // 角は小さく、1 行でもフォーカスの線が pill に見えない（軸 120）
-      // 中身の上の余白は panelGap（既定は Stack の md と同じ）。Tabs が --tabs-panel-pad に配る（ADR-0254 の M-04）
-      'mt-(--tabs-panel-gap) rounded-(--tabs-panel-radius) pt-(--tabs-panel-pad)',
+      // 並びと中身のあいだの余白は panelGap（既定は Stack の md と同じ 16px）。Tabs が --tabs-panel-pad に配る（ADR-0254 の M-04）
+      'mt-(--tabs-panel-pad) rounded-(--tabs-panel-radius)',
       '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
@@ -210,7 +210,7 @@ export interface TabsProps extends Omit<ComponentProps<'div'>, 'color' | 'defaul
    */
   indicatorMotion?: TabsIndicatorMotion;
   /**
-   * 中身（TabPanel）の上の余白。段は Stack の gap と同じで、none にすると余白がなくなります。
+   * 並びと中身（TabPanel）のあいだの余白。段は Stack の gap と同じで、none にすると余白がなくなります。
    * すべての TabPanel に配ります
    * @default 'md'
    */

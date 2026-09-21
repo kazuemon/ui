@@ -1070,7 +1070,6 @@
      indicator・indicatorMotion が切り替える値（形・色・並びの線と溝・動きの長さ）は部品の内部の CSS 変数に畳んであり、ここには置かない */
   --tabs-gap: var(--spacing);
   --tabs-tab-radius: var(--radius-pill);
-  --tabs-panel-gap: calc(var(--spacing) * 4);
   --tabs-line-width: var(--border-width-thin);
   --tabs-indicator-bar: var(--border-width-thick);
   --tabs-indicator-radius: var(--radius-pill);
