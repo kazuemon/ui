@@ -89,6 +89,7 @@ export {
   type ComboboxFilter,
   type ComboboxProps,
   type ComboboxSheetInput,
+  type ComboboxValue,
 } from './components/combobox/Combobox';
 export { Code, type CodeProps } from './components/code/Code';
 export {

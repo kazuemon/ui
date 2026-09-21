@@ -563,7 +563,7 @@ export const Disabled: Story = {
         <Combobox {...args} disabled />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox
+        <Combobox<boolean>
           {...args}
           items={skills}
           multiple
@@ -593,7 +593,7 @@ export const ReadOnly: Story = {
         <Combobox {...args} readOnly defaultValue="ward-3" />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox
+        <Combobox<boolean>
           {...args}
           items={skills}
           multiple
@@ -673,7 +673,10 @@ export const Loading: Story = {
 };
 
 // はじめて開いたときに選択肢を読み込み、1.5 秒で終わる
-function LoadOnOpenCombobox({ onOpenChange, ...props }: Omit<ComboboxProps, 'items' | 'loading'>) {
+function LoadOnOpenCombobox({
+  onOpenChange,
+  ...props
+}: Omit<ComboboxProps<boolean>, 'items' | 'loading'>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -771,7 +774,7 @@ export const LoadOnOpen: Story = {
 };
 
 // 打った文字を外に渡し、返ってきた結果を filteredItems で出す（絞り込みを外でする）
-function AsyncCombobox(props: Omit<ComboboxProps, 'items' | 'loading' | 'filteredItems'>) {
+function AsyncCombobox(props: Omit<ComboboxProps<boolean>, 'items' | 'loading' | 'filteredItems'>) {
   const [results, setResults] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -884,7 +887,7 @@ export const Densities: Story = {
       <div className="w-64">
         <Combobox {...args} />
         <div className="h-4" />
-        <Combobox {...args} items={skills} multiple defaultValue={['design', 'a11y']} />
+        <Combobox<boolean> {...args} items={skills} multiple defaultValue={['design', 'a11y']} />
       </div>
     </DensityPair>
   ),

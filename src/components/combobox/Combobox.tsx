@@ -98,7 +98,14 @@ export type ComboboxFilter = (
   itemToString?: (item: ListboxItem) => string
 ) => boolean;
 
-export interface ComboboxProps extends FieldMarkProps {
+/**
+ * Combobox の値の型。単数では `string | null`、`multiple` では `string[]` です
+ */
+export type ComboboxValue<Multiple extends boolean = false> = Multiple extends true
+  ? string[]
+  : string | null;
+
+export interface ComboboxProps<Multiple extends boolean = false> extends FieldMarkProps {
   /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
@@ -174,15 +181,17 @@ export interface ComboboxProps extends FieldMarkProps {
   /**
    * 複数選べるようにします。選んだ項目は欄の中にチップで並び、欄の高さが伸びます。
    * 値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * 値の型（`ComboboxValue`）はこの props から決まるので、`multiple` か `multiple={true}` と直に書きます。
+   * 変数（`boolean` の値）を渡すと、単数と複数の両方を受ける広い型になります
    * @default false
    */
-  multiple?: boolean;
+  multiple?: Multiple;
   /** 選んだ値（制御）。単数では `string | null`、`multiple` では `string[]` */
-  value?: string | string[] | null;
-  /** はじめの値（非制御） */
-  defaultValue?: string | string[] | null;
+  value?: ComboboxValue<Multiple>;
+  /** はじめの値（非制御）。単数では `string | null`、`multiple` では `string[]` */
+  defaultValue?: ComboboxValue<Multiple>;
   /** 値が変わるときに、次の値を渡して呼びます */
-  onValueChange?: (value: string | string[] | null) => void;
+  onValueChange?: (value: ComboboxValue<Multiple>) => void;
   /** 打っている文字（制御）。外で絞り込むときに使います */
   inputValue?: string;
   /** はじめの打っている文字（非制御） */
@@ -397,9 +406,20 @@ const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 const defaultChipRemoveName = (label: string) => `${label} を外す`;
 
 /**
+ * Base UI から来た値を onValueChange に渡す
+ * 値の型は multiple の有無で決まるので（ComboboxValue）、Base UI 側の広い型からここで橋渡しする
+ */
+function emitValue<Multiple extends boolean>(
+  onValueChange: (value: ComboboxValue<Multiple>) => void,
+  next: string | string[] | null
+) {
+  (onValueChange as (value: string | string[] | null) => void)(next);
+}
+
+/**
  * 選択肢を打って絞り込み、選ぶ入力欄
  */
-export function Combobox({
+export function Combobox<Multiple extends boolean = false>({
   label,
   caption,
   captionPlacement,
@@ -416,7 +436,7 @@ export function Combobox({
   showGroupSeparator = false,
   placeholder,
   enterKeyHint = 'enter',
-  multiple = false,
+  multiple: multipleProp,
   value,
   defaultValue,
   onValueChange,
@@ -467,7 +487,9 @@ export function Combobox({
   requiredMark,
   optionalMark,
   className,
-}: ComboboxProps) {
+}: ComboboxProps<Multiple>) {
+  // multiple は型（ComboboxValue）を決めるので props では Multiple のまま受け、中では boolean として扱う
+  const multiple = multipleProp ?? false;
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない
   const loadingBlocking = loading && loadingBehavior === 'blocking';
   const loadingRow = loading && !loadingBlocking;
@@ -794,7 +816,7 @@ export function Combobox({
           multiple={multiple}
           value={value}
           defaultValue={defaultValue}
-          onValueChange={(next) => onValueChange?.(next)}
+          onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
           inputValue={inputValue}
           defaultInputValue={defaultInputValue}
           onInputValueChange={(next) => onInputValueChange?.(next)}
