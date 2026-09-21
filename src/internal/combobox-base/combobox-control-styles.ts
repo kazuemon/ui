@@ -58,8 +58,11 @@ export function comboboxInputClass({
     .join(' ');
 }
 
-/** 欄の中にチップと打つ欄を並べる箱（Base UI の Chips）のクラス */
-export const comboboxChipsClass = `flex min-w-0 flex-1 flex-wrap items-center gap-(--spacing) py-(--spacing) ${controlInset}`;
+/**
+ * 欄の中にチップと打つ欄を並べる箱（Base UI の Chips）のクラス
+ * 折り返すかどうかは持たない（使う側が渡す。TagsInput は行数の上限で差し替える）
+ */
+export const comboboxChipsClass = `flex min-w-0 flex-1 items-center gap-(--spacing) py-(--spacing) ${controlInset}`;
 
 /** 押すボタンの本体（シートに打つ欄を移したとき）に、選んだチップを並べる箱のクラス。余白は本体が持つ */
 export const comboboxTriggerChipsClass =

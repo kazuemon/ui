@@ -33,6 +33,17 @@ interface ComboboxChipsProps extends ChipLookProps {
   chipsLabel: string;
   /** チップの × の読み上げの名前を作る関数 */
   chipRemoveLabel: (label: string) => string;
+  /**
+   * 箱（Base UI の Chips）に足すクラス。折り返し方はここで渡す
+   * @default 'flex-wrap'
+   */
+  className?: string;
+  /** チップ1つずつに足すクラス */
+  chipClassName?: string;
+  /** チップ1つずつに足す属性（どのチップかを示す印など）。タグの文字を受け取る */
+  chipProps?: (value: string) => Record<`data-${string}`, string | undefined>;
+  /** 箱ごと包む（TagsInput は、はみ出した分をスクロールさせる枠に入れる） */
+  wrap?: (chips: ReactNode) => ReactNode;
   /** チップの後ろに置く打つ欄。選んだ値の並びを受け取る（プレースホルダの出し分けに使う） */
   children: (values: string[]) => ReactNode;
 }
@@ -46,43 +57,52 @@ export function ComboboxChips({
   readOnly,
   disabled,
   chipStyle,
+  className = 'flex-wrap',
+  chipClassName,
+  chipProps,
+  wrap,
   children,
 }: ComboboxChipsProps) {
+  const chipClass = chipClassName ? `${comboboxChipClass} ${chipClassName}` : comboboxChipClass;
   return (
     <BaseCombobox.Value>
-      {(values: string[]) => (
-        <BaseCombobox.Chips
-          aria-label={values.length > 0 ? chipsLabel : undefined}
-          className={comboboxChipsClass}
-        >
-          {values.map((item) => {
-            const text = labelOf.get(item) ?? item;
-            return (
-              <BaseCombobox.Chip
-                key={item}
-                render={
-                  <Chip
-                    color={color}
-                    readOnly={readOnly}
-                    disabled={disabled}
-                    style={chipStyle}
-                    className={comboboxChipClass}
-                  />
-                }
-              >
-                <span className="min-w-0 truncate">{text}</span>
-                {!readOnly && (
-                  <BaseCombobox.ChipRemove
-                    render={<ChipRemove aria-label={chipRemoveLabel(text)} />}
-                    disabled={disabled || undefined}
-                  />
-                )}
-              </BaseCombobox.Chip>
-            );
-          })}
-          {children(values)}
-        </BaseCombobox.Chips>
-      )}
+      {(values: string[]) => {
+        const chips = (
+          <BaseCombobox.Chips
+            aria-label={values.length > 0 ? chipsLabel : undefined}
+            className={`${comboboxChipsClass} ${className}`}
+          >
+            {values.map((item) => {
+              const text = labelOf.get(item) ?? item;
+              return (
+                <BaseCombobox.Chip
+                  key={item}
+                  {...chipProps?.(item)}
+                  render={
+                    <Chip
+                      color={color}
+                      readOnly={readOnly}
+                      disabled={disabled}
+                      style={chipStyle}
+                      className={chipClass}
+                    />
+                  }
+                >
+                  <span className="min-w-0 truncate">{text}</span>
+                  {!readOnly && (
+                    <BaseCombobox.ChipRemove
+                      render={<ChipRemove aria-label={chipRemoveLabel(text)} />}
+                      disabled={disabled || undefined}
+                    />
+                  )}
+                </BaseCombobox.Chip>
+              );
+            })}
+            {children(values)}
+          </BaseCombobox.Chips>
+        );
+        return wrap ? wrap(chips) : chips;
+      }}
     </BaseCombobox.Value>
   );
 }

@@ -21,6 +21,22 @@ export {
   type AlertDialogTone,
 } from './components/alert-dialog/AlertDialog';
 export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
+export {
+  Autocomplete,
+  type AutocompleteColor,
+  type AutocompleteFilter,
+  type AutocompleteGroup,
+  type AutocompleteGroupLabelStyle,
+  type AutocompleteItem,
+  type AutocompleteItemNote,
+  type AutocompleteItemNoteKind,
+  type AutocompleteItems,
+  type AutocompleteOpenOn,
+  type AutocompletePresentation,
+  type AutocompleteProps,
+  type AutocompleteSelectEvent,
+  type AutocompleteSheetInput,
+} from './components/autocomplete/Autocomplete';
 export { Avatar, type AvatarFallback, type AvatarProps } from './components/avatar/Avatar';
 export { Badge, type BadgeProps } from './components/badge/Badge';
 export { Blockquote, type BlockquoteProps } from './components/blockquote/Blockquote';
@@ -306,6 +322,21 @@ export {
 } from './components/steps/Steps';
 export { Chip, ChipRemove, type ChipProps, type ChipRemoveProps } from './components/chip/Chip';
 export { Tag, type TagProps } from './components/tag/Tag';
+export {
+  TagsInput,
+  type TagsInputChipSize,
+  type TagsInputColor,
+  type TagsInputFilter,
+  type TagsInputGroup,
+  type TagsInputGroupLabelStyle,
+  type TagsInputItem,
+  type TagsInputItemNote,
+  type TagsInputItemNoteKind,
+  type TagsInputItems,
+  type TagsInputPresentation,
+  type TagsInputProps,
+  type TagsInputRejectReason,
+} from './components/tags-input/TagsInput';
 export {
   Tab,
   TabList,

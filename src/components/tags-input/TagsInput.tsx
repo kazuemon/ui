@@ -40,6 +40,7 @@ import {
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { XIcon } from '../../internal/icons';
+import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { flattenItems, isGroupedItems, labelMap } from '../../internal/listbox/listbox-items';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
@@ -73,8 +74,6 @@ import {
 } from './tags-input-commit';
 import type { TagsInputGroup, TagsInputItem, TagsInputItems } from './tags-input-items';
 import { TagsInputChips } from './TagsInputChips';
-import { TagsInputOption } from './TagsInputOption';
-import { TagsInputRejectTip } from './TagsInputRejectTip';
 import { useTagsFlash } from './use-tags-flash';
 
 export type {
@@ -97,12 +96,6 @@ export type TagsInputPresentation = OverlayPresentation;
 
 /** チップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくする */
 export type TagsInputChipSize = ComboboxChipSize;
-
-/**
- * 弾いたときの文の出し場所（軸 261 の比較中）
- * field-below: 本体の下の行（info の見た目）、chip-top・chip-bottom: 弾かれたチップの上・下に付く小さな面
- */
-export type TagsInputRejectMessagePlacement = 'field-below' | 'chip-top' | 'chip-bottom';
 
 /**
  * 打った文字と候補を突き合わせる関数。`Combobox.useFilter`（Base UI）の `contains` などを渡す
@@ -214,13 +207,6 @@ export interface TagsInputProps extends FieldMarkProps {
    * 戻ったときに元の `info` が読み直されることはありません。`error`・`warning`・`success` は別の行なので影響しません
    */
   rejectMessage?: (reason: TagsInputRejectReason, tag: string) => ReactNode | false;
-  /**
-   * `rejectMessage` の文をどこに出すか。field-below は本体の下の行（丸の「i」と青い文字）、
-   * chip-top・chip-bottom は弾かれたチップの上・下に付く小さな面です。
-   * 小さな面は読み上げに届かないので、そのときは見えない `role="status"` の箱で同じ文を知らせます
-   * @default 'field-below'
-   */
-  rejectMessagePlacement?: TagsInputRejectMessagePlacement;
   /**
    * 空の欄に出す見本の文字。「打って Enter で足す」のように、どうすると足せるかが分かる書き方にします
    */
@@ -407,7 +393,6 @@ export function TagsInput({
   enterKeyHint = 'enter',
   onReject,
   rejectMessage,
-  rejectMessagePlacement = 'field-below',
   placeholder,
   items,
   groupLabelStyle = 'label',
@@ -570,28 +555,24 @@ export function TagsInput({
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
   const shownError = error ?? invalidMessage;
-  // 弾いたことを、本体の下の行でも一瞬だけ知らせる（軸 261）。文は呼び出し側が書く（原則20）
+  // 弾いたことを、本体の下の行でも一瞬だけ知らせる。文は呼び出し側が書く（原則20）
   const rejected = flash && rejectMessage ? rejectMessage(flash.reason, flash.tag) : null;
   const rejectText = rejected === false ? null : rejected;
-  const tipPlacement = rejectMessagePlacement === 'field-below' ? null : rejectMessagePlacement;
-  // 下の行に出す文（field-below）。チップに付ける出し方のときは、下の行には出さない
   // 利用者がいつも info を渡している欄では、弾いた文が同じ行に入れ替わって入る。
   //   行は読み上げの箱（aria-live）なので、文をそのまま差し替えると、弾いた文と、戻ってきた元の info の両方が読まれる。
   //   そこで、読み上げに渡る中身（元の info）は見えない形で置いたままにし、見える文だけを差し替える。
   //   弾いた文の読み上げは、下の見えない status の箱が担う（1 回だけ読まれる）
-  const infoConflict = !tipPlacement && rejectText != null && Boolean(info);
+  const infoConflict = rejectText != null && Boolean(info);
   const shownInfo = infoConflict ? (
     <>
       <span className="sr-only">{info}</span>
       <span aria-hidden>{rejectText}</span>
     </>
-  ) : tipPlacement ? (
-    info
   ) : (
     (rejectText ?? info)
   );
-  // 見えている行が読み上げないとき（チップに付けるとき・元の info と入れ替わるとき）だけ、見えない箱で知らせる
-  const announceReject = Boolean(rejectMessage) && (tipPlacement !== null || Boolean(info));
+  // 見えている行が読み上げないとき（元の info と入れ替わるとき）だけ、見えない箱で知らせる
+  const announceReject = Boolean(rejectMessage) && Boolean(info);
   const sheetMessages: SheetMessage[] = [];
   if (shownError) sheetMessages.push({ kind: 'error', content: shownError, id: `${sheetId}error` });
   if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
@@ -703,20 +684,14 @@ export function TagsInput({
             ref={setControlElement}
             data-slot="control"
             data-field-readonly={readOnly || undefined}
-            // 弾いたことの合図（軸 261）。欄を揺らす案のための印
-            data-reject={flash?.reason}
             // 行数の上限（maxRows）。枠とチップが読む変数を、欄に置く
             style={rowsStyle}
             className={comboboxControl({
               color,
               loading,
-              className: [
-                'group/tags h-auto min-h-(--spacing-control) gap-0 px-0',
-                // タグが増えたときの伸び方（軸 260）は、チップを並べる箱（TagsInputChips）が持つ。
-                // 端の消去 × は欄の側に残し、チップだけが流れる
-                'data-reject:[animation:tags-input-shake_var(--tags-input-shake-duration)_var(--ease-press)]',
-                'motion-reduce:[animation:none]',
-              ],
+              // タグが増えたときの伸び方は、チップを並べる箱（TagsInputChips）が持つ。
+              // 端の消去 × は欄の側に残し、チップだけが流れる
+              className: ['group/tags h-auto min-h-(--spacing-control) gap-0 px-0'],
             })}
           >
             <TagsInputChips
@@ -734,8 +709,6 @@ export function TagsInput({
                   aria-describedby={messageIds}
                   aria-disabled={blocking || undefined}
                   aria-busy={loading || undefined}
-                  // 確定前の文字の見せ方（軸 263）
-                  data-pending={text !== '' ? '' : undefined}
                   // ソフトウェアキーボードの実行キー。既定では Enter を送るキーにする（enterKeyHint）
                   enterKeyHint={enterKeyHint}
                   placeholder={loadingBlocking ? loadingText : chips.length > 0 ? '' : placeholder}
@@ -805,16 +778,7 @@ export function TagsInput({
                       return;
                     commitText();
                   }}
-                  className={[
-                    inputClass,
-                    'h-(--combobox-chip-height) min-w-16',
-                    // 確定前の文字の見せ方（軸 263）。既定は何も足さない
-                    // 打つ欄を文字の幅に縮める案（field-sizing）では、余った場所を押しても欄にフォーカスが当たる（Base UI）
-                    '[field-sizing:var(--tags-input-pending-sizing)] [flex-grow:var(--tags-input-pending-grow)]',
-                    'data-pending:[border:var(--tags-input-pending-border-width)_var(--tags-input-pending-border-style)_var(--tags-input-pending-border-color)]',
-                    'data-pending:bg-(--tags-input-pending-bg) data-pending:rounded-(--tags-input-pending-radius)',
-                    'data-pending:px-(--tags-input-pending-padding-x)',
-                  ].join(' ')}
+                  className={`${inputClass} h-(--combobox-chip-height) min-w-16`}
                 />
               )}
             </TagsInputChips>
@@ -839,24 +803,8 @@ export function TagsInput({
             )}
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
           </BaseCombobox.InputGroup>
-          {/* 弾いたことをチップに付けて見せる（軸 261）。見た目は Tooltip と同じで、消える長さは強調と同じ
-              見えている面は読み上げに届かないので、文は下の見えない status の箱でも知らせる */}
-          {tipPlacement && (
-            <TagsInputRejectTip
-              open={Boolean(rejectText)}
-              side={tipPlacement === 'chip-top' ? 'top' : 'bottom'}
-              anchor={() =>
-                controlRef.current?.querySelector('[data-slot="tags-input-chip"][data-flash]') ??
-                controlRef.current
-              }
-              container={portalContainer}
-            >
-              {rejectText}
-            </TagsInputRejectTip>
-          )}
-          {/* 弾いたことの読み上げ。見えている小さな面は読み上げに届かないので、見えない箱で知らせる
-              下の行に出すとき（field-below）は、その行がすでに読み上げの箱なので置かない（二重に読ませない — 原則15）。
-              ただし利用者が info を渡していて、同じ行の文が入れ替わるときは、行の代わりにこの箱が知らせる
+          {/* 弾いたことの読み上げ。ふだんは本体の下の行がすでに読み上げの箱なので置かない（二重に読ませない — 原則15）。
+              利用者が info を渡していて、同じ行の文が入れ替わるときだけ、行の代わりにこの箱が知らせる
               文が出ていないあいだも箱は残す（あとから現れる箱は読まれないため — ADR-0055） */}
           {announceReject && (
             <div role="status" data-slot="tags-input-reject-status" className="sr-only">
@@ -948,10 +896,10 @@ export function TagsInput({
                               separator={groupSeparator && index > 0}
                               labelStyle={groupLabelStyle}
                             >
-                              {(item) => <TagsInputOption key={item.value} item={item} />}
+                              {(item) => <ComboboxOption key={item.value} item={item} />}
                             </ComboboxGroupSection>
                           )
-                        : (item: TagsInputItem) => <TagsInputOption key={item.value} item={item} />}
+                        : (item: TagsInputItem) => <ComboboxOption key={item.value} item={item} />}
                     </BaseCombobox.List>
                     {(long || popoverCue) && (
                       <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />

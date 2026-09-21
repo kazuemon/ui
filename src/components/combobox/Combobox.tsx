@@ -38,6 +38,7 @@ import {
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { CaretDownIcon, XIcon } from '../../internal/icons';
+import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { flattenItems, isGroupedItems, labelMap } from '../../internal/listbox/listbox-items';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
@@ -64,7 +65,6 @@ import { usePortalContainer } from '../../internal/ui-config';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import type { ComboboxGroup, ComboboxItem, ComboboxItems } from './combobox-items';
-import { ComboboxOption } from './ComboboxOption';
 
 export type {
   ComboboxGroup,

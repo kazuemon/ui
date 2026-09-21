@@ -183,6 +183,11 @@ const meta = {
       table: { defaultValue: { summary: "'入力内容を消去'" } },
     },
     openOn: { control: 'inline-radio', options: ['input', 'focus', 'click'] },
+    enterKeyHint: {
+      control: 'inline-radio',
+      options: ['enter', 'done', 'go', 'next', 'send'],
+      table: { defaultValue: { summary: "'enter'" } },
+    },
     filter: { control: 'boolean' },
     completeInput: { control: 'boolean' },
     closeOnSelect: { control: 'boolean' },

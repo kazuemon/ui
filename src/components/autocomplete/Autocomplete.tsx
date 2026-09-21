@@ -35,6 +35,7 @@ import {
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { XIcon } from '../../internal/icons';
+import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { flattenItems, isGroupedItems } from '../../internal/listbox/listbox-items';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
@@ -61,7 +62,6 @@ import { usePortalContainer } from '../../internal/ui-config';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import type { AutocompleteGroup, AutocompleteItem, AutocompleteItems } from './autocomplete-items';
-import { AutocompleteOption } from './AutocompleteOption';
 import { AutocompleteScroll } from './AutocompleteScroll';
 
 export type {
@@ -235,12 +235,12 @@ export interface AutocompleteProps extends FieldMarkProps {
    */
   autoHighlight?: boolean;
   /**
-   * ソフトウェアキーボードの実行キーの表示と役割（HTML の enterkeyhint）。
-   * Android のキーボードは、欄が並んでいると実行キーを「次へ」にして、Enter を送らずに次の欄へフォーカスを移します。
-   * 候補を Enter で選べなくなるので、既定は 'enter' にして、Enter として送らせます
+   * ソフトウェアキーボードの実行キーの見た目と働き。既定の `'enter'` は、キーを改行の形にして Enter を送ります。
+   * 同じ画面に入力欄が並んでいると、書かないときのキーは「次へ」になり、印を移した候補を選べずに次の欄へ移ってしまいます。
+   * 最後の欄で送信まで進めたいときなど、別の働きにしたいときだけ書き換えます
    * @default 'enter'
    */
-  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
+  enterKeyHint?: ComponentProps<'input'>['enterKeyHint'];
   /**
    * 文字を消すボタン（×）を欄の端に出すか。文字があるあいだだけ出し、読み取り専用の欄では出しません
    * @default true
@@ -641,14 +641,51 @@ export function Autocomplete({
     </>
   );
 
+  // 候補の1項目。選んだ状態を持たないので、選んだ印（チェック）は置かない
+  // Base UI に渡す値は候補そのもので、押した候補を覚えて onSelect に渡す
   const renderOption = (item: AutocompleteItem) => (
-    <AutocompleteOption
+    <ComboboxOption
       key={item.value}
       item={item}
+      value={item}
+      indicator={false}
       onPress={(pressed) => {
         pressedRef.current = pressed;
       }}
     />
+  );
+
+  // 候補の一覧（Base UI の List）。浮かべるときは、スクロールと余白を包む枠（AutocompleteScroll）の中に置く
+  const renderList = (messageIds: string | undefined) => (
+    <BaseAutocomplete.List
+      ref={sheet ? listRef : undefined}
+      aria-describedby={
+        sheet
+          ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
+              .filter(Boolean)
+              .join(' ') || undefined
+          : messageIds
+      }
+      onScroll={sheet ? updateCues : undefined}
+      className={
+        sheet
+          ? listboxList({ presentation: 'sheet', loadingRow, className: 'data-empty:py-0' })
+          : 'block'
+      }
+    >
+      {grouped
+        ? (group: AutocompleteGroup, index: number) => (
+            <ComboboxGroupSection
+              key={index}
+              group={group}
+              separator={groupSeparator && index > 0}
+              labelStyle={groupLabelStyle}
+            >
+              {(item) => renderOption(item)}
+            </ComboboxGroupSection>
+          )
+        : (item: AutocompleteItem) => renderOption(item)}
+    </BaseAutocomplete.List>
   );
 
   return (
@@ -821,79 +858,10 @@ export function Autocomplete({
                 <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
                 {long && <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
                 {sheet ? (
-                  <BaseAutocomplete.List
-                    ref={sheet ? listRef : undefined}
-                    aria-describedby={
-                      sheet
-                        ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-                            .filter(Boolean)
-                            .join(' ') || undefined
-                        : messageIds
-                    }
-                    onScroll={sheet ? updateCues : undefined}
-                    // 浮かぶ候補は、スクロールと余白を包む枠（AutocompleteScroll）が持つ
-                    className={
-                      sheet
-                        ? listboxList({
-                            presentation: 'sheet',
-                            loadingRow,
-                            className: 'data-empty:py-0',
-                          })
-                        : 'block'
-                    }
-                  >
-                    {grouped
-                      ? (group: AutocompleteGroup, index: number) => (
-                          <ComboboxGroupSection
-                            key={index}
-                            group={group}
-                            separator={groupSeparator && index > 0}
-                            labelStyle={groupLabelStyle}
-                          >
-                            {(item) => renderOption(item)}
-                          </ComboboxGroupSection>
-                        )
-                      : (item: AutocompleteItem) => renderOption(item)}
-                  </BaseAutocomplete.List>
+                  renderList(messageIds)
                 ) : (
                   <AutocompleteScroll viewportRef={listRef} loadingRow={loadingRow}>
-                    <BaseAutocomplete.List
-                      ref={sheet ? listRef : undefined}
-                      aria-describedby={
-                        sheet
-                          ? [
-                              caption && sheetCaptionId,
-                              ...sheetMessages.map((message) => message.id),
-                            ]
-                              .filter(Boolean)
-                              .join(' ') || undefined
-                          : messageIds
-                      }
-                      onScroll={sheet ? updateCues : undefined}
-                      // 浮かぶ候補は、スクロールと余白を包む枠（AutocompleteScroll）が持つ
-                      className={
-                        sheet
-                          ? listboxList({
-                              presentation: 'sheet',
-                              loadingRow,
-                              className: 'data-empty:py-0',
-                            })
-                          : 'block'
-                      }
-                    >
-                      {grouped
-                        ? (group: AutocompleteGroup, index: number) => (
-                            <ComboboxGroupSection
-                              key={index}
-                              group={group}
-                              separator={groupSeparator && index > 0}
-                              labelStyle={groupLabelStyle}
-                            >
-                              {(item) => renderOption(item)}
-                            </ComboboxGroupSection>
-                          )
-                        : (item: AutocompleteItem) => renderOption(item)}
-                    </BaseAutocomplete.List>
+                    {renderList(messageIds)}
                   </AutocompleteScroll>
                 )}
                 {long && <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
