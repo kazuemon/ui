@@ -44,7 +44,7 @@ export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
   /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
   /**
-   * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * 必須にします。欄に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
@@ -116,6 +116,9 @@ export function DateField({
   color = 'neutral',
   onParseFailed,
   halfWidthNotice = false,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
 }: DateFieldProps) {
   const formLock = useFormSubmittingLock();
@@ -153,6 +156,10 @@ export function DateField({
       optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox

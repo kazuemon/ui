@@ -10,7 +10,12 @@ import {
   choiceSize,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
-import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import {
+  type CaptionPlacement,
+  Field,
+  type FieldValidate,
+  type FieldValidationMode,
+} from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { tv } from '../../internal/tv';
@@ -123,6 +128,21 @@ export type CheckboxGroupProps = Omit<
     warningText?: FieldMessage;
     /** 情報の内容。選択肢の下に丸の「i」と青い文字で出します。箱の見た目は変えません */
     infoText?: FieldMessage;
+    /**
+     * 値を確かめる関数です（design/adr/0255）。選んだ値の並びとフォーム全体の値を受け取り、正しくないとき
+     * （1つも選んでいないときなど）はエラーの文（複数あれば配列）を返します。errorText があるときは、そちらを優先します
+     */
+    validate?: FieldValidate;
+    /**
+     * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この指定が勝ちます
+     * @default 'onSubmit'
+     */
+    validationMode?: FieldValidationMode;
+    /**
+     * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+     * @default 0
+     */
+    validationDebounceTime?: number;
     /** 選んだ値の並び（制御） */
     value?: string[];
     /** はじめに選んでいる値の並び（非制御） */
@@ -178,6 +198,9 @@ export function CheckboxGroup({
   selectAll,
   allValues,
   selectAllFrame = 'none',
+  validate,
+  validationMode,
+  validationDebounceTime,
   required,
   requiredMark,
   optionalMark,
@@ -206,6 +229,9 @@ export function CheckboxGroup({
         nativeLabel={false}
         // グループのキャプションは、グループにだけ付ける。中のチェックボックス1つずつの説明には入れない（原則15）
         registerCaption={false}
+        validate={validate}
+        validationMode={validationMode}
+        validationDebounceTime={validationDebounceTime}
       >
         {(describedBy) => (
           <BaseCheckboxGroup

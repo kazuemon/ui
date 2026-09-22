@@ -12,7 +12,11 @@ import {
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
-import { FieldMessageLine } from '../../internal/field/Field';
+import {
+  FieldMessageLine,
+  mergeBaseFieldError,
+  useFormFieldErrors,
+} from '../../internal/field/Field';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
@@ -200,7 +204,10 @@ export function Checkbox({
       readOnly={locked.readOnly}
       aria-disabled={locked.ariaDisabled || ariaDisabled}
       parent={parent}
-      required={required}
+      // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+      // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
+      required={false}
+      aria-required={required || undefined}
       aria-describedby={describedBy}
       className={s.box({
         className: ['rounded-(--checkbox-radius)', locked.readOnlyLook && choiceReadOnly.box],
@@ -240,16 +247,6 @@ export function Checkbox({
     warning: `${id}warning`,
     info: `${id}info`,
   };
-  const describedBy =
-    [
-      ariaDescribedBy,
-      caption && ids.caption,
-      errorText && ids.error,
-      warningText && ids.warning,
-      infoText && ids.info,
-    ]
-      .filter(Boolean)
-      .join(' ') || undefined;
   return (
     <BaseField.Root
       disabled={disabled}
@@ -258,34 +255,119 @@ export function Checkbox({
         className: [soloRows(caption), ...choiceMessagePull, className],
       })}
     >
-      {box(describedBy)}
-      <BaseField.Label data-slot="field-label" className={s.label({ className: labelReadOnly })}>
-        {label}
-        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
-      </BaseField.Label>
-      {caption && (
-        <BaseField.Description id={ids.caption} className={s.caption()}>
-          {caption}
-        </BaseField.Description>
-      )}
-      <FieldMessageLine
-        kind="error"
-        content={errorText}
-        id={ids.error}
-        className={s.message({ className: 'row-start-[-4]' })}
-      />
-      <FieldMessageLine
-        kind="warning"
-        content={warningText}
-        id={ids.warning}
-        className={s.message({ className: 'row-start-[-3]' })}
-      />
-      <FieldMessageLine
-        kind="info"
-        content={infoText}
-        id={ids.info}
-        className={s.message({ className: 'row-start-[-2]' })}
+      <ChoiceSoloFields
+        box={box}
+        label={label}
+        labelReadOnly={labelReadOnly}
+        required={required}
+        requiredMark={requiredMark}
+        optionalMark={optionalMark}
+        caption={caption}
+        errorText={errorText}
+        warningText={warningText}
+        infoText={infoText}
+        ids={ids}
+        ariaDescribedBy={ariaDescribedBy}
+        s={s}
+        name={name}
+        disabled={disabled}
       />
     </BaseField.Root>
+  );
+}
+
+// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI 自身が見つけたエラーを読む（design/adr/0255）
+// validate など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
+// 説明（aria-describedby）も、ここで決まったエラーの有無を見て組む
+function ChoiceSoloFields({
+  box,
+  label,
+  labelReadOnly,
+  required,
+  requiredMark,
+  optionalMark,
+  caption,
+  errorText,
+  warningText,
+  infoText,
+  ids,
+  ariaDescribedBy,
+  s,
+  name,
+  disabled,
+}: {
+  box: (describedBy: string | undefined) => ReactNode;
+  label: ReactNode;
+  labelReadOnly: string | undefined;
+  required?: boolean;
+  requiredMark?: FieldMarkProps['requiredMark'];
+  optionalMark?: FieldMarkProps['optionalMark'];
+  caption: ReactNode;
+  errorText?: FieldMessage;
+  warningText?: FieldMessage;
+  infoText?: FieldMessage;
+  ids: { caption: string; error: string; warning: string; info: string };
+  ariaDescribedBy: string | undefined;
+  s: ReturnType<typeof choiceStyles>;
+  name: string | undefined;
+  disabled: boolean | undefined;
+}) {
+  const formErrors = useFormFieldErrors();
+  return (
+    <BaseField.Validity>
+      {(validity) => {
+        const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
+        const error = errorText ?? baseError;
+        const describedBy =
+          [
+            ariaDescribedBy,
+            caption && ids.caption,
+            error && ids.error,
+            warningText && ids.warning,
+            infoText && ids.info,
+          ]
+            .filter(Boolean)
+            .join(' ') || undefined;
+        return (
+          <>
+            {box(describedBy)}
+            <BaseField.Label
+              data-slot="field-label"
+              className={s.label({ className: labelReadOnly })}
+            >
+              {label}
+              <FieldMark
+                required={required}
+                requiredMark={requiredMark}
+                optionalMark={optionalMark}
+              />
+            </BaseField.Label>
+            {caption && (
+              <BaseField.Description id={ids.caption} className={s.caption()}>
+                {caption}
+              </BaseField.Description>
+            )}
+            <FieldMessageLine
+              kind="error"
+              content={error}
+              id={ids.error}
+              className={s.message({ className: 'row-start-[-4]' })}
+            />
+            <FieldMessageLine
+              kind="warning"
+              content={warningText}
+              id={ids.warning}
+              className={s.message({ className: 'row-start-[-3]' })}
+            />
+            <FieldMessageLine
+              kind="info"
+              content={infoText}
+              id={ids.info}
+              className={s.message({ className: 'row-start-[-2]' })}
+            />
+          </>
+        );
+      }}
+    </BaseField.Validity>
   );
 }

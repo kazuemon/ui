@@ -168,6 +168,10 @@ export function Textarea({
   maxLength,
   onChange,
   onValueChange,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   ref,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
@@ -255,6 +259,10 @@ export function Textarea({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <>
@@ -298,7 +306,10 @@ export function Textarea({
                     )}
                     style={style}
                     disabled={disabled}
-                    required={required}
+                    // required はブラウザのネイティブな検証を起こすので渡さない（design/adr/0255 の影響）
+                    // aria-required だけで必須であることを伝える
+                    required={false}
+                    aria-required={required || undefined}
                     readOnly={blocking || readOnly}
                     aria-disabled={blocking || ariaDisabled}
                     aria-invalid={(over && overCountInvalid) || ariaInvalid}

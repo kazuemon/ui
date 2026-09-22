@@ -1,5 +1,6 @@
 'use client';
 
+import { Form as BaseForm } from '@base-ui/react/form';
 import {
   type ComponentProps,
   useCallback,
@@ -11,6 +12,7 @@ import {
   useState,
 } from 'react';
 
+import type { FieldValidationMode } from '../../internal/field/Field';
 import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark';
 import { focusRing } from '../../internal/focus-styles';
 import { FormSubmitContext, type FormSubmittingBehavior } from '../../internal/form-context';
@@ -30,6 +32,9 @@ import {
 
 const defaultSummaryTitle = (count: number) => `入力を確かめてください（${count}件）`;
 
+/** Form の errors（design/adr/0255）。キーは欄の name、値はエラーの文（複数あれば配列） */
+export type FormErrors = Record<string, string | string[]>;
+
 export interface FormProps extends ComponentProps<'form'> {
   /**
    * 送信したときのエラーの知らせ方（design/adr/0044）
@@ -39,13 +44,34 @@ export interface FormProps extends ComponentProps<'form'> {
    */
   showErrorSummary?: boolean;
   /**
+   * サーバーなど、外から返ってきた検証エラーです（design/adr/0255）。キーは欄の name（Field・TextField などに渡した name）、
+   * 値はエラーの文（複数あれば配列）です。name が一致する欄の下の行に出し、その欄をエラーの状態にします。
+   * その欄に errorText も渡しているときは、errorText を優先します。
+   * react-hook-form などのライブラリを使うときは、ライブラリの検証結果をここに渡し、欄の validate は使いません（二重に検証しないため）。
+   * submitting を false にするのと同じ描画で渡してください（下の submitting の説明と同じ理由です）
+   */
+  errors?: FormErrors;
+  /**
+   * 送信したとき（Base UI の検証を通ったとき）に、欄の名前と値の組を1つのオブジェクトにして呼びます（design/adr/0255・0243）。
+   * 渡すと、ブラウザの既定の送信（ページ遷移）は起きません。onSubmit（下の、DOM のイベントを受け取るもの）と両方渡したときは、
+   * onSubmit を先に呼びます
+   */
+  onFormSubmit?: (values: Record<string, unknown>) => void;
+  /**
+   * このフォームの欄の、検証のタイミングの既定です（design/adr/0255）。欄の validationMode を書いたときは、そちらが勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
    * エラーの一覧の題です。showErrorSummary が true のときだけ使います
    * @default (count) => `入力を確かめてください（${count}件）`
    */
   errorSummaryTitle?: (count: number) => string;
   /**
    * ブラウザの既定の検証（吹き出し）を止めるかどうかです。true（既定）では吹き出しを出さず、欄の下の行（Field）だけで知らせます。
-   * false にすると、required などのブラウザの検証が働き、吹き出しも出ます
+   * `required` はどの欄もブラウザの制約にしていないので、false にしても吹き出しは出ません。
+   * `inputProps` で `type="email"`・`pattern`・`minLength` などブラウザの制約になる属性を自分で渡したときだけ、
+   * false でその制約の吹き出しが働きます（design/adr/0255 の影響）
    * @default true
    */
   noValidate?: boolean;
@@ -84,9 +110,12 @@ export interface FormProps extends ComponentProps<'form'> {
 }
 
 /**
- * フォーム（design/adr/0044）
- * 値を確かめるのはアプリ（onSubmit の中で、各欄の error・warning を決める）。Form は、その描画のあとでフォーカスを移す
- * 送信中（submitting）が終わった描画でも、送ったときの場所にフォーカスが残っていれば、同じくフォーカスを移す（サーバーから返ってきたエラー）
+ * フォーム（design/adr/0044・0255）。Base UI の Form の上に作り直しています
+ * 値を確かめるのはアプリ（onSubmit・onFormSubmit の中で各欄の error・warning を決めるか、欄の validate を使うか、errors を渡す）。
+ * Form は、その描画のあとでフォーカスを移す
+ * ブラウザネイティブの検証には寄せません。欄は required を渡してもブラウザの制約（`required` 属性）は付けず、aria-required だけで
+ * 必須であることを伝えます。送信を止め、行の文を出すのは欄の validate・Form の errors だけです（design/adr/0255 の影響）
+ * 送信中（submitting）が終わった描画でも、送ったときの場所にフォーカスが残っていれば、同じくフォーカスを移す（サーバーから返ってきたエラー・errors）
  * 中の欄の行は、欄を離れたときやあとから確かめたときに出ると、polite で知らせる。送信で出たとき（送信中が終わってフォーカスを移したときも）は知らせない（移った先で読むため）
  * 既定では noValidate（ブラウザの吹き出しを出さず、欄の下の行で知らせる）
  */
@@ -98,6 +127,9 @@ export function Form({
   submittingBehavior = 'blocking',
   requiredMark,
   optionalMark,
+  errors,
+  onFormSubmit,
+  validationMode,
   onSubmit,
   ref,
   children,
@@ -129,16 +161,28 @@ export function Form({
   const wasSubmitting = useRef(submitting);
   // 送ったときにフォーカスのあった場所（押した送信のボタン、Enter を押した欄、body）。送信中が終わったときに比べる
   const [origin, setOrigin] = useState<Element | null>(null);
+  // 送信の回数（focusCount のもと）は、押した瞬間（capture）に数える。欄の validate が通っていない欄を Base UI が
+  // 見つけて先にフォーカスを移す（onSubmit を呼ばずに止める）ときも、一覧・フォーカスの仕組みを動かすため
+  const handleSubmitCapture: NonNullable<FormProps['onSubmit']> = (event) => {
+    if (submitting) return;
+    setSubmitter(submitterOf(event));
+    setOrigin(event.currentTarget.ownerDocument.activeElement);
+    setSubmitCount((count) => count + 1);
+  };
   const handleSubmit: NonNullable<FormProps['onSubmit']> = (event) => {
     if (submitting) {
       event.preventDefault();
       return;
     }
-    setSubmitter(submitterOf(event));
-    setOrigin(event.currentTarget.ownerDocument.activeElement);
     onSubmit?.(event);
-    setSubmitCount((count) => count + 1);
   };
+  // Base UI の Form は、onSubmit のあとに続けて onFormSubmit を呼ぶ（送っているあいだの判定を挟まない）ので、ここでも確かめる
+  const handleFormSubmit = onFormSubmit
+    ? (values: Record<string, unknown>) => {
+        if (submitting) return;
+        onFormSubmit(values);
+      }
+    : undefined;
 
   // 送信中が終わった描画（submitting が true から false）: 送ったときの場所にフォーカスが残っていれば、エラーへフォーカスを移す回数を増やす
   // 欄の行が、同じ描画で「送信で出た」と分かるように、描画の中で決める（アプリがエラーを渡すのと submitting を false にするのが同じ描画のとき）
@@ -226,7 +270,16 @@ export function Form({
   return (
     <FormSubmitContext.Provider value={context}>
       <UIConfigContext value={uiConfig}>
-        <form {...props} ref={setRefs} noValidate={noValidate} onSubmit={handleSubmit}>
+        <BaseForm<Record<string, unknown>>
+          {...props}
+          ref={setRefs}
+          noValidate={noValidate}
+          errors={errors}
+          validationMode={validationMode}
+          onSubmitCapture={handleSubmitCapture}
+          onSubmit={handleSubmit}
+          onFormSubmit={handleFormSubmit}
+        >
           {summary && (
             // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く
             // フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない。移ると「題、グループ」と中身が読まれる
@@ -268,7 +321,7 @@ export function Form({
             </div>
           )}
           {children}
-        </form>
+        </BaseForm>
       </UIConfigContext>
     </FormSubmitContext.Provider>
   );

@@ -13,7 +13,12 @@ import {
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
-import { type CaptionPlacement, Field } from '../../internal/field/Field';
+import {
+  type CaptionPlacement,
+  Field,
+  type FieldValidate,
+  type FieldValidationMode,
+} from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
@@ -81,7 +86,10 @@ export function Radio({
     >
       <BaseRadio.Root
         value={value}
-        required={required}
+        // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+        // （design/adr/0255 の影響）。渡さず、aria-required だけで伝える。ふつうは RadioGroup の required を使う
+        required={false}
+        aria-required={required || undefined}
         inputRef={inputRef}
         disabled={disabled}
         readOnly={locked.readOnly}
@@ -131,6 +139,21 @@ export interface RadioGroupProps<Value>
   onValueChange?: (value: Value) => void;
   /** フォームに送るときの名前 */
   name?: string;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。選んでいる値とフォーム全体の値を受け取り、正しくないときは
+   * エラーの文（複数あれば配列）を返します。errorText があるときは、そちらを優先します
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** グループが属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
@@ -190,6 +213,9 @@ export function RadioGroup<Value>({
   required,
   requiredMark,
   optionalMark,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   ...props
 }: RadioGroupProps<Value>) {
@@ -215,6 +241,10 @@ export function RadioGroup<Value>({
         nativeLabel={false}
         // グループのキャプションは、グループにだけ付ける。中のラジオ1つずつの説明には入れない（原則15）
         registerCaption={false}
+        name={name}
+        validate={validate}
+        validationMode={validationMode}
+        validationDebounceTime={validationDebounceTime}
       >
         {(describedBy) => (
           <BaseRadioGroup<Value>
@@ -226,7 +256,10 @@ export function RadioGroup<Value>({
             form={form}
             inputRef={inputRef}
             disabled={disabled}
-            required={required}
+            // required はグループの context を通って、中の Radio の隠れた input にもネイティブの required を付けてしまう
+            // （design/adr/0255 の影響）。渡さず、aria-required（role="radiogroup"）だけを直に付けて伝える
+            required={false}
+            aria-required={required || undefined}
             readOnly={locked.readOnly}
             aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
             className="flex flex-col"

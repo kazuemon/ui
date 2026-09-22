@@ -312,17 +312,6 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - Tabs の縦向きで、並びが画面に入り切らないときの扱い（縦のスクロールと端の影）。横向きのスクロールの帯（ADR-0258 の軸では決めていません）
 - Menu の項目の照合文字の `label` の扱い（typeahead 用に別名にするか、Base UI と同じ意味のまま残すかは決めていません）
 
-### props の直し（記録済み、未実装）
-
-2026-09-21 の props の監査で決めた改名・渡し方・足す props は、[`design/props.md`](./props.md) と [ADR-0250](./adr/0250-props-passthrough.md)〜[0255](./adr/0255-form-on-base-ui.md) に記録しました。コードはまだ直していません。直す順は次のとおりです。
-
-1. ref バグ: 利用者の `ref` が内部の `ref` を黙って上書きする 4 件（Navbar・Tree・TableOfContents・TabList）を直します
-2. 改名: 色・variant・shape・show/hide・文字の props など、名前を変える一覧を当てます
-3. 渡し方: rest の流し方、`<部位>Props`、Base UI の props の名前をそろえます（ADR-0250、0251）
-4. 足す props: 足すと決めた props の一覧を当てます（ADR-0254）
-5. 見本と JSDoc: 見本のページの書き直しと、JSDoc の定型文を当てます（ADR-0253）
-6. Form: Base UI の Form の上に作り直します。設計を含むので最後にします（ADR-0255）
-
 ## レシピの案
 
 - レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:

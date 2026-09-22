@@ -58,6 +58,9 @@ export interface PinFieldProps
       | 'loadingBehavior'
       | 'requiredMark'
       | 'optionalMark'
+      | 'validate'
+      | 'validationMode'
+      | 'validationDebounceTime'
     >,
     HalfWidthNoticeProps {
   /**
@@ -122,7 +125,7 @@ export interface PinFieldProps
   /** 関連づける form の id */
   form?: string;
   /**
-   * 必須にします。箱の列に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * 必須にします。箱の列に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
@@ -209,6 +212,10 @@ export function PinField({
   ref,
   inputProps,
   halfWidthNotice = false,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   ...props
 }: PinFieldProps) {
   // Form の送信中・blocking の待ちは、TextField と同じく押せない欄の見た目にし、書き換えを止める。フォーカスは外さない
@@ -247,6 +254,10 @@ export function PinField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <div
@@ -255,12 +266,16 @@ export function PinField({
         >
           <OTPField.Root
             {...props}
+            name={name}
             ref={ref}
             length={length}
             validationType="none"
             inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
             normalizeValue={normalize}
-            required={required}
+            // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+            // （design/adr/0255 の影響）。渡さず、aria-required（OTPField.Root の role="group"）だけで伝える
+            required={false}
+            aria-required={required || undefined}
             disabled={disabled}
             readOnly={blocking || readOnly}
             aria-describedby={messageIds}

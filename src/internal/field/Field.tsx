@@ -1,6 +1,11 @@
 'use client';
 
+// このファイルは @base-ui/react/internals/form-context を読みます（useFormFieldErrors）。
+// Form の errors（サーバーのエラーなど）を読む形が、公開の部位（BaseField.Validity など）に無いためです
+// （design/adr/0255）。公開 API に無いので internals を読む。Base UI を上げるときに確かめる
 import { Field as BaseField } from '@base-ui/react/field';
+import type { FieldValidityState } from '@base-ui/react/field';
+import { useFormContext } from '@base-ui/react/internals/form-context';
 import { type ReactNode, useContext, useId, useState } from 'react';
 
 import { FieldMark, type FieldMarkProps } from './FieldMark';
@@ -8,6 +13,69 @@ import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useFormSubmittingLock } from '../form-context';
 import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
 import { LoadingBar, Spinner } from '../../components/loading/Loading';
+
+/**
+ * 欄の検証のタイミング（design/adr/0255）。Base UI の Form・Field.Root の validationMode と同じ意味
+ * onSubmit（既定）は送信したときだけ、onBlur は欄を離れたとき、onChange は打つたびに確かめる
+ */
+export type FieldValidationMode = 'onSubmit' | 'onBlur' | 'onChange';
+
+/**
+ * Field の検証の関数（design/adr/0255）。Base UI の Field.Root の validate と同じ形ですが、
+ * Base UI の props の型は継がず、ここで宣言します（design/adr/0250）
+ * いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文（複数あれば配列）を返します。
+ * 何も返さない・null・空文字・空配列は「正しい」とみなします。非同期の関数も使えます
+ */
+export type FieldValidate = (
+  value: unknown,
+  formValues: Record<string, unknown>
+) => string | string[] | null | void | Promise<string | string[] | null | void>;
+
+/**
+ * Form の errors（design/adr/0255）を読みます。@base-ui/react の公開の部位には Form の errors を読む形がないため
+ * （BaseField.Validity の error・errors は欄の validate・ネイティブの制約だけを表し、Form の errors とは合流しません。
+ * 合流させているのは Base UI 自身の内部の Field.Error だけです）、内部の FormContext を読みます
+ * （@base-ui/react/internals/form-context）。Base UI を上げるとき、この internals の形が変わっていないか確かめてください
+ */
+export function useFormFieldErrors(): Record<string, string | string[]> {
+  return useFormContext().errors;
+}
+
+/**
+ * Base UI が見つけた、この欄のエラー（Form の errors・validate の結果）を1つの ReactNode にまとめます（design/adr/0255）
+ * name・disabled は呼び出し側の props をそのまま渡します。formErrors は useFormFieldErrors()、validity は
+ * BaseField.Validity の render prop（公開 API）から渡します。フックではないので、render prop の中でも呼べます
+ * Form の errors（サーバーのエラーなど）は validate の結果より勝ちます（Base UI の Field.Error と同じ順 — 二重に出さない）
+ */
+export function mergeBaseFieldError({
+  name,
+  disabled,
+  formErrors,
+  validity,
+}: {
+  name: string | undefined;
+  disabled: boolean | undefined;
+  formErrors: Record<string, string | string[]>;
+  validity: FieldValidityState;
+}): ReactNode {
+  if (disabled) return undefined;
+  const formError = name && Object.hasOwn(formErrors, name) ? formErrors[name] : null;
+  if (formError && (!Array.isArray(formError) || formError.length)) return messageOf(formError);
+  if (validity.errors.length > 1) return messageOf(validity.errors);
+  return validity.error || undefined;
+}
+
+function messageOf(value: string | string[]): ReactNode {
+  if (!Array.isArray(value)) return value;
+  if (value.length <= 1) return value[0];
+  return (
+    <ul>
+      {value.map((message) => (
+        <li key={message}>{message}</li>
+      ))}
+    </ul>
+  );
+}
 
 /** キャプション（ヘルプテキスト）の場所。top: ラベルと本体のあいだ（既定）、bottom: 本体の下 */
 export type CaptionPlacement = 'top' | 'bottom';
@@ -208,6 +276,25 @@ export interface FieldProps extends FieldMarkProps {
    * 登録すると、グループの説明が選択肢1つずつの aria-describedby にも入り、同じ文が繰り返し読まれる（原則15: 見えている文字を、二度読ませない）
    */
   registerCaption?: boolean;
+  /**
+   * フォームの中でこの欄を識別する名前です。Base UI の Form の errors（サーバーのエラーなど）は、この名前で欄に届きます（design/adr/0255）
+   */
+  name?: string;
+  /**
+   * 値を確かめる関数です。正しくないときに返したエラーの文は、error（errorText）と同じ行に出します。error があるときは、そちらを優先します。
+   * react-hook-form などのライブラリを使うときは、ライブラリの検証結果を Form の `errors` に渡し、`validate` は使いません（二重に検証しないため）
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです。Form の validationMode より、この欄の指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
 }
 
 /**
@@ -235,6 +322,10 @@ export function Field({
   children,
   nativeLabel = true,
   registerCaption = true,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
 }: FieldProps) {
   const styles = fieldStyles();
   const id = useId();
@@ -246,8 +337,6 @@ export function Field({
     success: `${id}success`,
     info: `${id}info`,
   };
-  const messages: Record<MessageKind, ReactNode> = { error, warning, success, info };
-  const kinds = Object.keys(messages) as MessageKind[];
   // グループ（registerCaption=false）では、Base UI に説明として登録しない。
   // 登録すると Field.Item（中の選択肢）にも伝わり、グループの説明が1つずつの選択肢でも読まれる（原則15）
   const captionNode = caption ? (
@@ -261,15 +350,14 @@ export function Field({
       </p>
     )
   ) : null;
-  // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
-  const describedBy =
-    [captionNode && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
-      .filter(Boolean)
-      .join(' ') || undefined;
   // 待っているあいだの見た目（design/adr/0042）。Form の送信中に止めるときも、止める見た目（印は出さない）
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
   return (
     <BaseField.Root
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
       invalid={error || invalid ? true : undefined}
       disabled={disabled || undefined}
       data-loading={loadingState}
@@ -288,12 +376,79 @@ export function Field({
         {label}
         <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
-      {captionPlacement === 'top' && captionNode}
-      {typeof children === 'function' ? children(describedBy) : children}
-      {captionPlacement === 'bottom' && captionNode}
-      {kinds.map((kind) => (
-        <FieldMessageLine key={kind} kind={kind} content={messages[kind]} id={ids[kind]} />
-      ))}
+      <FieldBody
+        captionNode={captionNode}
+        captionId={captionId}
+        captionPlacement={captionPlacement}
+        error={error}
+        warning={warning}
+        success={success}
+        info={info}
+        ids={ids}
+        name={name}
+        disabled={disabled}
+      >
+        {children}
+      </FieldBody>
     </BaseField.Root>
+  );
+}
+
+// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI が見つけた検証結果を読む
+function FieldBody({
+  captionNode,
+  captionId,
+  captionPlacement,
+  error,
+  warning,
+  success,
+  info,
+  ids,
+  name,
+  disabled,
+  children,
+}: {
+  captionNode: ReactNode;
+  captionId: string;
+  captionPlacement: CaptionPlacement;
+  error: ReactNode;
+  warning: ReactNode;
+  success: ReactNode;
+  info: ReactNode;
+  ids: Record<MessageKind, string>;
+  name: string | undefined;
+  disabled: boolean | undefined;
+  children: FieldProps['children'];
+}) {
+  const formErrors = useFormFieldErrors();
+  return (
+    <BaseField.Validity>
+      {(validity) => {
+        // Base UI の検証（validate・Form の errors）が見つけたエラー。error（errorText）があれば、そちらを優先する
+        const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
+        const messages: Record<MessageKind, ReactNode> = {
+          error: error ?? baseError,
+          warning,
+          success,
+          info,
+        };
+        const kinds = Object.keys(messages) as MessageKind[];
+        // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
+        const describedBy =
+          [captionNode && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
+            .filter(Boolean)
+            .join(' ') || undefined;
+        return (
+          <>
+            {captionPlacement === 'top' && captionNode}
+            {typeof children === 'function' ? children(describedBy) : children}
+            {captionPlacement === 'bottom' && captionNode}
+            {kinds.map((kind) => (
+              <FieldMessageLine key={kind} kind={kind} content={messages[kind]} id={ids[kind]} />
+            ))}
+          </>
+        );
+      }}
+    </BaseField.Validity>
   );
 }

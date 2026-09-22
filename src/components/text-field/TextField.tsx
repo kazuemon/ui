@@ -49,6 +49,10 @@ export function TextField({
   optionalMark,
   onValueChange,
   inputProps,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -75,6 +79,10 @@ export function TextField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox
@@ -100,7 +108,10 @@ export function TextField({
                 inputClassName
               )}
               disabled={disabled}
-              required={required}
+              // required はブラウザのネイティブな検証（送信を止め、ブラウザの文を出す）を起こすので渡さない
+              // （design/adr/0255 の影響）。aria-required だけで必須であることを伝える
+              required={false}
+              aria-required={required || undefined}
               readOnly={blocking || readOnly}
               aria-disabled={blocking || ariaDisabled}
               aria-busy={loading || ariaBusy}

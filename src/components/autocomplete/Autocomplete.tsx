@@ -31,6 +31,8 @@ import {
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
+  type FieldValidate,
+  type FieldValidationMode,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
@@ -388,6 +390,21 @@ export interface AutocompleteProps extends FieldMarkProps {
   loadedText?: (count: number) => string;
   /** フォームに送るときの名前。送るのは欄の文字です */
   name?: string;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
+   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
@@ -456,6 +473,9 @@ export function Autocomplete({
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   form,
   required,
   requiredMark,
@@ -629,6 +649,7 @@ export function Autocomplete({
         <BaseAutocomplete.Input
           enterKeyHint={enterKeyHint}
           aria-describedby={messageIds}
+          aria-required={required || undefined}
           aria-disabled={blocking || undefined}
           aria-busy={loading || undefined}
           placeholder={loadingBlocking ? loadingText : placeholder}
@@ -669,6 +690,7 @@ export function Autocomplete({
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
         aria-describedby={messageIds}
+        aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
         data-slot="control"
@@ -771,6 +793,10 @@ export function Autocomplete({
       className={className}
       // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない
       nativeLabel={!inputInSheet}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <BaseAutocomplete.Root<ListboxItem>
@@ -809,7 +835,9 @@ export function Autocomplete({
           openOnInputClick={effectiveOpenOn === 'click' || effectiveOpenOn === 'focus'}
           disabled={disabled}
           readOnly={locked || undefined}
-          required={required}
+          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+          // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
+          required={false}
           name={name}
           form={form}
           modal={modal}

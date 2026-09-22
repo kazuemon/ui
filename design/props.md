@@ -160,7 +160,7 @@ Base UI の props のうち、名前を変えて出すものです。
 
 重なる部品（Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）は、`dismissible`・`closeOnEscape`・`modal`・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` のうち、土台が持つものを同じ名前・同じ型で持ちます（Menu は Base UI に `initialFocus` がないので `autoFocus` を持ちません。Tooltip は焦点を持たないので焦点の props を持ちません）。シートを開いたとき入力欄に焦点を当てるかは `focusInputOnOpen`（真偽値）で、`autoFocus` とは別です。
 
-入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps` を同じ名前で持ちます（Select は Base UI に input の部位がないので `inputProps` の代わりに `inputRef` です）。1 つの部品だけ欠けているのは直します。
+入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps`・`validate`・`validationMode` を同じ名前で持ちます（Select は Base UI に input の部位がないので `inputProps` の代わりに `inputRef` です）。1 つの部品だけ欠けているのは直します。Form は、欄の `name` に合わせて外から返すエラーを `errors` で、送信を通ったときの値を `onFormSubmit` で受けます（design/adr/0255）。
 
 ## props を足すか、className に任せるか
 

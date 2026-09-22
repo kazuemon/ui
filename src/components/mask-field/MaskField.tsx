@@ -156,6 +156,10 @@ export function MaskField({
   onChange,
   onCompositionStart,
   onCompositionEnd,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -278,6 +282,10 @@ export function MaskField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox
@@ -315,7 +323,10 @@ export function MaskField({
                 placeholder={placeholder}
                 inputMode={inputMode ?? (numericOnly(mask) ? 'numeric' : undefined)}
                 disabled={disabled}
-                required={required}
+                // required はブラウザのネイティブな検証を起こすので渡さない（design/adr/0255 の影響）
+                // aria-required だけで必須であることを伝える
+                required={false}
+                aria-required={required || undefined}
                 readOnly={blocking || readOnly}
                 aria-disabled={blocking || ariaDisabled}
                 aria-busy={loading || ariaBusy}
