@@ -5,7 +5,8 @@
 
 /* SiteHeader は貼り付けた（sticky）Navbar。アンカーで見出しへ移ると、帯の下に隠れてしまう。
    帯が占める高さ（Navbar.tsx の inner の高さ + 下の線）ぶん、見出しの上を空ける。
-   Affix の belowNavbar の空け方（design/tokens.css の --affix-navbar-height）と同じ計算 */
+   Affix の belowNavbar の空け方（design/tokens.css の --affix-navbar-height）と同じ計算に、
+   帯にぴったりくっつかないよう、ひと呼吸ぶんの余白（--spacing の尺度）を足す */
 :where(h1, h2, h3, h4, h5, h6)[id] {
-  scroll-margin-top: calc(var(--navbar-height) + var(--border-width-thin));
+  scroll-margin-top: calc(var(--navbar-height) + var(--border-width-thin) + var(--spacing) * 4);
 }
