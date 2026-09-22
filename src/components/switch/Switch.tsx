@@ -223,7 +223,8 @@ const styles = tv({
       'transition-[translate,scale] duration-(--duration-press) ease-press motion-reduce:transition-none',
       'data-checked:translate-x-[calc(var(--switch-w)-var(--switch-knob)-var(--switch-inset)*2)]',
       // 押しているあいだ（トラックかラベル）は縮む。押せないときは縮まない
-      'group-active/switch:scale-92 group-has-[label:active]/toggle:scale-92 data-disabled:scale-100! data-disabled:shadow-none',
+      // ラベルの中のリンクを押したときは、:active がラベルまで伝わっても縮めない（label 自身の押下だけを見る）
+      'group-active/switch:scale-92 group-has-[label:active]/toggle:group-not-has-[a:active]/toggle:scale-92 data-disabled:scale-100! data-disabled:shadow-none',
     ],
   },
 });

@@ -61,11 +61,12 @@ export const choiceStyles = tv({
       // 押しているあいだ（箱か横の文字）。押せないときは変えない
       //   --choice-press（0 か 1）で沈む深さを掛ける。塗りは、選んでいない箱は hover の塗りに本文の色を、選んだ箱は部品の色に黒を混ぜる
       '[translate:0_calc(var(--choice-press)*var(--flat-press-depth))] [--choice-press:0]',
-      'not-data-disabled:group-has-[label:active]/choice:[--choice-press:1] not-data-disabled:active:[--choice-press:1]',
+      // ラベルの中のリンクを押したときは、:active がラベルまで伝わっても沈めない（label 自身の押下だけを見る）
+      'not-data-disabled:group-has-[label:active]/choice:group-not-has-[a:active]/choice:[--choice-press:1] not-data-disabled:active:[--choice-press:1]',
       'not-data-disabled:active:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
-      'not-data-disabled:group-has-[label:active]/choice:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
+      'not-data-disabled:group-has-[label:active]/choice:group-not-has-[a:active]/choice:[--color-choice:color-mix(in_oklab,var(--color-choice-hover),var(--color-fg)_var(--choice-press-darken))]',
       'not-data-disabled:active:[--choice-on-pressed:color-mix(in_oklab,var(--choice-on),black_var(--choice-on-press-darken))]',
-      'not-data-disabled:group-has-[label:active]/choice:[--choice-on-pressed:color-mix(in_oklab,var(--choice-on),black_var(--choice-on-press-darken))]',
+      'not-data-disabled:group-has-[label:active]/choice:group-not-has-[a:active]/choice:[--choice-on-pressed:color-mix(in_oklab,var(--choice-on),black_var(--choice-on-press-darken))]',
       ...focusRing,
       // 沈む動きはボタンの押下と同じ長さと緩急
       // 塗りは動かさない。印（チェック・点）はすぐ出入りするので、塗りだけが遅れると、印のない濃い箱や、薄い箱の上の白い印が一瞬見えてちらつく
