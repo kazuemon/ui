@@ -114,7 +114,7 @@ Stat の増減の良し悪しは `trend` です。値の意味（増えたこと
 
 ### 大きさと形
 
-`size` は、意味のある段はその名前で持ちます。Container・Navbar の `prose`・`default`・`wide`・`full` は中身の幅の上限、Heading・Stat の段は見出しの段です。ただの大小は Tailwind の尺度名（`xs`〜`xl`）です。Tag・Badge・Chip の大きさは 1 本の軸で決めます。
+`size` は、意味のある段はその名前で持ちます。Container・Navbar の `prose`・`default`・`wide`・`full` は中身の幅の上限、Heading・Stat の段は見出しの段です。ただの大小は Tailwind の尺度名（`xs`〜`xl`）です。小物（Tag・Badge・Chip）の大きさは 1 本の軸 `size`（`sm`・`md`・`lg`）で、周りの文字に従わせるときは `inherit` です。Combobox 系の `chipSize` も同じ段です。
 
 `shape` は輪郭の形で、値は `circle`・`square` です。文字のあるボタンの `circle` は両端が丸い形（pill）です。
 

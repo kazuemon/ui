@@ -78,7 +78,7 @@ const meta = {
     commitOnBlur: true,
     openOnInputClick: false,
     autoHighlight: false,
-    chipSize: 'sm',
+    chipSize: 'md',
     loading: false,
     loadingBehavior: 'non-blocking',
     loadingIndicator: 'spinner',
@@ -104,7 +104,11 @@ const meta = {
     hideSuccessMark: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     infoText: { control: 'text' },
     color: { control: 'inline-radio', options: ['primary', 'secondary', 'neutral'] },
-    chipSize: { control: 'inline-radio', options: ['sm', 'md'] },
+    chipSize: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg'],
+      table: { defaultValue: { summary: "'md'" } },
+    },
     maxRows: { control: 'number' },
     enterKeyHint: {
       control: 'inline-radio',
@@ -487,17 +491,20 @@ export const Chips: Story = {
     docs: {
       description: {
         story:
-          'チップの高さは `chipSize`（既定は `sm`）、最大幅は `chipMaxWidth` で決めます。最大幅を決めないときは、欄の幅までです。タグが増えると欄の高さが伸びます。',
+          'チップの高さは `chipSize`（既定は `md`。Tag・Badge・Chip と共通の大きさの軸 — ADR-0259）、最大幅は `chipMaxWidth` で決めます。最大幅を決めないときは、欄の幅までです。タグが増えると欄の高さが伸びます。',
       },
     },
   },
   render: (args) => (
     <Gallery>
-      <Specimen label="sm（既定）">
+      <Specimen label="sm">
+        <TagsInput {...args} chipSize="sm" defaultValue={['デザイン', '実装']} />
+      </Specimen>
+      <Specimen label="md（既定）">
         <TagsInput {...args} defaultValue={['デザイン', '実装']} />
       </Specimen>
-      <Specimen label="md">
-        <TagsInput {...args} chipSize="md" defaultValue={['デザイン', '実装']} />
+      <Specimen label="lg">
+        <TagsInput {...args} chipSize="lg" defaultValue={['デザイン', '実装']} />
       </Specimen>
       <Specimen label="chipMaxWidth">
         <TagsInput

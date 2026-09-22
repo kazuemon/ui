@@ -447,20 +447,6 @@
   --leading-heading-4-fine: 28px;
   --leading-heading-4-coarse: 24px;
 
-  /* 読む文字の variant の組（Text の label・caption）— 軸 266 で決めるまでは仮
-     既定は欄のラベル・キャプション（src/internal/field/field-styles.ts）と同じ値。大きさ・行の高さ・太さ・色を 4 つで持ち、
-     比較のストーリーはこの 4 つの上書きだけで候補を作る。決まったら部品で決まった値に畳み、ここから消す
-     ラベルとキャプションの大きさは、いまはマウスと指で同じ値（--text-label・--text-caption）なので、ここで解いても密度で変わらない */
-  --text-variant-label-size: var(--text-label);
-  --text-variant-label-leading: var(--leading-label);
-  --text-variant-label-weight: 700;
-  --text-variant-label-color: var(--color-fg);
-  --text-variant-caption-size: var(--text-caption);
-  --text-variant-caption-leading: var(--leading-caption);
-  /* 太さを持たない（周りの文字のまま）。weight を渡せば上書きできる */
-  --text-variant-caption-weight: inherit;
-  --text-variant-caption-color: var(--color-fg-subtle);
-
   /* キー（Kbd）— 軸 53 の B。白い面に白いボタンと同じ細い輪郭、下辺だけを太くしてキーの厚みを線で見せる。影は付けない（押せないので原則1のまま）
      大きさと余白は周りの文字に対する比 */
   --kbd-size: 0.8125em;
@@ -772,20 +758,11 @@
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
 
-  /* ── 小物（Tag・Badge・Chip）の大きさ ── 軸 265 で比べている最中。まだ段（サイズの props）は決めていない
-     3 つとも、高さ・左右の余白・文字の大きさを部品のトークンで読む。既定は今までの値で、どれも未設定（部品の中に既定を書いてある）。
-     比較のストーリー（design/stories/axis-265-small-parts-size.stories.tsx）が、行ごとにこれらを上書きして段を作る。
-     軸が決まったら、選んだ段を部品の size の props に畳んで、この節は消す
-       --tag-height・--tag-pad-x・--tag-font・--tag-leading     未設定なら 20px・8px・--text-caption・--leading-caption
-       --badge-size・--badge-pad-x・--badge-dot・--badge-font   --badge-font だけ未設定（--text-caption）。残りは下の Badge の節にある
-       --chip-height・--chip-pad-x・--chip-font・--chip-leading 未設定なら --spacing-control・--spacing-control-x・--text-control・--leading-control
-       （欄の中のチップは Combobox が --spacing-control 側を差し替えるので、--chip-height を決めるとそちらが勝つ） */
+  /* ── 小物（Tag・Badge・Chip）の大きさ ── sm・md・lg・inherit の 1 本の軸（ADR-0259）
+     値は src/internal/small-parts-size.ts に持ち、Tag・Badge・Chip の tv の size 変化が --tag-*・--badge-*・--chip-* を差し替える。
+     ここには、大きさ以外で部品のトークンとして残るものだけを置く（Badge の重ねる縁・内側の寄せなど） */
 
-  /* Badge（数と小さな状態の点）の形 — ADR-0061 で A 案（16px の濃い塗り、重ねるときは縁 2px）に決めた
-     文字はタグと同じキャプション。高さは密度で変えない */
-  --badge-size: 16px; /* 数の丸の高さ（1桁で丸） */
-  --badge-pad-x: var(--spacing); /* 2桁以上で横に伸びるときの左右の余白 */
-  --badge-dot: 8px; /* 状態の点の直径 */
+  /* Badge（数と小さな状態の点）の形 — ADR-0061 で A 案（16px の濃い塗り、重ねるときは縁 2px）に決めた */
   /* 重ねるときの縁（置く面の色 --color-surface）の太さ */
   --badge-ring-width: var(--border-width-thick);
   /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */
@@ -837,12 +814,10 @@
   --popup-duration-out: 150ms;
   --popup-ease: var(--ease-sheet);
   --popup-shift: calc(var(--spacing) * 2);
-  /* Combobox の欄の中のチップ（複数選ぶとき）。ADR-0217
-     欄の中に並ぶので、部品の高さ（--spacing-control）そのままでは欄に対して大きい。既定の compact は一段小さい高さと、それに合う左右の余白にする
-     高さと余白はチップ自身が読む --spacing-control・--spacing-control-x を差し替えて渡すので、× の丸も一緒に縮む
+  /* Combobox の欄の中のチップ（複数選ぶとき）。ADR-0217・0259
+     大きさは chipSize（sm・md・lg）を Chip の size にそのまま渡す。--combobox-chip-height は
+     打つ欄の高さをチップにそろえるためだけの変数で、値は部品が chipSize から計算して置く（tokens.css には持たない）
      最大幅は既定では決めない（欄の幅まで）。切りたいときは Combobox の chipMaxWidth prop で渡す */
-  --combobox-chip-height: calc(var(--spacing-control) - var(--spacing) * 3);
-  --combobox-chip-padding-x: calc(var(--spacing) * 2);
   /* Chip の見た目。src/components/chip/。ADR-0219
      白い面に、文字の色を薄めた細い縁。グレーの欄の上でも、ページの上でも輪郭が見える
      読み取り専用は縁をなくし、入力欄の付属部分と同じグレーの面にする。押せないときは縁を薄い線の色にする
@@ -856,7 +831,7 @@
   --chip-readonly-border-color: transparent;
   /* ── TagsInput ── BEGIN tags-input */
   /* 打った文字をタグにして並べる欄。src/components/tags-input/
-     欄とチップの大きさは、複数選ぶ Combobox と同じ（--combobox-chip-*・ADR-0217）。ここは TagsInput だけが持つ差し替え
+     欄とチップの大きさは、複数選ぶ Combobox と同じ chipSize（ADR-0217・0259）。ここは TagsInput だけが持つ差し替え
      wrap・max-height・chip-shrink・content-min-width: タグが増えたときの伸び方。
      既定は Combobox と同じ折り返し（上限なし）で、行数を決めたとき（maxRows）だけ部品が欄の style で差し替える
      チップは ScrollArea の枠（軸 93）に入れてあり、上限を決めるとそこからはみ出した分がスクロールする
@@ -1102,13 +1077,6 @@
      パネルは離れは全体と同じで、角を小さくする。1 行のパネルでも pill にならず、角丸の四角に見える */
   --tabs-tab-focus-offset: calc(var(--spacing) * -1);
   --tabs-panel-radius: var(--radius-md);
-  /* 縦向き（orientation="vertical"）— 軸 264・比べている途中。決まったら部品の値に畳んで、この 3 つは消す
-     side: 選んだタブの印と並びの線を立てる側（1 = 中身に近い側、0 = 外側）
-     tab-align: 並びの中でのタブの寄せ（start・end・stretch。stretch はタブを並びの幅いっぱいにし、文字は行頭から）
-     list-width: 並びの幅（max-content なら、いちばん長いタブに合わせる） */
-  --tabs-vertical-side: 1;
-  --tabs-vertical-tab-align: start;
-  --tabs-vertical-list-width: max-content;
   /* ── END tabs */
 
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */

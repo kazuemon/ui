@@ -263,12 +263,14 @@ export const Overflow: Story = {
 
 export const Vertical: Story = {
   name: '縦向き',
+  tags: ['visual'],
   parameters: {
-    controls: { include: ['color', 'indicator'] },
+    controls: { include: ['color'] },
     docs: {
       description: {
         story:
-          '`orientation="vertical"` にすると、タブを縦に積み、中身を右に置きます。選んだタブの印は縦の棒になり、`subtle`・`segmented` ではタブ全体の塗りになります。上下の矢印キーでタブを移ります。',
+          '`orientation="vertical"` にすると、タブを縦に積み、中身を右に置きます。選んだタブの印は縦の棒になり、`subtle`・`segmented` ではタブ全体の塗りになります。上下の矢印キーでタブを移ります。' +
+          '`tabAlign="end"` で文字の終わりを線にそろえ、`listWidth` で並びの幅を決めるとタブが幅いっぱいになります。',
       },
       source: sourceCode(`
         <Tabs orientation="vertical" defaultValue="overview">
@@ -285,26 +287,50 @@ export const Vertical: Story = {
     },
   },
   render: (args) => (
-    <Tabs orientation="vertical" color={args.color} indicator={args.indicator} defaultValue="works">
-      <TabList aria-label="プロフィール">
-        <Tab value="overview">概要</Tab>
-        <Tab value="works">作品</Tab>
-        <Tab value="blog">ブログ</Tab>
-        <Tab value="contact">お問い合わせ</Tab>
-      </TabList>
-      <TabPanel value="overview" className={panelClass}>
-        かずえもんの概要です。
-      </TabPanel>
-      <TabPanel value="works" className={panelClass}>
-        作ったものの一覧です。
-      </TabPanel>
-      <TabPanel value="blog" className={panelClass}>
-        書いた記事の一覧です。
-      </TabPanel>
-      <TabPanel value="contact" className={panelClass}>
-        連絡先です。
-      </TabPanel>
-    </Tabs>
+    <div className="grid gap-8">
+      {(
+        [
+          ['既定（左寄せ・幅は最長のタブ）', {}],
+          ['tabAlign="end"', { tabAlign: 'end' }],
+          ['listWidth="12rem"', { listWidth: '12rem' }],
+        ] as const
+      ).map(([label, extra]) => (
+        <div key={label} className="grid gap-2">
+          <span className="text-xs text-fg-subtle">{label}</span>
+          <div className="flex flex-wrap gap-10">
+            {(['line', 'subtle'] as const).map((indicator) => (
+              <Tabs
+                key={indicator}
+                orientation="vertical"
+                color={args.color}
+                indicator={indicator}
+                defaultValue="works"
+                {...extra}
+              >
+                <TabList aria-label="プロフィール">
+                  <Tab value="overview">概要</Tab>
+                  <Tab value="works">作品</Tab>
+                  <Tab value="blog">ブログ</Tab>
+                  <Tab value="contact">お問い合わせ</Tab>
+                </TabList>
+                <TabPanel value="overview" className={panelClass}>
+                  かずえもんの概要です。
+                </TabPanel>
+                <TabPanel value="works" className={panelClass}>
+                  作ったものの一覧です。
+                </TabPanel>
+                <TabPanel value="blog" className={panelClass}>
+                  書いた記事です。
+                </TabPanel>
+                <TabPanel value="contact" className={panelClass}>
+                  連絡先です。
+                </TabPanel>
+              </Tabs>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   ),
 };
 

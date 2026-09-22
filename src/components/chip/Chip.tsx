@@ -6,23 +6,25 @@ import type { VariantProps } from 'tailwind-variants';
 import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
 import { warnOnce } from '../../internal/link-parts';
+import { chipSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
 // チップ（消せる小物。Combobox の複数選択や TagsInput の中に並ぶ）。原則5: 小物は pill。design/adr/0061・0074
-//   Tag（押せない文字のラベル）と同じ色と面（design/adr/0007・0028・0038・0043）。高さはボタンと同じ部品の高さ（design/adr/0074 の T1）
+//   Tag（押せない文字のラベル）と同じ色と面（design/adr/0007・0028・0038・0043）
 //   影は付けない: 入力欄の中に並ぶ小物で、ページと同じレイヤーにある（原則1）
 // 消す（×）ボタンは、チップの右端に、チップの中に収まる丸として置く。hover で文字の色を淡く敷く（原則3・平らな押すもの）
 //   ×の読み上げの名前は使う側が渡す（原則20。部品は文を作らない）
 // 押せない（原則13）: 色を持つものは色を残して薄くし、グレーは塗りと文字を近づける。読み取り専用は消すボタンを出さない
+// 大きさ（sm・md・lg・inherit）は Tag・Badge・Chip 共通の 1 本の軸 — ADR-0259（値は src/internal/small-parts-size.ts）。既定は md（今の欄の中のチップ）
+//   単体の Chip（今までの既定）は lg（部品の高さ）で選べる。Combobox・TagsInput の chipSize もこの size をそのまま渡す
 const chip = tv({
   base: [
     'inline-flex max-w-full items-center rounded-pill font-bold whitespace-nowrap',
-    // 大きさは --chip-height・--chip-pad-x・--chip-font・--chip-leading で差し替えられる（tokens.css）。
-    // 未設定なら部品の高さ（--spacing-control）と部品の中の文字に従う。欄の中のチップは、Combobox が --spacing-control 側を差し替える
-    'h-[var(--chip-height,var(--spacing-control))] pl-[var(--chip-pad-x,var(--spacing-control-x))]',
-    'text-[length:var(--chip-font,var(--text-control))] leading-[var(--chip-leading,var(--leading-control))]',
+    // 大きさは size 変化が --chip-height・--chip-pad-x・--chip-font・--chip-leading を差し替える
+    'h-[var(--chip-height)] pl-[var(--chip-pad-x)]',
+    'text-[length:var(--chip-font)] leading-[var(--chip-leading)]',
     // 消すボタンがあるとき、右は ×（丸）の分だけ空ける。丸は上下左右とも 6px 内側に置く（フォーカスの線がチップの外に出ない）
-    'pr-[var(--chip-pad-x,var(--spacing-control-x))] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5',
+    'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う
     'bg-(--chip-bg,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
@@ -46,15 +48,22 @@ const chip = tv({
       danger:
         '[--chip-color-bg:var(--color-danger-subtle)] [--chip-color-fg:var(--color-fg-danger)]',
     },
+    size: {
+      ...chipSizeClass,
+      // sm（高さ 20px）は、既定の計算（高さ − 12px）だと × の丸が 8px まで小さくなり押しにくい。
+      // 原則にない判断: sm だけ、丸をチップの高さいっぱいに広げ、中の × を 12px に固定する
+      sm: `${chipSizeClass.sm} [--chip-remove-icon-override:12px] [--chip-remove-size-override:var(--chip-height)]`,
+    },
   },
-  defaultVariants: { color: 'neutral' },
+  defaultVariants: { color: 'neutral', size: 'md' },
 });
 
 const chipRemove = tv({
   base: [
     // 丸の大きさはチップの高さから決める。中の × は丸より大きくしない（チップを小さくしたとき、×がチップからはみ出さない）
-    '[--chip-remove-size:calc(var(--chip-height,var(--spacing-control))_-_var(--spacing)_*_3)]',
-    '[--chip-remove-icon:min(var(--spacing-icon),var(--chip-remove-size))]',
+    // sm だけ、Chip の size が丸・アイコンの大きさを直に差し替える（--chip-remove-*-override）
+    '[--chip-remove-size:var(--chip-remove-size-override,calc(var(--chip-height)_-_var(--spacing)_*_3))]',
+    '[--chip-remove-icon:var(--chip-remove-icon-override,min(var(--spacing-icon),var(--chip-remove-size)))]',
     'relative inline-flex size-(--chip-remove-size) shrink-0 cursor-pointer items-center justify-center rounded-pill bg-transparent p-0 text-current',
     '[&>svg]:size-[var(--chip-remove-icon,var(--spacing-icon))]',
     ...focusRing,
@@ -98,6 +107,13 @@ interface ChipBaseProps
    */
   color?: ChipColor;
   /**
+   * 大きさ。既定の md は今までの欄の中のチップと同じ高さです。lg は部品の高さ（今までの単体 Chip の既定）、
+   * sm は Tag と同じ高さ（このときだけ × の丸をチップの高さいっぱいに広げます）。
+   * inherit は段を持たず、周りの文字の大きさ（em）に従います。Tag・Badge・Chip で共通の軸です（ADR-0259）
+   * @default 'md'
+   */
+  size?: SmallPartsSize;
+  /**
    * 押せない。薄くなり、消すボタンも押せなくなります
    * @default false
    */
@@ -128,6 +144,7 @@ export interface ChipProps extends ChipBaseProps {
  */
 export function Chip({
   color,
+  size,
   disabled = false,
   readOnly = false,
   onRemove,
@@ -145,7 +162,7 @@ export function Chip({
     <span
       data-disabled={disabled ? '' : undefined}
       data-readonly={readOnly ? '' : undefined}
-      className={chip({ color, className })}
+      className={chip({ color, size, className })}
       {...props}
     >
       {children}

@@ -6,23 +6,27 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Chip, ChipRemove } from '../../components/chip/Chip';
 import type { ListboxColor } from '../listbox/listbox-colors';
 import {
+  type ComboboxChipSize,
   comboboxChipClass,
   comboboxChipsClass,
   comboboxTriggerChipsClass,
 } from './combobox-control-styles';
 
-// 欄の中に並ぶチップ（ADR-0217・0219）。複数選ぶ Combobox と TagsInput が共有する
+// 欄の中に並ぶチップ（ADR-0217・0219・0259）。複数選ぶ Combobox と TagsInput が共有する
 //   選んだ項目は欄の中にチップで並び、欄の高さが伸びる。← でチップへ移れる（Base UI の Chips）
 //   チップの × の読み上げの名前は使う側が渡す（原則20。部品は文を作らない）
+//   大きさは Chip の size にそのまま渡す（sm・md・lg。ADR-0259）
 
 interface ChipLookProps {
   /** チップの色（原則6） */
   color: ListboxColor;
+  /** チップの大きさ（Chip の size にそのまま渡す） */
+  chipSize: ComboboxChipSize;
   /** 読み取り専用。× を出さない */
   readOnly?: boolean;
   /** 押せない（読み込み・送信中を含む） */
   disabled?: boolean;
-  /** 最大幅と高さ（comboboxChipStyle） */
+  /** 最大幅（comboboxChipMaxWidthStyle） */
   chipStyle?: CSSProperties;
 }
 
@@ -54,6 +58,7 @@ export function ComboboxChips({
   chipsName,
   chipRemoveName,
   color,
+  chipSize,
   readOnly,
   disabled,
   chipStyle,
@@ -81,6 +86,7 @@ export function ComboboxChips({
                   render={
                     <Chip
                       color={color}
+                      size={chipSize}
                       readOnly={readOnly}
                       disabled={disabled}
                       style={chipStyle}
@@ -120,6 +126,7 @@ export function ComboboxTriggerChips({
   values,
   labelOf,
   color,
+  chipSize,
   disabled,
   chipStyle,
 }: ComboboxTriggerChipsProps) {
@@ -129,6 +136,7 @@ export function ComboboxTriggerChips({
         <Chip
           key={item}
           color={color}
+          size={chipSize}
           disabled={disabled}
           style={chipStyle}
           className={comboboxChipClass}

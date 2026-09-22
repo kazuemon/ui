@@ -32,6 +32,11 @@ const meta = {
       options: [...userColors, ...statusColors],
       table: { defaultValue: { summary: "'neutral'" } },
     },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg', 'inherit'],
+      table: { defaultValue: { summary: "'sm'" } },
+    },
   },
 } satisfies Meta<typeof Tag>;
 
@@ -65,6 +70,55 @@ export const Colors: Story = {
             </Tag>
           ))}
         </div>
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { exclude: ['size'] },
+    docs: {
+      description: {
+        story:
+          'sm（既定）・md・lg の 3 段です（ADR-0259）。inherit は段を持たず、周りの文字の大きさに従います。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="sm・md・lg">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tag {...args} size="sm">
+            sm
+          </Tag>
+          <Tag {...args} size="md">
+            md
+          </Tag>
+          <Tag {...args} size="lg">
+            lg
+          </Tag>
+        </div>
+      </Specimen>
+      <Specimen label="inherit（本文 16px）">
+        <p style={{ fontSize: 16 }}>
+          下書きの記事{' '}
+          <Tag {...args} size="inherit" color="primary">
+            公開前
+          </Tag>{' '}
+          のタグが付いています
+        </p>
+      </Specimen>
+      <Specimen label="inherit（注記 14px）">
+        <p style={{ fontSize: 14 }} className="text-fg-muted">
+          下書きの記事{' '}
+          <Tag {...args} size="inherit" color="primary">
+            公開前
+          </Tag>{' '}
+          のタグが付いています
+        </p>
       </Specimen>
     </Gallery>
   ),

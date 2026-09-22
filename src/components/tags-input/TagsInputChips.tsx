@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 
+import type { ComboboxChipSize } from '../../internal/combobox-base/combobox-control-styles';
 import { ComboboxChips } from '../../internal/combobox-base/ComboboxChips';
 import type { ListboxColor } from '../../internal/listbox/listbox-colors';
 import { ScrollFrame } from '../../internal/ScrollFrame';
@@ -44,11 +45,13 @@ interface TagsInputChipsProps {
   chipRemoveName: (label: string) => string;
   /** チップの色（原則6） */
   color: ListboxColor;
+  /** チップの大きさ（Chip の size にそのまま渡す） */
+  chipSize: ComboboxChipSize;
   /** 読み取り専用。× を出さない */
   readOnly?: boolean;
   /** 押せない（読み込み・送信中を含む） */
   disabled?: boolean;
-  /** 最大幅と高さ（comboboxChipStyle） */
+  /** 最大幅（comboboxChipMaxWidthStyle） */
   chipStyle?: CSSProperties;
   /** 一瞬強調するタグ（同じ文字を足そうとしたとき） */
   flashTag?: string;
@@ -62,6 +65,7 @@ export function TagsInputChips({
   chipsName,
   chipRemoveName,
   color,
+  chipSize,
   readOnly,
   disabled,
   chipStyle,
@@ -90,6 +94,7 @@ export function TagsInputChips({
       chipsName={chipsName}
       chipRemoveName={chipRemoveName}
       color={color}
+      chipSize={chipSize}
       readOnly={readOnly}
       disabled={disabled}
       chipStyle={chipStyle}
