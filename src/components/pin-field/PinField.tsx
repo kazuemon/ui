@@ -125,7 +125,7 @@ export interface PinFieldProps
   /** 関連づける form の id */
   form?: string;
   /**
-   * 必須にします。箱の列に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * 必須にします。箱の列に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
@@ -272,7 +272,10 @@ export function PinField({
             validationType="none"
             inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
             normalizeValue={normalize}
-            required={required}
+            // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+            // （design/adr/0255 の影響）。渡さず、aria-required（OTPField.Root の role="group"）だけで伝える
+            required={false}
+            aria-required={required || undefined}
             disabled={disabled}
             readOnly={blocking || readOnly}
             aria-describedby={messageIds}

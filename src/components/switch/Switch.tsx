@@ -421,7 +421,10 @@ export function Switch({
         id={idProp}
         inputRef={inputRef}
         disabled={disabled}
-        required={required}
+        // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+        // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
+        required={false}
+        aria-required={required || undefined}
         readOnly={locked.readOnly}
         aria-describedby={describedBy}
         aria-disabled={locked.ariaDisabled || ariaDisabled}
@@ -449,7 +452,7 @@ export function Switch({
 }
 
 // BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI 自身が見つけたエラーを読む（design/adr/0255）
-// required など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
+// validate など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
 function SwitchErrorLine({
   errorText,
   id,

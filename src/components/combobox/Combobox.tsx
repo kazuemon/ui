@@ -689,6 +689,7 @@ export function Combobox<Multiple extends boolean = false>({
             {(values) => (
               <BaseCombobox.Input
                 aria-describedby={messageIds}
+                aria-required={required || undefined}
                 enterKeyHint={enterKeyHint}
                 aria-disabled={blocking || undefined}
                 aria-busy={loading || undefined}
@@ -704,6 +705,7 @@ export function Combobox<Multiple extends boolean = false>({
         ) : (
           <BaseCombobox.Input
             aria-describedby={messageIds}
+            aria-required={required || undefined}
             enterKeyHint={enterKeyHint}
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
@@ -753,6 +755,7 @@ export function Combobox<Multiple extends boolean = false>({
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
         aria-describedby={messageIds}
+        aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
         data-slot="control"
@@ -857,7 +860,9 @@ export function Combobox<Multiple extends boolean = false>({
           openOnInputClick={openOnInputClick}
           disabled={disabled}
           readOnly={locked || undefined}
-          required={required}
+          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+          // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
+          required={false}
           name={name}
           form={form}
           modal={modal}

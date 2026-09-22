@@ -86,7 +86,10 @@ export function Radio({
     >
       <BaseRadio.Root
         value={value}
-        required={required}
+        // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+        // （design/adr/0255 の影響）。渡さず、aria-required だけで伝える。ふつうは RadioGroup の required を使う
+        required={false}
+        aria-required={required || undefined}
         inputRef={inputRef}
         disabled={disabled}
         readOnly={locked.readOnly}
@@ -253,7 +256,10 @@ export function RadioGroup<Value>({
             form={form}
             inputRef={inputRef}
             disabled={disabled}
-            required={required}
+            // required はグループの context を通って、中の Radio の隠れた input にもネイティブの required を付けてしまう
+            // （design/adr/0255 の影響）。渡さず、aria-required（role="radiogroup"）だけを直に付けて伝える
+            required={false}
+            aria-required={required || undefined}
             readOnly={locked.readOnly}
             aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
             className="flex flex-col"

@@ -726,7 +726,9 @@ export function TagsInput({
           openOnInputClick={openOnInputClick && hasItems}
           disabled={disabled}
           readOnly={locked || undefined}
-          required={required}
+          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+          // （design/adr/0255 の影響）。渡さず、Input に直に付けた aria-required だけで伝える
+          required={false}
           name={name}
           form={form}
           modal={modal}
@@ -776,6 +778,7 @@ export function TagsInput({
               {(chips) => (
                 <BaseCombobox.Input
                   aria-describedby={messageIds}
+                  aria-required={required || undefined}
                   aria-disabled={blocking || undefined}
                   aria-busy={loading || undefined}
                   // ソフトウェアキーボードの実行キー。既定では Enter を送るキーにする（enterKeyHint）

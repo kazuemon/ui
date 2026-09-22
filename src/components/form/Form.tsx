@@ -69,7 +69,9 @@ export interface FormProps extends ComponentProps<'form'> {
   errorSummaryTitle?: (count: number) => string;
   /**
    * ブラウザの既定の検証（吹き出し）を止めるかどうかです。true（既定）では吹き出しを出さず、欄の下の行（Field）だけで知らせます。
-   * false にすると、required などのブラウザの検証が働き、吹き出しも出ます
+   * `required` はどの欄もブラウザの制約にしていないので、false にしても吹き出しは出ません。
+   * `inputProps` で `type="email"`・`pattern`・`minLength` などブラウザの制約になる属性を自分で渡したときだけ、
+   * false でその制約の吹き出しが働きます（design/adr/0255 の影響）
    * @default true
    */
   noValidate?: boolean;
@@ -111,8 +113,8 @@ export interface FormProps extends ComponentProps<'form'> {
  * フォーム（design/adr/0044・0255）。Base UI の Form の上に作り直しています
  * 値を確かめるのはアプリ（onSubmit・onFormSubmit の中で各欄の error・warning を決めるか、欄の validate を使うか、errors を渡す）。
  * Form は、その描画のあとでフォーカスを移す
- * 欄の validate・required などの検証は Base UI 自身が送信のときに確かめ、正しくない欄があれば先にそこへフォーカスを移します
- * （このときは onSubmit・onFormSubmit を呼ばず、showErrorSummary の一覧も出しません）。通ったときだけ、下の仕組みに続きます
+ * ブラウザネイティブの検証には寄せません。欄は required を渡してもブラウザの制約（`required` 属性）は付けず、aria-required だけで
+ * 必須であることを伝えます。送信を止め、行の文を出すのは欄の validate・Form の errors だけです（design/adr/0255 の影響）
  * 送信中（submitting）が終わった描画でも、送ったときの場所にフォーカスが残っていれば、同じくフォーカスを移す（サーバーから返ってきたエラー・errors）
  * 中の欄の行は、欄を離れたときやあとから確かめたときに出ると、polite で知らせる。送信で出たとき（送信中が終わってフォーカスを移したときも）は知らせない（移った先で読むため）
  * 既定では noValidate（ブラウザの吹き出しを出さず、欄の下の行で知らせる）
@@ -159,8 +161,8 @@ export function Form({
   const wasSubmitting = useRef(submitting);
   // 送ったときにフォーカスのあった場所（押した送信のボタン、Enter を押した欄、body）。送信中が終わったときに比べる
   const [origin, setOrigin] = useState<Element | null>(null);
-  // 送信の回数（focusCount のもと）は、押した瞬間（capture）に数える。Base UI 自身の検証（required・validate）が
-  // 通っていない欄を見つけて先にフォーカスを移す（onSubmit を呼ばずに止める）ときも、一覧・フォーカスの仕組みを動かすため
+  // 送信の回数（focusCount のもと）は、押した瞬間（capture）に数える。欄の validate が通っていない欄を Base UI が
+  // 見つけて先にフォーカスを移す（onSubmit を呼ばずに止める）ときも、一覧・フォーカスの仕組みを動かすため
   const handleSubmitCapture: NonNullable<FormProps['onSubmit']> = (event) => {
     if (submitting) return;
     setSubmitter(submitterOf(event));

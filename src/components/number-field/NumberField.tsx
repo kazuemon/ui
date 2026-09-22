@@ -110,7 +110,7 @@ export interface NumberFieldProps extends InputFieldProps, HalfWidthNoticeProps 
   /** 中の input に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
   inputProps?: ComponentProps<'input'>;
   /**
-   * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+   * 必須にします。欄に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
@@ -289,7 +289,9 @@ export function NumberField({
           snapOnStep={snapOnStep}
           allowOutOfRange={allowOutOfRange}
           allowWheelScrub={allowWheelScrub}
-          required={required}
+          // required はブラウザのネイティブな検証を起こすので渡さない（design/adr/0255 の影響）
+          // 下の Input に aria-required を直に付けて、必須であることを伝える
+          required={false}
           disabled={disabled}
           readOnly={readOnly || blocking}
           data-stepper={stepper}
@@ -330,6 +332,7 @@ export function NumberField({
                 <BaseNumberField.Input
                   placeholder={placeholder}
                   autoFocus={autoFocus}
+                  aria-required={required || undefined}
                   aria-disabled={blocking || ariaDisabled}
                   aria-busy={loading || ariaBusy}
                   {...inputPropsRest}

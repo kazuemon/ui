@@ -461,7 +461,9 @@ export function Select<Multiple extends boolean = false>({
           inputRef={inputRef}
           modal={modal}
           disabled={disabled}
-          required={required}
+          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+          // （design/adr/0255 の影響）。渡さず、Trigger の aria-required だけで伝える
+          required={false}
           readOnly={locked || undefined}
           open={open}
           onOpenChange={(next, details) => {
@@ -493,6 +495,7 @@ export function Select<Multiple extends boolean = false>({
           <BaseSelect.Trigger
             ref={triggerRef}
             aria-describedby={messageIds}
+            aria-required={required || undefined}
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
             data-slot="control"

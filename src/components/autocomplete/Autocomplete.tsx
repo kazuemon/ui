@@ -649,6 +649,7 @@ export function Autocomplete({
         <BaseAutocomplete.Input
           enterKeyHint={enterKeyHint}
           aria-describedby={messageIds}
+          aria-required={required || undefined}
           aria-disabled={blocking || undefined}
           aria-busy={loading || undefined}
           placeholder={loadingBlocking ? loadingText : placeholder}
@@ -689,6 +690,7 @@ export function Autocomplete({
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
         aria-describedby={messageIds}
+        aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
         data-slot="control"
@@ -833,7 +835,9 @@ export function Autocomplete({
           openOnInputClick={effectiveOpenOn === 'click' || effectiveOpenOn === 'focus'}
           disabled={disabled}
           readOnly={locked || undefined}
-          required={required}
+          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+          // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
+          required={false}
           name={name}
           form={form}
           modal={modal}
