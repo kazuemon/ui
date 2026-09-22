@@ -31,7 +31,7 @@ const timeline = tv({
   base: [
     '@container/timeline m-0 list-none ps-0',
     textStyles.size.md,
-    textStyles.tone.default,
+    textStyles.variant.body,
     // Prose が li に当てる印（::before）と項目の間を消し、項目の間を空ける
     '[&>li]:relative [&>li]:list-none [&>li]:before:content-none',
     '[&>li+li]:mt-(--timeline-gap)',
@@ -153,7 +153,7 @@ const head = tv({
 });
 
 const dateText = tv({
-  base: [textStyles.size.sm, textStyles.tone.muted, 'block'],
+  base: [textStyles.size.sm, textStyles.variant.muted, 'block'],
   variants: {
     datePlacement: {
       stack: '',
@@ -273,6 +273,7 @@ export interface TimelineProps extends ComponentProps<'ol'> {
    * @default 'start'
    */
   align?: TimelineAlign;
+  /** 年表の項目（TimelineItem）を並べます */
   children?: ReactNode;
 }
 

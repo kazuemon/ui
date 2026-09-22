@@ -1,7 +1,9 @@
+import type { ComponentProps } from 'react';
+
 // 見出しの一覧（平たい並び）を、入れ子の木に組む。DOM は読まない
 
-/** 目次に並べる見出し 1 つ */
-export interface TableOfContentsItem {
+/** 目次に並べる見出し 1 つ。知らない props（data-*・aria-*・onClick など）は、その見出しのリンク（a）に流す */
+export interface TableOfContentsItem extends Omit<ComponentProps<'a'>, 'id' | 'href' | 'children'> {
   /** 見出しの要素の id。リンクの行き先（#id）になります */
   id: string;
   /** 目次に出す文字 */

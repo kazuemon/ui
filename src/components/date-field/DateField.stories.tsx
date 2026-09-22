@@ -15,13 +15,13 @@ const day = Temporal.PlainDate.from('2026-09-20');
 const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '値あり', props: { defaultValue: day } },
-  { label: 'エラー', props: { error: '生年月日を入力してください' } },
+  { label: 'エラー', props: { errorText: '生年月日を入力してください' } },
   {
     label: '範囲の外',
     props: {
       defaultValue: day,
       max: Temporal.PlainDate.from('2026-09-01'),
-      error: '9月1日までの日を入力してください',
+      errorText: '9月1日までの日を入力してください',
     },
   },
   { label: '押せない', props: { defaultValue: day, disabled: true } },
@@ -52,14 +52,15 @@ const meta = {
     docs: {
       description: {
         component: [
-          '日付を、年・月・日の区切りごとに打つ欄です。ラベル・キャプション・本体の並びや、`error`・`prefix`・`suffix`・`loading` などは TextField と同じです。',
+          '日付を、年・月・日の区切りごとに打つ欄です。ラベル・キャプション・本体の並びや、`errorText`・`prefix`・`suffix`・`loading` などは TextField と同じです。',
           '',
           '- 区切りは ←→ で移り、↑↓ で 1 つずつ増減します（端まで行くと反対の端へ回ります）。数字を打つと埋まり、桁がそろうと次の区切りへ進みます。Backspace で 1 桁ずつ消えます。',
-          '- 「2026/09/20」「20260920」「令和8年9月20日」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。直したことを知らせたいときは `halfWidthNotice` を付けます。読めないときは値を変えず、`onParseFail` を呼びます。',
+          '- 「2026/09/20」「20260920」「令和8年9月20日」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。直したことを知らせたいときは `halfWidthNotice` を付けます。読めないときは値を変えず、`onParseFailed` を呼びます。',
           '- 並びと記号は `locale` で決まります（ja-JP は 年/月/日）。',
           '- 値は `Temporal.PlainDate` で受け渡します。年・月・日がそろうまでは `null` です。`name` を渡すと、フォームには「2026-09-20」の形で送ります。',
-          '- `min`・`max` の外の日が入ると、欄をエラーの見た目にします。理由の文は `error` で渡します。',
+          '- `min`・`max` の外の日が入ると、欄をエラーの見た目にします。理由の文は `errorText` で渡します。',
           '- `color` で、いま打っている区切りの塗りとフォーカスの枠線の色を選びます。既定はグレーの塗りです。',
+          '- `id`・`ref`・`inputProps` は、区切りを並べる要素（`role="group"`）に付きます。`className` は欄の外枠に付きます。',
         ].join('\n'),
       },
     },
@@ -84,9 +85,9 @@ const meta = {
       options: ['top', 'bottom'],
       table: { defaultValue: { summary: "'top'" } },
     },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    infoText: { control: 'text' },
     prefix: { control: 'text' },
     suffix: { control: 'text' },
     color: {
@@ -137,12 +138,12 @@ export const States: Story = {
       source: sourceCode(`
         <DateField label="生年月日" />
         <DateField label="生年月日" defaultValue={Temporal.PlainDate.from('2026-09-20')} />
-        <DateField label="生年月日" error="生年月日を入力してください" />
+        <DateField label="生年月日" errorText="生年月日を入力してください" />
         <DateField
           label="生年月日"
           defaultValue={Temporal.PlainDate.from('2026-09-20')}
           max={Temporal.PlainDate.from('2026-09-01')}
-          error="9月1日までの日を入力してください"
+          errorText="9月1日までの日を入力してください"
         />
         <DateField label="生年月日" defaultValue={Temporal.PlainDate.from('2026-09-20')} disabled />
         <DateField label="生年月日" defaultValue={Temporal.PlainDate.from('2026-09-20')} readOnly />
@@ -314,13 +315,13 @@ export const Keyboard: Story = {
 
 export const Paste: Story = {
   name: '貼り付け',
-  args: { onValueChange: fn(), onParseFail: fn() },
+  args: { onValueChange: fn(), onParseFailed: fn() },
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
         story:
-          '区切りに文字を貼り付けると、全体を日付として読みます。「2026/09/20」「2026-9-20」「20260920」「令和8年9月20日」「R8.9.20」、全角の数字も読めます。読めないときは値を変えず、`onParseFail` を呼びます。',
+          '区切りに文字を貼り付けると、全体を日付として読みます。「2026/09/20」「2026-9-20」「20260920」「令和8年9月20日」「R8.9.20」、全角の数字も読めます。読めないときは値を変えず、`onParseFailed` を呼びます。',
       },
     },
   },
@@ -339,7 +340,7 @@ export const Paste: Story = {
     const texts = canvas.getAllByRole('spinbutton').map((segment) => segment.textContent);
     await expect(texts).toEqual(['2026', '09', '20']);
     await userEvent.paste('きのう');
-    await expect(args.onParseFail).toHaveBeenCalledWith('きのう');
+    await expect(args.onParseFailed).toHaveBeenCalledWith('きのう');
     await expect(year).toHaveTextContent('2026');
   },
 };

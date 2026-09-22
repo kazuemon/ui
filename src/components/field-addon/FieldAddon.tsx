@@ -91,6 +91,7 @@ export function FieldAddon({ className, ...props }: ComponentProps<'span'>) {
 }
 
 export interface FieldAddonButtonProps extends ComponentProps<'button'> {
+  /** ボタンの中身。アイコンは `<Icon icon={X} standalone />` の形で入れます */
   children: ReactNode;
 }
 

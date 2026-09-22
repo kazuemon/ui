@@ -61,22 +61,22 @@ export const Grounds: Story = {
           <Text>
             設定は <Code>next.config.mjs</Code> に書きます。
           </Text>
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             注記の中の <Code>pnpm run fonts</Code>
           </Text>
         </div>
       </Specimen>
       <Specimen label="グレーの面">
-        <Blockquote appearance="surface">
+        <Blockquote variant="surface">
           <Code>locked</Code> のあいだ止めます。
         </Blockquote>
       </Specimen>
       <Specimen label="色の面・濃い塗り">
         <div className="flex flex-col gap-3">
-          <Notice color="warning" title="注意" live={false}>
+          <Notice status="warning" title="注意" live={false}>
             <Code>coarse-large</Code> は名前が変わります。
           </Notice>
-          <Notice color="info" appearance="filled" title="補足" live={false}>
+          <Notice status="info" variant="filled" title="補足" live={false}>
             <Code>data-density</Code> で固定できます。
           </Notice>
         </div>

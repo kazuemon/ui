@@ -5,9 +5,10 @@
 ## 最初に読むもの
 
 1. [`design/principles.md`](./design/principles.md): デザインをどう捉えているか。考えと、その結果どう見えるか
-2. [`design/adr/README.md`](./design/adr/README.md): 決定の索引。個別の ADR は、関わる軸のものだけ読む
-3. [`design/backlog.md`](./design/backlog.md): 決めていないこと・作っていないこと
-4. [`design/tokens.css`](./design/tokens.css): 値。principles と ADR は役割トークン名で参照し、値はここにだけ書く
+2. [`design/props.md`](./design/props.md): props の名前と渡し方
+3. [`design/adr/README.md`](./design/adr/README.md): 決定の索引。個別の ADR は、関わる軸のものだけ読む
+4. [`design/backlog.md`](./design/backlog.md): 決めていないこと・作っていないこと
+5. [`design/tokens.css`](./design/tokens.css): 値。principles と ADR は役割トークン名で参照し、値はここにだけ書く
 
 principles.md は毎回読み直さなくてよいよう短くしてあります。数値やトークン名は tokens.css と ADR にあります。
 
@@ -16,6 +17,7 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | 場所                                   | 中身                                                                                                                                                               |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                                               |
+| `design/props.md`                      | props の名前と渡し方の決まり。語彙表と、色・variant・文字・イベント・渡し方・JSDoc の規則                                                                          |
 | `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                         |
 | `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                           |
 | `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                              |
@@ -59,6 +61,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
    - 見た目は `tv`（`src/internal/tv`）で書く。トークンは、役割（`@theme`）にあるものを先に使う。部品のトークン（`:root`）は、役割にない値か、部品の中で状態ごとに差し替える値のときだけ足し、生の値は尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`）を指す。`@theme` に名前を足したら `twMergeConfig` にも足す（`tv.test.ts` が確かめる）
    - 寸法は密度のトークン（`--spacing-control` など）で書く。フォーカスの線は `focusRing`、ラベル・キャプション・エラーの行は `internal/field` の `Field`、Form の送信中は `useFormSubmittingLock`・`useChoiceLock` を使う
    - props の説明と既定値（`@default`）は JSDoc に書く
+   - props の名前と渡し方は `design/props.md` の語彙に寄せる。語彙にない名前が要るときはいちばん近い語に寄せ、別の語が適していそうならユーザーに確かめる
    - ブラウザが要るファイル（フック・Base UI・イベントのハンドラ・関数を渡す props）は、先頭に `'use client';` を置く。それを値として読むファイルにも要る（型だけの import と、再 export は伝播しない）。サーバーのまま描ける部品を減らさないよう、要らないファイルには付けない。付け忘れ・付けすぎは `src/internal/use-client.test.ts` が確かめる
    - 1 ファイルが大きくなったら、部品のフォルダの中で分ける（見た目の一部は `<Name>Part.tsx`、状態を持つ処理は `use-*.ts`、DOM を読むだけの計算は `*.ts`）。2 つ目の部品が使うようになったら `src/internal/` へ移す
 4. ストーリーを書く（タイトルは `Components/<Name>`）

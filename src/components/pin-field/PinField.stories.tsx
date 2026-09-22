@@ -14,7 +14,7 @@ const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '途中まで', props: { defaultValue: '382' } },
   { label: '全部', props: { defaultValue: '382915' } },
-  { label: 'エラー', props: { defaultValue: '382915', error: 'コードが違います' } },
+  { label: 'エラー', props: { defaultValue: '382915', errorText: 'コードが違います' } },
   { label: '押せない', props: { defaultValue: '382915', disabled: true } },
   { label: '読み取り専用', props: { defaultValue: '382915', readOnly: true } },
   { label: '伏せ字', props: { defaultValue: '3829', mask: true } },
@@ -44,9 +44,9 @@ const meta = {
           '- 打つと次の箱へ進み、Backspace で前の箱へ戻ります。コードを貼り付けると、先頭から埋まります。',
           '- 1 桁目に `autocomplete="one-time-code"` を付けるので、SMS で届いたコードを端末が差し出せます。',
           '- 全角の数字は半角に直して受け取ります。直したことを知らせたいときは `halfWidthNotice` を付けます。`validationType` で、入れてよい文字（数字・英字・英数字）を選びます。',
-          '- 全部の桁が埋まったら `onValueComplete` が呼ばれます。`autoSubmit` を付けると、囲んでいる form を送ります。',
+          '- 全部の桁が埋まったら `onValueCompleted` が呼ばれます。`autoSubmit` を付けると、囲んでいる form を送ります。',
           "- 桁が多いときは `group` で区切ります。`[3, 3]` は 3 桁ずつのあいだに短い横線を置きます。区切りに置くものは `groupSeparator` で変えられます（`'-'` などの文字、`null` で間だけ）。",
-          '- `emptyDots` を付けると、まだ打っていない箱に淡い点を置きます。あと何桁あるかが一目で分かります。',
+          '- `showEmptyDots` を付けると、まだ打っていない箱に淡い点を置きます。あと何桁あるかが一目で分かります。',
           '- コードを確かめているあいだは `loading` を付けます。箱の列の右に回る円を出します。',
         ].join('\n'),
       },
@@ -57,7 +57,7 @@ const meta = {
     length: 6,
     validationType: 'numeric',
     mask: false,
-    emptyDots: false,
+    showEmptyDots: false,
     autoSubmit: false,
     disabled: false,
     readOnly: false,
@@ -67,7 +67,7 @@ const meta = {
   argTypes: {
     label: { control: 'text' },
     caption: { control: 'text' },
-    error: { control: 'text' },
+    errorText: { control: 'text' },
     length: { control: { type: 'number', min: 1, max: 10 } },
     validationType: {
       control: 'inline-radio',
@@ -75,7 +75,7 @@ const meta = {
     },
     group: { control: 'object' },
     groupSeparator: { control: 'text' },
-    emptyDots: { control: 'boolean' },
+    showEmptyDots: { control: 'boolean' },
     mask: { control: 'boolean' },
     autoSubmit: { control: 'boolean' },
     disabled: { control: 'boolean' },
@@ -106,7 +106,7 @@ export const States: Story = {
       },
       source: sourceCode(`
         <PinField label="確認コード" />
-        <PinField label="確認コード" defaultValue="382915" error="コードが違います" />
+        <PinField label="確認コード" defaultValue="382915" errorText="コードが違います" />
         <PinField label="確認コード" defaultValue="382915" disabled />
         <PinField label="確認コード" defaultValue="382915" readOnly />
         <PinField label="PIN" length={4} mask />
@@ -132,16 +132,16 @@ export const Messages: Story = {
       <Specimen label="caption">
         <PinField {...args} caption="メールで届いた 6 桁の数字を入力してください" />
       </Specimen>
-      <Specimen label="error">
+      <Specimen label="errorText">
         <PinField
           {...args}
           caption="メールで届いた 6 桁の数字を入力してください"
           defaultValue="382915"
-          error="コードが違います。もう一度お確かめください"
+          errorText="コードが違います。もう一度お確かめください"
         />
       </Specimen>
-      <Specimen label="success">
-        <PinField {...args} defaultValue="382915" success="確かめました" />
+      <Specimen label="successText">
+        <PinField {...args} defaultValue="382915" successText="確かめました" />
       </Specimen>
       <Specimen label="group={[3, 3]}">
         <PinField {...args} group={[3, 3]} defaultValue="3829" />
@@ -160,7 +160,7 @@ export const Separators: Story = {
     docs: {
       description: {
         story:
-          '`group` の区切りには、既定で短い横線を置きます。`groupSeparator` に文字を渡すと、打った文字と同じ大きさで淡く描きます。`null` は何も置かず、間だけ空けます。区切りは読み上げません。`emptyDots` は、まだ打っていない箱に淡い点を置きます。伏せ字と合わせても使えます。',
+          '`group` の区切りには、既定で短い横線を置きます。`groupSeparator` に文字を渡すと、打った文字と同じ大きさで淡く描きます。`null` は何も置かず、間だけ空けます。区切りは読み上げません。`showEmptyDots` は、まだ打っていない箱に淡い点を置きます。伏せ字と合わせても使えます。',
       },
     },
   },
@@ -178,17 +178,17 @@ export const Separators: Story = {
       <Specimen label="groupSeparator={null}">
         <PinField {...args} group={[3, 3]} groupSeparator={null} defaultValue="3829" />
       </Specimen>
-      <Specimen label="emptyDots">
-        <PinField {...args} emptyDots defaultValue="382" />
+      <Specimen label="showEmptyDots">
+        <PinField {...args} showEmptyDots defaultValue="382" />
       </Specimen>
-      <Specimen label="emptyDots・mask">
-        <PinField {...args} label="PIN" length={4} mask emptyDots defaultValue="38" />
+      <Specimen label="showEmptyDots・mask">
+        <PinField {...args} label="PIN" length={4} mask showEmptyDots defaultValue="38" />
       </Specimen>
-      <Specimen label="emptyDots・error">
-        <PinField {...args} emptyDots defaultValue="382" error="コードが違います" />
+      <Specimen label="showEmptyDots・errorText">
+        <PinField {...args} showEmptyDots defaultValue="382" errorText="コードが違います" />
       </Specimen>
-      <Specimen label={'emptyDots・group・groupSeparator="-"'}>
-        <PinField {...args} emptyDots group={[3, 3]} groupSeparator="-" defaultValue="38" />
+      <Specimen label={'showEmptyDots・group・groupSeparator="-"'}>
+        <PinField {...args} showEmptyDots group={[3, 3]} groupSeparator="-" defaultValue="38" />
       </Specimen>
     </Gallery>
   ),
@@ -251,7 +251,7 @@ function Controlled({ onComplete }: { onComplete: (value: string) => void }) {
         caption="メールで届いた 6 桁の数字"
         value={value}
         onValueChange={setValue}
-        onValueComplete={onComplete}
+        onValueCompleted={onComplete}
       />
       <output data-testid="value">{value}</output>
     </div>
@@ -265,12 +265,12 @@ export const Behavior: Story = {
     docs: {
       description: {
         story:
-          '打つと次の箱へ進みます。全角の数字は半角に直し、数字でない文字は受け取りません。全部の桁が埋まると `onValueComplete` が呼ばれます。',
+          '打つと次の箱へ進みます。全角の数字は半角に直し、数字でない文字は受け取りません。全部の桁が埋まると `onValueCompleted` が呼ばれます。',
       },
     },
   },
-  args: { onValueComplete: fn() },
-  render: (args) => <Controlled onComplete={args.onValueComplete ?? (() => {})} />,
+  args: { onValueCompleted: fn() },
+  render: (args) => <Controlled onComplete={args.onValueCompleted ?? (() => {})} />,
   play: async ({ canvas, args }) => {
     const first = canvas.getByRole('textbox', { name: '確認コード' });
     await expect(first).toHaveAttribute('autocomplete', 'one-time-code');
@@ -288,7 +288,7 @@ export const Behavior: Story = {
     await expect(canvas.getByTestId('value')).toHaveTextContent('382');
     await expect(canvas.getByLabelText('4 桁目（全 6 桁）')).toHaveFocus();
     await userEvent.keyboard('915');
-    await waitFor(() => expect(args.onValueComplete).toHaveBeenCalledWith('382915'));
+    await waitFor(() => expect(args.onValueCompleted).toHaveBeenCalledWith('382915'));
   },
 };
 
@@ -315,7 +315,7 @@ export const FullWidthNotice: Story = {
 export const Invalid: Story = {
   name: 'エラーの読み上げ',
   parameters: { controls: { disable: true } },
-  args: { error: 'コードが違います', defaultValue: '382915' },
+  args: { errorText: 'コードが違います', defaultValue: '382915' },
   play: async ({ canvas }) => {
     const first = canvas.getByRole('textbox', { name: '確認コード' });
     await expect(first).toHaveAttribute('aria-invalid', 'true');

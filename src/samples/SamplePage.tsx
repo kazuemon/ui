@@ -50,7 +50,7 @@ export function SamplePage({
       <main className={`mx-auto ${max} px-5 py-10`}>{children}</main>
       <footer className="border-t border-line">
         <div className={`mx-auto ${max} px-5 py-6`}>
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             © 2026 kazuemon
           </Text>
         </div>

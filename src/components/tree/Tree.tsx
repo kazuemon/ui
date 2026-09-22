@@ -16,8 +16,10 @@ import {
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
-import { CaretRightIcon } from '../../internal/icons';
+import { ArrowUpRightIcon, CaretRightIcon } from '../../internal/icons';
+import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // 入れ子の行き先を木の形で並べる（ドキュメントの目次、ファイルの一覧）— 軸 149・150
 //   行は一覧の項目の仲間（原則3）。hover は入力欄の塗り、いまいる行は部品の色に従う（原則6）。影は付けない（原則1）
@@ -205,18 +207,18 @@ function typeaheadTarget(
 }
 
 export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {
-  /** 木の読み上げの名前（「ドキュメント」「ファイル」など） */
-  label: string;
+  /** 木の読み上げの名前（「ドキュメント」「ファイル」など）。画面には出ません */
+  accessibleName: string;
   /**
    * いまいる行の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーです（原則6）
    * @default 'neutral'
    */
   color?: 'primary' | 'secondary' | 'neutral';
   /**
-   * 字下げの案内線を引きます
-   * @default true
+   * 字下げの案内線を消します。案内線は既定で引きます
+   * @default false
    */
-  guides?: boolean;
+  hideGuides?: boolean;
   /**
    * 行の塗り（hover・いまいる行）の範囲。indent は字下げの分だけ左を空け、full は木の幅いっぱいに塗ります
    * @default 'indent'
@@ -239,6 +241,8 @@ export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {
   selectable?: boolean;
   /** 行（TreeItem）を並べます */
   children?: ReactNode;
+  /** いちばん外の要素（ul）に付きます */
+  className?: string;
 }
 
 /**
@@ -248,19 +252,29 @@ export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {
  * 文字を打つと、その文字で始まる行へ移ります（続けて打った文字は 1 語として扱い、少し間が空くと打ち直しです）
  */
 export function Tree({
-  label,
+  accessibleName,
   color,
-  guides,
+  hideGuides,
   rowWidth,
   currentIndicator,
   panelMotion,
   selectable,
   className,
   children,
+  ref,
   ...props
 }: TreeProps) {
-  const slots = tree({ color, guides, rowWidth, currentIndicator, panelMotion, selectable });
+  const slots = tree({
+    color,
+    guides: !hideGuides,
+    rowWidth,
+    currentIndicator,
+    panelMotion,
+    selectable,
+  });
   const rootRef = useRef<HTMLUListElement>(null);
+  // 内部の ref（キーボードの操作に使う）と、利用者が渡した ref をつなぐ（ADR-0250）
+  const mergedRef = useMergedRefs(rootRef, ref);
   // 型あたりの途中の文字は、木で 1 つ持つ（どの行で打っても同じ語になる）
   const typeaheadRef = useRef<Typeahead>({ text: '', time: 0 });
   const [active, setActive] = useState<string | null>(null);
@@ -274,12 +288,12 @@ export function Tree({
   return (
     <TreeContext value={{ depth: 0, slots, active, setActive, rootRef, typeaheadRef }}>
       <ul
-        ref={rootRef}
+        {...props}
+        ref={mergedRef}
         role="tree"
-        aria-label={label}
+        aria-label={accessibleName}
         data-slot="tree"
         className={slots.root({ className })}
-        {...props}
       >
         {children}
       </ul>
@@ -287,12 +301,18 @@ export function Tree({
   );
 }
 
-export interface TreeItemProps {
+export interface TreeItemProps extends Omit<
+  ComponentProps<'a'>,
+  'children' | 'className' | 'onClick' | 'ref'
+> {
   /** 行に出す文字 */
   label: ReactNode;
   /** 文字の前に置くアイコン（フォルダ・ファイルの印など）。渡さないと置きません */
   icon?: ReactNode;
-  /** 行き先。渡すとリンクになり、Enter で移ります */
+  /**
+   * 行き先。渡すとリンクになり、Enter で移ります。
+   * `target="_blank"` を足すと、右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入ります
+   */
   href?: string;
   /** 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に行の見た目を重ねます */
   render?: ReactElement;
@@ -302,13 +322,13 @@ export interface TreeItemProps {
    */
   current?: boolean;
   /**
-   * はじめから開いておくか。子を持つ行だけに効きます
+   * はじめは開いているか（非制御）。子を持つ行だけに効きます
    * @default false
    */
   defaultExpanded?: boolean;
-  /** 開いているか。自分で持つときに渡します */
+  /** 開いているか（制御） */
   expanded?: boolean;
-  /** 開け閉めしたときに呼ばれます */
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onExpandedChange?: (expanded: boolean) => void;
   /**
    * 押せなくします
@@ -319,8 +339,10 @@ export interface TreeItemProps {
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   /** 入れ子の行（TreeItem）。渡すと開け閉めできる行になります */
   children?: ReactNode;
-  /** 行に足すクラス */
+  /** 行の要素に付きます。知らない props（id・data-*・aria-*）も行の要素に流します */
   className?: string;
+  /** 行の要素に付きます */
+  ref?: React.Ref<HTMLElement>;
 }
 
 /**
@@ -339,9 +361,12 @@ export function TreeItem({
   onClick,
   children,
   className,
+  ref,
+  ...props
 }: TreeItemProps) {
   const context = use(TreeContext);
   const id = useId();
+  const noteId = useId();
   // 入れ子の並び（group）は li の中、行（treeitem）の兄弟に置く（WAI-ARIA APG の Navigation Treeview）
   //   aria-owns で行に結び付けると、行の読み上げの名前に中の行き先が全部入ってしまう
   const groupId = `${id}-group`;
@@ -427,10 +452,20 @@ export function TreeItem({
     }
   };
 
+  // 新しいタブで開く行（Link と同じ扱い — ADR-0254 の M-17）
+  //   ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
+  const newTab = !disabled && href != null && (props.target === '_blank' || opensNewTab(render));
+  const naming = newTab ? newTabNaming(props, render, noteId) : null;
+
   const row = useRender({
-    render,
+    // 渡した要素に名前（aria-label・aria-labelledby）があるときは、要素の側も書き換える（要素の props が勝つため）
+    render: naming ? withRenderOverrides(render, naming.props) : render,
     defaultTagName: href != null && !disabled ? 'a' : 'div',
+    ref,
     props: {
+      ...props,
+      ...naming?.props,
+      ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
       id,
       role: 'treeitem',
       'aria-expanded': hasChildren ? open : undefined,
@@ -470,6 +505,13 @@ export function TreeItem({
           <span data-slot="tree-label" className={slots.label()}>
             {label}
           </span>
+          {/* 新しいタブで開く行の ↗（飾り。読み上げは下の文で足す） */}
+          {newTab && (
+            <span aria-hidden="true" className={slots.icon()}>
+              <ArrowUpRightIcon />
+            </span>
+          )}
+          {naming?.note}
         </>
       ),
     },

@@ -72,18 +72,18 @@ export const comboboxTriggerChipsClass =
 export const comboboxChipClass =
   'max-w-full min-w-0 [--spacing-control-x:var(--combobox-chip-padding-x)] [--spacing-control:var(--combobox-chip-height)]';
 
-/** チップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくする */
-export type ComboboxChipSize = 'compact' | 'regular';
+/** チップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくする（ADR-0237） */
+export type ChipSize = 'sm' | 'md';
 
 /** チップの最大幅と高さ（チップの style に置く）。既定のままのときは何も置かない */
 export function comboboxChipStyle(
   chipMaxWidth: string | undefined,
-  chipSize: ComboboxChipSize
+  chipSize: ChipSize
 ): CSSProperties | undefined {
-  if (!chipMaxWidth && chipSize !== 'regular') return undefined;
+  if (!chipMaxWidth && chipSize !== 'md') return undefined;
   return {
     ...(chipMaxWidth ? { maxWidth: chipMaxWidth } : {}),
-    ...(chipSize === 'regular'
+    ...(chipSize === 'md'
       ? ({
           '--combobox-chip-height': 'calc(var(--spacing-control) - var(--spacing) * 2)',
         } as CSSProperties)

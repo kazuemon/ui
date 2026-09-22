@@ -4,11 +4,12 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { TagsInput, type TagsInputItem } from './TagsInput';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import { TagsInput } from './TagsInput';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 
-const skills: TagsInputItem[] = [
+const skills: ListboxItem[] = [
   'デザイン',
   'フロントエンド',
   'バックエンド',
@@ -17,7 +18,7 @@ const skills: TagsInputItem[] = [
   'ライティング',
 ].map((label) => ({ label, value: label }));
 
-const skillsSource = `const skills: TagsInputItem[] = ['デザイン', 'フロントエンド', 'バックエンド'].map(
+const skillsSource = `const skills: ListboxItem[] = ['デザイン', 'フロントエンド', 'バックエンド'].map(
   (label) => ({ label, value: label })
 );`;
 
@@ -59,6 +60,7 @@ const meta = {
           '- タグが増えると欄が高くなります。高さを止めたいときは `maxRows` で行数を指定します（あふれた分はスクロールします）。',
           '- 欄が空のときの Backspace は、1 回目で最後のチップを選び、2 回目で外します。チップの × でも外せます。',
           '- フォーカスが外れたときは、打っている途中の文字をタグにします（`commitOnBlur={false}` で捨てられます）。',
+          '- 浮かぶ候補そのものに props を足すときは `popupProps`、位置の決め方（画面の端での逃がし方など）は `positionerProps`、打つ欄には `inputProps` を渡します。外を押して閉じるかは `dismissible`、Esc で閉じるかは `closeOnEscape` です。',
         ].join('\n'),
       },
     },
@@ -76,7 +78,7 @@ const meta = {
     commitOnBlur: true,
     openOnInputClick: false,
     autoHighlight: false,
-    chipSize: 'compact',
+    chipSize: 'sm',
     loading: false,
     loadingBehavior: 'non-blocking',
     loadingIndicator: 'spinner',
@@ -96,13 +98,13 @@ const meta = {
     },
     placeholder: { control: 'text' },
     emptyText: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    success: { control: 'text' },
-    successMark: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    successText: { control: 'text' },
+    hideSuccessMark: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    infoText: { control: 'text' },
     color: { control: 'inline-radio', options: ['primary', 'secondary', 'neutral'] },
-    chipSize: { control: 'inline-radio', options: ['compact', 'regular'] },
+    chipSize: { control: 'inline-radio', options: ['sm', 'md'] },
     maxRows: { control: 'number' },
     enterKeyHint: {
       control: 'inline-radio',
@@ -114,9 +116,9 @@ const meta = {
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
     clearable: { control: 'boolean' },
-    clearLabel: { control: 'text' },
-    chipsLabel: { control: 'text' },
-    chipRemoveLabel: { control: false },
+    clearName: { control: 'text' },
+    chipsName: { control: 'text' },
+    chipRemoveName: { control: false },
     allowDuplicates: { control: 'boolean' },
     commitOnBlur: { control: 'boolean' },
     max: { control: 'number' },
@@ -126,7 +128,7 @@ const meta = {
     openOnInputClick: { control: 'boolean' },
     autoHighlight: { control: 'boolean' },
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
-    groupSeparator: { control: 'boolean' },
+    showGroupSeparator: { control: 'boolean' },
     popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
@@ -144,8 +146,10 @@ const meta = {
     defaultInputValue: { control: false },
     open: { control: false },
     defaultOpen: { control: false },
-    container: { control: false },
-    collisionAvoidance: { control: false },
+    portalContainer: { control: false },
+    positionerProps: { control: false },
+    popupProps: { control: false },
+    inputProps: { control: false },
   },
 } satisfies Meta<typeof TagsInput>;
 
@@ -392,8 +396,8 @@ export const WithItems: Story = {
         <TagsInput
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -426,8 +430,8 @@ export const ItemsPlay: Story = {
       {(container) => (
         <TagsInput
           {...args}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -483,17 +487,17 @@ export const Chips: Story = {
     docs: {
       description: {
         story:
-          'チップの高さは `chipSize`（既定は `compact`）、最大幅は `chipMaxWidth` で決めます。最大幅を決めないときは、欄の幅までです。タグが増えると欄の高さが伸びます。',
+          'チップの高さは `chipSize`（既定は `sm`）、最大幅は `chipMaxWidth` で決めます。最大幅を決めないときは、欄の幅までです。タグが増えると欄の高さが伸びます。',
       },
     },
   },
   render: (args) => (
     <Gallery>
-      <Specimen label="compact（既定）">
+      <Specimen label="sm（既定）">
         <TagsInput {...args} defaultValue={['デザイン', '実装']} />
       </Specimen>
-      <Specimen label="regular">
-        <TagsInput {...args} chipSize="regular" defaultValue={['デザイン', '実装']} />
+      <Specimen label="md">
+        <TagsInput {...args} chipSize="md" defaultValue={['デザイン', '実装']} />
       </Specimen>
       <Specimen label="chipMaxWidth">
         <TagsInput
@@ -559,17 +563,17 @@ export const RejectNotice: Story = {
   args: {
     label: '記事のタグ',
     defaultValue: ['デザイン', '実装'],
-    info: '前回と同じタグを付けています',
+    infoText: '前回と同じタグを付けています',
     rejectMessage: (_reason, tag) => `「${tag}」は追加済みです`,
   },
   parameters: {
-    controls: { include: ['info'] },
+    controls: { include: ['infoText'] },
     docs: {
       description: {
         story: [
           '`rejectMessage` を渡すと、タグにならなかったときに短い文を本体の下の行（丸の「i」と青い文字）へ一瞬だけ出し、強調と同じ長さで消えます。文は呼び出し側が書きます。',
           '',
-          '`info` も渡しているときは、そのあいだだけ同じ行の文が入れ替わり、消えると元の `info` に戻ります。行の高さは変わりません。読み上げは行ではなく見えない `role="status"` の箱が担うので、戻ったときに元の `info` が読み直されることはありません。',
+          '`infoText` も渡しているときは、そのあいだだけ同じ行の文が入れ替わり、消えると元の `infoText` に戻ります。行の高さは変わりません。読み上げは行ではなく見えない `role="status"` の箱が担うので、戻ったときに元の `infoText` が読み直されることはありません。',
         ].join('\n'),
       },
     },
@@ -626,17 +630,21 @@ export const Messages: Story = {
       <Specimen label="caption（下）">
         <TagsInput {...args} caption="3 つまで付けられます" captionPlacement="bottom" />
       </Specimen>
-      <Specimen label="error">
-        <TagsInput {...args} caption="3 つまで付けられます" error="タグを 1 つ以上付けてください" />
+      <Specimen label="errorText">
+        <TagsInput
+          {...args}
+          caption="3 つまで付けられます"
+          errorText="タグを 1 つ以上付けてください"
+        />
       </Specimen>
-      <Specimen label="warning">
-        <TagsInput {...args} warning="似たタグがすでにあります" />
+      <Specimen label="warningText">
+        <TagsInput {...args} warningText="似たタグがすでにあります" />
       </Specimen>
-      <Specimen label="success">
-        <TagsInput {...args} success="このタグで公開できます" />
+      <Specimen label="successText">
+        <TagsInput {...args} successText="このタグで公開できます" />
       </Specimen>
-      <Specimen label="info">
-        <TagsInput {...args} info="前回と同じタグを付けています" />
+      <Specimen label="infoText">
+        <TagsInput {...args} infoText="前回と同じタグを付けています" />
       </Specimen>
     </Gallery>
   ),

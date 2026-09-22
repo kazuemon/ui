@@ -1,4 +1,4 @@
-// 文字のリンク（Link の appearance="text"）の見た目。Link と Prose の a が同じクラス列を使う（書き方は heading.ts の先頭）
+// 文字のリンク（Link の variant="text"）の見た目。Link と Prose の a が同じクラス列を使う（書き方は heading.ts の先頭）
 // Prose では、脚注の参照と戻るリンク（footnote.ts）には当てない
 // フォーカスの線は、Link は base の focusRing、Prose は focusRingInProse（src/internal/focus-styles.ts）で付ける
 //

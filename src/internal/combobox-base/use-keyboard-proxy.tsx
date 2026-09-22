@@ -9,7 +9,7 @@ import { useRef } from 'react';
 
 /**
  * 見えない打つ欄と、それにフォーカスを当てる関数を返す
- * @param active 出すか（sheetAutoFocus）。false では欄を置かない
+ * @param active 出すか（focusInputOnOpen）。false では欄を置かない
  */
 export function useKeyboardProxy(active: boolean) {
   const ref = useRef<HTMLInputElement>(null);

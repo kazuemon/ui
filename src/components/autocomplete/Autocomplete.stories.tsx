@@ -5,17 +5,14 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import {
-  Autocomplete,
-  type AutocompleteGroup,
-  type AutocompleteItem,
-  type AutocompleteProps,
-} from './Autocomplete';
+import { Autocomplete, type AutocompleteProps } from './Autocomplete';
+import type { ListboxGroup } from '../../internal/listbox/listbox-items';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { Icon } from '../icon/Icon';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 
-const cities: AutocompleteItem[] = [
+const cities: ListboxItem[] = [
   '札幌市',
   '仙台市',
   'さいたま市',
@@ -35,7 +32,7 @@ const cities: AutocompleteItem[] = [
   '那覇市',
 ].map((label, i) => ({ label, value: `city-${i + 1}` }));
 
-const areas: AutocompleteItem[] = [
+const areas: ListboxItem[] = [
   { label: '千代田区', value: 'chiyoda' },
   { label: '中央区', value: 'chuo' },
   { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
@@ -48,7 +45,7 @@ const areas: AutocompleteItem[] = [
   { label: '港区', value: 'minato' },
 ];
 
-const regions: AutocompleteGroup[] = [
+const regions: ListboxGroup[] = [
   {
     label: '関東',
     items: [
@@ -75,7 +72,7 @@ const regions: AutocompleteGroup[] = [
 ];
 
 // Show code に出す候補の並び（先頭の数件だけ）
-const citiesSource = `const cities: AutocompleteItem[] = [
+const citiesSource = `const cities: ListboxItem[] = [
   { label: '札幌市', value: 'city-1' },
   { label: '仙台市', value: 'city-2' },
   { label: 'さいたま市', value: 'city-3' },
@@ -125,6 +122,7 @@ const meta = {
           '- Esc は、候補が開いていれば閉じるだけで、打った文字は消しません。候補が閉じているときは何もしません。',
           '- 当たる候補がないときの文は `emptyText` で渡します（文字でも要素でも渡せます）。書かないときは、当たる候補がなければ何も開きません。',
           '- 候補を読み込んでいるあいだは `loading` を付けます。絞り込みを外でするときは、`onValueChange` で打った文字を受け取って `items` を差し替え、`filter={false}` にします。',
+          '- 浮かぶ候補そのものに props を足すときは `popupProps`、位置の決め方（画面の端での逃がし方など）は `positionerProps`、打つ欄には `inputProps` を渡します。外を押して閉じるかは `dismissible`、Esc で閉じるかは `closeOnEscape` です。',
           '',
           '「開いた状態」などのストーリーは、ストーリーの画面では開いて表示します。このページでは閉じているので、欄に打って開いてください。',
         ].join('\n'),
@@ -147,7 +145,7 @@ const meta = {
     closeOnSelect: true,
     autoHighlight: false,
     groupLabelStyle: 'label',
-    groupSeparator: false,
+    showGroupSeparator: false,
     popoverMaxHeight: 'screen',
     loading: false,
     loadingBehavior: 'non-blocking',
@@ -169,16 +167,16 @@ const meta = {
     },
     placeholder: { control: 'text' },
     emptyText: { control: 'text' },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    success: { control: 'text' },
-    successMark: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    successText: { control: 'text' },
+    hideSuccessMark: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    infoText: { control: 'text' },
     color: { control: 'inline-radio', options: ['primary', 'secondary', 'neutral'] },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
     clearable: { control: 'boolean' },
-    clearLabel: {
+    clearName: {
       control: 'text',
       table: { defaultValue: { summary: "'入力内容を消去'" } },
     },
@@ -193,7 +191,7 @@ const meta = {
     closeOnSelect: { control: 'boolean' },
     autoHighlight: { control: 'boolean' },
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
-    groupSeparator: { control: 'boolean' },
+    showGroupSeparator: { control: 'boolean' },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: behaviors },
@@ -209,8 +207,10 @@ const meta = {
     onSelect: { control: false },
     open: { control: false },
     defaultOpen: { control: false },
-    container: { control: false },
-    collisionAvoidance: { control: false },
+    portalContainer: { control: false },
+    positionerProps: { control: false },
+    popupProps: { control: false },
+    inputProps: { control: false },
   },
 } satisfies Meta<typeof Autocomplete>;
 
@@ -284,14 +284,14 @@ export const Grouped: Story = {
   name: 'まとまりに分ける',
   args: { label: '地方', items: regions, placeholder: '地方を打って探す' },
   parameters: {
-    controls: { include: ['groupLabelStyle', 'groupSeparator'] },
+    controls: { include: ['groupLabelStyle', 'showGroupSeparator'] },
     docs: {
       description: {
         story:
-          '`items` にまとまり（`label` と `items`）の並びを渡すと、見出し付きで並びます。見出しの文字は `groupLabelStyle`、まとまりのあいだの線は `groupSeparator` で決めます。',
+          '`items` にまとまり（`label` と `items`）の並びを渡すと、見出し付きで並びます。見出しの文字は `groupLabelStyle`、まとまりのあいだの線は `showGroupSeparator` で決めます。',
       },
       source: sourceCode(`
-        const regions: AutocompleteGroup[] = [
+        const regions: ListboxGroup[] = [
           { label: '関東', items: [{ label: '東京都', value: 'tokyo' }, /* … */] },
           { label: '近畿', items: [{ label: '大阪府', value: 'osaka' }, /* … */] },
         ];
@@ -336,8 +336,8 @@ export const Open: Story = {
           key={`${args.popoverMaxHeight}-${args.color}`}
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -552,7 +552,7 @@ export const Sheet: Story = {
   name: 'シートで出す',
   args: { label: '都市', presentation: 'sheet' },
   parameters: {
-    controls: { include: ['presentation', 'sheetInput', 'sheetAutoFocus'] },
+    controls: { include: ['presentation', 'sheetInput', 'focusInputOnOpen'] },
     docs: {
       description: {
         story:
@@ -596,10 +596,10 @@ export const ItemNotes: Story = {
     docs: {
       description: {
         story:
-          '`disabled` の候補は押せない文字の色になり、押しても選ばれません。`note` の `reason` は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある候補だけ高くなります。',
+          '`disabled` の候補は押せない文字の色になり、押しても選ばれません。`note` の `description`（ただの説明）と `reason`（選べない理由）は灰色の文字だけ、`warning` は警告の行と同じ三角と文字です。2行目のある候補だけ高くなります。',
       },
       source: sourceCode(`
-        const areas: AutocompleteItem[] = [
+        const areas: ListboxItem[] = [
           { label: '荒川区', value: 'arakawa', note: { kind: 'warning', text: 'お届けが翌日になります' } },
           { label: '八王子市', value: 'hachioji', disabled: true, note: { kind: 'reason', text: 'お届けできません' } },
         ];
@@ -614,8 +614,8 @@ export const ItemNotes: Story = {
         <Autocomplete
           {...args}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -647,8 +647,8 @@ export const Empty: Story = {
           {...args}
           emptyText={args.emptyText ?? '当てはまる都市がありません'}
           defaultOpen={openOnLoad(viewMode)}
-          container={container}
-          collisionAvoidance={{ side: 'none', align: 'none' }}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
         />
       )}
     </PopoverFrame>
@@ -695,7 +695,7 @@ const readings: Record<string, string> = {
   'city-osaka': 'おおさか',
   'city-sapporo': 'さっぽろ',
 };
-const readingCities: AutocompleteItem[] = [
+const readingCities: ListboxItem[] = [
   { label: '東京都', value: 'city-tokyo' },
   { label: '東海市', value: 'city-tokai' },
   { label: '鳥取市', value: 'city-tottori' },
@@ -703,7 +703,7 @@ const readingCities: AutocompleteItem[] = [
   { label: '大阪市', value: 'city-osaka' },
   { label: '札幌市', value: 'city-sapporo' },
 ];
-const matchReading = (item: AutocompleteItem, query: string) =>
+const matchReading = (item: ListboxItem, query: string) =>
   item.label.includes(query) || (readings[item.value] ?? '').startsWith(query);
 
 export const CustomFilter: Story = {
@@ -718,7 +718,7 @@ export const CustomFilter: Story = {
       },
       source: sourceCode(`
         const readings = { 'city-tokyo': 'とうきょう', 'city-tokai': 'とうかい' /* … */ };
-        const matchReading = (item: AutocompleteItem, query: string) =>
+        const matchReading = (item: ListboxItem, query: string) =>
           item.label.includes(query) || readings[item.value].startsWith(query);
 
         <Autocomplete label="都市" items={cities} filter={matchReading} />
@@ -759,7 +759,7 @@ export const CompleteInput: Story = {
   },
 };
 
-const recentItems: AutocompleteGroup[] = [
+const recentItems: ListboxGroup[] = [
   {
     label: '最近の検索',
     items: [cities[11], cities[15], cities[0]],
@@ -779,7 +779,7 @@ export const EmptyItems: Story = {
       source: sourceCode(
         citiesSource,
         `
-        const recent: AutocompleteGroup[] = [
+        const recent: ListboxGroup[] = [
           { label: '最近の検索', items: [cities[11], cities[15]] },
         ];
 
@@ -855,17 +855,25 @@ export const Messages: Story = {
       <Specimen label="caption（下）">
         <Autocomplete {...args} caption="候補にない都市も打てます" captionPlacement="bottom" />
       </Specimen>
-      <Specimen label="error">
-        <Autocomplete {...args} caption="候補にない都市も打てます" error="都市を入れてください" />
+      <Specimen label="errorText">
+        <Autocomplete
+          {...args}
+          caption="候補にない都市も打てます"
+          errorText="都市を入れてください"
+        />
       </Specimen>
-      <Specimen label="warning">
-        <Autocomplete {...args} defaultValue="荒川区" warning="荒川区は、お届けが翌日になります" />
+      <Specimen label="warningText">
+        <Autocomplete
+          {...args}
+          defaultValue="荒川区"
+          warningText="荒川区は、お届けが翌日になります"
+        />
       </Specimen>
-      <Specimen label="success">
-        <Autocomplete {...args} defaultValue="京都市" success="この都市にお届けできます" />
+      <Specimen label="successText">
+        <Autocomplete {...args} defaultValue="京都市" successText="この都市にお届けできます" />
       </Specimen>
-      <Specimen label="info">
-        <Autocomplete {...args} defaultValue="京都市" info="前回と同じ都市です" />
+      <Specimen label="infoText">
+        <Autocomplete {...args} defaultValue="京都市" infoText="前回と同じ都市です" />
       </Specimen>
     </Gallery>
   ),
@@ -940,7 +948,7 @@ export const Loading: Story = {
 
 // 打った文字で、1 秒後に候補を返す（外で絞り込む）
 function AsyncAutocomplete(props: Omit<AutocompleteProps, 'items' | 'loading'>) {
-  const [items, setItems] = useState<AutocompleteItem[]>([]);
+  const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
     <Autocomplete
@@ -977,7 +985,7 @@ export const AsyncSuggest: Story = {
       },
       source: {
         language: 'tsx',
-        code: `const [items, setItems] = useState<AutocompleteItem[]>([]);
+        code: `const [items, setItems] = useState<ListboxItem[]>([]);
 const [loading, setLoading] = useState(false);
 
 <Autocomplete

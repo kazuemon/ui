@@ -13,8 +13,11 @@ export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffi
    * @default 'current-password'
    */
   autoComplete?: string;
-  /** 表示の切り替えのボタンの名前。押しているかは aria-pressed で伝えるので、名前は変えません */
-  toggleLabel?: string;
+  /**
+   * 表示の切り替えのボタンの、読み上げの名前。押しているかは aria-pressed で伝えるので、名前は変えません
+   * @default 'パスワードを表示'
+   */
+  toggleName?: string;
 }
 
 function inputOf(button: HTMLElement | null) {
@@ -28,7 +31,7 @@ function inputOf(button: HTMLElement | null) {
  */
 export function PasswordField({
   autoComplete = 'current-password',
-  toggleLabel = 'パスワードを表示',
+  toggleName = 'パスワードを表示',
   ...props
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
@@ -69,7 +72,7 @@ export function PasswordField({
       suffix={
         <FieldAddonButton
           ref={buttonRef}
-          aria-label={toggleLabel}
+          aria-label={toggleName}
           aria-pressed={visible}
           onMouseDown={handleMouseDown}
           onClick={toggle}

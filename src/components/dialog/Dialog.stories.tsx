@@ -14,7 +14,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const actions = (
   <>
-    <OverlayClose render={<Button appearance="outline">キャンセル</Button>} />
+    <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
     <OverlayClose render={<Button color="primary">保存する</Button>} />
   </>
 );
@@ -32,9 +32,11 @@ const meta = {
           '- `title` は必ず渡します。読み上げでは、開いた面の名前になります。補足は `description` に書きます。',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。開閉を外から決めるときは `open`・`onOpenChange` を使います。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。最も進めたい操作を右端に置き、色を付けます。',
-          '- 閉じる手段は、右上の ×、Esc、後ろの画面を押す、の3つです。入力の途中で閉じると困るときは `dismissible={false}` で後ろの画面を押しても閉じないようにし、答えるまで閉じたくないときは `closeOnEscape={false}` と `closeButton={false}` も付けて、`actions` のボタンだけで閉じるようにします。',
+          '- 閉じる手段は、右上の ×、Esc、後ろの画面を押す、の3つです。入力の途中で閉じると困るときは `dismissible={false}` で後ろの画面を押しても閉じないようにし、答えるまで閉じたくないときは `closeOnEscape={false}` と `hideCloseButton` も付けて、`actions` のボタンだけで閉じるようにします。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。シートのときは、下のボタンを幅いっぱいで縦に積み、最後に渡した主な操作を上にします。並べ方は `actionsLayout` で変えられます（`stack` 渡した順に上から・`end` 右寄せ・`fill` 幅を等分）。中央に浮かべるときは、いつも右寄せです。',
-          '- 開いた直後のフォーカスは、最初に Tab で止まるもの（右上の ×）に移ります。別の場所に置くときは、その要素に `autoFocus` を付けます。入力を求めるときは最初の入力欄に、取り消せない操作を確かめるときは取り消しのボタン（キャンセル）に付けます。',
+          '- 裏を止めたくないときは `modal={false}`、後ろを見せたまま外を押しても閉じないようにするときは `modal="passive"` にします。シートで出すときに、はじいて閉じるかだけを変えるときは `closeOnSwipe` です。',
+          '- 面の要素に `id`・`data-*` などを付けるときは `popupProps`、開閉の動きが終わったことを知るには `onOpenChangeComplete` を使います。',
+          '- 開いた直後のフォーカスは、最初に Tab で止まるもの（右上の ×）に移ります。別の場所に置くときは、その要素に `autoFocus`（Dialog の `autoFocus` に要素か ref を渡しても決められます）を付けます。閉じたあとの戻り先は `returnFocus` です。入力を求めるときは最初の入力欄に、取り消せない操作を確かめるときは取り消しのボタン（キャンセル）に付けます。',
         ].join('\n'),
       },
     },
@@ -45,8 +47,8 @@ const meta = {
     presentation: 'auto',
     dismissible: true,
     closeOnEscape: true,
-    closeButton: true,
-    closeLabel: '閉じる',
+    hideCloseButton: false,
+    closeName: '閉じる',
   },
   argTypes: {
     title: { control: 'text' },
@@ -59,7 +61,7 @@ const meta = {
     trigger: { control: false },
     actions: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Dialog>;
 
@@ -77,7 +79,7 @@ export const Playground: Story = {
           trigger={<Button>プロフィールを編集</Button>}
           actions={
             <>
-              <OverlayClose render={<Button appearance="outline">キャンセル</Button>} />
+              <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
               <OverlayClose render={<Button color="primary">保存する</Button>} />
             </>
           }
@@ -114,7 +116,7 @@ export const Open: Story = {
           trigger={<Button>プロフィールを編集</Button>}
           actions={actions}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <TextField label="表示名" defaultValue="かずえもん" />
         </Dialog>
@@ -151,7 +153,7 @@ export const Confirm: Story = {
               {/* 取り消せない操作では、開いた直後のフォーカスを取り消しのボタンに置く */}
               <OverlayClose
                 render={
-                  <Button appearance="outline" autoFocus>
+                  <Button variant="outline" autoFocus>
                     キャンセル
                   </Button>
                 }
@@ -160,7 +162,7 @@ export const Confirm: Story = {
             </>
           }
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </ScreenFrame>
@@ -188,7 +190,7 @@ export const Sheet: Story = {
           trigger={<Button>プロフィールを編集</Button>}
           actions={actions}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <TextField label="表示名" defaultValue="かずえもん" />
         </Dialog>
@@ -205,14 +207,14 @@ export const Required: Story = {
     description: '続けるには、新しい利用規約に同意してください。',
     dismissible: false,
     closeOnEscape: false,
-    closeButton: false,
+    hideCloseButton: true,
   },
   parameters: {
-    controls: { include: ['dismissible', 'closeOnEscape', 'closeButton'] },
+    controls: { include: ['dismissible', 'closeOnEscape', 'hideCloseButton'] },
     docs: {
       description: {
         story:
-          '`dismissible={false}`・`closeOnEscape={false}`・`closeButton={false}` で、後ろの画面・Esc・× のどれでも閉じないようにした形です。閉じる手段を `actions` に必ず置きます。',
+          '`dismissible={false}`・`closeOnEscape={false}`・`hideCloseButton` で、後ろの画面・Esc・× のどれでも閉じないようにした形です。閉じる手段を `actions` に必ず置きます。',
       },
     },
   },
@@ -225,12 +227,12 @@ export const Required: Story = {
           trigger={<Button>利用規約</Button>}
           actions={
             <>
-              <OverlayClose render={<Button appearance="outline">あとで</Button>} />
+              <OverlayClose render={<Button variant="outline">あとで</Button>} />
               <OverlayClose render={<Button color="primary">同意する</Button>} />
             </>
           }
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </ScreenFrame>

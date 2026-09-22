@@ -105,7 +105,7 @@ const codeGroup = tv({
       line: {},
       text: { indicator: 'hidden' },
     },
-    appearance: {
+    variant: {
       surface: { root: codeBlockStyles.surfaceColors },
       dark: {
         root: [
@@ -119,13 +119,16 @@ const codeGroup = tv({
       },
     },
   },
-  defaultVariants: { appearance: 'surface', indicatorKind: 'line' },
+  defaultVariants: { variant: 'surface', indicatorKind: 'line' },
 });
 
 /** 選んでいるタブの印（軸 146）。line は下の線、text は文字の濃さと太さだけ */
 export type CodeGroupIndicator = 'line' | 'text';
 
 type CodeChild = ReactElement<CodeBlockProps>;
+
+/** コードの面の見た目 */
+export type CodeGroupVariant = 'surface' | 'dark';
 
 export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' | 'onChange'> {
   /**
@@ -136,7 +139,7 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
    * 見た目。surface は入力欄と同じグレーの面、dark は濃紺の地です。中の `CodeBlock` にも渡ります
    * @default 'surface'
    */
-  appearance?: 'surface' | 'dark';
+  variant?: CodeGroupVariant;
   /**
    * 選んでいるタブの印。line は文字を濃く太くして下に部品の色の線を引き、text は文字の濃さと太さだけにします
    * @default 'line'
@@ -149,27 +152,32 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
   /** タブが変わったときに呼ばれます */
   onValueChange?: (value: number) => void;
   /**
-   * コピーのボタンを出します
-   * @default true
+   * コピーのボタンを出さないようにします
+   * @default false
    */
-  copyButton?: boolean;
+  hideCopyButton?: boolean;
   /**
    * コピーのボタンの読み上げの名前。開いているタブの名前を、このあとに続けて読みます
    * @default 'コードをコピー'
    */
-  copyLabel?: string;
+  copyName?: string;
   /**
    * コピーしたあとに、ボタンに出して読み上げる文
    * @default 'コピーしました'
    */
-  copiedLabel?: string;
+  copiedText?: string;
   /**
    * 写せなかったとき（権限がない・安全でない接続）に、吹き出しに出して読み上げる文
    * @default 'コピーできませんでした'
    */
-  copyErrorLabel?: string;
-  /** タブの並び（tablist）の読み上げの名前 @default 'コードの書き方' */
-  label?: string;
+  copyErrorText?: string;
+  /**
+   * タブの並び（tablist）の読み上げの名前
+   * @default 'コードの書き方'
+   */
+  accessibleName?: string;
+  /** タブとコードを包む要素に付きます */
+  className?: string;
 }
 
 /**
@@ -177,20 +185,20 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
  */
 export function CodeGroup({
   children,
-  appearance = 'surface',
+  variant = 'surface',
   indicator = 'line',
   defaultValue = 0,
   value,
   onValueChange,
-  copyButton = true,
-  copyLabel = 'コードをコピー',
-  copiedLabel = 'コピーしました',
-  copyErrorLabel = 'コピーできませんでした',
-  label = 'コードの書き方',
+  hideCopyButton = false,
+  copyName = 'コードをコピー',
+  copiedText = 'コピーしました',
+  copyErrorText = 'コピーできませんでした',
+  accessibleName = 'コードの書き方',
   className,
   ...props
 }: CodeGroupProps) {
-  const s = codeGroup({ appearance, indicatorKind: indicator });
+  const s = codeGroup({ variant, indicatorKind: indicator });
   const frameRef = useRef<HTMLDivElement>(null);
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
   const current = value ?? uncontrolled;
@@ -212,7 +220,7 @@ export function CodeGroup({
         onValueChange?.(index);
       }}
       data-slot="code-group"
-      data-appearance={appearance}
+      data-variant={variant}
       render={<div ref={frameRef} />}
       className={s.root({ className })}
       {...props}
@@ -229,7 +237,11 @@ export function CodeGroup({
             className={scroll.viewport({ className: s.viewport() })}
           >
             <BaseScrollArea.Content>
-              <BaseTabs.List aria-label={label} data-slot="code-group-list" className={s.list()}>
+              <BaseTabs.List
+                aria-label={accessibleName}
+                data-slot="code-group-list"
+                className={s.list()}
+              >
                 <BaseTabs.Indicator data-slot="code-group-indicator" className={s.indicator()} />
                 {blocks.map((block, index) => {
                   const title = block.props.title ?? `コード ${index + 1}`;
@@ -274,21 +286,19 @@ export function CodeGroup({
       </div>
       {blocks.map((block, index) => (
         <BaseTabs.Panel key={index} value={index} className={s.panel()}>
-          {cloneElement(block, { title: false, copyButton: false, appearance })}
+          {cloneElement(block, { title: false, hideCopyButton: true, variant })}
         </BaseTabs.Panel>
       ))}
-      {copyButton ? (
+      {hideCopyButton ? null : (
         // 写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CodeBlock・CopyButton と同じ吹き出し）
-        <CopyErrorTooltip open={failed} label={copyErrorLabel}>
+        <CopyErrorTooltip open={failed} text={copyErrorText}>
           <button
             type="button"
             data-slot="code-group-copy"
             className={s.copy()}
             data-copied={copied ? '' : undefined}
             // 名前は「コードをコピー ＋ 開いているタブの名前」。どのコードを写すのかが分かる
-            aria-label={
-              typeof currentTitle === 'string' ? `${copyLabel} ${currentTitle}` : copyLabel
-            }
+            aria-label={typeof currentTitle === 'string' ? `${copyName} ${currentTitle}` : copyName}
             onClick={() => {
               const text =
                 currentBlock?.props.copyText ??
@@ -298,19 +308,19 @@ export function CodeGroup({
           >
             {copied ? (
               <span aria-hidden="true" className={s.copied()}>
-                {copiedLabel}
+                {copiedText}
               </span>
             ) : null}
             <CopyGlyph copied={copied} standalone />
           </button>
         </CopyErrorTooltip>
-      ) : null}
+      )}
       {/* コピーの結果を読み上げる。箱は先に置いておき、中身だけを入れる */}
       <CopiedStatus
         copied={copied}
-        label={copiedLabel}
+        copiedText={copiedText}
         failed={failed}
-        errorLabel={copyErrorLabel}
+        copyErrorText={copyErrorText}
       />
     </BaseTabs.Root>
   );

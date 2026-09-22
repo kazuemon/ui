@@ -21,13 +21,13 @@ const meta = {
           '処理の進み具合を、バーで示します。アップロードや、手順の進み、記事の読了に使います。押せません。',
           '決まった範囲の中の量（スキルの習熟度、ストレージの使用量）には Meter を使います。',
           '',
-          '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`showValue={false}` で隠せます。',
+          '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`hideValue` で隠せます。',
           '- どれだけかかるか分からないときは `value={null}` にします。地の上で塗りの色が動き続けます。値の文字は出ません。',
           '- 動き方は `animation` で選びます。ふだんは `sweep`（短い区切りが左から右へ流れる。ボタンの送信中の線と同じ動き）です。長く待つ処理で止まっていないことをはっきり見せたいときは、`stripes`（幅いっぱいの縞が流れる）にします。`shuttle`（区切りが左右の端を往復する）も選べます。どれも、動きを減らす設定では、流さずに幅いっぱいでその場で明滅します。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「3 / 12 ファイル」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。進み具合に良し悪しはないので、値によって色は変わりません。',
           '- `size` でバーの太さを選びます。`md` が標準で、細い `sm`、太い `lg` と、記事の読了のバーのような線に近い `xs` があります。',
-          '- `track={false}` で地（まだ進んでいない分のグレー）を消し、進んだ分だけの線にできます。',
+          '- `hideTrack` で地（まだ進んでいない分のグレー）を消し、進んだ分だけの線にできます。',
           '- 端はふだん丸い形です。記事の上端に留める読了のバーのように画面の端に接する線では、`shape="square"` で端を丸めない形にします。',
           '- 終わる（`value` が `max`）と `data-complete` が付きます。見た目は変わりません。終わったことは、ラベルやキャプションの文で伝えます。',
           '- `label` を渡さないときは、`aria-label` で名前を付けます。',
@@ -40,10 +40,10 @@ const meta = {
     value: 45,
     color: 'neutral',
     size: 'md',
-    track: true,
-    showValue: true,
+    hideTrack: false,
+    hideValue: false,
     animation: 'sweep',
-    shape: 'round',
+    shape: 'circle',
   },
   argTypes: {
     value: { control: { type: 'range', min: 0, max: 100 } },
@@ -59,7 +59,7 @@ const meta = {
       options: sizes,
       table: { defaultValue: { summary: "'md'" } },
     },
-    track: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
+    hideTrack: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     animation: {
       control: 'inline-radio',
       options: animations,
@@ -67,8 +67,8 @@ const meta = {
     },
     shape: {
       control: 'inline-radio',
-      options: ['round', 'square'],
-      table: { defaultValue: { summary: "'round'" } },
+      options: ['circle', 'square'],
+      table: { defaultValue: { summary: "'circle'" } },
     },
   },
   decorators: [
@@ -199,7 +199,7 @@ export const WithoutTrack: Story = {
   render: () => (
     <Gallery columnWidth="14rem">
       {(['xs', 'sm'] as const).map((size) => (
-        <Specimen key={size} label={`${size}・track={false}`}>
+        <Specimen key={size} label={`${size}・hideTrack`}>
           <div className="flex flex-col gap-5">
             {colors.map((color) => (
               <Progress
@@ -208,8 +208,8 @@ export const WithoutTrack: Story = {
                 value={45}
                 size={size}
                 color={color}
-                track={false}
-                showValue={false}
+                hideTrack
+                hideValue
               />
             ))}
           </div>
@@ -232,7 +232,7 @@ export const Parts: Story = {
         caption="送り終わるまで、この画面を閉じないでください"
       />
       <Progress label="終わりました" value={100} caption="12 ファイルを送りました" />
-      <Progress label="値の文字なし" value={60} showValue={false} />
+      <Progress label="値の文字なし" value={60} hideValue />
       <Progress aria-label="ラベルなし" value={30} caption="ラベルを出さないときは aria-label" />
     </div>
   ),
@@ -259,7 +259,7 @@ export const ReadingBar: Story = {
         story: [
           '記事の上端に、ラベルを持たない細い Progress を `Affix` で留めます。枠をスクロールすると伸びます。',
           '端から離さないよう `--affix-gap` を 0 にし、貼り付けた Navbar があるページでは `belowNavbar` でその下に留めます。',
-          '画面の端に接する線なので、`shape="square"` で端を丸めません。太さは `size="sm"`（4px）で地を敷くのが基本です。もっと控えめにしたいときは、`size="xs"`（2px）や `track={false}`（読んだ分だけの線）にします。',
+          '画面の端に接する線なので、`shape="square"` で端を丸めません。太さは `size="sm"`（4px）で地を敷くのが基本です。もっと控えめにしたいときは、`size="xs"`（2px）や `hideTrack`（読んだ分だけの線）にします。',
           '読んだ割合はスクロールの位置から分かることなので、読み上げからは外します（`aria-hidden`）。値が変わるたびに音で知らせる読み上げがあるためです。',
         ].join('\n'),
       },
@@ -290,7 +290,7 @@ export const ReadingBar: Story = {
               size="sm"
               shape="square"
               color="primary"
-              showValue={false}
+              hideValue
               aria-hidden
             />
           </Affix>
@@ -308,8 +308,8 @@ export const ReadingBar: Story = {
       <Specimen label="貼り付けた Navbar の下">
         <ReadingScene navbar width="w-[340px]" />
       </Specimen>
-      <Specimen label='size="xs"・track={false}'>
-        <ReadingScene size="xs" track={false} width="w-[340px]" />
+      <Specimen label='size="xs"・hideTrack'>
+        <ReadingScene size="xs" hideTrack width="w-[340px]" />
       </Specimen>
     </div>
   ),

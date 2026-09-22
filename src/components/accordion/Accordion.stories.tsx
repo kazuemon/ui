@@ -2,12 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
-import {
-  Accordion,
-  AccordionItem,
-  type AccordionAppearance,
-  type AccordionProps,
-} from './Accordion';
+import { Accordion, AccordionItem, type AccordionVariant, type AccordionProps } from './Accordion';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -51,7 +46,7 @@ const meta = {
           '',
           '- `Accordion` の中に `AccordionItem` を間をあけずに並べます。項目ごとに `title`（題）と中身を渡します。',
           '- 既定では 1 つ開くとほかは閉じます。いくつも同時に開けるようにするときは `multiple` を付けます。',
-          '- 見た目は `appearance` で選びます。既定は区切り線で区切る `divided` で、ほかに塗りなしの `plain`、開いている項目を塗る `open-filled`、いつも塗る `filled` があります。行と中身の見た目は Collapsible と同じです。',
+          '- 見た目は `variant` で選びます。既定は区切り線で区切る `divided` で、ほかに塗りなしの `plain`、開いている項目を塗る `open-filled`、いつも塗る `filled` があります。行と中身の見た目は Collapsible と同じです。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。',
           '- はじめに開いておく項目は、`AccordionItem` の `value` を `defaultValue` に並べて指します。使う側で持つときは `value` と `onValueChange` を使います。',
           '- 題は見出し（既定は h3）で包みます。ページの見出しの並びに合わせて `headingLevel` を変えます。',
@@ -67,9 +62,9 @@ const meta = {
       `),
     },
   },
-  args: { appearance: 'divided', indicator: 'end', multiple: false },
+  args: { variant: 'divided', indicator: 'end', multiple: false },
   argTypes: {
-    appearance: {
+    variant: {
       control: 'inline-radio',
       options: ['divided', 'plain', 'open-filled', 'filled'],
       table: { defaultValue: { summary: 'divided' } },
@@ -145,15 +140,15 @@ export const States: Story = {
   ),
 };
 
-const appearances: AccordionAppearance[] = ['divided', 'plain', 'open-filled', 'filled'];
+const variants: AccordionVariant[] = ['divided', 'plain', 'open-filled', 'filled'];
 
-function AppearanceGrid({ indicator }: Pick<AccordionProps, 'indicator'>) {
+function VariantGrid({ indicator }: Pick<AccordionProps, 'indicator'>) {
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8">
-      {appearances.map((appearance) => (
-        <div key={appearance} className="flex flex-col gap-2">
-          <p className="text-xs text-fg-subtle">{appearance}</p>
-          <Accordion appearance={appearance} indicator={indicator} defaultValue={['password']}>
+      {variants.map((variant) => (
+        <div key={variant} className="flex flex-col gap-2">
+          <p className="text-xs text-fg-subtle">{variant}</p>
+          <Accordion variant={variant} indicator={indicator} defaultValue={['password']}>
             <FaqItems />
           </Accordion>
         </div>
@@ -162,21 +157,21 @@ function AppearanceGrid({ indicator }: Pick<AccordionProps, 'indicator'>) {
   );
 }
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目',
   parameters: {
     docs: {
       description: {
         story:
-          '`appearance` の 4 つの見た目です。`divided` は項目のあいだの線を 1 本にし、`filled` は面がつながらないよう項目のあいだを少し離します。',
+          '`variant` の 4 つの見た目です。`divided` は項目のあいだの線を 1 本にし、`filled` は面がつながらないよう項目のあいだを少し離します。',
       },
     },
   },
-  render: () => <AppearanceGrid indicator="end" />,
+  render: () => <VariantGrid indicator="end" />,
 };
 
-export const AppearancesStart: Story = {
+export const VariantsStart: Story = {
   tags: ['visual'],
   name: '見た目（印は左）',
   parameters: {
@@ -187,7 +182,7 @@ export const AppearancesStart: Story = {
       },
     },
   },
-  render: () => <AppearanceGrid indicator="start" />,
+  render: () => <VariantGrid indicator="start" />,
 };
 
 export const Densities: Story = {

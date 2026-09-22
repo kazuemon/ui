@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Avatar } from '../components/avatar/Avatar';
 import { Badge } from '../components/badge/Badge';
 import { Button } from '../components/button/Button';
+import { DescriptionItem, DescriptionList } from '../components/description-list/DescriptionList';
 import { Dialog } from '../components/dialog/Dialog';
 import { Heading } from '../components/heading/Heading';
 import { Link } from '../components/link/Link';
@@ -13,6 +14,7 @@ import { MenuItem, MenuSeparator } from '../components/menu/MenuItem';
 import { RelativeTime } from '../components/relative-time/RelativeTime';
 import { Select } from '../components/select/Select';
 import { Skeleton } from '../components/skeleton/Skeleton';
+import { Stack } from '../components/stack/Stack';
 import {
   Table,
   TableBody,
@@ -104,7 +106,7 @@ const statusColor = { active: 'success', invited: 'info', suspended: 'danger' } 
 function StatusBadge({ status }: { status: Status }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <Badge color={statusColor[status]} label={statusLabel[status]} />
+      <Badge color={statusColor[status]} accessibleName={statusLabel[status]} />
       <span>{statusLabel[status]}</span>
     </span>
   );
@@ -115,7 +117,7 @@ function RowMenu({ member, onOpen }: { member: Member; onOpen: () => void }) {
     <Menu
       title={member.name}
       trigger={
-        <Button iconOnly appearance="outline" aria-label={`${member.name} の操作`}>
+        <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
           <DotsThreeIcon />
         </Button>
       }
@@ -123,7 +125,7 @@ function RowMenu({ member, onOpen }: { member: Member; onOpen: () => void }) {
       <MenuItem onClick={onOpen}>詳細を見る</MenuItem>
       <MenuItem icon={<PencilSimpleIcon />}>編集する</MenuItem>
       <MenuSeparator />
-      <MenuItem icon={<TrashIcon />} danger>
+      <MenuItem icon={<TrashIcon />} status="danger">
         削除する
       </MenuItem>
     </Menu>
@@ -135,21 +137,21 @@ function SkeletonRows() {
     <TableRow key={i}>
       <TableCell>
         <div className="flex items-center gap-3">
-          <Skeleton shape="circle" className="size-8" />
-          <Skeleton shape="text" className="w-28" />
+          <Skeleton variant="circle" className="size-8" />
+          <Skeleton variant="text" className="w-28" />
         </div>
       </TableCell>
       <TableCell>
-        <Skeleton shape="text" className="w-16" />
+        <Skeleton variant="text" className="w-16" />
       </TableCell>
       <TableCell>
-        <Skeleton shape="text" className="w-16" />
+        <Skeleton variant="text" className="w-16" />
       </TableCell>
       <TableCell>
         <Skeleton radius="pill" className="h-5 w-16" />
       </TableCell>
       <TableCell>
-        <Skeleton shape="text" className="w-20" />
+        <Skeleton variant="text" className="w-20" />
       </TableCell>
       <TableCell>
         <Skeleton className="size-(--spacing-control)" />
@@ -176,18 +178,18 @@ function ListPage({ state }: { state: ListState }) {
   const busy = state === 'loading';
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <Stack gap="lg">
+      <Stack direction="horizontal" gap="md" justify="between" align="end">
         <div>
           <Heading level={1} size={2}>
             メンバー
           </Heading>
-          <Text tone="muted" className="mt-1">
+          <Text variant="muted" className="mt-1">
             チームに参加している人と、招待中の人です。
           </Text>
         </div>
         <Button color="primary">メンバーを招待</Button>
-      </div>
+      </Stack>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-48 flex-1">
@@ -216,7 +218,7 @@ function ListPage({ state }: { state: ListState }) {
       </div>
 
       <div aria-busy={busy}>
-        <Table label="メンバーの一覧">
+        <Table accessibleName="メンバーの一覧">
           <TableHead>
             <TableRow>
               <TableHeader>名前</TableHeader>
@@ -248,7 +250,7 @@ function ListPage({ state }: { state: ListState }) {
                         >
                           {m.name}
                         </Link>
-                        <Text as="span" size="sm" tone="subtle">
+                        <Text as="span" size="sm" variant="subtle">
                           {m.email}
                         </Text>
                       </div>
@@ -261,7 +263,7 @@ function ListPage({ state }: { state: ListState }) {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {m.tags.length === 0 ? (
-                        <Text as="span" size="sm" tone="subtle">
+                        <Text as="span" size="sm" variant="subtle">
                           なし
                         </Text>
                       ) : (
@@ -276,7 +278,7 @@ function ListPage({ state }: { state: ListState }) {
                       </span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="end">
                     <RowMenu member={m} onOpen={() => setSelected(m)} />
                   </TableCell>
                 </TableRow>
@@ -285,17 +287,17 @@ function ListPage({ state }: { state: ListState }) {
           </TableBody>
         </Table>
         {!busy && shown.length === 0 && (
-          <div className="flex flex-col items-center gap-2 py-12 text-center">
+          <Stack gap="sm" align="center" className="py-12 text-center">
             <Heading level={2} size={4}>
               見つかりませんでした
             </Heading>
-            <Text tone="muted">条件を変えるか、新しいメンバーを招待してください。</Text>
-            <Button appearance="outline">メンバーを招待</Button>
-          </div>
+            <Text variant="muted">条件を変えるか、新しいメンバーを招待してください。</Text>
+            <Button variant="outline">メンバーを招待</Button>
+          </Stack>
         )}
       </div>
 
-      {state === 'normal' && <Pagination page={page} count={12} onChange={setPage} />}
+      {state === 'normal' && <Pagination page={page} count={12} onPageChange={setPage} />}
 
       <Dialog
         presentation="auto"
@@ -305,7 +307,7 @@ function ListPage({ state }: { state: ListState }) {
         description={selected?.email}
         actions={
           <>
-            <Button appearance="outline" onClick={() => setSelected(null)}>
+            <Button variant="outline" onClick={() => setSelected(null)}>
               閉じる
             </Button>
             <Button color="primary">編集する</Button>
@@ -313,27 +315,18 @@ function ListPage({ state }: { state: ListState }) {
         }
       >
         {selected && (
-          <dl className="flex flex-col gap-4">
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">役割</dt>
-              <dd>{selected.role}</dd>
-            </div>
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">状態</dt>
-              <dd>
-                <StatusBadge status={selected.status} />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">最終ログイン</dt>
-              <dd>
-                <RelativeTime dateTime={selected.lastSeen} now={now} />
-              </dd>
-            </div>
-          </dl>
+          <DescriptionList layout="stacked" termStyle="label">
+            <DescriptionItem term="役割">{selected.role}</DescriptionItem>
+            <DescriptionItem term="状態">
+              <StatusBadge status={selected.status} />
+            </DescriptionItem>
+            <DescriptionItem term="最終ログイン">
+              <RelativeTime dateTime={selected.lastSeen} now={now} />
+            </DescriptionItem>
+          </DescriptionList>
         )}
       </Dialog>
-    </div>
+    </Stack>
   );
 }
 

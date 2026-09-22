@@ -14,13 +14,13 @@ const time = Temporal.PlainTime.from('15:05');
 const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '値あり', props: { defaultValue: time } },
-  { label: 'エラー', props: { error: '開始時刻を入力してください' } },
+  { label: 'エラー', props: { errorText: '開始時刻を入力してください' } },
   {
     label: '範囲の外',
     props: {
       defaultValue: time,
       max: Temporal.PlainTime.from('12:00'),
-      error: '12:00 までの時刻を入力してください',
+      errorText: '12:00 までの時刻を入力してください',
     },
   },
   { label: '押せない', props: { defaultValue: time, disabled: true } },
@@ -62,6 +62,7 @@ const meta = {
           '- 「9:05」「0905」「午後3時」「3:05 PM」のような文字を貼り付けると、読み取って区切りに入れます。全角の数字も読みます。直したことを知らせたいときは `halfWidthNotice` を付けます。',
           '- 値は `Temporal.PlainTime` で受け渡します。`name` を渡すと、フォームには「15:05」の形で送ります。',
           '- `color` で、いま打っている区切りの塗りとフォーカスの枠線の色を選びます。既定はグレーの塗りです。',
+          '- `id`・`ref`・`inputProps` は、区切りを並べる要素（`role="group"`）に付きます。`className` は欄の外枠に付きます。',
         ].join('\n'),
       },
     },
@@ -88,9 +89,9 @@ const meta = {
       options: ['top', 'bottom'],
       table: { defaultValue: { summary: "'top'" } },
     },
-    error: { control: 'text' },
-    warning: { control: 'text' },
-    info: { control: 'text' },
+    errorText: { control: 'text' },
+    warningText: { control: 'text' },
+    infoText: { control: 'text' },
     prefix: { control: 'text' },
     suffix: { control: 'text' },
     hourCycle: {
@@ -145,12 +146,12 @@ export const States: Story = {
       source: sourceCode(`
         <TimeField label="開始時刻" />
         <TimeField label="開始時刻" defaultValue={Temporal.PlainTime.from('15:05')} />
-        <TimeField label="開始時刻" error="開始時刻を入力してください" />
+        <TimeField label="開始時刻" errorText="開始時刻を入力してください" />
         <TimeField
           label="開始時刻"
           defaultValue={Temporal.PlainTime.from('15:05')}
           max={Temporal.PlainTime.from('12:00')}
-          error="12:00 までの時刻を入力してください"
+          errorText="12:00 までの時刻を入力してください"
         />
         <TimeField label="開始時刻" defaultValue={Temporal.PlainTime.from('15:05')} disabled />
         <TimeField label="開始時刻" defaultValue={Temporal.PlainTime.from('15:05')} readOnly />

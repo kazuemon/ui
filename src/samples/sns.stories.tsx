@@ -14,6 +14,7 @@ import { Menu } from '../components/menu/Menu';
 import { MenuItem, MenuSeparator } from '../components/menu/MenuItem';
 import { Popover } from '../components/popover/Popover';
 import { Skeleton } from '../components/skeleton/Skeleton';
+import { Stack } from '../components/stack/Stack';
 import { Tab, TabList, TabPanel, Tabs } from '../components/tabs/Tabs';
 import { Tag } from '../components/tag/Tag';
 import { Text } from '../components/text/Text';
@@ -53,12 +54,12 @@ function ProfilePreview({ person, children }: { person: Person; children: ReactN
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <Avatar name={person.name} size="lg" />
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             {person.handle}
           </Text>
         </div>
         <Text size="sm">{person.bio}</Text>
-        <Button appearance="outline" color="primary">
+        <Button variant="outline" color="primary">
           フォローする
         </Button>
       </div>
@@ -88,7 +89,7 @@ function Post({
               {person.name}
             </Text>
           </ProfilePreview>
-          <Text as="span" size="sm" tone="subtle" className="truncate">
+          <Text as="span" size="sm" variant="subtle" className="truncate">
             {person.handle}・{time}
           </Text>
         </div>
@@ -96,7 +97,7 @@ function Post({
           title="投稿"
           align="end"
           trigger={
-            <Button appearance="outline" iconOnly aria-label="その他">
+            <Button variant="outline" iconOnly aria-label="その他">
               <Icon icon={DotsThreeIcon} standalone />
             </Button>
           }
@@ -104,7 +105,7 @@ function Post({
           <MenuItem>リンクをコピー</MenuItem>
           <MenuItem>この人をミュート</MenuItem>
           <MenuSeparator />
-          <MenuItem danger>報告する</MenuItem>
+          <MenuItem status="danger">報告する</MenuItem>
         </Menu>
       </div>
       <div className="col-start-2 flex min-w-0 flex-col gap-3">
@@ -137,11 +138,11 @@ function Post({
 function PostSkeleton() {
   return (
     <div className="flex gap-3 border-b border-line py-4 first:pt-0" aria-busy="true">
-      <Skeleton shape="circle" />
-      <div className="flex flex-1 flex-col gap-2">
-        <Skeleton shape="text" className="w-1/3" />
-        <Skeleton shape="text" lines={2} />
-      </div>
+      <Skeleton variant="circle" />
+      <Stack gap="sm" className="flex-1">
+        <Skeleton variant="text" className="w-1/3" />
+        <Skeleton variant="text" lines={2} />
+      </Stack>
     </div>
   );
 }
@@ -166,7 +167,7 @@ function Compose() {
       dismissible={false}
       actions={
         <>
-          <OverlayClose render={<Button appearance="outline">キャンセル</Button>} />
+          <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
           <OverlayClose render={<Button color="primary">投稿する</Button>} />
         </>
       }
@@ -185,16 +186,18 @@ function SnsScreen() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4">
+    <Stack gap="md">
       <div className="flex items-center justify-between gap-2">
         <Heading level={1} size={2}>
           ホーム
         </Heading>
         <div className="flex items-center gap-2">
-          <span className="relative inline-flex">
-            <Button appearance="outline">通知</Button>
-            <Badge count={3} color="secondary" className="absolute -top-1 -right-1" />
-          </span>
+          {/* 数は Badge の children に相手を入れて重ねる。読み上げは相手の名前に含める */}
+          <Badge count={3} color="secondary" aria-hidden="true">
+            <Button variant="outline" aria-label="通知（未読 3 件）">
+              通知
+            </Button>
+          </Badge>
           <Compose />
         </div>
       </div>
@@ -240,17 +243,17 @@ function SnsScreen() {
               <Text as="span" className="font-bold">
                 {taro.name}
               </Text>
-              <Text as="span" size="sm" tone="subtle">
+              <Text as="span" size="sm" variant="subtle">
                 {taro.bio}
               </Text>
             </div>
           </div>
-          <Button appearance="outline" color="primary">
+          <Button variant="outline" color="primary">
             フォロー
           </Button>
         </div>
       </section>
-    </div>
+    </Stack>
   );
 }
 

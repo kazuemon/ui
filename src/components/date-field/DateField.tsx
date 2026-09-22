@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { type ComponentProps, type Ref, useMemo, useState } from 'react';
 
 import { type DateSegmentColor, dateSegmentColorClass } from '../../internal/date-segments/colors';
 import { DateSegmentGroup } from '../../internal/date-segments/DateSegmentGroup';
@@ -18,28 +18,37 @@ import { useFormSubmittingLock } from '../../internal/form-context';
 export type { SegmentPlaceholder } from '../../internal/date-segments/labels';
 
 export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, HalfWidthNoticeProps {
-  /** 入っている日（制御するとき）。年・月・日がそろっていないときは null */
+  /** 値（制御）。年・月・日がそろっていないときは null */
   value?: PlainDate | null;
-  /** はじめに入れておく日 */
+  /** はじめの値（非制御） */
   defaultValue?: PlainDate | null;
-  /** 年・月・日がそろったとき（そろった値を消したときは null） */
+  /** 値が変わるときに、次の値を渡して呼びます（年・月・日がそろったとき。そろった値を消したときは null） */
   onValueChange?: (value: PlainDate | null) => void;
   /**
    * 入れてよいいちばん前の日。これより前の日が入ると、欄をエラーの見た目（赤い枠線・aria-invalid）にします。
-   * 区切りの増減は止めません。理由の文は `error` で渡します
+   * 区切りの増減は止めません。理由の文は `errorText` で渡します
    */
   min?: PlainDate;
   /** 入れてよいいちばん後の日。扱いは min と同じ */
   max?: PlainDate;
+  /** 中の区切りを並べる要素の id */
+  id?: string;
+  /** 中の区切りを並べる要素への ref */
+  ref?: Ref<HTMLDivElement>;
+  /** 中の区切りを並べる要素に渡すもの（class・data-* など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'div'>;
   /** フォームに送る名前。値は ISO 8601 の日付（「2026-09-20」）で、そろっていないときは空 */
   name?: string;
+  /** 押せない（Disabled）状態にします */
   disabled?: boolean;
+  /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
   /**
    * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
+  /** 描いたあとに、最初の区切りへフォーカスを移します */
   autoFocus?: boolean;
   /**
    * 空の区切りに出す見本の書き方。letters は「yyyy/mm/dd」、units は「年/月/日」、dashes は「----/--/--」
@@ -62,8 +71,8 @@ export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
    * @default 'neutral'
    */
   color?: DateSegmentColor;
-  /** 貼り付けた文字が日付として読めなかったとき。値は変えません。`info` などで知らせるときに使います */
-  onParseFail?: (text: string) => void;
+  /** 貼り付けた文字が日付として読めなかったあとに呼びます。値は変えません。`infoText` などで知らせるときに使います */
+  onParseFailed?: (text: string) => void;
   'aria-describedby'?: string;
 }
 
@@ -74,11 +83,11 @@ export function DateField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   readOnly,
   required,
@@ -98,11 +107,14 @@ export function DateField({
   min,
   max,
   name,
+  id,
+  ref,
+  inputProps,
   segmentPlaceholder = 'letters',
   locale: localeProp,
   timeZone: timeZoneProp,
   color = 'neutral',
-  onParseFail,
+  onParseFailed,
   halfWidthNotice = false,
   'aria-describedby': ariaDescribedBy,
 }: DateFieldProps) {
@@ -128,11 +140,11 @@ export function DateField({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
+      error={errorText}
       invalid={outOfRange}
-      warning={warning}
-      success={success}
-      info={info ?? notice}
+      warning={warningText}
+      success={successText}
+      info={infoText ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -151,9 +163,9 @@ export function DateField({
           disabled={disabled}
           loading={loading}
           loadingIndicator={loadingIndicator}
-          success={success}
-          successMark={successMark}
-          error={error}
+          success={successText}
+          successMark={!hideSuccessMark}
+          error={errorText}
           describedBy={ariaDescribedBy}
           messageIds={messageIds}
           className={dateSegmentColorClass[color]}
@@ -178,14 +190,17 @@ export function DateField({
                 const parsed = parseDateText(text, monthFirst);
                 return parsed && { ...parsed };
               }}
-              onParseFail={onParseFail}
+              onParseFailed={onParseFailed}
               onHalfWidth={noticed}
               toFormValue={(date) => date?.toString() ?? ''}
               name={name}
+              id={id}
+              ref={ref}
+              groupProps={inputProps}
               disabled={disabled}
               readOnly={readOnly}
               blocking={blocking}
-              invalid={!!error || outOfRange}
+              invalid={!!errorText || outOfRange}
               required={required}
               autoFocus={autoFocus}
               busy={loading}

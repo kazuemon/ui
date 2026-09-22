@@ -23,7 +23,7 @@ const meta = {
           '- `title` は問いの形で書きます（「下書きを削除しますか？」）。何が起きるか、元に戻せないことは `description` に書きます。',
           '- 実行する側のボタンの文言は `actionLabel` に、何が起きるかを動詞で書きます（「削除する」）。「OK」「はい」は使いません。取り消す側は `cancelLabel`（既定は「キャンセル」）です。',
           '- 押したときの処理は `onAction` に渡します。Promise を返すと、終わるまでボタンを送信中にして、終わってから閉じます。失敗したときは閉じずに残すので、失敗の知らせは `onAction` の中で出します。',
-          '- 実行する側のボタンの色は `tone` で選びます。既定の `danger` は危険の色で、消す・外すなど失うものがある操作に使います。失うものはないが取り消せない操作（送信・公開など）は `primary` にします。',
+          '- 実行する側のボタンの色は `color` で選びます。既定の `danger` は危険の色で、消す・外すなど失うものがある操作に使います。失うものはないが取り消せない操作（送信・公開など）は `primary` にします。',
           '- 開いた直後のフォーカスは、取り消す側のボタンに置きます。うっかり Enter を押しても実行しません。',
           '- 出し方（`presentation`）は Dialog と同じです。シートで出すときも、下へはじいて閉じることはできず、つまみも出ません。',
           '- 入力を求めるとき、閉じる手段を複数残したいときは、Dialog を使います。',
@@ -36,7 +36,7 @@ const meta = {
     description: '削除した下書きは元に戻せません。',
     actionLabel: '削除する',
     cancelLabel: 'キャンセル',
-    tone: 'danger',
+    color: 'danger',
     presentation: 'auto',
   },
   argTypes: {
@@ -44,7 +44,7 @@ const meta = {
     description: { control: 'text' },
     actionLabel: { control: 'text' },
     cancelLabel: { control: 'text' },
-    tone: {
+    color: {
       control: 'inline-radio',
       options: ['danger', 'primary'],
       table: { defaultValue: { summary: "'danger'" } },
@@ -56,7 +56,7 @@ const meta = {
     },
     trigger: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
     onAction: { control: false },
   },
 } satisfies Meta<typeof AlertDialog>;
@@ -86,7 +86,7 @@ export const Open: Story = {
   tags: ['visual'],
   name: '開いた状態',
   parameters: {
-    controls: { include: ['title', 'description', 'actionLabel', 'tone'] },
+    controls: { include: ['title', 'description', 'actionLabel', 'color'] },
     docs: {
       description: {
         story:
@@ -102,7 +102,7 @@ export const Open: Story = {
           presentation="popover"
           trigger={<Button>下書きを削除</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </ScreenFrame>
@@ -116,14 +116,14 @@ export const Primary: Story = {
     title: '記事を公開しますか？',
     description: '公開すると、読者に通知が届きます。通知は取り消せません。',
     actionLabel: '公開する',
-    tone: 'primary',
+    color: 'primary',
   },
   parameters: {
-    controls: { include: ['title', 'description', 'actionLabel', 'tone'] },
+    controls: { include: ['title', 'description', 'actionLabel', 'color'] },
     docs: {
       description: {
         story:
-          '消えるものはないが取り消せない操作では、`tone="primary"` で実行する側を主な色にします。',
+          '消えるものはないが取り消せない操作では、`color="primary"` で実行する側を主な色にします。',
       },
     },
   },
@@ -135,7 +135,7 @@ export const Primary: Story = {
           presentation="popover"
           trigger={<Button>公開</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </ScreenFrame>
@@ -166,7 +166,7 @@ export const WithContent: Story = {
           presentation="popover"
           trigger={<Button>選んだ下書きを削除</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <ul className="list-disc pl-5 text-fg-muted">
             <li>週末の買い物メモ</li>
@@ -183,7 +183,7 @@ export const Sheet: Story = {
   tags: ['visual'],
   name: 'シート',
   parameters: {
-    controls: { include: ['title', 'description', 'actionLabel', 'tone'] },
+    controls: { include: ['title', 'description', 'actionLabel', 'color'] },
     docs: {
       description: {
         story:
@@ -199,7 +199,7 @@ export const Sheet: Story = {
           presentation="sheet"
           trigger={<Button>下書きを削除</Button>}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         />
       )}
     </PhoneFrame>

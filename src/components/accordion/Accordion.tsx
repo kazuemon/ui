@@ -6,7 +6,7 @@ import { type ComponentProps, createContext, type ReactNode, useContext } from '
 import { collapsibleStyles } from '../../internal/collapsible-styles';
 import { CaretDownIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
-import type { CollapsibleAppearance, CollapsibleIndicator } from '../collapsible/Collapsible';
+import type { CollapsibleVariant, CollapsibleIndicator } from '../collapsible/Collapsible';
 
 // 開閉の行を束ねた一覧。行・印・中身の見た目は Collapsible と同じ（internal/collapsible-styles。ADR-0117）
 // Accordion だけが持つのは、項目のあいだの扱い
@@ -20,7 +20,7 @@ const accordionStyles = tv({
     panel: '[--collapsible-panel-height:var(--accordion-panel-height)]',
   },
   variants: {
-    appearance: {
+    variant: {
       plain: {},
       'open-filled': {},
       filled: { root: 'gap-(--collapsible-row-gap)' },
@@ -34,17 +34,17 @@ const accordionStyles = tv({
   },
 });
 
-export type AccordionAppearance = CollapsibleAppearance;
+export type AccordionVariant = CollapsibleVariant;
 export type AccordionIndicator = CollapsibleIndicator;
 
 interface AccordionContextValue {
-  appearance: AccordionAppearance;
+  variant: AccordionVariant;
   indicator: AccordionIndicator;
   headingLevel: 2 | 3 | 4 | 5 | 6;
 }
 
 const AccordionContext = createContext<AccordionContextValue>({
-  appearance: 'divided',
+  variant: 'divided',
   indicator: 'end',
   headingLevel: 3,
 });
@@ -63,9 +63,9 @@ export interface AccordionProps extends Omit<
    * - filled: いつもグレーで塗り、項目のあいだを少し離します。周りに線や囲みが少なく、押せると気づきにくい場所で使います
    * @default 'divided'
    */
-  appearance?: AccordionAppearance;
+  variant?: AccordionVariant;
   /**
-   * 開閉の印の位置。見た目（appearance）とは別に選べます
+   * 開閉の印の位置。見た目（variant）とは別に選べます
    * - end: 題の右。閉じているときは下向きで、開くと上を向きます
    * - start: 題の左。閉じているときは右向きで、開くと下を向きます。中身は題の頭にそろえて字下げします
    * @default 'end'
@@ -76,11 +76,11 @@ export interface AccordionProps extends Omit<
    * @default false
    */
   multiple?: boolean;
-  /** 開いている項目の value（使う側で持つとき）。onValueChange と組にします */
+  /** 開いている項目の value（制御） */
   value?: unknown[];
-  /** はじめに開いておく項目の value */
+  /** はじめに開いている項目の value（非制御） */
   defaultValue?: unknown[];
-  /** 開いている項目が変わったときに、開いている項目の value を受け取ります */
+  /** 開いている項目が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: unknown[]) => void;
   /**
    * すべての項目を押せなくします
@@ -103,7 +103,7 @@ export interface AccordionProps extends Omit<
    * @default 3
    */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
-  /** 外側の要素に足すクラス */
+  /** いちばん外の要素（項目を包む div）に付きます */
   className?: string;
 }
 
@@ -113,7 +113,7 @@ export interface AccordionProps extends Omit<
  */
 export function Accordion({
   children,
-  appearance = 'divided',
+  variant = 'divided',
   indicator = 'end',
   multiple = false,
   value,
@@ -126,9 +126,9 @@ export function Accordion({
   className,
   ...props
 }: AccordionProps) {
-  const styles = accordionStyles({ appearance });
+  const styles = accordionStyles({ variant });
   return (
-    <AccordionContext.Provider value={{ appearance, indicator, headingLevel }}>
+    <AccordionContext.Provider value={{ variant, indicator, headingLevel }}>
       <BaseAccordion.Root
         {...props}
         data-slot="accordion"
@@ -153,21 +153,24 @@ export interface AccordionItemProps extends Omit<
 > {
   /** 行に出す題。押すと中身を開閉します */
   title: ReactNode;
-  /** 開いたときに出す中身 */
+  /** 開いたときに出す中身。文章でも、入力欄や一覧でも置けます */
   children?: ReactNode;
   /** 項目を見分ける値。Accordion の defaultValue・value で、この値を指して開きます。渡さないときは自動で付きます */
   value?: unknown;
-  /** この項目が開閉したときに呼ばれます */
+  /** この項目の開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
   /**
    * この項目だけ押せなくします。題は押せない文字の色になります
    * @default false
    */
   disabled?: boolean;
-  /** 外側の要素に足すクラス */
+  /** 項目のいちばん外の要素に付きます */
   className?: string;
-  /** 中身（開閉する部分）の内側に足すクラス。余白を変えるときに使います */
-  panelClassName?: string;
+  /**
+   * 中身（開閉する部分）の内側の要素に渡す props。余白を変えるときや、id・data-* を付けるときに使います。
+   * className は部品の見た目に重ねます
+   */
+  panelProps?: ComponentProps<'div'>;
 }
 
 /**
@@ -180,12 +183,13 @@ export function AccordionItem({
   onOpenChange,
   disabled,
   className,
-  panelClassName,
+  panelProps,
   ...props
 }: AccordionItemProps) {
-  const { appearance, indicator, headingLevel } = useContext(AccordionContext);
-  const styles = collapsibleStyles({ appearance, indicator });
-  const own = accordionStyles({ appearance });
+  const { className: panelClassName, ...panelRest } = panelProps ?? {};
+  const { variant, indicator, headingLevel } = useContext(AccordionContext);
+  const styles = collapsibleStyles({ variant, indicator });
+  const own = accordionStyles({ variant });
   const Heading = `h${headingLevel}` as const;
   return (
     <BaseAccordion.Item
@@ -208,7 +212,9 @@ export function AccordionItem({
         data-slot="accordion-panel"
         className={styles.panel({ className: own.panel() })}
       >
-        <div className={styles.content({ className: panelClassName })}>{children}</div>
+        <div {...panelRest} className={styles.content({ className: panelClassName })}>
+          {children}
+        </div>
       </BaseAccordion.Panel>
     </BaseAccordion.Item>
   );

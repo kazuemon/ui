@@ -50,9 +50,9 @@ export interface TimeProps
    */
   size?: VariantProps<typeof timeText>['size'];
   /**
-   * 濃さ。指定しなければ周りの文字のままです
+   * 見た目（濃さ）。body は本文、muted は補足、subtle は目立たせない文です。指定しなければ周りの文字のままです
    */
-  tone?: VariantProps<typeof timeText>['tone'];
+  variant?: VariantProps<typeof timeText>['variant'];
   /**
    * 書く文字を自分で決めるときに渡します。datetime 属性は dateTime から作ります
    */
@@ -71,7 +71,7 @@ export function Time({
   locale: localeProp,
   timeZone: timeZoneProp,
   size,
-  tone,
+  variant,
   className,
   children,
   ...props
@@ -88,7 +88,7 @@ export function Time({
     : String(dateTime);
 
   return (
-    <time dateTime={parsed?.machine} className={timeText({ size, tone, className })} {...props}>
+    <time dateTime={parsed?.machine} className={timeText({ size, variant, className })} {...props}>
       {children ?? text}
     </time>
   );

@@ -26,10 +26,10 @@ const meta = {
           '数と小さな状態の点を出します。押せません。文字のラベル（分類や「公開中」などの状態）には `Tag` を使います。',
           '',
           '- `count` を渡すと数、渡さないと点になります。`max` を超える数は「99+」のように出します。',
-          '- 点は色だけで意味を伝えないよう、隣に文字を置くか、`label` で読み上げの文を付けます。',
+          '- 点は色だけで意味を伝えないよう、隣に文字を置くか、`accessibleName` で読み上げの文を付けます。',
           '- `children` で相手を包むと、その右上の角に重ねます。重ねるときは Badge に `aria-hidden` を付け、相手の名前に数を含めます。',
           '- 重ねる相手が Avatar のような丸い形のときは `overlap="circular"` にします。Badge の中心を相手の円周上（右上 45°）に置き、円からはみ出しません。既定（`square`）は四角い相手向けです。',
-          '- 文字の横やボタンの中に置くときは、`label` で数の意味を読み上げます。',
+          '- 文字の横やボタンの中に置くときは、`accessibleName` で数の意味を読み上げます。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -41,7 +41,7 @@ const meta = {
   argTypes: {
     count: { control: 'number' },
     max: { control: 'number' },
-    label: { control: 'text' },
+    accessibleName: { control: 'text' },
     children: { control: false },
     // 表の「Default」は、部品の引数の既定値からしか読まれない。既定値を持たない props はここで補う
     color: {
@@ -196,7 +196,7 @@ export const Overlay: Story = {
     <Row>
       <Badge count={3} color="danger" aria-hidden="true">
         <Button
-          appearance="outline"
+          variant="outline"
           aria-label="通知（未読 3 件）"
           className="w-(--spacing-control) px-0"
         >
@@ -205,7 +205,7 @@ export const Overlay: Story = {
       </Badge>
       <Badge count={120} color="danger" aria-hidden="true">
         <Button
-          appearance="outline"
+          variant="outline"
           aria-label="通知（未読 120 件）"
           className="w-(--spacing-control) px-0"
         >
@@ -214,7 +214,7 @@ export const Overlay: Story = {
       </Badge>
       <Badge color="danger" aria-hidden="true">
         <Button
-          appearance="outline"
+          variant="outline"
           aria-label="通知（未読あり）"
           className="w-(--spacing-control) px-0"
         >
@@ -261,30 +261,30 @@ export const OverlapShape: Story = {
   ),
 };
 
-// Show code: label の関数が () => {} に省かれるので、写して使えるコードを source.code に手で書く
+// Show code: accessibleName の関数が () => {} に省かれるので、写して使えるコードを source.code に手で書く
 export const Label: Story = {
-  name: '文字の横（label）',
+  name: '文字の横（accessibleName）',
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
         story:
-          '文字の横やボタンの中に置くときは、`label` で読み上げの文を渡します。見えている数字の代わりに、この文を読み上げます。数を受け取って文を返す関数も渡せます。',
+          '文字の横やボタンの中に置くときは、`accessibleName` で読み上げの文を渡します。見えている数字の代わりに、この文を読み上げます。数を受け取って文を返す関数も渡せます。',
       },
       source: sourceCode(`
         {/* ボタンの中 */}
-        <Button appearance="outline">
+        <Button variant="outline">
           受信箱
-          <Badge count={3} color="danger" label={(count) => \`（未読 \${count} 件）\`} />
+          <Badge count={3} color="danger" accessibleName={(count) => \`（未読 \${count} 件）\`} />
         </Button>
-        <Button appearance="outline">
+        <Button variant="outline">
           アップデート
-          <Badge color="primary" label="（新しい版があります）" />
+          <Badge color="primary" accessibleName="（新しい版があります）" />
         </Button>
         {/* 文字の横 */}
         <span className="${textClass}">
           レビュー待ち
-          <Badge count={128} color="primary" label={(count) => \`（\${count} 件）\`} />
+          <Badge count={128} color="primary" accessibleName={(count) => \`（\${count} 件）\`} />
         </span>
       `),
     },
@@ -293,13 +293,13 @@ export const Label: Story = {
     <Gallery>
       <Specimen label="ボタンの中">
         <Row>
-          <Button appearance="outline">
+          <Button variant="outline">
             受信箱
-            <Badge count={3} color="danger" label={(count) => `（未読 ${count} 件）`} />
+            <Badge count={3} color="danger" accessibleName={(count) => `（未読 ${count} 件）`} />
           </Button>
-          <Button appearance="outline">
+          <Button variant="outline">
             アップデート
-            <Badge color="primary" label="（新しい版があります）" />
+            <Badge color="primary" accessibleName="（新しい版があります）" />
           </Button>
         </Row>
       </Specimen>
@@ -307,7 +307,7 @@ export const Label: Story = {
         <Row>
           <span className={textClass}>
             レビュー待ち
-            <Badge count={128} color="primary" label={(count) => `（${count} 件）`} />
+            <Badge count={128} color="primary" accessibleName={(count) => `（${count} 件）`} />
           </span>
           <Tag color="success">公開中</Tag>
         </Row>
@@ -343,7 +343,7 @@ export const Densities: Story = {
       <Row>
         <Badge count={3} color="danger" aria-hidden="true">
           <Button
-            appearance="outline"
+            variant="outline"
             aria-label="通知（未読 3 件）"
             className="w-(--spacing-control) px-0"
           >

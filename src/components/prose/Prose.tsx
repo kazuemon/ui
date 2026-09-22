@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type Ref, useCallback, useRef } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useCallback, useRef } from 'react';
 
 import { focusRingInProse } from '../../internal/focus-styles';
 import { blockquoteStyles, dividerStyles, figureImageStyles } from '../../internal/reading/blocks';
@@ -16,11 +16,14 @@ import {
   textLinkSizeReset,
   textLinkStyles,
 } from '../../internal/reading/text-link';
+import { inlineStyles } from '../../internal/reading/inline';
 import { useScrollTabStops } from '../../internal/use-scrollable';
-import { inlineStyles } from './inline-styles';
 
 // 記事の本文。Markdown を変換した素の HTML（h1〜h6・p・a・strong・em・del・mark・code・kbd・br・ul・ol・li・チェックリスト・
 //   blockquote・pre.shiki・table・img・hr・GFM の脚注）に、読む部品と同じ見た目を当てる
+// 部品（Heading・Text・List・Blockquote・CodeBlock・Table・Figure など）を手で並べたときも、同じ余白が付く（ADR-0254 の M-05）
+//   要素のあいだの余白は要素の名前で書いてあり、部品も同じ要素（h1〜h6・p・ul・ol・hr・figure）を出すため
+//   部品の中は部品が見た目を持つので、素の HTML にだけ当てたい規則（下の htmlOnly）は、部品の中を外す
 // 見た目のクラス列は部品と同じもの（src/internal/reading/）。根に付けると、中の要素に効く（根には data-prose を付け、根そのものには効かせない）
 //   部品の既定の見た目だけを当てる（引用は左のグレーの線、区切り線は幅いっぱい、表は lines、コードは surface）。リンクは Primary の青
 //   見た目を変えたいときは、Prose で素の HTML に当てるのではなく、利用者が部品を直接使う（Prose は props で見た目を選ばない）
@@ -53,13 +56,13 @@ const flow = [
   // 見出しのすぐ後ろが段落でないとき（軸 72）。リストは --prose-heading-list-extra（4px）、
   //   引用・コード・表・画像だけの段落は --prose-heading-block-extra（マウス 12px・指 0）だけ、見出しの後ろの余白に足す
   '[:is(&,&>div:only-child)>h1+:is(ul,ol)]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-list-extra))]',
-  '[:is(&,&>div:only-child)>h1+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>h1+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-block-extra))]',
   '[:is(&,&>div:only-child)>h2+:is(ul,ol)]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-list-extra))]',
-  '[:is(&,&>div:only-child)>h2+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>h2+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-block-extra))]',
   '[:is(&,&>div:only-child)>h3+:is(ul,ol)]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-list-extra))]',
-  '[:is(&,&>div:only-child)>h3+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>h3+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-block-extra))]',
   '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(ul,ol)]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-list-extra))]',
-  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(blockquote,pre,table,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-block-extra))]',
   // 区切り線の上下
   '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+hr]:mt-(--prose-divider-gap) [:is(&,&>div:only-child)>hr+*]:mt-(--prose-divider-gap)',
   // 脚注の一覧: 区切り線と同じだけ空ける。線などの区切りは付けない（見た目を付けるのは利用者）
@@ -71,19 +74,20 @@ const flow = [
 ];
 
 // 部品と作りが違うところ
+// 素の HTML にだけ当てる規則。部品（data-slot）の中の同じ要素は、部品が見た目を持つので外す
 const htmlOnly = [
   // 部品の引用は、アイコンと中身を横に並べる flex。素の blockquote は段落を縦に並べる
-  '[&_blockquote]:block',
+  '[&_blockquote:not([data-slot=blockquote])]:block',
   // 部品の表は包みの div が横にスクロールする。素の table は、table そのものを block にしてスクロールさせる
   //   block にした table の中の表は中身の幅になる（幅に満たない表は、部品と違い幅いっぱいに広がらない）
-  '[&_table]:block [&_table]:overflow-x-auto',
+  '[&_table:not([data-slot=table-scroll]_table)]:block [&_table:not([data-slot=table-scroll]_table)]:overflow-x-auto',
   // 部品の pre は透明で、面は外枠の figure が持つ。素の pre は面そのものなので、Shiki が style に書く地（--shiki-background）を面の色にする
-  '[&_pre]:[--shiki-background:var(--cb-bg)]',
+  '[&_pre:not([data-slot=code-block]_pre)]:[--shiki-background:var(--cb-bg)]',
 ];
 
 const proseClassName = [
   textStyles.size.md,
-  textStyles.tone.default,
+  textStyles.variant.body,
   textLinkSizeReset,
   // 見出し
   headingStyles.base,
@@ -127,12 +131,19 @@ const proseClassName = [
   ...flow,
 ].join(' ');
 
+/** 描く要素 */
+export type ProseAs = 'div' | 'article' | 'section' | 'main';
+
 export interface ProseProps extends Omit<ComponentProps<'div'>, 'ref'> {
   /**
    * 描く要素。記事の本文は article、ページの一部は section にします
    * @default 'div'
    */
-  as?: 'div' | 'article' | 'section' | 'main';
+  as?: ProseAs;
+  /** 変換した HTML（dangerouslySetInnerHTML）か、読む部品（Heading・Text・List・CodeBlock・Table など）を入れます */
+  children?: ReactNode;
+  /** 根の要素に付きます */
+  className?: string;
   /** 根の要素。as で描く要素が変わるので、型は HTMLElement */
   ref?: Ref<HTMLElement>;
 }
@@ -142,7 +153,8 @@ const scrollers =
   'table:not([data-slot="table-scroll"] table), pre:not([data-slot="code-block"] pre)';
 
 /**
- * 記事の本文。Markdown などを変換した素の HTML に、読む部品と同じ見た目と、要素のあいだの余白を付けます
+ * 記事の本文。Markdown などを変換した素の HTML に、読む部品と同じ見た目と、要素のあいだの余白を付けます。
+ * 部品（Heading・Text・List・CodeBlock・Table など）を手で並べたときも、同じ余白が付きます
  */
 export function Prose({ as: Tag = 'div', className, ref, ...props }: ProseProps) {
   const rootRef = useRef<HTMLElement | null>(null);

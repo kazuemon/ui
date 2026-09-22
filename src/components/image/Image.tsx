@@ -81,6 +81,9 @@ const toSize = (value: unknown) => {
   return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
 };
 
+/** 画像の角 */
+export type ImageRadius = NonNullable<VariantProps<typeof styles>['radius']>;
+
 export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
   /** 画像の URL。まだ決まっていない（データを読み込んでいる）あいだは書かずにおくと、読み込み中の面を出します。render を渡すときは、渡す要素に書きます */
   src?: string;
@@ -104,17 +107,19 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
    */
   errorText?: ReactNode;
   /**
-   * 細い輪郭を付けるか。白っぽい画像が白地に溶けないように付けます
-   * @default true
+   * 細い輪郭を出さないようにします。輪郭は、白っぽい画像が白地に溶けないように既定で付きます
+   * @default false
    */
-  outline?: boolean;
+  hideOutline?: boolean;
   /**
    * 角。card はカードの角、nested は入れ子のカードの内側の角、none は角なし（カードの端まで届かせる画像）です
    * @default 'card'
    */
-  radius?: VariantProps<typeof styles>['radius'];
-  /** 画像を包む枠に付けるクラス。className は画像の要素に付きます */
-  frameClassName?: string;
+  radius?: ImageRadius;
+  /** 画像を包む枠（枠の要素）に渡す props。className は画像の要素に付きます */
+  frameProps?: ComponentProps<'span'>;
+  /** 画像の要素に付きます。枠に付けるクラスは frameProps の className に渡します */
+  className?: string;
 }
 
 /**
@@ -125,10 +130,10 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
 export function Image({
   ratio,
   errorText = '読み込みに失敗しました',
-  outline,
+  hideOutline = false,
   radius,
   className,
-  frameClassName,
+  frameProps,
   render,
   onLoad,
   onError,
@@ -155,7 +160,7 @@ export function Image({
   const sized = ratio == null && width != null && height != null;
   // 寸法がなく、読み込み中でも失敗でもないとき（読み込めた・スクリプトが動かない）は、画像本来の比の高さで描く
   const natural = ratio == null && !sized && status !== 'loading' && status !== 'error';
-  const s = styles({ outline, radius });
+  const s = styles({ outline: !hideOutline, radius });
   const image = useRender({
     render,
     defaultTagName: 'img',
@@ -181,7 +186,9 @@ export function Image({
       data-slot="image"
       data-status={status === 'idle' ? undefined : status}
       data-natural={natural || undefined}
-      className={s.frame({ className: frameClassName })}
+      // 枠は AspectRatio を span で描く（AspectRatio の型は div のままなので、span の props として受けて渡す）
+      {...(frameProps as ComponentProps<'div'>)}
+      className={s.frame({ className: frameProps?.className })}
     >
       {image}
       {status !== 'idle' && (

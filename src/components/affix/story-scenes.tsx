@@ -174,7 +174,7 @@ export function BarScene({
       <Container>
         <div className="flex items-center justify-between gap-4 py-2">
           <span className="truncate text-sm font-bold text-fg">デザインの決め方</span>
-          <Button appearance="outline" onClick={() => undefined}>
+          <Button variant="outline" onClick={() => undefined}>
             共有
           </Button>
         </div>

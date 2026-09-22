@@ -1,7 +1,7 @@
 'use client';
 
 import { Field as BaseField } from '@base-ui/react/field';
-import { useEffect, useId, useRef, useState } from 'react';
+import { type ComponentProps, type Ref, useEffect, useId, useRef, useState } from 'react';
 
 import {
   emptyLabel,
@@ -12,7 +12,7 @@ import {
 } from './labels';
 import { type SegmentLayout, segmentRange, type SegmentType } from './segments';
 import { type DateSegmentsOptions, useDateSegments } from './use-date-segments';
-import { tv } from '../tv';
+import { cn, tv } from '../tv';
 
 // 区切りの欄（DateField・TimeField）の本体。FieldBox（controlBox）の中に置く
 // 区切りは role="spinbutton"、全体は role="group" でラベルにつなぐ
@@ -57,6 +57,12 @@ export interface DateSegmentGroupProps<T> extends Omit<DateSegmentsOptions<T>, '
   describedBy?: string;
   /** 区切りの読み上げの名前を差し替える */
   segmentLabels?: Partial<Record<SegmentType, string>>;
+  /** 区切りを並べる要素の id（部品の id） */
+  id?: string;
+  /** 区切りを並べる要素への ref */
+  ref?: Ref<HTMLDivElement>;
+  /** 区切りを並べる要素に渡すもの（class・data-* など） */
+  groupProps?: ComponentProps<'div'>;
 }
 
 /** 区切りの欄の本体。DateField・TimeField が FieldBox の中に置く */
@@ -75,6 +81,9 @@ export function DateSegmentGroup<T>({
   busy,
   describedBy,
   segmentLabels,
+  id: idProp,
+  ref,
+  groupProps,
   ...options
 }: DateSegmentGroupProps<T>) {
   const id = useId();
@@ -117,11 +126,14 @@ export function DateSegmentGroup<T>({
 
   return (
     <BaseField.Control
+      id={idProp}
       value={formValue}
       disabled={disabled}
       render={(control) => (
         <>
           <div
+            {...groupProps}
+            ref={ref}
             role="group"
             id={control.id}
             aria-labelledby={control['aria-labelledby']}
@@ -129,7 +141,7 @@ export function DateSegmentGroup<T>({
             aria-busy={busy || undefined}
             tabIndex={-1}
             data-slot="date-segments"
-            className={styles.group()}
+            className={cn(styles.group(), groupProps?.className)}
             // ラベルを押したとき（Base UI がこの箱にフォーカスを移す）は、最初の空の区切りへ
             onFocus={(event) => {
               if (event.target === event.currentTarget) segments.focus(firstEmpty());

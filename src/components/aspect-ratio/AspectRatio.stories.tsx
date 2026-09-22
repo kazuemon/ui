@@ -63,7 +63,7 @@ export const Ratios: Story = {
           <Heading level={3} size={4}>
             {card.title}
           </Heading>
-          <Text size="sm" tone="subtle">
+          <Text size="sm" variant="subtle">
             2026年9月18日
           </Text>
           <div className="flex gap-2">

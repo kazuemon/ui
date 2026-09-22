@@ -1,10 +1,17 @@
 'use client';
 
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
-import { type CSSProperties, type ReactNode, useCallback } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+  useCallback,
+} from 'react';
 
 import { scrollAreaStyles } from './scroll-area-styles';
 import { SheetMoreCue } from './sheet/SheetMoreCue';
+import { useMergedRefs } from './use-merged-refs';
 import { useMoreCues } from './sheet/use-more-cues';
 import { useInlineCues } from './use-inline-cues';
 
@@ -23,6 +30,12 @@ export interface ScrollFrameProps {
   viewportClassName?: string;
   /** 中身を包む要素に足すクラス */
   contentClassName?: string;
+  /** 中身を包む要素に渡す props（ScrollArea の contentProps） */
+  contentProps?: ComponentProps<'div'>;
+  /** スクロールする要素に渡す props（ScrollArea の viewportProps） */
+  viewportProps?: ComponentProps<'div'>;
+  /** 枠（いちばん外の要素）の ref */
+  ref?: Ref<HTMLDivElement>;
   /** 中身を包む要素の style。Base UI の既定（min-width: fit-content）を変えるときに使う */
   contentStyle?: CSSProperties;
   /**
@@ -42,10 +55,10 @@ export interface ScrollFrameProps {
    */
   inlineEdges?: boolean;
   /**
-   * つまみを出す向き。vertical は縦だけ
+   * つまみを出す向き。vertical は縦だけ、horizontal は横だけ
    * @default 'both'
    */
-  orientation?: 'both' | 'vertical';
+  orientation?: 'both' | 'vertical' | 'horizontal';
   /** つまみの帯に足すクラス */
   scrollbarClassName?: string;
   /**
@@ -65,6 +78,9 @@ export function ScrollFrame({
   slot = 'scroll-area',
   viewportClassName,
   contentClassName,
+  contentProps,
+  viewportProps,
+  ref,
   contentStyle,
   focusable = true,
   edgeShadow = true,
@@ -76,6 +92,12 @@ export function ScrollFrame({
   onViewport,
 }: ScrollFrameProps) {
   const styles = scrollAreaStyles({ scrollbar });
+  const { className: ownContentClassName, ...contentRest } = contentProps ?? {};
+  const {
+    className: ownViewportClassName,
+    ref: ownViewportRef,
+    ...viewportRest
+  } = viewportProps ?? {};
   // 続きがあることの影（上下は useMoreCues、左右は useInlineCues が枠に書く）
   const moreCues = useMoreCues();
   const inlineCues = useInlineCues();
@@ -88,17 +110,26 @@ export function ScrollFrame({
     },
     [moreCues, inlineCues, edgeShadow, inlineEdges, onViewport]
   );
+  // 内部の ref（影の計算）と、使う側が渡した ref をつなぐ（ADR-0250）
+  const viewportRef = useMergedRefs(setViewport, ownViewportRef);
   return (
-    <BaseScrollArea.Root data-slot={slot} className={styles.root({ className })}>
+    <BaseScrollArea.Root ref={ref} data-slot={slot} className={styles.root({ className })}>
       <BaseScrollArea.Viewport
-        ref={setViewport}
+        {...viewportRest}
+        ref={viewportRef}
         // 止まり先にしないときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
         {...(focusable ? {} : { tabIndex: -1 })}
         data-slot="scroll-area-viewport"
-        className={styles.viewport({ className: viewportClassName })}
+        className={styles.viewport({
+          className: [viewportClassName, ownViewportClassName].filter(Boolean).join(' '),
+        })}
         {...(label != null && { role: 'region', 'aria-label': label })}
       >
-        <BaseScrollArea.Content className={contentClassName} style={contentStyle}>
+        <BaseScrollArea.Content
+          {...contentRest}
+          className={[contentClassName, ownContentClassName].filter(Boolean).join(' ') || undefined}
+          style={contentStyle ?? contentProps?.style}
+        >
           {children}
         </BaseScrollArea.Content>
       </BaseScrollArea.Viewport>
@@ -128,13 +159,15 @@ export function ScrollFrame({
           )}
         </div>
       )}
-      <BaseScrollArea.Scrollbar
-        orientation="vertical"
-        className={styles.scrollbar({ className: scrollbarClassName })}
-      >
-        <BaseScrollArea.Thumb data-slot="scroll-area-thumb" className={styles.thumb()} />
-      </BaseScrollArea.Scrollbar>
-      {orientation === 'both' && (
+      {orientation !== 'horizontal' && (
+        <BaseScrollArea.Scrollbar
+          orientation="vertical"
+          className={styles.scrollbar({ className: scrollbarClassName })}
+        >
+          <BaseScrollArea.Thumb data-slot="scroll-area-thumb" className={styles.thumb()} />
+        </BaseScrollArea.Scrollbar>
+      )}
+      {orientation !== 'vertical' && (
         <BaseScrollArea.Scrollbar
           orientation="horizontal"
           className={styles.scrollbar({ className: scrollbarClassName })}

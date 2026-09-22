@@ -46,7 +46,7 @@ const meta = {
           '- 大きさの既定は `text` で、周りの文字の大きさに比例します（文字の 1.25 倍）。ボタン・リンク・見出し・文のどこに置いても文字に合います。周りの部品と同じ大きさ（入力方式で切り替わる）にそろえたいときは `control`、決まった大きさで置くときは `sm`・`md`・`lg` を使います。',
           '- 文字と並ぶときは細い線、アイコンだけで置くとき（アイコンだけのボタンなど）は `standalone` で太い線にします。Phosphor の形（viewBox が 256）は、Regular の形から Icon が太さをそろえるので、`weight` は渡しません。ほかのライブラリの太さは、そのライブラリの props（`strokeWidth` など）で渡します。',
           '- 色は周りの文字の色に従います。状態の色は `className`（`text-fg-danger` など）で付けます。',
-          '- 既定では飾りとして読み上げから外します。アイコンだけで意味を伝えるときは `label` で名前を付けます。アイコンだけのボタンやリンクでは、`label` ではなく、ボタンやリンクに `aria-label` を付けます。',
+          '- 既定では飾りとして読み上げから外します。アイコンだけで意味を伝えるときは `accessibleName` で名前を付けます。アイコンだけのボタンやリンクでは、`accessibleName` ではなく、ボタンやリンクに `aria-label` を付けます。',
         ].join('\n'),
       },
     },
@@ -60,7 +60,7 @@ const meta = {
       table: { defaultValue: { summary: "'text'" } },
     },
     standalone: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
-    label: { control: 'text' },
+    accessibleName: { control: 'text' },
   },
 } satisfies Meta<typeof Icon<typeof MagnifyingGlassIcon>>;
 
@@ -124,7 +124,7 @@ export const InText: Story = {
       <Text>
         右上の <Icon icon={GearSixIcon} /> から、Settings の通知を変えられます。
       </Text>
-      <Text size="sm" tone="muted">
+      <Text size="sm" variant="muted">
         <Icon icon={BellIcon} /> 注記: 通知は 1 日に 1 回 (daily) 届きます。
       </Text>
     </div>
@@ -163,7 +163,7 @@ export const Weights: Story = {
           <Icon icon={PencilSimpleIcon} />
           編集する
         </Button>
-        <Button appearance="outline" aria-label="削除" className="w-(--spacing-control) px-0">
+        <Button variant="outline" aria-label="削除" className="w-(--spacing-control) px-0">
           <Icon icon={TrashIcon} standalone />
         </Button>
       </div>
@@ -211,7 +211,7 @@ export const Densities: Story = {
     <DensityPair>
       <div className="flex items-center gap-3 text-fg">
         <Icon icon={MagnifyingGlassIcon} size="control" />
-        <Button appearance="outline">
+        <Button variant="outline">
           <Icon icon={GearSixIcon} />
           設定
         </Button>
@@ -225,7 +225,7 @@ export const Accessibility: Story = {
   render: () => (
     <div className="flex items-center gap-3 text-fg">
       <Icon icon={BellIcon} data-testid="decorative" />
-      <Icon icon={BellIcon} label="通知" />
+      <Icon icon={BellIcon} accessibleName="通知" />
       <Icon data-testid="raw">
         <svg viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="8" />
@@ -234,11 +234,11 @@ export const Accessibility: Story = {
     </div>
   ),
   play: async ({ canvas }) => {
-    // label を書かないと飾り（読み上げから外す）
+    // accessibleName を書かないと飾り（読み上げから外す）
     const decorative = canvas.getByTestId('decorative');
     await expect(decorative.tagName.toLowerCase()).toBe('svg');
     await expect(decorative).toHaveAttribute('aria-hidden', 'true');
-    // label を書くと、画像として名前が付く
+    // accessibleName を書くと、画像として名前が付く
     await expect(canvas.getByRole('img', { name: '通知' })).toBeVisible();
     // 子に置いた SVG にも同じ扱い。包む要素は足さない
     const raw = canvas.getByTestId('raw');

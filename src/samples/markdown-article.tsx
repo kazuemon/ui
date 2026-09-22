@@ -5,13 +5,13 @@ import { CodeBlock } from '../components/code-block/CodeBlock';
 import { diffHtml, shellHtml } from '../components/code-block/fixtures';
 import { Divider } from '../components/divider/Divider';
 import { Figure } from '../components/figure/Figure';
-import { figureImageClassName } from '../components/figure/figure-styles';
+import { Image } from '../components/image/Image';
 import { FootnoteItem, FootnoteRef, Footnotes } from '../components/footnote/Footnote';
 import { Heading } from '../components/heading/Heading';
 import { Kbd } from '../components/kbd/Kbd';
 import { Link } from '../components/link/Link';
 import { List, ListItem } from '../components/list/List';
-import { inlineStyles } from '../components/prose/inline-styles';
+import { inlineStyles } from '../internal/reading/inline';
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ const s = inlineStyles();
 
 export const MarkdownArticleScreen = () => (
   <article data-reading className="flex flex-col">
-    <Text size="sm" tone="subtle">
+    <Text size="sm" variant="subtle">
       2026年9月17日・Design
     </Text>
     <Heading level={1} className="mt-1">
@@ -88,7 +88,7 @@ export const MarkdownArticleScreen = () => (
       コンポーネントがいっぱいあるけど、マテリアルデザインほどかたい感じじゃないモダンな UI
       ライブラリがつくりたい。
     </Blockquote>
-    <Callout color="warning" title="注意" className="mt-5">
+    <Callout status="warning" title="注意" className="mt-5">
       <Kbd>⌘</Kbd> + <Kbd>K</Kbd> の検索は、まだ使えません。
     </Callout>
 
@@ -96,15 +96,14 @@ export const MarkdownArticleScreen = () => (
 
     <Heading level={2}>画像と表</Heading>
     <Figure className="mt-4" src={landscape} alt="空と山の絵" caption="図 1. 空と山" />
-    <p className="mt-5">
-      <img className={figureImageClassName} src={screenshot} alt="白っぽい画面の絵" />
-    </p>
+    {/* キャプションのない画像は Image（Figure は figcaption が要るときに使う） */}
+    <Image frameProps={{ className: 'mt-5' }} src={screenshot} alt="白っぽい画面の絵" />
     <Table className="mt-5">
       <TableHead>
         <TableRow>
           <TableHeader>部品</TableHeader>
           <TableHeader>中の名前</TableHeader>
-          <TableHeader align="right">高さ</TableHeader>
+          <TableHeader align="end">高さ</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -113,21 +112,21 @@ export const MarkdownArticleScreen = () => (
           <TableCell>
             <Code>Button</Code>
           </TableCell>
-          <TableCell align="right">44px</TableCell>
+          <TableCell align="end">44px</TableCell>
         </TableRow>
         <TableRow>
           <TableCell>入力欄</TableCell>
           <TableCell>
             <Code>TextField</Code>
           </TableCell>
-          <TableCell align="right">44px</TableCell>
+          <TableCell align="end">44px</TableCell>
         </TableRow>
         <TableRow>
           <TableCell>大きい指用</TableCell>
           <TableCell>
             <Code>coarse-large</Code>
           </TableCell>
-          <TableCell align="right">52px</TableCell>
+          <TableCell align="end">52px</TableCell>
         </TableRow>
       </TableBody>
     </Table>

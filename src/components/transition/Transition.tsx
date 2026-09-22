@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import { type ComponentProps, type ReactElement, useRef } from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useRef } from 'react';
 
 import { tv } from '../../internal/tv';
 import { useTransitionStatus } from './use-transition-status';
@@ -62,10 +62,14 @@ export interface TransitionProps extends Omit<ComponentProps<'div'>, 'hidden'> {
    * @default false
    */
   appear?: boolean;
-  /** 消える動きが終わったときに呼びます。一覧から項目を外すのは、ここで行います */
-  onExitComplete?: () => void;
+  /** 消える動きが終わったあとに呼びます。一覧から項目を外すのは、ここで行います */
+  onExited?: () => void;
   /** 描く要素（Base UI の render と同じ）。既定は div です。一覧の中では li を渡します */
   render?: ReactElement;
+  /** 中身。出入りの動きを付ける相手です */
+  children?: ReactNode;
+  /** 動かす要素（render を渡したときはその要素）に付きます */
+  className?: string;
 }
 
 /**
@@ -78,7 +82,7 @@ export function Transition({
   preset: presetProp,
   keepMounted = false,
   appear = false,
-  onExitComplete,
+  onExited,
   render,
   className,
   style,
@@ -101,7 +105,7 @@ export function Transition({
         }
       : undefined,
     onEntered: collapse ? (el) => setHeight(el, null) : undefined,
-    onExited: onExitComplete,
+    onExited,
   });
   const element = useRender({
     render,

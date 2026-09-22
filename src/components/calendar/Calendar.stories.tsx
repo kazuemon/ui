@@ -30,11 +30,11 @@ const meta = {
           '',
           '- `Temporal` は `@kazuemon/ui` から読めます。ブラウザに Temporal がないとき（Safari）も、そのまま動きます。',
           '- `mode="range"` で期間を選びます。1 回目に押した日が始まり、2 回目が終わりです。値は `{ start, end }` で、終わりを選ぶまでは `end` が `null` です。',
-          '- `color` は選んだ日の色です。既定はグレー（`neutral`）です。`shape="round"` で日を丸にできます。',
+          '- `color` は選んだ日の色です。既定はグレー（`neutral`）です。`shape="circle"` で日を丸にできます。',
           '- 日曜と祝日は赤、土曜は青です。どの曜日も同じ色にするときは `weekendColor={false}` にします。',
           '- 祝日は `getHoliday`（日付を受け取り、祝日の名前を返す関数）で渡します。部品は祝日のデータを持ちません。日本の祝日は `@holiday-jp/holiday_jp` などのデータを渡せます。名前は読み上げで日付のあとに読まれます。',
           '- 月送りのボタンは、既定で月の名前の両側に置きます。`navPlacement="end"` で右にまとめます。',
-          '- 前後の月の日は灰色で見せます。`showOutsideDays={false}` で隠します。表はいつも 6 週で、月を送っても高さが変わりません。',
+          '- 前後の月の日は灰色で見せます。`hideOutsideDays` で隠します。表はいつも 6 週で、月を送っても高さが変わりません。',
           '- 月を送ると、すぐに切り替わります。`monthTransition="fade"` で、その場でふわっと入れ替わります。',
           '- `min`・`max` で選べる期間を区切ります。区切りの外の月へは送れません。日ごとに押せなくするときは `isDateDisabled` を使います。',
           '- 曜日と月の名前、週の始まりの曜日は `locale` に従います。今日は `timeZone` での今日です。どちらも ThemeProvider で決められます。',
@@ -53,7 +53,7 @@ const meta = {
     },
     shape: {
       control: 'inline-radio',
-      options: ['square', 'round'],
+      options: ['square', 'circle'],
       table: { defaultValue: { summary: "'square'" } },
     },
     navPlacement: {
@@ -67,7 +67,7 @@ const meta = {
       table: { defaultValue: { summary: "'none'" } },
     },
     weekendColor: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    showOutsideDays: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
+    hideOutsideDays: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
   },
 } satisfies Meta<typeof Calendar>;
 
@@ -151,10 +151,10 @@ export const Options: Story = {
   name: '形と置き方',
   render: (args) => (
     <Gallery columnWidth="20rem">
-      <Specimen label='shape="round"'>
+      <Specimen label='shape="circle"'>
         <Calendar
           today={today}
-          shape="round"
+          shape="circle"
           color="primary"
           mode="range"
           defaultValue={initialRange}
@@ -166,8 +166,8 @@ export const Options: Story = {
       <Specimen label="weekendColor={false}">
         <Calendar {...(args as CalendarSingleProps)} weekendColor={false} />
       </Specimen>
-      <Specimen label="showOutsideDays={false}">
-        <Calendar {...(args as CalendarSingleProps)} showOutsideDays={false} />
+      <Specimen label="hideOutsideDays">
+        <Calendar {...(args as CalendarSingleProps)} hideOutsideDays />
       </Specimen>
     </Gallery>
   ),

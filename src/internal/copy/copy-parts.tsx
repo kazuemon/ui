@@ -19,16 +19,16 @@ export function CopyGlyph({ copied, standalone }: { copied: boolean; standalone?
  */
 export function CopiedStatus({
   copied,
-  label,
+  copiedText,
   failed,
-  errorLabel,
+  copyErrorText,
 }: {
   copied: boolean;
-  label: string;
+  copiedText: string;
   failed?: boolean;
-  errorLabel?: string;
+  copyErrorText?: string;
 }) {
-  const message = copied ? label : failed && errorLabel ? errorLabel : '';
+  const message = copied ? copiedText : failed && copyErrorText ? copyErrorText : '';
   return (
     <span role="status" className="sr-only">
       {message}
@@ -43,11 +43,11 @@ export function CopiedStatus({
 export const copyErrorTooltipClass = 'bg-danger-subtle text-fg-danger';
 
 /** 写せなかったことを知らせる吹き出しの中身。丸の「!」を文の前に置く（原則6）。文と並ぶので線は Regular（原則21） */
-export function CopyErrorContent({ label }: { label: string }) {
+export function CopyErrorContent({ text }: { text: string }) {
   return (
     <span className="flex items-start gap-(--field-message-gap)">
       <WarningCircleIcon className="size-(--leading-caption) shrink-0" />
-      {label}
+      {text}
     </span>
   );
 }
@@ -59,16 +59,16 @@ export function CopyErrorContent({ label }: { label: string }) {
  */
 export function CopyErrorTooltip({
   open,
-  label,
+  text,
   children,
 }: {
   open: boolean;
-  label: string;
+  text: string;
   children: ReactElement;
 }) {
   return (
     <Tooltip
-      content={<CopyErrorContent label={label} />}
+      content={<CopyErrorContent text={text} />}
       className={copyErrorTooltipClass}
       open={open}
       disabled={!open}

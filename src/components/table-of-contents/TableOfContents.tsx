@@ -1,9 +1,10 @@
 'use client';
 
-import { type ComponentProps, type MouseEvent, useEffect, useMemo, useRef } from 'react';
+import { type ComponentProps, type MouseEvent, type Ref, useEffect, useMemo, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { revealInScrollArea } from './reveal-current';
 import { type TableOfContentsItem, type TocNode, buildTocTree } from './toc-tree';
 import { useCurrentHeading } from './use-current-heading';
@@ -19,8 +20,8 @@ import { useCurrentHeading } from './use-current-heading';
 //   今の見出しの印（ADR-0183。Tree の currentIndicator・color にそろえる）: 既定は一覧の左の線に重ねる濃い線（line）、
 //     太字だけ（text）も選べる。color で線と文字を利用者の色にできる（原則6）。淡い面は採らない
 //     どの印でも今の見出しは太字。太字の写しを重ねて幅を取っておくので、太くなっても折り返しが変わらない
-//   入れ子（ADR-0184）: 既定は左の線 1 本と字下げ。段ごとの細い線（guides）・左の線なし（track={false}）・
-//     2 段目より下を一段淡く（subtleNested）を選べる。線と色は別の props（Tree の guides・Table の columnLines と同じ真偽値）
+//   入れ子（ADR-0184）: 既定は左の線 1 本と字下げ。段ごとの細い線（showGuides）・左の線なし（hideTrack）・
+//     2 段目より下を一段淡く（subtleNested）を選べる。線と色は別の props
 //   ScrollArea の中に置くと、今の見出しの行が枠の外に出たとき、枠の中だけをスクロールして見せる（reveal-current.ts）
 const styles = tv({
   slots: {
@@ -108,6 +109,9 @@ const styles = tv({
 
 export type TableOfContentsCurrentIndicator = 'line' | 'text';
 
+/** 今の見出しの印の色 */
+export type TableOfContentsColor = 'primary' | 'secondary' | 'neutral';
+
 export type { TableOfContentsItem };
 
 export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'children' | 'color'> {
@@ -118,6 +122,8 @@ export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'child
    * @default '目次'
    */
   label?: string;
+  /** 読み上げだけの名前。書かないと label がそのまま名前になります */
+  accessibleName?: string;
   /**
    * 題を出しません。名前は読み上げにだけ残ります。見出しや Collapsible の行など、目次の外に題があるときに使います
    * @default false
@@ -147,22 +153,26 @@ export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'child
    * 今の見出しの印の色（線と文字）。primary・secondary は利用者が選ぶ色、neutral は本文の色です
    * @default 'neutral'
    */
-  color?: 'primary' | 'secondary' | 'neutral';
+  color?: TableOfContentsColor;
   /**
-   * 一覧の左に細い線を引きます。false でも、今の見出しの印の線は出ます
-   * @default true
+   * 一覧の左の細い線を引かないようにします。引かなくても、今の見出しの印の線は出ます
+   * @default false
    */
-  track?: boolean;
+  hideTrack?: boolean;
   /**
    * 入れ子の並びの左に、段ごとの細い線を引きます。どの見出しの下の見出しかを目で追いやすくなります
    * @default false
    */
-  guides?: boolean;
+  showGuides?: boolean;
   /**
    * 2 段目より下の見出しの文字を、一段淡くします。字下げに色の差を重ねて、節と小見出しを見分けやすくします
    * @default false
    */
   subtleNested?: boolean;
+  /** 根の要素（nav）に付きます */
+  className?: string;
+  /** 根の要素（nav） */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -171,6 +181,7 @@ export interface TableOfContentsProps extends Omit<ComponentProps<'nav'>, 'child
 export function TableOfContents({
   items,
   label = '目次',
+  accessibleName,
   hideLabel = false,
   currentId,
   onCurrentChange,
@@ -178,19 +189,28 @@ export function TableOfContents({
   onItemClick,
   currentIndicator,
   color,
-  track,
-  guides,
+  hideTrack = false,
+  showGuides = false,
   subtleNested,
   className,
+  ref,
   ...props
 }: TableOfContentsProps) {
-  const slots = styles({ currentIndicator, color, track, guides, subtleNested });
+  const slots = styles({
+    currentIndicator,
+    color,
+    track: !hideTrack,
+    guides: showGuides,
+    subtleNested,
+  });
   const tree = useMemo(() => buildTocTree(items), [items]);
   const ids = useMemo(() => items.map((item) => item.id), [items]);
   const controlled = currentId !== undefined;
   const tracked = useCurrentHeading(ids, offset, !controlled);
   const current = controlled ? currentId : tracked;
   const navRef = useRef<HTMLElement>(null);
+  // 内部の ref と、利用者が渡した ref をつなぐ（ADR-0250。つながないと自動スクロールが効かない）
+  const setNavRef = useMergedRefs<HTMLElement>(navRef, ref);
 
   // 求めた今の見出しが変わったら知らせる。最初の null は知らせない
   const reported = useRef<string | null>(null);
@@ -210,35 +230,37 @@ export function TableOfContents({
   if (items.length === 0) return null;
 
   const renderNodes = (nodes: TocNode[]) =>
-    nodes.map((node) => (
-      <li key={node.id} className="flex flex-col">
+    nodes.map(({ id, text, level: _level, depth, children, ...itemProps }) => (
+      <li key={id} className="flex flex-col">
         <a
-          href={`#${node.id}`}
+          {...itemProps}
+          href={`#${id}`}
           data-slot="table-of-contents-link"
-          data-nested={node.depth > 0 ? '' : undefined}
-          aria-current={node.id === current ? 'location' : undefined}
-          className={slots.link()}
-          style={{ ['--toc-depth' as string]: node.depth }}
-          onClick={onItemClick ? (event) => onItemClick(node.id, event) : undefined}
+          data-nested={depth > 0 ? '' : undefined}
+          aria-current={id === current ? 'location' : undefined}
+          className={slots.link({ className: itemProps.className })}
+          style={{ ['--toc-depth' as string]: depth, ...itemProps.style }}
+          onClick={(event) => {
+            itemProps.onClick?.(event);
+            if (!event.defaultPrevented) onItemClick?.(id, event);
+          }}
         >
-          <span className={slots.text()}>{node.text}</span>
+          <span className={slots.text()}>{text}</span>
           <span aria-hidden="true" className={slots.ghost()}>
-            {node.text}
+            {text}
           </span>
         </a>
-        {node.children.length > 0 && (
-          <ul className={slots.group()}>{renderNodes(node.children)}</ul>
-        )}
+        {children.length > 0 && <ul className={slots.group()}>{renderNodes(children)}</ul>}
       </li>
     ));
 
   return (
     <nav
-      ref={navRef}
-      aria-label={label}
+      aria-label={accessibleName ?? label}
       data-slot="table-of-contents"
       className={slots.root({ className })}
       {...props}
+      ref={setNavRef}
     >
       {!hideLabel && (
         <p aria-hidden="true" className={slots.title()}>

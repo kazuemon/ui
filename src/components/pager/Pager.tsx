@@ -42,7 +42,7 @@ const styles = tv({
     title: 'text-control font-bold [overflow-wrap:anywhere]',
   },
   variants: {
-    appearance: {
+    variant: {
       card: {
         item: [
           'rounded-(--pager-card-radius) border-(length:--pager-card-line-width) border-(color:--pager-card-line)',
@@ -81,16 +81,16 @@ const styles = tv({
   },
   compoundVariants: [
     // 文字のリンクは、席の幅いっぱいに広げず、中身の幅のまま外側へ寄せる（押せる範囲＝矢印と文字）
-    { appearance: 'text', direction: 'prev', class: { item: 'justify-self-start' } },
-    { appearance: 'text', direction: 'next', class: { item: 'justify-self-end' } },
+    { variant: 'text', direction: 'prev', class: { item: 'justify-self-start' } },
+    { variant: 'text', direction: 'next', class: { item: 'justify-self-end' } },
   ],
-  defaultVariants: { appearance: 'card', direction: 'prev', columns: 'two' },
+  defaultVariants: { variant: 'card', direction: 'prev', columns: 'two' },
 });
 
 export type PagerDirection = 'prev' | 'next';
-export type PagerAppearance = 'card' | 'text';
+export type PagerVariant = 'card' | 'text';
 
-export interface PagerDestination {
+export interface PagerDestination extends Omit<ComponentProps<'a'>, 'title' | 'children'> {
   /** 行き先。render に Next.js の Link などを渡すときは、href もその要素に書きます */
   href?: string;
   /** 記事の題。長いときは折り返します */
@@ -121,12 +121,13 @@ export interface PagerProps extends Omit<ComponentProps<'nav'>, 'title' | 'child
    * text の押せる範囲は、矢印と文字の幅だけです（左右に寄せた空きでは反応しません）
    * @default 'card'
    */
-  appearance?: PagerAppearance;
+  variant?: PagerVariant;
   /**
-   * 並び（nav）の読み上げの名前。記事の下に目次やパンくずが並んでも見分けられるよう、既定は前後へ移る並びだと分かる名前にしています
+   * 並び（nav）の読み上げの名前。画面には出ません。
+   * 記事の下に目次やパンくずが並んでも見分けられるよう、既定は前後へ移る並びだと分かる名前にしています
    * @default '前後の記事'
    */
-  label?: string;
+  accessibleName?: string;
   /** 前の記事。渡さないと、前の行き先を出しません */
   prev?: PagerDestination;
   /** 次の記事。渡さないと、次の行き先を出しません */
@@ -138,19 +139,21 @@ export interface PagerProps extends Omit<ComponentProps<'nav'>, 'title' | 'child
    * @default true
    */
   keepSpace?: boolean;
+  /** いちばん外の要素（nav）に付きます */
+  className?: string;
 }
 
 function PagerItem({
-  appearance,
+  variant,
   direction,
   destination,
 }: {
-  appearance: PagerAppearance;
+  variant: PagerVariant;
   direction: PagerDirection;
   destination: PagerDestination;
 }) {
-  const s = styles({ appearance, direction });
-  const { href, title, label, icon, render } = destination;
+  const s = styles({ variant, direction });
+  const { href, title, label, icon, render, ...rest } = destination;
   // 矢印は外向き（前は左、次は右）。利用者がアイコンを渡したときは、置き場所は変えずに差し替える
   const arrow = (
     <span aria-hidden="true" className={s.arrow()}>
@@ -168,9 +171,11 @@ function PagerItem({
     render,
     defaultTagName: 'a',
     props: {
+      // 知らない props（id・data-*・aria-*・onClick）は、項目のいちばん外の要素へ流す（ADR-0250）
+      ...rest,
       ...(href != null && { href }),
       'data-slot': 'pager-item',
-      'data-appearance': appearance,
+      'data-variant': variant,
       'data-direction': direction,
       className: s.item(),
       children:
@@ -195,8 +200,8 @@ function PagerItem({
  * ページ番号を並べる部品ではありません。行き先は前と次の 2 つだけです。
  */
 export function Pager({
-  appearance = 'card',
-  label = '前後の記事',
+  variant = 'card',
+  accessibleName = '前後の記事',
   prev,
   next,
   keepSpace = true,
@@ -204,23 +209,23 @@ export function Pager({
   ...props
 }: PagerProps) {
   const both = prev != null && next != null;
-  const s = styles({ appearance, columns: both || keepSpace ? 'two' : 'one' });
+  const s = styles({ variant, columns: both || keepSpace ? 'two' : 'one' });
   return (
     <nav
-      aria-label={label}
-      data-slot="pager"
-      data-appearance={appearance}
-      className={s.root({ className })}
       {...props}
+      aria-label={accessibleName}
+      data-slot="pager"
+      data-variant={variant}
+      className={s.root({ className })}
     >
       <div className={s.list()}>
         {prev ? (
-          <PagerItem appearance={appearance} direction="prev" destination={prev} />
+          <PagerItem variant={variant} direction="prev" destination={prev} />
         ) : (
           keepSpace && <div className={s.placeholder()} />
         )}
         {next ? (
-          <PagerItem appearance={appearance} direction="next" destination={next} />
+          <PagerItem variant={variant} direction="next" destination={next} />
         ) : (
           keepSpace && <div className={s.placeholder()} />
         )}

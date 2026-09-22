@@ -2,7 +2,6 @@
 
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import {
-  type ComponentProps,
   type CSSProperties,
   type ReactElement,
   type ReactNode,
@@ -14,6 +13,13 @@ import {
 
 import { useDensityScope } from '../../internal/density-scope';
 import { CaretLeftIcon } from '../../internal/icons';
+import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import {
+  focusTargetRef,
+  type OverlayFocusTarget,
+  type PopupProps,
+  type PositionerProps,
+} from '../../internal/overlay/overlay-props';
 import {
   popupMotionClass,
   popupSurfaceClass,
@@ -32,6 +38,8 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { useSheetDrag } from '../../internal/sheet/use-sheet-drag';
+import { cn } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 // シートの寸法の計算は選択肢の一覧と共有（つまみを引く操作は src/internal/sheet/use-sheet-drag.ts）
 import { SHEET_FULL, screenHeight } from '../../internal/listbox/listbox-measure';
@@ -56,13 +64,17 @@ export type {
   MenuRadioMark,
   MenuSubmenuSheet,
 } from './menu-context';
-export type MenuPresentation = OverlayPresentation;
 export type MenuSide = 'top' | 'bottom' | 'left' | 'right';
 export type MenuAlign = 'start' | 'center' | 'end';
 
 export interface MenuProps {
   /** 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる */
   trigger: ReactElement;
+  /**
+   * 押せないか。押しても開かず、押せないことが読まれます
+   * @default false
+   */
+  disabled?: boolean;
   /** 項目（MenuItem・MenuLinkItem・MenuCheckboxItem・MenuRadioGroup・MenuGroup・MenuSeparator・MenuSubmenu） */
   children?: ReactNode;
   /**
@@ -80,20 +92,45 @@ export interface MenuProps {
    * @default 'start'
    */
   align?: MenuAlign;
+  /** 開いているか（制御） */
   open?: boolean;
+  /**
+   * はじめに開いているか（非制御）
+   * @default false
+   */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、次の値を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
    * @default true
    */
   modal?: boolean;
   /**
+   * 外を押したときに閉じるか。false にすると、フォーカスが一覧の外へ出たときにも閉じません
+   * @default true
+   */
+  dismissible?: boolean;
+  /**
+   * Esc（Android の戻る操作を含む）で閉じるか
+   * @default true
+   */
+  closeOnEscape?: boolean;
+  /**
+   * 入れ子の一覧で Esc を押したとき、親の一覧まで閉じるか。false では入れ子だけを閉じます
+   * @default true
+   */
+  closeParentOnEsc?: boolean;
+  /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
+  returnFocus?: OverlayFocusTarget;
+  /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも本体のそばに浮かべ、sheet はいつもシートにします
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: MenuPresentation;
+  presentation?: OverlayPresentation;
   /**
    * チェックとラジオの印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレー（濃紺）です
    * @default 'neutral'
@@ -142,26 +179,25 @@ export interface MenuProps {
    * シートの閉じる × の読み上げの名前
    * @default '閉じる'
    */
-  closeLabel?: string;
+  closeName?: string;
   /**
    * 入れ子のシートで、親のメニューへ戻るボタンの読み上げの名前
    * @default '戻る'
    */
-  backLabel?: string;
+  backName?: string;
   /**
-   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します
+   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
+   * まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
    */
-  container?: HTMLElement | null;
-  /** 画面の端に当たったとき、反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
-  collisionAvoidance?: MenuCollisionAvoidance;
+  portalContainer?: HTMLElement | null;
+  /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
+  popupProps?: PopupProps;
+  /** 位置を決める要素（Positioner）に足す props（anchor・collisionAvoidance・sideOffset など） */
+  positionerProps?: PositionerProps;
   /** 面（Popup）に足すクラス。幅を変えるときは w-*・min-w-* を渡す */
   className?: string;
 }
-
-export type MenuCollisionAvoidance = ComponentProps<
-  typeof BaseMenu.Positioner
->['collisionAvoidance'];
 
 /**
  * 押して開く、操作の一覧。項目を押すと実行して閉じます。
@@ -171,12 +207,18 @@ export function Menu({
   trigger,
   children,
   title,
+  disabled,
   side = 'bottom',
   align = 'start',
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  onOpenChangeComplete,
   modal = true,
+  dismissible = true,
+  closeOnEscape = true,
+  closeParentOnEsc = true,
+  returnFocus,
   presentation,
   color = 'neutral',
   markPlacement = 'start',
@@ -185,10 +227,11 @@ export function Menu({
   groupLabelStyle = 'label',
   submenuSheet = 'fixed',
   closeOnSwipe = false,
-  closeLabel,
-  backLabel,
-  container,
-  collisionAvoidance,
+  closeName,
+  backName,
+  portalContainer: container,
+  popupProps,
+  positionerProps,
   className,
 }: MenuProps) {
   // 開閉はここで持つ（シートの × で閉じるため。出し方が開いたまま切り替わっても閉じないようにするため）
@@ -207,11 +250,25 @@ export function Menu({
   return (
     <BaseMenu.Root
       open={open}
-      onOpenChange={changeOpen}
+      onOpenChange={(next, details) => {
+        // Esc で閉じない設定・外を押しても閉じない設定のときは、閉じる合図を取り消す
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        changeOpen(next);
+      }}
       onOpenChangeComplete={(next) => {
         if (!next) setGeneration((current) => current + 1);
+        onOpenChangeComplete?.(next);
       }}
       modal={modal}
+      disabled={disabled}
+      closeParentOnEsc={closeParentOnEsc}
     >
       <BaseMenu.Trigger ref={anchorRef} render={trigger} />
       <MenuContext
@@ -226,8 +283,8 @@ export function Menu({
           groupLabelStyle,
           submenuSheet,
           closeOnSwipe,
-          closeLabel,
-          backLabel,
+          closeName,
+          backName,
           closeAll: () => changeOpen(false),
         }}
       >
@@ -237,7 +294,9 @@ export function Menu({
           side={side}
           align={align}
           onClose={() => changeOpen(false)}
-          collisionAvoidance={collisionAvoidance}
+          returnFocus={returnFocus}
+          popupProps={popupProps}
+          positionerProps={positionerProps}
           className={className}
         >
           {children}
@@ -310,7 +369,10 @@ interface MenuSurfaceProps {
   nested?: boolean;
   /** 閉じる。入れ子の面では親へ戻る */
   onClose: () => void;
-  collisionAvoidance?: MenuCollisionAvoidance;
+  /** 閉じたあとに焦点を戻す要素 */
+  returnFocus?: OverlayFocusTarget;
+  popupProps?: PopupProps;
+  positionerProps?: PositionerProps;
   className?: string;
   children?: ReactNode;
 }
@@ -336,7 +398,9 @@ export function MenuSurface({
   align = 'start',
   nested = false,
   onClose,
-  collisionAvoidance,
+  returnFocus,
+  popupProps,
+  positionerProps,
   className,
   children,
 }: MenuSurfaceProps) {
@@ -345,16 +409,24 @@ export function MenuSurface({
     container,
     densityScope,
     color,
-    closeLabel,
-    backLabel,
+    closeName,
+    backName,
     submenuSheet,
     closeOnSwipe,
     closeAll,
   } = useMenuContext();
+  const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
+  const {
+    className: positionerClassName,
+    ref: userPositionerRef,
+    ...restPositionerProps
+  } = positionerProps ?? {};
   const cues = useMoreCues();
   const titleId = useId();
 
   const [popup, setPopup] = useState<HTMLDivElement | null>(null);
+  const popupRef = useMergedRefs<HTMLDivElement>(setPopup, userPopupRef);
+  const positionerRef = useMergedRefs<HTMLDivElement>(userPositionerRef);
   const parent = use(MenuParentSurface);
   const nestedSheet = sheet && nested ? submenuSheet : null;
   // fit・fixed: 親のメニューの面が、入れ子のパネルの道筋を持つ
@@ -414,24 +486,28 @@ export function MenuSurface({
             : 0
         }
         collisionPadding={8}
-        collisionAvoidance={collisionAvoidance}
         data-density={densityScope.density}
         data-presentation={sheet ? 'sheet' : 'popover'}
+        {...restPositionerProps}
+        ref={positionerRef}
         className={[
           'z-10 outline-none',
           densityScope.large && 'coarse-large',
           sheet &&
             'inset-x-0! top-auto! bottom-0! left-0! flex max-h-(--sheet-max-height) flex-col [position:fixed]! [transform:none]!',
+          positionerClassName,
         ]
           .filter(Boolean)
           .join(' ')}
       >
         <BaseMenu.Popup
-          ref={setPopup}
+          finalFocus={focusTargetRef(returnFocus)}
           data-slot="menu"
           data-submenu-sheet={nestedSheet ?? undefined}
           data-dragging={drag.dragging || undefined}
           aria-labelledby={labelled ? titleId : undefined}
+          {...restPopupProps}
+          ref={popupRef}
           style={
             drag.sheetHeight !== undefined
               ? { ...popupStyle, height: drag.sheetHeight }
@@ -463,7 +539,7 @@ export function MenuSurface({
                     ? 'transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:[transition:none]'
                     : popupMotionClass,
                 ].join(' '),
-            className,
+            cn(className, popupClassName),
           ]
             .filter(Boolean)
             .join(' ')}
@@ -473,7 +549,7 @@ export function MenuSurface({
               {withBack && (
                 // つまみの場所（h-4）の下、× と同じ高さ。DOM では見出しより前（読む順が ‹・題・×）なので、題の行より手前に重ねる
                 <div className="absolute top-4 left-(--sheet-close-inset) z-1">
-                  <BackButton label={backLabel} onClick={slideTop ? slide.back : onClose} />
+                  <BackButton label={backName} onClick={slideTop ? slide.back : onClose} />
                 </div>
               )}
               <SheetHeader
@@ -485,11 +561,11 @@ export function MenuSurface({
                 onPointerCancel={showHandle ? drag.handlers.onPointerUp : undefined}
                 className={showHandle ? 'cursor-grab touch-none' : undefined}
                 // 閉じる。Tab では止まらない（一覧の中は矢印キーで動く）。キーボードでは Esc で閉じる
-                //   入れ子があるときも、× はすべてを閉じる（親へ戻るのは ‹）。読み上げも closeLabel のまま
+                //   入れ子があるときも、× はすべてを閉じる（親へ戻るのは ‹）。読み上げも closeName のまま
                 close={
                   <SheetCloseButton
                     tabIndex={-1}
-                    label={closeLabel}
+                    label={closeName}
                     onClick={nestedSheet === 'cover' ? closeAll : onClose}
                   />
                 }

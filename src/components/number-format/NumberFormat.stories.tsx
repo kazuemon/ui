@@ -20,7 +20,7 @@ const meta = {
           '- JPY は既定で「￥1,280」です。`currencyDisplay="name"` で「1,280円」になります。',
           '- 数字は等幅なので、右にそろえて縦に並べると桁がそろいます。',
           '- 細かく決めるときは `format` に Intl の指定を渡します。',
-          '- 大きさと濃さは周りの文字のままです。`size`・`tone` で Text と同じ大きさ・濃さにできます。',
+          '- 大きさと濃さは周りの文字のままです。`size`・`variant` で Text と同じ大きさ・濃さにできます。',
         ].join('\n'),
       },
     },
@@ -37,7 +37,7 @@ const meta = {
     unit: { control: 'text' },
     unitDisplay: { control: 'inline-radio', options: ['short', 'long', 'narrow'] },
     size: { control: 'inline-radio', options: ['md', 'sm'] },
-    tone: { control: 'inline-radio', options: ['default', 'muted', 'subtle'] },
+    variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
   },
   render: (args) => (

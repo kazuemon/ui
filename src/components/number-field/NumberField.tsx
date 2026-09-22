@@ -1,10 +1,10 @@
 'use client';
 
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field';
-import { type ReactNode, useId } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useId } from 'react';
 
 import { ArrowsHorizontalIcon } from '../../internal/icons';
-import { SplitStepButton, StackedStepper, type StepperLabels } from './NumberFieldStepper';
+import { SplitStepButton, StackedStepper, type StepperNames } from './NumberFieldStepper';
 import { FieldAddon } from '../field-addon/FieldAddon';
 import { Field } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
@@ -15,21 +15,42 @@ import {
 } from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
+import { cn } from '../../internal/tv';
 
 /** 増減ボタンの置き方。stacked: 右端に上下で縦積み、split: 左に −・右に ＋、none: ボタンなし */
 export type NumberFieldStepper = 'stacked' | 'split' | 'none';
 
-type RootProps = BaseNumberField.Root.Props;
+/**
+ * 値が変わったわけ。input- は打った文字から、increment-press・decrement-press はボタン、
+ * keyboard は ↑↓ キー、wheel はホイール、scrub はラベルを左右に動かしたときです
+ */
+export type NumberFieldChangeReason =
+  | 'input-change'
+  | 'input-clear'
+  | 'input-blur'
+  | 'input-paste'
+  | 'keyboard'
+  | 'increment-press'
+  | 'decrement-press'
+  | 'wheel'
+  | 'scrub'
+  | 'none';
+
+/** onValueChange で、次の値と一緒に渡すもの */
+export interface NumberFieldValueDetails {
+  /** 値が変わったわけ */
+  reason: NumberFieldChangeReason;
+}
 
 export interface NumberFieldProps extends InputFieldProps, HalfWidthNoticeProps {
-  /** 値（制御する）。空のときは null */
+  /** 値（制御）。空のときは null */
   value?: number | null;
-  /** はじめの値（制御しない） */
+  /** はじめの値（非制御） */
   defaultValue?: number;
-  /** 値が変わったとき。打っている途中でも、数として読めるたびに呼ばれる */
-  onValueChange?: RootProps['onValueChange'];
-  /** 値が決まったとき（フォーカスが外れた・ボタンを離した・キーで増減した） */
-  onValueCommitted?: RootProps['onValueCommitted'];
+  /** 値が変わるときに、次の値と、変わったわけを渡して呼びます。打っている途中でも、数として読めるたびに呼ばれます */
+  onValueChange?: (value: number | null, details: NumberFieldValueDetails) => void;
+  /** 値が決まったあと（フォーカスが外れた・ボタンを離した・キーで増減した）に呼びます */
+  onValueCommitted?: (value: number | null) => void;
   /** 下限。届くと、減らすボタンが押せなくなる */
   min?: number;
   /** 上限。届くと、増やすボタンが押せなくなる */
@@ -75,27 +96,36 @@ export interface NumberFieldProps extends InputFieldProps, HalfWidthNoticeProps 
    * 増減ボタンの読み上げの名前
    * @default { increment: '増やす', decrement: '減らす' }
    */
-  stepperLabels?: StepperLabels;
+  stepperNames?: StepperNames;
   /** ボタン・キーで増減したとき、step の倍数にそろえるか */
   snapOnStep?: boolean;
   /** 打った値が min・max の外でも、そのまま残すか（フォームの検証で範囲外として知らせる） */
   allowOutOfRange?: boolean;
+  /** 送るときの名前（form の値の名前） */
   name?: string;
+  /** 中の input の id */
   id?: string;
+  /** 中の input への ref */
+  ref?: Ref<HTMLInputElement>;
+  /** 中の input に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'input'>;
   /**
    * 必須にします。欄に required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
    * @default false
    */
   required?: boolean;
+  /** 押せない（Disabled）状態にします */
   disabled?: boolean;
+  /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
+  /** 描いたあとに、欄へフォーカスを移します */
   autoFocus?: boolean;
   'aria-describedby'?: string;
   'aria-disabled'?: boolean | 'true' | 'false';
   'aria-busy'?: boolean | 'true' | 'false';
 }
 
-const defaultLabels: StepperLabels = { increment: '増やす', decrement: '減らす' };
+const defaultStepperNames: StepperNames = { increment: '増やす', decrement: '減らす' };
 
 /**
  * 数を入力する欄。増減ボタン・↑↓ キーで増減し、表示の形（通貨・%・桁区切り）をそろえる
@@ -104,11 +134,11 @@ export function NumberField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   className,
   prefix,
@@ -122,7 +152,7 @@ export function NumberField({
   stepper = 'split',
   scrub = stepper === 'none',
   allowWheelScrub = stepper === 'none',
-  stepperLabels = defaultLabels,
+  stepperNames = defaultStepperNames,
   value,
   defaultValue,
   onValueChange,
@@ -138,6 +168,8 @@ export function NumberField({
   allowOutOfRange,
   name,
   id,
+  ref,
+  inputProps,
   required,
   requiredMark,
   optionalMark,
@@ -154,6 +186,7 @@ export function NumberField({
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
   // 読み取り専用ではボタンを出さない（押せないボタンを並べても、値を読む邪魔になる）
   const showStepper = stepper !== 'none' && !readOnly;
   // split の並び（値を中央に寄せ、prefix・suffix を値の横に置く）は、読み取り専用でボタンを外しても変えない
@@ -186,10 +219,10 @@ export function NumberField({
     if (isText(prefix)) ownDescribedBy.push(`${uid}prefix`);
     if (isText(suffix)) ownDescribedBy.push(`${uid}suffix`);
     boxPrefix = showStepper && (
-      <SplitStepButton direction="decrement" label={stepperLabels.decrement} locked={blocking} />
+      <SplitStepButton direction="decrement" label={stepperNames.decrement} locked={blocking} />
     );
     boxSuffix = showStepper && (
-      <SplitStepButton direction="increment" label={stepperLabels.increment} locked={blocking} />
+      <SplitStepButton direction="increment" label={stepperNames.increment} locked={blocking} />
     );
   } else if (showStepper) {
     // FieldBox は文字の suffix を説明につなぐが、ボタンと並べると渡せないので、ここでつなぐ
@@ -204,7 +237,7 @@ export function NumberField({
     boxSuffix = (
       <>
         {suffixNode}
-        <StackedStepper labels={stepperLabels} locked={blocking} />
+        <StackedStepper names={stepperNames} locked={blocking} />
       </>
     );
   }
@@ -215,10 +248,10 @@ export function NumberField({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info ?? notice}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -236,9 +269,9 @@ export function NumberField({
           onValueChange={(next, details) => {
             // 値が空になったら、全角を直したことの知らせも消す
             if (next === null) noticed(null, true);
-            onValueChange?.(next, details);
+            onValueChange?.(next, { reason: details.reason });
           }}
-          onValueCommitted={onValueCommitted}
+          onValueCommitted={onValueCommitted && ((next) => onValueCommitted(next))}
           min={min}
           max={max}
           step={step}
@@ -277,9 +310,9 @@ export function NumberField({
             disabled={disabled}
             loading={loading}
             loadingIndicator={loadingIndicator}
-            success={success}
-            successMark={successMark}
-            error={error}
+            success={successText}
+            successMark={!hideSuccessMark}
+            error={errorText}
             describedBy={
               [...ownDescribedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
             }
@@ -292,21 +325,21 @@ export function NumberField({
                   autoFocus={autoFocus}
                   aria-disabled={blocking || ariaDisabled}
                   aria-busy={loading || ariaBusy}
+                  {...inputPropsRest}
+                  ref={ref}
                   aria-describedby={describedBy}
                   onChange={(event) => {
                     const raw = event.currentTarget.value;
                     noticed(halfWidthKind(raw), raw === '');
                   }}
                   // 値の文字の幅はそろえる（桁がそろい、増減で文字が揺れない）
-                  className={[
+                  className={cn(
                     'h-full min-w-0 bg-transparent tabular-nums outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
                     split && 'text-center',
                     hasInlineText ? 'max-w-full' : ['w-full', !split && fieldInset],
                     blocking && 'cursor-progress',
-                  ]
-                    .flat()
-                    .filter(Boolean)
-                    .join(' ')}
+                    inputProps?.className
+                  )}
                   // 値の横に文字を置くときは、欄の幅を値の長さに合わせ、値と文字をまとめて中央に置く
                   style={
                     hasInlineText

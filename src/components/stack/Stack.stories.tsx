@@ -25,7 +25,7 @@ const meta = {
           '- `align` は並べる向きと交わる向きの揃えです。既定は縦横とも伸ばします（`stretch`）。横で高さの違う子を上下の中央に揃えるときは `align="center"` を渡します。',
           '- `justify` は並べる向きの揃えです。`between` は両端に寄せます。',
           '- `wrap` は、入りきらないときに次の行へ折り返します（既定）。横に並べるときだけ効き、縦では無視されます。折り返したくないときは `wrap={false}` を渡します。',
-          '- `divider` は、子の間に細い区切り線を入れます。話題の切れ目には Divider を置きます。',
+          '- `showDivider` は、子の間に細い区切り線を入れます。話題の切れ目には Divider を置きます。',
           '- `ul`・`section` にするときは `render={<ul />}` を渡します。',
         ].join('\n'),
       },
@@ -37,7 +37,7 @@ const meta = {
     align: 'stretch',
     justify: 'start',
     wrap: true,
-    divider: false,
+    showDivider: false,
   },
   argTypes: {
     direction: {
@@ -57,7 +57,7 @@ const meta = {
       table: { defaultValue: { summary: "'start'" } },
     },
     wrap: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
-    divider: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    showDivider: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
   },
 } satisfies Meta<typeof Stack>;
 
@@ -157,12 +157,12 @@ export const Layouts: Story = {
         <Box>左</Box>
         <Box>右</Box>
       </Stack>
-      <Stack divider className="w-64">
+      <Stack showDivider className="w-64">
         <Text>1 つ目</Text>
         <Text>2 つ目</Text>
         <Text>3 つ目</Text>
       </Stack>
-      <Stack direction="horizontal" divider>
+      <Stack direction="horizontal" showDivider>
         <Text>1 つ目</Text>
         <Text>2 つ目</Text>
         <Text>3 つ目</Text>
@@ -188,7 +188,7 @@ export const Props: Story = {
         <span>a</span>
         <span>b</span>
       </Stack>
-      <Stack data-testid="divided" divider render={<section />}>
+      <Stack data-testid="divided" showDivider render={<section />}>
         <span>a</span>
         <>
           <span>b</span>

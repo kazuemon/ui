@@ -47,7 +47,7 @@ const meta = {
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
           '- その場で実行する項目は `MenuItem`、別の場所へ移る項目は `MenuLinkItem` です。`MenuLinkItem` に `target="_blank"` を付けると、後ろに右上向きの矢印が付きます。',
           '- `MenuItem` には `icon`（前のアイコン）、`shortcut`（後ろのショートカットの文字）、`description`（2 行目）を付けられます。ショートカットは表示だけで、キーの操作は使う側で付けます。',
-          '- 削除のように取り消せない操作には `danger` を付けます。文字が赤くなり、hover で赤を淡く敷きます。',
+          '- 削除のように取り消せない操作には `status="danger"` を付けます。文字が赤くなり、hover で赤を淡く敷きます。',
           '- 押せない項目は `disabled` にし、理由を `description` に書きます。`MenuLinkItem` も `disabled` にでき、押しても移りません。',
           '- 入・切を切り替える項目は `MenuCheckboxItem`、1 つだけを選ぶ項目は `MenuRadioGroup` の中の `MenuRadioItem` です。どちらも押しても閉じません。印の色は `color`、印の場所（前か右端か）は `markPlacement` で選びます。ラジオの印は `radioMark` で選びます（既定の `radio` はラジオと同じ丸、`dot` は選んだ項目に小さな点、`check` はチェック）。',
           '- 印を持つ項目があるメニューでは、既定で印のない項目（`MenuItem`・`MenuLinkItem`・`MenuSubmenu`）にも印の場所を空け、文字の左をそろえます。そろえたくないときは `alignMarks={false}` にします。',
@@ -55,12 +55,13 @@ const meta = {
           '- 入れ子のメニューは `MenuSubmenu` です。マウスでは載せるだけで開きます。シートでの開き方は `submenuSheet` で選びます（既定の `fixed` は 1 枚のシートのまま中身が横に滑り、入れ子があるときだけ、高さは最初に開いたメニューの高さのまま、上のつまみで変えられます）。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。シートでは `title` を見出しに出し、ショートカットは出しません。',
           '- シートを、はじく・下へ引いて閉じられるようにするには `closeOnSwipe` を付けます（既定は `false`）。付けると、入れ子がなくてもつまみを出します。',
+          '- 外を押しても閉じないようにするときは `dismissible={false}`、Esc で閉じないようにするときは `closeOnEscape={false}` です。開くボタンごと押せなくするときは `disabled` にします。',
         ].join('\n'),
       },
     },
   },
   args: {
-    trigger: <Button appearance="outline">操作</Button>,
+    trigger: <Button variant="outline">操作</Button>,
     side: 'bottom',
     align: 'start',
     presentation: 'auto',
@@ -125,7 +126,7 @@ const meta = {
     },
     trigger: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Menu>;
 
@@ -146,7 +147,7 @@ const actions = (
     </MenuItem>
     <MenuSeparator />
     <MenuItem icon={<ArchiveIcon />}>アーカイブ</MenuItem>
-    <MenuItem icon={<TrashIcon />} danger>
+    <MenuItem icon={<TrashIcon />} status="danger">
       削除
     </MenuItem>
   </>
@@ -157,14 +158,14 @@ export const Playground: Story = {
   parameters: {
     docs: {
       source: sourceCode(`
-        <Menu title="操作" trigger={<Button appearance="outline">操作</Button>}>
+        <Menu title="操作" trigger={<Button variant="outline">操作</Button>}>
           <MenuItem icon={<PencilSimpleIcon />} shortcut="Ctrl+E">編集</MenuItem>
           <MenuItem icon={<CopyIcon />} shortcut="Ctrl+D">複製</MenuItem>
           <MenuItem icon={<DownloadSimpleIcon />} disabled description="公開してから書き出せます">
             書き出す
           </MenuItem>
           <MenuSeparator />
-          <MenuItem icon={<TrashIcon />} danger>削除</MenuItem>
+          <MenuItem icon={<TrashIcon />} status="danger">削除</MenuItem>
         </Menu>
       `),
     },
@@ -187,7 +188,7 @@ export const Open: Story = {
           {...args}
           presentation="popover"
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {actions}
         </Menu>
@@ -212,10 +213,10 @@ export const ItemStates: Story = {
     <ScreenFrame height="h-[420px]">
       {(frame) => (
         <Menu
-          trigger={<Button appearance="outline">操作</Button>}
+          trigger={<Button variant="outline">操作</Button>}
           presentation="popover"
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <MenuItem icon={<PencilSimpleIcon />}>通常</MenuItem>
           <MenuItem icon={<CopyIcon />} style={highlighted}>
@@ -233,10 +234,10 @@ export const ItemStates: Story = {
             押せない
           </MenuItem>
           <MenuSeparator />
-          <MenuItem icon={<TrashIcon />} danger>
+          <MenuItem icon={<TrashIcon />} status="danger">
             危険
           </MenuItem>
-          <MenuItem icon={<TrashIcon />} danger style={highlighted}>
+          <MenuItem icon={<TrashIcon />} status="danger" style={highlighted}>
             危険の hover
           </MenuItem>
         </Menu>
@@ -281,14 +282,14 @@ export const CheckAndRadio: Story = {
     <ScreenFrame height="h-[480px]">
       {(frame) => (
         <Menu
-          trigger={<Button appearance="outline">表示</Button>}
+          trigger={<Button variant="outline">表示</Button>}
           presentation="popover"
           color={args.color}
           markPlacement={args.markPlacement}
           radioMark={args.radioMark}
           groupLabelStyle={args.groupLabelStyle}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {viewOptions}
         </Menu>
@@ -313,13 +314,13 @@ export const MarkEndAndCaption: Story = {
     <ScreenFrame height="h-[480px]">
       {(frame) => (
         <Menu
-          trigger={<Button appearance="outline">表示</Button>}
+          trigger={<Button variant="outline">表示</Button>}
           presentation="popover"
           color="primary"
           markPlacement="end"
           groupLabelStyle="caption"
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {viewOptions}
         </Menu>
@@ -334,7 +335,7 @@ const mixedItems = (
     <MenuCheckboxItem defaultChecked>行番号</MenuCheckboxItem>
     <MenuSeparator />
     <MenuItem>名前を変える</MenuItem>
-    <MenuItem danger>削除</MenuItem>
+    <MenuItem status="danger">削除</MenuItem>
   </>
 );
 
@@ -355,9 +356,9 @@ export const AlignMarks: Story = {
       <ScreenFrame height="h-[260px]">
         {(frame) => (
           <Menu
-            trigger={<Button appearance="outline">既定（そろう）</Button>}
+            trigger={<Button variant="outline">既定（そろう）</Button>}
             presentation="popover"
-            container={frame}
+            portalContainer={frame}
           >
             {mixedItems}
           </Menu>
@@ -366,10 +367,10 @@ export const AlignMarks: Story = {
       <ScreenFrame height="h-[260px]">
         {(frame) => (
           <Menu
-            trigger={<Button appearance="outline">alignMarks=false</Button>}
+            trigger={<Button variant="outline">alignMarks=false</Button>}
             presentation="popover"
             alignMarks={false}
-            container={frame}
+            portalContainer={frame}
           >
             {mixedItems}
           </Menu>
@@ -418,10 +419,10 @@ export const Links: Story = {
     <ScreenFrame height="h-[320px]">
       {(frame) => (
         <Menu
-          trigger={<Button appearance="outline">アカウント</Button>}
+          trigger={<Button variant="outline">アカウント</Button>}
           presentation="popover"
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           <MenuLinkItem href="#profile">プロフィール</MenuLinkItem>
           <MenuLinkItem href="#settings">設定</MenuLinkItem>
@@ -453,7 +454,7 @@ const submenuItems = (
       共有
     </MenuSubmenu>
     <MenuSeparator />
-    <MenuItem icon={<TrashIcon />} danger>
+    <MenuItem icon={<TrashIcon />} status="danger">
       削除
     </MenuItem>
   </>
@@ -475,10 +476,10 @@ export const Submenu: Story = {
     <ScreenFrame height="h-[320px]">
       {(frame) => (
         <Menu
-          trigger={<Button appearance="outline">操作</Button>}
+          trigger={<Button variant="outline">操作</Button>}
           presentation="popover"
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {submenuItems}
         </Menu>
@@ -508,7 +509,12 @@ export const Sheet: Story = {
   render: (args, { viewMode }) => (
     <PhoneFrame>
       {(frame) => (
-        <Menu {...args} presentation="sheet" defaultOpen={openOnLoad(viewMode)} container={frame}>
+        <Menu
+          {...args}
+          presentation="sheet"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
           {actions}
         </Menu>
       )}
@@ -534,7 +540,7 @@ const sheetSubmenuItems = (open: boolean) => (
     </MenuSubmenu>
     <MenuItem icon={<DownloadSimpleIcon />}>書き出す</MenuItem>
     <MenuSeparator />
-    <MenuItem icon={<TrashIcon />} danger>
+    <MenuItem icon={<TrashIcon />} status="danger">
       削除
     </MenuItem>
   </>
@@ -558,11 +564,11 @@ export const SheetSubmenu: Story = {
         <Menu
           key={args.submenuSheet}
           title="操作"
-          trigger={<Button appearance="outline">操作</Button>}
+          trigger={<Button variant="outline">操作</Button>}
           presentation="sheet"
           submenuSheet={args.submenuSheet}
           defaultOpen={openOnLoad(viewMode)}
-          container={frame}
+          portalContainer={frame}
         >
           {sheetSubmenuItems(openOnLoad(viewMode))}
         </Menu>
@@ -610,7 +616,7 @@ function DensityMenu({ open }: { open: boolean }) {
   return (
     <div className="relative h-[380px] w-[300px]">
       <Menu
-        trigger={<Button appearance="outline">操作</Button>}
+        trigger={<Button variant="outline">操作</Button>}
         presentation="popover"
         modal={false}
         open={open}
@@ -629,7 +635,7 @@ export const Accessibility: Story = {
     return (
       <div className="flex flex-col gap-4">
         <Menu
-          trigger={<Button appearance="outline">操作</Button>}
+          trigger={<Button variant="outline">操作</Button>}
           presentation="popover"
           onOpenChange={args.onOpenChange}
         >

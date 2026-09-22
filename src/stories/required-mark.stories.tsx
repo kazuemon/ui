@@ -8,7 +8,8 @@ import { Checkbox } from '../components/checkbox/Checkbox';
 import { CheckboxGroup } from '../components/checkbox/CheckboxGroup';
 import { Form } from '../components/form/Form';
 import { Radio, RadioGroup } from '../components/radio/Radio';
-import { Select, type SelectItem } from '../components/select/Select';
+import type { ListboxItem } from '../internal/listbox/use-listbox-option';
+import { Select } from '../components/select/Select';
 import { Switch } from '../components/switch/Switch';
 import { Text } from '../components/text/Text';
 import { Textarea } from '../components/textarea/Textarea';
@@ -30,7 +31,7 @@ interface MarkRow {
   render: (marks: MarkValues, label: string) => ReactNode;
 }
 
-const wards: SelectItem[] = [
+const wards: ListboxItem[] = [
   { label: '渋谷区', value: 'shibuya' },
   { label: '新宿区', value: 'shinjuku' },
 ];
@@ -145,7 +146,7 @@ export const Wrap: Story = {
   ),
 };
 
-const areas: SelectItem[] = [
+const areas: ListboxItem[] = [
   { label: '東京都', value: 'tokyo' },
   { label: '大阪府', value: 'osaka' },
 ];
@@ -154,7 +155,7 @@ const areas: SelectItem[] = [
 function AsteriskForm() {
   return (
     <Form requiredMark="asterisk" optionalMark="text" className="flex max-w-sm flex-col gap-5">
-      <Text size="sm" tone="subtle">
+      <Text size="sm" variant="subtle">
         * は必須の項目です
       </Text>
       <TextField name="name" label="お名前" required autoComplete="off" />
@@ -178,7 +179,7 @@ export const WholeForm: Story = {
       },
       source: sourceCode(`
         <Form requiredMark="asterisk" optionalMark="text">
-          <Text size="sm" tone="subtle">* は必須の項目です</Text>
+          <Text size="sm" variant="subtle">* は必須の項目です</Text>
           <TextField name="name" label="お名前" required />
           <TextField name="kana" label="ふりがな" />
           <Select label="都道府県" items={areas} placeholder="選んでください" required />
@@ -199,8 +200,8 @@ function AnnounceForm() {
     setError(value ? undefined : 'お名前を入力してください');
   };
   return (
-    <Form errorSummary onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
-      <TextField name="name" label="お名前" required autoComplete="off" error={error} />
+    <Form showErrorSummary onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
+      <TextField name="name" label="お名前" required autoComplete="off" errorText={error} />
       <Select label="都道府県" items={areas} placeholder="選んでください" required />
       <CheckboxGroup label="ご連絡の方法" required caption="1つ以上選んでください">
         <Checkbox value="mail" label="メール" />

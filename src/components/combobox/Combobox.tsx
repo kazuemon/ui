@@ -5,7 +5,7 @@ import { type ComponentProps, type ReactNode, useId, useMemo, useState } from 'r
 
 import { ComboboxChips, ComboboxTriggerChips } from '../../internal/combobox-base/ComboboxChips';
 import {
-  type ComboboxChipSize,
+  type ChipSize,
   comboboxChipStyle,
   comboboxControl,
   comboboxInputClass,
@@ -36,11 +36,25 @@ import {
   FieldSuccessMark,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { CaretDownIcon, XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
-import { flattenItems, isGroupedItems, labelMap } from '../../internal/listbox/listbox-items';
+import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
+import {
+  type ListboxGroup,
+  type ListboxItems,
+  flattenItems,
+  isGroupedItems,
+  labelMap,
+} from '../../internal/listbox/listbox-items';
+import {
+  type ListboxInputProps,
+  type ListboxSlotProps,
+  mergeSlotClass,
+} from '../../internal/listbox/listbox-slot-props';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -62,28 +76,10 @@ import {
 } from '../../internal/sheet/use-narrow-screen';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useMergedRefs } from '../../internal/use-merged-refs';
+import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
-import type { ComboboxGroup, ComboboxItem, ComboboxItems } from './combobox-items';
-
-export type {
-  ComboboxGroup,
-  ComboboxItem,
-  ComboboxItemNote,
-  ComboboxItemNoteKind,
-  ComboboxItems,
-} from './combobox-items';
-
-/**
- * 選んだ項目の印の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（グレー）— 原則6、design/adr/0047
- */
-export type ComboboxColor = ListboxColor;
-
-/** まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレー */
-export type ComboboxGroupLabelStyle = GroupLabelStyle;
-
-/** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート、auto: 指で操作していて画面が狭いときはシート */
-export type ComboboxPresentation = OverlayPresentation;
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -97,12 +93,20 @@ export type ComboboxSheetInput = 'field' | 'inside';
  * null を渡すと、部品の中では絞り込まず、渡された選択肢をそのまま出す（外で絞り込むとき）
  */
 export type ComboboxFilter = (
-  item: ComboboxItem,
+  item: ListboxItem,
   query: string,
-  itemToString?: (item: ComboboxItem) => string
+  itemToString?: (item: ListboxItem) => string
 ) => boolean;
 
-export interface ComboboxProps extends FieldMarkProps {
+/**
+ * Combobox の値の型。単数では `string | null`、`multiple` では `string[]` です
+ */
+export type ComboboxValue<Multiple extends boolean = false> = Multiple extends true
+  ? string[]
+  : string | null;
+
+export interface ComboboxProps<Multiple extends boolean = false> extends FieldMarkProps {
+  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
   label: ReactNode;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
@@ -112,24 +116,28 @@ export interface ComboboxProps extends FieldMarkProps {
    */
   captionPlacement?: CaptionPlacement;
   /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  error?: ReactNode;
+  errorText?: FieldMessage;
   /**
    * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * error と両方あるときは、エラーの行の下に出す
+   * errorText と両方あるときは、エラーの行の下に出す
    */
-  warning?: ReactNode;
+  warningText?: FieldMessage;
   /**
    * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。error があるときは、欄の見た目はエラーを優先します
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
    */
-  success?: ReactNode;
+  successText?: FieldMessage;
   /**
-   * 成功のとき、本体の ▼ の左にチェックを置くか。false では下の行だけを出します
-   * @default true
+   * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
+   * @default false
    */
-  successMark?: boolean;
+  hideSuccessMark?: boolean;
   /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  info?: ReactNode;
+  infoText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。打てず、選択肢も開かず、フォームでは値が送られません
+   * @default false
+   */
   disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
@@ -143,22 +151,22 @@ export interface ComboboxProps extends FieldMarkProps {
    * 色を持たない neutral（グレー）を選べます（原則6）。hover とキーボードの選択は、色を指定していても入力欄と同じグレーです
    * @default 'neutral'
    */
-  color?: ComboboxColor;
+  color?: ListboxColor;
   /**
-   * 選択肢。`ComboboxItem[]`（そのまま並べる）か `ComboboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 選択肢。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
    * 各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられます（design/adr/0044）
    */
-  items: ComboboxItems;
+  items: ListboxItems;
   /**
    * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
    * @default 'label'
    */
-  groupLabelStyle?: ComboboxGroupLabelStyle;
+  groupLabelStyle?: GroupLabelStyle;
   /**
    * まとまりのあいだに区切り線を引くか
    * @default false
    */
-  groupSeparator?: boolean;
+  showGroupSeparator?: boolean;
   /**
    * 空の欄に出す見本の文字。選んだ値と見分けられるよう、「探して選んでください」のように、
    * まだ選んでいないと分かる書き方にします
@@ -173,20 +181,22 @@ export interface ComboboxProps extends FieldMarkProps {
   /**
    * 複数選べるようにします。選んだ項目は欄の中にチップで並び、欄の高さが伸びます。
    * 値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * 値の型（`ComboboxValue`）はこの props から決まるので、`multiple` か `multiple={true}` と直に書きます。
+   * 変数（`boolean` の値）を渡すと、単数と複数の両方を受ける広い型になります
    * @default false
    */
-  multiple?: boolean;
-  /** 選んだ値。単数では `string | null`、`multiple` では `string[]` */
-  value?: string | string[] | null;
-  /** はじめの値（制御しないとき） */
-  defaultValue?: string | string[] | null;
-  /** 値が変わったとき */
-  onValueChange?: (value: string | string[] | null) => void;
-  /** 打っている文字（制御するとき）。外で絞り込むときに使う */
+  multiple?: Multiple;
+  /** 選んだ値（制御）。単数では `string | null`、`multiple` では `string[]` */
+  value?: ComboboxValue<Multiple>;
+  /** はじめの値（非制御）。単数では `string | null`、`multiple` では `string[]` */
+  defaultValue?: ComboboxValue<Multiple>;
+  /** 値が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: ComboboxValue<Multiple>) => void;
+  /** 打っている文字（制御）。外で絞り込むときに使います */
   inputValue?: string;
-  /** はじめの打っている文字（制御しないとき） */
+  /** はじめの打っている文字（非制御） */
   defaultInputValue?: string;
-  /** 打っている文字が変わったとき。外で絞り込むときは、この文字で問い合わせる */
+  /** 打っている文字が変わるときに、次の文字を渡して呼びます。外で絞り込むときは、この文字で問い合わせます */
   onInputValueChange?: (inputValue: string) => void;
   /**
    * 打った文字と選択肢を突き合わせる関数。書かないときは Base UI の既定（前後の空白を無視した部分一致）です。
@@ -197,7 +207,7 @@ export interface ComboboxProps extends FieldMarkProps {
    * 外で絞り込んだ選択肢。渡すと、部品の中の絞り込みの代わりにこれを出します。
    * `items` には、選んだ項目を残したままにします（選んだ値のラベルを引けなくなるため）
    */
-  filteredItems?: ComboboxItems;
+  filteredItems?: ListboxItems;
   /**
    * 打ち始めたときに、最初に当たった選択肢へ自動で印を移すか
    * @default false
@@ -217,43 +227,72 @@ export interface ComboboxProps extends FieldMarkProps {
   /**
    * 消すボタンの読み上げの名前。書かないときは、単数では「入力内容を消去」、`multiple` では「選んだ項目をすべて消去」です
    */
-  clearLabel?: string;
+  clearName?: string;
   /**
    * チップの × の読み上げの名前を作る関数。何を外すのかが分かる文にします
    * @default (label) => `${label} を外す`
    */
-  chipRemoveLabel?: (label: string) => string;
+  chipRemoveName?: (label: string) => string;
   /**
    * 欄に並ぶチップのまとまりの読み上げの名前
    * @default '選んだ項目'
    */
-  chipsLabel?: string;
+  chipsName?: string;
   /** 当たる選択肢がないときに出す文 */
   emptyText?: ReactNode;
-  /** 選択肢を開いているか。開閉を外から決めるときに使う */
+  /** 選択肢を開いているか（制御） */
   open?: boolean;
+  /** はじめに開いているか（非制御） */
   defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、そのときの開閉を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
   /**
    * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
    * @default false
    */
   modal?: boolean;
   /**
+   * 外を押したときに閉じるか。false では、選ぶか Esc（と×・つまみ）でしか閉じません
+   * @default true
+   */
+  dismissible?: boolean;
+  /**
+   * Esc（Android の戻る操作を含む）で閉じるか
+   * @default true
+   */
+  closeOnEscape?: boolean;
+  /**
    * 浮かぶ選択肢を描く場所
    * 本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも、浮かぶ選択肢に写します
+   * ThemeProvider でまとめて指定できます
    * @default document.body
    */
-  container?: HTMLElement | null;
-  /** 画面の端に当たったとき、選択肢を反対側に出すか・ずらすか。既定は Base UI のまま（反対側に出す） */
-  collisionAvoidance?: ComponentProps<typeof BaseCombobox.Positioner>['collisionAvoidance'];
+  portalContainer?: HTMLElement | null;
+  /**
+   * 浮かぶ選択肢の面（Popup）に広げる props。id・data-*・aria-* や、面だけに足すクラスを渡します。
+   * className は部品のクラスに重ねます
+   */
+  popupProps?: ListboxSlotProps;
+  /**
+   * 浮かぶ選択肢の位置を決める要素（Positioner）に広げる props。画面の端に当たったときの逃がし方（collisionAvoidance）も、ここに渡します。
+   * className は部品のクラスに重ねます
+   */
+  positionerProps?: ListboxSlotProps &
+    Pick<ComponentProps<typeof BaseCombobox.Positioner>, 'collisionAvoidance' | 'anchor'>;
+  /**
+   * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
+   * className は部品のクラスに重ねます
+   */
+  inputProps?: ListboxInputProps;
   /**
    * 選択肢の出し方。auto は指で操作していて画面が狭いときだけシートにします。popover はいつも浮かべ、
    * sheet はいつもシートにします。シートにするのは指の動きを減らすためで、狭さそのものが理由ではありません（design/adr/0037）
    * 書かないときは ThemeProvider の presentation に従います
    * @default 'auto'
    */
-  presentation?: ComboboxPresentation;
+  presentation?: OverlayPresentation;
   /**
    * シートのときの、打つ欄の置き場所。Combobox は打って絞り込むので、シートとソフトウェアキーボードが同時に出ます
    * field: 欄に残します。欄にフォーカスとキーボードが残り、選択肢だけがシートに出ます。シートは、キーボードに隠れない高さに収めます
@@ -267,7 +306,7 @@ export interface ComboboxProps extends FieldMarkProps {
    * 打つ欄を押すまでキーボードは出ません（選択肢を眺めて選ぶだけの使い方に向きます）
    * @default true
    */
-  sheetAutoFocus?: boolean;
+  focusInputOnOpen?: boolean;
   /**
    * シートの見出しの閉じるボタンのアイコン。check は ✓（選び終えた）、x は ×、chevron は下向きの矢印（下げる）です。
    * null はアイコンを出さず、文字だけにします（sheetCloseText も null のときは × を出します）
@@ -336,56 +375,68 @@ export interface ComboboxProps extends FieldMarkProps {
    */
   loadedText?: (count: number) => string;
   /**
-   * Disabled のときの ▼。show はプレースホルダの場所の文と同じ色で出し、hide は隠します
-   * @default 'show'
+   * 押せないとき（Disabled）の ▼ を隠すか。false ではプレースホルダの場所の文と同じ色で出します
+   * @default false
    */
-  disabledIcon?: 'show' | 'hide';
+  hideCaretOnDisabled?: boolean;
   /**
-   * 欄の端の ▼ の出し方。show はいつも出し、hide は出さず、empty-only は値（消すボタン）があるあいだ隠します
-   * @default 'show'
+   * 欄の端の ▼ の出し方。always はいつも出し、never は出さず、empty-only は値（消すボタン）があるあいだ隠します
+   * @default 'always'
    */
-  chevron?: 'show' | 'hide' | 'empty-only';
+  chevron?: 'always' | 'never' | 'empty-only';
   /**
    * `multiple` のチップの最大幅（CSS の長さ。例: '120px'、'10rem'）。超えた文字は … で省略します。
    * 書かないときはチップを切らず、欄の幅いっぱいまで伸びます（欄の幅を超える分だけ … で省略します）
    */
   chipMaxWidth?: string;
   /**
-   * `multiple` のチップの高さ。compact は部品の高さより一段小さく、regular はそれより少し大きくします
-   * @default 'compact'
+   * `multiple` のチップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくします
+   * @default 'sm'
    */
-  chipSize?: ComboboxChipSize;
+  chipSize?: ChipSize;
   /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
   name?: string;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
+  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
-const defaultChipRemoveLabel = (label: string) => `${label} を外す`;
+const defaultChipRemoveName = (label: string) => `${label} を外す`;
+
+/**
+ * Base UI から来た値を onValueChange に渡す
+ * 値の型は multiple の有無で決まるので（ComboboxValue）、Base UI 側の広い型からここで橋渡しする
+ */
+function emitValue<Multiple extends boolean>(
+  onValueChange: (value: ComboboxValue<Multiple>) => void,
+  next: string | string[] | null
+) {
+  (onValueChange as (value: string | string[] | null) => void)(next);
+}
 
 /**
  * 選択肢を打って絞り込み、選ぶ入力欄
  */
-export function Combobox({
+export function Combobox<Multiple extends boolean = false>({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   disabled,
   readOnly,
   color = 'neutral',
   items,
   groupLabelStyle = 'label',
-  groupSeparator = false,
+  showGroupSeparator = false,
   placeholder,
   enterKeyHint = 'enter',
-  multiple = false,
+  multiple: multipleProp,
   value,
   defaultValue,
   onValueChange,
@@ -397,19 +448,24 @@ export function Combobox({
   autoHighlight = false,
   openOnInputClick = true,
   clearable = true,
-  clearLabel,
-  chipRemoveLabel = defaultChipRemoveLabel,
-  chipsLabel = '選んだ項目',
+  clearName,
+  chipRemoveName = defaultChipRemoveName,
+  chipsName = '選んだ項目',
   emptyText,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  onOpenChangeComplete,
   modal = false,
-  container,
-  collisionAvoidance,
+  dismissible = true,
+  closeOnEscape = true,
+  portalContainer: portalContainerProp,
+  popupProps,
+  positionerProps,
+  inputProps,
   presentation,
   sheetInput = 'inside',
-  sheetAutoFocus = true,
+  focusInputOnOpen = true,
   sheetCloseIcon = 'check',
   sheetCloseText = '完了',
   sheetDetent: sheetDetentProp,
@@ -421,17 +477,19 @@ export function Combobox({
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
-  disabledIcon = 'show',
-  chevron = 'show',
+  hideCaretOnDisabled = false,
+  chevron = 'always',
   chipMaxWidth,
-  chipSize = 'compact',
+  chipSize = 'sm',
   name,
   form,
   required,
   requiredMark,
   optionalMark,
   className,
-}: ComboboxProps) {
+}: ComboboxProps<Multiple>) {
+  // multiple は型（ComboboxValue）を決めるので props では Multiple のまま受け、中では boolean として扱う
+  const multiple = multipleProp ?? false;
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない
   const loadingBlocking = loading && loadingBehavior === 'blocking';
   const loadingRow = loading && !loadingBlocking;
@@ -440,7 +498,7 @@ export function Combobox({
   const blocking = loadingBlocking || formLock.blocking;
   // 読み取り専用（ADR-0170）: 文字を打つ欄の読み取り専用と同じ見た目にし、選択肢は開かない
   const locked = blocking || !!readOnly;
-  const portalContainer = usePortalContainer(container);
+  const portalContainer = usePortalContainer(portalContainerProp);
 
   // 選択肢の出し方（design/adr/0037・原則16）。指で操作していて画面が狭いときはシート
   const sheet = useSheetPresentation(presentation);
@@ -451,19 +509,20 @@ export function Combobox({
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
   const sheetMessages: SheetMessage[] = [];
-  if (error) sheetMessages.push({ kind: 'error', content: error, id: `${sheetId}error` });
-  if (warning) sheetMessages.push({ kind: 'warning', content: warning, id: `${sheetId}warning` });
+  if (errorText) sheetMessages.push({ kind: 'error', content: errorText, id: `${sheetId}error` });
+  if (warningText)
+    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
 
   // 開閉は部品の中でも持つ（止めているあいだ開かせないため・シートの × とつまみで閉じるため）
   // 開いているあいだは本体をフォーカス中と同じ見た目にする
   const [openState, setOpenState] = useState(defaultOpen);
   const open = locked ? false : (openProp ?? openState);
-  // 開く前のスクロール位置。キーボードの出入りでブラウザがページをずらすので、閉じたあとに元へ戻す（sheetAutoFocus）
+  // 開く前のスクロール位置。キーボードの出入りでブラウザがページをずらすので、閉じたあとに元へ戻す（focusInputOnOpen）
   const restoreScroll = useScrollRestore();
   const changeOpen = (next: boolean) => {
     if (next && locked) return;
     if (next) drag.reset();
-    if (inputInSheet && sheetAutoFocus) restoreScroll(next);
+    if (inputInSheet && focusInputOnOpen) restoreScroll(next);
     setOpenState(next);
     onOpenChange?.(next);
   };
@@ -472,7 +531,7 @@ export function Combobox({
   //   こうすると、選んだ値・フォームに送る値・絞り込みの当たり先が、すべて items の label・value から決まる
   const collection = useMemo(
     () =>
-      BaseCombobox.createItems<ComboboxItem, string>(items, {
+      BaseCombobox.createItems<ListboxItem, string>(items, {
         getValue: (item) => item.value,
         getLabel: (item) => item.label,
       }),
@@ -519,14 +578,30 @@ export function Combobox({
   const setFieldElement = (el: HTMLElement | null) => {
     fieldRef.current = el;
   };
-  // ソフトウェアキーボードを開く操作の中で出すための、見えない打つ欄（sheetAutoFocus）
-  const keyboardProxy = useKeyboardProxy(sheetAutoFocus);
+  // ソフトウェアキーボードを開く操作の中で出すための、見えない打つ欄（focusInputOnOpen）
+  const keyboardProxy = useKeyboardProxy(focusInputOnOpen);
   // 浮かぶ選択肢とシートの外枠（src/internal/combobox-base）。シートは、キーボードが隠している分だけ持ち上げて残りに収める
   const popupShell = { sheet, densityScope, keyboardInset, keyboardShrink, sheetDetent };
 
   const chipStyle = comboboxChipStyle(chipMaxWidth, chipSize);
   const selected = selectedTokens(color);
   const grouped = isGroupedItems(filteredItems ?? items);
+
+  // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
+  const {
+    className: popupClassName,
+    ref: popupUserRef,
+    style: popupStyle,
+    ...popupRest
+  } = popupProps ?? {};
+  const {
+    className: positionerClassName,
+    style: positionerStyle,
+    ...positionerRest
+  } = positionerProps ?? {};
+  const { className: inputClassName, ...inputRest } = inputProps ?? {};
+  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   // 欄の中身（入力欄・チップ）。multiple ではチップと入力欄を Chips の中に並べる（← で チップへ移れる）
   const inputClass = comboboxInputClass({ blocking, readOnly });
@@ -552,7 +627,7 @@ export function Combobox({
         }
         disabled={blocking || disabled || undefined}
         data-slot="combobox-clear"
-        aria-label={clearLabel ?? (multiple ? '選んだ項目をすべて消去' : '入力内容を消去')}
+        aria-label={clearName ?? (multiple ? '選んだ項目をすべて消去' : '入力内容を消去')}
       />
     ) : null;
 
@@ -578,8 +653,8 @@ export function Combobox({
         {multiple ? (
           <ComboboxChips
             labelOf={labelOf}
-            chipsLabel={chipsLabel}
-            chipRemoveLabel={chipRemoveLabel}
+            chipsName={chipsName}
+            chipRemoveName={chipRemoveName}
             color={color}
             readOnly={readOnly}
             disabled={disabled || blocking}
@@ -592,7 +667,11 @@ export function Combobox({
                 aria-disabled={blocking || undefined}
                 aria-busy={loading || undefined}
                 placeholder={loadingBlocking ? loadingText : values.length > 0 ? '' : placeholder}
-                className={`${inputClass} h-(--combobox-chip-height) min-w-16`}
+                {...inputRest}
+                className={mergeSlotClass(
+                  `${inputClass} h-(--combobox-chip-height) min-w-16`,
+                  inputClassName
+                )}
               />
             )}
           </ComboboxChips>
@@ -603,7 +682,8 @@ export function Combobox({
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
             placeholder={loadingBlocking ? loadingText : placeholder}
-            className={`${inputClass} h-full ${controlInset}`}
+            {...inputRest}
+            className={mergeSlotClass(`${inputClass} h-full ${controlInset}`, inputClassName)}
           />
         )}
         {/* 待っているあいだの印（design/adr/0042）。回る円は ▼ の左、線は本体の下端 */}
@@ -611,12 +691,14 @@ export function Combobox({
           <FieldSpinner className={loadingBlocking ? controlInsetEnd : 'me-2'} />
         )}
         {/* 成功のチェック（ADR-0058 の C）。回る円と同じ場所 */}
-        {success && successMark && !error && !loading && <FieldSuccessMark className="me-2" />}
+        {successText && !hideSuccessMark && !errorText && !loading && (
+          <FieldSuccessMark className="me-2" />
+        )}
         {/* ▼（原則8: 塗りのないアイコンは押せない意味の印）。欄のどこを押しても開くので、それ自体は押すものにしない
             シートの中の打つ欄には出さない（すでに開いていて、押して開くものではないため） */}
         {!inSheet &&
-          chevron !== 'hide' &&
-          !(loadingBlocking || (disabled && disabledIcon === 'hide')) && (
+          chevron !== 'never' &&
+          !(loadingBlocking || (disabled && hideCaretOnDisabled)) && (
             <BaseCombobox.Icon
               className={[
                 'flex shrink-0 group-data-disabled/field:text-fg-subtle',
@@ -642,7 +724,7 @@ export function Combobox({
       <BaseCombobox.Trigger
         ref={setFieldElement}
         onClick={
-          sheetAutoFocus ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
+          focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
         aria-describedby={messageIds}
         aria-disabled={blocking || undefined}
@@ -689,8 +771,10 @@ export function Combobox({
         {loading && loadingIndicator === 'spinner' && (
           <FieldSpinner className={loadingBlocking ? undefined : 'me-2'} />
         )}
-        {success && successMark && !error && !loading && <FieldSuccessMark className="me-2" />}
-        {chevron !== 'hide' && !(loadingBlocking || (disabled && disabledIcon === 'hide')) && (
+        {successText && !hideSuccessMark && !errorText && !loading && (
+          <FieldSuccessMark className="me-2" />
+        )}
+        {chevron !== 'never' && !(loadingBlocking || (disabled && hideCaretOnDisabled)) && (
           <BaseCombobox.Icon
             className={[
               'flex shrink-0 group-data-disabled/field:text-fg-subtle',
@@ -712,10 +796,10 @@ export function Combobox({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -727,12 +811,12 @@ export function Combobox({
       nativeLabel={!inputInSheet}
     >
       {(messageIds) => (
-        <BaseCombobox.Root<string, boolean, ComboboxItem>
+        <BaseCombobox.Root<string, boolean, ListboxItem>
           items={collection}
           multiple={multiple}
           value={value}
           defaultValue={defaultValue}
-          onValueChange={(next) => onValueChange?.(next)}
+          onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
           inputValue={inputValue}
           defaultInputValue={defaultInputValue}
           onInputValueChange={(next) => onInputValueChange?.(next)}
@@ -747,10 +831,22 @@ export function Combobox({
           form={form}
           modal={modal}
           open={open}
-          onOpenChange={(next) => changeOpen(next)}
+          onOpenChange={(next, details) => {
+            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+              details.cancel();
+              return;
+            }
+            changeOpen(next);
+          }}
           // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
           onOpenChangeComplete={(next) => {
             if (!next) drag.clearDragHeight();
+            onOpenChangeComplete?.(next);
           }}
         >
           {inputInSheet ? renderTrigger(messageIds) : renderControl('field', messageIds)}
@@ -767,16 +863,16 @@ export function Combobox({
             {/* シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
                 ソフトウェアキーボードが隠している分（--visualViewport）だけ持ち上げ、残りの高さに収める */}
             <BaseCombobox.Positioner
-              collisionAvoidance={collisionAvoidance}
               sideOffset={() => popupSideOffset(fieldRef.current)}
+              {...positionerRest}
               data-presentation={listPresentation}
               data-density={densityScope.density}
-              style={comboboxPositionerStyle(popupShell)}
-              className={comboboxPositionerClass(popupShell)}
+              style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+              className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
             >
               <BaseCombobox.Popup
                 finalFocus={
-                  inputInSheet && sheetAutoFocus
+                  inputInSheet && focusInputOnOpen
                     ? () => {
                         // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
                         fieldRef.current?.focus({ preventScroll: true });
@@ -785,23 +881,30 @@ export function Combobox({
                     : undefined
                 }
                 initialFocus={
-                  inputInSheet && sheetAutoFocus
+                  inputInSheet && focusInputOnOpen
                     ? () =>
                         document.querySelector<HTMLElement>(
                           '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
                         )
                     : undefined
                 }
-                ref={sheet ? measure : popoverCue || popoverFit ? observeCues : undefined}
+                {...popupRest}
+                ref={popupRef}
                 data-slot="combobox-popup"
                 data-dragging={drag.dragging || undefined}
-                style={comboboxPopupStyle({
-                  selected,
-                  sheet,
-                  sheetDetent,
-                  dragHeight: drag.sheetHeight,
-                })}
-                className={listboxPopup({ presentation: listPresentation })}
+                style={{
+                  ...comboboxPopupStyle({
+                    selected,
+                    sheet,
+                    sheetDetent,
+                    dragHeight: drag.sheetHeight,
+                  }),
+                  ...popupStyle,
+                }}
+                className={mergeSlotClass(
+                  listboxPopup({ presentation: listPresentation }),
+                  popupClassName
+                )}
               >
                 {/* シートの見出し（design/adr/0037）: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の ×
                     打つ欄をシートに移したときは、その下に打つ欄を置く。高さを測る箱は見出しと打つ欄の両方を囲む */}
@@ -865,17 +968,17 @@ export function Combobox({
                   })}
                 >
                   {grouped
-                    ? (group: ComboboxGroup, index: number) => (
+                    ? (group: ListboxGroup, index: number) => (
                         <ComboboxGroupSection
                           key={index}
                           group={group}
-                          separator={groupSeparator && index > 0}
+                          separator={showGroupSeparator && index > 0}
                           labelStyle={groupLabelStyle}
                         >
                           {(item) => <ComboboxOption key={item.value} item={item} />}
                         </ComboboxGroupSection>
                       )
-                    : (item: ComboboxItem) => <ComboboxOption key={item.value} item={item} />}
+                    : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
                 </BaseCombobox.List>
                 {(long || popoverCue) && (
                   <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />

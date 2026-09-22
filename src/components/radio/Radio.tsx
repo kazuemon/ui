@@ -3,7 +3,7 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { Radio as BaseRadio } from '@base-ui/react/radio';
 import { RadioGroup as BaseRadioGroup } from '@base-ui/react/radio-group';
-import { type ComponentProps, type ReactNode, useContext, useMemo } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useContext, useMemo } from 'react';
 
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
@@ -15,19 +15,34 @@ import {
 } from '../../internal/choice/choice-styles';
 import { type CaptionPlacement, Field } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 
 // ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
 // 選ぶと部品の色の塗りに白い丸（直径は箱の --radio-dot-ratio を 2px 単位に丸めたもの。箱と同じ偶数にし、ふちのぼかしが偏らないようにする）
 
 export interface RadioProps extends Omit<
-  ComponentProps<typeof BaseRadio.Root>,
-  'className' | 'render' | 'color'
+  ComponentProps<'span'>,
+  'className' | 'color' | 'value' | 'children' | 'onChange'
 > {
   /** 丸の横の文字。押しても選ばれます（本体の一部）。押せないときは丸と一緒にグレーになります */
   label: ReactNode;
   /** 横の文字の下の説明。押せないときも読めるままです */
   caption?: ReactNode;
+  /** この選択肢の値。RadioGroup の value と突き合わせ、選ばれているかが決まります */
+  value: unknown;
+  /**
+   * 押せない（Disabled）状態にします。丸と横の文字がグレーになります
+   * @default false
+   */
+  disabled?: boolean;
+  /**
+   * 必須にします。グループの required を使うのがふつうです
+   * @default false
+   */
+  required?: boolean;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
   /**
    * 読み取り専用にします。丸は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
    * フォーカスでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも選び直せません。フォームでは値が送られます。
@@ -35,6 +50,7 @@ export interface RadioProps extends Omit<
    * @default false
    */
   readOnly?: boolean;
+  /** 丸と横の文字を並べた行に付きます */
   className?: string;
 }
 
@@ -45,7 +61,10 @@ export function Radio({
   label,
   caption,
   className,
+  value,
   disabled,
+  required,
+  inputRef,
   readOnly,
   'aria-disabled': ariaDisabled,
   ...props
@@ -61,6 +80,9 @@ export function Radio({
       className={s.item({ className: [choiceRows(caption), className] })}
     >
       <BaseRadio.Root
+        value={value}
+        required={required}
+        inputRef={inputRef}
         disabled={disabled}
         readOnly={locked.readOnly}
         aria-disabled={locked.ariaDisabled || ariaDisabled}
@@ -83,7 +105,9 @@ export function Radio({
 }
 
 export interface RadioGroupProps<Value>
-  extends Omit<BaseRadioGroup.Props<Value>, 'className' | 'render' | 'color'>, FieldMarkProps {
+  extends
+    Omit<ComponentProps<'div'>, 'className' | 'color' | 'defaultValue' | 'onChange' | 'children'>,
+    FieldMarkProps {
   /** グループの見出し（太字）。グループ（role="radiogroup"）の名前になります */
   label: ReactNode;
   /** 見出しの補足（ヘルプテキスト）。エラー・警告のあいだも消えません */
@@ -94,9 +118,28 @@ export interface RadioGroupProps<Value>
    */
   captionPlacement?: CaptionPlacement;
   /** エラーの内容。選択肢の下に丸の「!」と赤い文字で出し、選んでいない丸の塗りを淡い赤にします。押せない丸は、押せない色のままです */
-  error?: ReactNode;
+  errorText?: FieldMessage;
   /** 警告の内容。選択肢の下に三角とオリーブ色の文字で出します。丸の見た目は変えません */
-  warning?: ReactNode;
+  warningText?: FieldMessage;
+  /** 情報の内容。選択肢の下に丸の「i」と青い文字で出します。丸の見た目は変えません */
+  infoText?: FieldMessage;
+  /** 選んでいる値（制御） */
+  value?: Value;
+  /** はじめに選んでいる値（非制御） */
+  defaultValue?: Value;
+  /** 選び方が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: Value) => void;
+  /** フォームに送るときの名前 */
+  name?: string;
+  /** グループが属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
+  /**
+   * グループごと押せない（Disabled）状態にします。中の丸がすべてグレーになります
+   * @default false
+   */
+  disabled?: boolean;
   /**
    * 必須にします。グループ（role="radiogroup"）に aria-required を付け、見出しの後ろに印（既定は「必須」のタグ）を出します。
    * 印は読み上げから外れ、必須であることは aria-required が伝えます
@@ -114,7 +157,9 @@ export interface RadioGroupProps<Value>
    * @default 'neutral'
    */
   color?: ChoiceColor;
+  /** グループの外枠（見出し・選択肢・下の行をまとめた縦の並び）に付きます */
   className?: string;
+  /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
 
@@ -128,8 +173,15 @@ export function RadioGroup<Value>({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
+  errorText,
+  warningText,
+  infoText,
+  value,
+  defaultValue,
+  onValueChange,
+  name,
+  form,
+  inputRef,
   disabled,
   color,
   className,
@@ -150,8 +202,9 @@ export function RadioGroup<Value>({
         label={label}
         caption={caption}
         captionPlacement={captionPlacement}
-        error={error}
-        warning={warning}
+        error={errorText}
+        warning={warningText}
+        info={infoText}
         disabled={disabled}
         required={required}
         requiredMark={requiredMark}
@@ -166,6 +219,12 @@ export function RadioGroup<Value>({
         {(describedBy) => (
           <BaseRadioGroup<Value>
             {...props}
+            value={value}
+            defaultValue={defaultValue}
+            onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
+            name={name}
+            form={form}
+            inputRef={inputRef}
             disabled={disabled}
             required={required}
             readOnly={locked.readOnly}

@@ -48,6 +48,7 @@ const meta = {
           '- `brand` には、トップへのリンクにしたロゴやサイトの名前を渡します。`actions` には、帯の右端に置くボタンなどを渡します。',
           '- 帯の幅が 768px より狭いときは、行き先をメニューのボタンに畳みます。畳むかどうかは画面の幅ではなく帯そのものの幅で決まるので、画面の一部に置いた帯も、置いた幅に合わせて畳まれます。押すと、行き先を縦に並べた面が開きます。行き先を押すと面は閉じます。',
           '- メニューの面は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです。`menuSide` で固定できます。',
+          '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
           '- いまいるページの印は `currentIndicator` で選びます。`text`（既定）は文字を濃く太く、`neutral` はグレーの面、`primary` は淡い青の面、`underline` は文字の下に青い線です。',
           '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`）で選びます。',
@@ -62,8 +63,8 @@ const meta = {
     currentIndicator: 'text',
     stickyEdge: 'line',
     stickyBackdrop: 'solid',
-    label: 'メイン',
-    menuLabel: 'メニュー',
+    accessibleName: 'メイン',
+    menuTitle: 'メニュー',
     menuSide: 'auto',
   },
   argTypes: {
@@ -95,7 +96,7 @@ const meta = {
     brand: { control: false },
     actions: { control: false },
     children: { control: false },
-    container: { control: false },
+    portalContainer: { control: false },
   },
 } satisfies Meta<typeof Navbar>;
 
@@ -218,7 +219,7 @@ export const CurrentIndicators: Story = {
             </Navbar>
           </div>
           <div className="w-48 rounded-card border border-line p-4">
-            <NavbarMenuList label="メイン" currentIndicator={indicator}>
+            <NavbarMenuList accessibleName="メイン" currentIndicator={indicator}>
               {links()}
             </NavbarMenuList>
           </div>
@@ -311,7 +312,7 @@ export const Menu: Story = {
     <PhoneFrame>
       {(frame) => (
         <div className="-mx-5 -mt-8">
-          <Navbar {...args} brand={brand} container={frame}>
+          <Navbar {...args} brand={brand} portalContainer={frame}>
             {links()}
           </Navbar>
         </div>

@@ -12,7 +12,7 @@ import { tv } from '../../internal/tv';
 const divider = tv({
   base: dividerStyles.base,
   variants: {
-    appearance: {
+    variant: {
       full: dividerStyles.full,
       short: 'w-16 border-line',
       accent: 'w-12 border-t-(length:--border-width-thick) border-(color:--divider-accent)',
@@ -23,41 +23,41 @@ const divider = tv({
       secondary: '[--divider-accent:var(--color-secondary)]',
     },
   },
-  defaultVariants: { appearance: 'full', color: 'brand' },
+  defaultVariants: { variant: 'full', color: 'brand' },
 });
 
-export interface DividerProps
-  extends Omit<ComponentProps<'hr'>, 'color'>, VariantProps<typeof divider> {
+/** 区切り線の見た目 */
+export type DividerVariant = NonNullable<VariantProps<typeof divider>['variant']>;
+/** accent の線の色 */
+export type DividerColor = NonNullable<VariantProps<typeof divider>['color']>;
+
+export interface DividerProps extends Omit<ComponentProps<'hr'>, 'color'> {
   /**
    * 見た目。full は幅いっぱいの細い線、short は中央に置く短い細い線、accent は中央に置く色のある短い太い線です
    * @default 'full'
    */
-  appearance?: VariantProps<typeof divider>['appearance'];
+  variant?: DividerVariant;
   /**
    * accent の線の色。brand は水色、primary・secondary は利用者が選ぶ色です。ほかの色は style で --divider-accent を上書きします
    * @default 'brand'
    */
-  color?: VariantProps<typeof divider>['color'];
+  color?: DividerColor;
   /**
    * 見た目だけの区切りにします。true のときは読み上げで区切りと伝えません（話題の切れ目ではなく、飾りとして置くとき）
    * @default false
    */
   decorative?: boolean;
+  /** 線の要素（hr）に付きます */
+  className?: string;
 }
 
 /**
  * 区切り線。文章の話題の切れ目に置きます
  */
-export function Divider({
-  appearance,
-  color,
-  decorative = false,
-  className,
-  ...props
-}: DividerProps) {
+export function Divider({ variant, color, decorative = false, className, ...props }: DividerProps) {
   return (
     <hr
-      className={divider({ appearance, color, className })}
+      className={divider({ variant, color, className })}
       {...(decorative ? { role: 'presentation', 'aria-hidden': true } : {})}
       {...props}
     />

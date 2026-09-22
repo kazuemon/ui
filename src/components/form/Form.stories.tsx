@@ -9,11 +9,12 @@ import { Checkbox } from '../checkbox/Checkbox';
 import { CheckboxGroup } from '../checkbox/CheckboxGroup';
 import { Form, type FormProps } from './Form';
 import { Notice } from '../notice/Notice';
-import { Select, type SelectItem } from '../select/Select';
+import { Select } from '../select/Select';
+import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { TextField } from '../text-field/TextField';
 import { sourceCode } from '../../stories/story-states';
 
-const areas: SelectItem[] = [
+const areas: ListboxItem[] = [
   { label: '千代田区', value: 'chiyoda' },
   { label: '中央区', value: 'chuo' },
   { label: '港区', value: 'minato' },
@@ -64,14 +65,14 @@ function SignupForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
 
   return (
     <Form {...props} onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
-      {done && <Notice color="success" title="登録しました" />}
+      {done && <Notice status="success" title="登録しました" />}
       <TextField
         name="email"
         label="メールアドレス"
         caption="ログインに使います"
         defaultValue="kazu@"
         autoComplete="off"
-        error={errors.email}
+        errorText={errors.email}
         // 欄を離れたときにも確かめる。このときの行は、読み上げで知らせる
         onBlur={(event) => {
           const email = checkEmail(event.currentTarget.value);
@@ -83,7 +84,7 @@ function SignupForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
         label="ユーザー名"
         caption="プロフィールの URL に使います"
         autoComplete="off"
-        error={errors.username}
+        errorText={errors.username}
       />
       <Select
         label="市区町村"
@@ -95,7 +96,7 @@ function SignupForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
           setArea(value);
           setErrors((current) => ({ ...current, area: checkArea(value) }));
         }}
-        error={errors.area}
+        errorText={errors.area}
       />
       <Button type="submit" color="primary" className="self-start">
         登録する
@@ -104,11 +105,11 @@ function SignupForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
   );
 }
 
-// SignupForm の Show code。formProps は Form に足す props（例: ' errorSummary'）
+// SignupForm の Show code。formProps は Form に足す props（例: ' showErrorSummary'）
 const signupFormCode = (formProps = '') =>
   sourceCode(
     `
-    const areas: SelectItem[] = [
+    const areas: ListboxItem[] = [
       { label: '千代田区', value: 'chiyoda' },
       { label: '中央区', value: 'chuo' },
       { label: '港区', value: 'minato' },
@@ -150,13 +151,13 @@ const signupFormCode = (formProps = '') =>
 
       return (
         <Form${formProps} onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
-          {done && <Notice color="success" title="登録しました" />}
+          {done && <Notice status="success" title="登録しました" />}
           <TextField
             name="email"
             label="メールアドレス"
             caption="ログインに使います"
             autoComplete="off"
-            error={errors.email}
+            errorText={errors.email}
             // 欄を離れたときにも確かめる。このときの行は、読み上げで知らせる
             onBlur={(event) => {
               const email = checkEmail(event.currentTarget.value);
@@ -168,7 +169,7 @@ const signupFormCode = (formProps = '') =>
             label="ユーザー名"
             caption="プロフィールの URL に使います"
             autoComplete="off"
-            error={errors.username}
+            errorText={errors.username}
           />
           <Select
             label="市区町村"
@@ -180,7 +181,7 @@ const signupFormCode = (formProps = '') =>
               setArea(value);
               setErrors((current) => ({ ...current, area: checkArea(value) }));
             }}
-            error={errors.area}
+            errorText={errors.area}
           />
           <Button type="submit" color="primary" className="self-start">
             登録する
@@ -215,7 +216,7 @@ function ContactForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
         caption="受け取る方法を選びます"
         value={channel}
         onValueChange={(value) => setChannel(value)}
-        error={error}
+        errorText={error}
       >
         {channels.map((item) => (
           <Checkbox key={item.value} value={item.value} label={item.label} />
@@ -236,10 +237,10 @@ const meta = {
     docs: {
       description: {
         component: [
-          '送信したときの、エラーの知らせ方を受け持つフォームです。値を確かめるのはアプリで、`onSubmit` の中で各欄の `error`・`warning` を決めます。Form は、その描画のあとでフォーカスを移します。',
+          '送信したときの、エラーの知らせ方を受け持つフォームです。値を確かめるのはアプリで、`onSubmit` の中で各欄の `errorText`・`warningText` を決めます。Form は、その描画のあとでフォーカスを移します。',
           '',
           '- 既定では、エラーのある最初の欄へフォーカスを移し、入力した文字を選びます。その欄の名前と説明（キャプション → エラー）が読まれます。',
-          '- `errorSummary` を付けると、フォームの上にエラーの一覧（題と、各欄へのリンク）を出し、一覧へフォーカスを移します。長いフォームに向きます。欄を直すと一覧から消え、なくなると一覧を閉じます。',
+          '- `showErrorSummary` を付けると、フォームの上にエラーの一覧（題と、各欄へのリンク）を出し、一覧へフォーカスを移します。長いフォームに向きます。欄を直すと一覧から消え、なくなると一覧を閉じます。',
           '- 警告は送信を止めないので、フォーカスの移る先にも一覧にも入りません。',
           '- 送信で出た行は読み上げで知らせません（フォーカスの移った先で読むため）。欄を離れたときなど、あとから出た行は知らせます。',
           '- `submitting` を `true` から `false` に戻した描画でエラーの行があれば、送信したときと同じくフォーカスを移します（サーバーから返ってきたエラー）。送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます。',
@@ -252,20 +253,20 @@ const meta = {
     },
   },
   args: {
-    errorSummary: false,
+    showErrorSummary: false,
     noValidate: true,
     submitting: false,
     submittingBehavior: 'blocking',
   },
   argTypes: {
-    errorSummary: { control: 'boolean' },
+    showErrorSummary: { control: 'boolean' },
     noValidate: { control: 'boolean' },
     submitting: { control: 'boolean' },
     submittingBehavior: { control: 'inline-radio', options: ['blocking', 'none'] },
     errorSummaryTitle: { control: false },
   },
   // 引数を変えたときは、はじめの状態から描き直す
-  render: (args) => <SignupForm key={String(args.errorSummary)} {...args} />,
+  render: (args) => <SignupForm key={String(args.showErrorSummary)} {...args} />,
 } satisfies Meta<typeof Form>;
 
 export default meta;
@@ -285,8 +286,8 @@ export const FocusFirstError: Story = {
 export const ErrorSummary: Story = {
   tags: ['visual'],
   name: 'エラーの一覧',
-  args: { errorSummary: true },
-  parameters: { docs: { source: signupFormCode(' errorSummary') } },
+  args: { showErrorSummary: true },
+  parameters: { docs: { source: signupFormCode(' showErrorSummary') } },
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
     const summary = await canvas.findByRole('group', { name: '入力を確かめてください（3件）' });
@@ -325,7 +326,7 @@ export const FocusGroup: Story = {
                 caption="受け取る方法を選びます"
                 value={channel}
                 onValueChange={(value) => setChannel(value)}
-                error={error}
+                errorText={error}
               >
                 <Checkbox value="mail" label="メール" />
                 <Checkbox value="phone" label="電話" />
@@ -340,7 +341,7 @@ export const FocusGroup: Story = {
       `),
     },
   },
-  render: (args) => <ContactForm key={String(args.errorSummary)} {...args} />,
+  render: (args) => <ContactForm key={String(args.showErrorSummary)} {...args} />,
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '送る' }));
     await waitFor(() => expect(canvas.getByRole('checkbox', { name: '電話' })).toHaveFocus());
@@ -407,7 +408,7 @@ function ServerErrorForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
         caption="プロフィールの URL に使います"
         defaultValue="kazuemon"
         autoComplete="off"
-        error={error}
+        errorText={error}
       />
       <TextField name="displayName" label="表示名" defaultValue="かずえもん" autoComplete="off" />
       <Button type="submit" color="primary" className="self-start">
@@ -446,7 +447,7 @@ const serverErrorCode = sourceCode(`
           caption="プロフィールの URL に使います"
           defaultValue="kazuemon"
           autoComplete="off"
-          error={error}
+          errorText={error}
         />
         <TextField name="displayName" label="表示名" defaultValue="かずえもん" autoComplete="off" />
         <Button type="submit" color="primary" className="self-start">
@@ -464,9 +465,9 @@ export const ServerError: Story = {
     controls: { exclude: ['submitting'] },
     docs: { description: { story: serverErrorDocs }, source: serverErrorCode },
   },
-  render: (args) => <ServerErrorForm key={String(args.errorSummary)} {...args} />,
+  render: (args) => <ServerErrorForm key={String(args.showErrorSummary)} {...args} />,
   play: async ({ args, canvas }) => {
-    if (args.errorSummary) return;
+    if (args.showErrorSummary) return;
     await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
     // 送り終えると、押したボタンに残っていたフォーカスがエラーの欄へ移る
     const username = canvas.getByLabelText('ユーザー名');
@@ -483,7 +484,7 @@ export const ServerErrorMoved: Story = {
     controls: { exclude: ['submitting'] },
     docs: { description: { story: serverErrorDocs }, source: serverErrorCode },
   },
-  render: (args) => <ServerErrorForm key={String(args.errorSummary)} {...args} />,
+  render: (args) => <ServerErrorForm key={String(args.showErrorSummary)} {...args} />,
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
     // 送っているあいだに、表示名の欄へ移る（送信のボタンの1つ前の欄）
@@ -522,7 +523,7 @@ function PostForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
         <Button type="submit" color="primary">
           公開する
         </Button>
-        <Button type="submit" appearance="outline" name="draft" value="1">
+        <Button type="submit" variant="outline" name="draft" value="1">
           下書きに保存
         </Button>
       </div>
@@ -560,7 +561,7 @@ export const SubmitButtons: Story = {
                 <Button type="submit" color="primary">
                   公開する
                 </Button>
-                <Button type="submit" appearance="outline" name="draft" value="1">
+                <Button type="submit" variant="outline" name="draft" value="1">
                   下書きに保存
                 </Button>
               </div>

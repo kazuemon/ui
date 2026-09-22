@@ -19,7 +19,7 @@ const meta = {
           '決まった範囲の中の量を、バーで示します。スキルの習熟度や、ストレージの使用量に使います。押せません。',
           '処理の進み具合や記事の読了のように、終わりに向かって進むものには使いません。',
           '',
-          '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`showValue={false}` で隠せます。',
+          '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`hideValue` で隠せます。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「12 / 50 GB」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。',
           '- `size` でバーの太さを選びます。`md` が標準で、たくさん並べる一覧では細い `sm`、1 つだけ大きく見せるときは太い `lg` です。どの太さでも角は丸いままです。',
@@ -37,7 +37,7 @@ const meta = {
     color: 'neutral',
     size: 'md',
     regionColor: 'status',
-    showValue: true,
+    hideValue: false,
   },
   argTypes: {
     value: { control: { type: 'range', min: 0, max: 100 } },
@@ -138,7 +138,7 @@ export const Parts: Story = {
         caption="写真と動画が大半を占めています"
       />
       <Meter label="React" value={4} max={5} format={{ maximumFractionDigits: 0 }} />
-      <Meter label="値の文字なし" value={60} showValue={false} />
+      <Meter label="値の文字なし" value={60} hideValue />
       <Meter aria-label="ラベルなし" value={30} caption="ラベルを出さないときは aria-label" />
     </div>
   ),

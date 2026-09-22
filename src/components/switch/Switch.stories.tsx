@@ -9,7 +9,7 @@ import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
 const placements = ['start', 'end'] as const;
-const captionAppearances = ['plain', 'surface'] as const;
+const captionVariants = ['plain', 'surface'] as const;
 const frames = ['none', 'card', 'divided'] as const;
 const longCaption = 'オンにすると、新しい記事が公開されたときにメールでお知らせします。';
 
@@ -52,12 +52,13 @@ const meta = {
           '',
           '- `togglePlacement` はトラックの位置です。`start`（既定）は文字の左、`end` は文字の右です。設定の一覧のように、トラックを行の右端にそろえて並べたいときは `end` にします。',
           '- トラックとラベルは、部品の高さの1行に並べます。`caption` はその下、ラベルの始まりにそろえて小さいグレーの文字で置きます。キャプションがあってもなくても、長くても、トラックとラベルの位置は変わりません。',
-          '- `captionAppearance="surface"` にすると、キャプションをラベルの列に敷いた淡いグレーの面に出します。既定は面なし（`plain`）です。',
+          '- `captionVariant="surface"` にすると、キャプションをラベルの列に敷いた淡いグレーの面に出します。既定は面なし（`plain`）です。',
           '- `frame` を付けると、行の範囲を線で描き、行のどこを押しても切り替わります。このときトラックは行の縦の中央に置きます。',
           '- `color` は ON のときの色です。指定しないときは濃いグレー（`neutral`）です。OFF のトラックは、色にかかわらず入力欄と同じグレーです。',
           '- 押せないときは、トラックを薄くし、ラベルをほかの押せない文字と同じグレーにします。キャプションは説明なので、読めるままです。',
           '- `readOnly` にすると、トラックとノブが押せないときと同じ見た目になります。ラベルは本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
           '- 状態は `defaultChecked` で部品に任せるか、`checked`・`onCheckedChange` で外から持ちます。',
+          '- `errorText`・`warningText` は、行の下に入力欄と同じ行で出します。`captionPlacement="bottom"` にすると、キャプションを行の下に幅いっぱいで置きます。',
         ].join('\n'),
       },
     },
@@ -67,7 +68,7 @@ const meta = {
     label: 'お知らせを受け取る',
     color: 'neutral',
     togglePlacement: 'start',
-    captionAppearance: 'plain',
+    captionVariant: 'plain',
     frame: 'none',
     disabled: false,
     readOnly: false,
@@ -84,7 +85,7 @@ const meta = {
       table: { defaultValue: { summary: "'neutral'" } },
     },
     togglePlacement: { control: 'inline-radio', options: placements },
-    captionAppearance: { control: 'inline-radio', options: captionAppearances },
+    captionVariant: { control: 'inline-radio', options: captionVariants },
     frame: { control: 'inline-radio', options: frames },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -151,7 +152,7 @@ export const Placement: Story = {
   ),
 };
 
-export const CaptionAppearance: Story = {
+export const CaptionVariant: Story = {
   name: 'キャプションの見た目',
   parameters: {
     controls: { include: ['color', 'togglePlacement'] },
@@ -164,18 +165,18 @@ export const CaptionAppearance: Story = {
   },
   render: (args) => (
     <Gallery columnWidth="20rem">
-      {captionAppearances.map((appearance) => (
+      {captionVariants.map((appearance) => (
         <Specimen key={appearance} label={appearance === 'plain' ? 'plain（既定）' : 'surface'}>
           <div className="flex flex-col gap-2">
             <Switch
               {...args}
-              captionAppearance={appearance}
+              captionVariant={appearance}
               label="お知らせを受け取る"
               defaultChecked
             />
             <Switch
               {...args}
-              captionAppearance={appearance}
+              captionVariant={appearance}
               label="メールで受け取る"
               caption={longCaption}
             />
@@ -218,7 +219,7 @@ export const CaptionAppearance: Story = {
 export const Frame: Story = {
   name: '行を囲む',
   parameters: {
-    controls: { include: ['color', 'captionAppearance'] },
+    controls: { include: ['color', 'captionVariant'] },
     docs: {
       description: {
         story:
@@ -377,6 +378,43 @@ export const ReadOnly: Story = {
     await expect(off).toHaveFocus();
     off.blur();
   },
+};
+
+export const Messages: Story = {
+  tags: ['visual'],
+  name: 'エラー・警告',
+  parameters: {
+    controls: { include: ['errorText', 'warningText', 'captionPlacement'] },
+    docs: {
+      description: {
+        story:
+          '`errorText`・`warningText` は、行の下に入力欄と同じ行（丸の「!」と赤い文字、三角とオリーブ色の文字）で出します。両方あるときはエラーの行が上です。トラックの見た目は変えません。`captionPlacement="bottom"` では、キャプションを行の下に幅いっぱいで置きます。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="errorText">
+        <Switch {...args} label="お知らせを受け取る" errorText="受け取り方を選んでください" />
+      </Specimen>
+      <Specimen label="warningText">
+        <Switch
+          {...args}
+          label="お知らせを受け取る"
+          defaultChecked
+          warningText="週に数回届きます"
+        />
+      </Specimen>
+      <Specimen label="caption（下）">
+        <Switch
+          {...args}
+          label="お知らせを受け取る"
+          caption="週に1回、まとめて届きます"
+          captionPlacement="bottom"
+        />
+      </Specimen>
+    </Gallery>
+  ),
 };
 
 export const Densities: Story = {

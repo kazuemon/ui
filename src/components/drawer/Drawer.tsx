@@ -1,20 +1,24 @@
 'use client';
 
 import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
-import { type ReactElement, type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ReactElement, type ReactNode, use, useCallback, useRef, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
+import type {
+  OverlayFocusTarget,
+  OverlayModal,
+  PopupProps,
+} from '../../internal/overlay/overlay-props';
+import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import {
   type OverlayActionsLayout,
   type SheetSide,
   SheetPopup,
 } from '../../internal/sheet/SheetPopup';
 
-export type { OverlayActionsLayout } from '../../internal/sheet/SheetPopup';
-
-export type DrawerSide = SheetSide;
+export type { OverlayActionsLayout, SheetSide } from '../../internal/sheet/SheetPopup';
 
 /** 下から出すときの、開いたときの高さ。half は中身が長いときに画面の半分で開き、つまみを出す。full は中身の高さ（上限まで）で開く */
 export type DrawerDetent = 'half' | 'full';
@@ -24,7 +28,7 @@ export interface DrawerProps {
   title: ReactNode;
   /** 題の下の説明。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
-  /** 中身。長いときはスクロールし、上下の端に続きの印を出す */
+  /** 面の中身。長いときはスクロールし、上下の端に続きの印を出す */
   children?: ReactNode;
   /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。押して閉じるボタンは OverlayClose の render に渡す */
   actions?: ReactNode;
@@ -34,20 +38,29 @@ export interface DrawerProps {
    * 出す向き。bottom は画面の下から出すシート、left・right は画面の横から出すパネル。その向きへはじくと閉じる
    * @default 'bottom'
    */
-  side?: DrawerSide;
+  side?: SheetSide;
   /**
    * 下から出すときの、開いたときの高さ。half は中身が長いときに画面の半分で開き、つまみを出します。上へ引くと高さいっぱいに広がります
    * @default 'half'
    */
   detent?: DrawerDetent;
+  /** 開いているか（制御） */
   open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
   /**
-   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか
+   * はじめに開いているか（非制御）
+   * @default false
+   */
+  defaultOpen?: boolean;
+  /** 開閉が変わるときに、次の値を渡して呼びます */
+  onOpenChange?: (open: boolean) => void;
+  /** 開閉の動きが終わったあとに、次の値を渡して呼びます */
+  onOpenChangeComplete?: (open: boolean) => void;
+  /**
+   * 開いているあいだ、ほかの部分の操作とページのスクロールを止めるか。
+   * passive は、裏を止めず後ろも暗くしませんが、外を押しても閉じません（後ろを見せたまま開いたままにするとき）
    * @default true
    */
-  modal?: boolean;
+  modal?: OverlayModal;
   /**
    * 後ろの画面を押したときに閉じるか。入力の途中で閉じると困るときは false にします（Esc・×・はじく操作では閉じます）
    * modal が false のときは、フォーカスが面の外へ出たときにも閉じるので、false にするとそれも止まります
@@ -73,20 +86,27 @@ export interface DrawerProps {
    */
   closeOnSwipe?: boolean;
   /**
-   * 右上に閉じる × を置くか。false のときは、actions に閉じる手段を置きます
-   * @default true
+   * 右上の閉じる × を消すか。消すときは、actions に閉じる手段を置きます
+   * @default false
    */
-  closeButton?: boolean;
+  hideCloseButton?: boolean;
   /**
    * 閉じる × の読み上げの名前
    * @default '閉じる'
    */
-  closeLabel?: string;
+  closeName?: string;
+  /** 開いた直後に焦点を当てる要素。要素そのものか、要素の ref を渡します。書かないときは面そのもの */
+  autoFocus?: OverlayFocusTarget;
+  /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
+  returnFocus?: OverlayFocusTarget;
   /**
-   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します
+   * 描く場所。トリガーの祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
+   * まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
    */
-  container?: HTMLElement | null;
+  portalContainer?: HTMLElement | null;
+  /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
+  popupProps?: PopupProps;
   /** 面（Popup）に足すクラス */
   className?: string;
 }
@@ -109,16 +129,24 @@ export function Drawer({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  onOpenChangeComplete,
   modal = true,
   dismissible = true,
   actionsLayout = 'auto',
   closeOnEscape = true,
   closeOnSwipe = true,
-  closeButton = true,
-  closeLabel,
-  container,
+  hideCloseButton = false,
+  closeName,
+  autoFocus,
+  returnFocus,
+  portalContainer,
+  popupProps,
   className,
 }: DrawerProps) {
+  // 読み上げの役割。AlertDialog が包んだときだけ alertdialog になる
+  const role = use(OverlayRoleContext);
+  // passive は、裏を止めず後ろも暗くしないが、外を押しても（フォーカスが外れても）閉じない
+  const passive = modal === 'passive';
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   const { anchorRef, scope } = useDensityScope(open);
@@ -186,8 +214,9 @@ export function Drawer({
         }
         changeOpen(next);
       }}
-      modal={modal}
-      disablePointerDismissal={!dismissible}
+      onOpenChangeComplete={onOpenChangeComplete}
+      modal={passive ? false : modal}
+      disablePointerDismissal={!dismissible || passive}
       swipeDirection={side === 'bottom' ? 'down' : side}
       snapPoints={snap ? SNAP_POINTS : undefined}
       // 段はいつも部品が持つ（途中で Base UI に任せる形と切り替えると、段が空に戻る）
@@ -207,6 +236,7 @@ export function Drawer({
       <OverlayCloseContext value={() => changeOpen(false)}>
         <SheetPopup
           side={side}
+          role={role}
           title={title}
           description={description}
           footer={actions}
@@ -214,12 +244,15 @@ export function Drawer({
           handle={handle}
           swipeLocked={swipeLocked}
           swipeFade={!snap}
-          modal={modal}
-          closeLabel={closeLabel}
-          closeButton={closeButton}
-          container={container}
+          modal={modal === true}
+          closeName={closeName}
+          hideCloseButton={hideCloseButton}
+          autoFocus={autoFocus}
+          returnFocus={returnFocus}
+          portalContainer={portalContainer}
           densityScope={scope}
           popupRef={measure}
+          popupProps={popupProps}
           className={className}
         >
           {children}

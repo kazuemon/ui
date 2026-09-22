@@ -4,7 +4,7 @@ import { expect } from 'storybook/test';
 import { Blockquote } from './Blockquote';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 
-const appearances = ['line', 'surface'] as const;
+const variants = ['line', 'surface'] as const;
 const colors = ['neutral', 'brand', 'primary', 'secondary'] as const;
 
 // 引用符（Phosphor の Quotes、線の細い形）。利用者は @phosphor-icons/react の <Quotes /> を渡す
@@ -35,7 +35,7 @@ const meta = {
         component: [
           '記事の中で、ほかの文章を引くときに使います。',
           '',
-          '- `appearance` は見た目です。`line`（既定）は左に線、`surface` は入力欄と同じグレーの面です。',
+          '- `variant` は見た目です。`line`（既定）は左に線、`surface` は入力欄と同じグレーの面です。',
           '- `color` は線とアイコンの色です。`neutral`（既定）はグレー、`brand` は水色、`primary`・`secondary` は利用者が選ぶ色です。`surface` では面の色は変わりません。',
           '- `icon` に引用符などのアイコンを渡すと、1 行目の左に置きます。文と並ぶので、線の細い形を使います。',
           '- `source` に出典を渡すと、引用の下に小さく出します。URL は `cite` 属性に渡します。',
@@ -45,13 +45,13 @@ const meta = {
   },
   args: {
     children: quote,
-    appearance: 'line',
+    variant: 'line',
     color: 'neutral',
     source: '— @kazuemon/ui の README',
   },
   argTypes: {
     children: { control: 'text' },
-    appearance: { control: 'inline-radio', options: appearances },
+    variant: { control: 'inline-radio', options: variants },
     color: { control: 'inline-radio', options: colors },
     source: { control: 'text' },
     icon: { control: false },
@@ -72,7 +72,7 @@ export const Playground: Story = {
   ],
 };
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目と色',
   parameters: { controls: { disable: true } },
@@ -82,17 +82,17 @@ export const Appearances: Story = {
       rowLabel={(color) => color}
       columns={
         [
-          { label: 'line', appearance: 'line', icon: false },
-          { label: 'line・icon', appearance: 'line', icon: true },
-          { label: 'surface', appearance: 'surface', icon: false },
-          { label: 'surface・icon', appearance: 'surface', icon: true },
+          { label: 'line', variant: 'line', icon: false },
+          { label: 'line・icon', variant: 'line', icon: true },
+          { label: 'surface', variant: 'surface', icon: false },
+          { label: 'surface・icon', variant: 'surface', icon: true },
         ] as const
       }
       columnWidth="16rem"
       renderCell={(color, column) => (
         <Blockquote
           color={color}
-          appearance={column.appearance}
+          variant={column.variant}
           icon={column.icon ? <QuotesIcon /> : undefined}
         >
           Design はほぼ独学です。
@@ -110,7 +110,7 @@ export const Densities: Story = {
     <DensityPair>
       <div className="flex w-[22rem] flex-col gap-4">
         <Blockquote source="— @kazuemon/ui の README">{quote}</Blockquote>
-        <Blockquote appearance="surface" icon={<QuotesIcon />}>
+        <Blockquote variant="surface" icon={<QuotesIcon />}>
           {quote}
         </Blockquote>
       </div>

@@ -4,7 +4,7 @@ import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Text } from '../text/Text';
-import { Collapsible, type CollapsibleAppearance, type CollapsibleIndicator } from './Collapsible';
+import { Collapsible, type CollapsibleVariant, type CollapsibleIndicator } from './Collapsible';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -22,7 +22,7 @@ const meta = {
           '押して中身を開閉する行です。詳しい設定、FAQ の答え、「もっと見る」の続きのように、ふだんは隠しておける中身に使います。',
           '',
           '- 行全体を押せます。マウスを載せると行が淡く塗られ、開閉の印は開くと向きが変わります。',
-          '- 行の見た目は `appearance` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided` です。',
+          '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided` です。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。見た目とは別に選べます。',
           '- 開閉は `defaultOpen`（はじめの状態）か、`open` と `onOpenChange`（使う側で持つ）で決めます。',
           '- 行の代わりに自分のボタンを置くときは、`trigger` に Button などを渡します。見た目はその要素のままで、開いているあいだ `aria-expanded` が付きます。',
@@ -37,7 +37,7 @@ const meta = {
   argTypes: {
     title: { control: 'text' },
     children: { control: 'text' },
-    appearance: {
+    variant: {
       control: 'inline-radio',
       options: ['plain', 'open-filled', 'filled', 'divided'],
       table: { defaultValue: { summary: 'plain' } },
@@ -110,8 +110,8 @@ export const States: Story = {
   ),
 };
 
-const appearances: CollapsibleAppearance[] = ['plain', 'open-filled', 'filled', 'divided'];
-type Variant = { appearance?: CollapsibleAppearance; indicator?: CollapsibleIndicator };
+const variants: CollapsibleVariant[] = ['plain', 'open-filled', 'filled', 'divided'];
+type Variant = { variant?: CollapsibleVariant; indicator?: CollapsibleIndicator };
 type OpenColumn = MatrixColumn & { open?: boolean };
 const appearanceColumns: OpenColumn[] = [
   { label: '閉じている' },
@@ -125,17 +125,17 @@ const appearancePseudo = statePseudo({
   focusVisible: '[data-slot="collapsible-trigger"]',
 });
 
-function AppearanceMatrix({ indicator }: { indicator: CollapsibleIndicator }) {
+function VariantMatrix({ indicator }: { indicator: CollapsibleIndicator }) {
   return (
     <Matrix
-      rows={appearances}
+      rows={variants}
       columns={appearanceColumns}
       columnWidth="12rem"
       rowLabel={(row) => row}
       renderCell={(row, column) => (
         <Collapsible
           title="詳しい設定"
-          appearance={row}
+          variant={row}
           indicator={indicator}
           defaultOpen={column.open}
         >
@@ -146,22 +146,22 @@ function AppearanceMatrix({ indicator }: { indicator: CollapsibleIndicator }) {
   );
 }
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目（印は右）',
   parameters: {
     docs: {
       description: {
         story:
-          '`appearance` の 4 つの見た目です。開閉の印は既定の右（`indicator="end"`）で、閉じているときは下向き、開くと上を向きます。',
+          '`variant` の 4 つの見た目です。開閉の印は既定の右（`indicator="end"`）で、閉じているときは下向き、開くと上を向きます。',
       },
     },
     pseudo: appearancePseudo,
   },
-  render: () => <AppearanceMatrix indicator="end" />,
+  render: () => <VariantMatrix indicator="end" />,
 };
 
-export const AppearancesStart: Story = {
+export const VariantsStart: Story = {
   tags: ['visual'],
   name: '見た目（印は左）',
   parameters: {
@@ -173,24 +173,24 @@ export const AppearancesStart: Story = {
     },
     pseudo: appearancePseudo,
   },
-  render: () => <AppearanceMatrix indicator="start" />,
+  render: () => <VariantMatrix indicator="start" />,
 };
 
-function FaqList({ appearance, indicator }: Partial<Variant>) {
+function FaqList({ variant, indicator }: Partial<Variant>) {
   return (
     <div>
       <Collapsible
         title="パスワードを忘れたときは？"
-        appearance={appearance}
+        variant={variant}
         indicator={indicator}
         defaultOpen
       >
         {answer}
       </Collapsible>
-      <Collapsible title="メールが届かないときは？" appearance={appearance} indicator={indicator}>
+      <Collapsible title="メールが届かないときは？" variant={variant} indicator={indicator}>
         迷惑メールのフォルダを確かめてください。
       </Collapsible>
-      <Collapsible title="退会するには？" appearance={appearance} indicator={indicator}>
+      <Collapsible title="退会するには？" variant={variant} indicator={indicator}>
         設定の「アカウント」から手続きできます。
       </Collapsible>
     </div>
@@ -210,10 +210,10 @@ export const Stacked: Story = {
   },
   render: () => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8">
-      {appearances.map((appearance) => (
-        <div key={appearance} className="flex flex-col gap-2">
-          <p className="text-xs text-fg-subtle">{appearance}</p>
-          <FaqList appearance={appearance} />
+      {variants.map((variant) => (
+        <div key={variant} className="flex flex-col gap-2">
+          <p className="text-xs text-fg-subtle">{variant}</p>
+          <FaqList variant={variant} />
         </div>
       ))}
     </div>
@@ -243,12 +243,12 @@ export const CustomTrigger: Story = {
     docs: {
       description: {
         story:
-          '`trigger` に渡した要素で開閉します。見た目はその要素のままです。中身の余白は `panelClassName` で付けます。',
+          '`trigger` に渡した要素で開閉します。見た目はその要素のままです。中身の余白は `panelProps` で付けます。',
       },
       source: sourceCode(`
         <Collapsible
-          trigger={<Button appearance="outline">すべての項目を見る</Button>}
-          panelClassName="pt-3"
+          trigger={<Button variant="outline">すべての項目を見る</Button>}
+          panelProps={{ className: 'pt-3' }}
         >
           …
         </Collapsible>
@@ -258,8 +258,8 @@ export const CustomTrigger: Story = {
   render: () => (
     <div className="w-[360px] max-w-full">
       <Collapsible
-        trigger={<Button appearance="outline">すべての項目を見る</Button>}
-        panelClassName="pt-3"
+        trigger={<Button variant="outline">すべての項目を見る</Button>}
+        panelProps={{ className: 'pt-3' }}
       >
         <Text>{answer}</Text>
       </Collapsible>

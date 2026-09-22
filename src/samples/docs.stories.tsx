@@ -35,7 +35,7 @@ const tocItems = [
 ];
 
 const nav = (
-  <Tree label="ドキュメント" rowWidth="full">
+  <Tree accessibleName="ドキュメント" rowWidth="full">
     <TreeItem label="はじめに" href="#intro" />
     <TreeItem label="導入" defaultExpanded>
       <TreeItem label="インストール" href="#install" current />
@@ -65,7 +65,7 @@ function DocsScreen() {
             kazuemon/ui
           </a>
         }
-        actions={<Button appearance="outline">GitHub</Button>}
+        actions={<Button variant="outline">GitHub</Button>}
       >
         <NavbarLink href="#docs" current>
           ドキュメント
@@ -81,7 +81,7 @@ function DocsScreen() {
               side="left"
               title="ドキュメント"
               trigger={
-                <Button appearance="outline">
+                <Button variant="outline">
                   <Icon icon={ListIcon} />
                   目次
                 </Button>
@@ -118,7 +118,7 @@ function DocsScreen() {
               <CodeBlock title="bun" html={bunHtml} />
             </CodeGroup>
           </div>
-          <Callout color="warning" title="Tailwind が必要です" className="mt-6">
+          <Callout status="warning" title="Tailwind が必要です" className="mt-6">
             スタイルは Tailwind CSS v4 の <code>@theme</code> を前提にしています。先に Tailwind
             を入れてください。
           </Callout>
@@ -133,12 +133,12 @@ function DocsScreen() {
               <Tab value="tsx">TypeScript</Tab>
               <Tab value="jsx">JavaScript</Tab>
             </TabList>
-            <TabPanel value="tsx" className="pt-4">
+            <TabPanel value="tsx">
               <div data-reading>
                 <CodeBlock html={tsxHtml} />
               </div>
             </TabPanel>
-            <TabPanel value="jsx" className="pt-4">
+            <TabPanel value="jsx">
               <div data-reading>
                 <CodeBlock html={jsxHtml} />
               </div>

@@ -13,13 +13,13 @@ const stateRows: Sample[] = [
   { label: '値あり', props: { defaultValue: 'kazuemon-2026' } },
   {
     label: 'エラー',
-    props: { defaultValue: 'kazu', error: '8文字以上で入力してください' },
+    props: { defaultValue: 'kazu', errorText: '8文字以上で入力してください' },
   },
   { label: '押せない', props: { defaultValue: 'kazuemon-2026', disabled: true } },
   { label: '読み取り専用', props: { defaultValue: 'kazuemon-2026', readOnly: true } },
   {
     label: '読み取り専用（エラー）',
-    props: { defaultValue: 'kazu', readOnly: true, error: '8文字以上で入力してください' },
+    props: { defaultValue: 'kazu', readOnly: true, errorText: '8文字以上で入力してください' },
   },
   {
     label: '待っている（止める）',
@@ -62,7 +62,7 @@ const meta = {
   argTypes: {
     label: { control: 'text' },
     caption: { control: 'text' },
-    error: { control: 'text' },
+    errorText: { control: 'text' },
     autoComplete: { control: 'inline-radio', options: ['current-password', 'new-password'] },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -97,7 +97,7 @@ export const States: Story = {
       },
       source: sourceCode(`
         <PasswordField label="パスワード" />
-        <PasswordField label="パスワード" error="8文字以上で入力してください" />
+        <PasswordField label="パスワード" errorText="8文字以上で入力してください" />
         <PasswordField label="パスワード" disabled />
         <PasswordField label="パスワード" loading loadingBehavior="blocking" />
         <PasswordField label="パスワード" readOnly />

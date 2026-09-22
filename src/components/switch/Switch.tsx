@@ -2,10 +2,12 @@
 
 import { Field as BaseField } from '@base-ui/react/field';
 import { Switch as BaseSwitch } from '@base-ui/react/switch';
-import type { ComponentProps, ReactNode } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useId } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { type CaptionPlacement, FieldMessageLine } from '../../internal/field/Field';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
+import type { FieldMessage } from '../../internal/field/input-field-props';
 import { focusRing } from '../../internal/focus-styles';
 import { useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
@@ -16,7 +18,7 @@ import { tv } from '../../internal/tv';
 // ノブの影は「押せること」の記号（原則1）。Disabled では影をなくす
 // ラベル・キャプション・トラックは格子に置く。トラックは左（togglePlacement="start"、既定）か右（end）
 //   列は --switch-columns-start・-end（線の名前 track・label・row で指す）。トラックはラベルの行の中央、間は --switch-gap
-// キャプションの置き方（ADR-0068。既定は A、captionAppearance="surface" は E）
+// キャプションの置き方（ADR-0068。既定は A、captionVariant="surface" は E）
 //   トラックとラベルは部品の高さの1行に置き、その行の縦の中央に固定する（上下の margin で行の高さを作る）。
 //   キャプションはその行の外（2行目のラベルの列）に置くので、有無や長さでトラックとラベルは動かない
 //   frame があるときは、1行の高さに線を含める（行の線の内側で部品の高さ）
@@ -63,7 +65,8 @@ const rowCaption =
 // 囲みがあるときは、トラックを行（囲み）の縦の中央に置く。囲みなし（none）はラベルの行の中央のまま
 //   「46 で区切り線か囲みがあるときは、トグルが縦中央に来るようにしてほしいです（囲みなしではそのまま）」
 //   トラックは1行の margin を付けたまま中央にそろえるので、キャプションがなければ囲みなしと同じ位置
-const rowTrack = 'row-[1/-1] self-center';
+//   行の最後の2行はエラー・警告の行なので、トラックはその手前（線 -3）までを占める
+const rowTrack = 'row-[1/-3] self-center';
 const rowLine = 'border-line';
 
 // 読み取り専用（軸 177）の上書き。トラックとノブは押せないときと同じ見た目のまま、ラベルだけ本文の色に戻す
@@ -147,7 +150,7 @@ const styles = tv({
     // キャプションの見た目（ADR-0068）。plain は面なし（A）、surface はラベルの列に入力欄の塗りの面を敷く（E）
     //   plain は1行の下の余白を詰めて、ラベルのすぐ下に置く
     //   surface は1行の下端から面を始め（余白は詰めない）、角は部品の角、影・線なし
-    captionAppearance: {
+    captionVariant: {
       plain: {
         caption:
           '-mt-[calc((var(--spacing-control)-2*var(--switch-line-inset,0px)-var(--leading-control))/2)]',
@@ -172,7 +175,7 @@ const styles = tv({
     color: 'neutral',
     togglePlacement: 'start',
     frame: 'none',
-    captionAppearance: 'plain',
+    captionVariant: 'plain',
   },
   slots: {
     // 行の高さは部品の高さ。中身（ラベル・キャプション・トラック）は行の縦の中央に置く
@@ -188,7 +191,7 @@ const styles = tv({
       'group-data-disabled/field:cursor-not-allowed',
       'group-data-disabled/field:text-(color:--color-on-field-disabled)',
     ],
-    // 2行目のラベルの列。上の間と面は captionAppearance で決める
+    // 2行目のラベルの列。上の間と面は captionVariant で決める
     caption: [
       '[grid-column:label] [grid-row:2] self-baseline',
       'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
@@ -222,11 +225,60 @@ const styles = tv({
 
 export interface SwitchProps
   extends
-    Omit<ComponentProps<typeof BaseSwitch.Root>, 'className' | 'render' | 'color'>,
+    Omit<
+      ComponentProps<'span'>,
+      'className' | 'color' | 'defaultChecked' | 'children' | 'onChange'
+    >,
     VariantProps<typeof styles>,
     FieldMarkProps {
+  /** トラックの横の文字。押しても切り替わります（本体の一部）。押せないときはトラックと一緒にグレーになります */
   label: ReactNode;
+  /** 横の文字の下の説明。押せないときも読めるままです */
   caption?: ReactNode;
+  /**
+   * キャプションの場所。top はラベルの列（トラックの横）に、bottom は行の下に幅いっぱいで置きます（design/adr/0041）
+   * @default 'top'
+   */
+  captionPlacement?: CaptionPlacement;
+  /**
+   * エラーの内容。行の下に丸の「!」と赤い文字で出し、トラックをエラーの状態（aria-invalid）にします。
+   * 行は読み上げの説明（aria-describedby）につなぎます
+   */
+  errorText?: FieldMessage;
+  /**
+   * 警告の内容。行の下に三角とオリーブ色の文字で出します。トラックの見た目は変えません。
+   * errorText と両方あるときは、エラーの行が上です
+   */
+  warningText?: FieldMessage;
+  /** ON か（制御） */
+  checked?: boolean;
+  /** はじめに ON か（非制御） */
+  defaultChecked?: boolean;
+  /** 切り替わるときに、次の値を渡して呼びます */
+  onCheckedChange?: (checked: boolean) => void;
+  /** ON のときにフォームに送る値。書かないときは "on" を送ります */
+  value?: string;
+  /** OFF のときにフォームに送る値。書かないときは、OFF のトグルは何も送りません */
+  uncheckedValue?: string;
+  /** フォームに送るときの名前 */
+  name?: string;
+  /** トグルが属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  /** 隠れた input の id */
+  id?: string;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
+  /**
+   * 押せない（Disabled）状態にします。トラックと横の文字がグレーになり、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
+  /**
+   * 必須にします。横の文字の後ろに印（既定は「必須」のタグ）が出ます
+   * @default false
+   */
+  required?: boolean;
+  /** トラック・ラベル・キャプションを並べた行に付きます */
   className?: string;
   /**
    * ON のときの色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（濃いグレー）を選べます（原則6）。
@@ -261,7 +313,7 @@ export interface SwitchProps
    * どちらでも、トラックとラベルの位置はキャプションの有無や長さで変わりません
    * @default 'plain'
    */
-  captionAppearance?: SwitchCaptionAppearance;
+  captionVariant?: SwitchCaptionVariant;
   /**
    * 読み取り専用にします。トラックとノブは押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
    * フォーカスでき、読み上げでは「読み取り専用」と伝わります。押してもキーボードでも切り替わらず、hover や押したときの変化も出ません。
@@ -274,8 +326,8 @@ export interface SwitchProps
 /** 行の形。Switch の frame */
 export type SwitchFrame = 'none' | 'card' | 'divided';
 
-/** キャプションの見た目。Switch の captionAppearance */
-export type SwitchCaptionAppearance = 'plain' | 'surface';
+/** キャプションの見た目。Switch の captionVariant */
+export type SwitchCaptionVariant = 'plain' | 'surface';
 
 /**
  * トグル。トラックとラベル（とキャプション）を横に並べる。ラベルを押しても切り替わる
@@ -283,29 +335,61 @@ export type SwitchCaptionAppearance = 'plain' | 'surface';
 export function Switch({
   label,
   caption,
+  captionPlacement = 'top',
+  errorText,
+  warningText,
+  checked,
+  defaultChecked,
+  onCheckedChange,
+  value,
+  uncheckedValue,
+  name,
+  form,
+  id: idProp,
+  inputRef,
   className,
   disabled,
   color,
   togglePlacement = 'start',
   frame = 'none',
-  captionAppearance = 'plain',
+  captionVariant = 'plain',
   readOnly,
   required,
   requiredMark,
   optionalMark,
+  'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   ...props
 }: SwitchProps) {
-  const s = styles({ color, togglePlacement, frame, captionAppearance });
+  const s = styles({ color, togglePlacement, frame, captionVariant });
+  const id = useId();
   // Form の送信中と読み取り専用（軸 177）は、押せないトグルと同じ見た目にして切り替えを止める（Checkbox.tsx の useChoiceLock）
   //   ラベル・行の塗り（root）とノブも押せないときの規則で描くので、root・トラック・ノブの3つに印を付ける
   const locked = useChoiceLock(disabled, readOnly);
-  // 行を明示する（キャプションがあれば2行）。囲みのあるトラックの row-[1/-1] の -1 は明示した行の最後の線を指すので、
-  // 行を明示しないと 1 / -1（まとまりの中央）が 1行目だけになる
-  const rows = caption ? 'grid-rows-[auto_auto]' : 'grid-rows-[auto]';
+  // 行を明示する（ラベルの行・キャプションの行・エラーの行・警告の行）。
+  // 囲みのあるトラックの row-[1/-3] の -3 は明示した行の線を指すので、行を明示しないと数が合わない
+  const rows = caption ? 'grid-rows-[auto_auto_auto_auto]' : 'grid-rows-[auto_auto_auto]';
+  // 説明は見た目の順（キャプション → エラー → 警告）でつなぐ（design/adr/0041）
+  const ids = { caption: `${id}caption`, error: `${id}error`, warning: `${id}warning` };
+  const describedBy =
+    [ariaDescribedBy, caption && ids.caption, errorText && ids.error, warningText && ids.warning]
+      .filter(Boolean)
+      .join(' ') || undefined;
+  // キャプションは、top ではラベルの列（トラックの横）、bottom では行の下に幅いっぱいで置く
+  const captionNode = caption ? (
+    <BaseField.Description
+      id={ids.caption}
+      className={s.caption({
+        className: captionPlacement === 'bottom' ? 'col-span-full' : undefined,
+      })}
+    >
+      {caption}
+    </BaseField.Description>
+  ) : null;
   return (
     <BaseField.Root
       disabled={disabled}
+      invalid={errorText ? true : undefined}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
       data-switch-frame={frame === 'none' ? undefined : frame}
       className={s.root({
@@ -319,18 +403,41 @@ export function Switch({
         {label}
         <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
-      {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
+      {captionNode}
       <BaseSwitch.Root
         className={s.track({ className: locked.readOnlyLook ? switchReadOnly.track : undefined })}
+        checked={checked}
+        defaultChecked={defaultChecked}
+        onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
+        value={value}
+        uncheckedValue={uncheckedValue}
+        name={name}
+        form={form}
+        id={idProp}
+        inputRef={inputRef}
         disabled={disabled}
         required={required}
         readOnly={locked.readOnly}
+        aria-describedby={describedBy}
         aria-disabled={locked.ariaDisabled || ariaDisabled}
         {...locked.data}
         {...props}
       >
         <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
       </BaseSwitch.Root>
+      {/* エラー・警告の行（入力欄と同じ — design/adr/0041・0044）。行の最後の2行に置く */}
+      <FieldMessageLine
+        kind="error"
+        content={errorText}
+        id={ids.error}
+        className="col-span-full row-start-[-3] mt-0 data-open:mt-0"
+      />
+      <FieldMessageLine
+        kind="warning"
+        content={warningText}
+        id={ids.warning}
+        className="col-span-full row-start-[-2] mt-0 data-open:mt-0"
+      />
     </BaseField.Root>
   );
 }

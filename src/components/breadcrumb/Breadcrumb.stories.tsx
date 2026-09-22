@@ -35,23 +35,23 @@ const meta = {
           'いまいるページまでの道を並べる案内です。ページの本文の上に置きます。',
           '',
           '- 道は `BreadcrumbItem` を、上の階層から順に並べます。最後の項目に `current` を付けると、リンクにせず「現在のページ」として読まれます。',
-          '- `label` は並び（nav）の読み上げの名前です（既定は「現在の場所」）。同じページにパンくずを 2 つ以上置くときは、それぞれ別の名前にします。',
+          '- `accessibleName` は並び（nav）の読み上げの名前です（既定は「現在の場所」）。同じページにパンくずを 2 つ以上置くときは、それぞれ別の名前にします。',
           '- `separator` は項目のあいだの区切りの印です。`caret`（既定）は右向きの山、`slash` は「/」です。ほかの形にするときは、文字やアイコンをそのまま渡します。読み上げからは外れます。',
-          '- `appearance` は行き先の見た目です。`underline`（既定）は文章の中の文字のリンクと同じ淡い下線、`hover-underline` は hover のときだけ下線が出る形、`pill` は Navbar の行き先と同じ平らな pill です。',
+          '- `variant` は行き先の見た目です。`underline`（既定）は文章の中の文字のリンクと同じ淡い下線、`hover-underline` は hover のときだけ下線が出る形、`pill` は Navbar の行き先と同じ平らな pill です。',
           '- 入りきらないときは折り返します。',
           '- Next.js の `Link` は、`BreadcrumbItem` の `render` に渡します。',
         ].join('\n'),
       },
     },
   },
-  args: { label: '現在の場所', separator: 'caret', appearance: 'underline' },
+  args: { accessibleName: '現在の場所', separator: 'caret', variant: 'underline' },
   argTypes: {
     separator: {
       control: 'inline-radio',
       options: ['caret', 'slash'],
       table: { defaultValue: { summary: "'caret'" } },
     },
-    appearance: {
+    variant: {
       control: 'inline-radio',
       options: ['underline', 'hover-underline', 'pill'],
       table: { defaultValue: { summary: "'underline'" } },
@@ -114,9 +114,9 @@ export const States: Story = {
   ),
 };
 
-const appearances = ['underline', 'hover-underline', 'pill'] as const;
+const variants = ['underline', 'hover-underline', 'pill'] as const;
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '行き先の見た目',
   parameters: {
@@ -128,19 +128,18 @@ export const Appearances: Story = {
     }),
     docs: {
       description: {
-        story:
-          '`appearance` で選びます。いまいるページ（右端）は、どの見た目でも本文の色の太字です。',
+        story: '`variant` で選びます。いまいるページ（右端）は、どの見た目でも本文の色の太字です。',
       },
     },
   },
   render: (args) => (
     <Matrix
-      rows={appearances}
+      rows={variants}
       columns={stateColumns}
       columnWidth="13rem"
-      rowLabel={(appearance) => appearance}
-      renderCell={(appearance) => (
-        <Breadcrumb {...args} appearance={appearance}>
+      rowLabel={(variant) => variant}
+      renderCell={(variant) => (
+        <Breadcrumb {...args} variant={variant}>
           <BreadcrumbItem href="#works">作品</BreadcrumbItem>
           <BreadcrumbItem current>デザインシステム</BreadcrumbItem>
         </Breadcrumb>

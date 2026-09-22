@@ -21,7 +21,7 @@ const meta = {
           '- 既定は「2026/09/18」です。`withTime` を付けると「2026/09/18 09:30」になります。',
           '- ほかの書き方は `dateStyle`（`full`・`long`・`medium`・`short`）と `timeStyle` で選びます。細かく決めるときは `format` に Intl の指定を渡します。',
           '- 言語は `locale`（既定は `ja-JP`）、時刻は `timeZone`（既定は `Asia/Tokyo`）で書きます。サーバーと閲覧者のタイムゾーンが違っても、同じ文字になります。どちらも ThemeProvider でまとめて変えられ、部品に書いた値が勝ちます。',
-          '- 大きさと濃さは周りの文字のままです。`size`・`tone` で Text と同じ大きさ・濃さにできます。',
+          '- 大きさと濃さは周りの文字のままです。`size`・`variant` で Text と同じ大きさ・濃さにできます。',
         ].join('\n'),
       },
     },
@@ -33,7 +33,7 @@ const meta = {
     dateStyle: { control: 'inline-radio', options: ['full', 'long', 'medium', 'short'] },
     timeStyle: { control: 'inline-radio', options: ['full', 'long', 'medium', 'short'] },
     size: { control: 'inline-radio', options: ['md', 'sm'] },
-    tone: { control: 'inline-radio', options: ['default', 'muted', 'subtle'] },
+    variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
     timeZone: { control: 'text' },
   },
@@ -102,14 +102,14 @@ export const InArticle: Story = {
     docs: {
       description: {
         story:
-          '記事の見出しの下に置く日付です。`size="sm"`・`tone="subtle"` の Text の中に置くと、周りの大きさと濃さになります。',
+          '記事の見出しの下に置く日付です。`size="sm"`・`variant="subtle"` の Text の中に置くと、周りの大きさと濃さになります。',
       },
     },
   },
   render: () => (
     <div data-reading className="flex w-[24rem] flex-col gap-2">
       <Heading level={1}>サイトを作り直しました</Heading>
-      <Text size="sm" tone="subtle">
+      <Text size="sm" variant="subtle">
         <Time dateTime="2026-09-18" />
         ・Design
       </Text>

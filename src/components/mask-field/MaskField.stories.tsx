@@ -22,7 +22,7 @@ const stateRows: Sample[] = [
   { label: '空', props: {} },
   { label: '途中', props: { defaultValue: '1500' } },
   { label: '値あり', props: { defaultValue: '1500042' } },
-  { label: 'エラー', props: { defaultValue: '150', error: '郵便番号は7桁で入力してください' } },
+  { label: 'エラー', props: { defaultValue: '150', errorText: '郵便番号は7桁で入力してください' } },
   { label: '押せない', props: { defaultValue: '1500042', disabled: true } },
   { label: '読み取り専用', props: { defaultValue: '1500042', readOnly: true } },
 ];
@@ -82,7 +82,7 @@ const meta = {
     label: { control: 'text' },
     caption: { control: 'text' },
     mask: { control: 'text' },
-    error: { control: 'text' },
+    errorText: { control: 'text' },
     maskHint: { control: 'inline-radio', options: ['always', 'focus', 'none'] },
     maskHintStyle: { control: 'inline-radio', options: ['sample', 'dot', 'underscore'] },
     disabled: { control: 'boolean' },
@@ -119,7 +119,7 @@ export const States: Story = {
       source: sourceCode(`
         <MaskField label="郵便番号" mask="###-####" caption="ハイフンは自動で入ります" />
         <MaskField label="郵便番号" mask="###-####" defaultValue="1500042" />
-        <MaskField label="郵便番号" mask="###-####" defaultValue="150" error="郵便番号は7桁で入力してください" />
+        <MaskField label="郵便番号" mask="###-####" defaultValue="150" errorText="郵便番号は7桁で入力してください" />
       `),
     },
   },

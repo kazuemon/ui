@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import { type ComponentProps, type ReactElement, useRef } from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useRef } from 'react';
 
 import type { AffixPosition } from './stuck';
 import { useStuck } from './use-stuck';
@@ -95,6 +95,10 @@ export interface AffixProps extends ComponentProps<'div'> {
    * @default 'line'
    */
   surfaceEdge?: AffixSurfaceEdge;
+  /** 留める中身（目次・帯・「上へ戻る」など） */
+  children?: ReactNode;
+  /** いちばん外の要素（render を渡したときはその要素）に付きます */
+  className?: string;
   /** 描く要素（Base UI の render と同じ）。aside・nav などにするときは `render={<aside />}` を渡します */
   render?: ReactElement;
 }

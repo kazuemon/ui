@@ -12,7 +12,7 @@ const feedbacks: CopyButtonFeedback[] = ['tooltip', 'label'];
 const forms = [
   { label: '文字', iconOnly: false, shape: undefined },
   { label: 'アイコンだけ（square）', iconOnly: true, shape: 'square' },
-  { label: 'アイコンだけ（round）', iconOnly: true, shape: 'round' },
+  { label: 'アイコンだけ（circle）', iconOnly: true, shape: 'circle' },
 ] as const;
 type Column = StateColumn & { copied?: boolean };
 const stateColumns: Column[] = [
@@ -45,11 +45,11 @@ const meta = {
           '',
           '- 写す文字列は `text` に渡します。関数を渡すと、押したときに呼んで、返した文字列を写します。',
           '- 既定は「コピー」の文字の付いた枠線のボタンです。並びが詰まっているところでは `iconOnly` でアイコンだけにします。アイコンだけのときは `label` が読み上げの名前になり、マウスを載せたときやキーボードでフォーカスしたときに吹き出しでも出ます。',
-          '- アイコンだけのボタンの形は `shape` で選びます。`square`（既定）は文字のボタンと同じ角の正方形、`round` は丸です。',
+          '- アイコンだけのボタンの形は `shape` で選びます。`square`（既定）は文字のボタンと同じ角の正方形、`circle` は丸です。',
           '- 何を写すのかが周りから分からないときは、`label="URL をコピー"` のように書きます。',
           '- 写せたことの見せ方は `feedback` で選びます。`tooltip`（既定）は吹き出しで「コピーしました」を出し、ボタンの幅は変わりません。`label` はボタンの中の文字を「コピーしました」に変え、文字の分だけボタンが横に伸びます。',
-          '- 写せなかったとき（権限がない・安全でない接続）は、印を変えずに淡い赤の吹き出しで知らせます。`feedback` がどちらでも同じ吹き出しです。文は `errorLabel` で変えられます。',
-          '- `onCopyError` を渡すと、部品は吹き出しも読み上げも出しません。写せなかったことを、使う側の画面で知らせるときに使います。',
+          '- 写せなかったとき（権限がない・安全でない接続）は、印を変えずに淡い赤の吹き出しで知らせます。`feedback` がどちらでも同じ吹き出しです。文は `copyErrorText` で変えられます。',
+          '- `onCopyFailed` を渡すと、部品は吹き出しも読み上げも出しません。写せなかったことを、使う側の画面で知らせるときに使います。',
         ].join('\n'),
       },
     },
@@ -58,12 +58,12 @@ const meta = {
   args: {
     text: 'pnpm add @kazuemon/ui',
     label: 'コピー',
-    copiedLabel: 'コピーしました',
-    errorLabel: 'コピーできませんでした',
+    copiedText: 'コピーしました',
+    copyErrorText: 'コピーできませんでした',
     iconOnly: false,
     shape: 'square',
     feedback: 'tooltip',
-    appearance: 'outline',
+    variant: 'outline',
     color: 'neutral',
     disabled: false,
     onCopied: fn(),
@@ -71,15 +71,15 @@ const meta = {
   argTypes: {
     text: { control: 'text' },
     label: { control: 'text', table: { defaultValue: { summary: "'コピー'" } } },
-    copiedLabel: { control: 'text', table: { defaultValue: { summary: "'コピーしました'" } } },
-    errorLabel: {
+    copiedText: { control: 'text', table: { defaultValue: { summary: "'コピーしました'" } } },
+    copyErrorText: {
       control: 'text',
       table: { defaultValue: { summary: "'コピーできませんでした'" } },
     },
     iconOnly: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     shape: {
       control: 'inline-radio',
-      options: ['square', 'round'],
+      options: ['square', 'circle'],
       table: { defaultValue: { summary: "'square'" } },
     },
     feedback: {
@@ -87,7 +87,7 @@ const meta = {
       options: feedbacks,
       table: { defaultValue: { summary: "'tooltip'" } },
     },
-    appearance: {
+    variant: {
       control: 'inline-radio',
       options: ['filled', 'outline'],
       table: { defaultValue: { summary: "'outline'" } },
@@ -123,7 +123,7 @@ export const States: Story = {
       source: sourceCode(`
         <CopyButton text="pnpm add @kazuemon/ui" />
         <CopyButton text="pnpm add @kazuemon/ui" iconOnly />
-        <CopyButton text="pnpm add @kazuemon/ui" iconOnly shape="round" />
+        <CopyButton text="pnpm add @kazuemon/ui" iconOnly shape="circle" />
       `),
     },
   },
@@ -187,7 +187,7 @@ export const ErrorFeedback: Story = {
           '写せなかったあと（2 秒のあいだ）の見た目に止めています。印は変わらず、吹き出しの色だけが変わります。`feedback` がどちらでも同じ吹き出しです。',
       },
       source: sourceCode(`
-        <CopyButton text="…" errorLabel="コピーできませんでした" />
+        <CopyButton text="…" copyErrorText="コピーできませんでした" />
       `),
     },
   },
@@ -209,7 +209,7 @@ export const Densities: Story = {
       <div className="flex flex-wrap items-center gap-3">
         <CopyButton {...args} />
         <CopyButton {...args} iconOnly />
-        <CopyButton {...args} iconOnly shape="round" />
+        <CopyButton {...args} iconOnly shape="circle" />
       </div>
     </DensityPair>
   ),
@@ -341,12 +341,12 @@ export const CopyErrorInLabel: Story = {
 
 export const CopyErrorHandled: Story = {
   name: '写せなかったときを自分で知らせる',
-  args: { onCopyError: fn() },
+  args: { onCopyFailed: fn() },
   parameters: {
     docs: {
       description: {
         story:
-          '`onCopyError` を渡すと、部品は吹き出しも読み上げも出しません。写せなかったことは、使う側の画面で知らせます。',
+          '`onCopyFailed` を渡すと、部品は吹き出しも読み上げも出しません。写せなかったことは、使う側の画面で知らせます。',
       },
     },
   },
@@ -355,7 +355,7 @@ export const CopyErrorHandled: Story = {
     try {
       const button = canvas.getByRole('button', { name: 'コピー' });
       await userEvent.click(button);
-      await waitFor(() => expect(args.onCopyError).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(args.onCopyFailed).toHaveBeenCalledTimes(1));
       await expect(button).not.toHaveAttribute('data-copied');
       // 吹き出しも読み上げも出さない
       await expect(document.body.querySelector('[data-slot="tooltip"]')).not.toBeInTheDocument();

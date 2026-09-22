@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import type { ComponentProps, ReactElement } from 'react';
+import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 import { tv } from '../../internal/tv';
 
@@ -25,6 +25,10 @@ export interface VisuallyHiddenProps extends ComponentProps<'span'> {
   focusable?: boolean;
   /** 描く要素（Base UI の render と同じ）。既定は span です */
   render?: ReactElement;
+  /** 読み上げにだけ届ける文字 */
+  children?: ReactNode;
+  /** 包む要素（span。render を渡したときはその要素）に付きます */
+  className?: string;
 }
 
 /**

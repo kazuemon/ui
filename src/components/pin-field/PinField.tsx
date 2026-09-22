@@ -1,7 +1,7 @@
 'use client';
 
 import { OTPField } from '@base-ui/react/otp-field';
-import { Fragment, type ReactNode, useRef } from 'react';
+import { type ComponentProps, Fragment, type ReactNode, type Ref, useRef } from 'react';
 
 import { Field, FieldSpinner, FieldSuccessMark } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
@@ -13,6 +13,7 @@ import {
 } from '../../internal/half-width';
 import type { InputFieldProps } from '../../internal/field/input-field-props';
 import { useFormSubmittingLock } from '../../internal/form-context';
+import { cn } from '../../internal/tv';
 
 /** 1 桁に入れてよい文字。numeric は数字、alpha は英字、alphanumeric は英数字、none は何でも */
 export type PinFieldValidationType = 'numeric' | 'alpha' | 'alphanumeric' | 'none';
@@ -33,7 +34,7 @@ const boxClass = controlBox({
   ],
 });
 
-// まだ打っていない箱の淡い点（emptyDots）。フォーカスの箱ではキャレットと重ならないよう消す
+// まだ打っていない箱の淡い点（showEmptyDots）。フォーカスの箱ではキャレットと重ならないよう消す
 // 伏せ字では打った ● と見分けられるよう、塗った点ではなく輪にする
 const emptyDotClass = {
   dot: 'not-data-filled:bg-[image:radial-gradient(circle,var(--field-placeholder)_var(--pin-field-dot-size),transparent_calc(var(--pin-field-dot-size)+0.5px))]',
@@ -48,11 +49,11 @@ export interface PinFieldProps
       | 'label'
       | 'caption'
       | 'captionPlacement'
-      | 'error'
-      | 'warning'
-      | 'success'
-      | 'successMark'
-      | 'info'
+      | 'errorText'
+      | 'warningText'
+      | 'successText'
+      | 'hideSuccessMark'
+      | 'infoText'
       | 'className'
       | 'loadingBehavior'
       | 'requiredMark'
@@ -69,14 +70,14 @@ export interface PinFieldProps
    * @default 6
    */
   length?: number;
-  /** 値（制御するとき） */
+  /** 値（制御） */
   value?: string;
-  /** はじめの値（制御しないとき） */
+  /** はじめの値（非制御） */
   defaultValue?: string;
-  /** 値が変わったとき。全角の数字は半角に直し、入れてよくない文字は除いた値を受け取ります */
+  /** 値が変わるときに、次の値を渡して呼びます。全角の数字は半角に直し、入れてよくない文字は除いた値です */
   onValueChange?: (value: string) => void;
-  /** 全部の桁が埋まったとき（貼り付けで埋まったときも） */
-  onValueComplete?: (value: string) => void;
+  /** 全部の桁が埋まったあとに呼びます（貼り付けで埋まったときも） */
+  onValueCompleted?: (value: string) => void;
   /**
    * 打った文字を伏せ字（●）にする
    * @default false
@@ -107,11 +108,11 @@ export interface PinFieldProps
    */
   groupSeparator?: ReactNode;
   /**
-   * まだ打っていない箱の真ん中に淡い点を置く。あと何桁あるかが、箱を数えなくても分かります。
+   * まだ打っていない箱の真ん中に淡い点を置くか。あと何桁あるかが、箱を数えなくても分かります。
    * 伏せ字（mask）では、打った ● と見分けられるよう輪にします
    * @default false
    */
-  emptyDots?: boolean;
+  showEmptyDots?: boolean;
   /** 押せない */
   disabled?: boolean;
   /** 読み取り専用。値は読めて写せますが、書き換えられません */
@@ -135,10 +136,14 @@ export interface PinFieldProps
   /**
    * 2 桁目からの読み上げの名前。既定は「2 桁目（全 6 桁）」の形です。1 桁目はラベルで読みます
    */
-  slotLabel?: (index: number, length: number) => string;
+  slotName?: (index: number, length: number) => string;
+  /** 箱の列を包む要素への ref */
+  ref?: Ref<HTMLDivElement>;
+  /** 1 桁ずつの input に渡すもの（class・data-* など）。欄の外枠には className を使います */
+  inputProps?: ComponentProps<'input'>;
 }
 
-const defaultSlotLabel = (index: number, length: number) => `${index + 1} 桁目（全 ${length} 桁）`;
+const defaultSlotName = (index: number, length: number) => `${index + 1} 桁目（全 ${length} 桁）`;
 
 // group の合計が length と合うときだけ、区切りの位置（何桁目のあとか）を返す
 function splitGroups(length: number, group: number[] | undefined): number[] {
@@ -179,11 +184,11 @@ export function PinField({
   label,
   caption,
   captionPlacement,
-  error,
-  warning,
-  success,
-  successMark = true,
-  info,
+  errorText,
+  warningText,
+  successText,
+  hideSuccessMark = false,
+  infoText,
   className,
   loading = false,
   loadingBehavior = 'non-blocking',
@@ -192,21 +197,24 @@ export function PinField({
   normalizeValue,
   group,
   groupSeparator,
-  emptyDots = false,
+  showEmptyDots = false,
   disabled,
   readOnly,
   required,
   requiredMark,
   optionalMark,
   onValueChange,
-  onValueComplete,
-  slotLabel = defaultSlotLabel,
+  onValueCompleted,
+  slotName = defaultSlotName,
+  ref,
+  inputProps,
   halfWidthNotice = false,
   ...props
 }: PinFieldProps) {
   // Form の送信中・blocking の待ちは、TextField と同じく押せない欄の見た目にし、書き換えを止める。フォーカスは外さない
   const formLock = useFormSubmittingLock();
   const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
   // 全角を半角に直したことの知らせ（既定は知らせない）。値を直す normalizeValue は描くときにも呼ばれるので、
   //   ここでは種類を覚えるだけにして、値が変わったとき（onValueChange）に知らせる
   const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
@@ -228,10 +236,10 @@ export function PinField({
       label={label}
       caption={caption}
       captionPlacement={captionPlacement}
-      error={error}
-      warning={warning}
-      success={success}
-      info={info ?? notice}
+      error={errorText}
+      warning={warningText}
+      success={successText}
+      info={infoText ?? notice}
       disabled={disabled}
       loading={loading}
       loadingBehavior={loadingBehavior}
@@ -247,6 +255,7 @@ export function PinField({
         >
           <OTPField.Root
             {...props}
+            ref={ref}
             length={length}
             validationType="none"
             inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
@@ -261,7 +270,7 @@ export function PinField({
               pending.current = null;
               onValueChange?.(value);
             }}
-            onValueComplete={onValueComplete && ((value) => onValueComplete(value))}
+            onValueComplete={onValueCompleted && ((value) => onValueCompleted(value))}
             className="flex min-w-0 items-center gap-(--pin-field-group-gap)"
           >
             {groups.map(({ first, size }, groupIndex) => {
@@ -274,20 +283,20 @@ export function PinField({
                       return (
                         <OTPField.Input
                           key={index}
+                          {...inputPropsRest}
                           data-slot="control"
                           data-field-readonly={readOnly || undefined}
-                          aria-label={index === 0 ? undefined : slotLabel(index, length)}
+                          aria-label={index === 0 ? undefined : slotName(index, length)}
                           // 1 桁目にだけ説明をつなぐ。どの桁でも読むと、1 桁ごとに同じ説明が続くため
                           aria-describedby={index === 0 ? messageIds : undefined}
                           aria-disabled={blocking || undefined}
-                          className={[
+                          className={cn(
                             boxClass,
-                            emptyDots && emptyDotClass[props.mask ? 'ring' : 'dot'],
-                            emptyDots && emptyDotFocusClass,
+                            showEmptyDots && emptyDotClass[props.mask ? 'ring' : 'dot'],
+                            showEmptyDots && emptyDotFocusClass,
                             blocking && 'cursor-progress',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
+                            inputProps?.className
+                          )}
                         />
                       );
                     })}
@@ -297,7 +306,7 @@ export function PinField({
             })}
           </OTPField.Root>
           {loading && <FieldSpinner />}
-          {success && successMark && !error && !loading && <FieldSuccessMark />}
+          {successText && !hideSuccessMark && !errorText && !loading && <FieldSuccessMark />}
         </div>
       )}
     </Field>

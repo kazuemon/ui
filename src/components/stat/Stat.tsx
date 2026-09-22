@@ -9,9 +9,9 @@ import { tv } from '../../internal/tv';
 // 並びは Field・バーと同じ3層（原則4）: 上にラベル（太字）、真ん中に数字、下にキャプション（小さくグレー）
 // 読み上げは dl・dt・dd で、ラベルと数字を組にする（原則15）
 // 増減は、色だけでなく矢印の形でも見分ける（原則6）。上向き・下向き・横棒の3つ
-//   増えたことが良いのか悪いのかは部品には分からないので、色は tone で使う側が選ぶ（原則20）。書かなければ trend から決める
+//   増えたことが良いのか悪いのかは部品には分からないので、良し悪し（trend）は使う側が選ぶ（原則20）。書かなければ矢印の向き（deltaIndicator）から決める
 // 数字の大きさは、文字の尺度の段をトークンで差し替える（size。既定は見出し1 — 密度で一緒に変わる）
-// 増減は、矢印の有無（deltaIcon）と淡い面の有無（deltaFill）を選べる。色は tone
+// 増減は、矢印の有無（hideDeltaIcon）と淡い面の有無（deltaFill）を選べる。色は trend
 
 const stat = tv({
   slots: {
@@ -33,7 +33,7 @@ const stat = tv({
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
   variants: {
-    tone: {
+    trend: {
       positive: {
         root: '[--color-stat-delta:var(--color-fg-success)] [--stat-delta-tint:var(--color-success-subtle)]',
       },
@@ -62,7 +62,7 @@ const stat = tv({
         root: '[--stat-value-leading:var(--leading-body)] [--stat-value-text:var(--text-body)]',
       },
     },
-    // 増減を、tone の淡い面（pill）に載せる
+    // 増減を、trend の淡い面（pill）に載せる
     fill: {
       true: {
         delta: 'rounded-pill bg-(color:--stat-delta-tint) px-2 py-0.5',
@@ -70,25 +70,25 @@ const stat = tv({
       false: {},
     },
   },
-  defaultVariants: { tone: 'neutral', align: 'start', size: 'heading-1', fill: false },
+  defaultVariants: { trend: 'neutral', align: 'start', size: 'heading-1', fill: false },
 });
 
-/** 増減の向き。up は上向き、down は下向き、flat は横棒の印になります */
-export type StatTrend = 'up' | 'down' | 'flat';
-/** 増減の色 */
-export type StatDeltaTone = NonNullable<VariantProps<typeof stat>['tone']>;
+/** 増減の印の向き。up は上向き、down は下向き、flat は横棒の矢印になります */
+export type StatDeltaIndicator = 'up' | 'down' | 'flat';
+/** 増減の良し悪し */
+export type StatTrend = NonNullable<VariantProps<typeof stat>['trend']>;
 /** 中身の寄せ方 */
 export type StatAlign = NonNullable<VariantProps<typeof stat>['align']>;
 /** 数字の大きさ（文字の尺度の段） */
 export type StatSize = NonNullable<VariantProps<typeof stat>['size']>;
 
-const trendIcons = {
+const indicatorIcons = {
   up: CaretUpIcon,
   down: CaretDownIcon,
   flat: MinusIcon,
 } as const;
 
-const toneFromTrend: Record<StatTrend, StatDeltaTone> = {
+const trendFromIndicator: Record<StatDeltaIndicator, StatTrend> = {
   up: 'positive',
   down: 'negative',
   flat: 'neutral',
@@ -106,19 +106,19 @@ export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
   /** 増減の文字（「12%」「+128」など）。書かないと増減は出ません */
   delta?: ReactNode;
   /**
-   * 増減の向き。矢印の形になります。色だけで伝えないための印です
+   * 増減の印の向き。矢印の形になります。色だけで伝えないための印です
    * @default 'flat'
+   */
+  deltaIndicator?: StatDeltaIndicator;
+  /**
+   * 増減の良し悪し。色になります。増えたことが良いか悪いかは場面で違うので、使う側が選びます。
+   * 書かないときは deltaIndicator から決めます（up は成功の緑、down は危険の赤、flat はグレー）
    */
   trend?: StatTrend;
   /**
-   * 増減の色。増えたことが良いか悪いかは場面で違うので、使う側が選びます。
-   * 書かないときは trend から決めます（up は成功の緑、down は危険の赤、flat はグレー）
-   */
-  tone?: StatDeltaTone;
-  /**
    * 増減の読み上げの文（「先月比 12% 増」など）。書くと、見えている増減の代わりに読まれます
    */
-  deltaLabel?: string;
+  deltaText?: string;
   /**
    * 中身の寄せ方
    * @default 'start'
@@ -131,16 +131,18 @@ export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
    */
   size?: StatSize;
   /**
-   * 増減に矢印を出すか。false にするときは、`delta` に符号（「+12%」「-4pt」）を書きます。
+   * 増減の矢印を出さないようにします。出さないときは、`delta` に符号（「+12%」「-4pt」）を書きます。
    * 色だけで増減を伝えないためです
-   * @default true
+   * @default false
    */
-  deltaIcon?: boolean;
+  hideDeltaIcon?: boolean;
   /**
    * 増減を、色に合わせた淡い面（pill）に載せるか。数字から切り離して読ませたいときに true にします
    * @default false
    */
   deltaFill?: boolean;
+  /** 根の要素（dl）に付きます */
+  className?: string;
 }
 
 /**
@@ -152,18 +154,23 @@ export function Stat({
   unit,
   caption,
   delta,
-  trend = 'flat',
-  tone,
-  deltaLabel,
+  deltaIndicator = 'flat',
+  trend,
+  deltaText,
   align,
   size,
-  deltaIcon = true,
+  hideDeltaIcon = false,
   deltaFill,
   className,
   ...props
 }: StatProps) {
-  const styles = stat({ tone: tone ?? toneFromTrend[trend], align, size, fill: deltaFill });
-  const TrendIcon = trendIcons[trend];
+  const styles = stat({
+    trend: trend ?? trendFromIndicator[deltaIndicator],
+    align,
+    size,
+    fill: deltaFill,
+  });
+  const DeltaIcon = indicatorIcons[deltaIndicator];
   return (
     <dl data-slot="stat" className={styles.root({ className })} {...props}>
       <dt className={styles.label()}>{label}</dt>
@@ -175,13 +182,13 @@ export function Stat({
           {unit == null ? null : <span className={styles.unit()}>{unit}</span>}
           {delta == null ? null : (
             <span className={styles.delta()} data-slot="stat-delta">
-              {deltaIcon ? <TrendIcon className={styles.icon()} /> : null}
-              {deltaLabel == null ? (
+              {hideDeltaIcon ? null : <DeltaIcon className={styles.icon()} />}
+              {deltaText == null ? (
                 delta
               ) : (
                 <>
                   <span aria-hidden="true">{delta}</span>
-                  <span className="sr-only">{deltaLabel}</span>
+                  <span className="sr-only">{deltaText}</span>
                 </>
               )}
             </span>

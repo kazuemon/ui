@@ -1,14 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 
-import { Callout, type CalloutAppearance, type CalloutColor } from './Callout';
+import { Callout } from './Callout';
+import type { NoticeStatus, NoticeVariant } from '../notice/Notice';
 import { Code } from '../code/Code';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 
-const colors: CalloutColor[] = ['info', 'success', 'warning', 'danger', 'neutral'];
-const appearances: CalloutAppearance[] = ['soft', 'muted', 'outline', 'filled'];
+// 状態を書かないとき（色を持たないグレー）は neutral として並べる
+type CalloutSample = NoticeStatus | 'neutral';
+const statuses: CalloutSample[] = ['info', 'success', 'warning', 'danger', 'neutral'];
+const statusOf = (sample: CalloutSample) => (sample === 'neutral' ? undefined : sample);
+const variants: NoticeVariant[] = ['soft', 'muted', 'outline', 'filled'];
 
-const samples: Record<CalloutColor, { title: string; body: string }> = {
+const samples: Record<CalloutSample, { title: string; body: string }> = {
   info: { title: '補足', body: 'この部品は Base UI を土台にしています。' },
   success: { title: 'ヒント', body: 'data-density を付けると、密度を固定できます。' },
   warning: { title: '注意', body: 'Next.js 15 より前では、この設定は効きません。' },
@@ -28,23 +32,23 @@ const meta = {
           '',
           '- 見た目はお知らせ（`Notice`）と同じ決まりです。画面の上であとから出す知らせには `Notice` を使います。',
           '- 読み上げでは補足（`role="note"`）として扱い、題が囲みの名前になります。割り込んで読んだりはしません。閉じるボタンや操作は持ちません。',
-          '- `color` は状態の色（`info`・`success`・`warning`・`danger`）と、色を持たないグレーの `neutral`（既定）です。',
-          '- `appearance` は、`soft`（既定、淡い面）・`muted`（グレーの面に小さな題）・`outline`（白い面に状態の色の枠線）・`filled`（濃い塗り）です。',
-          '- アイコンは状態の色ごとに付きます（`neutral` と `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
+          '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレーになります。',
+          '- `variant` は、`soft`（既定、淡い面）・`muted`（グレーの面に小さな題）・`outline`（白い面に状態の色の枠線）・`filled`（濃い塗り）です。',
+          '- アイコンは状態ごとに付きます（状態なしと `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
           '- 文字は本文と同じ大きさです。',
         ].join('\n'),
       },
     },
   },
   args: {
-    color: 'info',
-    appearance: 'soft',
+    status: 'info',
+    variant: 'soft',
     title: samples.info.title,
     children: samples.info.body,
   },
   argTypes: {
-    color: { control: 'inline-radio', options: colors },
-    appearance: { control: 'inline-radio', options: appearances },
+    status: { control: 'inline-radio', options: ['info', 'success', 'warning', 'danger'] },
+    variant: { control: 'inline-radio', options: variants },
     title: { control: 'text' },
     children: { control: 'text' },
     icon: { control: false },
@@ -71,13 +75,13 @@ export const ColorsAndAppearances: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Matrix
-      rows={colors}
-      rowLabel={(color) => color}
-      columns={appearances.map((appearance) => ({ label: appearance, appearance }))}
+      rows={statuses}
+      rowLabel={(status) => status}
+      columns={variants.map((variant) => ({ label: variant, variant }))}
       columnWidth="16rem"
-      renderCell={(color, { appearance }) => (
-        <Callout color={color} appearance={appearance} title={samples[color].title}>
-          {samples[color].body}
+      renderCell={(sample, { variant }) => (
+        <Callout status={statusOf(sample)} variant={variant} title={samples[sample].title}>
+          {samples[sample].body}
         </Callout>
       )}
     />
@@ -99,13 +103,13 @@ export const Densities: Story = {
   render: () => (
     <DensityPair>
       <div data-reading className="flex w-[22rem] flex-col gap-3">
-        <Callout color="warning">
+        <Callout status="warning">
           <Code>coarse-large</Code> は名前が変わるかもしれません。
         </Callout>
-        <Callout color="info" icon={false} title="補足">
+        <Callout status="info" icon={false} title="補足">
           アイコンなしで、題だけの形です。
         </Callout>
-        <Callout appearance="muted" color="warning" title="注意">
+        <Callout variant="muted" status="warning" title="注意">
           グレーの面に小さな題の形です。
         </Callout>
       </div>

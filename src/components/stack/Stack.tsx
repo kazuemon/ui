@@ -15,7 +15,7 @@ import { tv } from '../../internal/tv';
 
 // 子を縦・横に一定の間隔で並べる枠 — 軸 230
 //   間隔は段（--stack-gap-*）で持ち、値は尺度（--spacing）の倍数。入力方式では変えない（押すものではない）
-//   Stack は間隔と並べ方だけを持ち、色・影を持たない。区切り線を入れる divider だけが細い線を足す（原則1: ページと同じレイヤーなので影なし）
+//   Stack は間隔と並べ方だけを持ち、色・影を持たない。区切り線を入れる showDivider だけが細い線を足す（原則1: ページと同じレイヤーなので影なし）
 const stack = tv({
   base: 'flex gap-(--stack-gap)',
   variants: {
@@ -101,9 +101,13 @@ export interface StackProps extends ComponentProps<'div'> {
    * 子の間に区切り線を入れます。縦に並べるときは横の線、横に並べるときは縦の線です
    * @default false
    */
-  divider?: boolean;
+  showDivider?: boolean;
   /** 描く要素（Base UI の render と同じ）。ul・section などにするときは `render={<ul />}` を渡します */
   render?: ReactElement;
+  /** 並べる子。間隔は gap で決めます */
+  children?: ReactNode;
+  /** 根の要素（render を渡したときはその要素）に付きます */
+  className?: string;
 }
 
 // Fragment の中の子も 1 つずつ数える。null・false は数えない
@@ -126,7 +130,7 @@ export function Stack({
   align,
   justify,
   wrap = true,
-  divider = false,
+  showDivider = false,
   className,
   render,
   children,
@@ -147,7 +151,7 @@ export function Stack({
         wrap: direction === 'horizontal' && wrap,
         className,
       }),
-      children: divider
+      children: showDivider
         ? flatten(children).map((child, i) => (
             <Fragment key={isValidElement(child) && child.key != null ? child.key : i}>
               {i > 0 && (

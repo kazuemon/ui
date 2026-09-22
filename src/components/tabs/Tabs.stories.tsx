@@ -208,10 +208,10 @@ export const WithIcons: Story = {
           ホーム
         </Tab>
         <Tab value="posts" icon={<FileTextIcon />}>
-          記事 <Badge count={12} label={(n) => `（${n} 件）`} />
+          記事 <Badge count={12} accessibleName={(n) => `（${n} 件）`} />
         </Tab>
         <Tab value="new" icon={<SparkleIcon />}>
-          新着 <Badge color="danger" label="（新着あり）" />
+          新着 <Badge color="danger" accessibleName="（新着あり）" />
         </Tab>
         <Tab value="settings" icon={<GearSixIcon />} disabled>
           設定

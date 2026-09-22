@@ -6,16 +6,16 @@ import { NumberFormat } from '../number-format/NumberFormat';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import type { MatrixColumn } from '../../stories/story-states';
 
-const trends = ['up', 'down', 'flat'] as const;
-const tones = ['positive', 'negative', 'neutral'] as const;
+const deltaIndicators = ['up', 'down', 'flat'] as const;
+const trends = ['positive', 'negative', 'neutral'] as const;
 const aligns = ['start', 'center', 'end'] as const;
 const sizes = ['heading-1', 'heading-2', 'heading-3', 'body'] as const;
 
-interface ToneColumn extends MatrixColumn {
-  tone: (typeof tones)[number];
+interface TrendColumn extends MatrixColumn {
+  trend: (typeof trends)[number];
 }
 
-const toneColumns: ToneColumn[] = tones.map((tone) => ({ label: tone, tone }));
+const trendColumns: TrendColumn[] = trends.map((trend) => ({ label: trend, trend }));
 
 const meta = {
   title: 'Components/Stat',
@@ -30,10 +30,10 @@ const meta = {
           '- `label` が名前、`value` が数字です。読み上げでは、この 2 つが組になります。',
           '- 桁区切りや通貨は `value` に `NumberFormat` を渡します。',
           '- `unit` で単位（「件」「GB」）を数字の後ろに小さく添えます。`caption` は数字の下の補足です。',
-          '- `delta` で増減を出します。`trend` が矢印の向き（`up`・`down`・`flat`）で、色だけで伝えないための印です。',
-          '- 増えたことが良いか悪いかは場面で違うので、色は `tone` で選びます。書かないときは `trend` から決めます（増えると緑、減ると赤）。コストのように「減ってうれしい」ものは `tone` を明示します。',
-          '- `deltaLabel` を書くと、見えている増減の代わりにその文が読まれます（「先月比 12% 増」）。',
-          '- `deltaIcon` を `false` にすると矢印を出しません。そのときは `delta` に符号（「+12%」）を書きます。色だけで増減を伝えないためです。',
+          '- `delta` で増減を出します。`deltaIndicator` が矢印の向き（`up`・`down`・`flat`）で、色だけで伝えないための印です。',
+          '- 増えたことが良いか悪いかは場面で違うので、色は `trend` で選びます。書かないときは `deltaIndicator` から決めます（増えると緑、減ると赤）。コストのように「減ってうれしい」ものは `trend` を明示します。',
+          '- `deltaText` を書くと、見えている増減の代わりにその文が読まれます（「先月比 12% 増」）。',
+          '- `hideDeltaIcon` を渡すと矢印を出しません。そのときは `delta` に符号（「+12%」）を書きます。色だけで増減を伝えないためです。',
           '- `deltaFill` を `true` にすると、増減を色に合わせた淡い面（pill）に載せます。数字から切り離して読ませたいときに使います。',
           '- `size` で数字の大きさを選びます。数字をいくつも並べるときは小さい段にします。',
           '- `align` で寄せ方を選びます。カードに載せたいときは Card と組み合わせます。',
@@ -47,7 +47,7 @@ const meta = {
     unit: '件',
     caption: '先月比',
     delta: '12%',
-    trend: 'up',
+    deltaIndicator: 'up',
     align: 'start',
   },
   argTypes: {
@@ -55,12 +55,12 @@ const meta = {
     caption: { control: 'text' },
     delta: { control: 'text' },
     unit: { control: 'text' },
-    trend: {
+    deltaIndicator: {
       control: 'inline-radio',
-      options: trends,
+      options: deltaIndicators,
       table: { defaultValue: { summary: "'flat'" } },
     },
-    tone: { control: 'inline-radio', options: tones },
+    trend: { control: 'inline-radio', options: trends },
     align: {
       control: 'inline-radio',
       options: aligns,
@@ -71,7 +71,7 @@ const meta = {
       options: sizes,
       table: { defaultValue: { summary: "'heading-1'" } },
     },
-    deltaIcon: { control: 'boolean', table: { defaultValue: { summary: 'true' } } },
+    hideDeltaIcon: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     deltaFill: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
   },
 } satisfies Meta<typeof Stat>;
@@ -87,11 +87,11 @@ export const Trends: Story = {
   tags: ['visual'],
   name: '増減の向きと色',
   parameters: {
-    controls: { exclude: ['trend', 'tone'] },
+    controls: { exclude: ['deltaIndicator', 'trend'] },
     docs: {
       description: {
         story:
-          '行が矢印の向き（`trend`）、列が色（`tone`）です。`tone` を書かないときは、`trend` が対角の色を選びます。',
+          '行が矢印の向き（`deltaIndicator`）、列が色（`trend`）です。`trend` を書かないときは、`deltaIndicator` が対角の色を選びます。',
       },
     },
   },
@@ -104,12 +104,19 @@ export const Trends: Story = {
   ],
   render: () => (
     <Matrix
-      rows={trends}
-      columns={toneColumns}
-      rowLabel={(trend) => trend}
+      rows={deltaIndicators}
+      columns={trendColumns}
+      rowLabel={(deltaIndicator) => deltaIndicator}
       columnWidth="11rem"
-      renderCell={(trend, column) => (
-        <Stat label="公開記事" value={128} unit="件" delta="12%" trend={trend} tone={column.tone} />
+      renderCell={(deltaIndicator, column) => (
+        <Stat
+          label="公開記事"
+          value={128}
+          unit="件"
+          delta="12%"
+          deltaIndicator={deltaIndicator}
+          trend={column.trend}
+        />
       )}
     />
   ),
@@ -134,7 +141,12 @@ export const Parts: Story = {
         <Stat label="ストレージ" value={12.4} unit="GB" caption="50 GB 中" />
       </Specimen>
       <Specimen label="増えた">
-        <Stat label="閲覧数" value={<NumberFormat value={48219} />} delta="12%" trend="up" />
+        <Stat
+          label="閲覧数"
+          value={<NumberFormat value={48219} />}
+          delta="12%"
+          deltaIndicator="up"
+        />
       </Specimen>
       <Specimen label="減ってうれしい">
         <Stat
@@ -142,8 +154,8 @@ export const Parts: Story = {
           value={0.82}
           unit="秒"
           delta="18%"
-          trend="down"
-          tone="positive"
+          deltaIndicator="down"
+          trend="positive"
           caption="先月比"
         />
       </Specimen>
@@ -155,7 +167,7 @@ export const Parts: Story = {
           label="稼働率"
           value={<NumberFormat value={0.999} percent maximumFractionDigits={1} />}
           delta="0.0pt"
-          trend="flat"
+          deltaIndicator="flat"
         />
       </Specimen>
     </Gallery>
@@ -189,7 +201,7 @@ export const Sizes: Story = {
             value={128}
             unit="件"
             delta="12%"
-            trend="up"
+            deltaIndicator="up"
             caption="先月比"
             size={size}
           />
@@ -206,7 +218,7 @@ export const Deltas: Story = {
     docs: {
       description: {
         story:
-          '矢印（`deltaIcon`）と淡い面（`deltaFill`）は、それぞれ選べます。矢印を出さないときは、`delta` に符号を書きます。',
+          '矢印（`hideDeltaIcon`）と淡い面（`deltaFill`）は、それぞれ選べます。矢印を出さないときは、`delta` に符号を書きます。',
       },
     },
   },
@@ -220,7 +232,14 @@ export const Deltas: Story = {
   render: () => (
     <Gallery columnWidth="13rem">
       <Specimen label="矢印（既定）">
-        <Stat label="公開記事" value={128} unit="件" delta="12%" trend="up" caption="先月比" />
+        <Stat
+          label="公開記事"
+          value={128}
+          unit="件"
+          delta="12%"
+          deltaIndicator="up"
+          caption="先月比"
+        />
       </Specimen>
       <Specimen label="矢印なし・符号">
         <Stat
@@ -228,8 +247,8 @@ export const Deltas: Story = {
           value={128}
           unit="件"
           delta="+12%"
-          trend="up"
-          deltaIcon={false}
+          deltaIndicator="up"
+          hideDeltaIcon
           caption="先月比"
         />
       </Specimen>
@@ -239,7 +258,7 @@ export const Deltas: Story = {
           value={128}
           unit="件"
           delta="12%"
-          trend="up"
+          deltaIndicator="up"
           deltaFill
           caption="先月比"
         />
@@ -250,8 +269,8 @@ export const Deltas: Story = {
           value={32}
           unit="%"
           delta="-4pt"
-          trend="down"
-          deltaIcon={false}
+          deltaIndicator="down"
+          hideDeltaIcon
           deltaFill
           caption="先月比"
         />
@@ -279,7 +298,7 @@ export const Aligns: Story = {
             value={128}
             unit="件"
             delta="12%"
-            trend="up"
+            deltaIndicator="up"
             caption="先月比"
             align={align}
           />
@@ -301,7 +320,14 @@ export const Densities: Story = {
   ],
   render: () => (
     <DensityPair>
-      <Stat label="公開記事" value={128} unit="件" delta="12%" trend="up" caption="先月比" />
+      <Stat
+        label="公開記事"
+        value={128}
+        unit="件"
+        delta="12%"
+        deltaIndicator="up"
+        caption="先月比"
+      />
     </DensityPair>
   ),
 };
@@ -310,15 +336,22 @@ export const Accessibility: Story = {
   name: '読み上げ',
   render: () => (
     <div className="flex flex-col gap-8">
-      <Stat label="公開記事" value={128} unit="件" caption="先月比" delta="12%" trend="up" />
+      <Stat
+        label="公開記事"
+        value={128}
+        unit="件"
+        caption="先月比"
+        delta="12%"
+        deltaIndicator="up"
+      />
       <Stat
         label="表示にかかる時間"
         value={0.82}
         unit="秒"
         delta="18%"
-        trend="down"
-        tone="positive"
-        deltaLabel="先月より 18% 速くなりました"
+        deltaIndicator="down"
+        trend="positive"
+        deltaText="先月より 18% 速くなりました"
       />
     </div>
   ),
@@ -334,7 +367,7 @@ export const Accessibility: Story = {
     // 矢印は読み上げに出さない（形は見る人のための印）
     const icon = stats[0].querySelector('svg');
     await expect(icon).toHaveAttribute('aria-hidden', 'true');
-    // deltaLabel を書くと、見えている文字の代わりにその文が読まれる
+    // deltaText を書くと、見えている文字の代わりにその文が読まれる
     await expect(canvas.getByText('先月より 18% 速くなりました')).toBeInTheDocument();
     await expect(canvas.getByText('18%')).toHaveAttribute('aria-hidden', 'true');
   },

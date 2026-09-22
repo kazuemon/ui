@@ -6,9 +6,10 @@ import {
   DayPicker,
   type Matcher,
   type PreviousMonthButtonProps,
+  type RootProps,
   type WeekdayProps,
 } from '@daypicker/react';
-import { createContext, use, useMemo, useState } from 'react';
+import { createContext, type Ref, use, useMemo, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { Button } from '../button/Button';
@@ -27,6 +28,7 @@ import {
 import { useLocale } from '../../internal/date/use-locale';
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // 月の日を並べて、日か期間を選ぶ。振る舞い（キーボード・読み上げ・範囲の選び方）は react-day-picker（@daypicker/react）— ADR-0133
 // 値は Temporal.PlainDate で受け渡し、react-day-picker との境界で Date（ローカル時刻の正午）に変える（src/internal/date/plain-date.ts）
@@ -124,10 +126,10 @@ const calendar = tv({
         root: '[--cal-accent:var(--color-neutral-strong)] [--cal-on-accent:var(--color-on-neutral-strong)] [--cal-on-subtle:var(--color-fg)] [--cal-subtle:var(--color-calendar-neutral-subtle)]',
       },
     },
-    // 日の形（ADR-0134）。square は部品の角（既定）、round は丸
+    // 日の形（ADR-0134）。square は部品の角（既定）、circle は丸
     shape: {
       square: { root: '[--cal-radius:var(--radius-control)]' },
-      round: { root: '[--cal-radius:var(--radius-pill)]' },
+      circle: { root: '[--cal-radius:var(--radius-pill)]' },
     },
     // 日曜・祝日を赤、土曜を青にするか（ADR-0137）
     weekendColor: {
@@ -192,7 +194,7 @@ interface CalendarBaseProps {
    */
   color?: CalendarVariants['color'];
   /**
-   * 日の形。square はボタンと同じ角、round は丸です
+   * 日の形。square はボタンと同じ角、circle は丸です
    * @default 'square'
    */
   shape?: CalendarShape;
@@ -207,10 +209,10 @@ interface CalendarBaseProps {
    */
   navPlacement?: CalendarNavPlacement;
   /**
-   * 前後の月の日を灰色で見せる。false のときは隠します。どちらも表はいつも 6 週です
-   * @default true
+   * 前後の月の日を隠します。ふだんは灰色で見せます。どちらも表はいつも 6 週です
+   * @default false
    */
-  showOutsideDays?: boolean;
+  hideOutsideDays?: boolean;
   /**
    * 月を送るときの動き。none はすぐに切り替え、fade はその場でふわっと入れ替えます
    * @default 'none'
@@ -226,11 +228,11 @@ interface CalendarBaseProps {
    * 祝日の名前を返す。名前を返した日は日曜と同じ色になり、名前が読み上げに入ります。祝日のデータは部品に含みません
    */
   getHoliday?: (date: PlainDate) => string | undefined;
-  /** 見せている月（制御するとき）。onMonthChange と組み合わせます */
+  /** 見せている月（制御） */
   month?: PlainYearMonth;
-  /** はじめに見せる月。指定しないときは選んだ日の月、なければ今日の月です */
+  /** はじめに見せる月（非制御）。指定しないときは選んだ日の月、なければ今日の月です */
   defaultMonth?: PlainYearMonth;
-  /** 月を送ったとき */
+  /** 見せている月が変わるときに、次の値を渡して呼びます */
   onMonthChange?: (month: PlainYearMonth) => void;
   /**
    * 言語。曜日と月の名前、週の始まりの曜日がこれに従います
@@ -253,7 +255,10 @@ interface CalendarBaseProps {
   'aria-label'?: string;
   /** はじめに日へフォーカスを移す */
   autoFocus?: boolean;
+  /** いちばん外の要素に付きます */
   className?: string;
+  /** いちばん外の要素に付きます */
+  ref?: Ref<HTMLDivElement>;
 }
 
 export interface CalendarSingleProps extends CalendarBaseProps {
@@ -262,9 +267,9 @@ export interface CalendarSingleProps extends CalendarBaseProps {
    * @default 'single'
    */
   mode?: 'single';
-  /** 選んだ日（制御するとき）。選んでいないときは null */
+  /** 選んだ日（制御）。選んでいないときは null */
   value?: PlainDate | null;
-  /** はじめに選んでおく日 */
+  /** はじめに選んでいる日（非制御） */
   defaultValue?: PlainDate | null;
   /** 日を選んだとき。選んだ日をもう一度押すと null になります（required のときはなりません） */
   onValueChange?: (value: PlainDate | null) => void;
@@ -273,10 +278,11 @@ export interface CalendarSingleProps extends CalendarBaseProps {
 }
 
 export interface CalendarRangeProps extends CalendarBaseProps {
+  /** 期間を選びます */
   mode: 'range';
-  /** 選んだ期間（制御するとき）。選んでいないときは null */
+  /** 選んだ期間（制御）。選んでいないときは null */
   value?: CalendarRange | null;
-  /** はじめに選んでおく期間 */
+  /** はじめに選んでいる期間（非制御） */
   defaultValue?: CalendarRange | null;
   /**
    * 期間を選んだとき。1 回目で始まりの日、2 回目で終わりの日が決まります。
@@ -300,6 +306,8 @@ interface CalendarContextValue {
   /** 期間の始まりだけを選び、別の日を指しているときの仮の期間（YYYY-MM-DD。from が前）。pointed は指している側 */
   tentative: { from: string; to: string; pointed: 'from' | 'to' } | null;
   navPlacement: CalendarNavPlacement;
+  /** 利用者が渡した、いちばん外の要素の ref */
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 const CalendarContext = createContext<CalendarContextValue>({
@@ -386,7 +394,7 @@ function MonthButton({
   return (
     <Button
       iconOnly
-      appearance="outline"
+      variant="outline"
       aria-label={props['aria-label'] ?? ''}
       className={direction === 'previous' ? styles.previous({ navPlacement }) : styles.next()}
       disabled={ariaDisabled === true || ariaDisabled === 'true'}
@@ -397,7 +405,15 @@ function MonthButton({
   );
 }
 
+// いちばん外の要素。react-day-picker の rootRef（動きに使う）と、利用者が渡した ref をつなぐ（ADR-0250）
+function CalendarRoot({ rootRef, ...props }: RootProps) {
+  const { rootRef: ownRef } = use(CalendarContext);
+  const ref = useMergedRefs(rootRef, ownRef);
+  return <div ref={ref} {...props} />;
+}
+
 const components = {
+  Root: CalendarRoot,
   Day: CalendarDay,
   Weekday: CalendarWeekday,
   PreviousMonthButton: (props: PreviousMonthButtonProps) => (
@@ -420,7 +436,7 @@ export function Calendar(props: CalendarProps) {
     shape,
     weekendColor = true,
     navPlacement = 'sides',
-    showOutsideDays = true,
+    hideOutsideDays = false,
     monthTransition = 'none',
     min,
     max,
@@ -433,6 +449,7 @@ export function Calendar(props: CalendarProps) {
     today: todayProp,
     autoFocus,
     className,
+    ref,
   } = props;
   const { locale, timeZone } = useLocale(props.locale, props.timeZone);
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
@@ -481,7 +498,7 @@ export function Calendar(props: CalendarProps) {
     today: toDate(today),
     navLayout: 'around' as const,
     fixedWeeks: true,
-    showOutsideDays,
+    showOutsideDays: !hideOutsideDays,
     autoFocus,
     disabled,
     startMonth: min ? toDate(min) : undefined,
@@ -546,6 +563,7 @@ export function Calendar(props: CalendarProps) {
           : { from: rangeStart, to: pointed, pointed: 'to' }
         : null,
     navPlacement,
+    rootRef: ref,
   };
   // 仮の帯を出すのは、期間の始まりだけを選んだあとだけ
   const pointing = rangeStart

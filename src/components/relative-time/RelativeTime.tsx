@@ -50,9 +50,10 @@ export interface RelativeTimeProps
    */
   size?: VariantProps<typeof timeText>['size'];
   /**
-   * 濃さ。指定しなければ周りの文字のままです
+   * 見た目（濃さ）。body は本文、muted は補足、subtle は目立たせない文です。指定しなければ周りの文字のままです
    */
-  tone?: VariantProps<typeof timeText>['tone'];
+  variant?: VariantProps<typeof timeText>['variant'];
+  /** 書く文字を自分で決めるときに入れます。datetime 属性は dateTime から作ります */
   children?: ReactNode;
 }
 
@@ -67,7 +68,7 @@ export function RelativeTime({
   locale: localeProp,
   timeZone: timeZoneProp,
   size,
-  tone,
+  variant,
   className,
   title,
   children,
@@ -79,7 +80,7 @@ export function RelativeTime({
   const parsed = parseDate(dateTime);
   if (!parsed) {
     return (
-      <time className={timeText({ size, tone, className })} title={title} {...props}>
+      <time className={timeText({ size, variant, className })} title={title} {...props}>
         {children ?? String(dateTime)}
       </time>
     );
@@ -93,7 +94,7 @@ export function RelativeTime({
     <time
       dateTime={parsed.machine}
       title={title ?? absolute}
-      className={timeText({ size, tone, className })}
+      className={timeText({ size, variant, className })}
       {...props}
     >
       {children ?? text}

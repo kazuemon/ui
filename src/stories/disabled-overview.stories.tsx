@@ -17,7 +17,8 @@ import { Form } from '../components/form/Form';
 import { EyeIcon } from '../internal/icons';
 import { Link, type LinkProps } from '../components/link/Link';
 import { Radio, RadioGroup } from '../components/radio/Radio';
-import { Select, type SelectItem, type SelectProps } from '../components/select/Select';
+import type { ListboxItem } from '../internal/listbox/use-listbox-option';
+import { Select, type SelectProps } from '../components/select/Select';
 import { Switch, type SwitchFrame } from '../components/switch/Switch';
 import { TextField, type TextFieldProps } from '../components/text-field/TextField';
 
@@ -400,10 +401,10 @@ const preventSubmit = (event: FormEvent<HTMLFormElement>) => event.preventDefaul
 // ---- Button ----
 
 type ButtonColor = NonNullable<ButtonProps['color']>;
-type ButtonAppearance = NonNullable<ButtonProps['appearance']>;
+type ButtonVariant = NonNullable<ButtonProps['variant']>;
 
 const buttonColors: ButtonColor[] = ['primary', 'secondary', 'danger', 'neutral', 'white'];
-const buttonAppearances: ButtonAppearance[] = ['filled', 'outline', 'underline'];
+const buttonVariants: ButtonVariant[] = ['filled', 'outline', 'underline'];
 const buttonColorNote: Record<ButtonColor, string> = {
   primary: '色を持つ',
   secondary: '色を持つ',
@@ -412,8 +413,8 @@ const buttonColorNote: Record<ButtonColor, string> = {
   white: '白いボタン',
 };
 
-const buttonKinds = buttonAppearances.flatMap((appearance) =>
-  buttonColors.map((color) => ({ appearance, color }))
+const buttonKinds = buttonVariants.flatMap((variant) =>
+  buttonColors.map((color) => ({ variant, color }))
 );
 
 // 列（状態）。キャプションありの表は、最初の3列だけ使う
@@ -429,11 +430,11 @@ const buttonStates: {
 ];
 const captionStates = buttonStates.slice(0, 3);
 
-const buttonRows: Row[] = buttonKinds.map(({ appearance, color }) => ({
-  label: `${color} · ${appearance}`,
+const buttonRows: Row[] = buttonKinds.map(({ variant, color }) => ({
+  label: `${color} · ${variant}`,
   note: buttonColorNote[color],
   cell: (i) => (
-    <Button color={color} appearance={appearance} {...buttonStates[i].props}>
+    <Button color={color} variant={variant} {...buttonStates[i].props}>
       保存する
     </Button>
   ),
@@ -449,46 +450,35 @@ const captionRows: Row[] = [
       ['secondary', 'outline'],
       ['neutral', 'outline'],
     ] as const
-  ).map(([color, appearance]): Row => ({
-    label: `${color} · ${appearance}`,
+  ).map(([color, variant]): Row => ({
+    label: `${color} · ${variant}`,
     cell: (i) => (
-      <Button
-        color={color}
-        appearance={appearance}
-        caption={captionText}
-        {...captionStates[i].props}
-      >
+      <Button color={color} variant={variant} caption={captionText} {...captionStates[i].props}>
         公開する
       </Button>
     ),
   })),
   {
     label: 'ボタンの見た目のリンク',
-    note: 'primary（Link の appearance="button"）',
+    note: 'primary（Link の variant="button"）',
     cell: (i) =>
       i === 2 ? (
         none('リンクは送信中を持たない')
       ) : (
-        <Link
-          appearance="button"
-          color="primary"
-          href="#top"
-          caption={captionText}
-          disabled={i === 1}
-        >
+        <Link variant="button" color="primary" href="#top" caption={captionText} disabled={i === 1}>
           記事を読む
         </Link>
       ),
   },
 ];
 
-// ボタンの見た目のリンク（Link の appearance="button"）。色は primary・secondary・neutral
+// ボタンの見た目のリンク（Link の variant="button"）。色は primary・secondary・neutral
 // 押せないときは、色を指定していても押せないグレーのボタンと同じ見た目（原則7）
 const buttonLinkRows: Row[] = (['primary', 'secondary', 'neutral'] as const).map((color) => ({
   label: color,
   note: buttonColorNote[color],
   cell: (i) => (
-    <Link appearance="button" color={color} href="#top" disabled={i === 1}>
+    <Link variant="button" color={color} href="#top" disabled={i === 1}>
       記事を読む
     </Link>
   ),
@@ -497,26 +487,26 @@ const buttonLinkRows: Row[] = (['primary', 'secondary', 'neutral'] as const).map
 // ---- Link ----
 
 type LinkColor = NonNullable<LinkProps['color']>;
-type LinkAppearance = NonNullable<LinkProps['appearance']>;
+type LinkVariant = NonNullable<LinkProps['variant']>;
 
 const linkColors: LinkColor[] = ['primary', 'secondary', 'neutral'];
-const linkAppearances: LinkAppearance[] = ['text', 'outline', 'underline'];
+const linkVariants: LinkVariant[] = ['text', 'outline', 'underline'];
 
 function LinkSample({
-  appearance,
+  variant,
   color,
   disabled,
   newTab,
 }: {
-  appearance: LinkAppearance;
+  variant: LinkVariant;
   color: LinkColor;
   disabled?: boolean;
   newTab?: boolean;
 }) {
   const target = newTab ? { href: 'https://k6n.jp/', target: '_blank' } : { href: '#top' };
-  if (appearance === 'outline' || appearance === 'underline') {
+  if (variant === 'outline' || variant === 'underline') {
     return (
-      <Link appearance={appearance} color={color} disabled={disabled} {...target}>
+      <Link variant={variant} color={color} disabled={disabled} {...target}>
         もっと見る
       </Link>
     );
@@ -539,11 +529,11 @@ const linkStates: { label: string; props: { disabled?: boolean; newTab?: boolean
   { label: '新しいタブ（↗）· 押せない', props: { newTab: true, disabled: true } },
 ];
 
-const linkRows: Row[] = linkAppearances.flatMap((appearance) =>
+const linkRows: Row[] = linkVariants.flatMap((variant) =>
   linkColors.map((color) => ({
-    label: `${appearance} · ${color}`,
+    label: `${variant} · ${color}`,
     note: color === 'neutral' ? '色を持たない（既定）' : '色を持つ',
-    cell: (i) => <LinkSample appearance={appearance} color={color} {...linkStates[i].props} />,
+    cell: (i) => <LinkSample variant={variant} color={color} {...linkStates[i].props} />,
   }))
 );
 
@@ -553,7 +543,7 @@ const linkRows: Row[] = linkAppearances.flatMap((appearance) =>
 interface FieldStateProps {
   disabled?: boolean;
   readOnly?: boolean;
-  error?: string;
+  errorText?: string;
   loading?: boolean;
   loadingBehavior?: 'blocking' | 'non-blocking';
   loadingIndicator?: 'spinner' | 'bar';
@@ -566,15 +556,15 @@ interface FieldState {
   form?: boolean;
 }
 
-const errorText = '使えない文字が入っています';
+const errorMessage = '使えない文字が入っています';
 
 function stateSet(withReadOnly: boolean): [FieldState[], FieldState[]] {
   const first: FieldState[] = [
     { label: '通常', props: {} },
     { label: '押せない', props: { disabled: true } },
     ...(withReadOnly ? [{ label: '読み取り専用', props: { readOnly: true } }] : []),
-    { label: 'エラー', props: { error: errorText } },
-    { label: 'エラー＋押せない', props: { error: errorText, disabled: true } },
+    { label: 'エラー', props: { errorText: errorMessage } },
+    { label: 'エラー＋押せない', props: { errorText: errorMessage, disabled: true } },
   ];
   const waiting: FieldState[] = [
     { label: '待っている（止めない）', props: { loading: true } },
@@ -657,7 +647,7 @@ const textRows = (states: FieldState[]): Row[] =>
       ),
   }));
 
-const slots: SelectItem[] = [
+const slots: ListboxItem[] = [
   { value: 'morning', label: '午前' },
   { value: 'afternoon', label: '14〜16時' },
   { value: 'evening', label: '18〜20時' },
@@ -669,7 +659,7 @@ const slots: SelectItem[] = [
   },
 ];
 
-const cities: SelectItem[] = [
+const cities: ListboxItem[] = [
   { value: 'shibuya', label: '渋谷区' },
   { value: 'meguro', label: '目黒区' },
   { value: 'setagaya', label: '世田谷区' },
@@ -707,13 +697,13 @@ const selectSamples: { label: string; note?: string; props: SelectProps }[] = [
   },
   {
     label: '▼を隠す',
-    note: 'disabledIcon="hide"（押せないときだけ効く）',
+    note: 'hideCaretOnDisabled（押せないときだけ効く）',
     props: {
       label: '配送の時間帯',
       caption: '前日までに選びます',
       items: slots,
       defaultValue: 'morning',
-      disabledIcon: 'hide',
+      hideCaretOnDisabled: true,
     },
   },
 ];
@@ -784,11 +774,11 @@ const checkStates = [
   { label: '中間', props: { indeterminate: true } },
 ] as const;
 
-const checkboxStates: { label: string; props: { disabled?: boolean; error?: string } }[] = [
+const checkboxStates: { label: string; props: { disabled?: boolean; errorText?: string } }[] = [
   { label: '通常', props: {} },
   { label: '押せない', props: { disabled: true } },
-  { label: 'エラー', props: { error: '同意が必要です' } },
-  { label: 'エラー＋押せない', props: { error: '同意が必要です', disabled: true } },
+  { label: 'エラー', props: { errorText: '同意が必要です' } },
+  { label: 'エラー＋押せない', props: { errorText: '同意が必要です', disabled: true } },
 ];
 
 const checkboxRows: Row[] = choiceColors.flatMap((color) =>
@@ -837,7 +827,7 @@ const checkboxGroupRows: Row[] = choiceColors.map((color) => ({
         selectAll="すべて"
         allValues={['text', 'image', 'video']}
         disabled={mode.group}
-        error={mode.error ? '選び直してください' : undefined}
+        errorText={mode.error ? '選び直してください' : undefined}
       >
         <Checkbox value="text" label="本文" />
         <Checkbox value="image" label="画像" disabled={mode.item === 'checked'} />
@@ -859,7 +849,7 @@ const radioGroupRows: Row[] = choiceColors.map((color) => ({
         color={color}
         defaultValue="public"
         disabled={mode.group}
-        error={mode.error ? '選び直してください' : undefined}
+        errorText={mode.error ? '選び直してください' : undefined}
       >
         <Radio value="public" label="全体に公開" disabled={mode.item === 'checked'} />
         <Radio value="limited" label="リンクを知っている人" disabled={mode.item === 'unchecked'} />
@@ -885,7 +875,7 @@ const formSample = (submitting: boolean) => (
       <Button type="submit" color="primary">
         送信する
       </Button>
-      <Button type="submit" appearance="outline">
+      <Button type="submit" variant="outline">
         下書きに保存
       </Button>
     </div>
@@ -983,7 +973,7 @@ export const Overview: Story = {
 
         <Section
           title="Button"
-          note='color × appearance。送信中は loading（回る円はラベルに重ねる既定と、inlineSpinner でラベルの左）と loadingIndicator="bar"。'
+          note='color × variant。送信中は loading（回る円はラベルに重ねる既定と、inlineSpinner でラベルの左）と loadingIndicator="bar"。'
         >
           <Table
             id="Button"
@@ -1003,7 +993,7 @@ export const Overview: Story = {
             width={200}
           />
           <SubTitle>
-            ボタンの見た目のリンク（Link の appearance="button"。見た目は上のボタンと同じもの）
+            ボタンの見た目のリンク（Link の variant="button"。見た目は上のボタンと同じもの）
           </SubTitle>
           <Table
             id="Button リンク"
@@ -1016,7 +1006,7 @@ export const Overview: Story = {
 
         <Section
           title="Link"
-          note="appearance × color。押せない文字のリンクはただの文字（下線と ↗ なし、周りの文字の色）。押せない枠線のリンクは、押せないグレーの枠線のボタンと同じ。下線のリンク（appearance の underline）は、押せないときに下線が外れ、押せないグレーのボタンと同じ文字の色になる。ボタンの見た目（appearance の button）のリンクも、押せないときは色を指定していても押せないグレーのボタンと同じ（原則7）。上の Button の節に並べています。"
+          note="variant × color。押せない文字のリンクはただの文字（下線と ↗ なし、周りの文字の色）。押せない枠線のリンクは、押せないグレーの枠線のボタンと同じ。下線のリンク（variant の underline）は、押せないときに下線が外れ、押せないグレーのボタンと同じ文字の色になる。ボタンの見た目（variant の button）のリンクも、押せないときは色を指定していても押せないグレーのボタンと同じ（原則7）。上の Button の節に並べています。"
         >
           <Table
             id="Link"

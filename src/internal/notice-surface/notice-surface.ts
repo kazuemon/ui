@@ -3,8 +3,11 @@ import { tv } from '../tv';
 // お知らせ（Notice）と記事の中の囲み（Callout）で共有する見た目。見た目の決まりをここ 1 か所に置き、読み上げと操作は部品ごとに持つ
 // （Button と、ボタンの見た目の Link と同じ分け方）
 
-/** お知らせの色。状態の色（情報・成功・警告・危険）と、色を持たないグレー（neutral。記事の中のメモなど） */
-export type NoticeColor = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+/** お知らせの状態。情報・成功・警告・危険の色です。書かないときは色を持たないグレー（記事の中のメモなど） */
+export type NoticeStatus = 'info' | 'success' | 'warning' | 'danger';
+
+/** 見た目の割り当てに使う状態。状態を書かないときは neutral（色を持たないグレー） */
+export type NoticeSurfaceStatus = NoticeStatus | 'neutral';
 
 /**
  * 見た目（design/adr/0043）
@@ -13,14 +16,14 @@ export type NoticeColor = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
  * outline: 白い面に、1px の状態の色の枠線。アイコンも枠線の色、文字は濃紺
  * muted: 入力欄と同じグレーの面に、状態の色の小さな題と濃紺の本文。アイコンは既定で出さない（記事の中の補足など、控えめに置くとき）
  */
-export type NoticeAppearance = 'soft' | 'filled' | 'outline' | 'muted';
+export type NoticeVariant = 'soft' | 'filled' | 'outline' | 'muted';
 
 // お知らせ（design/adr/0043）
 // 原則1: 影は付けない。お知らせそのものは押せない。押せるのは中のリンクとボタンだけ（白いボタンは、ボタンなので影がある）
 // 形: アイコン → 題・本文・操作を縦に積み、× は右上。角丸は部品と同じ（--radius-control）。余白と文字は部品の寸法（密度で変わる）
 //   余白は --spacing-control-x、アイコンと文の間は --spacing-control-x から 4px 引いた値
-// 色は状態の役割（--color-{状態}・--color-on-{状態}・--color-fg-{状態}・--color-{状態}-subtle）を color で受け取り、
-//   見た目（appearance）で --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-ring-color に割り当てる
+// 色は状態の役割（--color-{状態}・--color-on-{状態}・--color-fg-{状態}・--color-{状態}-subtle）を status で受け取り、
+//   見た目（variant）で --notice-bg・--notice-fg・--notice-title-color・--notice-icon-color・--notice-ring-color に割り当てる
 // フォーカスの線（design/adr/0031）: soft と outline は濃紺（--color-focus）。filled は塗りの上で青が見えない（1.00〜1.48:1）ので、
 //   中のリンク・ボタン・× の線を文字の色（白か濃紺）にする（ADR-0031 の例外）
 // 中のリンクは、お知らせの文字の色にする（塗りの上でも読めるように）。操作の場所のリンクは太字
@@ -33,7 +36,7 @@ export const noticeSurface = tv({
     '[--focus-follow-color:initial]',
   ],
   variants: {
-    appearance: {
+    variant: {
       // 淡い面に、状態の色の題とアイコン、濃紺の本文（淡い面の上の濃い色は 4.52〜5.93、本文は 12.20〜12.44）
       soft: [
         '[--notice-bg:var(--notice-subtle)] [--notice-fg:var(--color-fg)]',
@@ -71,7 +74,7 @@ export const noticeSurface = tv({
         '[--notice-small-title-leading:var(--leading-body-sm)] [--notice-small-title-size:var(--text-body-sm)]',
       ],
     },
-    color: {
+    status: {
       info: '[--notice-fill:var(--color-info)] [--notice-ink:var(--color-fg-info)] [--notice-on-fill:var(--color-on-info)] [--notice-subtle:var(--color-info-subtle)]',
       success:
         '[--notice-fill:var(--color-success)] [--notice-ink:var(--color-fg-success)] [--notice-on-fill:var(--color-on-success)] [--notice-subtle:var(--color-success-subtle)]',
@@ -84,7 +87,7 @@ export const noticeSurface = tv({
         '[--notice-fill:var(--color-neutral-strong)] [--notice-ink:var(--color-fg-muted)] [--notice-on-fill:var(--color-on-neutral-strong)] [--notice-subtle:var(--color-field)]',
     },
   },
-  defaultVariants: { appearance: 'soft', size: 'control' },
+  defaultVariants: { variant: 'soft', size: 'control' },
 });
 
 // アイコンは文と並ぶので線は Regular（design/adr/0018）。警告と危険は入力欄の下の行と同じ形（design/adr/0041）

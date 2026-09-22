@@ -29,7 +29,7 @@ function SettingsForm() {
         <Popover
           title="保存について"
           description="この端末だけに保存されます。"
-          trigger={<Button appearance="outline">詳しく</Button>}
+          trigger={<Button variant="outline">詳しく</Button>}
         >
           {null}
         </Popover>
@@ -53,7 +53,7 @@ const meta = {
           '- `portalContainer`（既定は `document.body`）: 浮かぶ部分（選択肢・Dialog・Popover・Tooltip・Drawer）と `Portal` を描く場所です。',
           '- `locale`（既定は `ja-JP`）・`timeZone`（既定は `Asia/Tokyo`）: 日付と数を書く言語と、時刻を書くタイムゾーンです。Time・RelativeTime・NumberFormat が読みます（NumberFormat は `locale` だけ）。',
           '- `requiredMark`（既定は `tag`）・`optionalMark`（既定は `none`）: 必須の欄と任意の欄の、ラベルの後ろの印です。`tag` は「必須」のタグ、`asterisk` は赤い「*」、`text` は「任意」です。「*」を使うときは、その意味を伝える一文をフォームの先頭などに置いてください。',
-          '- 部品に `presentation`・`container`・`locale`・`timeZone`・`requiredMark`・`optionalMark` を書いたときは、部品の値が勝ちます。ThemeProvider を入れ子にすると、内側で書いた値だけが外側より勝ちます。',
+          '- 部品に `presentation`・`portalContainer`・`locale`・`timeZone`・`requiredMark`・`optionalMark` を書いたときは、部品の値が勝ちます。ThemeProvider を入れ子にすると、内側で書いた値だけが外側より勝ちます。',
         ].join('\n'),
       },
     },

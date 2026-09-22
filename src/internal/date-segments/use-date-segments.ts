@@ -45,7 +45,7 @@ export interface DateSegmentsOptions<T> {
   /** 書き換えられるか（押せない・読み取り専用・止めているあいだは false） */
   editable: boolean;
   /** 貼り付けた文字が読めなかったとき */
-  onParseFail?: (text: string) => void;
+  onParseFailed?: (text: string) => void;
   /**
    * 値が変わったとき、全角の英数字を半角に直したか（直していなければ null）と、区切りがすべて空になったかを渡す
    * 直すのは NFKC（input）で、これは知らせのためだけに呼ぶ
@@ -147,7 +147,7 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
         return;
       }
       if (!/^[\d/\-.: ]+$/.test(text)) {
-        options.onParseFail?.(raw);
+        options.onParseFailed?.(raw);
         return;
       }
     }

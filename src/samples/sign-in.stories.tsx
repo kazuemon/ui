@@ -8,7 +8,7 @@ import { ResetPasswordScreen, type ServerReply, SignInScreen, SignUpScreen } fro
 
 interface PageArgs {
   reply: ServerReply;
-  errorSummary: boolean;
+  showErrorSummary: boolean;
 }
 
 const meta = {
@@ -22,15 +22,15 @@ const meta = {
       },
     },
   },
-  args: { reply: 'ok', errorSummary: false },
+  args: { reply: 'ok', showErrorSummary: false },
   argTypes: {
     reply: {
       name: 'サーバーの返事',
       control: { type: 'inline-radio', labels: { ok: '成功', error: '失敗' } },
       options: ['ok', 'error'],
     },
-    errorSummary: {
-      name: '新規登録: エラーの一覧（errorSummary）',
+    showErrorSummary: {
+      name: '新規登録: エラーの一覧（showErrorSummary）',
       control: 'boolean',
     },
   },
@@ -52,9 +52,9 @@ export const SignIn: Story = {
 
 export const SignUp: Story = {
   name: '新規登録',
-  render: ({ reply, errorSummary }, { globals }) => (
+  render: ({ reply, showErrorSummary }, { globals }) => (
     <SamplePage density={densityOf(globals)} bare>
-      <SignUpScreen reply={reply} errorSummary={errorSummary} />
+      <SignUpScreen reply={reply} showErrorSummary={showErrorSummary} />
     </SamplePage>
   ),
 };

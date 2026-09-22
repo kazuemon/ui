@@ -20,17 +20,17 @@ const meta = {
           '',
           '- 中には `CodeBlock` を並べます。タブの名前は、それぞれの `title` です。',
           '- 色分けは `CodeBlock` と同じで、ビルド時に Shiki で済ませた HTML を `html` に渡します。',
-          '- コピーのボタンは枠に 1 つだけ置き、いま開いているタブのコードを写します。写せなかったときは、ボタンの下に淡い赤の吹き出しで知らせます（文は `copyErrorLabel`）。',
-          '- `appearance` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地で、中の `CodeBlock` にも渡ります。',
+          '- コピーのボタンは枠に 1 つだけ置き、いま開いているタブのコードを写します。写せなかったときは、ボタンの下に淡い赤の吹き出しで知らせます（文は `copyErrorText`）。',
+          '- `variant` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地で、中の `CodeBlock` にも渡ります。',
           '- `indicator` は、開いているタブの印です。`line`（既定）は文字を濃く太くして下に線を引き、`text` は文字の濃さと太さだけにします。',
           '- タブは ← → キーで移れます。タブが入りきらないときは、帯だけが横にスクロールします。',
         ].join('\n'),
       },
     },
   },
-  args: { appearance: 'surface', indicator: 'line' },
+  args: { variant: 'surface', indicator: 'line' },
   argTypes: {
-    appearance: { control: 'inline-radio', options: ['surface', 'dark'] },
+    variant: { control: 'inline-radio', options: ['surface', 'dark'] },
     indicator: { control: 'inline-radio', options: ['line', 'text'] },
     children: { control: false },
   },
@@ -58,7 +58,7 @@ const tabColumns: { label: string; state?: PreviewState }[] = [
   { label: 'フォーカス（キーボード）', state: 'focus' },
 ];
 
-export const Appearances: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '見た目',
   parameters: { controls: { disable: true } },
@@ -71,7 +71,7 @@ export const Appearances: Story = {
         </CodeGroup>
       </Specimen>
       <Specimen label="dark">
-        <CodeGroup appearance="dark">
+        <CodeGroup variant="dark">
           <CodeBlock title="pnpm" html={pnpmHtml} />
           <CodeBlock title="npm" html={npmHtml} />
         </CodeGroup>
@@ -146,7 +146,7 @@ export const Densities: Story = {
 export const CopyError: Story = {
   name: 'コピーできなかったとき',
   tags: ['visual'],
-  args: { appearance: 'dark' },
+  args: { variant: 'dark' },
   parameters: {
     controls: { disable: true },
     docs: {

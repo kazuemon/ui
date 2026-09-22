@@ -27,7 +27,7 @@ const meta = {
           '- `currentId` を渡すと、スクロールから求めずにその見出しを示します。今の見出しを自分で持つときや、ページの外の仕組み（ルーター）から決めるときに使います。スクロールから求めた見出しが変わると `onCurrentChange` が呼ばれます。',
           '- 一覧の上に `label`（既定は「目次」）を題として出し、読み上げでは目次の名前として読みます。Collapsible の行など、外に題があるときは `hideLabel` で題を消します。',
           '- 今の見出しの印は `currentIndicator` です。`line`（既定）は一覧の左の線に濃い線を重ねて太字に、`text` は太字だけにします。印の色は `color` で選び、既定の `neutral` は本文の色です。',
-          '- 入れ子の段は字下げで見せます。`guides` で段ごとの細い線を引き、`track={false}` で一覧の左の線を消し、`subtleNested` で 2 段目より下の文字を一段淡くします。見出しが 3 段になる記事や、どの見出しの下かを追わせたいときは `guides` が向きます。',
+          '- 入れ子の段は字下げで見せます。`showGuides` で段ごとの細い線を引き、`hideTrack` で一覧の左の線を消し、`subtleNested` で 2 段目より下の文字を一段淡くします。見出しが 3 段になる記事や、どの見出しの下かを追わせたいときは `showGuides` が向きます。',
           '- 記事の横に置くときは Affix に入れて画面に留めます。目次が長いときは ScrollArea に入れて高さを画面に収めます。今の見出しの行は、枠の中だけがスクロールして見えるところに来ます。',
           '',
           '見出しの一覧は、記事を組み立てる側で作ります。MDX なら、見出しに id を付ける rehype-slug と同じ github-slugger で、remark のプラグインから集めます。',
@@ -61,8 +61,8 @@ const meta = {
     hideLabel: false,
     currentIndicator: 'line',
     color: 'neutral',
-    track: true,
-    guides: false,
+    hideTrack: false,
+    showGuides: false,
     subtleNested: false,
   },
   argTypes: {
@@ -73,8 +73,8 @@ const meta = {
     offset: { control: 'number', table: { defaultValue: { summary: '枠の高さの 4 分の 1' } } },
     currentIndicator: { control: 'inline-radio', options: ['line', 'text'] },
     color: { control: 'inline-radio', options: ['neutral', 'primary', 'secondary'] },
-    track: { control: 'boolean' },
-    guides: { control: 'boolean' },
+    hideTrack: { control: 'boolean' },
+    showGuides: { control: 'boolean' },
     subtleNested: { control: 'boolean' },
   },
 } satisfies Meta<typeof TableOfContents>;
@@ -218,8 +218,8 @@ export const CurrentIndicators: Story = {
 
 const nestingRows: [label: string, props: Partial<TableOfContentsProps>][] = [
   ['字下げ（既定）', {}],
-  ['guides', { guides: true }],
-  ['track={false}', { track: false }],
+  ['showGuides', { showGuides: true }],
+  ['hideTrack', { hideTrack: true }],
   ['subtleNested', { subtleNested: true }],
 ];
 
@@ -231,7 +231,7 @@ export const Nesting: Story = {
     docs: {
       description: {
         story:
-          '既定では一覧の左に細い線を 1 本引き、段は字下げで見せます。`guides` は段ごとの細い線を足し、`track={false}` は左の線を消し（今の見出しの印の線は残ります）、`subtleNested` は 2 段目より下の文字を一段淡くします。',
+          '既定では一覧の左に細い線を 1 本引き、段は字下げで見せます。`showGuides` は段ごとの細い線を足し、`hideTrack` は左の線を消し（今の見出しの印の線は残ります）、`subtleNested` は 2 段目より下の文字を一段淡くします。',
       },
     },
     pseudo: variantPseudo,
@@ -358,7 +358,7 @@ function NarrowScene() {
   return (
     <SceneFrame width={360} height={480}>
       <div className="flex flex-col gap-6">
-        <Collapsible title="目次" appearance="filled" open={open} onOpenChange={setOpen}>
+        <Collapsible title="目次" variant="filled" open={open} onOpenChange={setOpen}>
           <TableOfContents items={items} hideLabel onItemClick={() => setOpen(false)} />
         </Collapsible>
         <Article items={items} />
@@ -380,7 +380,7 @@ export const Narrow: Story = {
       source: sourceCode(`
         const [open, setOpen] = useState(false);
 
-        <Collapsible title="目次" appearance="filled" open={open} onOpenChange={setOpen}>
+        <Collapsible title="目次" variant="filled" open={open} onOpenChange={setOpen}>
           <TableOfContents items={headings} hideLabel onItemClick={() => setOpen(false)} />
         </Collapsible>
         <article>…</article>

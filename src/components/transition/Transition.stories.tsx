@@ -53,7 +53,7 @@ const meta = {
           '',
           '- 出方は `preset` で選びます。書かないときは浮かぶ面と同じ出方です。`fade` は濃さだけ、`fade-up` は下から上へ、`fade-down` は上から下へ、`scale` は少し小さい姿から、`collapse` は高さを 0 から伸ばします。',
           '- 消えたあとは DOM から外します。中の入力の値を保ちたいときは `keepMounted` を付けます（`hidden` で隠します）。',
-          '- 一覧に足した項目のように、`show` を true のまま描くときに動かすには `appear` を付けます。外すときは `show` を false にし、`onExitComplete` で一覧から消します。',
+          '- 一覧に足した項目のように、`show` を true のまま描くときに動かすには `appear` を付けます。外すときは `show` を false にし、`onExited` で一覧から消します。',
           '- 描く要素は `render` で変えられます（一覧の中では `<li />`）。',
           '- 動きを減らす設定では、動かさずにすぐ出す・消します。',
         ].join('\n'),
@@ -119,7 +119,7 @@ function TagListExample() {
             show={tag.show}
             preset="scale"
             appear
-            onExitComplete={() => setTags((list) => list.filter((t) => t.label !== tag.label))}
+            onExited={() => setTags((list) => list.filter((t) => t.label !== tag.label))}
           >
             <button
               type="button"
@@ -146,7 +146,7 @@ export const List: Story = {
     docs: {
       description: {
         story:
-          '足した項目は `appear` で出る動きを付けます。外すときは `show` を false にし、消える動きが終わった `onExitComplete` で一覧から消します。',
+          '足した項目は `appear` で出る動きを付けます。外すときは `show` を false にし、消える動きが終わったあとの `onExited` で一覧から消します。',
       },
       source: sourceCode(`
         <ul>
@@ -157,7 +157,7 @@ export const List: Story = {
               show={tag.show}
               preset="scale"
               appear
-              onExitComplete={() => remove(tag.label)}
+              onExited={() => remove(tag.label)}
             >
               …
             </Transition>
@@ -179,7 +179,7 @@ function CollapseExample() {
           <Text>入力した値は、送る前にもう一度確かめられます。</Text>
         </Card>
       </Transition>
-      <Text tone="muted">この文は、上の中身が出ると下へ滑ります。</Text>
+      <Text variant="muted">この文は、上の中身が出ると下へ滑ります。</Text>
     </div>
   );
 }
