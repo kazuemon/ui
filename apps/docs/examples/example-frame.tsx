@@ -1,7 +1,18 @@
 'use client';
 
-import { Button, Drawer, Icon, Link, Radio, RadioGroup, Select, Switch, Text } from '@kazuemon/ui';
-import { CaretRightIcon, SlidersHorizontalIcon } from '@phosphor-icons/react';
+import {
+  Button,
+  Drawer,
+  Icon,
+  Link,
+  OverlayClose,
+  Radio,
+  RadioGroup,
+  Select,
+  Switch,
+  Text,
+} from '@kazuemon/ui';
+import { CaretLeftIcon, SlidersHorizontalIcon, XIcon } from '@phosphor-icons/react';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -139,24 +150,32 @@ export function ExampleFrame({ slug }: { slug: string }) {
           title="見本のコントロール"
           side="right"
           // ページを覆わない: 後ろを暗くせず、開いたまま画面を触れる（押した結果がその場で見える）
-          // フォーカスが外へ出ても閉じない。閉じるのは × か Esc
+          // フォーカスが外へ出ても閉じない。閉じるのは下の「閉じる」か Esc。
+          // 上の × は隠す（下と 2 つ「閉じる」ボタンがあると、読み上げで見分けが付かないため）
           modal={false}
           dismissible={false}
+          hideCloseButton
           trigger={
             <Button iconOnly shape="circle" color="primary" aria-label="表示を切り替える">
               <Icon icon={SlidersHorizontalIcon} standalone />
             </Button>
           }
           actions={
-            <Link
-              variant="outline"
-              className="w-full"
-              contentAlign="center-end"
-              render={<NextLink href="/examples" />}
-            >
-              見本の一覧に戻る
-              <CaretRightIcon />
-            </Link>
+            // 戻る（左）と閉じる（右）で両端に分ける。Drawer の footer は既定で右寄せの並びなので、
+            // 1 つの幅いっぱいの行にして中で justify-between にする
+            <div className="flex w-full items-center justify-between">
+              <Link variant="outline" render={<NextLink href="/examples" />}>
+                <CaretLeftIcon />
+                見本の一覧に戻る
+              </Link>
+              <OverlayClose
+                render={
+                  <Button iconOnly shape="circle" variant="outline" aria-label="閉じる">
+                    <Icon icon={XIcon} standalone />
+                  </Button>
+                }
+              />
+            </div>
           }
         >
           <div className="flex flex-col gap-5">
