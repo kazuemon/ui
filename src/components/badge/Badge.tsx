@@ -1,12 +1,14 @@
 import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { badgeSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
 // Badge（数と小さな状態の点）— 後半の軸 39 で A 案（高さ 16px の濃い塗り、重ねるときは縁 2px）に決めた。値は design/tokens.css の --badge-* にある
 // タグ（src/components/tag/Tag.tsx）とは別の、素の要素で作る部品。押せない
 //   数: 高さ --badge-size の pill。1桁で丸になり、2桁以上は横に伸びる（左右の余白 --badge-pad-x）。max を超えると「99+」
 //   点: 数を渡さないとき。直径 --badge-dot
+// 大きさ（sm・md・lg・inherit）は Tag・Badge・Chip 共通の 1 本の軸 — ADR-0259（値は src/internal/small-parts-size.ts）。既定は sm
 // 色は濃い塗りに白い文字。状態の色は塗りのお知らせ（filled）と同じ、グレーはトグルの ON と同じ濃いグレー。淡い面に濃い文字のタグと見分ける
 //   警告の点だけは、白地の文字・アイコンと同じオリーブ（--color-fg-warning）。黄色の点は白地で 1.20:1 しかない（原則6）
 //   警告の数の丸は、黄色に濃紺の文字のまま
@@ -29,7 +31,7 @@ const badge = tv({
     },
     shape: {
       count:
-        'h-(--badge-size) min-w-(--badge-size) px-(--badge-pad-x) text-(length:--text-caption) leading-(--badge-size)',
+        'h-(--badge-size) min-w-(--badge-size) px-(--badge-pad-x) text-[length:var(--badge-font)] leading-(--badge-size)',
       dot: 'size-(--badge-dot)',
     },
     overlay: {
@@ -41,13 +43,20 @@ const badge = tv({
       square: {},
       circular: {},
     },
+    size: badgeSizeClass,
   },
   compoundVariants: [
     { color: 'warning', shape: 'dot', class: 'bg-fg-warning' },
     // 45° の点は、辺の中心から (1 - cos45°) ≈ 0.292893 だけ内側（半分の 14.6447% を top・right に使う）
     { overlay: true, overlap: 'circular', class: 'top-[14.6447%] right-[14.6447%]' },
   ],
-  defaultVariants: { color: 'neutral', shape: 'dot', overlay: false, overlap: 'square' },
+  defaultVariants: {
+    color: 'neutral',
+    shape: 'dot',
+    overlay: false,
+    overlap: 'square',
+    size: 'sm',
+  },
 });
 
 export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'children'> {
@@ -67,6 +76,12 @@ export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'chil
    * @default 'neutral'
    */
   color?: VariantProps<typeof badge>['color'];
+  /**
+   * 大きさ。sm は今までの高さ（丸 16px）、md は欄の中のチップと同じ段（丸 20px）、lg は部品の高さと同じ段（丸 24px）です。
+   * inherit は段を持たず、周りの文字の大きさ（em）に従います。Tag・Badge・Chip で共通の軸です（ADR-0259）
+   * @default 'sm'
+   */
+  size?: SmallPartsSize;
   /**
    * 読み上げの名前。画面には出ません。渡すと、見えている数字の代わりにこの文を読み上げます。
    * 文字の横やボタンの中に置いて、数字だけでは意味が伝わらないときに使います（例: accessibleName={(count) => `（未読 ${count} 件）`}）。
@@ -104,6 +119,7 @@ export function Badge({
   count,
   max = 99,
   color,
+  size,
   accessibleName,
   children,
   overlap = 'square',
@@ -123,6 +139,7 @@ export function Badge({
     <span
       className={badge({
         color,
+        size,
         shape: count === undefined ? 'dot' : 'count',
         overlay,
         overlap,

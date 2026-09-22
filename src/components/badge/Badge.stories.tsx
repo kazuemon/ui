@@ -49,6 +49,11 @@ const meta = {
       options: [...userColors, ...statusColors],
       table: { defaultValue: { summary: "'neutral'" } },
     },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg', 'inherit'],
+      table: { defaultValue: { summary: "'sm'" } },
+    },
   },
 } satisfies Meta<typeof Badge>;
 
@@ -324,6 +329,49 @@ export const Label: Story = {
     await expect(canvas.getByText('99+')).toHaveAttribute('aria-hidden', 'true');
     await expect(canvas.getByText('（128 件）')).toHaveClass('sr-only');
   },
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'sm（既定）・md・lg の 3 段です（ADR-0259）。丸は Tag・Chip と同じ段に乗せます。inherit は段を持たず、周りの文字の大きさに従います。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery>
+      <Specimen label="sm・md・lg">
+        <Row>
+          <Badge count={3} color="danger" size="sm" />
+          <Badge count={3} color="danger" size="md" />
+          <Badge count={3} color="danger" size="lg" />
+          <Badge color="success" size="sm" />
+          <Badge color="success" size="md" />
+          <Badge color="success" size="lg" />
+        </Row>
+      </Specimen>
+      <Specimen label="inherit（本文 16px）">
+        <span className="inline-flex items-center gap-1.5 font-bold" style={{ fontSize: 16 }}>
+          <Badge color="success" size="inherit" />
+          稼働中
+        </span>
+      </Specimen>
+      <Specimen label="inherit（注記 14px）">
+        <span
+          className="inline-flex items-center gap-1.5 font-bold text-fg-muted"
+          style={{ fontSize: 14 }}
+        >
+          <Badge color="success" size="inherit" />
+          稼働中
+        </span>
+      </Specimen>
+    </Gallery>
+  ),
 };
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）

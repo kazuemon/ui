@@ -2,7 +2,14 @@
 
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { Tabs as BaseTabs } from '@base-ui/react/tabs';
-import { type ComponentProps, type ReactElement, type ReactNode, useEffect, useRef } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
@@ -17,6 +24,8 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //     色は部品の色（原則6）。指定しないときはグレー（濃いグレーの線・グレーの面）。フォーカスの線も部品の色（ADR-0071）
 //     indicator・indicatorMotion が選ぶ値は、Tabs のルートに内部の CSS 変数（--tabs-indicator-*・--tabs-list-*・--tabs-tab-color）として置き、他のスロットはその変数だけを読む
 //   選んだタブの文字は太くする。太くしても幅が変わらないよう、太字の写しを見えないまま重ねて幅を取っておく（印が動くあいだにタブが揺れない）
+//   縦向き（orientation="vertical"、軸 264・決定、ADR-0258）: 並びを左、中身を右に置く。印は縦の棒で、並びの線と一緒に中身側（並びの右端）に立てる
+//     タブの寄せは tabAlign（start・end）、並びの幅は listWidth（決めるとタブは幅いっぱい）。どちらも --tabs-vertical-* に置き、スロットはその変数だけを読む
 //   並びが入り切らないときは横にスクロールする。続きは左右の端の内側の影で見せ、つまみは載せたときだけ出す（原則1。ScrollArea と同じ）
 //     枠そのものには Tab で止まらない（タブにフォーカスすると、そのタブが見える位置までスクロールする）
 //     フォーカスの線が枠で切れないよう、枠を外へ広げ、同じだけ内側に余白を取る（--tabs-ring-room）
@@ -24,6 +33,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //   フォーカスの線（軸 120・決定、ADR-0148）: タブは内側に引く（--tabs-tab-focus-offset。外に離すと下の印・並びの線を越える）
 //     パネルは全体と同じ離れで、角を小さくする（--tabs-panel-radius。1 行のパネルでも pill に見えない）
 //   はじめに選んでおいたタブが見えている範囲の外にあるとき、マウント時にその位置までスクロールする（動きを減らす設定では滑らせない）
+//     縦向きのときはしない（縦の並びは横にあふれず、外の枠まで動いてしまう）
 
 export type TabsColor = 'neutral' | 'primary' | 'secondary';
 
@@ -33,30 +43,51 @@ export type TabsColor = 'neutral' | 'primary' | 'secondary';
  */
 export type TabsIndicator = 'line' | 'underline' | 'subtle' | 'segmented' | 'text';
 
+/** 並べる向き。horizontal: 横に並べ、中身は下（既定）。vertical: 縦に積み、中身は右 */
+export type TabsOrientation = 'horizontal' | 'vertical';
+
 /** 選んだタブが変わったときの印の動き。slide: 印が滑って移る（既定）。none: 動かさずすぐ切り替える */
 export type TabsIndicatorMotion = 'slide' | 'none';
 
 /** タブの値。Tab と TabPanel を結び付けます */
 export type TabValue = string | number | null;
 
+/** 縦向きのタブの寄せ。start は左寄せ、end は右寄せ（文字の終わりが線にそろう） */
+export type TabsTabAlign = 'start' | 'end';
+
 /** タブの並びと中身のあいだの余白。段は Stack の gap と同じです */
 export type TabsPanelGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const tabs = tv({
   slots: {
-    root: 'flex min-w-0 flex-col',
+    root: [
+      'flex min-w-0 flex-col [--tabs-vertical-list-width:max-content]',
+      // 縦向き: 並びを左、中身を右に置く（並びは中身の高さに引き伸ばさない）
+      'data-[orientation=vertical]:flex-row data-[orientation=vertical]:items-start',
+    ],
     // フォーカスの線（外に 4px）が枠で切れないよう、枠を広げて内側に余白を取る
-    scroller:
+    scroller: [
       '-m-(--tabs-ring-room) [--tabs-ring-room:calc(var(--focus-ring-offset)+var(--focus-ring-width))]',
+      // 縦向き: 並びは中身に押し潰されない
+      'in-data-[orientation=vertical]:shrink-0',
+    ],
     // 並びの下の細い線（line の印と組む）。幅いっぱいに引くので、並びではなく中身の包みに描く
     content: [
       'relative isolate p-(--tabs-ring-room)',
       "after:pointer-events-none after:absolute after:inset-x-(--tabs-ring-room) after:bottom-(--tabs-ring-room) after:-z-1 after:h-(--tabs-line-width) after:bg-line after:opacity-(--tabs-list-line-opacity) after:content-['']",
+      // 縦向き: 線は並びの右端（中身に近い側）に立てる（ADR-0258）
+      'in-data-[orientation=vertical]:after:top-(--tabs-ring-room) in-data-[orientation=vertical]:after:right-auto in-data-[orientation=vertical]:after:h-auto in-data-[orientation=vertical]:after:w-(--tabs-line-width)',
+      'in-data-[orientation=vertical]:after:left-[calc(100%-var(--tabs-ring-room)-var(--tabs-line-width))]',
     ],
     list: [
       'relative isolate flex w-max items-center gap-(--tabs-gap)',
       // 溝（segmented）: 並びにグレーを敷き、内側に余白を取る。角は小物の pill
       'rounded-pill bg-(color:--tabs-list-bg) p-(--tabs-list-pad)',
+      // 縦向き: タブを縦に積む。並びの幅は listWidth（--tabs-vertical-list-width）、寄せは tabAlign（--tabs-vertical-tab-align）
+      //   溝（segmented）の角は、縦に長い溝でも pill にせず、タブの pill と同心にする（原則5）
+      'data-[orientation=vertical]:w-(--tabs-vertical-list-width) data-[orientation=vertical]:flex-col',
+      'data-[orientation=vertical]:rounded-[calc(var(--spacing-control)/2)]',
+      'data-[orientation=vertical]:[align-items:var(--tabs-vertical-tab-align)]',
     ],
     tab: [
       'relative z-1 inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap select-none',
@@ -73,6 +104,8 @@ const tabs = tv({
       '[--focus-ring-offset:var(--tabs-tab-focus-offset)]',
       '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
+      // 縦向き: 文字の寄せは並びの寄せと同じ（stretch のときは行頭から）
+      'data-[orientation=vertical]:[justify-content:var(--tabs-vertical-tab-align)]',
       ...focusRing,
     ],
     // 見える中身と、幅を取っておく太字の写し（同じ升に重ねる）
@@ -88,15 +121,23 @@ const tabs = tv({
       // --active-tab-* は Base UI がこの要素にだけ書くので、位置はここで解く。--tabs-indicator-full が 1 ならタブ全体、0 なら下の線
       '[top:calc(var(--active-tab-top)+(var(--active-tab-height)-var(--tabs-indicator-bar))*(1-var(--tabs-indicator-full)))]',
       '[height:calc(var(--tabs-indicator-bar)+(var(--active-tab-height)-var(--tabs-indicator-bar))*var(--tabs-indicator-full))]',
+      // 縦向き: 印はタブの高さいっぱいの縦の棒（full が 1 ならタブ全体）。棒は並びの右端（中身側）に立てる（ADR-0258）
+      //   横向きで並びの線の上に乗るのと同じで、タブが幅いっぱいでなくても線と同じ位置に立つ
+      'data-[orientation=vertical]:[top:var(--active-tab-top)] data-[orientation=vertical]:[bottom:var(--active-tab-bottom)] data-[orientation=vertical]:[height:auto]',
+      'data-[orientation=vertical]:[left:calc(var(--active-tab-left)*var(--tabs-indicator-full)+(1-var(--tabs-indicator-full))*(100%-var(--tabs-indicator-bar)))]',
+      'data-[orientation=vertical]:[right:calc(var(--active-tab-right)*var(--tabs-indicator-full))]',
       'rounded-(--tabs-indicator-radius) opacity-(--tabs-indicator-opacity) shadow-(--tabs-indicator-shadow)',
       'bg-(color:--tabs-indicator-bg)',
-      '[transition:left_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),right_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),top_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),height_var(--tabs-indicator-duration)_var(--tabs-indicator-ease)]',
+      '[transition:left_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),right_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),top_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),bottom_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),height_var(--tabs-indicator-duration)_var(--tabs-indicator-ease)]',
       'motion-reduce:[transition:none]',
     ],
     panel: [
       // 角は小さく、1 行でもフォーカスの線が pill に見えない（軸 120）
       // 並びと中身のあいだの余白は panelGap（既定は Stack の md と同じ 16px）。Tabs が --tabs-panel-pad に配る（ADR-0254 の M-04）
       'mt-(--tabs-panel-pad) rounded-(--tabs-panel-radius)',
+      // 縦向き: 中身は並びの右。上の余白を横の余白に置き換える
+      'data-[orientation=vertical]:mt-0 data-[orientation=vertical]:ml-(--tabs-panel-pad)',
+      'data-[orientation=vertical]:min-w-0 data-[orientation=vertical]:flex-1',
       '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
@@ -164,6 +205,12 @@ const tabs = tv({
       none: { root: '[--tabs-indicator-duration:0ms]' },
     },
     // 並びと中身のあいだの余白（ADR-0254 の M-04）。段は Stack の gap と同じ値を使う
+    // 縦向きのタブの寄せ（軸 264・決定、ADR-0258）。stretch は listWidth を決めたときに Tabs が選ぶ
+    tabAlign: {
+      start: { root: '[--tabs-vertical-tab-align:start]' },
+      end: { root: '[--tabs-vertical-tab-align:end]' },
+      stretch: { root: '[--tabs-vertical-tab-align:stretch]' },
+    },
     panelGap: {
       none: { root: '[--tabs-panel-pad:0px]' },
       xs: { root: '[--tabs-panel-pad:var(--stack-gap-xs)]' },
@@ -178,6 +225,7 @@ const tabs = tv({
     indicator: 'line',
     indicatorMotion: 'slide',
     panelGap: 'md',
+    tabAlign: 'start',
   },
 });
 
@@ -210,6 +258,23 @@ export interface TabsProps extends Omit<ComponentProps<'div'>, 'color' | 'defaul
    */
   indicatorMotion?: TabsIndicatorMotion;
   /**
+   * 並べる向き。horizontal はタブを横に並べて中身を下に、vertical はタブを縦に積んで中身を右に置きます。
+   * 縦のときは、上下の矢印キーでタブを移ります
+   * @default 'horizontal'
+   */
+  orientation?: TabsOrientation;
+  /**
+   * 縦向き（orientation="vertical"）でのタブの寄せ。start は左寄せ、end は右寄せで、文字の終わりが線にそろいます。
+   * 横向きでは効きません。listWidth を決めたときはタブが幅いっぱいになり、この指定は使いません
+   * @default 'start'
+   */
+  tabAlign?: TabsTabAlign;
+  /**
+   * 縦向き（orientation="vertical"）での並びの幅（CSS の長さ。例: '12rem'）。決めるとタブは幅いっぱいに伸び、
+   * subtle・segmented の塗りが帯になります。決めないときは、いちばん長いタブに合わせます。横向きでは効きません
+   */
+  listWidth?: string;
+  /**
    * 並びと中身（TabPanel）のあいだの余白。段は Stack の gap と同じで、none にすると余白がなくなります。
    * すべての TabPanel に配ります
    * @default 'md'
@@ -222,7 +287,8 @@ export interface TabsProps extends Omit<ComponentProps<'div'>, 'color' | 'defaul
 }
 
 /**
- * タブ。見出し（Tab）を 1 列に並べ、選んだものの中身（TabPanel）だけを出します
+ * タブ。見出し（Tab）を 1 列に並べ、選んだものの中身（TabPanel）だけを出します。
+ * `orientation="vertical"` にすると、見出しを縦に積み、中身を右に置きます
  */
 export function Tabs({
   value,
@@ -231,18 +297,35 @@ export function Tabs({
   color,
   indicator,
   indicatorMotion,
+  orientation,
+  tabAlign,
+  listWidth,
   panelGap,
   className,
+  style,
   ...props
 }: TabsProps) {
+  const vertical = orientation === 'vertical';
   return (
     <BaseTabs.Root
       {...props}
       data-slot="tabs"
+      style={
+        vertical && listWidth
+          ? ({ ...style, '--tabs-vertical-list-width': listWidth } as CSSProperties)
+          : style
+      }
       value={value}
       defaultValue={defaultValue}
       onValueChange={onValueChange ? (next: TabValue) => onValueChange(next) : undefined}
-      className={tabs({ color, indicator, indicatorMotion, panelGap }).root({ className })}
+      orientation={orientation}
+      className={tabs({
+        color,
+        indicator,
+        indicatorMotion,
+        panelGap,
+        tabAlign: vertical && listWidth ? 'stretch' : tabAlign,
+      }).root({ className })}
     />
   );
 }
@@ -268,7 +351,8 @@ export interface TabListProps extends ComponentProps<'div'> {
 }
 
 /**
- * Tab を横に並べる列。入り切らないときは横にスクロールします
+ * Tab を並べる列。横向きでは横に並べ、入り切らないときは横にスクロールします。
+ * Tabs が `orientation="vertical"` のときは縦に積みます
  */
 export function TabList({ className, children, ref, ...props }: TabListProps) {
   const s = tabs();
@@ -280,7 +364,10 @@ export function TabList({ className, children, ref, ...props }: TabListProps) {
   // はじめに選んでおいたタブが、見えている範囲の外にあるとき、その位置までスクロールして見せる
   // 動きを減らす設定では滑らせない。あとでタブを選び直したときは、Base UI のフォーカス移動でスクロールする
   useEffect(() => {
-    const active = listRef.current?.querySelector<HTMLElement>('[data-slot="tab"][data-active]');
+    const list = listRef.current;
+    // 縦向きでは滑らせない（縦の並びは横にあふれず、外の枠まで動いてしまう）
+    if (!list || list.dataset.orientation === 'vertical') return;
+    const active = list.querySelector<HTMLElement>('[data-slot="tab"][data-active]');
     if (!active) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     active.scrollIntoView({

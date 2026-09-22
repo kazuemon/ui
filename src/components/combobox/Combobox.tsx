@@ -5,8 +5,9 @@ import { type ComponentProps, type ReactNode, useId, useMemo, useState } from 'r
 
 import { ComboboxChips, ComboboxTriggerChips } from '../../internal/combobox-base/ComboboxChips';
 import {
-  type ChipSize,
-  comboboxChipStyle,
+  type ComboboxChipSize,
+  comboboxChipHeightStyle,
+  comboboxChipMaxWidthStyle,
   comboboxControl,
   comboboxInputClass,
   controlInset,
@@ -390,10 +391,11 @@ export interface ComboboxProps<Multiple extends boolean = false> extends FieldMa
    */
   chipMaxWidth?: string;
   /**
-   * `multiple` のチップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくします
-   * @default 'sm'
+   * `multiple` のチップの大きさ（Chip の size にそのまま渡します。ADR-0259）。
+   * 既定の md は今までの欄の中のチップと同じ高さです。sm は Tag と同じ高さ、lg は部品の高さです
+   * @default 'md'
    */
-  chipSize?: ChipSize;
+  chipSize?: ComboboxChipSize;
   /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
   name?: string;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
@@ -480,7 +482,7 @@ export function Combobox<Multiple extends boolean = false>({
   hideCaretOnDisabled = false,
   chevron = 'always',
   chipMaxWidth,
-  chipSize = 'sm',
+  chipSize = 'md',
   name,
   form,
   required,
@@ -583,7 +585,9 @@ export function Combobox<Multiple extends boolean = false>({
   // 浮かぶ選択肢とシートの外枠（src/internal/combobox-base）。シートは、キーボードが隠している分だけ持ち上げて残りに収める
   const popupShell = { sheet, densityScope, keyboardInset, keyboardShrink, sheetDetent };
 
-  const chipStyle = comboboxChipStyle(chipMaxWidth, chipSize);
+  const chipStyle = comboboxChipMaxWidthStyle(chipMaxWidth);
+  // 打つ欄を、欄の中のチップと同じ高さにそろえる（h-(--combobox-chip-height)）
+  const chipHeightStyle = comboboxChipHeightStyle(chipSize);
   const selected = selectedTokens(color);
   const grouped = isGroupedItems(filteredItems ?? items);
 
@@ -641,6 +645,7 @@ export function Combobox<Multiple extends boolean = false>({
         ref={inSheet ? undefined : setFieldElement}
         data-slot={inSheet ? 'combobox-sheet-input' : 'control'}
         data-field-readonly={readOnly || undefined}
+        style={multiple ? chipHeightStyle : undefined}
         className={comboboxControl({
           color,
           loading,
@@ -656,6 +661,7 @@ export function Combobox<Multiple extends boolean = false>({
             chipsName={chipsName}
             chipRemoveName={chipRemoveName}
             color={color}
+            chipSize={chipSize}
             readOnly={readOnly}
             disabled={disabled || blocking}
             chipStyle={chipStyle}
@@ -750,6 +756,7 @@ export function Combobox<Multiple extends boolean = false>({
                   values={values}
                   labelOf={labelOf}
                   color={color}
+                  chipSize={chipSize}
                   disabled={disabled || blocking}
                   chipStyle={chipStyle}
                 />

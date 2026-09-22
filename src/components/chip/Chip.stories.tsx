@@ -48,6 +48,11 @@ const meta = {
     },
     disabled: { table: { defaultValue: { summary: 'false' } } },
     readOnly: { table: { defaultValue: { summary: 'false' } } },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg', 'inherit'],
+      table: { defaultValue: { summary: "'md'" } },
+    },
   },
 } satisfies Meta<typeof Chip>;
 
@@ -133,6 +138,55 @@ export const States: Story = {
         </Specimen>
       </Gallery>
     </div>
+  ),
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { exclude: ['size'] },
+    docs: {
+      description: {
+        story:
+          'sm・md（既定）・lg の 3 段です（ADR-0259）。sm は消す × の丸をチップの高さいっぱいに広げます（原則にない判断）。inherit は段を持たず、周りの文字の大きさに従います。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="sm・md・lg">
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip {...args} size="sm">
+            sm
+          </Chip>
+          <Chip {...args} size="md">
+            md
+          </Chip>
+          <Chip {...args} size="lg">
+            lg
+          </Chip>
+        </div>
+      </Specimen>
+      <Specimen label="inherit（本文 16px）">
+        <p style={{ fontSize: 16 }}>
+          デザインのタグ{' '}
+          <Chip readOnly size="inherit" color="primary">
+            デザイン
+          </Chip>{' '}
+          が付いています
+        </p>
+      </Specimen>
+      <Specimen label="inherit（注記 14px）">
+        <p style={{ fontSize: 14 }} className="text-fg-muted">
+          デザインのタグ{' '}
+          <Chip readOnly size="inherit" color="primary">
+            デザイン
+          </Chip>{' '}
+          が付いています
+        </p>
+      </Specimen>
+    </Gallery>
   ),
 };
 

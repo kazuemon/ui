@@ -12,8 +12,8 @@ import {
 } from 'react';
 
 import {
-  type ChipSize,
-  comboboxChipStyle,
+  type ComboboxChipSize,
+  comboboxChipMaxWidthStyle,
   comboboxControl,
   comboboxInputClass,
   controlInsetEnd,
@@ -77,6 +77,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
+import { chipHeightValue } from '../../internal/small-parts-size';
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
@@ -271,10 +272,11 @@ export interface TagsInputProps extends FieldMarkProps {
    */
   chipMaxWidth?: string;
   /**
-   * チップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくします
-   * @default 'sm'
+   * チップの大きさ（Chip の size にそのまま渡します。ADR-0259）。
+   * 既定の md は今までの欄の中のチップと同じ高さです。sm は Tag と同じ高さ、lg は部品の高さです
+   * @default 'md'
    */
-  chipSize?: ChipSize;
+  chipSize?: ComboboxChipSize;
   /**
    * 欄の中にタグを並べる行数の上限。書かないときは、行が増えるたびに欄が高くなります（既定）。
    * 指定すると、その行数で欄の高さが止まり、あふれた分は縦にスクロールします。
@@ -436,7 +438,7 @@ export function TagsInput({
   chipRemoveName = defaultChipRemoveName,
   chipsName = '追加したタグ',
   chipMaxWidth,
-  chipSize = 'sm',
+  chipSize = 'md',
   maxRows,
   emptyText,
   open: openProp,
@@ -646,24 +648,25 @@ export function TagsInput({
   };
   const popupShell = { sheet, densityScope, keyboardInset, keyboardShrink, sheetDetent };
 
-  const chipStyle = comboboxChipStyle(chipMaxWidth, chipSize);
-  // 行数の上限（maxRows）。欄に置いた変数を、チップを並べる枠（TagsInputChips）が読む
-  //   2 行以上: その行数の高さで止めて縦にスクロールする。1 行分の高さはチップの高さ（ADR-0217。md は一段大きい）
+  const chipStyle = comboboxChipMaxWidthStyle(chipMaxWidth);
+  // 欄に置く変数。打つ欄の高さをチップにそろえ（--combobox-chip-height）、行数の上限（maxRows）があれば
+  // チップを並べる枠（TagsInputChips）が読む変数も足す
+  //   2 行以上: その行数の高さで止めて縦にスクロールする。1 行分の高さはチップの高さ（ADR-0217・0259）
   //   1 行: 折り返さず、横にスクロールする（1 行で折り返すと、1 つ足すたびに見える中身が入れ替わる）
-  const rowsStyle = useMemo<CSSProperties | undefined>(() => {
-    if (maxRows === undefined) return undefined;
+  const rowsStyle = useMemo<CSSProperties>(() => {
+    const rowHeight = chipHeightValue[chipSize];
+    const base: CSSProperties = { '--combobox-chip-height': rowHeight } as CSSProperties;
+    if (maxRows === undefined) return base;
     if (maxRows <= 1) {
       return {
+        ...base,
         '--tags-input-wrap': 'nowrap',
         '--tags-input-chip-shrink': '0',
         '--tags-input-content-min-width': 'max-content',
       } as CSSProperties;
     }
-    const rowHeight =
-      chipSize === 'md'
-        ? 'calc(var(--spacing-control) - var(--spacing) * 2)'
-        : 'var(--combobox-chip-height)';
     return {
+      ...base,
       // 行の高さ × 行数 ＋ 行のあいだの間 ＋ 枠の上下の余白
       '--tags-input-max-height': `calc(${maxRows} * (${rowHeight} + var(--spacing)) + var(--spacing))`,
     } as CSSProperties;
@@ -763,6 +766,7 @@ export function TagsInput({
               chipsName={chipsName}
               chipRemoveName={chipRemoveName}
               color={color}
+              chipSize={chipSize}
               readOnly={readOnly}
               disabled={disabled || blocking}
               chipStyle={chipStyle}

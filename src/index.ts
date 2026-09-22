@@ -368,7 +368,9 @@ export {
   type TabsColor,
   type TabsIndicator,
   type TabsIndicatorMotion,
+  type TabsOrientation,
   type TabsPanelGap,
+  type TabsTabAlign,
   type TabsProps,
   type TabValue,
 } from './components/tabs/Tabs';
@@ -485,7 +487,9 @@ export type {
   ListboxItemNote,
   ListboxItemNoteKind,
 } from './internal/listbox/use-listbox-option';
-export type { ChipSize } from './internal/combobox-base/combobox-control-styles';
+export type { ComboboxChipSize } from './internal/combobox-base/combobox-control-styles';
 export type { ComboboxSheetCloseIcon } from './internal/combobox-base/ComboboxParts';
+/** Tag・Badge・Chip 共通の大きさの軸（ADR-0259） */
+export type { SmallPartsSize } from './internal/small-parts-size';
 /** tailwind-merge の設定。利用者の cn() で `extendTailwindMerge(twMergeConfig)` に渡す（design/adr/0077） */
 export { twMergeConfig } from './internal/tv';

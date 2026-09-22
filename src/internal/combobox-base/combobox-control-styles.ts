@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 
 import { controlBox } from '../field/field-styles';
 import { type ListboxColor, OWN_FOCUS } from '../listbox/listbox-colors';
+import { chipHeightValue, type SmallPartsSize } from '../small-parts-size';
 
 // 打って選ぶ入力欄（Combobox・Autocomplete・TagsInput）の本体の並び — ADR-0214〜0221
 //   本体（原則2・8）: ふだんはグレーの塗りで枠線なし、フォーカスで枠線が付く
@@ -68,25 +69,23 @@ export const comboboxChipsClass = `flex min-w-0 flex-1 items-center gap-(--spaci
 export const comboboxTriggerChipsClass =
   'flex min-w-0 flex-1 flex-wrap items-center gap-(--spacing)';
 
-/** 欄の中のチップ。部品の高さより一段小さくする（--combobox-chip-*） */
-export const comboboxChipClass =
-  'max-w-full min-w-0 [--spacing-control-x:var(--combobox-chip-padding-x)] [--spacing-control:var(--combobox-chip-height)]';
+/** 欄の中のチップ。大きさは Chip 自身の size（ADR-0259。Combobox・TagsInput の chipSize をそのまま渡す）が決める */
+export const comboboxChipClass = 'max-w-full min-w-0';
 
-/** チップの高さ。sm は部品の高さより一段小さく、md はそれより少し大きくする（ADR-0237） */
-export type ChipSize = 'sm' | 'md';
+/** Combobox・TagsInput の chipSize（inherit は欄の中では使わない） */
+export type ComboboxChipSize = Exclude<SmallPartsSize, 'inherit'>;
 
-/** チップの最大幅と高さ（チップの style に置く）。既定のままのときは何も置かない */
-export function comboboxChipStyle(
-  chipMaxWidth: string | undefined,
-  chipSize: ChipSize
+/** チップの最大幅（チップの style に置く）。渡さないときは何も置かない */
+export function comboboxChipMaxWidthStyle(
+  chipMaxWidth: string | undefined
 ): CSSProperties | undefined {
-  if (!chipMaxWidth && chipSize !== 'md') return undefined;
-  return {
-    ...(chipMaxWidth ? { maxWidth: chipMaxWidth } : {}),
-    ...(chipSize === 'md'
-      ? ({
-          '--combobox-chip-height': 'calc(var(--spacing-control) - var(--spacing) * 2)',
-        } as CSSProperties)
-      : {}),
-  };
+  return chipMaxWidth ? { maxWidth: chipMaxWidth } : undefined;
+}
+
+/**
+ * 欄の中に並ぶチップと同じ高さに、打つ欄をそろえるための --combobox-chip-height。
+ * 本体（InputGroup）の style に置くと、打つ欄の h-(--combobox-chip-height) が読む
+ */
+export function comboboxChipHeightStyle(chipSize: ComboboxChipSize): CSSProperties {
+  return { '--combobox-chip-height': chipHeightValue[chipSize] } as CSSProperties;
 }

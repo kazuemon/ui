@@ -309,9 +309,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - 見本の入口 `@kazuemon/ui/samples`（`src/samples/` と見本用の fixtures をそこへ寄せるかは決めていません。M-12）
 - `render` に渡した要素の `target` を部品が読む作り（サーバーコンポーネントから渡すと読めません。対応策は別途検討します。M-18）
 - Fieldset と Field の公開（`InputFieldProps` の型は公開しましたが、`Field` 自体の公開は Fieldset を作るときに検討します。M-13）
-- Tabs の縦向きの見た目（`orientation` は型から塞いだままです。見た目を決める軸として比べます。P-17）
-- Tag・Badge・Chip の大きさの 1 本の軸（いまは Chip だけ大きさの props がありません。軸として比べます。M-30）
-- Text の variant の段（`body`・`muted`・`subtle`・`label`・`caption`。名前は variant に決まりましたが、それぞれの見た目は軸として比べていません）
+- Tabs の縦向きで、並びが画面に入り切らないときの扱い（縦のスクロールと端の影）。横向きのスクロールの帯（ADR-0258 の軸では決めていません）
 - Menu の項目の照合文字の `label` の扱い（typeahead 用に別名にするか、Base UI と同じ意味のまま残すかは決めていません）
 
 ### props の直し（記録済み、未実装）
