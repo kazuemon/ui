@@ -175,6 +175,9 @@ export function NumberField({
   optionalMark,
   autoFocus,
   halfWidthNotice = false,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -259,6 +262,10 @@ export function NumberField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={[scrub && 'relative', className].filter(Boolean).join(' ') || undefined}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <BaseNumberField.Root

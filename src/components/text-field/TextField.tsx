@@ -49,6 +49,10 @@ export function TextField({
   optionalMark,
   onValueChange,
   inputProps,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -75,6 +79,10 @@ export function TextField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox

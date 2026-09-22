@@ -156,6 +156,10 @@ export function MaskField({
   onChange,
   onCompositionStart,
   onCompositionEnd,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
@@ -278,6 +282,10 @@ export function MaskField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox

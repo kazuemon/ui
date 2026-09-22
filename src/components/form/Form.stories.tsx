@@ -7,7 +7,7 @@ import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from '../button/Button';
 import { Checkbox } from '../checkbox/Checkbox';
 import { CheckboxGroup } from '../checkbox/CheckboxGroup';
-import { Form, type FormProps } from './Form';
+import { Form, type FormErrors, type FormProps } from './Form';
 import { Notice } from '../notice/Notice';
 import { Select } from '../select/Select';
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
@@ -237,14 +237,16 @@ const meta = {
     docs: {
       description: {
         component: [
-          '送信したときの、エラーの知らせ方を受け持つフォームです。値を確かめるのはアプリで、`onSubmit` の中で各欄の `errorText`・`warningText` を決めます。Form は、その描画のあとでフォーカスを移します。',
+          '送信したときの、エラーの知らせ方を受け持つフォームです（Base UI の Form の上に作っています）。値を確かめるのは、`onSubmit` の中でアプリが各欄の `errorText`・`warningText` を決めるか、欄の `validate` を渡すか、外から返ってきたエラーを `errors` で渡すかです。Form は、その描画のあとでフォーカスを移します。',
           '',
           '- 既定では、エラーのある最初の欄へフォーカスを移し、入力した文字を選びます。その欄の名前と説明（キャプション → エラー）が読まれます。',
           '- `showErrorSummary` を付けると、フォームの上にエラーの一覧（題と、各欄へのリンク）を出し、一覧へフォーカスを移します。長いフォームに向きます。欄を直すと一覧から消え、なくなると一覧を閉じます。',
           '- 警告は送信を止めないので、フォーカスの移る先にも一覧にも入りません。',
           '- 送信で出た行は読み上げで知らせません（フォーカスの移った先で読むため）。欄を離れたときなど、あとから出た行は知らせます。',
           '- `submitting` を `true` から `false` に戻した描画でエラーの行があれば、送信したときと同じくフォーカスを移します（サーバーから返ってきたエラー）。送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます。',
-          '- ブラウザの検証の吹き出しは出しません（`noValidate` の既定が `true`）。',
+          '- ブラウザの検証の吹き出しは出しません（`noValidate` の既定が `true`）。欄の `required` などは、この吹き出しの代わりに Base UI 自身が送信のたびに確かめます。正しくない欄があれば、Form の `onSubmit`・`onFormSubmit` を呼ばずに、先にその欄へフォーカスを移します。',
+          '- `errors`（キーは欄の `name`、値はエラーの文）を渡すと、一致した欄の下の行に出し、その欄をエラーの状態にします。`onFormSubmit` は、Base UI の検証を通ったときに、欄の名前と値の組を 1 つのオブジェクトにして呼びます。',
+          "- react-hook-form などのライブラリを使うときは、ライブラリの検証結果を `errors` に渡し、欄の `validate` は使いません（二重に検証しないため）。`inputProps={register('email')}`・`errors={toFormErrors(formState.errors)}` のように、欄とフォームへ渡します。",
           '- `requiredMark`・`optionalMark` で、中の欄の必須・任意の印をまとめて決められます。欄に書いた props が勝ちます。「*」（`asterisk`）を使うときは、その意味を伝える一文をフォームの先頭などに置いてください。エラーの一覧の欄の名前には、印の文字は入りません。',
           '',
           '下の例は、メールアドレスの形・ユーザー名・市区町村を確かめます。「登録する」を押して確かめてください。',
@@ -345,6 +347,93 @@ export const FocusGroup: Story = {
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '送る' }));
     await waitFor(() => expect(canvas.getByRole('checkbox', { name: '電話' })).toHaveFocus());
+  },
+};
+
+// name は validate（design/adr/0255）で確かめる。メールアドレスは既定（onSubmit）、ユーザー名は欄を離れたとき（onBlur）
+function ValidationForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
+  return (
+    <Form {...props} className="flex max-w-sm flex-col gap-5">
+      <TextField
+        name="email"
+        label="メールアドレス"
+        caption="ログインに使います"
+        autoComplete="off"
+        validate={(value) => {
+          const text = typeof value === 'string' ? value : '';
+          if (!text) return 'メールアドレスを入力してください';
+          return emailPattern.test(text) ? null : 'メールアドレスの形が正しくありません';
+        }}
+      />
+      <TextField
+        name="username"
+        label="ユーザー名"
+        caption="欄を離れたときにも確かめます"
+        autoComplete="off"
+        validationMode="onBlur"
+        validate={(value) => (value ? null : 'ユーザー名を入力してください')}
+      />
+      <Button type="submit" color="primary" className="self-start">
+        送る
+      </Button>
+    </Form>
+  );
+}
+
+// Show code: 状態を持ち、ハンドラーが要の例なので、写して使える部品の形を source.code に手で書く
+export const FieldValidation: Story = {
+  name: '欄の検証',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`validate` は、いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文を返します。`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。Form の `onSubmit`・`errors` は要りません。react-hook-form などのライブラリを使うときは、ライブラリの検証結果を Form の `errors` に渡し、`validate` は使いません（二重に検証しないため）。',
+      },
+      source: sourceCode(`
+        function ValidationForm() {
+          return (
+            <Form className="flex max-w-sm flex-col gap-5">
+              <TextField
+                name="email"
+                label="メールアドレス"
+                caption="ログインに使います"
+                autoComplete="off"
+                validate={(value) => {
+                  const text = typeof value === 'string' ? value : '';
+                  if (!text) return 'メールアドレスを入力してください';
+                  return emailPattern.test(text) ? null : 'メールアドレスの形が正しくありません';
+                }}
+              />
+              <TextField
+                name="username"
+                label="ユーザー名"
+                caption="欄を離れたときにも確かめます"
+                autoComplete="off"
+                validationMode="onBlur"
+                validate={(value) => (value ? null : 'ユーザー名を入力してください')}
+              />
+              <Button type="submit" color="primary">送る</Button>
+            </Form>
+          );
+        }
+      `),
+    },
+  },
+  render: (args) => <ValidationForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '送る' }));
+    await waitFor(() => expect(canvas.getByLabelText('メールアドレス')).toHaveFocus());
+    // 送信では、validationMode を書いていない欄（既定の onSubmit）も、書いた欄（onBlur）も、両方確かめる
+    await expect(canvas.getByText('メールアドレスを入力してください')).toBeInTheDocument();
+    await expect(canvas.getByText('ユーザー名を入力してください')).toBeInTheDocument();
+    // ユーザー名を打って離れると、行が閉じる（validationMode="onBlur"）。説明（キャプションだけ）が1つに戻る
+    const username = canvas.getByLabelText('ユーザー名');
+    await expect(username.getAttribute('aria-describedby')?.split(' ')).toHaveLength(2);
+    await userEvent.type(username, 'kazuemon');
+    await userEvent.tab();
+    await waitFor(() =>
+      expect(username.getAttribute('aria-describedby')?.split(' ')).toHaveLength(1)
+    );
   },
 };
 
@@ -501,6 +590,90 @@ export const ServerErrorMoved: Story = {
       'aria-live',
       'polite'
     );
+  },
+};
+
+// 送ると 1 秒後に Form の errors（design/adr/0255）でエラーが返るフォーム。onFormSubmit は Base UI の検証を通ったときに呼ばれる
+function FormErrorsForm(props: Omit<FormProps, 'onFormSubmit' | 'children'>) {
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>();
+  return (
+    <Form
+      {...props}
+      submitting={submitting}
+      errors={errors}
+      onFormSubmit={() => {
+        setErrors(undefined);
+        setSubmitting(true);
+        // サーバー（や react-hook-form などの検証結果）に送る代わり。1 秒後にエラーが返る
+        setTimeout(() => {
+          // errors を渡すのと submitting を false にするのは、同じ描画で行う
+          setErrors({ email: 'このメールアドレスはもう使われています' });
+          setSubmitting(false);
+        }, 1000);
+      }}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      <TextField
+        name="email"
+        label="メールアドレス"
+        defaultValue="kazu@example.com"
+        autoComplete="off"
+      />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  );
+}
+
+const formErrorsCode = sourceCode(`
+  function FormErrorsForm() {
+    const [submitting, setSubmitting] = useState(false);
+    const [errors, setErrors] = useState<FormErrors>();
+    return (
+      <Form
+        submitting={submitting}
+        errors={errors}
+        onFormSubmit={() => {
+          setErrors(undefined);
+          setSubmitting(true);
+          // サーバーに送る代わり。1 秒後にエラーが返る
+          setTimeout(() => {
+            // errors を渡すのと submitting を false にするのは、同じ描画で行う
+            setErrors({ email: 'このメールアドレスはもう使われています' });
+            setSubmitting(false);
+          }, 1000);
+        }}
+        className="flex max-w-sm flex-col gap-5"
+      >
+        <TextField name="email" label="メールアドレス" defaultValue="kazu@example.com" autoComplete="off" />
+        <Button type="submit" color="primary">登録する</Button>
+      </Form>
+    );
+  }
+`);
+
+// Show code: 状態を持ち、ハンドラーが要の例なので、写して使える部品の形を source.code に手で書く
+export const FormLevelErrors: Story = {
+  name: 'サーバーのエラー',
+  parameters: {
+    controls: { exclude: ['submitting'] },
+    docs: {
+      description: {
+        story:
+          '`onFormSubmit` は、Base UI の検証を通ったときに、欄の名前と値の組を1つのオブジェクトにして呼びます。送った先（サーバーや react-hook-form など）が返したエラーは、`errors`（キーは欄の `name`）に渡します。name が一致した欄の下に出て、欄をエラーの状態にし、`submitting` を `false` に戻すのと同じ描画で渡せば、送信したときと同じくフォーカスも移ります。',
+      },
+      source: formErrorsCode,
+    },
+  },
+  render: (args) => <FormErrorsForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ args, canvas }) => {
+    if (args.showErrorSummary) return;
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const email = canvas.getByLabelText('メールアドレス');
+    await waitFor(() => expect(email).toHaveFocus(), { timeout: 3000 });
+    await expect(canvas.getByText('このメールアドレスはもう使われています')).toBeInTheDocument();
   },
 };
 

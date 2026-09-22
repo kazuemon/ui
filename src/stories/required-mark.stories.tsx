@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
@@ -191,17 +191,18 @@ export const WholeForm: Story = {
   render: () => <AsteriskForm />,
 };
 
+// name は validate（design/adr/0255）で文を決める。required は Base UI 自身も送信のときに確かめ、
+// 空なら先にそこへフォーカスを移す（validate も呼ばれるので、行には name が返す文が出る）
 function AnnounceForm() {
-  const [error, setError] = useState<string | undefined>(undefined);
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const field = event.currentTarget.elements.namedItem('name');
-    const value = field instanceof HTMLInputElement ? field.value : '';
-    setError(value ? undefined : 'お名前を入力してください');
-  };
   return (
-    <Form showErrorSummary onSubmit={onSubmit} className="flex max-w-sm flex-col gap-5">
-      <TextField name="name" label="お名前" required autoComplete="off" errorText={error} />
+    <Form showErrorSummary className="flex max-w-sm flex-col gap-5">
+      <TextField
+        name="name"
+        label="お名前"
+        required
+        autoComplete="off"
+        validate={(value) => (value ? null : 'お名前を入力してください')}
+      />
       <Select label="都道府県" items={areas} placeholder="選んでください" required />
       <CheckboxGroup label="ご連絡の方法" required caption="1つ以上選んでください">
         <Checkbox value="mail" label="メール" />
@@ -235,8 +236,9 @@ export const Announce: Story = {
     await expect(group).not.toHaveAttribute('aria-required');
     await expect(group).toHaveAccessibleDescription(/1つ以上選んでください/);
     // エラーの一覧の欄の名前に、印の文字が入らない
+    // 都道府県も required なので、Base UI 自身の検証で一覧に並ぶ（ブラウザの既定の文）
     await userEvent.click(canvas.getByRole('button', { name: '送る' }));
-    const summary = await canvas.findByRole('group', { name: '入力を確かめてください（1件）' });
+    const summary = await canvas.findByRole('group', { name: '入力を確かめてください（2件）' });
     await waitFor(() =>
       expect(
         within(summary).getByRole('link', { name: 'お名前: お名前を入力してください' })

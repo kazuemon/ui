@@ -707,6 +707,7 @@ export function TagsInput({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
     >
       {(messageIds) => (
         <BaseCombobox.Root<string, true, ListboxItem>

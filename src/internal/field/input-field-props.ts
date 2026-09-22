@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 
-import type { CaptionPlacement, FieldLoadingBehavior } from './Field';
+import type {
+  CaptionPlacement,
+  FieldLoadingBehavior,
+  FieldValidate,
+  FieldValidationMode,
+} from './Field';
 import type { FieldMarkProps } from './FieldMark';
 import type { AddonShape } from '../../components/field-addon/field-addon-context';
 import type { LoadingIndicator } from '../../components/loading/Loading';
@@ -81,4 +86,24 @@ export interface InputFieldProps extends FieldMarkProps {
    * @default 'spinner'
    */
   loadingIndicator?: LoadingIndicator;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
+   * （複数あれば配列）を返します。何も返さない・null・空文字・空配列は「正しい」とみなします。非同期の関数も使えます。
+   * 返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します。
+   * react-hook-form などのライブラリを使うときは、ライブラリの検証結果を Form の `errors` に渡し、`validate` は使いません（二重に検証しないため）
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
+   * - `onSubmit`（既定）: フォームを送信したときに確かめます。以降は打つたびに確かめ直します
+   * - `onBlur`: 欄を離れたときに確かめます
+   * - `onChange`: 打つたびに確かめます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
 }

@@ -185,7 +185,7 @@ export const Consent: Story = {
     docs: {
       description: {
         story:
-          '同意のように1つだけ置く箱は、`required` で必須にし（横の文字の後ろに印が出て、箱に aria-required が付きます）、`errorText` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。「登録する」を押して確かめてください。',
+          '同意のように1つだけ置く箱は、`required` で必須にし（横の文字の後ろに印が出て、箱に aria-required が付きます）、`errorText` で箱の行の下にエラーの行を出します。行は箱の説明につながり、`Form` で送信したときは、エラーのある最初の欄としてこの箱にフォーカスが移ります。`required` は Base UI 自身も送信のときに確かめるので、`errorText` を渡す前（アプリが決める前）に、この箱が先に選ばれます。「登録する」を押して確かめてください。',
       },
       source: sourceCode(`
         function ConsentForm() {
@@ -223,15 +223,14 @@ export const Consent: Story = {
     await expect(box).toHaveAttribute('aria-required', 'true');
     await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
     await waitFor(() => expect(box).toHaveFocus());
-    const line = await canvas.findByText('利用規約に同意してください');
-    const lineId = line.closest('[id]')?.id;
+    // required を Base UI 自身が確かめて、先にこの箱を選ぶ。行の文はブラウザの既定（このストーリーの errorText はまだ出ない）
     // 説明は見た目の順（キャプション → エラー）
+    await waitFor(() => expect(box.getAttribute('aria-describedby')?.split(' ')).toHaveLength(2));
     const ids = box.getAttribute('aria-describedby')?.split(' ') ?? [];
-    await expect(ids).toHaveLength(2);
     await expect(document.getElementById(ids[0])).toHaveTextContent(
       '規約は登録の前にお読みください'
     );
-    await expect(ids[1]).toBe(lineId);
+    await expect(document.getElementById(ids[1])).not.toBeEmptyDOMElement();
     await userEvent.click(box);
     await waitFor(() => expect(box.getAttribute('aria-describedby')?.split(' ')).toHaveLength(1));
   },

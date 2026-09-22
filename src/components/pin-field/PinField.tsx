@@ -58,6 +58,9 @@ export interface PinFieldProps
       | 'loadingBehavior'
       | 'requiredMark'
       | 'optionalMark'
+      | 'validate'
+      | 'validationMode'
+      | 'validationDebounceTime'
     >,
     HalfWidthNoticeProps {
   /**
@@ -209,6 +212,10 @@ export function PinField({
   ref,
   inputProps,
   halfWidthNotice = false,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   ...props
 }: PinFieldProps) {
   // Form の送信中・blocking の待ちは、TextField と同じく押せない欄の見た目にし、書き換えを止める。フォーカスは外さない
@@ -247,6 +254,10 @@ export function PinField({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <div
@@ -255,6 +266,7 @@ export function PinField({
         >
           <OTPField.Root
             {...props}
+            name={name}
             ref={ref}
             length={length}
             validationType="none"

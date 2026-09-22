@@ -11,6 +11,8 @@ import {
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
+  type FieldValidate,
+  type FieldValidationMode,
 } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import { useFormSubmittingLock } from '../../internal/form-context';
@@ -142,6 +144,21 @@ export interface SelectProps<Multiple extends boolean = false> extends FieldMark
   onValueChange?: (value: SelectValue<Multiple>) => void;
   /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
   name?: string;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
+   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
@@ -293,6 +310,9 @@ export function Select<Multiple extends boolean = false>({
   defaultValue,
   onValueChange,
   name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   form,
   inputRef,
   open: openProp,
@@ -424,6 +444,10 @@ export function Select<Multiple extends boolean = false>({
       optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <BaseSelect.Root<string, boolean>

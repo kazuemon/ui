@@ -35,6 +35,8 @@ import {
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
+  type FieldValidate,
+  type FieldValidationMode,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
@@ -398,6 +400,21 @@ export interface ComboboxProps<Multiple extends boolean = false> extends FieldMa
   chipSize?: ComboboxChipSize;
   /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
   name?: string;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
+   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
@@ -484,6 +501,9 @@ export function Combobox<Multiple extends boolean = false>({
   chipMaxWidth,
   chipSize = 'md',
   name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   form,
   required,
   requiredMark,
@@ -816,6 +836,10 @@ export function Combobox<Multiple extends boolean = false>({
       className={className}
       // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない（Select と同じ）
       nativeLabel={!inputInSheet}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <BaseCombobox.Root<string, boolean, ListboxItem>

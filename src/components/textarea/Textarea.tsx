@@ -168,6 +168,10 @@ export function Textarea({
   maxLength,
   onChange,
   onValueChange,
+  name,
+  validate,
+  validationMode,
+  validationDebounceTime,
   ref,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
@@ -255,6 +259,10 @@ export function Textarea({
       requiredMark={requiredMark}
       optionalMark={optionalMark}
       className={className}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <>

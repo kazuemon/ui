@@ -116,6 +116,9 @@ export function DateField({
   color = 'neutral',
   onParseFailed,
   halfWidthNotice = false,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
 }: DateFieldProps) {
   const formLock = useFormSubmittingLock();
@@ -153,6 +156,10 @@ export function DateField({
       optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox

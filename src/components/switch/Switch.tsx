@@ -5,7 +5,12 @@ import { Switch as BaseSwitch } from '@base-ui/react/switch';
 import { type ComponentProps, type ReactNode, type Ref, useId } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { type CaptionPlacement, FieldMessageLine } from '../../internal/field/Field';
+import {
+  type CaptionPlacement,
+  FieldMessageLine,
+  mergeBaseFieldError,
+  useFormFieldErrors,
+} from '../../internal/field/Field';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { focusRing } from '../../internal/focus-styles';
@@ -426,11 +431,12 @@ export function Switch({
         <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
       </BaseSwitch.Root>
       {/* エラー・警告の行（入力欄と同じ — design/adr/0041・0044）。行の最後の2行に置く */}
-      <FieldMessageLine
-        kind="error"
-        content={errorText}
+      <SwitchErrorLine
+        errorText={errorText}
         id={ids.error}
         className="col-span-full row-start-[-3] mt-0 data-open:mt-0"
+        name={name}
+        disabled={disabled}
       />
       <FieldMessageLine
         kind="warning"
@@ -439,5 +445,38 @@ export function Switch({
         className="col-span-full row-start-[-2] mt-0 data-open:mt-0"
       />
     </BaseField.Root>
+  );
+}
+
+// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI 自身が見つけたエラーを読む（design/adr/0255）
+// required など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
+function SwitchErrorLine({
+  errorText,
+  id,
+  className,
+  name,
+  disabled,
+}: {
+  errorText?: FieldMessage;
+  id: string;
+  className?: string;
+  name: string | undefined;
+  disabled: boolean | undefined;
+}) {
+  const formErrors = useFormFieldErrors();
+  return (
+    <BaseField.Validity>
+      {(validity) => {
+        const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
+        return (
+          <FieldMessageLine
+            kind="error"
+            content={errorText ?? baseError}
+            id={id}
+            className={className}
+          />
+        );
+      }}
+    </BaseField.Validity>
   );
 }

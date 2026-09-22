@@ -155,7 +155,7 @@ export {
 } from './components/footnote/Footnote';
 export { FieldAddonButton, type FieldAddonButtonProps } from './components/field-addon/FieldAddon';
 export type { AddonShape } from './components/field-addon/field-addon-context';
-export { Form, type FormProps } from './components/form/Form';
+export { Form, type FormErrors, type FormProps } from './components/form/Form';
 export {
   Heading,
   type HeadingLevel,
@@ -465,7 +465,12 @@ export {
   VisuallyHidden,
   type VisuallyHiddenProps,
 } from './components/visually-hidden/VisuallyHidden';
-export type { CaptionPlacement, FieldLoadingBehavior } from './internal/field/Field';
+export type {
+  CaptionPlacement,
+  FieldLoadingBehavior,
+  FieldValidate,
+  FieldValidationMode,
+} from './internal/field/Field';
 export type { FieldMessage, InputFieldProps } from './internal/field/input-field-props';
 export type { RequiredMark, OptionalMark } from './internal/field/FieldMark';
 export type { FormSubmittingBehavior } from './internal/form-context';

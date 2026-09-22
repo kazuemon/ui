@@ -126,6 +126,9 @@ export function TimeField({
   color = 'neutral',
   onParseFailed,
   halfWidthNotice = false,
+  validate,
+  validationMode,
+  validationDebounceTime,
   'aria-describedby': ariaDescribedBy,
 }: TimeFieldProps) {
   const formLock = useFormSubmittingLock();
@@ -162,6 +165,10 @@ export function TimeField({
       optionalMark={optionalMark}
       className={className}
       nativeLabel={false}
+      name={name}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
     >
       {(messageIds) => (
         <FieldBox
