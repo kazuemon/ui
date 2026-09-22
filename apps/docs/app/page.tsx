@@ -4,12 +4,15 @@ import {
   Callout,
   Container,
   Link,
+  LinkCard,
   Prose,
   TableOfContents,
   type TableOfContentsItem,
   Text,
 } from '@kazuemon/ui';
+import NextLink from 'next/link';
 
+import { examples } from '../examples/manifest';
 import { SiteHeader } from './site-header';
 
 const STORYBOOK = 'https://story.ui.k6n.jp/';
@@ -17,10 +20,19 @@ const REPOSITORY = 'https://github.com/kazuemon/ui';
 const PRINCIPLES = 'https://github.com/kazuemon/ui/blob/main/design/principles.md';
 const ADR = 'https://github.com/kazuemon/ui/blob/main/design/adr/README.md';
 
+// トップページから見本への動線に出す 3 つ（記事・サインイン・ダッシュボード。画面の種類が伝わる組み合わせ）
+const FEATURED_EXAMPLE_SLUGS = ['article', 'sign-in', 'dashboard'];
+const featuredExamples = FEATURED_EXAMPLE_SLUGS.map((slug) =>
+  examples.find((example) => example.slug === slug)
+).filter((example) => example !== undefined);
+
 const toc: TableOfContentsItem[] = [
   { id: 'motivation', text: 'なぜ作っているのか', level: 2 },
   { id: 'milestone', text: 'マイルストーン', level: 2 },
-  { id: 'storybook', text: 'いま見られるもの', level: 2 },
+  { id: 'seen', text: 'いま見られるもの', level: 2 },
+  { id: 'examples', text: '見本のページ', level: 3 },
+  { id: 'storybook', text: 'Storybook', level: 3 },
+  { id: 'github', text: 'GitHub', level: 3 },
 ];
 
 const milestones = [
@@ -118,19 +130,55 @@ export default function Home() {
             </Prose>
 
             <Prose as="article" className="mt-10">
-              <h2 id="storybook">いま見られるもの</h2>
+              <h2 id="seen">いま見られるもの</h2>
+
+              <p>部品は 70 個ほどです。実際の画面に並べた見本、Storybook、GitHub で見られます。</p>
+
+              <h3 id="examples">見本のページ</h3>
 
               <p>
-                部品は 70
-                個ほどです。状態と密度を並べたストーリーと、実際の画面に並べた見本（記事・ドキュメント・サインイン・設定・一覧・SNS）が
-                Storybook にあります。
+                よくある画面を実際のコンポーネントで構成したサンプルページです（記事・ドキュメント・サインイン・設定・一覧・SNS
+                など）。
               </p>
             </Prose>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link variant="button" color="primary" href={STORYBOOK} target="_blank">
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              {featuredExamples.map(({ slug, title, description }) => (
+                <LinkCard
+                  key={slug}
+                  title={title}
+                  description={description}
+                  site={false}
+                  render={<NextLink href={`/examples/${slug}`} />}
+                />
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <Link variant="button" color="primary" render={<NextLink href="/examples" />}>
+                他の見本も見る
+              </Link>
+            </div>
+
+            <Prose as="article" className="mt-10">
+              <h3 id="storybook">Storybook</h3>
+
+              <p>部品の一覧です。状態・色・密度を並べて、1 つずつ確かめられます。</p>
+            </Prose>
+
+            <div className="mt-4">
+              <Link variant="outline" href={STORYBOOK} target="_blank">
                 Storybook を見る
               </Link>
+            </div>
+
+            <Prose as="article" className="mt-10">
+              <h3 id="github">GitHub</h3>
+
+              <p>デザイン原則や、決めた経緯（ADR）も公開しています。ソースコードも読めます。</p>
+            </Prose>
+
+            <div className="mt-4">
               <Link variant="outline" href={REPOSITORY} target="_blank">
                 GitHub で見る
               </Link>
