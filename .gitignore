@@ -23,8 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# storybook build outputs
-docs
+# storybook build outputs（ルートの docs/ だけ。apps/docs は追跡する）
+/docs
+
+# next.js（apps/docs）
+.next
+apps/docs/out
+next-env.d.ts
+*.tsbuildinfo
+
 # design canvas builds (regenerate with design/tools/generate-round.mjs)
 design/rounds/*/build
 design/rounds/*.html

@@ -4,7 +4,7 @@
 
 ## 目的と縛り
 
-- 部品を使う人向けの公開ドキュメントです。いま GitHub Pages に出している Storybook を置き換えます
+- 部品を使う人向けの公開ドキュメントです。**Storybook は置き換えません**（2026-09-22 に変更。以前は Storybook を置き換える計画でしたが、Storybook は状態・密度の一覧や props の確かめに残し、Docs はガイドや見本のような読みものとして別に持ちます）。ホスティングは下記「ホスティング」を参照
 - **見た目は、すべて @kazuemon/ui の公開 export で作ります。** docs 側では、見た目を持つ部品も CSS も Tailwind のクラスも書きません
 - 足りない部品があれば、docs 側で似たものを作らず、素の HTML 要素（ブラウザの既定の見た目）で済ませて backlog に積みます。ページの見た目が欠けていれば、それが次に作る部品の一覧になります
 - 設計の記録（principles・ADR）も載せます。原本は `design/` に置いたままにし、docs はそれを読み込むだけにします
@@ -36,6 +36,7 @@
 └─ apps/docs/
    ├─ package.json             "@kazuemon/ui": "workspace:*"
    ├─ next.config.mjs          createMDX（fumadocs-mdx/next）、output: 'export'、basePath
+   ├─ postcss.config.mjs       @tailwindcss/postcss の 1 行だけ
    ├─ source.config.ts         collection の定義（docs と design の 2 つ）
    ├─ lib/source.ts            loader（fumadocs-core/source）
    ├─ mdx-components.tsx       MDX の要素と部品の対応表。ライブラリの Prose から受け取るだけ
@@ -51,7 +52,7 @@
 
 ## フェーズ 0：ライブラリの入口を作る
 
-> **状態（2026-09-17）**: 1〜3 は済みました（`src/index.ts`、`package.json` の `exports`・`files`、`src/styles/index.css`・`theme.css`・`globals.css` の分割）。`index.css` はストーリーのクラスを拾いません。残りは 4 と「確かめること」です。
+> **状態（2026-09-20）**: フェーズ 0 は済みました。1〜3（`src/index.ts`、`package.json` の `exports`・`files`、`src/styles/index.css`・`theme.css`・`globals.css` の分割）に続いて、4 と「確かめること」を `apps/docs` の最小の Next.js アプリで実際に動かして確かめました。`pnpm-workspace.yaml` に `packages: ['apps/*']` を足し、`apps/docs` に `package.json`・`next.config.mjs`・`postcss.config.mjs`・`tsconfig.json`・`app/globals.css`・`app/layout.tsx`・`app/page.tsx` を置いてあります。ページは Navbar・Container・Prose・Callout・Button・Link だけで組み、docs 側には `className` も CSS も書いていません。ルートの `pnpm typecheck`・`lint`・`format:check`・`test` は通ります（ライブラリ側は触っていません）。
 
 docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`src/` を直接読ませないのは、公開している export だけで組めるかも同時に確かめるためです。
 
@@ -69,7 +70,12 @@ docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`s
 3. CSS を分ける。今の `globals.css` は `@source '../../design/stories'` を含むので、利用者に渡すと design の比較ストーリーまで読みにいきます。`@source` を `src` だけにした `index.css` を切り出し、Storybook の `globals.css` はそれを読んだうえで `design/stories` を足します
 4. Tailwind は docs 側で `@tailwindcss/postcss` を使ってビルドする。docs にはクラスを書かないので、`@source` はライブラリの `src` だけで足ります
 
-**確かめること:** workspace のルートのパッケージを `workspace:*` で参照できるか。`ibm-plex-sans-jp.css` のフォントの URL を Next の CSS が解決できるか。
+**確かめたこと（2026-09-20、すべて通りました）:**
+
+- **`workspace:*` の参照:** `apps/docs/node_modules/@kazuemon/ui` はリポジトリ直下へのシンボリックリンクになります。react も 1 つの実体を共有するので、hook の二重読み込みは起きません
+- **Tailwind の `@source`:** `@import '@kazuemon/ui/styles.css'` から先の `@source '../../src'` は、シンボリックリンクをたどってリポジトリ直下の `src` を読みます。docs に 1 つもクラスを書いていないのに、書き出した CSS には部品のクラス（`rounded-control`・`prose-*` の余白・`data-slot` の規則）が入り、比較ストーリーのクラスは入りません。`@source` の相対パスは CSS のある場所から解決されるので、docs 側で `@source` を足す必要はありません
+- **和文フォントの URL:** `ibm-plex-sans-jp.css` の `url(../../node_modules/@fontsource/...)` は Turbopack が解決し、`out/_next/static/media/` に約 1000 個の woff2・woff として出ます。ブラウザでも Mulish・IBM Plex Sans JP・Geist Mono の 3 つが実際に読み込まれます
+- **静的な書き出し:** `next build` で `out/` に出ます。配信して headless Chrome で開くと、部品の見た目が当たり、console のエラーはなく、狭い画面の Navbar のメニュー（Drawer）も開きます
 
 ## フェーズ 1：骨組み（素の文字だけ）
 
@@ -80,6 +86,13 @@ docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`s
 5. `next build` で `out/` に静的に書き出せることを確かめる
 
 この時点のサイドバーは、`source.pageTree` を素の `<ul>` と `<a>` で並べたものです。見た目がないのは想定どおりです。
+
+フェーズ 0 で分かった、フェーズ 1 で効くこと:
+
+- **ライブラリの部品には `'use client'` が付いていません。** サーバー部品から直に描くと落ちるので、部品を使うページかその包みに docs 側で `'use client'` を書きます。MDX のページを丸ごと client にしたくなければ、ライブラリ側の部品に `'use client'` を足すか、docs に薄い client の包みを置くかを決めます
+- **ページの地の色と文字の色を塗る部品がありません。** `body` は素のまま（白地に黒）で、`--color-bg`・`--color-fg` は当たりません。部品の中は塗られるので目立ちませんが、暗い配色を入れる前に、ライブラリ側で `body` に当てるか、ページの枠の部品を作るかを決めます
+- **縦の余白を持つ部品がありません。** Container は幅と左右の余白だけなので、Navbar と本文がくっつきます。docs に `className` を書かずに済ませるには、ページの上下の余白を持つ部品（または Container の指定）が要ります
+- **Next が書き出す手引き:** `next dev` は既定で `apps/docs` に `AGENTS.md` と `CLAUDE.md` を作ります。`next.config.mjs` の `agentRules: false` で止めてあります
 
 ## フェーズ 2：動く例と props の表
 
@@ -131,10 +144,23 @@ docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`s
 
 ## フェーズ 5：公開
 
-- `.github/workflows/storybook.yml` を docs のビルドに置き換え、`apps/docs/out` を GitHub Pages に上げる
-- リポジトリは `kazuemon/ui` なので、Pages の URL は `/ui` の下になります。`basePath: '/ui'` と `images: { unoptimized: true }` を設定する（独自ドメインにするなら `basePath` は要りません）
-- Storybook は公開しない。play のテスト（vitest）と、決めている途中の軸の比較にだけ使う
 - CI で `pnpm typecheck`・`pnpm test`・docs のビルド・縛りの確かめを走らせる
+- 公開先は下記「ホスティング」のとおり、Cloudflare Pages（独自ドメイン）です。`basePath` は要りません
+
+## ホスティング（2026-09-22 に決定）
+
+Docs と Storybook は、別々の Cloudflare Pages プロジェクトとして、別のサブドメインに出します。1 つのサイトにまとめる案（`ui.k6n.jp/storybook` のようなサブパス）は検討しましたが、ドメインを分ける形に決めました。
+
+| サイト    | ドメイン          | プロジェクトのビルド設定                                                          |
+| --------- | ----------------- | --------------------------------------------------------------------------------- |
+| Docs      | `ui.k6n.jp`       | Root directory `apps/docs`・Build command `pnpm build`・Output directory `out`    |
+| Storybook | `story.ui.k6n.jp` | Root directory `/`・Build command `pnpm build-storybook`・Output directory `docs` |
+
+- どちらも Cloudflare の Git 連携（Connect to Git）で作る。GitHub Actions の secrets は使わない（ビルドと配信は Cloudflare 側のインフラで完結するため、fork からの PR でも安全）
+- ブランチ・PR ごとのプレビュー URL と、PR への自動コメントは Cloudflare 側の機能でそのまま付く
+- `k6n.jp` は Cloudflare 管理の DNS なので、カスタムドメインの追加は各プロジェクトの Custom domains 設定から数クリックで終わる。証明書は Pages のカスタムドメインが個別に発行するので、`story.ui.k6n.jp` のような 2 段のサブドメインでも無料プランのまま通る（ゾーンの Universal SSL のワイルドカードとは別経路）
+- 旧 `.github/workflows/storybook.yml`（GitHub Pages への配信）・`storybook-preview.yml`（PR の zip artifact）は削除した。**この PR をマージしたら、GitHub Pages への自動デプロイは止まる。** `ui.k6n.jp` の DNS はまだ GitHub Pages を向いているはずなので、このマージと前後してすぐ Cloudflare 側のプロジェクト作成・カスタムドメイン設定・DNS 切り替えまで済ませること
+- VRT（見た目の差分）の PR コメントは、別途 Cloudflare Pages の Direct Upload プロジェクトと `wrangler` を使う案を検討中。まだ実装していない
 
 ## 縛りを守る仕組み
 
@@ -146,20 +172,25 @@ docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`s
 
 横に並べる、間を空ける、といった配置が要るときも、docs で書かずにライブラリの配置の部品（Container、並べる部品）として作ります。
 
+`oxlint` と `oxfmt` はリポジトリ直下で走らせると `apps/docs` も見るので、設定を足さずにそのまま対象になります（ビルドの出口の `.next`・`out` は見ません）。型は `next build` が確かめるので、ルートの `tsc -b`（`tsconfig.app.json`）には `apps/docs` を入れていません。
+
 ## docs に要る部品と、今あるもの
 
-README の「つくりたいコンポーネント」の上の方と、ほぼ同じ並びです。
+README の「つくりたいコンポーネント」の上の方と、ほぼ同じ並びです。2026-09-20 の時点では、ほとんどが揃っています。
 
-| 使う場所             | 部品                                                              | いま                                          |
-| -------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
-| 本文                 | Heading・Text・Code・Prose・CodeBlock                             | なし                                          |
-| 本文                 | Table・Divider・Callout                                           | なし（Callout は Notice で代えられるか検討）  |
-| ページの枠           | Container・Navbar・Sidebar・Footer                                | なし                                          |
-| ナビゲーション       | TableOfContents・Breadcrumb・Pager                                | なし                                          |
-| 検索                 | TextField                                                         | あり                                          |
-| 検索                 | Dialog、Kbd                                                       | なし                                          |
-| 小さい画面のメニュー | Menu またはシート                                                 | なし（Select のシートの形を流用できるか検討） |
-| 例の中               | Button・Link・Select・Switch・Checkbox・Radio・Badge・Tag・Notice | あり                                          |
+| 使う場所             | 部品                                                              | いま                                                                                                |
+| -------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 本文                 | Heading・Text・Code・Prose・CodeBlock                             | あり                                                                                                |
+| 本文                 | Table・Divider・Callout                                           | あり                                                                                                |
+| ページの枠           | Container・Navbar・Sidebar・Footer                                | Container・Navbar はあり。左の木は Tree で組む。Footer はレシピ（`src/recipes/Footer.stories.tsx`） |
+| ページの枠           | 地の色と文字の色、縦の余白                                        | なし（フェーズ 0 で分かった宿題）                                                                   |
+| ナビゲーション       | TableOfContents・Breadcrumb・Pager                                | あり                                                                                                |
+| 検索                 | TextField・SearchField                                            | あり                                                                                                |
+| 検索                 | Dialog、Kbd                                                       | あり                                                                                                |
+| 小さい画面のメニュー | Menu またはシート                                                 | あり（Menu・Drawer。Navbar が狭いときに畳む）                                                       |
+| 例の中               | Button・Link・Select・Switch・Checkbox・Radio・Badge・Tag・Notice | あり                                                                                                |
+
+ドキュメントのページの組み方の見本は `src/samples/docs.stories.tsx`（Storybook の `Overview/見本`）にあります。
 
 ## 決めていないこと
 

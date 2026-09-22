@@ -23,6 +23,8 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "fonts": "node scripts/generate-fonts.mjs",
+    "docs:dev": "pnpm --filter @kazuemon/docs dev",
+    "docs:build": "pnpm --filter @kazuemon/docs build",
     "check:principles": "node design/tools/check-principles.mjs"
   },
   "dependencies": {
