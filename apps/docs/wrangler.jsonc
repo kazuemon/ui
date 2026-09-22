@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers（Static Assets）向けの設定。next build（output: 'export'）が出す out/ をそのまま配る
+  // これがないと、Cloudflare のビルドが「Next.js 用に設定しますか？」の自動セットアップ（OpenNext を npm で入れようとする）を
+  // 走らせ、pnpm workspace の依存（workspace:*）を npm が解決できずに失敗する
+  "name": "ui-docs",
+  "compatibility_date": "2026-09-22",
+  "assets": {
+    "directory": "./out",
+  },
+}

@@ -32,6 +32,9 @@ apps/docs/out
 next-env.d.ts
 *.tsbuildinfo
 
+# wrangler（Cloudflare Workers）のローカルの状態
+.wrangler
+
 # design canvas builds (regenerate with design/tools/generate-round.mjs)
 design/rounds/*/build
 design/rounds/*.html
