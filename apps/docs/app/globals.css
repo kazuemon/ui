@@ -1,0 +1,4 @@
+@import '@kazuemon/ui/styles.css';
+@source '../app';
+/* 見本のページ（examples/）のクラスも探す。ここを足さないと、写した見本の余白も右下のボタンも当たらない */
+@source '../examples';

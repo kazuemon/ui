@@ -80,6 +80,7 @@
 - [x] Navbar
 - [ ] Sidebar
 - [x] Stack
+- [ ] Grid
 - [x] SkipLink
 - [x] Affix
 - [ ] Splitter
