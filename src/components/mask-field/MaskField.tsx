@@ -338,39 +338,38 @@ export function MaskField({
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
               />
-              {showHint &&
-                rest.length > 0 && (
-                  // 残りの桁の見本。打った値と同じ位置に、見えない値を置いて並べる。読み上げには出さない
-                  <span
-                    aria-hidden
-                    data-slot="mask-hint"
-                    className={[
-                      'pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre',
-                      fieldInset,
-                      maskText({ hintStyle: maskHintStyle }),
-                      maskHint === 'focus' && 'invisible group-focus-within/mask:visible',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    <span className="invisible">{value}</span>
-                    {rest.map((cell, i) =>
-                      cell.token ? (
-                        <span
-                          key={i}
-                          data-slot="mask-hint-slot"
-                          className={hintSlot({ hintStyle: maskHintStyle })}
-                        >
-                          {cell.sample}
-                        </span>
-                      ) : (
-                        <span key={i} className="text-(color:--field-placeholder)">
-                          {cell.char}
-                        </span>
-                      )
-                    )}
-                  </span>
-                )}
+              {showHint && rest.length > 0 && (
+                // 残りの桁の見本。打った値と同じ位置に、見えない値を置いて並べる。読み上げには出さない
+                <span
+                  aria-hidden
+                  data-slot="mask-hint"
+                  className={[
+                    'pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre',
+                    fieldInset,
+                    maskText({ hintStyle: maskHintStyle }),
+                    maskHint === 'focus' && 'invisible group-focus-within/mask:visible',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="invisible">{value}</span>
+                  {rest.map((cell, i) =>
+                    cell.token ? (
+                      <span
+                        key={i}
+                        data-slot="mask-hint-slot"
+                        className={hintSlot({ hintStyle: maskHintStyle })}
+                      >
+                        {cell.sample}
+                      </span>
+                    ) : (
+                      <span key={i} className="text-(color:--field-placeholder)">
+                        {cell.char}
+                      </span>
+                    )
+                  )}
+                </span>
+              )}
             </div>
           )}
         </FieldBox>
