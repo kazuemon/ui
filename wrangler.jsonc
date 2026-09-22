@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers（Static Assets）向けの設定。build-storybook が出すリポジトリ直下の docs/ をそのまま配る
+  // Storybook はルート ディレクトリを「/」にして、ビルド コマンドを `pnpm build-storybook`、
+  // デプロイ コマンドを `npx wrangler deploy` にダッシュボード側で設定する
+  "name": "ui-storybook",
+  "compatibility_date": "2026-09-22",
+  "assets": {
+    "directory": "./docs",
+  },
+}

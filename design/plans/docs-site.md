@@ -147,20 +147,23 @@ docs が `@kazuemon/ui` をパッケージ名で読めるようにします。`s
 - CI で `pnpm typecheck`・`pnpm test`・docs のビルド・縛りの確かめを走らせる
 - 公開先は下記「ホスティング」のとおり、Cloudflare Pages（独自ドメイン）です。`basePath` は要りません
 
-## ホスティング（2026-09-22 に決定）
+## ホスティング（2026-09-22 に決定、09-23 に Workers と判明して追記）
 
-Docs と Storybook は、別々の Cloudflare Pages プロジェクトとして、別のサブドメインに出します。1 つのサイトにまとめる案（`ui.k6n.jp/storybook` のようなサブパス）は検討しましたが、ドメインを分ける形に決めました。
+Docs と Storybook は、別々の Cloudflare のプロジェクトとして、別のサブドメインに出します。1 つのサイトにまとめる案（`ui.k6n.jp/storybook` のようなサブパス）は検討しましたが、ドメインを分ける形に決めました。
 
-| サイト    | ドメイン          | プロジェクトのビルド設定                                                          |
-| --------- | ----------------- | --------------------------------------------------------------------------------- |
-| Docs      | `ui.k6n.jp`       | Root directory `apps/docs`・Build command `pnpm build`・Output directory `out`    |
-| Storybook | `story.ui.k6n.jp` | Root directory `/`・Build command `pnpm build-storybook`・Output directory `docs` |
+**Cloudflare でプロジェクトを新しく作ると、実際には Pages ではなく Workers（Static Assets）になります。** ダッシュボードのビルド設定に「デプロイ コマンド」（`npx wrangler deploy`）があるのがその印です。`wrangler deploy` はデプロイ先を書いた `wrangler.jsonc` を要るので、`apps/docs/wrangler.jsonc`・リポジトリ直下の `wrangler.jsonc`（Storybook 用）を置いています。**これを置かずに `next build` だけのプロジェクトを作ると、Cloudflare 側が「Next.js 用に設定しますか？」の自動セットアップ（OpenNext を `npm install` で入れようとする）を勝手に走らせ、pnpm workspace の `workspace:*` を npm が解決できずに失敗します。** `wrangler.jsonc` を先に置いて `assets.directory` を指定しておけば、この自動セットアップは走りません。
 
+| サイト    | ドメイン          | プロジェクト名 | プロジェクトのビルド設定                                                                       | `wrangler.jsonc`                                                  |
+| --------- | ----------------- | -------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Docs      | `ui.k6n.jp`       | `ui-docs`      | Root directory `apps/docs`・Build command `pnpm build`・Deploy command `npx wrangler deploy`   | `apps/docs/wrangler.jsonc`（`assets.directory: "./out"`）         |
+| Storybook | `story.ui.k6n.jp` | `ui-storybook` | Root directory `/`・Build command `pnpm build-storybook`・Deploy command `npx wrangler deploy` | リポジトリ直下の `wrangler.jsonc`（`assets.directory: "./docs"`） |
+
+- `wrangler.jsonc` の `name` は、ダッシュボードで作ったプロジェクト名と必ずそろえる（`wrangler deploy` はこの名前で既存のプロジェクトを見つけて上書きする）
 - どちらも Cloudflare の Git 連携（Connect to Git）で作る。GitHub Actions の secrets は使わない（ビルドと配信は Cloudflare 側のインフラで完結するため、fork からの PR でも安全）
 - ブランチ・PR ごとのプレビュー URL と、PR への自動コメントは Cloudflare 側の機能でそのまま付く
-- `k6n.jp` は Cloudflare 管理の DNS なので、カスタムドメインの追加は各プロジェクトの Custom domains 設定から数クリックで終わる。証明書は Pages のカスタムドメインが個別に発行するので、`story.ui.k6n.jp` のような 2 段のサブドメインでも無料プランのまま通る（ゾーンの Universal SSL のワイルドカードとは別経路）
+- `k6n.jp` は Cloudflare 管理の DNS なので、カスタムドメインの追加は各プロジェクトの Custom domains 設定から数クリックで終わる。証明書はカスタムドメインが個別に発行するので、`story.ui.k6n.jp` のような 2 段のサブドメインでも無料プランのまま通る（ゾーンの Universal SSL のワイルドカードとは別経路）
 - 旧 `.github/workflows/storybook.yml`（GitHub Pages への配信）・`storybook-preview.yml`（PR の zip artifact）は削除した。**この PR をマージしたら、GitHub Pages への自動デプロイは止まる。** `ui.k6n.jp` の DNS はまだ GitHub Pages を向いているはずなので、このマージと前後してすぐ Cloudflare 側のプロジェクト作成・カスタムドメイン設定・DNS 切り替えまで済ませること
-- VRT（見た目の差分）の PR コメントは、別途 Cloudflare Pages の Direct Upload プロジェクトと `wrangler` を使う案を検討中。まだ実装していない
+- VRT（見た目の差分）の PR コメントは、別途 `wrangler` の Direct Upload を使う案を検討中。まだ実装していない
 
 ## 縛りを守る仕組み
 
