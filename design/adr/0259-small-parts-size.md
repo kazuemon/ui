@@ -52,7 +52,7 @@ Tag・Badge・Chip という 3 つの小物に、大きさの段を 1 本の軸�
 - `src/internal/small-parts-size.ts`: `SmallPartsSize`（`'sm' | 'md' | 'lg' | 'inherit'`）と、Tag・Badge・Chip の tv の `size` 変化に渡すクラス、Combobox・TagsInput が読む Chip の高さの生の値を持ちます。値はここに 1 本だけ持ちます
 - `src/components/tag/Tag.tsx`・`src/components/badge/Badge.tsx`・`src/components/chip/Chip.tsx`: `size` props を足しました（Tag・Badge は既定 `sm`、Chip は既定 `md`）。`--tag-*`・`--badge-*`・`--chip-*` は、`size` の tv 変化がそのつど差し替えます
   - 単体の Chip の既定の高さは、44px（部品の高さ）から 32px（`md`）に変わります。今までの高さは `size="lg"` で選べます
-  - `sm` の Chip（高さ 20px）は、消す × の丸の計算式（高さ − 12px）だと 8px まで小さくなり押しにくいので、`sm` のときだけ丸をチップの高さいっぱいに、中の × を 12px に固定します。基準になる原則や ADR がないので、原則にない判断として扱います
+  - `sm` の Chip（高さ 20px）は、消す × の丸の計算式（高さ − 12px）だと 8px まで小さくなり押しにくいので、`sm` のときだけ丸をチップの高さいっぱいに、中の × を 12px に固定します（この ADR で決めました）
 - `src/internal/combobox-base/combobox-control-styles.ts`: `ChipSize`（`'sm' | 'md'`）を削除し、`ComboboxChipSize`（`Exclude<SmallPartsSize, 'inherit'>`）に差し替えました。`comboboxChipStyle` は、チップの最大幅だけを返す `comboboxChipMaxWidthStyle` と、打つ欄の高さをチップにそろえるための `comboboxChipHeightStyle` に分けました。`comboboxChipClass` から `--spacing-control`・`--spacing-control-x` を差し替える記述を外しました（循環の作りをやめ、Chip の `size` に任せる）
 - `src/components/combobox/Combobox.tsx`・`src/components/tags-input/TagsInput.tsx`: `chipSize` の型を `ComboboxChipSize` にし、既定を `'sm'` から `'md'`（今までの欄の中のチップと同じ見た目）に変えました。`ComboboxChips`・`ComboboxTriggerChips`・`TagsInputChips` に `chipSize` を通し、`Chip` の `size` にそのまま渡します
 - `design/tokens.css`: `--tag-*`・`--badge-size`・`--badge-pad-x`・`--badge-dot`・`--combobox-chip-height`・`--combobox-chip-padding-x` の既定値を削除しました（値は `src/internal/small-parts-size.ts` に移りました）。`--badge-ring-width`・`--badge-overlay-inset`・Chip の色や縁のトークンは残ります

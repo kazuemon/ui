@@ -51,7 +51,7 @@ const chip = tv({
     size: {
       ...chipSizeClass,
       // sm（高さ 20px）は、既定の計算（高さ − 12px）だと × の丸が 8px まで小さくなり押しにくい。
-      // 原則にない判断: sm だけ、丸をチップの高さいっぱいに広げ、中の × を 12px に固定する
+      // sm だけ、丸をチップの高さいっぱいに広げ、中の × を 12px に固定する（ADR-0259。高さ − 12px の計算だと押しにくい 8px になるため）
       sm: `${chipSizeClass.sm} [--chip-remove-icon-override:12px] [--chip-remove-size-override:var(--chip-height)]`,
     },
   },
