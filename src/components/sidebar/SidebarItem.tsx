@@ -17,10 +17,11 @@ import {
   useState,
 } from 'react';
 
-import { CaretDownIcon } from '../../internal/icons';
+import { ArrowUpRightIcon, CaretDownIcon } from '../../internal/icons';
+import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Menu } from '../menu/Menu';
-import { MenuLinkItem, MenuSubmenu } from '../menu/MenuItem';
+import { MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem';
 import { Tooltip } from '../tooltip/Tooltip';
 import {
   SidebarLayoutContext,
@@ -46,7 +47,8 @@ export interface SidebarItemProps extends Omit<
    */
   icon?: ReactNode;
   /**
-   * 行き先。渡すとリンクになります。入れ子を持つ行は、開け閉めするボタンになります
+   * 行き先。渡すとリンクになります。入れ子を持つ行は、開け閉めするボタンになります。
+   * `target="_blank"` を足すと、右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入ります
    */
   href?: string;
   /** 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に行の見た目を重ねます */
@@ -56,10 +58,6 @@ export interface SidebarItemProps extends Omit<
    * @default false
    */
   current?: boolean;
-  /**
-   * 行の末尾に置く操作（「＋」を押して足す、など）。アイコンだけのボタンを渡します。開いた列と Drawer の中だけに出ます
-   */
-  action?: ReactNode;
   /**
    * はじめは開いているか（非制御）。入れ子を持つ行だけに効きます
    * @default false
@@ -125,7 +123,6 @@ function ListItem({
   href,
   render,
   current = false,
-  action,
   defaultExpanded: _defaultExpanded,
   expanded: _expanded,
   onExpandedChange: _onExpandedChange,
@@ -146,16 +143,22 @@ function ListItem({
   closeDrawer: () => void;
 }) {
   const groupId = useId();
+  const noteId = useId();
   const hasChildren = children != null && children !== false;
   const nested = nav.depth > 0;
-  const s = sidebar({ nested, hasAction: action != null });
+  const s = sidebar({ nested });
   const asLink = !hasChildren && href != null && !disabled;
+  // 新しいタブで開く行（Tree・Link と同じ扱い）: ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足す
+  const newTab = asLink && (props.target === '_blank' || opensNewTab(render));
+  const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const row = useRender({
-    render,
+    render: naming ? withRenderOverrides(render, naming.props) : render,
     defaultTagName: asLink ? 'a' : 'button',
     ref,
     props: {
       ...props,
+      ...naming?.props,
+      ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
       type: asLink ? undefined : 'button',
       'aria-current': current ? ('page' as const) : undefined,
       'aria-disabled': disabled || undefined,
@@ -190,21 +193,20 @@ function ListItem({
               <CaretDownIcon />
             </span>
           )}
+          {newTab && (
+            <span aria-hidden="true" className={s.icon()}>
+              <ArrowUpRightIcon />
+            </span>
+          )}
+          {naming?.note}
         </>
       ),
     },
   });
-  const actionSlot = action != null && (
-    <span data-slot="sidebar-action" className={s.action()}>
-      {action}
-    </span>
-  );
-
   if (!hasChildren) {
     return (
       <li role="none" className="relative flex flex-col">
         {row}
-        {actionSlot}
       </li>
     );
   }
@@ -216,7 +218,6 @@ function ListItem({
       render={<li role="none" className="relative flex flex-col" />}
     >
       {row}
-      {actionSlot}
       <SidebarNavContext value={{ ...nav, depth: nav.depth + 1 }}>
         <BaseCollapsible.Panel
           id={groupId}
@@ -237,7 +238,6 @@ function RailItem({
   href,
   render,
   current = false,
-  action: _action,
   defaultExpanded: _defaultExpanded,
   expanded: _expanded,
   onExpandedChange: _onExpandedChange,
@@ -249,9 +249,12 @@ function RailItem({
   nav,
   ...props
 }: SidebarItemProps & { nav: SidebarNavContextValue }) {
+  const noteId = useId();
   const hasChildren = children != null && children !== false;
   const s = sidebar();
   const asLink = !hasChildren && href != null && !disabled;
+  const newTab = asLink && (props.target === '_blank' || opensNewTab(render));
+  const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const triggerRef = useRef<HTMLElement>(null);
   const mergedRef = useMergedRefs(triggerRef, ref);
@@ -279,11 +282,13 @@ function RailItem({
     };
   }, [flyoutOpen, nav.closeDelay]);
   const row = useRender({
-    render,
+    render: naming ? withRenderOverrides(render, naming.props) : render,
     defaultTagName: asLink ? 'a' : 'button',
     ref: mergedRef,
     props: {
       ...props,
+      ...naming?.props,
+      ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
       type: asLink ? undefined : 'button',
       'aria-current': current ? ('page' as const) : undefined,
       'aria-disabled': disabled || undefined,
@@ -307,6 +312,7 @@ function RailItem({
           </span>
           {/* 畳んだ列では文字は見せない。読み上げの名前として残す */}
           <span className="sr-only">{label}</span>
+          {naming?.note}
         </>
       ),
     },
@@ -352,8 +358,11 @@ function FlyoutItem({
   render,
   current = false,
   disabled = false,
+  onClick,
   children,
   className,
+  target,
+  rel,
 }: SidebarItemProps) {
   const hasChildren = children != null && children !== false;
   if (hasChildren) {
@@ -369,12 +378,22 @@ function FlyoutItem({
       </MenuSubmenu>
     );
   }
+  // 行き先のない行（「作成」など）は、押すと onClick を呼ぶ項目にする
+  if (href == null && render == null) {
+    return (
+      <MenuItem icon={icon} disabled={disabled} onClick={onClick} className={className}>
+        {label}
+      </MenuItem>
+    );
+  }
   // 面の中の行には、いまいる印（太字）と aria-current だけを付ける
   const linkRender = current ? cloneElement(render ?? <a />, { 'aria-current': 'page' }) : render;
   return (
     <MenuLinkItem
       icon={icon}
       href={href}
+      target={target}
+      rel={rel}
       render={linkRender}
       disabled={disabled}
       className={current ? `font-bold ${className ?? ''}` : className}

@@ -21,8 +21,9 @@ export const sidebar = tv({
     drawer: 'flex flex-col gap-1',
     title:
       'flex h-7 shrink-0 items-center px-(--sidebar-row-px) text-xs text-fg-subtle transition-opacity duration-(--duration-fast) motion-reduce:transition-none',
-    // 行の並び。フォーカスの線が切れないよう、はみ出す分の余白を取る
-    list: '-mx-1.5 -my-1.5 flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-1.5 py-1.5',
+    // 行の並び（ScrollArea の枠）。フォーカスの線が切れないよう、はみ出す分の余白を取る
+    list: '-mx-1.5 min-h-0 flex-1',
+    listContent: 'px-1.5 py-1.5',
     row: [
       'group/sidebar-row relative flex h-(--spacing-control) w-full shrink-0 cursor-pointer items-center gap-(--sidebar-gap)',
       'rounded-control px-(--sidebar-row-px) text-start no-underline select-none',
@@ -54,9 +55,6 @@ export const sidebar = tv({
       '[transition:rotate_var(--duration-fast)_var(--ease-press)] motion-reduce:[transition:none]',
       'group-aria-expanded/sidebar-row:rotate-0',
     ],
-    // 行の末尾の操作（「＋」など）。行の右端に、行と同じ高さで重ねる。指の画面には hover がないので、いつも見せる（軸 306）
-    action:
-      'absolute end-0 top-0 grid h-(--spacing-control) w-(--spacing-control) place-items-center',
     // 入れ子の並び。案内線は、親のアイコンの中心の下に引く
     group: [
       'relative ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2)] flex flex-col gap-0.5 border-s border-line',
@@ -88,18 +86,12 @@ export const sidebar = tv({
       true: { row: 'ps-(--sidebar-nested-px) text-fg-muted' },
       false: {},
     },
-    // 行の末尾の操作の分だけ、右を空ける
-    hasAction: {
-      true: { row: 'pe-[calc(var(--sidebar-row-px)+var(--spacing-control))]' },
-      false: {},
-    },
   },
   defaultVariants: {
     color: 'neutral',
     collapsed: false,
     motion: 'smooth',
     nested: false,
-    hasAction: false,
   },
 });
 

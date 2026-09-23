@@ -25,6 +25,8 @@ const meta = {
           '- 畳むと、アイコンだけが残ります。入れ子のある行は、載せる（か押す）と横に面が出て、入れ子を開きます。畳んだ列の行にはアイコンを置いてください。',
           '- 置かれた面の幅が 48rem より狭いときは、列をやめて Drawer に切り替わります。出す向きは `narrowSide`（`left` が既定、`right`・`bottom`、指の画面だけ下から出す `auto`）です。',
           '- `color` は、いまいる行の色です。指定しないときはグレーです。',
+          '- 入れ子に足す操作（グループの作成など）は、入れ子の末尾に「作成」の行（行き先を持たない SidebarItem）として置きます。`target="_blank"` の行には、右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。',
+          '- 行が縦に収まらないときは、列の中がスクロールします。',
         ].join('\n'),
       },
     },
@@ -211,6 +213,11 @@ export const Accessibility: Story = {
       'aria-current',
       'page'
     );
+    // 新しいタブで開く行は、読み上げに「新しいタブで開きます」が入り、rel が付く
+    const rules = within(nav).getByRole('link', { name: /大会ルール.*新しいタブで開きます/ });
+    await expect(rules).toHaveAttribute('rel', 'noopener noreferrer');
+    // 入れ子の末尾の「作成」は、行き先を持たないボタン
+    await expect(within(nav).getAllByRole('button', { name: '作成' }).length).toBeGreaterThan(0);
     // 入れ子のある行は、開け閉めするボタン
     const league = within(nav).getByRole('button', { name: '決勝リーグ' });
     await expect(league).toHaveAttribute('aria-expanded', 'false');

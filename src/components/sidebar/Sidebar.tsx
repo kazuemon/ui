@@ -6,6 +6,7 @@ import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { cn } from '../../internal/tv';
 import { Drawer } from '../drawer/Drawer';
+import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
   type SidebarColor,
   SidebarNavContext,
@@ -141,7 +142,13 @@ export function Sidebar({
         <p aria-hidden="true" className={s.title()}>
           {title}
         </p>
-        <ul className={s.list()}>{children}</ul>
+        <ScrollArea
+          orientation="vertical"
+          className={s.list()}
+          contentProps={{ className: s.listContent() }}
+        >
+          <ul className="flex flex-col gap-0.5">{children}</ul>
+        </ScrollArea>
         {collapseButton && (
           <button
             type="button"
