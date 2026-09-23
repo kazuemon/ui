@@ -79,7 +79,7 @@
 
 - [x] Container
 - [x] Navbar
-- [ ] Sidebar
+- [x] Sidebar
 - [x] Stack
 - [x] Grid
 - [x] Masonry

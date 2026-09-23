@@ -376,6 +376,21 @@ export {
   type TableOfContentsItem,
   type TableOfContentsProps,
 } from './components/table-of-contents/TableOfContents';
+export {
+  Sidebar,
+  type SidebarColor,
+  type SidebarMotion,
+  type SidebarNarrowSide,
+  type SidebarPlacement,
+  type SidebarProps,
+} from './components/sidebar/Sidebar';
+export { SidebarItem, type SidebarItemProps } from './components/sidebar/SidebarItem';
+export {
+  SidebarLayout,
+  type SidebarLayoutProps,
+  SidebarTrigger,
+  type SidebarTriggerProps,
+} from './components/sidebar/SidebarLayout';
 export { Skeleton, type SkeletonProps, type SkeletonVariant } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerProps, type SpoilerVariant } from './components/spoiler/Spoiler';

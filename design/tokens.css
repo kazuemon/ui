@@ -1471,6 +1471,30 @@
   --tree-panel-clip-margin: 6px;
   /* ── END tree */
 
+  /* ── Sidebar — 軸 303〜307 ── BEGIN sidebar */
+  /* ページの横に並ぶ列（src/components/sidebar）。行は Tree の行と同じ考え（hover は入力欄の塗り、いまいる行は部品の色）
+     width: 開いた列の幅。rail-width: 畳んだ列の幅（アイコンだけ残す）
+     padding: 列の内側の余白。row-px: 行の左右の余白。畳んだ列の幅の中でアイコンが中央に来る値（開いた形と畳んだ形でアイコンの位置が動かない）
+     gap: アイコンと文字のあいだ。nested-px: 入れ子の行の左の余白（案内線の右）
+     current-*: いまいる行（軸 306 の決定。色を持たないときはグレーの面と太字。Tree と同じ） */
+  --sidebar-width: calc(var(--spacing) * 56);
+  --sidebar-rail-width: calc(var(--spacing) * 14);
+  --sidebar-padding: calc(var(--spacing) * 2);
+  --sidebar-row-px: calc(
+    (var(--sidebar-rail-width) - var(--spacing-icon)) / 2 - var(--sidebar-padding)
+  );
+  --sidebar-gap: calc(var(--spacing) * 3);
+  --sidebar-nested-px: calc(var(--spacing) * 3);
+  --sidebar-row-rest: transparent;
+  --sidebar-row-hover: var(--color-field);
+  --sidebar-row-press: color-mix(in oklab, var(--color-field), var(--color-fg) 6%);
+  --sidebar-current-bg: var(--color-select-neutral-selected);
+  --sidebar-current-fg: var(--color-fg);
+  --sidebar-current-hover: color-mix(in oklab, var(--sidebar-current-bg), var(--color-fg) 8%);
+  /* 開け閉めで高さを動かすあいだ、中身を切る場所（Tree と同じ理由で、計算せずに書く） */
+  --sidebar-panel-clip-margin: 6px;
+  /* ── END sidebar */
+
   /* ── FileTree — 軸 275〜278 ── BEGIN file-tree */
   /* 記事の中で、フォルダとファイルの構成を見せる静的な図版。src/components/file-tree
      Tree と違い開閉を持たない（最初から全部描く）ので、字下げと案内線は JS の depth を持たず、
