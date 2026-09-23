@@ -299,11 +299,20 @@
 2026-09-23 に作りました。決定は [ADR-0261](./adr/0261-toggle-radius.md)〜[ADR-0282](./adr/0282-file-tree-static.md) です。
 
 - ImageZoom の `variant`（`light`・`dark`）の名前は、ダークモードの設計のとき再考が必要そうです（「ダークモードの設計のとき再考が必要そうですね」）。ThemeProvider のダークモードと名前がぶつからないかも一緒に見ます
-- Gallery（複数の画像を並べ、押すと ImageZoom と同じ拡大の面で送れる部品）はまだ作っていません。拡大した面（`ImageZoomViewer`）は Gallery とも共有する前提で作ったので、`src/internal/` へ移すのは Gallery を作るときにします
 - Embed の `sandbox`（iframe の属性）の既定は決めていません。いまは `allow`・`allowFullScreen` だけを provider ごとに用意しています
 - Embed の provider（`youtube`・`vimeo`・`x`・`codepen`・`custom`）に、Spotify・Figma など足すものはまだ検討していません
 - ImageZoom の、iOS・Android の実機での指の操作（スワイプで閉じる・ピンチでの拡大縮小）は、実機で確かめていません。いまはスワイプで閉じる動きだけ作っています（ピンチでの拡大縮小はありません）
 - Toggle・ToggleGroup・FileTree・ImageZoom は、読み上げソフト（VoiceOver・NVDA など）での確かめをまだしていません
+
+### Carousel・Thumbnails・Gallery・Masonry・Video
+
+2026-09-23 に作りました。決定は [ADR-0283](./adr/0283-carousel-controls-position.md)〜[ADR-0307](./adr/0307-video-reduced-motion-autoplay.md) です。
+
+- Carousel の送る仕組み（[ADR-0298](./adr/0298-carousel-scroll-snap-engine.md)）は CSS の `scroll-snap` だけです。Embla Carousel を差し込む形の部品（`@kazuemon/ui/carousel-embla` など。optional peer dependency にするか）は、まだ作っていません
+- Carousel は、RTL（右から左に読む言語）と、マウスでつかんで引く操作（ドラッグでのスクロール）を持っていません
+- Video の自前のシーク・音量は作っていません（[ADR-0306](./adr/0306-video-native-controls-scope.md)）。土台になる Slider ができたら検討します
+- Masonry は、子の数や、子の高さがあとから動的に変わるとき（画像の遅延読み込みで高さが変わる、無限スクロールで増えるなど）の再計算を確かめていません
+- Carousel・Thumbnails・Gallery の、実機（iOS・Android）の指操作（横スクロール・はじいて送る）と読み上げソフトでの確かめは、まだしていません
 
 ### 本文（Prose・CodeBlock など）
 
