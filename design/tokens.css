@@ -1813,6 +1813,16 @@
   --masonry-column-width: calc(var(--spacing) * 60); /* 240px */
   --masonry-row-unit: calc(var(--spacing) / 2); /* 2px */
   /* ── END masonry */
+
+  /* ── Grid — 軸 300〜302 ── BEGIN grid */
+  /* 子を格子に並べる枠。src/components/grid
+     column-width: 列の最小の幅。minColumnWidth を渡さないときの値。入れ物の幅をこの値で割った数だけ列にする（Masonry と同じ 240px）
+     fill: 列の数を入れ物の幅で決めるときの、子が足りないときの扱い（軸 301 で未決）
+       auto-fill は空いた列を残し、子の幅を列の幅のままにする。auto-fit は空いた列をたたみ、子を広げて幅を埋める
+     間隔は Stack の間隔の段をそのまま使う（新しいトークンは足さない） */
+  --grid-column-width: calc(var(--spacing) * 60); /* 240px */
+  --grid-fill: auto-fill;
+  /* ── END grid */
 }
 
 /* ── toast keyframes */

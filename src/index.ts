@@ -200,6 +200,7 @@ export {
   type GalleryProps,
   type GallerySlideMotion,
 } from './components/gallery/Gallery';
+export { Grid, type GridAlign, type GridGap, type GridProps } from './components/grid/Grid';
 export {
   Heading,
   type HeadingLevel,
