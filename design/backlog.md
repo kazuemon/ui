@@ -294,6 +294,17 @@
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
 - 使っていないトークンがあります: ブランドの色の `--color-on-brand`、セクションラベル（`--label-*`）、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
 
+### Toggle・ToggleGroup・Embed・FileTree・ImageZoom
+
+2026-09-23 に作りました。決定は [ADR-0261](./adr/0261-toggle-radius.md)〜[ADR-0282](./adr/0282-file-tree-static.md) です。
+
+- ImageZoom の `variant`（`light`・`dark`）の名前は、ダークモードの設計のとき再考が必要そうです（「ダークモードの設計のとき再考が必要そうですね」）。ThemeProvider のダークモードと名前がぶつからないかも一緒に見ます
+- Gallery（複数の画像を並べ、押すと ImageZoom と同じ拡大の面で送れる部品）はまだ作っていません。拡大した面（`ImageZoomViewer`）は Gallery とも共有する前提で作ったので、`src/internal/` へ移すのは Gallery を作るときにします
+- Embed の `sandbox`（iframe の属性）の既定は決めていません。いまは `allow`・`allowFullScreen` だけを provider ごとに用意しています
+- Embed の provider（`youtube`・`vimeo`・`x`・`codepen`・`custom`）に、Spotify・Figma など足すものはまだ検討していません
+- ImageZoom の、iOS・Android の実機での指の操作（スワイプで閉じる・ピンチでの拡大縮小）は、実機で確かめていません。いまはスワイプで閉じる動きだけ作っています（ピンチでの拡大縮小はありません）
+- Toggle・ToggleGroup・FileTree・ImageZoom は、読み上げソフト（VoiceOver・NVDA など）での確かめをまだしていません
+
 ### 本文（Prose・CodeBlock など）
 
 - スクロールの判定は `src/internal/use-scrollable.ts` にまとめ、横にはみ出しているあいだだけ Tab で止まるようにしました。CodeBlock のスクロールそのものを外側の包みに移すかは決めていません（いまはコードの要素がスクロールします）
