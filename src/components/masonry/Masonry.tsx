@@ -33,7 +33,7 @@ import { tv } from '../../internal/tv';
 //   スクリプトが動く前（初回描画・SSR）は、ふつうのグリッド（grid-auto-rows: auto、span を使わない）で描く。
 //   マウント後に高さを測ってから、1 行の高さを --masonry-row-unit に切り替えて隙間なく積む（data-measured）
 //   間隔は Stack と同じ間隔の段（ADR-0212）。押すものではないので入力方式では変えない
-const ROW_UNIT_PX = 4; // --masonry-row-unit と同じ値（tokens.css）
+const ROW_UNIT_PX = 2; // --masonry-row-unit と同じ値（tokens.css）
 
 const masonry = tv({
   base: [
@@ -133,7 +133,7 @@ export function Masonry({
   const rootRef = useRef<HTMLDivElement>(null);
   const items = Children.toArray(children);
   const [heights, setHeights] = useState<number[]>([]);
-  const [rowGapPx, setRowGapPx] = useState(0);
+  const [gapPx, setGapPx] = useState(0);
 
   // 渡した子の数が変わったら測り直す（測っていない子は grid-auto-rows: auto の並びに戻す）
   useEffect(() => {
@@ -150,11 +150,12 @@ export function Masonry({
     });
   }, []);
 
-  // 実際の行の間隔（gap の段の px）を読む。span の計算に使う
+  // 実際の間隔（gap の段の px）を読む。測ったあとは行の間隔を 0 にして、子の下の間隔を span に含める
+  // （行の間隔を残すと、span の行の数だけ間隔も足され、子ごとに下の余りがばらつくため）
   useIsomorphicLayoutEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    setRowGapPx(parseFloat(getComputedStyle(el).rowGap) || 0);
+    setGapPx(parseFloat(getComputedStyle(el).columnGap) || 0);
   }, [gap]);
 
   const measured =
@@ -174,6 +175,7 @@ export function Masonry({
         '--masonry-column-width': `${minColumnWidth}px`,
         ...(columns != null && { gridTemplateColumns: `repeat(${columns}, 1fr)` }),
         gridAutoRows: measured ? 'var(--masonry-row-unit)' : 'auto',
+        ...(measured && { rowGap: 0 }),
       } satisfies TokenStyle,
       children: items.map((child, i) => (
         <MasonryItem
@@ -181,7 +183,7 @@ export function Masonry({
           measured={measured}
           span={
             heights[i] != null
-              ? Math.max(1, Math.ceil((heights[i] + rowGapPx) / (ROW_UNIT_PX + rowGapPx)))
+              ? Math.max(1, Math.ceil((heights[i] + gapPx) / ROW_UNIT_PX))
               : undefined
           }
           onResize={(height) => handleResize(i, height)}

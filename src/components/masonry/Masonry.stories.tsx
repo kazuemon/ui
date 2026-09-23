@@ -125,7 +125,7 @@ const heights = [64, 120, 88, 156, 72, 108, 140, 96, 60] as const;
 
 function Block({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center justify-center rounded-control bg-neutral p-2 text-center">
+    <div className="flex h-full items-center justify-center rounded-control bg-neutral p-2 text-center">
       <Text size="sm">{children}</Text>
     </div>
   );
@@ -251,7 +251,7 @@ export const Props: Story = {
     // columns を渡すと、minColumnWidth を無視して列数を固定する
     await expect(getComputedStyle(fixed).gridTemplateColumns.split(' ')).toHaveLength(2);
     const defaultGap = canvas.getByTestId('default-gap');
-    // 既定の gap は Stack と同じ md（16px）
-    await expect(getComputedStyle(defaultGap).rowGap).toBe('16px');
+    // 既定の gap は Stack と同じ md（16px）。測ったあとは行の間隔を 0 にして子の下に含めるので、列の間隔で確かめる
+    await expect(getComputedStyle(defaultGap).columnGap).toBe('16px');
   },
 };
