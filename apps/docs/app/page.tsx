@@ -3,6 +3,7 @@ import {
   Affix,
   Callout,
   Container,
+  Grid,
   Link,
   LinkCard,
   Prose,
@@ -142,7 +143,7 @@ export default function Home() {
               </p>
             </Prose>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Grid columns={{ base: 1, sm: 3 }} className="mt-4">
               {featuredExamples.map(({ slug, title, description }) => (
                 <LinkCard
                   key={slug}
@@ -152,7 +153,7 @@ export default function Home() {
                   render={<NextLink href={`/examples/${slug}`} />}
                 />
               ))}
-            </div>
+            </Grid>
 
             <div className="mt-4">
               <Link variant="button" color="primary" render={<NextLink href="/examples" />}>

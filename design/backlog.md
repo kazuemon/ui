@@ -73,8 +73,7 @@
     - 今の Card（`src/components/card/Card.tsx`）は、根が `flex flex-col`、その中の body も `flex flex-col` で、題・本文・フッターは 2 段ネストの flex の子です。subgrid は、途中に grid でも `contents` でもない層が挟まると継承が切れるので、GridItem で Card を包むだけでは段がそろいません
     - 案 ①: Card に、自分のレイアウトを外に委ねる口（`display: contents` にする変種など）を持たせる。案 ②: Card を使わず、GridItem の直接の子に Image・Heading・Text・Button を組む（枠線・影・押せる動きは自前になる）
     - 名前は `<Name>Item`（`ListItem`・`AccordionItem` など）の流儀で `GridItem` が自然です。決めること: 案 ① か ② か、行方向の Grid の行のモデル（行の数の渡し方）、`span` の名前
-  - 見本の 6 ページ（reservation・profile・pricing・dashboard・blog-list・examples）の `grid` のクラスを、まだ Grid に置き換えていません。軸が決まったので、置き換えに進めます
-  - 比率の違う列（`dashboard.tsx` の `2fr 1fr`、`blog-list.tsx` の `240px 1fr`、`sns.tsx` の `auto 1fr`）は、Grid では書けません。部品に足すか、Tailwind に任せるかは決めていません
+  - 比率の違う列は、Grid では書けないので、見本に Tailwind のクラスを直に残しています（`dashboard.tsx` の `2fr 1fr`、`blog-list.tsx` の `240px 1fr`、`sns.tsx`・`src/samples/sns.stories.tsx` の `auto 1fr`、`app/page.tsx` の本文と目次の 2 列）。部品に足すか、Tailwind に任せるかは決めていません。見本の同じ幅の列は Grid に置き換えました
   - `align="stretch"` でカードの枠の高さはそろいますが、カードの中のボタンは下端にそろいません。そろえるなら Card の側で決めます（GridItem の行方向の話とつながります）
   - 画面の幅の段の名前と渡し方（`{ base, sm, md, lg, xl }`。[ADR-0311](./adr/0311-grid-columns-breakpoints.md)）を、ほかの部品にも広げるかは決めていません。画面の幅の段を props で公開する部品は Grid が初めてです
 

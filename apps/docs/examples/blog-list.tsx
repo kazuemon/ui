@@ -8,6 +8,7 @@ import {
   CardBody,
   CardImage,
   Chip,
+  Grid,
   Heading,
   Icon,
   Pagination,
@@ -19,7 +20,7 @@ import {
   Time,
 } from '@kazuemon/ui';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import { svg } from './images';
 import { SamplePage } from './sample-page';
@@ -177,6 +178,17 @@ function CardSkeleton() {
   );
 }
 
+// 格子（幅の同じ列）か、縦に 1 件ずつの並びか
+function PostList({ layout, children }: { layout: Layout; children: ReactNode }) {
+  return layout === 'grid' ? (
+    <Grid columns={{ base: 1, sm: 2, lg: 3 }} gap="lg">
+      {children}
+    </Grid>
+  ) : (
+    <div className="flex flex-col gap-4">{children}</div>
+  );
+}
+
 function BlogListScreen({
   state,
   layout,
@@ -202,9 +214,6 @@ function BlogListScreen({
     .sort((a, b) =>
       order === 'new' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)
     );
-
-  const gridClass =
-    layout === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-4';
 
   return (
     <div className="flex flex-col gap-6">
@@ -276,11 +285,11 @@ function BlogListScreen({
 
       <div aria-busy={busy}>
         {busy ? (
-          <div className={gridClass}>
+          <PostList layout={layout}>
             {Array.from({ length: 6 }, (_, i) => (
               <CardSkeleton key={i} />
             ))}
-          </div>
+          </PostList>
         ) : shown.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <Heading level={2} size={4}>
@@ -298,7 +307,7 @@ function BlogListScreen({
             </Button>
           </div>
         ) : (
-          <div className={gridClass}>
+          <PostList layout={layout}>
             {shown.map((post) => (
               <PostCard
                 key={post.slug}
@@ -308,7 +317,7 @@ function BlogListScreen({
                 layout={layout}
               />
             ))}
-          </div>
+          </PostList>
         )}
       </div>
 

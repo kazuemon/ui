@@ -1,5 +1,5 @@
 // 見本のページの一覧。部品を実際の画面に並べたものを、1 つずつ開いて確かめられる
-import { Container, LinkCard, Prose } from '@kazuemon/ui';
+import { Container, Grid, LinkCard, Prose } from '@kazuemon/ui';
 import type { Metadata } from 'next';
 import NextLink from 'next/link';
 
@@ -26,7 +26,7 @@ export default function ExamplesIndex() {
           </p>
         </Prose>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <Grid columns={{ base: 1, sm: 2 }} className="mt-8">
           {examples.map(({ slug, title, description }) => (
             <LinkCard
               key={slug}
@@ -36,7 +36,7 @@ export default function ExamplesIndex() {
               render={<NextLink href={`/examples/${slug}`} />}
             />
           ))}
-        </div>
+        </Grid>
       </Container>
     </>
   );

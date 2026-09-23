@@ -2,24 +2,25 @@
 
 import {
   Accordion,
-  type AccordionVariant,
   AccordionItem,
+  type AccordionVariant,
   Button,
   Card,
   CardBody,
+  Grid,
   Heading,
   Icon,
   NumberFormat,
   Tab,
-  TabList,
-  Tabs,
-  type TabsColor,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  TabList,
+  Tabs,
+  type TabsColor,
   Tag,
   Text,
 } from '@kazuemon/ui';
@@ -245,7 +246,7 @@ function PricingScreen({
         </Tabs>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <Grid columns={{ base: 1, md: 3 }} gap="lg">
         {plans.map((plan) => (
           <PlanCard
             key={plan.id}
@@ -256,7 +257,7 @@ function PricingScreen({
             signedIn={signedIn}
           />
         ))}
-      </div>
+      </Grid>
 
       <section className="flex flex-col gap-4">
         <Heading level={2} size={3}>
