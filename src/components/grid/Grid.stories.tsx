@@ -52,6 +52,15 @@ function blocks(n: number) {
   ));
 }
 
+// 列の数の数え方を確かめる。グリッドの列は getComputedStyle の grid-template-columns に px で並ぶ
+const columnCount = (el: HTMLElement) =>
+  getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+
+// いまの画面の幅が、その段（Tailwind の既定の幅）以上か
+const breakpointWidths = { sm: '40rem', md: '48rem', lg: '64rem', xl: '80rem' } as const;
+const matchesBreakpoint = (bp: keyof typeof breakpointWidths) =>
+  window.matchMedia(`(min-width: ${breakpointWidths[bp]})`).matches;
+
 const meta = {
   title: 'Components/Grid',
   component: Grid,
@@ -63,9 +72,9 @@ const meta = {
           '子を行と列の格子に並べる部品です。カードの一覧、料金の表、指標の行のように、同じ幅の列を並べるときに使います。1 列に並べるだけなら `Stack` を使います。',
           '',
           '- `minColumnWidth` は列の最小の幅（px）です。入れ物の幅をこの値で割った数だけ列になります（既定 240）。',
-          '- `columns` だけを渡すと、入れ物の幅によらず列の数を固定します。',
-          '- `columns` と `minColumnWidth` を両方渡すと、`columns` を上限にし、1 列が `minColumnWidth` を割るときは列を減らします。「スマホは 1 列、広い画面は 3 列」はこの形で書きます。',
-          '- 列の数は、画面の幅ではなく、置いた入れ物の幅で決まります。',
+          '- `columns={3}` のように数を渡すと、どの幅でも同じ列の数に固定します。',
+          '- `columns={{ base: 1, sm: 2, lg: 4 }}` のように画面の幅の段ごとの数を渡すと、画面の幅で列の数が変わります。段は `base`（いちばん狭い画面）・`sm`（40rem）・`md`（48rem）・`lg`（64rem）・`xl`（80rem）で、Tailwind の既定の幅と同じです。渡していない段は、1 つ下の段の数を使います（`base` もないときは 1 列）。',
+          '- `columns` と `minColumnWidth` を両方渡すと、`columns` を上限にし、1 列が `minColumnWidth` を割るときは列を減らします。サイドバーの横のような、画面より狭い入れ物に置くときに使います。',
           '- `gap` は子の間隔です（`Stack` の `gap` と同じ段）。既定は `md` です。',
           '- `align` は同じ行の子の上下の揃えです。既定の `stretch` は、行でいちばん高い子に合わせて伸ばすので、カードの高さがそろいます。子の高さをそのままにするときは `align="start"` を渡します。',
           '- 一覧にするときは `render={<ul />}` を渡し、子を `li` にします。',
@@ -187,6 +196,37 @@ export const Align: Story = {
   ),
 };
 
+const stats = [
+  { label: '今月の記事', value: '12 本' },
+  { label: '閲覧数', value: '8,420' },
+  { label: 'コメント', value: '36 件' },
+  { label: '下書き', value: '4 本' },
+] as const;
+
+// 画面の幅で列の数を変える。スマホは 1 列、sm から 2 列、lg から 4 列
+export const Responsive: Story = {
+  name: '画面の幅で変える',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Grid columns={{ base: 1, sm: 2, lg: 4 }} data-testid="responsive">
+      {stats.map((stat) => (
+        <Card key={stat.label}>
+          <CardBody>
+            <Text size="sm" variant="muted">
+              {stat.label}
+            </Text>
+            <Text weight="bold">{stat.value}</Text>
+          </CardBody>
+        </Card>
+      ))}
+    </Grid>
+  ),
+  play: async ({ canvas }) => {
+    const expected = matchesBreakpoint('lg') ? 4 : matchesBreakpoint('sm') ? 2 : 1;
+    await expect(columnCount(canvas.getByTestId('responsive'))).toBe(expected);
+  },
+};
+
 // 一覧にする: ul で描き、子を li にする
 export const Accessibility: Story = {
   name: '読み上げ',
@@ -207,10 +247,6 @@ export const Accessibility: Story = {
     await expect(canvas.getAllByRole('listitem')).toHaveLength(4);
   },
 };
-
-// 列の数の数え方を確かめる。グリッドの列は getComputedStyle の grid-template-columns に px で並ぶ
-const columnCount = (el: HTMLElement) =>
-  getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
 
 export const Props: Story = {
   name: 'props',
@@ -239,6 +275,22 @@ export const Props: Story = {
           {blocks(3)}
         </Grid>
       </div>
+      <Grid data-testid="bp-no-base" columns={{ md: 3 }}>
+        {blocks(3)}
+      </Grid>
+      <Grid data-testid="bp-skip" columns={{ base: 2, xl: 5 }}>
+        {blocks(5)}
+      </Grid>
+      <div style={{ width: 600 }}>
+        <Grid data-testid="bp-capped" columns={{ base: 1, md: 4 }} minColumnWidth={200}>
+          {blocks(4)}
+        </Grid>
+      </div>
+      <Grid data-testid="bp-outer" columns={{ base: 1, lg: 2 }}>
+        <Grid data-testid="bp-inner" columns={3}>
+          {blocks(3)}
+        </Grid>
+      </Grid>
       <div style={{ width: 760 }}>
         <Grid data-testid="outer" minColumnWidth={360}>
           <Grid data-testid="inner">{blocks(2)}</Grid>
@@ -264,6 +316,18 @@ export const Props: Story = {
     await expect(columnCount(canvas.getByTestId('capped-640'))).toBe(3);
     await expect(columnCount(canvas.getByTestId('capped-420'))).toBe(2);
     await expect(columnCount(canvas.getByTestId('capped-gap-none'))).toBe(3);
+    // 段ごとの数: 渡していない段は 1 つ下の段へさかのぼる。base もないときは 1 列
+    await expect(columnCount(canvas.getByTestId('bp-no-base'))).toBe(
+      matchesBreakpoint('md') ? 3 : 1
+    );
+    await expect(columnCount(canvas.getByTestId('bp-skip'))).toBe(matchesBreakpoint('xl') ? 5 : 2);
+    // 段ごとの数と minColumnWidth: その段の数を上限にし、入れ物 600px では 200px の列が 2 つまで
+    await expect(columnCount(canvas.getByTestId('bp-capped'))).toBe(
+      matchesBreakpoint('md') ? 2 : 1
+    );
+    // 入れ子: 外の段ごとの数は、中の Grid に引き継がれない
+    await expect(columnCount(canvas.getByTestId('bp-outer'))).toBe(matchesBreakpoint('lg') ? 2 : 1);
+    await expect(columnCount(canvas.getByTestId('bp-inner'))).toBe(3);
     // 入れ子: 外の minColumnWidth は中の Grid に引き継がれない（中は既定の 240）
     await expect(columnCount(canvas.getByTestId('outer'))).toBe(2);
     const inner = canvas.getByTestId('inner');

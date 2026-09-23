@@ -8,16 +8,29 @@ import { tv } from '../../internal/tv';
 // 子を格子（行と列）に並べる枠 — 軸 300〜302（未決）
 //   Stack は 1 列、Grid は列を並べる。Masonry と違い隙間なく積まないので、CSS Grid だけで描ける（子の高さを測らない）
 //   'use client' は、render を受けるための useRender（Base UI）のため。Stack・Container と同じ
-//   列の数は入れ物の幅で決める（原則11: 入れ物の幅で決まるものは、画面の幅や入力方式と分ける）。画面の幅の段は持たない
+//   列の数の決め方
 //     columns なし: 入れ物の幅を minColumnWidth で割った数だけ列にする（--grid-fill。軸 301 で auto-fill か auto-fit かを比べる）
 //     columns だけ: 入れ物の幅によらず列の数を固定する（Masonry と同じ）
 //     columns と minColumnWidth: columns を上限にし、1 列が minColumnWidth を割るときは列を減らす（軸 302）
+//   columns は画面の幅の段ごとにも渡せる（{ base: 1, md: 3 }。段は Tailwind の既定の sm・md・lg・xl）
+//     クラスは静的に書き、数だけを style で --grid-columns-<段> に入れる。--grid-columns は、いまの画面の幅で効く段の数を、
+//     渡していない段は 1 つ下の段へ（base もないときは 1 列へ）さかのぼって読む。fixed・capped は --grid-columns だけを読むので、
+//     数でも段ごとでも同じ式で描ける
+//     入れ子の Grid が外の Grid の段の数を受け継がないよう、段の変数は自分の要素で initial に戻す（渡した段は style が上書きする）
 //       1 列の最小の幅を「100% / 列の数 − 間隔」にすると、列の数ちょうどが入り、1 つ多いと入らない。
 //       間隔が 0 のときも端数で 1 列落ちないよう、引く幅は 1px を下回らせない
 //   同じ行の子の高さの揃え（align）は軸 300 で比べる。いまは CSS Grid の既定（stretch）
 //   間隔は Stack と同じ間隔の段（ADR-0212）。押すものではないので入力方式では変えない
 const grid = tv({
-  base: 'grid gap-(--grid-gap) [--grid-min:var(--grid-column-width)]',
+  base: [
+    'grid gap-(--grid-gap) [--grid-min:var(--grid-column-width)]',
+    '[--grid-columns-base:initial] [--grid-columns-lg:initial] [--grid-columns-md:initial] [--grid-columns-sm:initial] [--grid-columns-xl:initial]',
+    '[--grid-columns:var(--grid-columns-base,1)]',
+    'sm:[--grid-columns:var(--grid-columns-sm,var(--grid-columns-base,1))]',
+    'md:[--grid-columns:var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1)))]',
+    'lg:[--grid-columns:var(--grid-columns-lg,var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1))))]',
+    'xl:[--grid-columns:var(--grid-columns-xl,var(--grid-columns-lg,var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1)))))]',
+  ],
   variants: {
     layout: {
       fill: '[grid-template-columns:repeat(var(--grid-fill),minmax(min(100%,var(--grid-min)),1fr))]',
@@ -47,19 +60,27 @@ type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
 export type GridGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type GridAlign = 'start' | 'center' | 'end' | 'stretch';
+/** 列の数を変える画面の幅の段。base はいちばん狭い画面から、sm・md・lg・xl は Tailwind の既定の幅（40rem・48rem・64rem・80rem）から上 */
+export type GridBreakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
+/** 列の数。数なら画面の幅によらず同じ、段ごとの数なら画面の幅で変わる */
+export type GridColumns = number | Partial<Record<GridBreakpoint, number>>;
+
+const breakpoints: readonly GridBreakpoint[] = ['base', 'sm', 'md', 'lg', 'xl'];
 
 export interface GridProps extends ComponentProps<'div'> {
   /**
    * 列の最小の幅（px）。入れ物の幅をこの値で割った数だけ列にします。columns と一緒に渡すと、columns を上限にして、
-   * 1 列がこの幅を割るときは列を減らします（スマホは 1 列、広い画面は 3 列のような並べ方）
+   * 1 列がこの幅を割るときは列を減らします（サイドバーの横のような、狭い入れ物に置くときの並べ方）
    * @default 240
    */
   minColumnWidth?: number;
   /**
-   * 列の数。これだけを渡すと、入れ物の幅によらず同じ列数に固定します。
-   * 狭い入れ物で列を減らしたいときは、minColumnWidth も渡します
+   * 列の数。数を渡すと、どの画面の幅でも同じ列の数です（`columns={3}`）。
+   * 画面の幅の段ごとの数を渡すと、画面の幅で列の数を変えます（`columns={{ base: 1, md: 2, lg: 4 }}`）。
+   * 段は base（いちばん狭い画面）・sm・md・lg・xl で、渡していない段は 1 つ下の段の数を使います（base もないときは 1 列）。
+   * 置いた入れ物の幅では変わりません。狭い入れ物で列を減らしたいときは、minColumnWidth も渡します
    */
-  columns?: number;
+  columns?: GridColumns;
   /**
    * 子の間隔（縦横とも）。Stack の gap と同じ段です（none は 0、xs は 4px、sm は 8px、md は 16px、lg は 24px、xl は 40px）
    * @default 'md'
@@ -79,8 +100,20 @@ export interface GridProps extends ComponentProps<'div'> {
   className?: string;
 }
 
+// 渡した段の数だけを --grid-columns-<段> に入れる
+function columnVars(columns: GridColumns | undefined): Record<`--${string}`, string> {
+  if (columns == null) return {};
+  if (typeof columns === 'number') return { '--grid-columns-base': String(columns) };
+  const vars: Record<`--${string}`, string> = {};
+  for (const bp of breakpoints) {
+    const n = columns[bp];
+    if (n != null) vars[`--grid-columns-${bp}`] = String(n);
+  }
+  return vars;
+}
+
 /**
- * 子を行と列の格子に並べる部品。列の数は、入れ物の幅から決めるか、固定します
+ * 子を行と列の格子に並べる部品。列の数は、入れ物の幅から決めるか、画面の幅の段ごとに渡します
  */
 export function Grid({
   minColumnWidth,
@@ -102,7 +135,7 @@ export function Grid({
       className: grid({ layout, gap, align, className }),
       style: {
         ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
-        ...(columns != null && { '--grid-columns': String(columns) }),
+        ...columnVars(columns),
         ...style,
       } satisfies TokenStyle,
     },
