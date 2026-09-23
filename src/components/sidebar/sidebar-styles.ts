@@ -20,11 +20,9 @@ export const sidebar = tv({
     root: 'relative flex shrink-0 flex-col overflow-hidden border-e border-line bg-surface',
     // Drawer の中の並び
     drawer: 'flex flex-col gap-1',
-    title:
-      'flex shrink-0 items-center px-[calc(var(--sidebar-padding)+var(--sidebar-row-px))] pt-(--sidebar-padding) pb-1 text-xs text-fg-subtle transition-opacity duration-(--duration-fast) motion-reduce:transition-none',
     // 行の並び（ScrollArea の枠）。余白は中身に持たせ、スクロールとともに動く。フォーカスの線が切れない
     list: 'min-h-0 flex-1',
-    listContent: 'px-(--sidebar-padding) pt-2 pb-(--sidebar-padding)',
+    listContent: 'p-(--sidebar-padding)',
     footer: 'shrink-0 px-(--sidebar-padding) pt-2 pb-(--sidebar-padding)',
     row: [
       'group/sidebar-row relative flex h-(--spacing-control) w-full shrink-0 cursor-pointer items-center gap-(--sidebar-gap)',
@@ -57,6 +55,9 @@ export const sidebar = tv({
       '[transition:rotate_var(--duration-fast)_var(--ease-press)] motion-reduce:[transition:none]',
       'group-aria-expanded/sidebar-row:rotate-0',
     ],
+    // 節（SidebarSection）。題は行と同じ左の位置から始める。畳んだ列では題を出さず、節のあいだに線を引く
+    section: 'flex flex-col not-first:mt-4',
+    sectionTitle: 'px-(--sidebar-row-px) pb-1 text-xs text-fg-subtle',
     // 入れ子の並び。案内線は、親のアイコンの中心の下に引く
     group: [
       'relative ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2)] flex flex-col gap-0.5 border-s border-line',
@@ -73,7 +74,7 @@ export const sidebar = tv({
       neutral: {},
     },
     collapsed: {
-      true: { root: 'w-(--sidebar-rail-width)', title: 'opacity-0' },
+      true: { root: 'w-(--sidebar-rail-width)' },
       false: { root: 'w-(--sidebar-width)' },
     },
     // 開け閉めの動き（軸 305）。smooth は列の幅を動かし、none はすぐ切り替える
@@ -82,6 +83,11 @@ export const sidebar = tv({
         root: 'transition-[width] duration-(--duration-normal) ease-out motion-reduce:transition-none',
       },
       none: {},
+    },
+    // 畳んだ列の節: 題を出さず、次の節との境に線を引く
+    railed: {
+      true: { section: 'not-first:mt-2 not-first:border-t not-first:border-line not-first:pt-2' },
+      false: {},
     },
     // 入れ子の行は、アイコンを持たず、案内線の右から文字を始める
     nested: {
@@ -94,6 +100,7 @@ export const sidebar = tv({
     collapsed: false,
     motion: 'smooth',
     nested: false,
+    railed: false,
   },
 });
 

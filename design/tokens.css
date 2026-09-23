@@ -1475,7 +1475,7 @@
   /* ページの横に並ぶ列（src/components/sidebar）。行は Tree の行と同じ考え（hover は入力欄の塗り、いまいる行は部品の色）
      width: 開いた列の幅。rail-width: 畳んだ列の幅（アイコンだけ残す）
      padding: 列の内側の余白。row-px: 行の左右の余白。畳んだ列の幅の中でアイコンが中央に来る値（開いた形と畳んだ形でアイコンの位置が動かない）
-     gap: アイコンと文字のあいだ。nested-px: 入れ子の行の左の余白（案内線の右）
+     gap: アイコンと文字のあいだ。nested-px: 入れ子の行の左の余白（案内線から文字まで。Tree の案内線と文字の間と同じ 16px）
      current-*: いまいる行（軸 306 の決定。色を持たないときはグレーの面と太字。Tree と同じ） */
   --sidebar-width: calc(var(--spacing) * 64);
   --sidebar-rail-width: calc(var(--spacing) * 18);
@@ -1484,7 +1484,7 @@
     (var(--sidebar-rail-width) - var(--spacing-icon)) / 2 - var(--sidebar-padding)
   );
   --sidebar-gap: calc(var(--spacing) * 3);
-  --sidebar-nested-px: calc(var(--spacing) * 3);
+  --sidebar-nested-px: calc(var(--spacing) * 4);
   --sidebar-row-rest: transparent;
   --sidebar-row-hover: var(--color-field);
   --sidebar-row-press: color-mix(in oklab, var(--color-field), var(--color-fg) 6%);

@@ -13,6 +13,7 @@ import {
 import { Button } from '../components/button/Button';
 import { Navbar } from '../components/navbar/Navbar';
 import { SidebarItem } from '../components/sidebar/SidebarItem';
+import { SidebarSection } from '../components/sidebar/SidebarSection';
 import { SidebarTrigger } from '../components/sidebar/SidebarLayout';
 
 // Sidebar のストーリーと見本のページが共有する中身。架空のゲーム「ミラージュ・ストライカーズ」の大会の試合管理
@@ -38,37 +39,41 @@ export function TournamentItems({
   const is = (name: string) => name === current;
   return (
     <>
-      <SidebarItem label="大会の概要" icon={<InfoIcon />} href="#overview" current={is('概要')} />
-      <SidebarItem label="ステージ" icon={<MedalIcon />} defaultExpanded>
-        <SidebarItem label="予選リーグ" defaultExpanded>
-          <SidebarItem label="Aグループ" href="#a" current={is('Aグループ')} />
-          <SidebarItem label="Bグループ" href="#b" current={is('Bグループ')} />
-          <SidebarItem label="Cグループ" href="#c" current={is('Cグループ')} />
+      <SidebarSection title="試合管理">
+        <SidebarItem label="大会の概要" icon={<InfoIcon />} href="#overview" current={is('概要')} />
+        <SidebarItem label="ステージ" icon={<MedalIcon />} defaultExpanded>
+          <SidebarItem label="予選リーグ" defaultExpanded>
+            <SidebarItem label="Aグループ" href="#a" current={is('Aグループ')} />
+            <SidebarItem label="Bグループ" href="#b" current={is('Bグループ')} />
+            <SidebarItem label="Cグループ" href="#c" current={is('Cグループ')} />
+            <CreateItem onCreate={onCreate} />
+          </SidebarItem>
+          <SidebarItem label="決勝リーグ">
+            <SidebarItem label="準決勝" href="#semi" />
+            <SidebarItem label="決勝" href="#final" />
+            <CreateItem onCreate={onCreate} />
+          </SidebarItem>
           <CreateItem onCreate={onCreate} />
         </SidebarItem>
-        <SidebarItem label="決勝リーグ">
-          <SidebarItem label="準決勝" href="#semi" />
-          <SidebarItem label="決勝" href="#final" />
-          <CreateItem onCreate={onCreate} />
-        </SidebarItem>
-        <CreateItem onCreate={onCreate} />
-      </SidebarItem>
-      <SidebarItem label="参加チーム" icon={<UsersThreeIcon />} href="#teams" />
-      <SidebarItem label="賞品・賞金" icon={<TrophyIcon />} href="#prizes" />
-      <SidebarItem label="マッチサーバー" icon={<HardDrivesIcon />} href="#servers" />
-      <SidebarItem
-        label="大会ルール"
-        icon={<BookOpenTextIcon />}
-        href="https://example.com/mirage-cup/rules"
-        target="_blank"
-      />
-      <SidebarItem
-        label="配信ページ"
-        icon={<BroadcastIcon />}
-        href="https://example.com/mirage-cup/live"
-        target="_blank"
-      />
-      <SidebarItem label="お問い合わせ" icon={<ChatCircleDotsIcon />} href="#contact" />
+        <SidebarItem label="参加チーム" icon={<UsersThreeIcon />} href="#teams" />
+        <SidebarItem label="賞品・賞金" icon={<TrophyIcon />} href="#prizes" />
+        <SidebarItem label="マッチサーバー" icon={<HardDrivesIcon />} href="#servers" />
+      </SidebarSection>
+      <SidebarSection title="関連情報">
+        <SidebarItem
+          label="大会ルール"
+          icon={<BookOpenTextIcon />}
+          href="https://example.com/mirage-cup/rules"
+          target="_blank"
+        />
+        <SidebarItem
+          label="配信ページ"
+          icon={<BroadcastIcon />}
+          href="https://example.com/mirage-cup/live"
+          target="_blank"
+        />
+        <SidebarItem label="お問い合わせ" icon={<ChatCircleDotsIcon />} href="#contact" />
+      </SidebarSection>
     </>
   );
 }

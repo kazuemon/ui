@@ -117,7 +117,7 @@ export const Tournament: Story = {
       <SidebarLayout
         header={<DemoNavbar />}
         sidebar={
-          <Sidebar title="試合管理" collapseButton>
+          <Sidebar collapseButton>
             <TournamentItems />
           </Sidebar>
         }

@@ -385,6 +385,7 @@ export {
   type SidebarProps,
 } from './components/sidebar/Sidebar';
 export { SidebarItem, type SidebarItemProps } from './components/sidebar/SidebarItem';
+export { SidebarSection, type SidebarSectionProps } from './components/sidebar/SidebarSection';
 export {
   SidebarLayout,
   type SidebarLayoutProps,

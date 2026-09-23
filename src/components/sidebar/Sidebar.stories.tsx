@@ -22,8 +22,9 @@ const meta = {
           '',
           '- SidebarLayout の `placement`: `below`（既定）は帯を動かさず、その下で列と本文を並べます。`full` は列を上から下まで通し、帯は本文の側に入ります。',
           '- 開け閉めのボタンは SidebarTrigger です。帯の中などに置きます。`collapseButton` を付けると、列の下端にも畳む・開くボタンが出ます。',
+          '- 行は SidebarSection で節に分けられます（節は何個でも並べられます）。節の題は、列の中身と一緒にスクロールし、Drawer の中にも出ます。畳んだ列では題を出さず、節のあいだに線を引きます。',
           '- 畳むと、アイコンだけが残ります。入れ子のある行は、載せる（か押す）と横に面が出て、入れ子を開きます。畳んだ列の行にはアイコンを置いてください。',
-          '- 置かれた面の幅が 48rem より狭いときは、列をやめて Drawer に切り替わります。出す向きは `narrowSide`（`left` が既定、`right`・`bottom`、指の画面だけ下から出す `auto`）です。',
+          '- 置かれた面の幅が 48rem より狭いときは、列をやめて Drawer に切り替わります（Drawer の題は `drawerLabel`）。出す向きは `narrowSide`（`left` が既定、`right`・`bottom`、指の画面だけ下から出す `auto`）です。',
           '- `color` は、いまいる行の色です。指定しないときはグレーです。',
           '- 入れ子に足す操作（グループの作成など）は、入れ子の末尾に「作成」の行（行き先を持たない SidebarItem）として置きます。`target="_blank"` の行には、右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。',
           '- 行が縦に収まらないときは、列の中がスクロールします。',
@@ -31,7 +32,7 @@ const meta = {
       },
     },
   },
-  args: { title: '試合管理', color: 'neutral', collapseButton: false },
+  args: { drawerLabel: 'メニュー', color: 'neutral', collapseButton: false },
   argTypes: {
     color: {
       control: 'inline-radio',
@@ -185,7 +186,7 @@ export const Narrow: Story = {
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(trigger);
     const body = within(canvasElement.ownerDocument.body);
-    const drawer = await body.findByRole('dialog', { name: '試合管理' });
+    const drawer = await body.findByRole('dialog', { name: 'メニュー' });
     await expect(within(drawer).getByRole('link', { name: 'Aグループ' })).toHaveAttribute(
       'aria-current',
       'page'
@@ -207,12 +208,15 @@ export const Accessibility: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const nav = canvas.getByRole('navigation', { name: '試合管理' });
+    const nav = canvas.getByRole('navigation', { name: 'メニュー' });
     // いまいる行は aria-current="page"
     await expect(within(nav).getByRole('link', { name: 'Aグループ' })).toHaveAttribute(
       'aria-current',
       'page'
     );
+    // 節（SidebarSection）の題は、列の中身にある。畳んだ列にすると、列の一覧に題が名前として残る
+    await expect(within(nav).getByRole('list', { name: '試合管理' })).toBeInTheDocument();
+    await expect(within(nav).getByRole('list', { name: '関連情報' })).toBeInTheDocument();
     // 新しいタブで開く行は、読み上げに「新しいタブで開きます」が入り、rel が付く
     const rules = within(nav).getByRole('link', { name: /大会ルール.*新しいタブで開きます/ });
     await expect(rules).toHaveAttribute('rel', 'noopener noreferrer');

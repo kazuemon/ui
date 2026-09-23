@@ -28,9 +28,10 @@ export type {
 
 export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'title'> {
   /**
-   * 列の題。列の上に小さく出し（畳むと消えます）、読み上げでは列の名前と、狭い画面の Drawer の題になります
+   * 狭い画面の Drawer の題。列の読み上げの名前（nav の名前）にも使います
+   * @default 'メニュー'
    */
-  title: string;
+  drawerLabel?: string;
   /** 行（SidebarItem）を並べます */
   children?: ReactNode;
   /**
@@ -81,7 +82,7 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
  * ページの横に並ぶ列。SidebarLayout の中に置き、行（SidebarItem）を並べます。畳むとアイコンだけが残り、狭い画面では Drawer になります
  */
 export function Sidebar({
-  title,
+  drawerLabel = 'メニュー',
   children,
   color = 'neutral',
   collapseButton = false,
@@ -104,7 +105,7 @@ export function Sidebar({
   if (narrow) {
     return (
       <Drawer
-        title={title}
+        title={drawerLabel}
         side={side}
         open={mobileOpen}
         onOpenChange={setMobileOpen}
@@ -114,7 +115,7 @@ export function Sidebar({
           <nav
             {...props}
             ref={ref}
-            aria-label={title}
+            aria-label={drawerLabel}
             data-slot="sidebar"
             className={s.drawer({ className })}
           >
@@ -133,14 +134,11 @@ export function Sidebar({
         {...props}
         ref={ref}
         id={navId}
-        aria-label={title}
+        aria-label={drawerLabel}
         data-slot="sidebar"
         data-collapsed={collapsed || undefined}
         className={s.root({ className })}
       >
-        <p aria-hidden="true" className={s.title()}>
-          {title}
-        </p>
         <ScrollArea
           orientation="vertical"
           className={s.list()}
