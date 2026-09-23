@@ -21,7 +21,7 @@ import { ArrowUpRightIcon, CaretDownIcon } from '../../internal/icons';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Menu } from '../menu/Menu';
-import { MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem';
+import { MenuGroup, MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem';
 import { Tooltip } from '../tooltip/Tooltip';
 import {
   SidebarLayoutContext,
@@ -344,7 +344,8 @@ function RailItem({
         closeDelay={nav.closeDelay}
       >
         <SidebarNavContext value={{ ...nav, mode: 'flyout', depth: 1 }}>
-          {children}
+          {/* 畳んだ列の面には、親の行の名前を、面の見出しとして出す */}
+          <MenuGroup label={label}>{children}</MenuGroup>
         </SidebarNavContext>
       </Menu>
     </li>
@@ -370,7 +371,7 @@ function FlyoutItem({
       <MenuSubmenu
         icon={icon}
         title={label}
-        items={children}
+        items={<MenuGroup label={label}>{children}</MenuGroup>}
         disabled={disabled}
         className={className}
       >

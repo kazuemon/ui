@@ -16,14 +16,16 @@ const colorScope = {
 export const sidebar = tv({
   slots: {
     // 広い画面の列
-    root: 'relative flex shrink-0 flex-col gap-1 overflow-hidden border-e border-line bg-surface p-(--sidebar-padding)',
+    // 内側の余白は、題・スクロールの中身・下端のボタンがそれぞれ持つ（スクロールの枠の外に余白を取ると、影が列の端まで届かず、下に空きができる）
+    root: 'relative flex shrink-0 flex-col overflow-hidden border-e border-line bg-surface',
     // Drawer の中の並び
     drawer: 'flex flex-col gap-1',
     title:
-      'flex h-7 shrink-0 items-center px-(--sidebar-row-px) text-xs text-fg-subtle transition-opacity duration-(--duration-fast) motion-reduce:transition-none',
-    // 行の並び（ScrollArea の枠）。フォーカスの線が切れないよう、はみ出す分の余白を取る
-    list: '-mx-1.5 min-h-0 flex-1',
-    listContent: 'px-1.5 py-1.5',
+      'flex shrink-0 items-center px-[calc(var(--sidebar-padding)+var(--sidebar-row-px))] pt-(--sidebar-padding) pb-1 text-xs text-fg-subtle transition-opacity duration-(--duration-fast) motion-reduce:transition-none',
+    // 行の並び（ScrollArea の枠）。余白は中身に持たせ、スクロールとともに動く。フォーカスの線が切れない
+    list: 'min-h-0 flex-1',
+    listContent: 'px-(--sidebar-padding) pt-2 pb-(--sidebar-padding)',
+    footer: 'shrink-0 px-(--sidebar-padding) pt-2 pb-(--sidebar-padding)',
     row: [
       'group/sidebar-row relative flex h-(--spacing-control) w-full shrink-0 cursor-pointer items-center gap-(--sidebar-gap)',
       'rounded-control px-(--sidebar-row-px) text-start no-underline select-none',

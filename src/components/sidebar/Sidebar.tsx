@@ -4,7 +4,6 @@ import { type ComponentProps, type ReactNode } from 'react';
 
 import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
-import { cn } from '../../internal/tv';
 import { Drawer } from '../drawer/Drawer';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
@@ -150,19 +149,21 @@ export function Sidebar({
           <ul className="flex flex-col gap-0.5">{children}</ul>
         </ScrollArea>
         {collapseButton && (
-          <button
-            type="button"
-            aria-label={collapsed ? expandName : collapseName}
-            aria-expanded={!collapsed}
-            aria-controls={navId}
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(s.row(), 'mt-auto')}
-          >
-            <span aria-hidden="true" className={s.icon()}>
-              {collapsed ? <CaretRightIcon /> : <CaretLeftIcon />}
-            </span>
-            <span className={collapsed ? 'sr-only' : s.label()}>{collapseName}</span>
-          </button>
+          <div className={s.footer()}>
+            <button
+              type="button"
+              aria-label={collapsed ? expandName : collapseName}
+              aria-expanded={!collapsed}
+              aria-controls={navId}
+              onClick={() => setCollapsed(!collapsed)}
+              className={s.row()}
+            >
+              <span aria-hidden="true" className={s.icon()}>
+                {collapsed ? <CaretRightIcon /> : <CaretLeftIcon />}
+              </span>
+              <span className={collapsed ? 'sr-only' : s.label()}>{collapseName}</span>
+            </button>
+          </div>
         )}
       </nav>
     </SidebarNavContext>
