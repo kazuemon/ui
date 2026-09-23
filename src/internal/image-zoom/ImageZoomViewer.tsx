@@ -2,36 +2,42 @@
 
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import {
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type RefObject,
   type WheelEvent,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 
-import type { DensityScope } from '../../internal/density-scope';
-import { focusRing } from '../../internal/focus-styles';
-import { XIcon } from '../../internal/icons';
-import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import type { DensityScope } from '../density-scope';
+import { focusRing } from '../focus-styles';
+import { XIcon } from '../icons';
+import { ESCAPE_REASONS } from '../overlay/close-reasons';
 import {
   focusTargetRef,
   type OverlayFocusTarget,
   type OverlayModal,
   type PopupProps,
-} from '../../internal/overlay/overlay-props';
-import { cn } from '../../internal/tv';
-import { usePortalContainer } from '../../internal/ui-config';
-import { useMergedRefs } from '../../internal/use-merged-refs';
-import { useSwipeClose } from './use-swipe-close';
+} from '../overlay/overlay-props';
+import { cn } from '../tv';
+import { usePortalContainer } from '../ui-config';
+import { useMergedRefs } from '../use-merged-refs';
+import { playSlide, readSlideMotion, slides, translateX } from './slide-motion';
+import { type SwipeNavigate, useSwipeClose } from './use-swipe-close';
 import { fitSize, type Size } from './zoom-geometry';
 import { type CaptionMotion, hidesOrigin, playZoom, prefersReducedMotion } from './zoom-motion';
 
-// 画像を画面いっぱいに拡大して見せる面。ImageZoom が 1 枚を、あとで Gallery が複数枚を送って見せるのに使う
+// 画像を画面いっぱいに拡大して見せる面。ImageZoom が 1 枚を、Gallery が複数枚を送って見せるのに使う
 //   開閉は外から決める（open・onOpenChange）。開く口（押した画像）は getOrigin で受け、広がる動きの始まりと終わりにする
-//   Gallery は、送った先の画像を getOrigin で返し、src・caption を差し替え、送る操作を controls に置く
+//   Gallery は、送った先の画像を getOrigin で返し、src・caption・slideKey を差し替え、送る操作を controls に置く
+//     slideKey が変わると、前の画像は送る向きの反対へ出ていき、次の画像が入ってくる（slide-motion.ts）
+//     navigate を渡すと、←→ キーと、指で左右にはじく操作で送る（use-swipe-close.ts）
+//     controls の置き場所のために、面の余白を --image-zoom-reserve-x・--image-zoom-reserve-bottom で広げられる（既定は 0）
 // 振る舞いは Base UI の Dialog（フォーカスの閉じ込め・Esc・読み上げの名前・閉じたあとに戻す先）
 //   面は重なる面だが、中身は画像だけなので、面の白い地は持たない。後ろの面（--image-zoom-backdrop）の上に画像を直に置く
 //   読み上げの名前は画像の代わりの文（title）。画面には出さない（原則15）。キャプションは説明として読む
@@ -94,6 +100,12 @@ export interface ImageZoomViewerProps {
   caption?: ReactNode;
   /** 画像の上に重ねる操作（Gallery の送るボタンなど）。押しても面は閉じない */
   controls?: ReactNode;
+  /** いま見せている画像の目印（Gallery の番号）。変わると、前の画像から送る動きをする */
+  slideKey?: string | number;
+  /** 送った向き。-1 は前、1 は次 */
+  slideDirection?: -1 | 1;
+  /** ←→ キーと、指で左右にはじく操作で送る（Gallery） */
+  navigate?: SwipeNavigate;
   variant?: ImageZoomVariant;
   motion?: ImageZoomMotion;
   closeButtonVariant?: ImageZoomCloseButtonVariant;
@@ -127,6 +139,7 @@ export function ImageZoomViewer({
   portalContainer: container,
   popupProps,
   className,
+  navigate,
   ...stage
 }: ImageZoomViewerProps) {
   const portalContainer = usePortalContainer(container);
@@ -170,6 +183,16 @@ export function ImageZoomViewer({
           data-slot="image-zoom"
           data-density={scope.density}
           {...restPopupProps}
+          onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+            restPopupProps.onKeyDown?.(event);
+            if (!navigate || !open || event.defaultPrevented) return;
+            if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            const direction = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+            if (direction === 0) return;
+            if (direction === -1 ? !navigate.hasPrev : !navigate.hasNext) return;
+            event.preventDefault();
+            navigate.onNavigate(direction);
+          }}
           ref={popupRef}
           className={cn(
             'fixed inset-0 z-10 text-fg outline-none',
@@ -184,6 +207,7 @@ export function ImageZoomViewer({
         >
           <ZoomStage
             {...stage}
+            navigate={navigate}
             getOrigin={getOrigin}
             backdropRef={backdropRef}
             closing={!open}
@@ -212,6 +236,9 @@ interface ZoomStageProps extends Pick<
   | 'title'
   | 'caption'
   | 'controls'
+  | 'slideKey'
+  | 'slideDirection'
+  | 'navigate'
   | 'dismissible'
   | 'closeOnSwipe'
   | 'closeOnScroll'
@@ -251,6 +278,9 @@ function ZoomStage({
   title,
   caption,
   controls,
+  slideKey,
+  slideDirection = 1,
+  navigate,
   dismissible = true,
   closeOnSwipe = dismissible,
   closeOnScroll = false,
@@ -264,7 +294,26 @@ function ZoomStage({
   onClosed,
 }: ZoomStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  // 送るとき（slideKey が変わって画像の枠が作り直される）、前の画像の枠と、そのときの位置を取っておく
+  const leaving = useRef<{ el: HTMLDivElement; left: number; top: number } | null>(null);
+  const setBox = useCallback((el: HTMLDivElement | null) => {
+    boxRef.current = el;
+    if (!el) return undefined;
+    return () => {
+      leaving.current = { el, left: el.offsetLeft, top: el.offsetTop };
+      if (boxRef.current === el) boxRef.current = null;
+    };
+  }, []);
+  // 送る動きと、出ていく画像の枠（面に置き直したもの）
+  const slideAnimations = useRef<Animation[]>([]);
+  const ghost = useRef<HTMLElement | null>(null);
+  const endSlide = () => {
+    for (const a of slideAnimations.current) a.cancel();
+    slideAnimations.current = [];
+    ghost.current?.remove();
+    ghost.current = null;
+  };
   const captionRef = useRef<HTMLParagraphElement>(null);
   const zoomRef = useRef<HTMLImageElement>(null);
   // 元の位置の画像の、読み込み済みの URL（srcset から選ばれたもの）。開いた時点のものを使う
@@ -289,10 +338,13 @@ function ZoomStage({
     captionMotion,
   });
   // 隠した元の画像とページのキャプションを戻す
-  const restore = () => {
+  const restoreOrigin = () => {
     if (hiddenOrigin.current) hiddenOrigin.current.style.opacity = '';
-    if (hiddenCaption.current) hiddenCaption.current.style.opacity = '';
     hiddenOrigin.current = null;
+  };
+  const restore = () => {
+    restoreOrigin();
+    if (hiddenCaption.current) hiddenCaption.current.style.opacity = '';
     hiddenCaption.current = null;
   };
 
@@ -367,6 +419,7 @@ function ZoomStage({
     return () => {
       // 面が消えるときは、隠した元の画像とキャプションを必ず戻す
       for (const a of animations.current) a.cancel();
+      endSlide();
       restore();
     };
     // 開いたときに 1 回だけ動かす
@@ -376,6 +429,7 @@ function ZoomStage({
   // 閉じる: 元の位置へ戻してから、面を消す
   useLayoutEffect(() => {
     if (!closing) return undefined;
+    endSlide();
     const box = boxRef.current;
     const pageCaption = hiddenCaption.current;
     for (const a of animations.current) a.cancel();
@@ -407,6 +461,68 @@ function ZoomStage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closing]);
 
+  // 送った（slideKey が変わった）: 元の位置の隠し方を送った先に移し、前の画像を出して次の画像を入れる
+  const mountedSlideKey = useRef(slideKey);
+  useLayoutEffect(() => {
+    if (mountedSlideKey.current === slideKey) return;
+    mountedSlideKey.current = slideKey;
+    const previous = leaving.current;
+    leaving.current = null;
+    endSlide();
+    fit();
+    const box = boxRef.current;
+    const stage = stageRef.current;
+    // 閉じたときに戻る先は、いま見ている画像の元の位置
+    restoreOrigin();
+    const origin = getOrigin();
+    if (box && origin && hidesOrigin(box, origin)) {
+      origin.style.opacity = '0';
+      hiddenOrigin.current = origin;
+    }
+    if (!previous || !box || !stage || closing) return;
+    const motion = readSlideMotion(box);
+    if (!slides(motion)) return;
+    // 前の画像の枠を、そのときの位置のまま面に置き直す（読み上げと押す操作からは外す）
+    const el = previous.el;
+    el.setAttribute('aria-hidden', 'true');
+    el.removeAttribute('data-slot');
+    Object.assign(el.style, {
+      position: 'absolute',
+      left: `${previous.left}px`,
+      top: `${previous.top}px`,
+      margin: '0',
+      pointerEvents: 'none',
+    });
+    stage.insertBefore(el, box);
+    ghost.current = el;
+    // 指で引いた位置や、入ってくる途中の位置から続ける
+    const from = translateX(el);
+    const opacity = Number(getComputedStyle(el).opacity);
+    for (const a of el.getAnimations()) a.cancel();
+    el.style.translate = '';
+    el.style.opacity = String(opacity);
+    box.style.translate = '';
+    const running = playSlide({
+      leaving: el,
+      box,
+      extras: captionRef.current ? [captionRef.current] : [],
+      direction: slideDirection,
+      from,
+      stageWidth: stage.clientWidth,
+      motion,
+    });
+    slideAnimations.current = running;
+    void running[0]?.finished.then(
+      () => {
+        if (ghost.current !== el) return;
+        el.remove();
+        ghost.current = null;
+      },
+      () => {}
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 送ったときだけ動かす
+  }, [slideKey]);
+
   // 画像やキャプションが変わったとき・大きな画像を読み込めたとき・面の大きさが変わったときに、大きさを決め直す
   // eslint-disable-next-line react-hooks/exhaustive-deps -- 大きさに関わる値だけで決め直す
   useLayoutEffect(fit, [baseSrc, zoomLoaded, caption]);
@@ -428,6 +544,7 @@ function ZoomStage({
     boxRef,
     fades,
     onClose,
+    navigate: closing ? undefined : navigate,
   });
 
   const onClick = (event: MouseEvent) => {
@@ -461,14 +578,17 @@ function ZoomStage({
       className={cn(
         'absolute inset-0 flex flex-col items-center justify-center gap-(--image-zoom-caption-gap) select-none',
         dismissible && 'cursor-zoom-out',
-        'px-(--image-zoom-padding-x)',
+        // 送る操作（Gallery）の置き場所のために、左右と下を広げられる（--image-zoom-reserve-*。既定は 0）
+        'px-[max(var(--image-zoom-padding-x),var(--image-zoom-reserve-x,0px))]',
         // 閉じる × を画像に重ねない形では、上下に × の分の場所を取る（上下で同じにして、画像を中央に置く）
-        'py-[max(var(--image-zoom-padding-y),calc((var(--spacing-control)+var(--image-zoom-close-inset)*2)*var(--image-zoom-close-space)))]'
+        'pt-[max(var(--image-zoom-padding-y),calc((var(--spacing-control)+var(--image-zoom-close-inset)*2)*var(--image-zoom-close-space)))]',
+        'pb-[max(var(--image-zoom-padding-y),calc((var(--spacing-control)+var(--image-zoom-close-inset)*2)*var(--image-zoom-close-space)),var(--image-zoom-reserve-bottom,0px))]'
       )}
     >
       <BaseDialog.Title className="sr-only">{title}</BaseDialog.Title>
       <div
-        ref={boxRef}
+        key={slideKey}
+        ref={setBox}
         data-slot="image-zoom-image"
         className="relative shrink-0 overflow-hidden rounded-(--image-zoom-radius) [will-change:transform]"
       >
@@ -509,12 +629,6 @@ function ZoomStage({
           {caption}
         </BaseDialog.Description>
       )}
-      {/* 送る操作などは、置く側が位置を決める。薄くしたいものには data-zoom-chrome を付ける */}
-      {controls != null && (
-        <div data-zoom-control="" className="contents">
-          {controls}
-        </div>
-      )}
       {!hideCloseButton && (
         <BaseDialog.Close
           data-zoom-chrome=""
@@ -525,6 +639,13 @@ function ZoomStage({
             </button>
           }
         />
+      )}
+      {/* 送る操作などは、置く側が位置を決める。薄くしたいものには data-zoom-chrome を付ける
+          閉じる × のあとに置く（開いた直後のフォーカスは、ImageZoom と同じく右上の ×） */}
+      {controls != null && (
+        <div data-zoom-control="" className="contents">
+          {controls}
+        </div>
       )}
     </div>
   );

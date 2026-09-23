@@ -13,6 +13,7 @@ import {
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { toMediaSize } from '../../internal/media-size';
 import { figureImageStyles } from '../../internal/reading/blocks';
 import { tv } from '../../internal/tv';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
@@ -75,12 +76,6 @@ const styles = tv({
   defaultVariants: { outline: true, radius: 'card' },
 });
 
-// width・height から枠の比を作る（数か、数だけの文字のとき）
-const toSize = (value: unknown) => {
-  const n = typeof value === 'string' ? Number(value) : value;
-  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
-};
-
 /** 画像の角 */
 export type ImageRadius = NonNullable<VariantProps<typeof styles>['radius']>;
 
@@ -141,8 +136,8 @@ export function Image({
 }: ImageProps) {
   const renderProps = (render?.props ?? {}) as { src?: unknown; width?: unknown; height?: unknown };
   const src = renderProps.src ?? props.src;
-  const width = toSize(renderProps.width ?? props.width);
-  const height = toSize(renderProps.height ?? props.height);
+  const width = toMediaSize(renderProps.width ?? props.width);
+  const height = toMediaSize(renderProps.height ?? props.height);
   const [status, setStatus] = useState<ImageStatus>('idle');
   const imageRef = useRef<HTMLImageElement>(null);
 

@@ -66,7 +66,8 @@
 - [x] FileTree
 - [x] CodeGroup
 - [x] Embed
-- [ ] Gallery
+- [x] Video
+- [x] Gallery
 - [x] ImageZoom
 - [x] Bleed
 - [x] Spoiler
@@ -81,6 +82,7 @@
 - [ ] Sidebar
 - [x] Stack
 - [ ] Grid
+- [x] Masonry
 - [x] SkipLink
 - [x] Affix
 - [ ] Splitter
@@ -122,7 +124,8 @@
 - [x] DescriptionList
 - [x] Stat
 - [x] Meter
-- [ ] Carousel
+- [x] Carousel
+- [x] Thumbnails
 - [ ] Indicator
 
 ### 操作

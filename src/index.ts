@@ -86,6 +86,12 @@ export {
   type CardProps,
   type CardVariant,
 } from './components/card/Card';
+export {
+  Carousel,
+  type CarouselControlsPosition,
+  type CarouselIndicator,
+  type CarouselProps,
+} from './components/carousel/Carousel';
 export { Checkbox, type CheckboxProps, type ChoiceColor } from './components/checkbox/Checkbox';
 export {
   CheckboxGroup,
@@ -160,6 +166,13 @@ export {
 } from './components/drawer/Drawer';
 export { Embed, type EmbedProps, type EmbedProvider } from './components/embed/Embed';
 export {
+  Video,
+  type VideoFit,
+  type VideoPlayButtonVariant,
+  type VideoProps,
+  type VideoRadius,
+} from './components/video/Video';
+export {
   FileTree,
   type FileTreeLine,
   FileTreeItem,
@@ -178,6 +191,15 @@ export {
 export { FieldAddonButton, type FieldAddonButtonProps } from './components/field-addon/FieldAddon';
 export type { AddonShape } from './components/field-addon/field-addon-context';
 export { Form, type FormErrors, type FormProps } from './components/form/Form';
+export {
+  Gallery,
+  type GalleryColumns,
+  type GalleryControlsPosition,
+  type GalleryIndicator,
+  type GalleryItem,
+  type GalleryProps,
+  type GallerySlideMotion,
+} from './components/gallery/Gallery';
 export {
   Heading,
   type HeadingLevel,
@@ -213,6 +235,7 @@ export {
 } from './components/list/List';
 export { Link, type LinkContentAlign, type LinkProps } from './components/link/Link';
 export { LinkCard, type LinkCardProps } from './components/link-card/LinkCard';
+export { Masonry, type MasonryGap, type MasonryProps } from './components/masonry/Masonry';
 export { Mark, type MarkProps } from './components/mark/Mark';
 export {
   Menu,
@@ -412,6 +435,12 @@ export {
   type TextVariant,
   type TextWeight,
 } from './components/text/Text';
+export {
+  Thumbnails,
+  type ThumbnailsColor,
+  type ThumbnailsIndicator,
+  type ThumbnailsProps,
+} from './components/thumbnails/Thumbnails';
 export { Time, type TimeProps } from './components/time/Time';
 export {
   Timeline,
