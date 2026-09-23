@@ -1028,6 +1028,110 @@
   --image-zoom-cue-inset: calc(var(--spacing) * 2);
   /* ── END image-zoom */
 
+  /* ── Carousel — 軸 285〜287・289 ── BEGIN carousel */
+  /* 横に送って 1 枚ずつ見せる並び。src/components/carousel
+     送る仕組みは横のスクロールと scroll-snap。スライドはページと同じレイヤーなので影は付けない（原則1）
+     slide-size・gap: 1 枚の幅（枠の幅に対する割合。cqi で書く）と、スライドのあいだ（軸 287）。snap-align: 止まる位置（start・center）。
+       track-inset: 並びの左右の余白。center で最初と最後の 1 枚も中央に止めるときに使う
+     radius: 枠の角。フォーカスの線がこの角に沿う（画像と同じカードの角 — 原則5）
+     controls-*: 前へ・次へと位置の印の行（軸 285）。columns・areas は grid の列と並び（prev・indicator・next）。
+       controls-gap: 枠と行のあいだ。indicator-justify: 印の寄せ
+     overlay-inset: 画像に重ねるとき（controlsPosition="overlay"）の、枠の端からボタンまで
+     peek-slide-size・peek-gap: 両隣を少し見せるとき（peek）の 1 枚の幅とスライドのあいだ（軸 287・決定: B）
+     dot-*: 位置の点（indicator="dots"）。いまの 1 枚は横に伸ばして濃くする（原則5 の小物は pill）。Gallery の点も同じ形（internal/position-indicator.tsx）
+     count-gap: 「3 / 5」の数と「/ 5」のあいだ（Pagination の「5 / 10」と同じ。Gallery の数も同じ） */
+  --carousel-slide-size: 100cqi;
+  --carousel-gap: calc(var(--spacing) * 4);
+  --carousel-snap-align: start;
+  --carousel-track-inset: 0px;
+  --carousel-radius: var(--radius-card);
+  --carousel-controls-gap: calc(var(--spacing) * 3);
+  --carousel-controls-columns: auto 1fr auto;
+  --carousel-controls-areas: 'prev indicator next';
+  --carousel-indicator-justify: center;
+  --carousel-overlay-inset: calc(var(--spacing) * 3);
+  --carousel-peek-slide-size: 80cqi;
+  --carousel-peek-gap: calc(var(--spacing) * 3);
+  --carousel-dot-size: calc(var(--spacing) * 2);
+  --carousel-dot-current-width: calc(var(--spacing) * 5);
+  --carousel-dot-gap: calc(var(--spacing) * 1.5);
+  --carousel-dot-color: var(--color-line-strong);
+  --carousel-dot-current-color: var(--color-neutral-strong);
+  --carousel-count-gap: var(--spacing);
+  /* ── END carousel */
+
+  /* ── Thumbnails — 軸 288 ── BEGIN thumbnails */
+  /* 小さな画像を並べ、押して切り替える帯。src/components/thumbnails
+     1 つずつは平らな押すもの（原則3）。hover で本文の色を淡く敷き、押すと沈む。選んでいるものは hover も沈みもしない（Tabs と同じ）
+     item-width・item-ratio: 1 つの幅と比。radius: 角（押すものなので部品の角 — 原則5）。outline: 画像の細い輪郭（Figure と同じ濃さ）
+     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く
+     rest-opacity・hover-opacity: 選んでいない画像の濃さと、載せたときの濃さ（1 で薄くしない）
+     dim-rest-opacity・dim-hover-opacity: indicator="underline-dim" のときの、選んでいない画像の濃さと載せたときの濃さ（軸 288・決定: B） */
+  --thumbnails-gap: calc(var(--spacing) * 2);
+  --thumbnails-item-width: calc(var(--spacing) * 24);
+  --thumbnails-item-ratio: 16 / 9;
+  --thumbnails-radius: var(--radius-control);
+  --thumbnails-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --thumbnails-bar-height: var(--border-width-thick);
+  --thumbnails-bar-gap: calc(var(--spacing) * 1.5);
+  --thumbnails-rest-opacity: 1;
+  --thumbnails-hover-opacity: 1;
+  --thumbnails-dim-rest-opacity: 0.6;
+  --thumbnails-dim-hover-opacity: 0.85;
+  /* ── END thumbnails */
+
+  /* ── Gallery — 軸 290〜293 ── BEGIN gallery */
+  /* 画像を並べ、押すと ImageZoom と同じ拡大した面で開き、前後に送る。src/components/gallery
+     拡大した面は ImageZoom と同じ（--image-zoom-*）。ここは Gallery だけの値
+     並べ方（軸 292・293）
+       gap: 画像のあいだ。gap の props を書かないときの値で、Stack と同じ段（--stack-gap-*）から選ぶ（sm か md かは軸 292 で未決）
+       radius: 並べた画像の角（フォーカスの線も沿う）
+       ratio: 並べた画像の比（切り取って埋める。拡大すると全体が見える）。ratio を渡すとそちら
+     送るときの動き（軸 290。決定: 少し滑る shift を既定、幅いっぱいに滑る slide も slideMotion で選べる）
+       slide-distance: 動く距離。1 は画面の外まで（幅いっぱいに滑る）、0 はその場。途中の値はその割合
+       slide-fade: 1 は濃さも変える、0 は変えない。slide-duration・slide-ease: 長さと緩急（0 は動かさない）
+     前後のボタンと位置の表示（軸 291。決定: 下の帯 bottom を既定、sides・overlay も controlsPosition で選べる）
+       nav-bar: 1 は下の帯に「‹ 3 / 8 ›」とまとめる。0 は左右の端に置き、位置は左上
+       nav-space-x: 左右の端に置くとき、1 はボタンの分の場所を取って画像に重ねない、0 は重ねてよい
+       nav-raised: 1 は白い丸の面（画像に重なっても見える）、0 は面のない形（閉じる × と同じ色）
+       nav-bg・nav-shadow: ボタンの面と影。counter-width: 下の帯で、位置の数（3 / 6）に取る幅
+       位置の点（indicator="dots"）の形と間は Carousel と同じ --carousel-dot-*（internal/position-indicator.tsx） */
+  --gallery-gap: var(--stack-gap-sm);
+  --gallery-radius: var(--radius-card);
+  --gallery-ratio: 4 / 3;
+  --gallery-slide-distance: 0.12;
+  --gallery-slide-fade: 1;
+  --gallery-slide-duration: var(--duration-normal);
+  --gallery-slide-ease: var(--ease-sheet);
+  --gallery-nav-bar: 1;
+  --gallery-nav-space-x: 1;
+  --gallery-nav-raised: 0;
+  --gallery-nav-bg: transparent;
+  --gallery-nav-shadow: none;
+  --gallery-counter-width: calc(var(--spacing) * 16);
+  /* ── END gallery */
+
+  /* ── Video — 軸 297〜299 ── BEGIN video */
+  /* 手元の動画ファイル（mp4・webm など）を記事・作品ページに置いて再生する。src/components/video
+     コントロールはブラウザ標準（controls 既定 true）。自前で持つのは、再生前に重ねる大きな再生ボタンだけ
+     中身の収め方（cover・contain）は props の fit が必須で、既定値を持たない（決定: 軸299）。letterbox-fill は
+       contain で余白ができたところの色
+     loading-*: poster がないときの読み込み中の面（Skeleton と同じ塗り。光が動く形に決定 — 軸298）。失敗した面は常に出す
+     play-*: controls={false} のときに重ねる大きな再生ボタンの、既定の見た目（playButtonVariant="raised"。決定 — 軸297）。
+       flat（白の半透明・影なし）は部品側で上書きする
+     icon-size: 失敗したときのアイコンの大きさ */
+  --video-letterbox-fill: var(--skeleton-fill);
+  --video-icon-size: calc(var(--spacing) * 8);
+  --video-loading-opacity: 1;
+  --video-loading-motion-play-state: running;
+  --video-play-size: calc(var(--spacing) * 14);
+  --video-play-fill: var(--color-primary);
+  --video-play-fg: var(--color-on-primary);
+  --video-play-shadow: var(--shadow-raised);
+  --video-play-icon-size: calc(var(--spacing) * 6);
+  --video-play-hover-scale: 1.06;
+  /* ── END video */
+
   /* ── Collapsible — 軸 91 ── BEGIN collapsible */
   /* 開閉の行（トリガー）と、中身の高さの動き。src/components/collapsible
      行の塗り・区切り線・角は見た目（appearance）ごとに部品に書く。印の位置と回り方は indicator に従う
@@ -1698,6 +1802,17 @@
   --stat-delta-weight: 700;
   --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
   /* ── END stat */
+
+  /* ── Masonry — 軸 294〜296 ── BEGIN masonry */
+  /* 縦横の比率が違う子を列に積む枠。src/components/masonry
+     column-width: 列の最小の幅。入れ物の幅をこの値で割った数だけ列にする（grid-template-columns の auto-fill）
+     row-unit: 隙間なく積むための行の最小単位（grid-auto-rows）。span はこの値の倍数で計算する（JS 側の ROW_UNIT_PX と同じ値）
+       測ったあとは行の間隔を 0 にし、子の下の間隔も span に含める。間隔のずれはこの値より小さくなる
+       小さいほどずれは減るが、行の数が増える（Firefox は 1 万行まで。2px なら高さ 2 万 px まで積める）
+     間隔は Stack の間隔の段をそのまま使う（新しいトークンは足さない） */
+  --masonry-column-width: calc(var(--spacing) * 60); /* 240px */
+  --masonry-row-unit: calc(var(--spacing) / 2); /* 2px */
+  /* ── END masonry */
 }
 
 /* ── toast keyframes */
