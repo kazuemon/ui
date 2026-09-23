@@ -19,7 +19,7 @@ Sidebar は、ページの横に並ぶ列の部品として作ります（重ね
 
 ## 決定
 
-**`placement` の既定は `below`（B。Header の下で本文だけ押しのける）です。`full`（A。Header ごと押しのける）も選べます。畳むと、アイコンだけ残す rail になります（幅 56px、開いたときは 224px）。rail の入れ子（ステージ＞リーグ＞グループ）は、hover で横にパネルを重ねて出します。**
+**`placement` の既定は `below`（B。Header の下で本文だけ押しのける）です。`full`（A。Header ごと押しのける）も選べます。畳むと、アイコンだけ残す rail になります（幅は部品のトークン。値は tokens.css）。rail の入れ子（ステージ＞リーグ＞グループ）は、hover で横にパネルを重ねて出します。**
 
 ## 理由
 
@@ -36,7 +36,7 @@ Header が動かないほうが、ページ全体の枠が安定します。Head
 ## 影響
 
 - `src/components/sidebar/`: `SidebarLayout` の `placement`（`'below' | 'full'`、既定 `'below'`）を公開します
-- 幅は、既存の尺度（rail 56px・開いた列 224px）で書きます。tokens.css に足す値はありません
+- 幅は部品のトークン（`--sidebar-width`・`--sidebar-rail-width`）で持ちます。値は tokens.css にあり、実装のあとで余白と一緒に広げました（[ADR-0319](./0319-sidebar-padding-scroll.md)）
 - 比較のストーリー `design/stories/axis-303-sidebar-placement.stories.tsx` は消しました
 
 ## 原則への反映
