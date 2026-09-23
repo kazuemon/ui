@@ -53,6 +53,20 @@ export {
   type ButtonShape,
 } from './components/button/Button';
 export {
+  Toggle,
+  type ToggleColor,
+  type ToggleIconOnlyProps,
+  type ToggleProps,
+  type ToggleShape,
+  type ToggleVariant,
+} from './components/toggle/Toggle';
+export {
+  ToggleGroup,
+  type ToggleGroupFrame,
+  type ToggleGroupOrientation,
+  type ToggleGroupProps,
+} from './components/toggle/ToggleGroup';
+export {
   Calendar,
   type CalendarLabels,
   type CalendarNavPlacement,
@@ -144,6 +158,14 @@ export {
   type DrawerProps,
   type SheetSide,
 } from './components/drawer/Drawer';
+export { Embed, type EmbedProps, type EmbedProvider } from './components/embed/Embed';
+export {
+  FileTree,
+  type FileTreeLine,
+  FileTreeItem,
+  type FileTreeItemProps,
+  type FileTreeProps,
+} from './components/file-tree/FileTree';
 export { Figure, type FigureProps } from './components/figure/Figure';
 export {
   FootnoteItem,
@@ -171,6 +193,14 @@ export {
 } from './components/heading-anchor/HeadingAnchor';
 export { Icon, type IconProps, type IconSize } from './components/icon/Icon';
 export { Image, type ImageProps, type ImageRadius } from './components/image/Image';
+export {
+  ImageZoom,
+  type ImageZoomCaptionMotion,
+  type ImageZoomCloseButtonVariant,
+  type ImageZoomMotion,
+  type ImageZoomProps,
+  type ImageZoomVariant,
+} from './components/image-zoom/ImageZoom';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
 export {
   List,
