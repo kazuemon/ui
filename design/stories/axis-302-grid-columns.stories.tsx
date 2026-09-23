@@ -72,6 +72,7 @@ export const Columns: Story = {
   render: () => (
     <Comparison
       index={302}
+      pick="current"
       axis="Grid の columns を、狭い入れ物で減らすか"
       candidates={candidates}
       columns={columns}
@@ -100,6 +101,7 @@ export const Columns: Story = {
       }}
     >
       <p>
+        決定: 現行版（ADR-0310）。
         <code>{'<Grid columns={3}>'}</code>{' '}
         と書いたときに、入れ物が狭いと列を減らすかを選びます。見本の 6
         ページのうち、料金の表・記事の一覧・指標の行は「スマホは 1〜2 列、広い画面は 3〜4

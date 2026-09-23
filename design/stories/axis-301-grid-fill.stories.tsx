@@ -80,6 +80,7 @@ export const Fill: Story = {
   render: () => (
     <Comparison
       index={301}
+      pick="current"
       axis="Grid の子が列の数より少ないとき（auto-fill・auto-fit）"
       candidates={candidates}
       columns={columns}
@@ -90,8 +91,8 @@ export const Fill: Story = {
       )}
     >
       <p>
-        列の数を入れ物の幅で決めるとき（<code>columns</code> を渡さないとき、または{' '}
-        <code>columns</code> と <code>minColumnWidth</code>{' '}
+        決定: 現行版（ADR-0309）。 列の数を入れ物の幅で決めるとき（<code>columns</code>{' '}
+        を渡さないとき、または <code>columns</code> と <code>minColumnWidth</code>{' '}
         を両方渡したとき）に、子が入る列の数より少ない場合の見た目を選びます。子が多いときは、どちらも同じ見た目です。
       </p>
       <p>

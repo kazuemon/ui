@@ -79,6 +79,7 @@ export const Align: Story = {
   render: () => (
     <Comparison
       index={300}
+      pick="current"
       axis="Grid の同じ行の子の高さ（そろえるか）"
       candidates={candidates}
       columns={columns}
@@ -124,6 +125,7 @@ export const Align: Story = {
       }}
     >
       <p>
+        決定: 現行版（ADR-0308）。
         同じ行に、中身の長さが違う子を並べたときに、高さをそろえるかを選びます。選んだほうが{' '}
         <code>align</code> の既定になり、もう一方も <code>align</code> で選べます。
       </p>
