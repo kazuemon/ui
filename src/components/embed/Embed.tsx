@@ -6,9 +6,8 @@ import { focusRing } from '../../internal/focus-styles';
 import { CodeIcon, PlayIcon, XLogoIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
-import { Spinner } from '../loading/Loading';
 
-// 埋め込み（軸 271〜274。271・272・274 は決定、273 は現行のまま）。記事に YouTube・X の投稿・CodePen などの外部コンテンツを iframe で埋める
+// 埋め込み（軸 271〜274）。記事に YouTube・X の投稿・CodePen などの外部コンテンツを iframe で埋める
 // サードパーティの script（widgets.js など）は部品に抱え込まない。iframe で埋められるものだけを対象にする（src はいつも使う側が渡す）
 // 決定: 既定は最初から iframe を置く（loading="lazy" で画面に近づいたら読み込む）。クリックしてから読み込む形は clickToLoad で選ぶ
 // children を渡すと、iframe が読み込めるまで（idle・loading のあいだ）その中身を出す。JS が動かなくても・Server Components でも
@@ -67,10 +66,11 @@ const styles = tv({
     root: 'm-0 flex flex-col gap-2',
     // frame は AspectRatio の className に渡す。position・overflow-hidden・子を絶対配置で重ねる指定は
     //   AspectRatio 自身が既に持つ（src/components/aspect-ratio/AspectRatio.tsx）ので、ここでは角・影・輪郭だけを足す
-    // idle（clickToLoad でまだ押していないあいだ）だけ、影・輪郭の値を --embed-idle-* に差し替える（軸272。B は「押せる」ことを示す浮いた影）
+    // 角は常にカードの角（Image・Figure と同じ）。idle（clickToLoad でまだ押していないあいだ）だけ、
+    //   影・輪郭の値を --embed-idle-* に差し替える（軸272。決定: A＝浮いた影・輪郭なし）
     frame: [
       'group/embed',
-      'rounded-(--embed-radius) shadow-(--embed-shadow)',
+      'rounded-card shadow-(--embed-shadow)',
       '[outline:var(--embed-outline-width)_solid_var(--embed-outline-color)]',
       '[outline-offset:calc(var(--embed-outline-width)*-1)]',
       'data-[status=idle]:[--embed-shadow:var(--embed-idle-shadow)]',
@@ -79,27 +79,23 @@ const styles = tv({
     iframe: ['border-0 opacity-0', 'group-data-[status=loaded]/embed:opacity-100'],
     // face は AspectRatio の直下の子として絶対配置になる（frame と同じ理由）。
     //   after: の光の帯は、この絶対配置そのものを基準にできるので、position を上書きしない
+    // 面は Skeleton と同じ塗り（軸271・決定 A）。光の帯は、クリック前（idle）は止め、読み込み中（loading）は動く（軸271・274）
     face: [
       'flex w-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
-      'bg-(--embed-idle-fill)',
+      'bg-(--skeleton-fill)',
       'after:pointer-events-none after:absolute after:inset-0 after:[background-position:100%_0] after:bg-no-repeat',
       'after:animate-(--skeleton-sweep) after:bg-size-[300%_100%]',
       'after:[background-image:linear-gradient(90deg,transparent_35%,var(--skeleton-highlight)_50%,transparent_65%)]',
       'motion-reduce:animate-pulse motion-reduce:after:hidden',
-      'group-data-[status=idle]/embed:after:[animation-play-state:var(--embed-idle-motion-play-state,running)]',
-      'group-data-[status=loading]/embed:after:[animation-play-state:var(--embed-loading-motion-play-state,running)]',
+      'group-data-[status=idle]/embed:after:[animation-play-state:paused]',
       'group-data-[status=loaded]/embed:hidden',
       ...focusRing,
     ],
     icon: 'size-8 shrink-0 text-fg-subtle',
-    spinner: '[display:var(--embed-loading-spinner-display,flex)] size-8 shrink-0 text-fg-subtle',
     label: 'text-body-sm font-bold text-fg',
     sub: 'line-clamp-1 max-w-full text-caption text-fg-subtle',
-    caption: [
-      'text-body-sm text-fg-subtle',
-      '[text-align:var(--embed-caption-align,center)]',
-      '[order:var(--embed-caption-order,0)]',
-    ],
+    // キャプションは Figure と同じ、下・中央（軸273）
+    caption: 'text-center text-body-sm text-fg-subtle',
   },
 });
 
@@ -230,7 +226,8 @@ export function Embed({
         )}
         {status === 'loading' && (
           <div aria-busy data-slot="embed-loading" className={s.face()}>
-            {children ?? <Spinner className={s.spinner()} />}
+            {/* 回る円は出さない。光の帯（after:）だけで進んでいることを伝える（軸274・決定 A） */}
+            {children}
             <span className={s.label()}>{loadingText}</span>
           </div>
         )}

@@ -53,9 +53,6 @@ const styles = tv({
       'transition-[outline-color] duration-(--focus-ring-duration) ease-(--ease-press) motion-reduce:transition-none',
       // 読み込みに失敗した画像は押せない（描いた時点で失敗していて、失敗の合図が来なかった画像も、枠の状態で見分ける）
       'disabled:cursor-default has-[[data-status=error]]:cursor-default',
-      // hover で画像の明るさを変える（--image-zoom-hover-brightness。1 は変えない）
-      '[&_img]:transition-[filter] [&_img]:duration-(--duration-press) [&_img]:ease-(--ease-press) motion-reduce:[&_img]:transition-none',
-      'enabled:hover:[&_img]:[filter:brightness(var(--image-zoom-hover-brightness))]',
     ],
     // 押せることの印。画像の右下に、白い小さな丸と虫眼鏡。飾りなので読み上げには出さない（名前は zoomName が伝える）
     cue: [

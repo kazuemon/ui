@@ -967,30 +967,21 @@
   --image-icon-size: calc(var(--spacing) * 8);
   /* ── END image */
 
-  /* ── Embed — 軸 271〜274（271・272・274 決定、273 は現行のまま） ── BEGIN embed */
+  /* ── Embed — 軸 271〜274 ── BEGIN embed */
   /* 記事に YouTube・X の投稿・CodePen などを iframe で埋める。src/components/embed
-     枠（角丸・影・輪郭）は Image・Figure と同じ考え方（原則1・5）。読み込む前の面は Skeleton と同じ塗り（--skeleton-fill・--skeleton-highlight）
-     radius・shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の角・影・輪郭（軸 272。決定: 現行＝カードの角・影なし・輪郭のみ）
+     枠（角丸・影・輪郭）は Image・Figure と同じ考え方（原則1・5）。角は常にカードの角（rounded-card）
+     shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の影・輪郭（軸 272。決定: 影なし・輪郭のみ）
      idle-shadow・idle-outline-width: clickToLoad でまだ押していないときだけの、枠の影・輪郭（軸 272。決定: A＝浮いた影・輪郭なし）
-     idle-fill・idle-motion-play-state: クリック前の面の色と、光の帯を動かすか（軸 271。決定: A＝グレーの面のまま・光は止める）
-     loading-spinner-display・loading-motion-play-state: 読み込み中の回る円と、光の帯を動かすか（軸 274。決定: A＝回る円なし・光の帯は動く）
-     caption-align・caption-order: キャプションの寄せと、枠の上下どちらに置くか（軸 273。決定: 現行＝下・中央のまま）
-     まだ tokens.css からは消さない（比較のためだけのトークンを部品へ畳む作業は、決まった軸をまとめて片づけるときに行う） */
-  --embed-radius: var(--radius-card);
+     読み込む前の面は Skeleton と同じ塗り（--skeleton-fill）をそのまま使う。光の帯はクリック前は止め、読み込み中は動く（軸 271・274）
+     読み込み中の回る円は出さない（軸 274・決定 A）。キャプションは Figure と同じ、下・中央のまま（軸 273） */
   --embed-shadow: none;
   --embed-outline-width: var(--border-width-thin);
   --embed-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --embed-idle-shadow: var(--shadow-raised);
   --embed-idle-outline-width: 0px;
-  --embed-idle-fill: var(--skeleton-fill);
-  --embed-idle-motion-play-state: paused;
-  --embed-loading-spinner-display: none;
-  --embed-loading-motion-play-state: running;
-  --embed-caption-align: center;
-  --embed-caption-order: 0;
   /* ── END embed */
 
-  /* ── ImageZoom — 軸 279〜283 で比較中 ── BEGIN image-zoom */
+  /* ── ImageZoom — 軸 279〜284 ── BEGIN image-zoom */
   /* 画像を押して、画面いっぱいに拡大して見る。src/components/image-zoom
      拡大したときの面（軸 279）
        backdrop・backdrop-blur: 後ろの面の色とぼかし。画像を見るための地なので、Dialog の後ろの暗さ（--color-backdrop）より濃く覆う
@@ -1005,8 +996,7 @@
        motion: expand は元の位置の画像から広がり、閉じると戻る。fade はその場で濃さと少し小さい姿から出る
        duration-in・duration-out・ease: 長さと緩急。閉じるほうを短くする（原則14）。fade-scale: fade のはじめの大きさ
      押せることの見せ方（軸 282）
-       cue-opacity・cue-hover-opacity: 右下の虫眼鏡の印の濃さ（ふだん・hover とキーボードのフォーカス）。cue-size・cue-inset: 印の大きさと隅からの距離
-       hover-brightness: hover で画像の明るさを変える割合（1 は変えない） */
+       cue-opacity・cue-hover-opacity: 右下の虫眼鏡の印の濃さ（ふだん・hover とキーボードのフォーカス）。cue-size・cue-inset: 印の大きさと隅からの距離 */
   --image-zoom-backdrop: color-mix(in oklab, var(--color-bg) 88%, transparent);
   --image-zoom-backdrop-blur: calc(var(--spacing) * 2);
   --image-zoom-padding-x: calc(var(--spacing) * 4);
@@ -1036,7 +1026,6 @@
   --image-zoom-cue-hover-opacity: 1;
   --image-zoom-cue-size: calc(var(--spacing) * 8);
   --image-zoom-cue-inset: calc(var(--spacing) * 2);
-  --image-zoom-hover-brightness: 1;
   /* ── END image-zoom */
 
   /* ── Collapsible — 軸 91 ── BEGIN collapsible */
@@ -1391,10 +1380,8 @@
   --file-tree-icon-size: var(--spacing-icon);
   --file-tree-indent: calc(var(--file-tree-icon-size) + var(--file-tree-gap));
   --file-tree-guide-left: calc(var(--file-tree-row-px) + var(--file-tree-icon-size) / 2);
-  /* 案内線（軸 276・決定: solid・none の 2 つ。dotted は外した）。部品の line が --file-tree-line-style に入れる
-     guide-dotted-width は dotted を外したので今は使わない（比較用のトークンの畳みはあとでまとめてやる） */
+  /* 案内線（軸 276・決定: solid・none の 2 つ。dotted は外した）。部品の line が --file-tree-line-style に入れる */
   --file-tree-guide-width: var(--border-width-thin);
-  --file-tree-guide-dotted-width: var(--border-width-medium);
   --file-tree-guide-color: var(--color-line);
   --file-tree-line-style: solid;
   /* 既定のフォルダ・ファイルのアイコンの色（軸 277・決定: 既定は変えない）。渡したアイコン（icon）の色は --file-tree-icon-color
@@ -1403,23 +1390,17 @@
   --file-tree-icon-file-color: var(--color-fg-subtle);
   --file-tree-icon-color: var(--color-fg-subtle);
   --file-tree-comment-color: var(--color-fg-subtle);
-  /* 外枠（軸 275・決定）。CodeBlock と同じグレーの面、内側の余白も CodeBlock と同じ（px-4・py-3 と同じ計算式）
-     輪郭は使っていない（比較で採らなかった白い面の案の名残。比較用のトークンの畳みはあとでまとめてやる） */
+  /* 外枠（軸 275・決定）。CodeBlock と同じグレーの面、内側の余白も CodeBlock と同じ（px-4・py-3 と同じ計算式）。輪郭は持たない */
   --file-tree-frame-bg: var(--color-codeblock-bg);
-  --file-tree-frame-border-width: 0px;
-  --file-tree-frame-border-color: transparent;
   --file-tree-frame-px: calc(var(--spacing) * 4);
   --file-tree-frame-py: calc(var(--spacing) * 3);
   --file-tree-title-fg: var(--color-codeblock-muted);
   --file-tree-title-line: var(--color-codeblock-line);
   /* 強調した行（軸 278・決定）。部品の色（FileTree の color、既定 neutral）の淡い塗り＋部品の色の文字＋太字。左の線はなし
      塗り・文字色は部品が color × highlightIndicator から --file-tree-highlight-bg・-fg に入れ直す（ここの値は既定 neutral のときの値）
-     アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先）。太さは部品が FolderIcon・FileIcon に bold を渡す
-     bar・bar-width は左の線を外したので今は使わない（比較用のトークンの畳みはあとでまとめてやる） */
+     アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先）。太さは部品が FolderIcon・FileIcon に bold を渡す */
   --file-tree-highlight-bg: var(--color-select-neutral-selected);
   --file-tree-highlight-fg: var(--color-fg);
-  --file-tree-highlight-bar: var(--color-on-primary-subtle);
-  --file-tree-highlight-bar-width: var(--border-width-thick);
   --file-tree-highlight-weight: var(--font-weight-heading);
   /* ── END file-tree */
 
