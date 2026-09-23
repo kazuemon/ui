@@ -5,21 +5,21 @@ import type { ComponentProps, CSSProperties, ReactElement, ReactNode } from 'rea
 
 import { tv } from '../../internal/tv';
 
-// 子を格子（行と列）に並べる枠 — 軸 300〜302（未決）
+// 子を格子（行と列）に並べる枠（ADR-0308〜0312）
 //   Stack は 1 列、Grid は列を並べる。Masonry と違い隙間なく積まないので、CSS Grid だけで描ける（子の高さを測らない）
 //   'use client' は、render を受けるための useRender（Base UI）のため。Stack・Container と同じ
 //   列の数の決め方
-//     columns なし: 入れ物の幅を minColumnWidth で割った数だけ列にする（--grid-fill。軸 301 で auto-fill か auto-fit かを比べる）
-//     columns だけ: 入れ物の幅によらず列の数を固定する（Masonry と同じ）
-//     columns と minColumnWidth: columns を上限にし、1 列が minColumnWidth を割るときは列を減らす（軸 302）
-//   columns は画面の幅の段ごとにも渡せる（{ base: 1, md: 3 }。段は Tailwind の既定の sm・md・lg・xl）
+//     columns なし: 入れ物の幅を minColumnWidth で割った数だけ列にする（子が少ないときは auto-fill で空いた列を残し、子を伸ばさない。ADR-0309）
+//     columns だけ: 入れ物の幅によらず列の数を固定する（Masonry と同じ。ADR-0310）
+//     columns と minColumnWidth: columns を上限にし、1 列が minColumnWidth を割るときは列を減らす（ADR-0310）
+//   columns は画面の幅の段ごとにも渡せる（{ base: 1, md: 3 }。段は Tailwind の既定の sm・md・lg・xl。ADR-0311）
 //     クラスは静的に書き、数だけを style で --grid-columns-<段> に入れる。--grid-columns は、いまの画面の幅で効く段の数を、
 //     渡していない段は 1 つ下の段へ（base もないときは 1 列へ）さかのぼって読む。fixed・capped は --grid-columns だけを読むので、
 //     数でも段ごとでも同じ式で描ける
 //     入れ子の Grid が外の Grid の段の数を受け継がないよう、段の変数は自分の要素で initial に戻す（渡した段は style が上書きする）
 //       1 列の最小の幅を「100% / 列の数 − 間隔」にすると、列の数ちょうどが入り、1 つ多いと入らない。
 //       間隔が 0 のときも端数で 1 列落ちないよう、引く幅は 1px を下回らせない
-//   同じ行の子の高さの揃え（align）は軸 300 で比べる。いまは CSS Grid の既定（stretch）
+//   同じ行の子の高さの揃え（align）は CSS Grid の既定の stretch（ADR-0308）
 //   間隔は Stack と同じ間隔の段（ADR-0212）。押すものではないので入力方式では変えない
 const grid = tv({
   base: [
@@ -33,10 +33,10 @@ const grid = tv({
   ],
   variants: {
     layout: {
-      fill: '[grid-template-columns:repeat(var(--grid-fill),minmax(min(100%,var(--grid-min)),1fr))]',
+      fill: '[grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--grid-min)),1fr))]',
       fixed: '[grid-template-columns:repeat(var(--grid-columns),minmax(0,1fr))]',
       capped:
-        '[grid-template-columns:repeat(var(--grid-fill),minmax(min(100%,max(var(--grid-min),100%_/_var(--grid-columns)_-_max(var(--grid-gap),1px))),1fr))]',
+        '[grid-template-columns:repeat(auto-fill,minmax(min(100%,max(var(--grid-min),100%_/_var(--grid-columns)_-_max(var(--grid-gap),1px))),1fr))]',
     },
     gap: {
       none: '[--grid-gap:0px]',
