@@ -135,7 +135,7 @@
 
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
-- レシピに回す部品の見直し（Sidebar が部品として要るか）は決めていません。Stack は部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
+- Sidebar は部品にしました（[ADR-0313](./adr/0313-sidebar-placement.md)〜[ADR-0317](./adr/0317-sidebar-rail-open.md)）。レシピには回しません。Stack も部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
 
 ### Affix
 
@@ -143,7 +143,7 @@
 
 - 貼り付けた Navbar の下に留めるのは `belowNavbar` で使う側が指定します。Navbar が貼り付いているかを部品が自分で読む形（Navbar が `data-sticky` を出し、`:has()` で読む）にするかは決めていません
 - 留まった目次が画面より長いときの扱い（高さを画面に収めて中をスクロールさせるか）は、TableOfContents の側で決めます。上からの離れは `--affix-inset` で読めます
-- 記事の横の列そのもの（目次を置く列）を部品にするか、レシピにするかは、上の Sidebar の見直しと一緒に決めます
+- 記事の横の列そのもの（目次を置く列）は、Sidebar を部品にしたので、Sidebar で足りるか、別の部品にするかを決めます
 
 ### Calendar
 
@@ -622,3 +622,11 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `pnpm test -u <パス>` が範囲を絞らず全体の基準画像を書き換えることがあります。`pnpm vitest run --project=storybook <パス>` なら絞れます
 - `capture-story.mjs --pick A,B` のように採用の案を「,」区切りで渡すと、Storybook が URL の引数を安全でないとみなして捨て、採用の印が付きません。ストーリーの `pick` の既定値に書けば付きます
 - ScrollArea のつまみ（ふだんは細い）がマウスで狙いにくくないか、実機で見ます（[ADR-0119](./adr/0119-scroll-area.md)）
+
+### Sidebar
+
+2026-09-24 に決めました。決定は [ADR-0313](./adr/0313-sidebar-placement.md)〜[ADR-0317](./adr/0317-sidebar-rail-open.md) です。
+
+- MegaMenu（見出し・説明・複数列の面。Navbar から開く。Sidebar の入れ子とは別物）は決めていません
+- Sidebar の高さとスクロール（上に題、中身がスクロール、下に畳むボタン）は決めていません
+- 行の末尾の操作（「＋」など）を渡す props は決めていません。指の画面では、hover がないのでいつも見せる仮定です
