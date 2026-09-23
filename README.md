@@ -63,11 +63,11 @@
 - [x] LinkCard
 - [x] Footnote
 - [x] Steps
-- [ ] FileTree
+- [x] FileTree
 - [x] CodeGroup
-- [ ] Embed
+- [x] Embed
 - [ ] Gallery
-- [ ] ImageZoom
+- [x] ImageZoom
 - [x] Bleed
 - [x] Spoiler
 - [ ] TypeTable
@@ -129,8 +129,8 @@
 
 - [x] Button
 - [x] Link
-- [ ] Toggle
-- [ ] ToggleGroup
+- [x] Toggle
+- [x] ToggleGroup
 - [ ] ButtonGroup
 - [x] CopyButton
 

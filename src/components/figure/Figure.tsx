@@ -11,6 +11,12 @@ import { Image, type ImageProps } from '../image/Image';
 
 const figure = tv({ base: 'm-0 flex flex-col gap-2' });
 
+/** 画像の下のキャプション（ImageZoom もキャプションを付けるときに使う） */
+export const figureCaptionClass = 'text-center text-body-sm text-fg-subtle';
+
+/** figure の要素に付けるクラス（ImageZoom もキャプションを付けるときに使う） */
+export const figureClass = (className?: string) => figure({ className });
+
 export interface FigureProps extends ImageProps {
   /** キャプション。画像の下の中央に小さく出します。alt と同じ文にはしません */
   caption?: ReactNode;
@@ -29,11 +35,9 @@ export interface FigureProps extends ImageProps {
  */
 export function Figure({ caption, figureProps, ...props }: FigureProps) {
   return (
-    <figure {...figureProps} className={figure({ className: figureProps?.className })}>
+    <figure {...figureProps} className={figureClass(figureProps?.className)}>
       <Image {...props} />
-      {caption != null && (
-        <figcaption className="text-center text-body-sm text-fg-subtle">{caption}</figcaption>
-      )}
+      {caption != null && <figcaption className={figureCaptionClass}>{caption}</figcaption>}
     </figure>
   );
 }

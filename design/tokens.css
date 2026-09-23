@@ -967,6 +967,78 @@
   --image-icon-size: calc(var(--spacing) * 8);
   /* ── END image */
 
+  /* ── Embed — 軸 271〜274（271・272・274 決定、273 は現行のまま） ── BEGIN embed */
+  /* 記事に YouTube・X の投稿・CodePen などを iframe で埋める。src/components/embed
+     枠（角丸・影・輪郭）は Image・Figure と同じ考え方（原則1・5）。読み込む前の面は Skeleton と同じ塗り（--skeleton-fill・--skeleton-highlight）
+     radius・shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の角・影・輪郭（軸 272。決定: 現行＝カードの角・影なし・輪郭のみ）
+     idle-shadow・idle-outline-width: clickToLoad でまだ押していないときだけの、枠の影・輪郭（軸 272。決定: A＝浮いた影・輪郭なし）
+     idle-fill・idle-motion-play-state: クリック前の面の色と、光の帯を動かすか（軸 271。決定: A＝グレーの面のまま・光は止める）
+     loading-spinner-display・loading-motion-play-state: 読み込み中の回る円と、光の帯を動かすか（軸 274。決定: A＝回る円なし・光の帯は動く）
+     caption-align・caption-order: キャプションの寄せと、枠の上下どちらに置くか（軸 273。決定: 現行＝下・中央のまま）
+     まだ tokens.css からは消さない（比較のためだけのトークンを部品へ畳む作業は、決まった軸をまとめて片づけるときに行う） */
+  --embed-radius: var(--radius-card);
+  --embed-shadow: none;
+  --embed-outline-width: var(--border-width-thin);
+  --embed-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --embed-idle-shadow: var(--shadow-raised);
+  --embed-idle-outline-width: 0px;
+  --embed-idle-fill: var(--skeleton-fill);
+  --embed-idle-motion-play-state: paused;
+  --embed-loading-spinner-display: none;
+  --embed-loading-motion-play-state: running;
+  --embed-caption-align: center;
+  --embed-caption-order: 0;
+  /* ── END embed */
+
+  /* ── ImageZoom — 軸 279〜283 で比較中 ── BEGIN image-zoom */
+  /* 画像を押して、画面いっぱいに拡大して見る。src/components/image-zoom
+     拡大したときの面（軸 279）
+       backdrop・backdrop-blur: 後ろの面の色とぼかし。画像を見るための地なので、Dialog の後ろの暗さ（--color-backdrop）より濃く覆う
+       padding-x・padding-y: 画面の端と拡大した画像のあいだ。radius: 拡大した画像の角。outline: 拡大した画像の細い輪郭
+       caption-color・caption-gap: 拡大したときのキャプションの色と、画像とのあいだ
+     閉じる ×（軸 281）
+       close-inset: 画面の角からの距離。close-fg・close-bg・close-shadow: 色・面・影
+       close-opacity: ふだんの濃さ（0 はキーボードで来たときだけ見せる）
+       close-space: 1 は × の分の場所を上下に取り、画像に重ねない。0 は画像に重なってよい
+       focus-ring: 面の上のフォーカスの線の色（濃い地では地の上の文字の色 — 原則2）
+     開閉の動き（軸 280）
+       motion: expand は元の位置の画像から広がり、閉じると戻る。fade はその場で濃さと少し小さい姿から出る
+       duration-in・duration-out・ease: 長さと緩急。閉じるほうを短くする（原則14）。fade-scale: fade のはじめの大きさ
+     押せることの見せ方（軸 282）
+       cue-opacity・cue-hover-opacity: 右下の虫眼鏡の印の濃さ（ふだん・hover とキーボードのフォーカス）。cue-size・cue-inset: 印の大きさと隅からの距離
+       hover-brightness: hover で画像の明るさを変える割合（1 は変えない） */
+  --image-zoom-backdrop: color-mix(in oklab, var(--color-bg) 88%, transparent);
+  --image-zoom-backdrop-blur: calc(var(--spacing) * 2);
+  --image-zoom-padding-x: calc(var(--spacing) * 4);
+  --image-zoom-padding-y: calc(var(--spacing) * 4);
+  --image-zoom-radius: var(--radius-card);
+  --image-zoom-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --image-zoom-caption-color: var(--color-fg);
+  --image-zoom-caption-gap: calc(var(--spacing) * 3);
+  /* variant="dark" の後ろの面（色・ぼかし）とキャプション・× の色（軸 284・決定: I。濃紺 70%・ぼかし 8px・白い文字）。白い地には黒い文字、暗い地には白い文字（原則2） */
+  --image-zoom-dark-backdrop: rgb(from var(--color-shadow) r g b / 0.7);
+  --image-zoom-dark-backdrop-blur: calc(var(--spacing) * 2);
+  --image-zoom-dark-caption-color: var(--palette-white);
+  --image-zoom-dark-close-fg: var(--palette-white);
+  --image-zoom-close-inset: calc(var(--spacing) * 2);
+  --image-zoom-close-fg: var(--color-fg-muted);
+  --image-zoom-close-bg: transparent;
+  --image-zoom-close-shadow: none;
+  --image-zoom-close-opacity: 1;
+  --image-zoom-close-space: 1;
+  --image-zoom-focus-ring: var(--color-focus-ring);
+  --image-zoom-motion: expand;
+  --image-zoom-duration-in: var(--duration-slow);
+  --image-zoom-duration-out: var(--duration-normal);
+  --image-zoom-ease: var(--ease-sheet);
+  --image-zoom-fade-scale: var(--transition-preset-scale);
+  --image-zoom-cue-opacity: 0;
+  --image-zoom-cue-hover-opacity: 1;
+  --image-zoom-cue-size: calc(var(--spacing) * 8);
+  --image-zoom-cue-inset: calc(var(--spacing) * 2);
+  --image-zoom-hover-brightness: 1;
+  /* ── END image-zoom */
+
   /* ── Collapsible — 軸 91 ── BEGIN collapsible */
   /* 開閉の行（トリガー）と、中身の高さの動き。src/components/collapsible
      行の塗り・区切り線・角は見た目（appearance）ごとに部品に書く。印の位置と回り方は indicator に従う
@@ -1078,6 +1150,25 @@
   --tabs-tab-focus-offset: calc(var(--spacing) * -1);
   --tabs-panel-radius: var(--radius-md);
   /* ── END tabs */
+
+  /* ── Toggle・ToggleGroup ── BEGIN toggle */
+  /* 二値（押した・押していない）を切り替えるボタン。src/components/toggle
+     OFF は color を指定していても同じグレーにする（Checkbox の選んでいない箱と同じ考え、原則6）。hover・押下の濃さは平らな押すものと同じ
+       （--flat-hover-mix・--flat-press-mix）で、Switch のようにノブ自体が動くわけではないので、OFF→ON・ON→OFF のどちらの押下でも沈める（原則3）
+     ON は variant（filled・soft・outline。既定 filled。軸270で決定）と color（primary・secondary・neutral）で決まる。
+       --toggle-accent・--toggle-accent-fg・--toggle-accent-subtle・--toggle-accent-subtle-fg は color が決め、--toggle-on-* は variant がそこから選ぶ
+       枠線の太さは常に --border-width-medium を確保し、色（--toggle-border-color）だけを透明⇄部品の色で切り替える。
+       幅で切り替えると outline の ON で auto width の文字ボタンが膨らんで見えるため（軸270の直し）
+     角丸（--toggle-radius）は control で決定（軸267）
+     ToggleGroup の詰め方（frame。gap・connected）は既定 connected、gap も選べる（軸269で決定。inset は候補から外した）
+       connected は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す
+       Toggle は in-data-[frame=…] で、自分が属する ToggleGroup の frame を読み、connected のときだけ自分の角丸を変える */
+  --toggle-radius: var(--radius-control);
+  --toggle-off-bg: var(--color-neutral);
+  --toggle-off-fg: var(--color-fg-muted);
+  --toggle-off-hover-bg: var(--color-field-hover);
+  --toggle-group-gap: calc(var(--spacing) * 2);
+  /* ── END toggle */
 
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */
   /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link
@@ -1286,6 +1377,51 @@
      フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
   --tree-panel-clip-margin: 6px;
   /* ── END tree */
+
+  /* ── FileTree — 軸 275〜278 ── BEGIN file-tree */
+  /* 記事の中で、フォルダとファイルの構成を見せる静的な図版。src/components/file-tree
+     Tree と違い開閉を持たない（最初から全部描く）ので、字下げと案内線は JS の depth を持たず、
+     入れ子の ul の margin・padding の積み重ねだけで作る（部品側のコメント参照）
+     文字は CodeBlock の本文と同じ等幅・大きさ（14/24。マウスでも指でも変わらない）
+     row-px・gap・indent・guide-*: Tree と同じ考え方（indent＝アイコン幅＋間、guide-left＝row-px＋アイコン幅/2） */
+  --file-tree-row-px: calc(var(--spacing) * 1);
+  /* row-pe: 行の右端と comment のあいだ。強調した行の塗りの端に、comment の文字がくっつかないように */
+  --file-tree-row-pe: calc(var(--spacing) * 2);
+  --file-tree-gap: calc(var(--spacing) * 1.5);
+  --file-tree-icon-size: var(--spacing-icon);
+  --file-tree-indent: calc(var(--file-tree-icon-size) + var(--file-tree-gap));
+  --file-tree-guide-left: calc(var(--file-tree-row-px) + var(--file-tree-icon-size) / 2);
+  /* 案内線（軸 276・決定: solid・none の 2 つ。dotted は外した）。部品の line が --file-tree-line-style に入れる
+     guide-dotted-width は dotted を外したので今は使わない（比較用のトークンの畳みはあとでまとめてやる） */
+  --file-tree-guide-width: var(--border-width-thin);
+  --file-tree-guide-dotted-width: var(--border-width-medium);
+  --file-tree-guide-color: var(--color-line);
+  --file-tree-line-style: solid;
+  /* 既定のフォルダ・ファイルのアイコンの色（軸 277・決定: 既定は変えない）。渡したアイコン（icon）の色は --file-tree-icon-color
+     行ごとの色（FileTreeItem の color）は --color-primary・--color-secondary を直に指す（この 2 トークンは経由しない） */
+  --file-tree-icon-folder-color: var(--color-fg-subtle);
+  --file-tree-icon-file-color: var(--color-fg-subtle);
+  --file-tree-icon-color: var(--color-fg-subtle);
+  --file-tree-comment-color: var(--color-fg-subtle);
+  /* 外枠（軸 275・決定）。CodeBlock と同じグレーの面、内側の余白も CodeBlock と同じ（px-4・py-3 と同じ計算式）
+     輪郭は使っていない（比較で採らなかった白い面の案の名残。比較用のトークンの畳みはあとでまとめてやる） */
+  --file-tree-frame-bg: var(--color-codeblock-bg);
+  --file-tree-frame-border-width: 0px;
+  --file-tree-frame-border-color: transparent;
+  --file-tree-frame-px: calc(var(--spacing) * 4);
+  --file-tree-frame-py: calc(var(--spacing) * 3);
+  --file-tree-title-fg: var(--color-codeblock-muted);
+  --file-tree-title-line: var(--color-codeblock-line);
+  /* 強調した行（軸 278・決定）。部品の色（FileTree の color、既定 neutral）の淡い塗り＋部品の色の文字＋太字。左の線はなし
+     塗り・文字色は部品が color × highlightIndicator から --file-tree-highlight-bg・-fg に入れ直す（ここの値は既定 neutral のときの値）
+     アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先）。太さは部品が FolderIcon・FileIcon に bold を渡す
+     bar・bar-width は左の線を外したので今は使わない（比較用のトークンの畳みはあとでまとめてやる） */
+  --file-tree-highlight-bg: var(--color-select-neutral-selected);
+  --file-tree-highlight-fg: var(--color-fg);
+  --file-tree-highlight-bar: var(--color-on-primary-subtle);
+  --file-tree-highlight-bar-width: var(--border-width-thick);
+  --file-tree-highlight-weight: var(--font-weight-heading);
+  /* ── END file-tree */
 
   /* ── Pagination — ADR-0177・0178 ── BEGIN pagination */
   /* ページ番号のナビ。src/components/pagination

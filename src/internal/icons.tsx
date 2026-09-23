@@ -228,6 +228,39 @@ export const ListIcon = ({ standalone }: IconProps) => (
   </Icon>
 );
 
+// フォルダ・書類（Phosphor の Folder・File）。FileTree の既定のアイコン
+// ほかのアイコンと違い、線ではなく塗りの輪郭（Phosphor の Regular はもともと線幅 16 相当の塗りの形）
+// bold で Phosphor の Bold（線幅 24 相当）の形に差し替える。stroke の太さを変える他のアイコンと違い、形そのものが別パス
+export const FolderIcon = ({
+  className = 'size-(--spacing-icon) shrink-0',
+  bold,
+}: Pick<IconProps, 'className'> & { bold?: boolean }) => (
+  <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" className={className}>
+    <path
+      d={
+        bold
+          ? 'M216,68H133.39l-26-29.29a20,20,0,0,0-15-6.71H40A20,20,0,0,0,20,52V200.62A19.41,19.41,0,0,0,39.38,220H216.89A19.13,19.13,0,0,0,236,200.89V88A20,20,0,0,0,216,68ZM44,56H90.61l10.67,12H44ZM212,196H44V92H212Z'
+          : 'M216,72H131.31L104,44.69A15.86,15.86,0,0,0,92.69,40H40A16,16,0,0,0,24,56V200.62A15.4,15.4,0,0,0,39.38,216H216.89A15.13,15.13,0,0,0,232,200.89V88A16,16,0,0,0,216,72ZM40,56H92.69l16,16H40ZM216,200H40V88H216Z'
+      }
+    />
+  </svg>
+);
+
+export const FileIcon = ({
+  className = 'size-(--spacing-icon) shrink-0',
+  bold,
+}: Pick<IconProps, 'className'> & { bold?: boolean }) => (
+  <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" className={className}>
+    <path
+      d={
+        bold
+          ? 'M216.49,79.52l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.52ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Z'
+          : 'M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z'
+      }
+    />
+  </svg>
+);
+
 // 鎖の輪 2 つを横に並べた形（Phosphor の LinkSimpleHorizontal）。見出しのページ内リンク（HeadingAnchor）に置く
 export const LinkSimpleHorizontalIcon = (props: IconProps) => (
   <Icon {...props}>
@@ -244,5 +277,28 @@ export const HashIcon = (props: IconProps) => (
     <line x1="40" y1="160" x2="216" y2="160" />
     <line x1="112" y1="40" x2="88" y2="216" />
     <line x1="168" y1="40" x2="144" y2="216" />
+  </Icon>
+);
+
+// 三角の再生（Phosphor の Play）。Embed の読み込む前の面（動画系の provider）に置く
+export const PlayIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M96,72 L184,128 L96,184 Z" fill="currentColor" stroke="none" strokeLinejoin="round" />
+  </Icon>
+);
+
+// 山かっこ 2 つ（Phosphor の Code）。Embed の読み込む前の面（CodePen などコード系の provider）に置く
+export const CodeIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="164 88 216 128 164 168" />
+    <polyline points="92 88 40 128 92 168" />
+  </Icon>
+);
+
+// X（旧 Twitter）のロゴ。Embed の読み込む前の面（provider="x"）に置く。閉じるためのバツ印（XIcon）とは別の意味で持つ
+export const XLogoIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="200" y1="56" x2="56" y2="200" />
+    <line x1="200" y1="200" x2="56" y2="56" />
   </Icon>
 );
