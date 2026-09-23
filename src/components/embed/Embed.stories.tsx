@@ -5,10 +5,12 @@ import { Embed, type EmbedProvider } from './Embed';
 import { Blockquote } from '../blockquote/Blockquote';
 import { Gallery, Specimen } from '../../stories/story-parts';
 
-// 見本の iframe（外に取りに行かない）。読み込めたことが分かるよう、色付きの面を出すだけの HTML
+// 見本の iframe（外に取りに行かない）。読み込めたことが分かるよう、色付きの面に丸を 1 つ出すだけの HTML
+// 文字は描かない。iframe の中にはページのフォントが届かず OS のフォントで描かれ、手元と CI で字形がずれて見た目の比較が落ちるため
+// label は iframe の文書の題（<title>）にだけ入れる
 const demo = (label: string, bg: string) =>
   `data:text/html;charset=utf-8,${encodeURIComponent(
-    `<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:${bg};font:20px system-ui;color:#1c3a5e">${label}</body>`
+    `<title>${label}</title><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:${bg}"><div style="width:40px;height:40px;border-radius:50%;background:#1c3a5e;opacity:.6"></div></body>`
   )}`;
 
 const providers: EmbedProvider[] = ['youtube', 'vimeo', 'x', 'codepen', 'custom'];
