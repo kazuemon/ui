@@ -20,7 +20,7 @@
 
 ## 決定
 
-****既定は B です。アイコンに載ったら待たずに開き、離れても 200ms は閉じません（`openDelay` 0ms・`closeDelay` 200ms が既定で、props で変えられます）。A・C は採りません。指の画面（hover がない）とキーボード（Enter・→ で開き、Esc で閉じる）は、押して開きます。入れ子のない行（アイコンだけの行）は、載ると名前の札が出ます。****
+**既定は B です。アイコンに載ったら待たずに開き、離れても 200ms は閉じません（`openDelay` 0ms・`closeDelay` 200ms が既定で、props で変えられます）。A・C は採りません。指の画面（hover がない）とキーボード（Enter・→ で開き、Esc で閉じる）は、押して開きます。入れ子のない行（アイコンだけの行）は、載ると名前の札が出ます。**
 
 ## 理由
 
@@ -33,7 +33,7 @@
 
 ## 影響
 
-- `src/components/sidebar/`: `openDelay`（既定 0）・`closeDelay`（既定 200）を公開します
+- `src/components/sidebar/`: `Sidebar` の `openDelay`（既定 0）・`closeDelay`（既定 200）を公開します。畳んだ列の入れ子の面は Menu で描くので、Menu に `openOnHover`・`openDelay`・`closeDelay` を足しました。Base UI の入れ子の面は、奥の面から出ても手前の面を閉じないので、Sidebar の側で、マウスが行と面のどこにもないまま `closeDelay` が過ぎたら、まとめて閉じます
 - 比較のストーリー `design/stories/axis-307-sidebar-rail-open.stories.tsx` は消しました
 
 ## 原則への反映

@@ -20,7 +20,7 @@
 
 ## 決定
 
-****既定は A（淡いグレーの面と太字）です。Tree と同じ `color`（`neutral` が既定・`primary`・`secondary`）で選べます。`primary` は C と同じ見た目になります。B は作りません。畳んだ列では入れ子が隠れるので、いまいる行を含む親のアイコンに同じ印を付けます。****
+**既定は A（淡いグレーの面と太字）です。Tree と同じ `Sidebar` の `color`（`neutral` が既定・`primary`・`secondary`）で選べます。`primary` は C と同じ見た目になります。B は作りません。畳んだ列では入れ子が隠れるので、いまいる行を含む親のアイコンに同じ印を付けます。**
 
 ## 理由
 
@@ -36,7 +36,7 @@
 
 ## 影響
 
-- `src/components/sidebar/`: `color`（`'neutral' | 'primary' | 'secondary'`、既定 `'neutral'`）を公開します
+- `src/components/sidebar/`: `Sidebar` の `color`（`'neutral' | 'primary' | 'secondary'`、既定 `'neutral'`）を公開します
 - 比較のストーリー `design/stories/axis-306-sidebar-current.stories.tsx` は消しました
 
 ## 原則への反映
