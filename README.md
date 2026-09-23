@@ -81,7 +81,7 @@
 - [x] Navbar
 - [ ] Sidebar
 - [x] Stack
-- [ ] Grid
+- [x] Grid
 - [x] Masonry
 - [x] SkipLink
 - [x] Affix

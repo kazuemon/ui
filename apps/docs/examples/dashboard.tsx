@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardBody,
+  Grid,
   Heading,
   Meter,
   Notice,
@@ -168,7 +169,7 @@ function DashboardScreen({
         </Notice>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" aria-busy={busy}>
+      <Grid columns={{ base: 2, lg: 4 }} aria-busy={busy}>
         {stats.map((s, i) => (
           <Card key={s.label}>
             <CardBody>
@@ -197,7 +198,7 @@ function DashboardScreen({
             </CardBody>
           </Card>
         ))}
-      </div>
+      </Grid>
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <Panel title="最近の注文" action={<Button variant="underline">すべて見る</Button>}>

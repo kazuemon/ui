@@ -6,6 +6,7 @@ import {
   DescriptionItem,
   DescriptionList,
   type DescriptionListDivider,
+  Grid,
   Heading,
   Link,
   LinkCard,
@@ -114,11 +115,11 @@ function ProfileScreen({
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
+      <Grid columns={3}>
         <Stat label="記事" value={blank ? 0 : 12} size="heading-3" />
         <Stat label="フォロワー" value={blank ? 0 : following ? 129 : 128} size="heading-3" />
         <Stat label="フォロー中" value={blank ? 0 : 36} size="heading-3" />
-      </div>
+      </Grid>
 
       <DescriptionList divider={divider}>
         <DescriptionItem term="住んでいるところ">{blank ? '—' : '東京'}</DescriptionItem>

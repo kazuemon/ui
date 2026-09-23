@@ -5,9 +5,10 @@ import {
   Calendar,
   type CalendarNavPlacement,
   type CalendarShape,
-  Dialog,
   DescriptionItem,
   DescriptionList,
+  Dialog,
+  Grid,
   Heading,
   Link,
   Notice,
@@ -150,7 +151,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
             <Text size="sm" variant="muted">
               {formatDate(date)}の空き
             </Text>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="group" aria-label="時刻">
+            <Grid columns={{ base: 3, sm: 4 }} gap="sm" role="group" aria-label="時刻">
               {slots.map((slot) => {
                 const full = taken.includes(slot);
                 const selected = time === slot;
@@ -167,7 +168,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
                   </Button>
                 );
               })}
-            </div>
+            </Grid>
           </>
         ) : (
           <Text variant="muted">先に日を選んでください。</Text>
