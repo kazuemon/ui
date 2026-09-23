@@ -90,6 +90,11 @@ export const Playground: Story = {
 };
 
 // 動きの途中は撮らない。poster・止まったコマ・面のままの状態だけを並べる
+// 見た目のテストで撮るとき、ブラウザ標準のコントロールの時刻（0:00）を見えなくする。
+// 時刻はブラウザが OS のフォントで描くので、手元と CI で字形がずれて見た目の比較が落ちるため
+const hideNativeTime =
+  '[&::-webkit-media-controls-current-time-display]:invisible [&::-webkit-media-controls-time-remaining-display]:invisible';
+
 export const States: Story = {
   tags: ['visual'],
   name: '読み込み中・controls・失敗',
@@ -100,7 +105,7 @@ export const States: Story = {
         <Video ratio={16 / 9} fit="cover" />
       </Specimen>
       <Specimen label="controls（既定・未再生）">
-        <Video ratio={16 / 9} src={sample} poster={poster} fit="cover" />
+        <Video ratio={16 / 9} src={sample} poster={poster} fit="cover" className={hideNativeTime} />
       </Specimen>
       <Specimen label="controls={false}・再生ボタン raised（既定）">
         <Video
@@ -159,6 +164,7 @@ export const WithCaption: Story = {
       src={sample}
       poster={poster}
       fit="cover"
+      className={hideNativeTime}
       caption="図 1. ボタンのホバーの見た目（操作の録画）"
     />
   ),
