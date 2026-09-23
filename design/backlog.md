@@ -67,14 +67,16 @@
 - DescriptionList は、1 つの用語に複数の説明（`dd` を複数）を持たせる書き方を用意していません。1 つの `dd` の中に並べる形で足りるかは決めていません（[ADR-0202](./adr/0202-description-list-layout.md)）
 - DescriptionList は、狭い画面で横から縦へ自動で切り替える形を入れていません。使う側が `layout` を切り替えます（[ADR-0202](./adr/0202-description-list-layout.md)）
 - Timeline の畳むしきい値（入れ物 448px 未満）は、使う側が変えられません。props で変えられるようにするかは決めていません（[ADR-0211](./adr/0211-timeline-narrow-date.md)）
-- **`Grid` を作りました（2026-09-24）。見た目は比較のストーリー（軸 300〜302）で決めている途中です。** 見本の 15 ページのうち 6 ページで、`grid` のクラスを直に書いていたためです。`gap`・`columns`・`minColumnWidth` は Masonry と同じ名前で、間隔は Stack と同じ段です。決めること:
-  - 同じ行の子の高さをそろえるか（`align` の既定。軸 300）
-  - 子が列の数より少ないとき、空いた列を残すか（`auto-fill`）、子を広げて埋めるか（`auto-fit`）。軸 301
-  - `columns` だけを渡したとき、狭い入れ物で列を減らすか（軸 302）。いまは固定で、減らすのは `columns` と `minColumnWidth` を両方渡したときだけです。`columns` の意味は Masonry（固定）と Gallery（入れ物が狭いと 2 列にまとめる）で違うので、どちらに寄せるかも一緒に決めます
-  - `columns` は画面の幅の段ごとにも渡せます（`{ base: 1, md: 3 }`。段は Tailwind の既定の sm・md・lg・xl）。画面の幅の段を props で公開する部品は Grid が初めてです。同じ段の名前と渡し方をほかの部品にも広げるかは決めていません
+- **`Grid` を作りました（2026-09-24）。** 決定は [ADR-0308](./adr/0308-grid-align.md)〜[ADR-0312](./adr/0312-grid-follows-css-grid.md) です。見本の 6 ページで `grid` のクラスを直に書いていたためで、`gap`・`columns`・`minColumnWidth` は Masonry と同じ名前、間隔は Stack と同じ段です。残っている未決:
+  - **GridItem（行方向の subgrid）**。「Grid > Card > SubGrid を適用するアイテムが複数」になる使い方で、className にも Card 自身にも頼らず、subgrid を当てるアイテムを別の部品として作りたい。やりたいのは行方向（同じ行の Card どうしで、画像・題・本文・ボタンの段をそろえる）です
+    - 分かっていること: 列方向は、Grid が子をラップしないので、Card 側に `display: grid; grid-template-columns: subgrid; grid-column: span N` を当てれば今でも動きます。行方向は、GridItem が `grid-row: span N; display: grid; grid-template-rows: subgrid` を持ち、Grid の行のトラックを子がまたぐ形になります。「1 行 = 1 子」という Grid の自動配置の前提を崩します
+    - 今の Card（`src/components/card/Card.tsx`）は、根が `flex flex-col`、その中の body も `flex flex-col` で、題・本文・フッターは 2 段ネストの flex の子です。subgrid は、途中に grid でも `contents` でもない層が挟まると継承が切れるので、GridItem で Card を包むだけでは段がそろいません
+    - 案 ①: Card に、自分のレイアウトを外に委ねる口（`display: contents` にする変種など）を持たせる。案 ②: Card を使わず、GridItem の直接の子に Image・Heading・Text・Button を組む（枠線・影・押せる動きは自前になる）
+    - 名前は `<Name>Item`（`ListItem`・`AccordionItem` など）の流儀で `GridItem` が自然です。決めること: 案 ① か ② か、行方向の Grid の行のモデル（行の数の渡し方）、`span` の名前
+  - 見本の 6 ページ（reservation・profile・pricing・dashboard・blog-list・examples）の `grid` のクラスを、まだ Grid に置き換えていません。軸が決まったので、置き換えに進めます
   - 比率の違う列（`dashboard.tsx` の `2fr 1fr`、`blog-list.tsx` の `240px 1fr`、`sns.tsx` の `auto 1fr`）は、Grid では書けません。部品に足すか、Tailwind に任せるかは決めていません
-  - `align="stretch"` でカードの枠の高さはそろいますが、カードの中のボタンは下端にそろいません。そろえるなら Card の側で決めます
-  - 見本の 6 ページの `grid` のクラスを、まだ Grid に置き換えていません。軸 300〜302 が決まってから置き換えます
+  - `align="stretch"` でカードの枠の高さはそろいますが、カードの中のボタンは下端にそろいません。そろえるなら Card の側で決めます（GridItem の行方向の話とつながります）
+  - 画面の幅の段の名前と渡し方（`{ base, sm, md, lg, xl }`。[ADR-0311](./adr/0311-grid-columns-breakpoints.md)）を、ほかの部品にも広げるかは決めていません。画面の幅の段を props で公開する部品は Grid が初めてです
 
 ### Textarea
 
