@@ -1,0 +1,4 @@
+/* 欧文と等幅のフォント（package.json の exports の ./fonts.css）。Mulish と Geist Mono
+   和文の IBM Plex Sans JP は重いので別の入口にしている（./fonts-ja.css → ibm-plex-sans-jp.css） */
+@import '@fontsource-variable/mulish';
+@import '@fontsource-variable/geist-mono';

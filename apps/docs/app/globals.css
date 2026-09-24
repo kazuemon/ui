@@ -1,4 +1,8 @@
-@import '@kazuemon/ui/styles.css';
+/* Tailwind を使うアプリとしての入れ方（README の「つかいかた」と同じ） */
+@import 'tailwindcss' source(none);
+@import '@kazuemon/ui/tailwind.css';
+@import '@kazuemon/ui/fonts.css';
+@import '@kazuemon/ui/fonts-ja.css';
 @source '../app';
 /* 見本のページ（examples/）のクラスも探す。ここを足さないと、写した見本の余白も右下のボタンも当たらない */
 @source '../examples';

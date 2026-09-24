@@ -1,0 +1,12 @@
+/* Tailwind v4 を使うアプリ向けの CSS（package.json の exports の ./tailwind.css）
+   使う側の CSS で、@import 'tailwindcss' のあとに読む。Tailwind そのものは読み込まない（使う側の Tailwind が、部品のクラスもまとめて作る）
+   配布物（dist/tailwind.css）では、クラス名を探す場所を dist の JS に差し替える（scripts/build-css.mjs） */
+@import './theme.css';
+
+/* クラス名を探す場所は部品だけ。ストーリー・見本・テストのクラスは利用者に渡さない */
+@source '..';
+@source not '../**/*.stories.tsx';
+@source not '../**/*.test.ts';
+@source not '../stories';
+@source not '../samples';
+@source not '../recipes';
