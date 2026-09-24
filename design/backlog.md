@@ -297,7 +297,7 @@
 
 - ダークモードを、部品ではなくライブラリの機能として入れたいです（2026-09-20、「機能としてダークモードを実装したい、という気持ちなので、コンポーネントではないかも」）。役割のトークンのダーク版と、ThemeProvider（または属性）での切り替えの入口を決めます。入口は「色の面（Surface）」の仕組みと 1 つにできるかを見ます
 - 色のばらつきを整える軸は、あとでやります（「色のばらつきは後からやりましょう」— [ADR-0076](./adr/0076-token-structure.md)）。パレットを OKLCH で測ると、同じ番号でも明度がそろわない（50 は 0.940〜0.970、700 は 0.499〜0.564）、番号の意味が族ごとに違う（pink-500 は中くらい、warning-500 は明るい）、ほぼ同じ色が別の名前で並ぶ（gray-100 と gray-150、gray-200 と gray-300）、薄い赤が 3 段で間が不ぞろい（red-50・red-75・red-100。色相も 23°・17°・26°）、グレーの色相が 197° と 229° で混ざる、が分かっています。ストーリーでパレットの表と部品の見本を候補ごとに並べ、グレー → 赤・ピンク → 青・水色 → 状態の色の順に1軸ずつ決める計画です
-- 利用者向けの CSS（`src/styles/index.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、`index.css` でも消します
+- 利用者向けの CSS（`tailwind.css`）は、Tailwind の既定の色と影を消していません（消すのは Storybook の `globals.css` だけ）。利用者にも役割の色だけを使わせるなら、利用者向けでも消します
 - 部品の中を、名前付きのクラス（`h-(--spacing-control)` → `h-control`、`text-(length:--text-caption) leading-(--leading-caption)` → `text-caption`）で書き直すかは決めていません。tailwind-merge の設定（[ADR-0077](./adr/0077-tailwind-merge-config.md)）を入れたので、書き直しても `className` の上書きは効きます
 - 尺度に乗らない値が残っています: チェックボックスの角（5px。角丸の尺度は 4px・6px）、浮かぶ選択肢が閉じる長さ（150ms）、トグルのトラックとノブの隙間（3px）
 - 使っていないトークンがあります: ブランドの色の `--color-on-brand`、セクションラベル（`--label-*`）、palette の `blue-500`・`sky-600`・`info-50`・`info-500`・`mint-50`・`success-500`。部品を作るとき、色の軸で残すかを決めます
@@ -330,13 +330,16 @@
 
 ### 機能（README の「つくりたい機能」）
 
-- Tailwind を入れているときと、入れていないときの入れ方を、それぞれ書きます（2026-09-20）。入れていないときはビルド済みの CSS を配ります
-- スタイルの衝突: 利用者向けの `src/styles/index.css` は中で `tailwindcss` を読み込んでいるので、使う側にも Tailwind があると Tailwind の CSS が 2 回入り、使う側の CSS と順番がぶつかります。Tailwind あり・なしのそれぞれで、CSS のレイヤー（`@layer`）に閉じ込めるなどの手当てを決めます
-- フォントの読み込み: 部品は Mulish・IBM Plex Sans JP・Geist Mono を前提にしています。和文フォントは重いので、ライブラリには同梱せず、使う側で別に読み込んでもらう形を推奨にします（2026-09-20）。読み込み方の例と、読み込まないときに代わりに使われるフォントを書きます
+- Tailwind なしでの利用: いまは Tailwind v4 を前提にしています（[ADR-0313](./adr/0313-tailwind-only.md)）。用意するときは、ビルド済みの CSS を `@layer` に入れて配り、Tailwind のリセット（preflight）を部品の要素とその中にだけ当てる形を試しました（PR #62。部品はリセットがある前提で書いているので、外すと見た目の比較の半分近くがずれました）
+- スタイルの衝突: Tailwind ありでは、利用者向けの CSS が Tailwind を読み込まなくなったので、Tailwind の CSS が 2 回入ることはなくなりました。Tailwind なしの側は、上と一緒に決めます
+- 部品は、使う側のページのフォント（`body` などに置いたもの）を受け継ぎます。Tailwind のリセットが `html` に置く `--font-sans`（Mulish）を、使う側が `body` で上書きすると、部品の本文もそのフォントになります
+- `tailwindcss` の peerDependencies は、確かめた `^4.3` にしています。4.1・4.2 で動くかは確かめていません
+- 使う側の入れ方（Vite と Tailwind v4、Next.js の Server Components）は、`pnpm pack` した tarball を手元のアプリに入れて確かめました（2026-09-24。PR #62 のときの確かめ）。CI では確かめていません
+- 和文フォントの CSS（`fonts-ja.css`）は、@fontsource の unicode-range の宣言だけで約 500KB あります。Vite は小さいフォントのファイルを CSS に埋め込むので、使う側の CSS が 1MB を超えます。読み込み方の推奨（Google Fonts・サブセット化など）を README に足すかを決めます
 - テーマの上書き: 使う側がブランドの色や角を差し替える公開の入口です。ダークモード・色の面と同じ仕組みで作れるかを見ます
 - 対応環境: React のバージョンと、ブラウザの下限（Tailwind v4 は Safari 16.4 以降が前提）を決めて書きます
 - ほかの候補: ハイコントラストモード（`forced-colors` で枠やフォーカスの線が消えないようにする）、アイコンの差し替え（部品の中のアイコンを使う側のセットに替える）
-- 公開: npm に公開します（機能の一覧には置きません）。いまは package.json の `exports` がビルド前の `src/index.ts` を指し、`peerDependencies` に `react`・`react-dom` がありません。ビルドの手順（ESM と型）と一緒に整えます。ツリーシェイクと Server Components 対応は、ビルドのやり方と一緒に決めます
+- 公開: npm に公開します（機能の一覧には置きません）。ビルド（`pnpm build`。ESM・型・CSS）と、公開するときの `exports`（`publishConfig`）は整えました。残りは、`license`・`repository`・`description` などの項目、版の付け方、`engines`（いまは開発用の Node 22.12 以上が、利用者にも出ます）、公開の手順（CI から出すか）です
 
 ### props の決まり（2026-09-21 の監査で残ったもの）
 
