@@ -2,6 +2,10 @@
   "name": "@kazuemon/ui",
   "version": "0.0.1",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kazuemon/ui.git"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./tailwind.css": "./src/styles/tailwind.css",
@@ -9,6 +13,7 @@
     "./fonts-ja.css": "./src/styles/ibm-plex-sans-jp.css"
   },
   "publishConfig": {
+    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

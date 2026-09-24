@@ -53,7 +53,7 @@ pnpm run fonts                # 和文フォントの補正 CSS を作り直す
 node design/tools/capture-story.mjs <story-id> --pick A --out design/adr/assets/NNNN-title.png
 ```
 
-CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・build・check:dist・test を走らせます。
+CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・build・check:dist・test を走らせます。npm への公開は `.github/workflows/release.yml` です（下の「リリース」）。
 
 ## 部品を作る
 
@@ -124,6 +124,17 @@ principles.md は、かずえもんがデザインをどう捉えているかを
 - ですます調。毎行「だから、」や太字で始める型は避ける。書いたら `node design/tools/check-principles.mjs` で禁止語を確かめ、手元にある日本語の推敲スキルがあればそれで見直す
 
 props・既定値・使い方の推奨は、部品の JSDoc と Storybook の Docs に書きます。
+
+## リリース
+
+npm への公開は release-please で回します。main に push されるたびに、release-please がコミットを読んで、次の版の「リリース PR」（`package.json` の version と `CHANGELOG.md`）を作り直します。リリース PR をマージすると、タグ（`v0.1.0` など）と GitHub Release ができ、そのタグからビルドして npm に公開します。設定は `release-please-config.json` です。
+
+- 版はコミットの種類で決まります。`feat:` は minor、`fix:`・`design:`・`perf:`・`revert:` は patch を上げます。`feat!:` や `BREAKING CHANGE:` は、1.0.0 までは minor を上げます
+- CHANGELOG に載るのは `feat`・`fix`・`design`・`perf`・`revert` だけです。`docs`・`refactor`・`style`・`test`・`chore`・`ci`・`build` は載らず、それだけでは版も上がりません。利用者に見える変更は、載る種類で書きます
+- `apps/` だけを変えたコミットは、版に数えません
+- 版を指定したいときは、載る種類のコミットの本文に `Release-As: 0.2.0` を書きます
+- `CHANGELOG.md` と `.release-please-manifest.json` は release-please が書くので、手で直しません
+- 公開の前に `scripts/check-pack.mjs` が、`exports` などの指すファイルがパッケージの中にあるかを確かめます。手元では `pnpm pack --pack-destination .pack && node scripts/check-pack.mjs .pack/*.tgz`（`pack` の前に `prepack` がビルドします）
 
 ## コミット
 
