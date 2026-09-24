@@ -1,6 +1,17 @@
 {
   "name": "@kazuemon/ui",
   "version": "0.0.1",
+  "description": "かずえもんの UI コンポーネントライブラリ（React・Tailwind CSS v4）",
+  "keywords": [
+    "react",
+    "tailwindcss",
+    "ui",
+    "components"
+  ],
+  "homepage": "https://ui.k6n.jp",
+  "bugs": {
+    "url": "https://github.com/kazuemon/ui/issues"
+  },
   "type": "module",
   "repository": {
     "type": "git",

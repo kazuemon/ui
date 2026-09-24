@@ -132,7 +132,7 @@ npm への公開は release-please で回します。main に push されるた�
 - 版はコミットの種類で決まります。`feat:` は minor、`fix:`・`design:`・`perf:`・`revert:` は patch を上げます。`feat!:` や `BREAKING CHANGE:` は、1.0.0 までは minor を上げます
 - CHANGELOG に載るのは `feat`・`fix`・`design`・`perf`・`revert` だけです。`docs`・`refactor`・`style`・`test`・`chore`・`ci`・`build` は載らず、それだけでは版も上がりません。利用者に見える変更は、載る種類で書きます
 - `apps/` だけを変えたコミットは、版に数えません
-- 版を指定したいときは、載る種類のコミットの本文に `Release-As: 0.2.0` を書きます
+- 版を指定したいときは、載る種類のコミットの本文に `Release-As: 0.2.0` を書きます。release-please は変えたファイルでコミットを振り分けるので、ファイルを変えない空のコミットは数えられません
 - `CHANGELOG.md` と `.release-please-manifest.json` は release-please が書くので、手で直しません
 - 公開の前に `scripts/check-pack.mjs` が、`exports` などの指すファイルがパッケージの中にあるかを確かめます。手元では `pnpm pack --pack-destination .pack && node scripts/check-pack.mjs .pack/*.tgz`（`pack` の前に `prepack` がビルドします）
 
