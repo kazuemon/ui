@@ -1,5 +1,5 @@
 // @kazuemon/ui の公開の入口。ここに並べたものだけを利用者に渡す
-// CSS は別の入口（package.json の exports の ./styles.css → src/styles/index.css）
+// CSS は別の入口（package.json の exports の ./tailwind.css・./styles.css・./fonts.css・./fonts-ja.css）
 
 export {
   Accordion,

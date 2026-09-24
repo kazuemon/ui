@@ -4,7 +4,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./styles.css": "./src/styles/index.css"
+    "./tailwind.css": "./src/styles/tailwind.css",
+    "./styles.css": "./dist/styles.css",
+    "./fonts.css": "./src/styles/fonts.css",
+    "./fonts-ja.css": "./src/styles/ibm-plex-sans-jp.css"
   },
   "publishConfig": {
     "exports": {
@@ -12,6 +15,10 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       },
+      "./tailwind.css": "./dist/tailwind.css",
+      "./styles.css": "./dist/styles.css",
+      "./fonts.css": "./dist/fonts.css",
+      "./fonts-ja.css": "./dist/fonts-ja.css",
       "./package.json": "./package.json"
     }
   },
@@ -28,7 +35,7 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o ./docs",
-    "build": "tsdown",
+    "build": "tsdown && node scripts/build-css.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "prepack": "pnpm build",
     "lint": "oxlint",
@@ -47,29 +54,38 @@
     "@daypicker/react": "^10.0.1",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/mulish": "^5.3.0",
-    "@fontsource/ibm-plex-sans-jp": "^5.3.0",
     "maska": "^3.2.1",
     "tailwind-merge": "^3.7.0",
     "tailwind-variants": "^3.3.1",
     "temporal-polyfill": "^1.0.5"
   },
   "peerDependencies": {
+    "@phosphor-icons/react": "^2.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@phosphor-icons/react": "^2.1.0"
+    "@fontsource/ibm-plex-sans-jp": "^5.3.0",
+    "tailwindcss": "^4.3.0"
   },
   "peerDependenciesMeta": {
     "@phosphor-icons/react": {
       "optional": true
+    },
+    "@fontsource/ibm-plex-sans-jp": {
+      "optional": true
+    },
+    "tailwindcss": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@fontsource/ibm-plex-sans-jp": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",
     "@shikijs/transformers": "^4.4.3",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-links": "^10.6.0",
     "@storybook/addon-vitest": "^10.6.0",
     "@storybook/react-vite": "^10.6.0",
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.4",
     "@types/react": "^19.3.0",
