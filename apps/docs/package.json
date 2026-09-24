@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-sans-jp": "^5.3.0",
     "@kazuemon/ui": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "next": "^16.3.5",

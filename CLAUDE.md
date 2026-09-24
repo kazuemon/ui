@@ -32,7 +32,8 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン）                         |
 | `src/recipes/`                         | レシピ: 部品にせず、既存の部品を組み合わせて作るもの（Footer など）の見本のストーリー。公開の入口には足さない                                                      |
 | `src/samples/`                         | 見本のページ: 部品を実際の画面（記事・ドキュメント・サインイン・設定・一覧・SNS）に並べたストーリー。Storybook では `Overview/見本` に並ぶ。公開の入口には足さない |
-| `src/styles/`                          | `theme.css`（トークン・フォント・密度）、`index.css`（利用者向け）、`globals.css`（Storybook 用）                                                                  |
+| `src/styles/`                          | `theme.css`（トークン・密度）、`tailwind.css`（Tailwind を使う利用者向け）、`fonts.css`・`ibm-plex-sans-jp.css`（フォント）、`globals.css`（Storybook 用）         |
+| `scripts/`                             | 配布物を作る・確かめるスクリプト（`build-css.mjs`・`check-dist.mjs`）と、和文フォントの補正 CSS を作る `generate-fonts.mjs`                                        |
 | `templates/component/`                 | 部品とストーリーの雛形                                                                                                                                             |
 | `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                                               |
 
@@ -46,11 +47,13 @@ pnpm format                   # 書式をそろえる（CI は pnpm format:check
 pnpm test                     # 全ストーリーを Vitest で描き、play の確かめと見た目の比較を走らせる
 pnpm test src/components/tag  # 1 つの部品だけ
 pnpm test -u src/components/tag  # 見た目の基準画像を撮り直す（意図して見た目を変えたとき。範囲を絞る）
+pnpm build                    # 配布物（dist/: JS・型・CSS）を作る
+pnpm check:dist               # 配布物を確かめる（'use client'・依存・ツリーシェイク）
 pnpm run fonts                # 和文フォントの補正 CSS を作り直す
 node design/tools/capture-story.mjs <story-id> --pick A --out design/adr/assets/NNNN-title.png
 ```
 
-CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・test を走らせます。
+CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・build・check:dist・test を走らせます。
 
 ## 部品を作る
 
