@@ -1477,7 +1477,7 @@
      padding: 列の内側の余白。row-px: 行の左右の余白。畳んだ列の幅の中でアイコンが中央に来る値（開いた形と畳んだ形でアイコンの位置が動かない）
      gap: アイコンと文字のあいだ。nested-px: 入れ子の行の左の余白（案内線から文字まで。Tree の案内線と文字の間と同じ 16px）
      current-*: いまいる行（軸 306 の決定。色を持たないときはグレーの面と太字。Tree と同じ） */
-  --sidebar-width: calc(var(--spacing) * 64);
+  --sidebar-width: calc(var(--spacing) * 72);
   --sidebar-rail-width: calc(var(--spacing) * 18);
   --sidebar-padding: calc(var(--spacing) * 4);
   --sidebar-row-px: calc(
