@@ -9,6 +9,7 @@
     "components"
   ],
   "homepage": "https://ui.k6n.jp",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/kazuemon/ui/issues"
   },
