@@ -62,6 +62,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
 3. 部品を書く
    - 振る舞い（キーボード・読み上げ・開閉）は、Base UI にある部品を土台にする
    - 見た目は `tv`（`src/internal/tv`）で書く。トークンは、役割（`@theme`）にあるものを先に使う。部品のトークン（`:root`）は、役割にない値か、部品の中で状態ごとに差し替える値のときだけ足し、生の値は尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`）を指す。`@theme` に名前を足したら `twMergeConfig` にも足す（`tv.test.ts` が確かめる）
+   - 部品の要素には、目印のクラス `SCOPE_CLASS`（`kz-ui`）が要る。Tailwind を使わないアプリでは、この要素とその中にだけリセットが効く（`src/styles/reset.css`）。`tv` で書いた部位には `tv` が足すので、`tv` を通さずにクラスを書くいちばん外の要素と、Base UI の `*.Portal` にだけ自分で付ける（Portal は `src/internal/scope-class.test.ts` が確かめる）。1 語のクラス名を求める相手（react-day-picker の動きのクラスなど）には、`tv` を通さない文字列を渡す
    - 寸法は密度のトークン（`--spacing-control` など）で書く。フォーカスの線は `focusRing`、ラベル・キャプション・エラーの行は `internal/field` の `Field`、Form の送信中は `useFormSubmittingLock`・`useChoiceLock` を使う
    - props の説明と既定値（`@default`）は JSDoc に書く
    - props の名前と渡し方は `design/props.md` の語彙に寄せる。語彙にない名前が要るときはいちばん近い語に寄せ、別の語が適していそうならユーザーに確かめる

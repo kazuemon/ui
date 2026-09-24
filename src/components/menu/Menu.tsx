@@ -38,7 +38,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { useSheetDrag } from '../../internal/sheet/use-sheet-drag';
-import { cn } from '../../internal/tv';
+import { cn, SCOPE_CLASS } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 // シートの寸法の計算は選択肢の一覧と共有（つまみを引く操作は src/internal/sheet/use-sheet-drag.ts）
@@ -471,7 +471,7 @@ export function MenuSurface({
     ...(withBack && parentHeight != null ? { '--menu-parent-height': `${parentHeight}px` } : {}),
   };
   return (
-    <BaseMenu.Portal container={container}>
+    <BaseMenu.Portal className={SCOPE_CLASS} container={container}>
       {sheet && !nested && (
         <BaseMenu.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
       )}

@@ -54,8 +54,32 @@ export const twMergeConfig = {
   },
 } satisfies ConfigExtension<DefaultClassGroupIds, DefaultThemeGroupIds>;
 
-/** 部品の見た目を書く tv。上の設定で className をまとめる */
-export const tv = createTV({ twMergeConfig });
+/**
+ * 部品の要素に付ける目印のクラス。この要素とその中にだけ、Tailwind のリセットと同じものを当てる（src/styles/reset.css）
+ * Tailwind を使わないアプリには、ページ全体のリセットを配らないため
+ */
+export const SCOPE_CLASS = 'kz-ui';
+
+const baseTV = createTV({ twMergeConfig });
+
+/** tv の設定の、どの部位（base と slots のすべて）にも目印のクラスを足す */
+function withScope<T extends { base?: unknown; slots?: Record<string, unknown> }>(options: T): T {
+  return {
+    ...options,
+    base: [SCOPE_CLASS, options.base],
+    ...(options.slots && {
+      slots: Object.fromEntries(
+        Object.entries(options.slots).map(([name, value]) => [name, [SCOPE_CLASS, value]])
+      ),
+    }),
+  };
+}
+
+/**
+ * 部品の見た目を書く tv。上の設定で className をまとめ、どの部位にも目印のクラス（SCOPE_CLASS）を足す
+ * 足すのはクラスの中身だけで、部位の名前や variants の型は変わらない
+ */
+export const tv: typeof baseTV = (options, config) => baseTV(withScope(options), config);
 
 /**
  * クラス名をまとめる（上の設定の tailwind-merge）。あとに渡したクラスが勝つ

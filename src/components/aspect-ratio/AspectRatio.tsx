@@ -2,6 +2,7 @@
 
 import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, ReactElement, ReactNode } from 'react';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 export interface AspectRatioProps extends ComponentProps<'div'> {
   /**
@@ -37,6 +38,7 @@ export function AspectRatio({
       ...props,
       // 中身は枠いっぱい。img・video は切り取って埋める
       className: [
+        SCOPE_CLASS,
         'relative w-full overflow-hidden *:absolute *:inset-0 *:size-full [&>img]:object-cover [&>video]:object-cover',
         className,
       ]

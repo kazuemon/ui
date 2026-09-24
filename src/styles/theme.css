@@ -3,6 +3,9 @@
 
 @import '../../design/tokens.css';
 
+/* 部品の中だけに効くリセット（Tailwind のリセットがないアプリのため） */
+@import './reset.css';
+
 @theme {
   --font-sans:
     'Mulish Variable', 'IBM Plex Sans JP', ui-sans-serif, system-ui, sans-serif,

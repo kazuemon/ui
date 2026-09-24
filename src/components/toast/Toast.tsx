@@ -13,7 +13,7 @@ import {
   type NoticeVariant,
   noticeSurface,
 } from '../../internal/notice-surface/notice-surface';
-import { tv } from '../../internal/tv';
+import { tv, SCOPE_CLASS } from '../../internal/tv';
 import { usePortalContainer } from '../../internal/ui-config';
 
 // 一定の時間で消えるお知らせ（トースト）— 軸 147・148
@@ -294,7 +294,7 @@ export function ToastProvider({
   return (
     <BaseToast.Provider timeout={timeout} limit={limit} toastManager={toastManager}>
       {children}
-      <BaseToast.Portal container={target}>
+      <BaseToast.Portal className={SCOPE_CLASS} container={target}>
         <ToastViewport
           position={position}
           stack={stack}

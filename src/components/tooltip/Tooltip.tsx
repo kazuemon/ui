@@ -6,7 +6,7 @@ import { type ReactElement, type ReactNode, useEffect, useRef, useState } from '
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
-import { cn, tv } from '../../internal/tv';
+import { cn, tv, SCOPE_CLASS } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
@@ -210,7 +210,7 @@ export function Tooltip({
           event.stopPropagation();
         }}
       />
-      <BaseTooltip.Portal container={portalContainer}>
+      <BaseTooltip.Portal className={SCOPE_CLASS} container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
           side={longPressed && longPressSide ? longPressSide : side}

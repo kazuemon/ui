@@ -79,6 +79,7 @@ import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import { AutocompleteScroll } from './AutocompleteScroll';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -873,7 +874,7 @@ export function Autocomplete({
           <BaseAutocomplete.Status data-slot="autocomplete-status" className="sr-only">
             {announcement}
           </BaseAutocomplete.Status>
-          <BaseAutocomplete.Portal container={portalContainer}>
+          <BaseAutocomplete.Portal className={SCOPE_CLASS} container={portalContainer}>
             {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする。欄に打つ欄を残すときは暗くしない */}
             {inputInSheet && (
               <BaseAutocomplete.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />

@@ -1,0 +1,30 @@
+/* Tailwind を使わないアプリ向けの CSS（dist/styles.css）の元。scripts/build-css.mjs が Tailwind に通す
+   Tailwind のリセット（preflight）は読まない（ページ全体に効くため。部品の中だけのリセットは reset.css） */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import './tailwind.css';
+
+/* Tailwind を使うアプリでは、ページ全体のリセットが html に文字の設定（フォント・行の高さ）を置き、部品はそれを受け継ぐ。
+   ここでは html に置かないので、いちばん外の部品の要素に置く（中の部品は、外から受け継ぐ）。
+   Tailwind を使うアプリには入れない（使う側が親に付けた font-* や leading-* を、部品が受け継がなくなるため） */
+@layer base {
+  :where(.kz-ui:not(.kz-ui *)) {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: --theme(
+      --default-font-family,
+      ui-sans-serif,
+      system-ui,
+      sans-serif,
+      'Apple Color Emoji',
+      'Segoe UI Emoji',
+      'Segoe UI Symbol',
+      'Noto Color Emoji'
+    );
+    font-feature-settings: --theme(--default-font-feature-settings, normal);
+    font-variation-settings: --theme(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+}

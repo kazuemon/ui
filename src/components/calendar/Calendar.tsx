@@ -30,6 +30,14 @@ import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 
+// 月を送るとき、その場でふわっと入れ替える（monthTransition="fade" — ADR-0142）
+// react-day-picker はこのクラスを 1 つの名前として足し外しするので、空白を含まない 1 つのクラスにする。
+// tv を通すと目印のクラス（SCOPE_CLASS）が足されて 2 つになるので、tv の部位にしない
+const fadeInClass =
+  'animate-[calendar-month-fade-in_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]';
+const fadeOutClass =
+  'animate-[calendar-month-fade-out_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]';
+
 // 月の日を並べて、日か期間を選ぶ。振る舞い（キーボード・読み上げ・範囲の選び方）は react-day-picker（@daypicker/react）— ADR-0133
 // 値は Temporal.PlainDate で受け渡し、react-day-picker との境界で Date（ローカル時刻の正午）に変える（src/internal/date/plain-date.ts）
 // 日は部品の高さの正方形（原則7・11）。入れ物が狭いときは、正方形のまま縮む
@@ -63,12 +71,6 @@ const calendar = tv({
     previous: '',
     next: 'order-2',
     grid: 'order-3 col-span-full w-full table-fixed border-separate border-spacing-0',
-    // 月を送るとき、その場でふわっと入れ替える（monthTransition="fade" — ADR-0142）
-    // react-day-picker はこのクラスを 1 つの名前として足し外しするので、空白を含まない 1 つのクラスにする
-    fadeIn:
-      'animate-[calendar-month-fade-in_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]',
-    fadeOut:
-      'animate-[calendar-month-fade-out_var(--calendar-month-fade-duration)_var(--ease-sheet)_both]',
     weekday: [
       'h-8 p-0 text-center align-middle font-normal',
       'text-(length:--text-caption) leading-(--leading-caption)',
@@ -521,14 +523,14 @@ export function Calendar(props: CalendarProps) {
       month_grid: styles.grid(),
       day_button: styles.dayButton(),
       ...(fade && {
-        weeks_after_enter: styles.fadeIn(),
-        weeks_before_enter: styles.fadeIn(),
-        caption_after_enter: styles.fadeIn(),
-        caption_before_enter: styles.fadeIn(),
-        weeks_after_exit: styles.fadeOut(),
-        weeks_before_exit: styles.fadeOut(),
-        caption_after_exit: styles.fadeOut(),
-        caption_before_exit: styles.fadeOut(),
+        weeks_after_enter: fadeInClass,
+        weeks_before_enter: fadeInClass,
+        caption_after_enter: fadeInClass,
+        caption_before_enter: fadeInClass,
+        weeks_after_exit: fadeOutClass,
+        weeks_before_exit: fadeOutClass,
+        caption_after_exit: fadeOutClass,
+        caption_before_exit: fadeOutClass,
       }),
     },
     formatters: {

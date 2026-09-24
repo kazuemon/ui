@@ -1,0 +1,206 @@
+/*
+ * 部品の中だけに効くリセット。Tailwind のリセット（tailwindcss/preflight.css、v4.3）を、部品の要素とその中に絞って写したもの
+ *
+ * 部品は、Tailwind のリセットがある前提で書いている（ボタンの枠や余白、見出しの大きさ、一覧の印、画像の display など）。
+ * Tailwind を使わないアプリ（dist/styles.css）には、ページ全体に効くリセットを配らない。既にあるページの見た目を変えてしまうため。
+ * かわりに、部品の要素に付く目印のクラス（.kz-ui。src/internal/tv.ts の tv が足す）の要素と、その中の要素にだけ、同じリセットを当てる。
+ * Tailwind を使うアプリでは、ページ全体のリセットと同じ値なので、何も変わらない。
+ *
+ * どれも :where() で詳細度を 0 にし、base の層に置く。部品のクラス（utilities の層）と、使う側の CSS が必ず勝つ。
+ * Tailwind を上げたら、preflight.css と見比べて写し直す。
+ */
+@layer base {
+  :where(.kz-ui, .kz-ui *) {
+    &,
+    &::before,
+    &::after,
+    &::backdrop,
+    &::file-selector-button {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: 0 solid;
+    }
+
+    &:where(hr) {
+      height: 0;
+      color: inherit;
+      border-top-width: 1px;
+    }
+
+    &:where(abbr[title]) {
+      text-decoration: underline dotted;
+    }
+
+    &:where(h1, h2, h3, h4, h5, h6) {
+      font-size: inherit;
+      font-weight: inherit;
+    }
+
+    &:where(a) {
+      color: inherit;
+      text-decoration: inherit;
+    }
+
+    &:where(b, strong) {
+      font-weight: bolder;
+    }
+
+    &:where(code, kbd, samp, pre) {
+      font-family: --theme(
+        --default-mono-font-family,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+      );
+      font-feature-settings: --theme(--default-mono-font-feature-settings, normal);
+      font-variation-settings: --theme(--default-mono-font-variation-settings, normal);
+      font-size: 1em;
+    }
+
+    &:where(small) {
+      font-size: 80%;
+    }
+
+    &:where(sub, sup) {
+      font-size: 75%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+    }
+
+    &:where(sub) {
+      bottom: -0.25em;
+    }
+
+    &:where(sup) {
+      top: -0.5em;
+    }
+
+    &:where(table) {
+      text-indent: 0;
+      border-color: inherit;
+      border-collapse: collapse;
+    }
+
+    &:where(:-moz-focusring:not(iframe)) {
+      outline: auto;
+    }
+
+    &:where(progress) {
+      vertical-align: baseline;
+    }
+
+    &:where(summary) {
+      display: list-item;
+    }
+
+    &:where(ol, ul, menu) {
+      list-style: none;
+    }
+
+    &:where(img, svg, video, canvas, audio, iframe, embed, object) {
+      display: block;
+      vertical-align: middle;
+    }
+
+    &:where(img, video) {
+      max-width: 100%;
+      height: auto;
+    }
+
+    &:where(button, input, select, optgroup, textarea),
+    &::file-selector-button {
+      font: inherit;
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+      border-radius: 0;
+      background-color: transparent;
+      opacity: 1;
+    }
+
+    &:where(select:is([multiple], [size]) optgroup) {
+      font-weight: bolder;
+    }
+
+    &:where(select:is([multiple], [size]) optgroup option) {
+      padding-inline-start: 20px;
+    }
+
+    &::file-selector-button {
+      margin-inline-end: 4px;
+    }
+
+    &::placeholder {
+      opacity: 1;
+    }
+
+    @supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+      &::placeholder {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+
+    &:where(textarea) {
+      resize: vertical;
+    }
+
+    &::-webkit-search-decoration {
+      -webkit-appearance: none;
+    }
+
+    &::-webkit-date-and-time-value {
+      min-height: 1lh;
+      text-align: inherit;
+    }
+
+    &::-webkit-datetime-edit {
+      display: inline-flex;
+    }
+
+    &::-webkit-datetime-edit-fields-wrapper {
+      padding: 0;
+    }
+
+    &::-webkit-datetime-edit,
+    &::-webkit-datetime-edit-year-field,
+    &::-webkit-datetime-edit-month-field,
+    &::-webkit-datetime-edit-day-field,
+    &::-webkit-datetime-edit-hour-field,
+    &::-webkit-datetime-edit-minute-field,
+    &::-webkit-datetime-edit-second-field,
+    &::-webkit-datetime-edit-millisecond-field,
+    &::-webkit-datetime-edit-meridiem-field {
+      padding-block: 0;
+    }
+
+    &::-webkit-calendar-picker-indicator {
+      line-height: 1;
+    }
+
+    &:where(:-moz-ui-invalid) {
+      box-shadow: none;
+    }
+
+    &:where(button, input:where([type='button'], [type='reset'], [type='submit'])),
+    &::file-selector-button {
+      appearance: button;
+    }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      height: auto;
+    }
+
+    &:where([hidden]:not([hidden='until-found'])) {
+      display: none !important;
+    }
+  }
+}

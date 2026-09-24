@@ -83,6 +83,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -890,7 +891,7 @@ export function Combobox<Multiple extends boolean = false>({
           <BaseCombobox.Status data-slot="combobox-status" className="sr-only">
             {announcement}
           </BaseCombobox.Status>
-          <BaseCombobox.Portal container={portalContainer}>
+          <BaseCombobox.Portal className={SCOPE_CLASS} container={portalContainer}>
             {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする（design/adr/0037）
                 欄に打つ欄を残すとき（sheetInput="field"）は暗くしない。欄はシートの外にあり、打っているあいだも読めるようにするため */}
             {inputInSheet && (

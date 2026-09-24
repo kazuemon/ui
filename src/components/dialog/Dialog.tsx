@@ -24,7 +24,7 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { cn } from '../../internal/tv';
+import { cn, SCOPE_CLASS } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
 import { usePortalContainer } from '../../internal/ui-config';
@@ -238,7 +238,7 @@ function CenteredDialog({
     >
       {trigger && <BaseDialog.Trigger ref={anchorRef} render={trigger} />}
       <OverlayCloseContext value={() => changeOpen(false)}>
-        <BaseDialog.Portal container={portalContainer}>
+        <BaseDialog.Portal className={SCOPE_CLASS} container={portalContainer}>
           {/* 裏を止めるときだけ、後ろを暗くする */}
           {modal === true && (
             <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />

@@ -2,8 +2,8 @@
 //
 //   dist/tailwind.css  Tailwind v4 を使うアプリ向け。src/styles/tailwind.css の @import を 1 ファイルにまとめ、
 //                      クラス名を探す場所を dist の JS に差し替える。使う側の Tailwind が処理する
-//   dist/styles.css    Tailwind を使わないアプリ向け。部品が使うクラスとテーマを、ここで Tailwind に通して作る。
-//                      Tailwind のリセット（preflight）は入れない。全体を @layer kazuemon に入れ、使う側の CSS が勝つようにする
+//   dist/styles.css    Tailwind を使わないアプリ向け。src/styles/standalone.css を、ここで Tailwind に通して作る。
+//                      ページ全体のリセット（preflight）は入れない（部品の中だけのリセットは reset.css）。全体を @layer kazuemon に入れ、使う側の CSS が勝つようにする
 //   dist/fonts.css     欧文と等幅のフォント（@fontsource の CSS を読む）
 //   dist/fonts-ja.css  和文フォント。縦の寸法を補正した @font-face（design/adr/0032）。
 //                      フォントのファイルは使う側が入れた @fontsource/ibm-plex-sans-jp を指す
@@ -22,27 +22,22 @@ function inline(path) {
   );
 }
 
+/** クラス名を探す場所を、配布する JS（dist の中）だけにする */
+const withDistSource = (css) =>
+  css.replace(/^@source .*;\n/gm, '') +
+  "\n/* クラス名を探す場所: 部品の JS（このファイルと同じ dist の中） */\n@source './**/*.js';\n";
+
 mkdirSync(DIST, { recursive: true });
 
-// Tailwind あり: クラス名を探す場所を、配布する JS（dist の中）だけにする
-const tailwind =
-  inline(join(STYLES, 'tailwind.css')).replace(/^@source .*;\n/gm, '') +
-  "\n/* クラス名を探す場所: 部品の JS（このファイルと同じ dist の中） */\n@source './**/*.js';\n";
+// Tailwind あり
+const tailwind = withDistSource(inline(join(STYLES, 'tailwind.css')));
 if (tailwind.includes('../../'))
   throw new Error('dist/tailwind.css に dist の外を指すパスが残っています');
 writeFileSync(join(DIST, 'tailwind.css'), tailwind);
 
-// Tailwind なし: 上の tailwind.css を、リセットを除いた Tailwind に通す
+// Tailwind なし: src/styles/standalone.css（リセットを除いた Tailwind ＋ tailwind.css）を Tailwind に通す
 const input = join(DIST, '.styles-input.css');
-writeFileSync(
-  input,
-  [
-    '@layer theme, base, components, utilities;',
-    "@import 'tailwindcss/theme.css' layer(theme);",
-    "@import 'tailwindcss/utilities.css' layer(utilities) source(none);",
-    "@import './tailwind.css';",
-  ].join('\n')
-);
+writeFileSync(input, withDistSource(inline(join(STYLES, 'standalone.css'))));
 const output = join(DIST, 'styles.css');
 try {
   execFileSync(

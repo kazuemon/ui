@@ -27,7 +27,7 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { cn } from '../../internal/tv';
+import { cn, SCOPE_CLASS } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer } from '../drawer/Drawer';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
@@ -243,7 +243,7 @@ function FloatingPopover({
     >
       <BasePopover.Trigger ref={anchorRef} render={trigger} />
       <OverlayCloseContext value={() => changeOpen(false)}>
-        <BasePopover.Portal container={portalContainer}>
+        <BasePopover.Portal className={SCOPE_CLASS} container={portalContainer}>
           <BasePopover.Positioner
             side={side}
             align={align}

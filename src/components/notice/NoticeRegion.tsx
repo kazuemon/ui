@@ -1,6 +1,7 @@
 'use client';
 
 import { type ComponentProps, useMemo, useState } from 'react';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { NoticeRegionContext } from './notice-region-context';
@@ -47,6 +48,7 @@ export function NoticeRegion({ children, className, ref, ...props }: NoticeRegio
       tabIndex={-1}
       {...props}
       className={[
+        SCOPE_CLASS,
         // 中身のある箱どうし（と領域にそのまま描いたもの）の間だけをあける
         // フォーカスの行き先にするだけなので、線は出さない
         'flex flex-col outline-none [&>:not(:empty)~:not(:empty)]:mt-2',

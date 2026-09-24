@@ -24,7 +24,7 @@ import {
   type OverlayModal,
   type PopupProps,
 } from '../overlay/overlay-props';
-import { cn } from '../tv';
+import { cn, SCOPE_CLASS } from '../tv';
 import { usePortalContainer } from '../ui-config';
 import { useMergedRefs } from '../use-merged-refs';
 import { playSlide, readSlideMotion, slides, translateX } from './slide-motion';
@@ -168,7 +168,7 @@ export function ImageZoomViewer({
       // 面が画面いっぱいなので、外を押すことはない。押して閉じるのは面の中で受ける（ZoomStage）
       disablePointerDismissal
     >
-      <BaseDialog.Portal container={portalContainer}>
+      <BaseDialog.Portal className={SCOPE_CLASS} container={portalContainer}>
         <BaseDialog.Backdrop
           ref={backdropRef}
           data-slot="image-zoom-backdrop"

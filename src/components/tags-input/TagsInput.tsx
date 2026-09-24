@@ -91,6 +91,7 @@ import {
 } from './tags-input-commit';
 import { TagsInputChips } from './TagsInputChips';
 import { useTagsFlash } from './use-tags-flash';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 export type { TagsInputRejectReason } from './tags-input-commit';
 
@@ -892,7 +893,7 @@ export function TagsInput({
               <BaseCombobox.Status data-slot="tags-input-status" className="sr-only">
                 {announcement}
               </BaseCombobox.Status>
-              <BaseCombobox.Portal container={portalContainer}>
+              <BaseCombobox.Portal className={SCOPE_CLASS} container={portalContainer}>
                 <BaseCombobox.Positioner
                   sideOffset={() => popupSideOffset(fieldRef.current)}
                   {...positionerRest}

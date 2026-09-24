@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { badgeSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
-import { tv } from '../../internal/tv';
+import { SCOPE_CLASS, tv } from '../../internal/tv';
 
 // Badge（数と小さな状態の点）— 後半の軸 39 で A 案（高さ 16px の濃い塗り、重ねるときは縁 2px）に決めた。値は design/tokens.css の --badge-* にある
 // タグ（src/components/tag/Tag.tsx）とは別の、素の要素で作る部品。押せない
@@ -159,7 +159,7 @@ export function Badge({
   ) : null;
   if (!overlay) return mark;
   return (
-    <span className="relative inline-flex shrink-0">
+    <span className={`${SCOPE_CLASS} relative inline-flex shrink-0`}>
       {children}
       {mark}
     </span>

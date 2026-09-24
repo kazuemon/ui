@@ -52,6 +52,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
+import { SCOPE_CLASS } from '../../internal/tv';
 
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
@@ -561,7 +562,7 @@ export function Select<Multiple extends boolean = false>({
             </BaseSelect.Icon>
             {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
           </BaseSelect.Trigger>
-          <BaseSelect.Portal container={portalContainer}>
+          <BaseSelect.Portal className={SCOPE_CLASS} container={portalContainer}>
             {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
             {sheet && (
               <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
