@@ -17,6 +17,48 @@
 
 ![フォントのサンプルテキスト「@kazuemon/uiは、「ぼくがかんがえたさいきょうのUIライブラリ」をConceptに、かずえもんが個人で制作しています。SimpleでModernな見た目かつ、Usabilityも重視したUI Libraryを目指しています。Designはほぼ独学で、Design Systemなどの勉強も兼ねているので、DesignのRuleにおいては正しくないかもしれません。ご容赦ください。」](./text-sample.png)
 
+## つかいかた
+
+```sh
+pnpm add @kazuemon/ui
+pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
+```
+
+React 19 以上が要ります。部品は `@kazuemon/ui` から読みます。部品ごとに `'use client'` を持つので、Server Components のページからそのまま使えます。
+
+### Tailwind CSS（v4）を使うアプリ
+
+アプリの CSS で、`tailwindcss` のあとに読みます。部品のクラスは、アプリの Tailwind がまとめて作ります。
+
+```css
+@import 'tailwindcss';
+@import '@kazuemon/ui/tailwind.css';
+@import '@kazuemon/ui/fonts.css'; /* 欧文と等幅（Mulish・Geist Mono） */
+@import '@kazuemon/ui/fonts-ja.css'; /* 和文（IBM Plex Sans JP）。@fontsource/ibm-plex-sans-jp が要る */
+```
+
+- トークンは Tailwind のクラスとしても使えます（`bg-primary`・`rounded-control`・`h-control`・`text-caption` など）
+- 部品に `className` で渡したクラスは、部品のクラスより優先されます。自分で `cn()` を作るときは、`twMergeConfig` を `extendTailwindMerge(twMergeConfig)` に渡すと、部品と同じまとめ方になります
+- 部品は、ページのフォント（`body` などに置いたもの）を受け継ぎます
+
+### Tailwind CSS を使わないアプリ
+
+ビルド済みの CSS を読みます。Tailwind v3 のアプリもこちらです。
+
+```ts
+import '@kazuemon/ui/styles.css';
+import '@kazuemon/ui/fonts.css';
+import '@kazuemon/ui/fonts-ja.css';
+```
+
+- ページ全体のリセットは入っていません。部品の要素とその中だけに、Tailwind と同じリセットが効きます（部品の要素には `kz-ui` のクラスが付きます）
+- 全体が `@layer kazuemon` の中にあるので、アプリの CSS が必ず勝ちます。部品の見た目を CSS で変えるときに `!important` は要りません。そのかわり、アプリの要素へのスタイル（`button { … }`・`a { … }`）も部品に効きます。そうしたスタイルは、`@layer base { … }` のようにレイヤーに入れてください
+- 部品のクラスは Tailwind と同じ名前（`flex`・`p-2`・`rounded-lg` など）です。アプリの CSS に同じ名前のクラスがあると、部品にも効きます
+
+### フォント
+
+フォントを読まないときは、`ui-sans-serif, system-ui, sans-serif` など、端末のフォントで描かれます。
+
 ## つくりたい機能
 
 部品ではなく、ライブラリとして使うときに要るものです。
@@ -24,9 +66,9 @@
 - [ ] ダークモード
 - [x] Server Components 対応
 - [ ] 多言語
-- [ ] Tailwind なしでの利用
-- [ ] スタイルの衝突を避ける（Tailwind あり・なし）
-- [ ] ツリーシェイク
+- [x] Tailwind なしでの利用
+- [x] スタイルの衝突を避ける（Tailwind あり・なし）
+- [x] ツリーシェイク
 
 ## つくりたいコンポーネント
 
