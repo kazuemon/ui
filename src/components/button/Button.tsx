@@ -63,7 +63,10 @@ const button = tv({
     'data-loading:cursor-progress data-loading:overflow-hidden',
     // ButtonGroup の詰め方（frame="connected"）のときだけ、両端以外の角丸を消す。ToggleGroup と同じ仕組み
     //   （in-data-[frame=…] で、自分が属する ButtonGroup の frame を読む。design/components/button-group）
-    'in-data-[frame=connected]:rounded-none in-data-[frame=connected]:first:rounded-s-control in-data-[frame=connected]:last:rounded-e-control',
+    //   向き（data-orientation。ButtonGroup がいつも明示する）で、丸める辺を変える。横は左右端、縦は上下端
+    'in-data-[frame=connected]:rounded-none',
+    'in-data-[frame=connected]:in-data-[orientation=horizontal]:first:rounded-s-control in-data-[frame=connected]:in-data-[orientation=horizontal]:last:rounded-e-control',
+    'in-data-[frame=connected]:in-data-[orientation=vertical]:first:rounded-t-control in-data-[frame=connected]:in-data-[orientation=vertical]:last:rounded-b-control',
   ],
   variants: {
     variant: {
