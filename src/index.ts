@@ -53,6 +53,12 @@ export {
   type ButtonShape,
 } from './components/button/Button';
 export {
+  ButtonGroup,
+  type ButtonGroupFrame,
+  type ButtonGroupOrientation,
+  type ButtonGroupProps,
+} from './components/button-group/ButtonGroup';
+export {
   Toggle,
   type ToggleColor,
   type ToggleIconOnlyProps,

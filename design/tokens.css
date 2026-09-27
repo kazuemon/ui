@@ -1263,6 +1263,14 @@
   --toggle-group-gap: calc(var(--spacing) * 2);
   /* ── END toggle */
 
+  /* ── ButtonGroup — 2026-09-27 に作成。src/components/button-group ── BEGIN button-group */
+  /* 複数の Button を視覚的に連結して並べる、選択状態を持たない組み合わせの部品。ToggleGroup の詰め方（frame。軸269）と
+     同じ考えをいちばん近い決定として流用した（原則にない判断。design/backlog.md の ButtonGroup の節）
+     connected（既定）は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す。gap はそれぞれ離して並べ、間は --button-group-gap
+     Button は in-data-[frame=…] で、自分が属する ButtonGroup の frame を読み、connected のときだけ自分の角丸を変える（Button.tsx） */
+  --button-group-gap: calc(var(--spacing) * 2);
+  /* ── END button-group */
+
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */
   /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link
      ページの上に重なる面なので、面・輪郭・影は浮かぶ面と同じ（原則1）。リンクなので角は pill（原則5）、文字はリンクの Primary と下線
