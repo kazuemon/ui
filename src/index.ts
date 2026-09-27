@@ -429,6 +429,16 @@ export {
   type StatusPanelStatus,
 } from './components/status-panel/StatusPanel';
 export {
+  Stepper,
+  type StepperColor,
+  type StepperOrientation,
+  StepperStep,
+  type StepperStepProps,
+  type StepperStepStatus,
+  type StepperProps,
+  type StepperVariant,
+} from './components/stepper/Stepper';
+export {
   Step,
   type StepProps,
   Steps,

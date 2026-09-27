@@ -119,7 +119,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Tabs
 - [x] Pagination
 - [x] Menu
-- [ ] Stepper
+- [x] Stepper
 - [ ] NavigationMenu
 - [ ] ContextMenu
 - [ ] Toolbar
