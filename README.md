@@ -172,7 +172,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [ ] Fieldset
 - [x] Combobox
 - [ ] Segmented Control
-- [ ] Slider
+- [x] Slider
 - [x] NumberField
 - [x] DateField
 - [ ] DatePicker
