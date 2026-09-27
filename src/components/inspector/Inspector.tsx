@@ -151,7 +151,8 @@ export function Inspector({
 
   // 開いた直後: autoFocus があるときだけ焦点を移す。閉じた直後: 中に焦点があったら、開いたボタンへ戻す
   // 閉じると inert で中の焦点が外れるので、外れる前（DOM を書き換えた直後）に確かめる
-  const wasOpen = useRef(open);
+  // はじめは閉じていたものとして扱い、はじめから開いているときも autoFocus を効かせる
+  const wasOpen = useRef(false);
   useLayoutEffect(() => {
     if (wasOpen.current === open) return undefined;
     wasOpen.current = open;

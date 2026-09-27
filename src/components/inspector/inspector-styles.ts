@@ -4,7 +4,7 @@ import { tv } from '../../internal/tv';
 //   押しのける形（variant="push"、既定 — ADR-0320）: ページと同じレイヤー。影を付けず、白い面と本文との境の細い線で分ける（原則1・ADR-0323）
 //     角は丸めない（領域の端に着く）
 //     枠（frame）の幅を 0 ⇄ パネルの幅で滑らせ、本文を押しのける（原則14「内容が押されるときは、跳ばずに滑らせる」）
-//     パネルは枠の本文の側の端に着けておく。枠が広がるにつれ、パネルが領域の端から滑り出て見える
+//     パネルは枠の幅いっぱい（w-full）にし、枠の幅の動きにそのまま従わせる。width に % などを渡したとき、パネルが枠を基準に解いて狭くならないようにする
 //   重なる形（variant="overlay"）: 領域の中で本文の上に重なる面。影と輪郭は Drawer の横のパネルと同じで、影は本文の側へ向ける（原則1・ADR-0321）
 //     端の形（overlayEdge — ADR-0322）: flush（既定）は領域の端に着け、角を丸めない。輪郭は本文の側だけ
 //       floating は領域の端から離し、4 つの角をカードの角に丸め、輪郭を一周させる
@@ -33,10 +33,7 @@ export const inspectorStyles = tv({
           'transition-[width] [transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
           'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
         ],
-        panel: [
-          'absolute inset-y-0 w-(--inspector-width) border-line bg-surface',
-          'transition-[visibility]',
-        ],
+        panel: ['absolute inset-y-0 w-full border-line bg-surface', 'transition-[visibility]'],
       },
       overlay: {
         frame: [

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
+import { useRef } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Inspector, type InspectorProps } from './Inspector';
@@ -251,6 +252,59 @@ export const Width: Story = {
   play: async ({ canvas }) => {
     const panel = await canvas.findByRole('complementary', { name: '企画書.pdf' });
     await expect(panel.getBoundingClientRect().width).toBeCloseTo(280, 0);
+  },
+};
+
+export const WidthPercent: Story = {
+  name: '幅を割合で渡す',
+  args: { width: '50%' },
+  parameters: {
+    controls: { include: ['width', 'variant'] },
+    docs: {
+      description: { story: '文字列で渡すと、領域の幅に対する割合（`50%`）なども使えます。' },
+    },
+  },
+  render: (args) => <Area inspector={<Inspector {...args}>{details}</Inspector>} />,
+  play: async ({ canvas, canvasElement }) => {
+    const panel = await canvas.findByRole('complementary', { name: '企画書.pdf' });
+    const body = canvasElement.querySelector('[data-slot="inspector-body"]');
+    await waitFor(() =>
+      expect(panel.getBoundingClientRect().width).toBeCloseTo(
+        (body?.getBoundingClientRect().width ?? 0) / 2,
+        0
+      )
+    );
+  },
+};
+
+function AutoFocusExample(args: InspectorProps) {
+  const target = useRef<HTMLButtonElement>(null);
+  return (
+    <Area
+      inspector={
+        <Inspector {...args} autoFocus={target}>
+          <Button ref={target}>書き出す</Button>
+        </Inspector>
+      }
+    />
+  );
+}
+
+export const AutoFocus: Story = {
+  name: '開いた直後の焦点',
+  parameters: {
+    controls: { include: ['variant'] },
+    docs: {
+      description: {
+        story:
+          '`autoFocus` に要素を渡すと、開いた直後にその要素へフォーカスを移します。はじめから開いているときも同じです。',
+      },
+    },
+  },
+  render: (args) => <AutoFocusExample {...args} />,
+  play: async ({ canvas }) => {
+    const button = await canvas.findByRole('button', { name: '書き出す' });
+    await waitFor(() => expect(button).toHaveFocus());
   },
 };
 
