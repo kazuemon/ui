@@ -407,6 +407,14 @@ export {
   type StatTrend,
 } from './components/stat/Stat';
 export {
+  type StatusPanelHeadingLevel,
+  StatusPanel,
+  type StatusPanelProps,
+  type StatusPanelShape,
+  type StatusPanelSize,
+  type StatusPanelStatus,
+} from './components/status-panel/StatusPanel';
+export {
   Step,
   type StepProps,
   Steps,

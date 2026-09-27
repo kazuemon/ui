@@ -4,7 +4,10 @@ import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../ic
 import type { NoticeSurfaceStatus, NoticeVariant } from './notice-surface';
 
 // 状態の色ごとのアイコン（design/adr/0041・0043）。neutral は持たない
-const iconOf: Partial<Record<NoticeSurfaceStatus, (props: { className?: string }) => ReactNode>> = {
+// StatusPanel（src/components/status-panel）も、この既定の割り当てをそのまま参照する
+export const noticeStatusIcons: Partial<
+  Record<NoticeSurfaceStatus, (props: { className?: string; standalone?: boolean }) => ReactNode>
+> = {
   info: InfoIcon,
   success: CheckCircleIcon,
   warning: WarningIcon,
@@ -21,7 +24,7 @@ export function NoticeIcon({
   variant: NoticeVariant;
   icon?: ReactNode | false;
 }) {
-  const DefaultIcon = variant === 'muted' ? undefined : iconOf[status];
+  const DefaultIcon = variant === 'muted' ? undefined : noticeStatusIcons[status];
   const shown = icon === false ? null : (icon ?? (DefaultIcon ? <DefaultIcon /> : null));
   if (!shown) return null;
   return (
