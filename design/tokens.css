@@ -1855,44 +1855,28 @@
   --grid-column-width: calc(var(--spacing) * 60); /* 240px */
   /* ── END grid */
 
-  /* ── StatusPanel — 原則にない判断（design/backlog.md）。design/stories/axis-361〜363 で比較中
-     ── BEGIN status-panel */
+  /* ── StatusPanel — ADR-0326・0327・0328 ── BEGIN status-panel */
   /* 空状態・見つからない・失敗の面。src/components/status-panel/StatusPanel.tsx
-     status ごとに名前を分けた実在するトークン（-info・-success・-warning・-danger・-neutral）を、StatusPanel.tsx の tv が直接読む。
-       component-scoped な間接参照（--status-panel-ink のような、部品の中でしか値が確定しない変数）を経由させると、
-       比較ストーリー側（祖先の要素）から上書きしても、部品自身が同じ要素で確定させた値に必ず負けるので、比べられなくなる。
-       ここは全部、ほかの役割トークン（--color-info など）だけを指す実在の値なので、上書きは祖先のどこでも効く
-       badge-bg・badge-fg: バッジの塗りと、中のアイコンの色。既定は淡い塗り（-subtle）に濃い前景色（-ink） — Notice の soft と同じ配分（軸361）
-       title-color: 見出しの文字の色。既定はどの状態も色を持たない本文の色（--color-fg）で、バッジだけに色を使う（軸362）
-     ここに置くほかのものは、大きさ・余白
-       width: 面全体の幅の上限（中央寄せ）。description-width: 本文だけの幅の上限（見出しより読みやすい行長にする）
-       badge-size・icon-size: バッジの直径と、中のアイコンの大きさ。badge-radius: バッジの角（pill で円） */
-  --status-panel-badge-bg-info: var(--color-info-subtle);
-  --status-panel-badge-fg-info: var(--color-fg-info);
-  --status-panel-title-color-info: var(--color-fg);
-  --status-panel-badge-bg-success: var(--color-success-subtle);
-  --status-panel-badge-fg-success: var(--color-fg-success);
-  --status-panel-title-color-success: var(--color-fg);
-  --status-panel-badge-bg-warning: var(--color-warning-subtle);
-  --status-panel-badge-fg-warning: var(--color-fg-warning);
-  --status-panel-title-color-warning: var(--color-fg);
-  --status-panel-badge-bg-danger: var(--color-danger-subtle);
-  --status-panel-badge-fg-danger: var(--color-fg-danger);
-  --status-panel-title-color-danger: var(--color-fg);
-  --status-panel-badge-bg-neutral: var(--color-field);
-  --status-panel-badge-fg-neutral: var(--color-fg-muted);
-  --status-panel-title-color-neutral: var(--color-fg);
-  --status-panel-width: 28rem;
-  --status-panel-description-width: 40ch;
-  --status-panel-gap: calc(var(--spacing) * 3);
-  --status-panel-actions-gap: calc(var(--spacing) * 3);
-  --status-panel-badge-size: calc(var(--spacing) * 14); /* 56px */
-  --status-panel-badge-radius: var(--radius-pill);
-  --status-panel-icon-size: var(
+     色（バッジの塗り・アイコンの色・見出しの色）は internal/notice-surface の noticeSurface（Notice・Callout・Toast と共有）が持つので、
+       ここには置かない（ADR-0326・0327）。ここに置くのは、Notice にはない StatusPanel 固有の大きさの軸だけ
+     size（sm・md・lg、既定 md）ごとに、幅の上限・間隔・バッジとアイコンの大きさを持つ（ADR-0328）。見出しの大きさは
+       text-heading-2〜4 をそのまま使うので、ここにはトークンを置かない
+     description-width は size によらない一定値（本文だけの幅の上限。見出しより読みやすい行長にする） */
+  --status-panel-width-sm: 22rem;
+  --status-panel-width-md: 28rem;
+  --status-panel-width-lg: 32rem;
+  --status-panel-gap-sm: calc(var(--spacing) * 2);
+  --status-panel-gap-md: calc(var(--spacing) * 3);
+  --status-panel-gap-lg: calc(var(--spacing) * 4);
+  --status-panel-badge-size-sm: calc(var(--spacing) * 10); /* 40px */
+  --status-panel-badge-size-md: calc(var(--spacing) * 14); /* 56px */
+  --status-panel-badge-size-lg: calc(var(--spacing) * 18); /* 72px */
+  --status-panel-icon-size-sm: var(--icon-size-md); /* 20px */
+  --status-panel-icon-size-md: var(--icon-size-lg); /* 24px。公開の Icon 部品の size="lg" と同じ */
+  --status-panel-icon-size-lg: var(
     --icon-size-lg
-  ); /* 公開の Icon 部品の size="lg" と同じ大きさ（24px） */
-  --status-panel-title-size: var(--text-heading-3);
-  --status-panel-title-leading: var(--leading-heading-3);
+  ); /* 24px。バッジが大きくなっても、アイコンは md と同じ大きさで止める */
+  --status-panel-description-width: 40ch;
   /* ── END status-panel */
 }
 

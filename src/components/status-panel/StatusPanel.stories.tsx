@@ -7,10 +7,11 @@ import {
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, within } from 'storybook/test';
 
-import { StatusPanel } from './StatusPanel';
+import { StatusPanel, type StatusPanelShape, type StatusPanelSize } from './StatusPanel';
 import { Button } from '../button/Button';
 import { Icon } from '../icon/Icon';
 import { Link } from '../link/Link';
+import type { NoticeVariant } from '../notice/Notice';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 // 状態を書かないとき（色を持たないグレー）は neutral として並べる
@@ -43,9 +44,12 @@ const meta = {
     docs: {
       description: {
         component: [
-          '空状態・見つからない・失敗を、バッジ付きのアイコン・見出し・本文・操作で伝える面です。一覧の中の空表示から、404 やエラーのページまで使えます。',
+          '空状態・見つからない・失敗を、バッジ付きのアイコン・見出し・本文・操作で伝える面です。一覧の中の空表示から、404 やエラーのページまで使えます。Notice の別の形として作っており、色の決まりは Notice・Callout と同じです。',
           '',
           '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレー（`neutral`）になります。',
+          '- `variant` は見た目です。`soft`（既定）は淡い塗りのバッジに状態の色の見出し、`filled` は濃い塗りのバッジ（見出しは状態の色のまま）、`outline` は白いバッジに状態の色の枠線（見出しは色を持たない）、`muted` はグレーのバッジに状態の色の小さめの見出しです。',
+          '- `shape`（既定は `square`）でバッジの形を選べます。`circle` も選べます。',
+          '- `size`（既定は `md`）で全体の大きさを選べます。一覧やカードの中の空状態には `sm`、404・エラーのページ全体には `lg` が合います。',
           '- `icon` はバッジの中の大きなアイコンです。`status` を書くと既定のアイコンが付きます（`Notice`・`Callout` と同じ割り当て）。`neutral` には既定がないので、渡してください（見つからないときは虫眼鏡、空のときは箱など）。`Icon`（`@kazuemon/ui`）でそろえます。',
           '- `title` は必須です。「まだ一つも作成されていません」のように、状況を短く伝えます。',
           '- `children` は見出しの下の本文で、次にすることや理由を書きます。省略できます。',
@@ -58,6 +62,9 @@ const meta = {
   },
   args: {
     status: undefined,
+    variant: 'soft',
+    shape: 'square',
+    size: 'md',
     icon: <Icon icon={FolderOpenIcon} size="lg" standalone />,
     title: samples.neutral.title,
     children: samples.neutral.body,
@@ -66,6 +73,21 @@ const meta = {
     status: {
       control: 'inline-radio',
       options: [undefined, ...statuses.filter((s) => s !== 'neutral')],
+    },
+    variant: {
+      control: 'inline-radio',
+      options: ['soft', 'filled', 'outline', 'muted'] satisfies NoticeVariant[],
+      table: { defaultValue: { summary: "'soft'" } },
+    },
+    shape: {
+      control: 'inline-radio',
+      options: ['circle', 'square'] satisfies StatusPanelShape[],
+      table: { defaultValue: { summary: "'square'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg'] satisfies StatusPanelSize[],
+      table: { defaultValue: { summary: "'md'" } },
     },
     title: { control: 'text' },
     children: { control: 'text' },
@@ -82,7 +104,9 @@ export const Playground: Story = {
 export const Statuses: Story = {
   tags: ['visual'],
   name: '状態',
-  parameters: { controls: { exclude: ['status', 'icon', 'title', 'children'] } },
+  parameters: {
+    controls: { exclude: ['status', 'variant', 'shape', 'size', 'icon', 'title', 'children'] },
+  },
   render: () => (
     <Gallery columnWidth="20rem">
       {statuses.map((sample) => (
@@ -96,6 +120,79 @@ export const Statuses: Story = {
             headingLevel={3}
           >
             {samples[sample].body}
+          </StatusPanel>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+const variants: NoticeVariant[] = ['soft', 'filled', 'outline', 'muted'];
+
+export const Variants: Story = {
+  tags: ['visual'],
+  name: '見た目',
+  parameters: {
+    controls: { exclude: ['status', 'variant', 'shape', 'size', 'icon', 'title', 'children'] },
+  },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      {variants.map((variant) => (
+        <Specimen key={variant} label={variant}>
+          <StatusPanel
+            status="danger"
+            variant={variant}
+            title={samples.danger.title}
+            headingLevel={3}
+          >
+            {samples.danger.body}
+          </StatusPanel>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+const shapes: StatusPanelShape[] = ['circle', 'square'];
+
+export const Shapes: Story = {
+  tags: ['visual'],
+  name: '形',
+  parameters: {
+    controls: { exclude: ['status', 'variant', 'shape', 'size', 'icon', 'title', 'children'] },
+  },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      {shapes.map((shape) => (
+        <Specimen key={shape} label={shape}>
+          <StatusPanel status="info" shape={shape} title={samples.info.title} headingLevel={3}>
+            {samples.info.body}
+          </StatusPanel>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+const sizes: StatusPanelSize[] = ['sm', 'md', 'lg'];
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { exclude: ['status', 'variant', 'shape', 'size', 'icon', 'title', 'children'] },
+  },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      {sizes.map((size) => (
+        <Specimen key={size} label={size}>
+          <StatusPanel
+            icon={<Icon icon={FolderOpenIcon} size="lg" standalone />}
+            size={size}
+            title={samples.neutral.title}
+            headingLevel={3}
+          >
+            {samples.neutral.body}
           </StatusPanel>
         </Specimen>
       ))}
