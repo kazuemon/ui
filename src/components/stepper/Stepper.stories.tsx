@@ -1,0 +1,281 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
+
+import {
+  Stepper,
+  type StepperColor,
+  type StepperOrientation,
+  type StepperVariant,
+  StepperStep,
+} from './Stepper';
+import { DensityPair, Matrix } from '../../stories/story-parts';
+import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+
+const colors: StepperColor[] = ['neutral', 'primary', 'secondary'];
+
+const steps = [
+  { value: 'account', label: 'アカウント' },
+  { value: 'address', label: 'お届け先' },
+  { value: 'payment', label: 'お支払い' },
+  { value: 'confirm', label: '確認' },
+];
+
+/** 見本の Stepper。ネットショップの購入手続き（4 段）で、既定は 3 段目がいまの段 */
+function Sample({
+  color,
+  variant,
+  orientation,
+  defaultValue = 'payment',
+  invalidValue,
+  readOnly,
+}: {
+  color?: StepperColor;
+  variant?: StepperVariant;
+  orientation?: StepperOrientation;
+  defaultValue?: string;
+  invalidValue?: string;
+  readOnly?: boolean;
+}) {
+  return (
+    <Stepper
+      color={color}
+      variant={variant}
+      orientation={orientation}
+      defaultValue={defaultValue}
+      readOnly={readOnly}
+      accessibleName="購入手続き"
+    >
+      {steps.map((step) => (
+        <StepperStep key={step.value} {...step} invalid={step.value === invalidValue} />
+      ))}
+    </Stepper>
+  );
+}
+
+const meta = {
+  title: 'Components/Stepper',
+  component: Stepper,
+  subcomponents: { StepperStep },
+  tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: [
+          '複数の段階の進み具合を示すナビゲーションです。フォームのウィザードなど、段を追って進む画面で使います。',
+          '',
+          '- `Stepper` の中に `StepperStep` を、進む順に並べます。段の中身（フォームなど）は持たないので、`value` を見て使う側が出し分けます。',
+          '- はじめにいる段は `defaultValue` で渡します。外で持つときは `value` と `onValueChange` を使います。',
+          '- 完了した段（いまの段より前）は既定で押せて、押すと `onValueChange` でその段の `value` を渡します。いまの段とこれからの段は押せません。',
+          '- `readOnly` にすると、完了した段も押せない表示専用になります。',
+          '- `orientation` は並べる向きです。既定は `horizontal`（横に並べてラベルを下に）で、`vertical`（縦に積んでラベルを右に）を選べます。',
+          '- `color` はいまの段・完了した段のマーカーの色です。指定しないときはグレー（`neutral`）です。',
+          '- `variant` は完了した段のマーカーです。既定は `number`（数字のまま色だけ変える）で、`check`（チェックの印に差し替える）を選べます。',
+          '- `StepperStep` の `description` にラベルの下へ添える説明を、`invalid` でその段をエラーの見た目にできます。',
+        ].join('\n'),
+      },
+    },
+  },
+  args: { color: 'neutral', variant: 'number', orientation: 'horizontal' },
+  argTypes: {
+    color: {
+      control: 'inline-radio',
+      options: colors,
+      table: { defaultValue: { summary: "'neutral'" } },
+    },
+    variant: {
+      control: 'inline-radio',
+      options: ['number', 'check'],
+      table: { defaultValue: { summary: "'number'" } },
+    },
+    orientation: {
+      control: 'inline-radio',
+      options: ['horizontal', 'vertical'],
+      table: { defaultValue: { summary: "'horizontal'" } },
+    },
+    children: { control: false },
+  },
+} satisfies Meta<typeof Stepper>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Playground: Story = {
+  name: '基本',
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        <Stepper defaultValue="payment" accessibleName="購入手続き">
+          <StepperStep value="account" label="アカウント" />
+          <StepperStep value="address" label="お届け先" />
+          <StepperStep value="payment" label="お支払い" />
+          <StepperStep value="confirm" label="確認" />
+        </Stepper>
+      `),
+    },
+  },
+  render: (args) => (
+    <Sample color={args.color} variant={args.variant} orientation={args.orientation} />
+  ),
+};
+
+const stateColumns: MatrixColumn[] = [
+  { label: '通常' },
+  { label: 'hover（完了した段）', state: 'hover' },
+  { label: 'フォーカス（完了した段）', state: 'focus' },
+];
+
+// 1 つ目の段（完了・押せる）に hover・フォーカスを当てる
+const firstControl = '[data-slot="stepper-step"]:nth-of-type(1) [data-clickable]';
+
+export const States: Story = {
+  tags: ['visual'],
+  name: '色と状態',
+  parameters: {
+    controls: { disable: true },
+    pseudo: statePseudo({ hover: firstControl, focusVisible: firstControl }),
+  },
+  render: () => (
+    <Matrix
+      rows={colors}
+      columns={stateColumns}
+      columnWidth="22rem"
+      rowLabel={(color) => color}
+      renderCell={(color) => <Sample color={color} />}
+    />
+  ),
+};
+
+export const Invalid: Story = {
+  tags: ['visual'],
+  name: 'エラーの段',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '`StepperStep` の `invalid` を付けると、位置に関わらずその段を danger の色にします。完了・いまの段・これからの段のどれでも同じ見た目です。',
+      },
+    },
+  },
+  render: (args) => <Sample color={args.color} invalidValue="address" />,
+};
+
+export const Variants: Story = {
+  tags: ['visual'],
+  name: '完了した段のマーカー',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story: '`variant` で選びます。既定は `number`（数字のまま色だけ変える）です。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="grid gap-8">
+      {(['number', 'check'] as const).map((variant) => (
+        <div key={variant} className="grid gap-2">
+          <span className="text-xs text-fg-subtle">variant=&quot;{variant}&quot;</span>
+          <Sample color={args.color} variant={variant} />
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Vertical: Story = {
+  tags: ['visual'],
+  name: '縦向き',
+  parameters: {
+    controls: { include: ['color', 'variant'] },
+    docs: {
+      description: {
+        story: '`orientation="vertical"` にすると、縦に積んでラベルを右に置きます。',
+      },
+      source: sourceCode(`
+        <Stepper orientation="vertical" defaultValue="payment" accessibleName="購入手続き">
+          <StepperStep value="account" label="アカウント" description="メールアドレスとパスワード" />
+          <StepperStep value="address" label="お届け先" />
+          <StepperStep value="payment" label="お支払い" />
+          <StepperStep value="confirm" label="確認" />
+        </Stepper>
+      `),
+    },
+  },
+  render: (args) => (
+    <div className="w-[320px] max-w-full">
+      <Stepper
+        color={args.color}
+        variant={args.variant}
+        orientation="vertical"
+        defaultValue="payment"
+        accessibleName="購入手続き"
+      >
+        <StepperStep value="account" label="アカウント" description="メールアドレスとパスワード" />
+        <StepperStep value="address" label="お届け先" />
+        <StepperStep value="payment" label="お支払い" />
+        <StepperStep value="confirm" label="確認" />
+      </Stepper>
+    </div>
+  ),
+};
+
+export const ReadOnly: Story = {
+  name: '表示専用',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '`readOnly` にすると、完了した段も押せない表示専用になります。注文の状況のように、戻れない進み具合を示すときに使います。',
+      },
+    },
+  },
+  render: (args) => <Sample color={args.color} readOnly />,
+};
+
+export const Densities: Story = {
+  tags: ['visual'],
+  name: '密度',
+  parameters: { controls: { include: ['color'] } },
+  render: (args) => (
+    <DensityPair>
+      <Sample color={args.color} />
+    </DensityPair>
+  ),
+};
+
+// play: 読み上げ（aria-current="step"）と、完了した段を押すと value が変わることの確かめ
+export const Accessibility: Story = {
+  name: '読み上げと操作',
+  parameters: { controls: { disable: true } },
+  render: () => <Sample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const current = () => canvasElement.querySelector('[aria-current="step"]');
+    await expect(current()).toHaveTextContent('お支払い');
+
+    // 完了した段（アカウント・お届け先）は押せる。いまの段・これからの段は aria-disabled（見た目はボタンでも読み上げは「利用不可」）
+    const account = canvas.getByRole('button', { name: 'アカウント' });
+    const address = canvas.getByRole('button', { name: 'お届け先' });
+    const confirm = canvas.getByRole('button', { name: '確認' });
+    await expect(account).not.toHaveAttribute('aria-disabled');
+    await expect(address).not.toHaveAttribute('aria-disabled');
+    await expect(confirm).toHaveAttribute('aria-disabled', 'true');
+
+    // Tab は押せる段（アカウント → お届け先）だけを回る。aria-disabled の段は div なので自然にタブから外れる
+    await userEvent.tab();
+    await expect(account).toHaveFocus();
+    await userEvent.tab();
+    await expect(address).toHaveFocus();
+
+    // 完了した段を押すと value が変わり、いまの段になる。それより前の段だけが引き続き完了で押せる
+    await userEvent.keyboard('{Enter}');
+    await expect(current()).toHaveTextContent('お届け先');
+    await expect(account).not.toHaveAttribute('aria-disabled');
+    await expect(canvas.getByRole('button', { name: 'お支払い' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+  },
+};

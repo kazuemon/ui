@@ -402,6 +402,17 @@ export {
   type StatTrend,
 } from './components/stat/Stat';
 export {
+  Stepper,
+  type StepperColor,
+  type StepperOrientation,
+  StepperStep,
+  type StepperStepProps,
+  type StepperStepStatus,
+  type StepperProps,
+  type StepperVariant,
+  type StepValue,
+} from './components/stepper/Stepper';
+export {
   Step,
   type StepProps,
   Steps,
