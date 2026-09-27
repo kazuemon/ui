@@ -410,7 +410,6 @@ export {
   type StepperStepStatus,
   type StepperProps,
   type StepperVariant,
-  type StepValue,
 } from './components/stepper/Stepper';
 export {
   Step,

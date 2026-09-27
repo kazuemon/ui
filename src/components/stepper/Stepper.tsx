@@ -9,7 +9,6 @@ import {
   type ReactNode,
   use,
   useId,
-  useState,
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -20,9 +19,10 @@ import { tv } from '../../internal/tv';
 //   Stepper は中身を持たず、印だけを並べる。中身の切り替えは使う側が value を見て行う（原則20: 部品は知らないことを決めない）
 // 構造は <nav aria-label><ol><li>。役割は tablist/tab ではなく「進行状況」なので、各段は aria-current="step" を持つ
 //   （原則にない判断ではなく、ARIA の aria-current の値そのものに step が定義されている）
-// 段の状態（upcoming・current・completed）は、Stepper の value と StepperStep の並び順から決める（Tabs の active に近い考え方）
-//   完了した段は既定でクリックでき、戻れる。いまの段とこれからの段はクリックできない（先に進む・選び直すことはこの部品ではしない）
-//   readOnly ですべての段を表示専用にできる（原則8: 「編集できるか」で入力欄の様式を決める、の考え方をナビにも借りた — 原則にない判断）
+// value は常に制御（いまの段の index）。ほかのライブラリ（MUI・Mantine・Ant Design）も同じ形で、defaultValue・非制御は持たない
+// 段の状態（upcoming・current・completed）は、value と StepperStep の並び順（index）から内部で決める（Tabs の active に近い考え方）
+//   クリックでの遷移は value を書き換えず、onStepClick(index) で使う側に知らせる（Mantine の onStepClick・Ant Design の onChange と同じ考え方）
+//   onStepClick を渡したときだけ、完了した段（既定）が押せるボタンになる。渡さなければ、すべての段が表示専用（Ant Design の onChange と同じ）
 // マーカー（印）は upcoming はグレーの輪郭、current は部品の色の塗り、completed は部品の色の塗り（variant="check" ならチェックに差し替え）
 //   invalid（段ごと）は位置に関わらず danger の色と warning の印にする（原則6: 危険は明度を落とした赤）
 // 連結線（connector）は、マーカーの左右（横並び）・上下（縦並び）半分ずつ。自分の状態だけで色が決まる
@@ -124,7 +124,7 @@ const stepper = tv({
         label: '[--stepper-label-color:var(--color-fg)]',
       },
     },
-    // 押せない段（Stepper が readOnly か、その段の disabled）。押せないボタンと同じ薄さ（原則13）
+    // 押せない段（その段の disabled）。押せないボタンと同じ薄さ（原則13）
     disabled: {
       true: {
         control: 'cursor-not-allowed',
@@ -145,8 +145,6 @@ const stepper = tv({
   },
 });
 
-export type StepValue = string | number;
-
 /** 並べる向き。horizontal は横に並べる（既定）。vertical は縦に積む */
 export type StepperOrientation = 'horizontal' | 'vertical';
 
@@ -162,13 +160,11 @@ export type StepperStepStatus = 'upcoming' | 'current' | 'completed';
 interface StepperContextValue {
   orientation: StepperOrientation;
   variant: StepperVariant;
-  readOnly: boolean;
 }
 
 const StepperContext = createContext<StepperContextValue>({
   orientation: 'horizontal',
   variant: 'number',
-  readOnly: false,
 });
 
 interface StepperItemContextValue {
@@ -187,16 +183,14 @@ const StepperItemContext = createContext<StepperItemContextValue>({
   onSelect: undefined,
 });
 
-export interface StepperProps extends Omit<
-  ComponentProps<'nav'>,
-  'color' | 'children' | 'defaultValue'
-> {
-  /** いまの段の value（制御） */
-  value?: StepValue;
-  /** はじめにいる段の value（非制御）。省略すると最初の StepperStep になります */
-  defaultValue?: StepValue;
-  /** いまの段が変わるときに、次の値を渡して呼びます（完了した段を押したとき） */
-  onValueChange?: (value: StepValue) => void;
+export interface StepperProps extends Omit<ComponentProps<'nav'>, 'color' | 'children'> {
+  /** いまの段の index（0 から数える。常に制御） */
+  value: number;
+  /**
+   * 完了した段（既定）を押せるボタンにし、押すとその段の index を渡して呼びます。値の変更はしません（呼んだ側が `value` を書き換えます）。
+   * 渡さないときは、すべての段が表示専用になります
+   */
+  onStepClick?: (index: number) => void;
   /**
    * 並べる向き。horizontal は横に並べてラベルを下に、vertical は縦に積んでラベルを右に置きます
    * @default 'horizontal'
@@ -213,11 +207,6 @@ export interface StepperProps extends Omit<
    */
   variant?: StepperVariant;
   /**
-   * すべての段を表示専用にします。true のときは、完了した段を押しても戻れません
-   * @default false
-   */
-  readOnly?: boolean;
-  /**
    * 並び（nav）の読み上げの名前。画面には出ません
    * @default '進み具合'
    */
@@ -230,32 +219,21 @@ export interface StepperProps extends Omit<
 
 /**
  * 複数の段階の進み具合を示すナビゲーションです。StepperStep を、進む順に並べます。
- * 完了した段は既定で押せて戻れます。中身の切り替えは持たないので、`value` を見て使う側が出します
+ * `value`（いまの段の index）は常に制御です。中身の切り替えは持たないので、それを見て使う側が出します。
+ * `onStepClick` を渡すと、完了した段（既定）が押せるボタンになります
  */
 export function Stepper({
   value,
-  defaultValue,
-  onValueChange,
+  onStepClick,
   orientation = 'horizontal',
   color,
   variant = 'number',
-  readOnly = false,
   accessibleName = '進み具合',
   className,
   children,
   ...props
 }: StepperProps) {
   const items = Children.toArray(children) as ReactElement<StepperStepProps>[];
-  const [uncontrolledValue, setUncontrolledValue] = useState(
-    () => defaultValue ?? items[0]?.props.value
-  );
-  const managed = value === undefined;
-  const current = managed ? uncontrolledValue : value;
-  const currentIndex = items.findIndex((item) => item.props.value === current);
-  const changeValue = (next: StepValue) => {
-    if (managed) setUncontrolledValue(next);
-    onValueChange?.(next);
-  };
   const s = stepper({ orientation, color });
 
   return (
@@ -268,26 +246,20 @@ export function Stepper({
       {/* list-style: none の ol を Safari が一覧として読むよう、role="list" を明示する（Steps・Timeline と同じ） */}
       {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles */}
       <ol role="list" data-orientation={orientation} className={s.list()}>
-        <StepperContext value={{ orientation, variant, readOnly }}>
+        <StepperContext value={{ orientation, variant }}>
           {items.map((item, index) => {
             const status: StepperStepStatus =
-              currentIndex === -1
-                ? 'upcoming'
-                : index < currentIndex
-                  ? 'completed'
-                  : index === currentIndex
-                    ? 'current'
-                    : 'upcoming';
-            const clickable = !readOnly && !item.props.disabled && status === 'completed';
+              index < value ? 'completed' : index === value ? 'current' : 'upcoming';
+            const clickable = onStepClick != null && !item.props.disabled && status === 'completed';
             return (
               <StepperItemContext
-                key={item.key ?? item.props.value}
+                key={item.key ?? index}
                 value={{
                   number: index + 1,
                   status,
                   isFirst: index === 0,
                   isLast: index === items.length - 1,
-                  onSelect: clickable ? () => changeValue(item.props.value) : undefined,
+                  onSelect: clickable ? () => onStepClick(index) : undefined,
                 }}
               >
                 {item}
@@ -301,8 +273,6 @@ export function Stepper({
 }
 
 export interface StepperStepProps extends Omit<ComponentProps<'li'>, 'title'> {
-  /** この段の value。Stepper の value と比べて、いまの段かどうかを決めます */
-  value: StepValue;
   /** 段のラベル */
   label: ReactNode;
   /** ラベルの下に添える説明 */
@@ -331,7 +301,6 @@ export interface StepperStepProps extends Omit<ComponentProps<'li'>, 'title'> {
  * Stepper の 1 段です。Stepper の中に、進む順に並べます
  */
 export function StepperStep({
-  value: _value,
   label,
   description,
   invalid = false,
@@ -341,9 +310,9 @@ export function StepperStep({
   className,
   ...props
 }: StepperStepProps) {
-  const { orientation, variant, readOnly } = use(StepperContext);
+  const { orientation, variant } = use(StepperContext);
   const { number, status, isFirst, isLast, onSelect } = use(StepperItemContext);
-  const s = stepper({ orientation, status, disabled: readOnly || disabled });
+  const s = stepper({ orientation, status, disabled });
   const clickable = onSelect !== undefined;
   const labelId = useId();
   const descriptionId = useId();
@@ -400,13 +369,13 @@ export function StepperStep({
         }
       : {
           // 見た目はボタンでも押せないので、読み上げにも「利用不可」と伝える（design/internal/link-parts.ts の disabledLinkProps と同じ考え方）
-          //   薄い見た目（data-disabled）は readOnly か disabled のときだけ。いまの段・これからの段は、押せなくても普通の見た目
+          //   薄い見た目（data-disabled）は、その段の disabled のときだけ。いまの段・これからの段は、押せなくても普通の見た目
           role: 'button',
           'aria-current': status === 'current' ? ('step' as const) : undefined,
           'aria-disabled': true,
           'aria-labelledby': labelId,
           'aria-describedby': description != null ? descriptionId : undefined,
-          'data-disabled': disabled || readOnly ? true : undefined,
+          'data-disabled': disabled ? true : undefined,
           'data-orientation': orientation,
           className: s.control(),
           children: content,

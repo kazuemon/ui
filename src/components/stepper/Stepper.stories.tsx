@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
 
 import {
@@ -13,40 +14,36 @@ import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-
 
 const colors: StepperColor[] = ['neutral', 'primary', 'secondary'];
 
-const steps = [
-  { value: 'account', label: 'アカウント' },
-  { value: 'address', label: 'お届け先' },
-  { value: 'payment', label: 'お支払い' },
-  { value: 'confirm', label: '確認' },
-];
+const steps = ['アカウント', 'お届け先', 'お支払い', '確認'];
 
-/** 見本の Stepper。ネットショップの購入手続き（4 段）で、既定は 3 段目がいまの段 */
+/** 見本の Stepper。ネットショップの購入手続き（4 段）で、既定は 3 段目（index 2）がいまの段 */
 function Sample({
   color,
   variant,
   orientation,
-  defaultValue = 'payment',
-  invalidValue,
-  readOnly,
+  defaultIndex = 2,
+  invalidIndex,
+  clickable = true,
 }: {
   color?: StepperColor;
   variant?: StepperVariant;
   orientation?: StepperOrientation;
-  defaultValue?: string;
-  invalidValue?: string;
-  readOnly?: boolean;
+  defaultIndex?: number;
+  invalidIndex?: number;
+  clickable?: boolean;
 }) {
+  const [value, setValue] = useState(defaultIndex);
   return (
     <Stepper
       color={color}
       variant={variant}
       orientation={orientation}
-      defaultValue={defaultValue}
-      readOnly={readOnly}
+      value={value}
+      onStepClick={clickable ? setValue : undefined}
       accessibleName="購入手続き"
     >
-      {steps.map((step) => (
-        <StepperStep key={step.value} {...step} invalid={step.value === invalidValue} />
+      {steps.map((label, index) => (
+        <StepperStep key={label} label={label} invalid={index === invalidIndex} />
       ))}
     </Stepper>
   );
@@ -63,10 +60,9 @@ const meta = {
         component: [
           '複数の段階の進み具合を示すナビゲーションです。フォームのウィザードなど、段を追って進む画面で使います。',
           '',
-          '- `Stepper` の中に `StepperStep` を、進む順に並べます。段の中身（フォームなど）は持たないので、`value` を見て使う側が出し分けます。',
-          '- はじめにいる段は `defaultValue` で渡します。外で持つときは `value` と `onValueChange` を使います。',
-          '- 完了した段（いまの段より前）は既定で押せて、押すと `onValueChange` でその段の `value` を渡します。いまの段とこれからの段は押せません。',
-          '- `readOnly` にすると、完了した段も押せない表示専用になります。',
+          '- `Stepper` の中に `StepperStep` を、進む順に並べます。段の中身（フォームなど）は持たないので、`value`（いまの段の index。0 から数える）を見て使う側が出し分けます。',
+          '- `value` は常に制御です。`defaultValue` や非制御の形はありません。',
+          '- `onStepClick` を渡すと、完了した段（いまの段より前、既定）が押せるようになります。押すとその段の index を渡して呼びます。値そのものは書き換えないので、呼ばれた側で `value` を更新します。渡さなければ、すべての段が表示専用になります。',
           '- `orientation` は並べる向きです。既定は `horizontal`（横に並べてラベルを下に）で、`vertical`（縦に積んでラベルを右に）を選べます。',
           '- `color` はいまの段・完了した段のマーカーの色です。指定しないときはグレー（`neutral`）です。',
           '- `variant` は完了した段のマーカーです。既定は `number`（数字のまま色だけ変える）で、`check`（チェックの印に差し替える）を選べます。',
@@ -75,8 +71,10 @@ const meta = {
       },
     },
   },
-  args: { color: 'neutral', variant: 'number', orientation: 'horizontal' },
+  // value は各ストーリーが Sample（内部で state を持つ見本）や直接の value 指定で渡すので、Controls には出さない
+  args: { color: 'neutral', variant: 'number', orientation: 'horizontal', value: 2 },
   argTypes: {
+    value: { control: false },
     color: {
       control: 'inline-radio',
       options: colors,
@@ -104,11 +102,13 @@ export const Playground: Story = {
   parameters: {
     docs: {
       source: sourceCode(`
-        <Stepper defaultValue="payment" accessibleName="購入手続き">
-          <StepperStep value="account" label="アカウント" />
-          <StepperStep value="address" label="お届け先" />
-          <StepperStep value="payment" label="お支払い" />
-          <StepperStep value="confirm" label="確認" />
+        const [value, setValue] = useState(2);
+
+        <Stepper value={value} onStepClick={setValue} accessibleName="購入手続き">
+          <StepperStep label="アカウント" />
+          <StepperStep label="お届け先" />
+          <StepperStep label="お支払い" />
+          <StepperStep label="確認" />
         </Stepper>
       `),
     },
@@ -157,7 +157,7 @@ export const Invalid: Story = {
       },
     },
   },
-  render: (args) => <Sample color={args.color} invalidValue="address" />,
+  render: (args) => <Sample color={args.color} invalidIndex={1} />,
 };
 
 export const Variants: Story = {
@@ -193,11 +193,11 @@ export const Vertical: Story = {
         story: '`orientation="vertical"` にすると、縦に積んでラベルを右に置きます。',
       },
       source: sourceCode(`
-        <Stepper orientation="vertical" defaultValue="payment" accessibleName="購入手続き">
-          <StepperStep value="account" label="アカウント" description="メールアドレスとパスワード" />
-          <StepperStep value="address" label="お届け先" />
-          <StepperStep value="payment" label="お支払い" />
-          <StepperStep value="confirm" label="確認" />
+        <Stepper orientation="vertical" value={2} accessibleName="購入手続き">
+          <StepperStep label="アカウント" description="メールアドレスとパスワード" />
+          <StepperStep label="お届け先" />
+          <StepperStep label="お支払い" />
+          <StepperStep label="確認" />
         </Stepper>
       `),
     },
@@ -208,30 +208,30 @@ export const Vertical: Story = {
         color={args.color}
         variant={args.variant}
         orientation="vertical"
-        defaultValue="payment"
+        value={2}
         accessibleName="購入手続き"
       >
-        <StepperStep value="account" label="アカウント" description="メールアドレスとパスワード" />
-        <StepperStep value="address" label="お届け先" />
-        <StepperStep value="payment" label="お支払い" />
-        <StepperStep value="confirm" label="確認" />
+        <StepperStep label="アカウント" description="メールアドレスとパスワード" />
+        <StepperStep label="お届け先" />
+        <StepperStep label="お支払い" />
+        <StepperStep label="確認" />
       </Stepper>
     </div>
   ),
 };
 
-export const ReadOnly: Story = {
+export const Static: Story = {
   name: '表示専用',
   parameters: {
     controls: { include: ['color'] },
     docs: {
       description: {
         story:
-          '`readOnly` にすると、完了した段も押せない表示専用になります。注文の状況のように、戻れない進み具合を示すときに使います。',
+          '`onStepClick` を渡さないと、完了した段も含めてすべての段が表示専用になります。注文の状況のように、戻れない進み具合を示すときはこの形にします。',
       },
     },
   },
-  render: (args) => <Sample color={args.color} readOnly />,
+  render: (args) => <Sample color={args.color} clickable={false} />,
 };
 
 export const Densities: Story = {
@@ -245,7 +245,7 @@ export const Densities: Story = {
   ),
 };
 
-// play: 読み上げ（aria-current="step"）と、完了した段を押すと value が変わることの確かめ
+// play: 読み上げ（aria-current="step"）と、完了した段を押すと onStepClick で index が伝わることの確かめ
 export const Accessibility: Story = {
   name: '読み上げと操作',
   parameters: { controls: { disable: true } },
@@ -269,7 +269,7 @@ export const Accessibility: Story = {
     await userEvent.tab();
     await expect(address).toHaveFocus();
 
-    // 完了した段を押すと value が変わり、いまの段になる。それより前の段だけが引き続き完了で押せる
+    // 完了した段を押すと onStepClick(index) が呼ばれ、見本が value を更新していまの段になる
     await userEvent.keyboard('{Enter}');
     await expect(current()).toHaveTextContent('お届け先');
     await expect(account).not.toHaveAttribute('aria-disabled');

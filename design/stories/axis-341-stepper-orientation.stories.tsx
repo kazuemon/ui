@@ -12,10 +12,10 @@ import {
 //   候補は Stepper の orientation をそのまま並べる。部品のコードは候補ごとに分けない
 //   横並びは、狭い画面や説明（description）が長い段では文字が詰まりやすい。縦並びは、画面の縦を多く使う代わりに説明を置く余白がある
 const steps = [
-  { value: 'account', label: 'アカウント', description: 'メールアドレスとパスワード' },
-  { value: 'address', label: 'お届け先' },
-  { value: 'payment', label: 'お支払い' },
-  { value: 'confirm', label: '確認' },
+  { label: 'アカウント', description: 'メールアドレスとパスワード' },
+  { label: 'お届け先' },
+  { label: 'お支払い' },
+  { label: '確認' },
 ];
 
 const candidates: (Candidate & { orientation: StepperOrientation })[] = [
@@ -53,9 +53,9 @@ function renderCell(column: Column, candidate: Candidate) {
   const width = column.label.includes('狭い') ? 280 : 480;
   return (
     <div style={{ width }}>
-      <Stepper orientation={orientation} defaultValue="payment" accessibleName="購入手続き">
+      <Stepper orientation={orientation} value={2} accessibleName="購入手続き">
         {steps.map((step) => (
-          <StepperStep key={step.value} {...step} />
+          <StepperStep key={step.label} {...step} />
         ))}
       </Stepper>
     </div>

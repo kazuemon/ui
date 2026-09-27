@@ -6,12 +6,7 @@ import { Stepper, type StepperVariant, StepperStep } from '../../src/components/
 // 軸 340: Stepper の完了した段のマーカー（数字のまま色だけ変える／チェックの印に差し替える）
 //   Stepper を作ったとき、完了した段のマーカーをどう見せるかは「原則にない判断」として variant props（number・check）に仮置きした
 //   候補は Stepper の variant をそのまま並べる。部品のコードは候補ごとに分けない（ButtonGroup の frame 軸 0323 と同じやり方）
-const steps = [
-  { value: 'account', label: 'アカウント' },
-  { value: 'address', label: 'お届け先' },
-  { value: 'payment', label: 'お支払い' },
-  { value: 'confirm', label: '確認' },
-];
+const steps = ['アカウント', 'お届け先', 'お支払い', '確認'];
 
 const candidates: (Candidate & { variant: StepperVariant })[] = [
   {
@@ -49,12 +44,12 @@ const columns: Column[] = [
 function renderCell(column: Column, candidate: Candidate) {
   const variant = candidates.find((c) => c.id === candidate.id)?.variant ?? 'number';
   return (
-    <Stepper variant={variant} defaultValue="payment" accessibleName="購入手続き">
-      {steps.map((step) => (
+    <Stepper variant={variant} value={2} accessibleName="購入手続き">
+      {steps.map((label, index) => (
         <StepperStep
-          key={step.value}
-          {...step}
-          invalid={column.label.includes('エラー') && step.value === 'address'}
+          key={label}
+          label={label}
+          invalid={column.label.includes('エラー') && index === 1}
         />
       ))}
     </Stepper>
