@@ -21,7 +21,7 @@ export const inspectorStyles = tv({
     ],
   },
   variants: {
-    presentation: {
+    variant: {
       push: {
         frame: [
           'relative h-full w-0 max-w-full overflow-hidden data-open:w-(--inspector-width)',
@@ -53,18 +53,18 @@ export const inspectorStyles = tv({
   compoundVariants: [
     // 押しのける形: パネルは本文の側の端に着け、本文の側に線を引く
     {
-      presentation: 'push',
+      variant: 'push',
       side: 'right',
       class: { panel: 'left-0 border-l-(length:--inspector-push-line-width)' },
     },
     {
-      presentation: 'push',
+      variant: 'push',
       side: 'left',
       class: { panel: 'right-0 border-r-(length:--inspector-push-line-width)' },
     },
     // 重なる形: 領域の端から出る。影と角は本文の側へ向ける
     {
-      presentation: 'overlay',
+      variant: 'overlay',
       side: 'right',
       class: {
         frame: 'right-(--inspector-overlay-inset)',
@@ -77,7 +77,7 @@ export const inspectorStyles = tv({
       },
     },
     {
-      presentation: 'overlay',
+      variant: 'overlay',
       side: 'left',
       class: {
         frame: 'left-(--inspector-overlay-inset)',
@@ -90,7 +90,7 @@ export const inspectorStyles = tv({
       },
     },
   ],
-  defaultVariants: { presentation: 'push', side: 'right' },
+  defaultVariants: { variant: 'push', side: 'right' },
 });
 
 // 本文とパネルを並べる領域。上に帯（header）、その下に本文とパネルの行

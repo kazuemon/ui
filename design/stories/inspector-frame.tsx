@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Button } from '../../src/components/button/Button';
 import {
   Inspector,
-  type InspectorPresentation,
+  type InspectorVariant,
   type InspectorSide,
 } from '../../src/components/inspector/Inspector';
 import { InspectorLayout, InspectorTrigger } from '../../src/components/inspector/InspectorLayout';
@@ -24,13 +24,13 @@ const files = [
 ];
 
 export function InspectorArea({
-  presentation = 'push',
+  variant = 'push',
   side = 'right',
   defaultOpen = true,
   width = 'w-[560px]',
   children,
 }: {
-  presentation?: InspectorPresentation;
+  variant?: InspectorVariant;
   side?: InspectorSide;
   defaultOpen?: boolean;
   width?: string;
@@ -49,12 +49,7 @@ export function InspectorArea({
         }
         defaultOpen={defaultOpen}
         inspector={
-          <Inspector
-            title="企画書.pdf"
-            description="PDF・2.4 MB"
-            presentation={presentation}
-            side={side}
-          >
+          <Inspector title="企画書.pdf" description="PDF・2.4 MB" variant={variant} side={side}>
             {children ?? (
               <div className="flex flex-col gap-4">
                 <TextField label="名前" defaultValue="企画書.pdf" />

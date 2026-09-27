@@ -59,10 +59,7 @@ const candidates: Candidate[] = [
 
 function renderCell(column: Column) {
   return (
-    <InspectorArea
-      presentation={column.label === 'overlay' ? 'overlay' : 'push'}
-      defaultOpen={false}
-    />
+    <InspectorArea variant={column.label === 'overlay' ? 'overlay' : 'push'} defaultOpen={false} />
   );
 }
 

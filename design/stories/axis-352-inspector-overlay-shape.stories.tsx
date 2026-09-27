@@ -70,7 +70,7 @@ const candidates: Candidate[] = [
 
 function renderCell(column: Column) {
   return (
-    <InspectorArea presentation="overlay" side={column.label.startsWith('左') ? 'left' : 'right'} />
+    <InspectorArea variant="overlay" side={column.label.startsWith('左') ? 'left' : 'right'} />
   );
 }
 

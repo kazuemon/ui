@@ -82,7 +82,7 @@ const meta = {
           '',
           '- `InspectorLayout` が領域です。`inspector` にパネル（`Inspector`）を、`children` に本文を渡します。領域は親の高さいっぱいに広がり、本文はその中でスクロールします。開閉の状態（`open`・`defaultOpen`・`onOpenChange`）は `InspectorLayout` が持ちます。',
           '- 開閉のボタンは `InspectorTrigger` の `render` に Button などを渡し、`InspectorLayout` の中に置きます。押すと開け閉めし、`aria-expanded` が付きます。`header` に渡した帯はパネルを重ねても隠れないので、開閉のボタンはそこに置くのが基本です。',
-          '- `presentation` で開き方を選びます。`push`（既定）は本文を押しのけて場所を占め、本文の幅が狭くなります。`overlay` は領域の中で本文の上に重ね、本文の幅は変えません。',
+          '- `variant` で開き方を選びます。`push`（既定）は本文を押しのけて場所を占め、本文の幅が狭くなります。`overlay` は領域の中で本文の上に重ね、本文の幅は変えません。',
           '- `side` で出す辺を選びます。既定は `right` です。Sidebar を左に置くときは、反対の右に置きます。',
           '- 見出しには題（`title`）と説明（`description`）、右上に閉じる × を置きます。題はパネルの読み上げの名前になります。× を置かないときは `hideCloseButton` を渡し、`InspectorTrigger` か `actions` に閉じる手段を置きます。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。',
@@ -96,7 +96,7 @@ const meta = {
     title: '企画書.pdf',
     description: 'PDF・2.4 MB',
     side: 'right',
-    presentation: 'push',
+    variant: 'push',
     closeOnEscape: true,
     hideCloseButton: false,
     closeName: '閉じる',
@@ -110,7 +110,7 @@ const meta = {
       options: ['right', 'left'],
       table: { defaultValue: { summary: "'right'" } },
     },
-    presentation: {
+    variant: {
       control: 'inline-radio',
       options: ['push', 'overlay'],
       table: { defaultValue: { summary: "'push'" } },
@@ -153,12 +153,12 @@ export const Playground: Story = {
 
 const both = (args: InspectorProps, side: InspectorProps['side']) => (
   <div className="flex flex-col gap-6">
-    {(['push', 'overlay'] as const).map((presentation) => (
-      <div key={presentation} className="flex flex-col gap-2">
-        <span className={labelClass}>{presentation}</span>
+    {(['push', 'overlay'] as const).map((variant) => (
+      <div key={variant} className="flex flex-col gap-2">
+        <span className={labelClass}>{variant}</span>
         <Area
           inspector={
-            <Inspector {...args} side={side} presentation={presentation}>
+            <Inspector {...args} side={side} variant={variant}>
               {details}
             </Inspector>
           }
@@ -168,7 +168,7 @@ const both = (args: InspectorProps, side: InspectorProps['side']) => (
   </div>
 );
 
-export const Presentations: Story = {
+export const Variants: Story = {
   tags: ['visual'],
   name: '押しのける・重ねる',
   parameters: {
@@ -194,7 +194,7 @@ export const Closed: Story = {
   tags: ['visual'],
   name: '閉じている',
   parameters: {
-    controls: { include: ['presentation', 'side'] },
+    controls: { include: ['variant', 'side'] },
     docs: { description: { story: '閉じているあいだは、本文が領域いっぱいに広がります。' } },
   },
   render: (args) => (
@@ -206,7 +206,7 @@ export const LongContent: Story = {
   tags: ['visual'],
   name: '長い中身と下の操作',
   parameters: {
-    controls: { include: ['presentation', 'side', 'actionsLayout'] },
+    controls: { include: ['variant', 'side', 'actionsLayout'] },
     docs: {
       description: {
         story:
@@ -238,7 +238,7 @@ export const LongContent: Story = {
 export const Densities: Story = {
   tags: ['visual'],
   name: '密度',
-  parameters: { controls: { include: ['presentation', 'side'] } },
+  parameters: { controls: { include: ['variant', 'side'] } },
   render: (args) => (
     <DensityPair>
       <Area width="w-[560px]" inspector={<Inspector {...args}>{details}</Inspector>} />

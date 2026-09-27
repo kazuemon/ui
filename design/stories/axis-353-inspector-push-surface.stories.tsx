@@ -60,9 +60,7 @@ const candidates: Candidate[] = [
 ];
 
 function renderCell(column: Column) {
-  return (
-    <InspectorArea presentation="push" side={column.label.startsWith('左') ? 'left' : 'right'} />
-  );
+  return <InspectorArea variant="push" side={column.label.startsWith('左') ? 'left' : 'right'} />;
 }
 
 const meta = {

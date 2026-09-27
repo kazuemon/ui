@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { type Candidate, type Column, Comparison } from './Comparison';
 import { InspectorArea } from './inspector-frame';
-import type { InspectorPresentation } from '../../src/components/inspector/Inspector';
+import type { InspectorVariant } from '../../src/components/inspector/Inspector';
 
-// 軸 350: Inspector の開き方（presentation）の既定
+// 軸 350: Inspector の開き方（variant）の既定
 //   push（本文を押しのける）と overlay（領域の中で本文の上に重ねる）は両方選べる形で作った。ここでは既定だけを決める
-//   トークンではなく props の既定を比べる軸なので、行ごとに presentation を変えて描く（部品のコードは分けていない）
+//   トークンではなく props の既定を比べる軸なので、行ごとに variant を変えて描く（部品のコードは分けていない）
 
 const columns: Column[] = [
   { label: '開いている（領域 560px）', note: '「詳細」を押すと開閉を試せます' },
@@ -14,18 +14,18 @@ const columns: Column[] = [
   { label: '左に置く（560px）' },
 ];
 
-const candidates: (Candidate & { presentation: InspectorPresentation })[] = [
+const candidates: (Candidate & { variant: InspectorVariant })[] = [
   {
     id: '現行版',
     name: 'push（押しのける）',
     intent:
       '開くと本文の幅を狭め、パネルが場所を占める。ページと同じレイヤーなので影を付けず、線で本文と分ける（原則1）。本文とパネルを同時に見ながら操作できる。開閉のたびに本文の幅が変わり、折り返しが動く。',
     spec: [
-      ['presentation', 'push'],
+      ['variant', 'push'],
       ['影', 'なし（線で分ける）'],
       ['本文の幅', 'パネルの幅だけ狭くなる'],
     ],
-    presentation: 'push',
+    variant: 'push',
   },
   {
     id: 'A',
@@ -33,28 +33,28 @@ const candidates: (Candidate & { presentation: InspectorPresentation })[] = [
     intent:
       '開いても本文の幅は変えず、領域の中で本文の上に重ねる。重なる面なので、本文の側へ影を落とし、本文の側の角を丸める（原則1・5。Drawer の横のパネルと同じ）。開閉で本文が動かない代わりに、パネルの下の本文は隠れる。',
     spec: [
-      ['presentation', 'overlay'],
+      ['variant', 'overlay'],
       ['影', 'Drawer の横のパネルと同じ'],
       ['本文の幅', '変わらない（下が隠れる）'],
     ],
-    presentation: 'overlay',
+    variant: 'overlay',
   },
 ];
 
 function renderCell(column: Column, candidate: Candidate) {
-  const presentation = candidates.find((c) => c.id === candidate.id)?.presentation ?? 'push';
+  const variant = candidates.find((c) => c.id === candidate.id)?.variant ?? 'push';
   if (column.label.startsWith('狭い')) {
-    return <InspectorArea presentation={presentation} width="w-[400px]" />;
+    return <InspectorArea variant={variant} width="w-[400px]" />;
   }
   if (column.label.startsWith('左')) {
-    return <InspectorArea presentation={presentation} side="left" />;
+    return <InspectorArea variant={variant} side="left" />;
   }
-  return <InspectorArea presentation={presentation} />;
+  return <InspectorArea variant={variant} />;
 }
 
 const meta = {
   title: 'Design Review/350 Inspectorの開き方',
-  id: 'design-review-350-inspector-presentation',
+  id: 'design-review-350-inspector-variant',
   parameters: { layout: 'fullscreen' },
   args: { pick: '' },
   argTypes: {

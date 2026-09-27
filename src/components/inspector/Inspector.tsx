@@ -29,7 +29,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
  * push: 本文を押しのけて場所を占めます。本文の幅が狭くなり、パネルと本文を同時に見られます
  * overlay: 領域の中で、本文の上に重ねて出します。本文の幅は変わりません
  */
-export type InspectorPresentation = 'push' | 'overlay';
+export type InspectorVariant = 'push' | 'overlay';
 
 /** 出す辺。領域の右の端か、左の端 */
 export type InspectorSide = 'left' | 'right';
@@ -61,7 +61,7 @@ export interface InspectorProps extends Omit<
    * どちらも InspectorLayout の中だけで開閉し、画面の最上層には出ません。裏を止めず、外を押しても閉じません
    * @default 'push'
    */
-  presentation?: InspectorPresentation;
+  variant?: InspectorVariant;
   /**
    * パネルの中にフォーカスがあるとき、Esc で閉じるか
    * @default true
@@ -96,7 +96,7 @@ export function Inspector({
   actions,
   actionsLayout = 'auto',
   side = 'right',
-  presentation = 'push',
+  variant = 'push',
   closeOnEscape = true,
   hideCloseButton = false,
   closeName,
@@ -155,11 +155,11 @@ export function Inspector({
   };
 
   const layout = actionsLayout === 'auto' ? 'end' : actionsLayout;
-  const s = inspectorStyles({ presentation, side });
+  const s = inspectorStyles({ variant, side });
   return (
     <div
       data-slot="inspector-frame"
-      data-presentation={presentation}
+      data-variant={variant}
       data-side={side}
       data-open={open || undefined}
       className={s.frame()}
@@ -173,7 +173,7 @@ export function Inspector({
           aria-describedby={description != null ? descriptionId : undefined}
           inert={!open}
           data-slot="inspector"
-          data-presentation={presentation}
+          data-variant={variant}
           data-side={side}
           data-open={open || undefined}
           onKeyDown={handleKeyDown}
