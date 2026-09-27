@@ -7,6 +7,7 @@ import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
+const pressEffects = ['grow', 'halo', 'lift', 'none'] as const;
 
 type SliderColumn = MatrixColumn & { props?: Partial<SliderProps> };
 const stateColumns: SliderColumn[] = [
@@ -33,13 +34,20 @@ const meta = {
           '- キーボードでは ←→（↑↓）で `step`、Shift を押しながら、または PageUp・PageDown で `largeStep`（既定は 10）ずつ動きます。Home・End で端に移ります。',
           '- 値の文字はラベルの行の右端に出ます。`hideValue` で隠せます。`format` で数の整え方を、`getValueText` で文字そのもの（「30 分」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りとフォーカスの線の色を選びます。指定しないときは濃いグレーです。',
+          '- `pressEffect` で、押しているあいだの手応えを選びます。既定の `grow` はつまみが膨らみます。`halo` はつまみの周りに淡い輪が出て、`lift` はつまみが持ち上がって塗りが濃くなります。`none` は何も変えません。',
           '- `onValueChange` は引いているあいだも呼ばれます。値が決まったときだけ知りたいときは `onValueCommitted` を使います。',
           '- `readOnly` は押せないときと同じ見た目ですが、フォーカスでき、フォームでは値が送られます。',
         ].join('\n'),
       },
     },
   },
-  args: { label: '音量', defaultValue: 40, color: 'neutral', hideValue: false },
+  args: {
+    label: '音量',
+    defaultValue: 40,
+    color: 'neutral',
+    pressEffect: 'grow',
+    hideValue: false,
+  },
   argTypes: {
     label: { control: 'text' },
     caption: { control: 'text' },
@@ -48,6 +56,11 @@ const meta = {
       control: 'inline-radio',
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    pressEffect: {
+      control: 'inline-radio',
+      options: pressEffects,
+      table: { defaultValue: { summary: "'grow'" } },
     },
   },
   decorators: [
@@ -96,6 +109,40 @@ export const States: Story = {
       columnWidth="9rem"
       rowLabel={(color) => color}
       renderCell={(color, column) => <Slider {...args} color={color} {...column.props} />}
+    />
+  ),
+};
+
+export const PressEffects: Story = {
+  tags: ['visual'],
+  name: '押しているあいだ',
+  parameters: {
+    controls: { exclude: ['pressEffect'] },
+    pseudo: statePseudo({
+      hover: '[data-slot="slider-control"]',
+      active: '[data-slot="slider-control"]',
+    }),
+    docs: {
+      description: {
+        story:
+          'つまみかトラックを押してから離すまでの見た目です。実際に押して引いているあいだも同じ見た目になります。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-[760px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
+  render: (args) => (
+    <Matrix
+      rows={pressEffects}
+      columns={[{ label: '通常' }, { label: '押している間', state: 'active' }]}
+      columnWidth="14rem"
+      rowLabel={(effect) => effect}
+      renderCell={(effect) => <Slider {...args} color="primary" pressEffect={effect} />}
     />
   ),
 };
