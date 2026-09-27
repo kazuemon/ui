@@ -103,6 +103,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Container
 - [x] Navbar
 - [ ] Sidebar
+- [x] Inspector
 - [x] Stack
 - [x] Grid
 - [x] Masonry

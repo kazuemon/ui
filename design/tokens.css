@@ -1854,6 +1854,35 @@
      間隔は Stack の間隔の段をそのまま使う（新しいトークンは足さない） */
   --grid-column-width: calc(var(--spacing) * 60); /* 240px */
   /* ── END grid */
+
+  /* ── Inspector — 軸 350〜355（比較中） ── BEGIN inspector */
+  /* 決まった領域の中だけで開閉する、常駐のパネル。src/components/inspector
+     Drawer から裏を止める動きと画面の最上層を抜いたもの。見出し（題・説明・右上の ×）と続きの印はシートと共有する（--sheet-*）
+     width: パネルの幅。重なる形では、領域の幅から --inspector-overlay-gap を残して縮む — 軸 354
+     押しのける形（presentation="push"）: ページと同じレイヤー。影を付けず、面の明るさと線で本文と分ける（原則1）— 軸 353
+       push-bg: 面。push-line・push-line-width: 本文との境の線
+     重なる形（presentation="overlay"）: 領域の中で本文の上に重なる面。影は開く向き（本文の側）へ向ける（原則1）— 軸 351・352
+       overlay-shadow-left・overlay-shadow-right: 左から・右から出すときの影
+       overlay-line-width: 本文の側の輪郭の太さ。overlay-edge-line-width: 本文の側以外（上下・領域の端の側）の輪郭の太さ
+       overlay-inset: 領域の端からの離れ（0 は端に着ける）。overlay-radius-inner・overlay-radius-outer: 本文の側の角・領域の端の側の角
+       overlay-gap: 狭い領域で、パネルの横に残す本文の幅
+     開閉の動き: 出てくる元の側から滑る（原則14）。閉じるほうを短くする。動きを減らす設定では動かさない — 軸 355 */
+  --inspector-width: calc(var(--spacing) * 80); /* 320px */
+  --inspector-push-bg: var(--color-surface);
+  --inspector-push-line: var(--color-line);
+  --inspector-push-line-width: var(--border-width-thin);
+  --inspector-overlay-shadow-left: var(--shadow-sheet-left);
+  --inspector-overlay-shadow-right: var(--shadow-sheet-right);
+  --inspector-overlay-line-width: var(--border-width-thin);
+  --inspector-overlay-edge-line-width: 0px;
+  --inspector-overlay-inset: 0px;
+  --inspector-overlay-radius-inner: var(--radius-card);
+  --inspector-overlay-radius-outer: 0px;
+  --inspector-overlay-gap: calc(var(--spacing) * 12);
+  --inspector-duration-in: var(--duration-sheet);
+  --inspector-duration-out: var(--duration-normal);
+  --inspector-ease: var(--ease-sheet);
+  /* ── END inspector */
 }
 
 /* ── toast keyframes */
