@@ -24,7 +24,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //   入力欄の仲間なので、影も枠線もなく、hover で地が半段濃くなる（チェックボックスの箱と同じ色 — 原則3）
 //   エラーでは地を赤みのグレーにし、つまみの内側に赤い線を引く（チェックボックスの箱と同じ — 原則8）
 // つまみはトグルのノブと同じ白い丸。影は押せることの記号（原則1）。白い地にも載るので、輪郭の線を持つ影（白いボタンと同じ）
-//   つまみはそれ自体が動くので、押しても沈ませない（原則3: 動きが手応えになるものに沈みを重ねない）
+//   つまみはそれ自体が動くので、沈ませない（原則3）。押しているあいだの手応え（膨らむ・輪・影・塗り）はトークンで持つ（軸 321 で比較中）
 //   つまみはトラックの両端の内側に収める（値が端でも、欄の幅からはみ出さない）
 // 押せる範囲は見た目の範囲（原則17）: つまみの高さの帯だけが押せる。行は部品の高さを占め、帯はその縦の中央
 // フォーカスの線は、キーボードで操作したときだけつまみの外側に描く（トグルと同じ — design/adr/0031）。色は部品の色
@@ -34,7 +34,7 @@ const slider = tv({
   slots: {
     root: 'flex h-(--spacing-control) items-center',
     control: [
-      'relative flex h-(--slider-thumb-size) w-full cursor-pointer touch-none items-center select-none',
+      'group/slider relative flex h-(--slider-thumb-size) w-full cursor-pointer touch-none items-center select-none',
       // つまみの直径は密度（--density-coarse）から計算する
       '[--slider-thumb-size:calc(var(--slider-thumb-size-fine)_+_var(--density-coarse)_*_(var(--slider-thumb-size-coarse)_-_var(--slider-thumb-size-fine)))]',
       // 地の色。hover で半段濃くする。エラーと押せないときは、hover でも変えない
@@ -42,6 +42,10 @@ const slider = tv({
       'data-invalid:not-data-disabled:[--color-choice-hover:var(--color-choice-invalid)] data-invalid:not-data-disabled:[--color-choice:var(--color-choice-invalid)]',
       'data-disabled:cursor-not-allowed data-disabled:[--color-choice-hover:var(--color-switch-off-disabled)] data-disabled:[--color-choice:var(--color-switch-off-disabled)]',
       '[--slider-fill:var(--slider-own)]',
+      // 押しているあいだ（つまみかトラックを押してから離すまで。Base UI の data-dragging と :active）は、塗りを濃くする
+      //   濃さは --slider-fill-press-darken（本文の色を混ぜる割合）。押せないとき・止めているときは変えない
+      'not-data-disabled:active:[--slider-fill:color-mix(in_oklab,var(--slider-own),var(--color-fg)_var(--slider-fill-press-darken))]',
+      'not-data-disabled:data-dragging:[--slider-fill:color-mix(in_oklab,var(--slider-own),var(--color-fg)_var(--slider-fill-press-darken))]',
     ],
     track: [
       'relative h-(--slider-track-height) w-full rounded-pill bg-(color:--slider-ground)',
@@ -50,9 +54,15 @@ const slider = tv({
     indicator: 'rounded-pill bg-(color:--slider-fill) data-disabled:opacity-(--disabled-opacity)',
     thumb: [
       'size-(--slider-thumb-size) rounded-pill bg-surface',
-      'shadow-(--slider-thumb-shadow)',
+      // 影は 3 つを重ねる: エラーの内側の赤い線、押しているあいだの外側の輪（塗りの色を淡く）、ふだんの影
+      '[--slider-thumb-halo:0px] [--slider-thumb-invalid:0px] [--slider-thumb-shadow-now:var(--slider-thumb-shadow)]',
+      'shadow-[inset_0_0_0_var(--slider-thumb-invalid)_var(--color-choice-invalid-line),0_0_0_var(--slider-thumb-halo)_color-mix(in_oklab,var(--slider-fill)_var(--slider-thumb-press-halo-mix),transparent),var(--slider-thumb-shadow-now)]',
       // エラー: つまみの内側に赤い線（押せないときは引かない）
-      'data-invalid:not-data-disabled:shadow-[inset_0_0_0_var(--choice-invalid-line-width)_var(--color-choice-invalid-line),var(--slider-thumb-shadow)]',
+      'data-invalid:not-data-disabled:[--slider-thumb-invalid:var(--choice-invalid-line-width)]',
+      // 押しているあいだ（Base UI の data-dragging と、トラックの :active）: 大きさ・影・輪をトークンの値に差し替える
+      'not-data-disabled:group-active/slider:scale-(--slider-thumb-press-scale) not-data-disabled:data-dragging:scale-(--slider-thumb-press-scale)',
+      'not-data-disabled:group-active/slider:[--slider-thumb-shadow-now:var(--slider-thumb-press-shadow)] not-data-disabled:data-dragging:[--slider-thumb-shadow-now:var(--slider-thumb-press-shadow)]',
+      'not-data-disabled:group-active/slider:[--slider-thumb-halo:var(--slider-thumb-press-halo)] not-data-disabled:data-dragging:[--slider-thumb-halo:var(--slider-thumb-press-halo)]',
       // 押せないとき: 影を消し、色によらずグレー（トグルの押せないノブと同じ — 原則13）
       'data-disabled:bg-(color:--color-switch-neutral-disabled-knob) data-disabled:shadow-none',
       // キーボードで操作したときのフォーカスの線（focusRing と同じトークン）。フォーカスは中の input に当たるので、has で見る
@@ -60,8 +70,8 @@ const slider = tv({
       '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
       'has-[:focus-visible]:[outline-width:var(--focus-ring-width)] has-[:focus-visible]:[outline-style:solid]',
       'has-[:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
-      // 位置は動かさない（引いているあいだに遅れないよう）。影と線の色だけを動かす
-      '[transition:box-shadow_var(--duration-field)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      // 位置は動かさない（引いているあいだに遅れないよう）。大きさ・影・線の色だけを、押す動きの長さで動かす
+      '[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     value:

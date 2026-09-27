@@ -1635,6 +1635,15 @@
   --slider-thumb-size-fine: calc(var(--spacing) * 5); /* 20px */
   --slider-thumb-size-coarse: calc(var(--spacing) * 6); /* 24px */
   --slider-thumb-shadow: var(--shadow-raised);
+  /* 押しているあいだ（つまみかトラックを押してから離すまで）の手応え — 軸 321 で比較中。既定は、どれも変えない値
+     thumb-press-scale: つまみの大きさの倍率。thumb-press-shadow: つまみの影
+     thumb-press-halo: つまみの外側に出す輪の幅。色は塗りの色を thumb-press-halo-mix の濃さで淡くしたもの
+     fill-press-darken: 塗りに本文の色を混ぜる割合（塗りが濃くなる） */
+  --slider-thumb-press-scale: 1;
+  --slider-thumb-press-shadow: var(--slider-thumb-shadow);
+  --slider-thumb-press-halo: 0px;
+  --slider-thumb-press-halo-mix: 24%;
+  --slider-fill-press-darken: 0%;
   /* ── END slider */
 
   /* ── Progress — ADR-0185・0186 ── BEGIN progress */
