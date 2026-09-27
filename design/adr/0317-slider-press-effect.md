@@ -2,17 +2,17 @@
 
 - ステータス: Accepted
 - 日付: 2026-09-28
-- ラウンド: 後半 軸 317
+- ラウンド: 後半 軸 321
 
 ## 背景
 
 Slider は、つまみかトラックを押してから離すまで、見た目を何も変えていませんでした。つまみそのものが指やポインタについて動くので、それを手応えとし、原則3の「動きが手応えになるものに沈みを重ねない」に沿って沈ませていませんでした。
 
-軸 317 のはじめは、トラックの太さとつまみの塗りを比べました。これへの返事は「押している間の実感が薄いので、再度検討してください」でした。そこで比較に「押している間」の列を足し、候補を押しているあいだの見た目に絞って作り直しました。
+軸 321 のはじめは、トラックの太さとつまみの塗りを比べました。これへの返事は「押している間の実感が薄いので、再度検討してください」でした。そこで比較に「押している間」の列を足し、候補を押しているあいだの見た目に絞って作り直しました。
 
 ## 候補
 
-比較は、決めた時点のコミット `62bb87c` の比較のストーリー（`design/stories/axis-0317-slider-look.stories.tsx`）です。色は primary で、列は通常・hover・押している間・フォーカス（キーボード）・エラー・押せないです。
+比較は、決めた時点のコミット `62bb87c` の比較のストーリー（`design/stories/axis-0321-slider-look.stories.tsx`）です。色は primary で、列は通常・hover・押している間・フォーカス（キーボード）・エラー・押せないです。
 
 | 案                              | 押しているあいだ                                                                       |
 | ------------------------------- | -------------------------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ B は細かく値を合わせるときの見やすさで検討していました
 - `src/components/slider/Slider.tsx`: `pressEffect`（`'grow' | 'halo' | 'lift' | 'none'`、既定は `'grow'`）と型 `SliderPressEffect` を足しました。比べるために置いた切り替えの変数は、部品の中の値（既定は変えない値、`pressEffect` が差し替える）に畳みました
 - `design/tokens.css`: 値ごとのトークン `--slider-press-grow-scale`・`--slider-press-halo-width`・`--slider-press-halo-mix`・`--slider-press-lift-shadow`・`--slider-press-lift-darken` を置き、比較用の `--slider-thumb-press-*`・`--slider-fill-press-darken` を消しました
 - `src/components/slider/Slider.stories.tsx`: 4 つの形を並べた「押しているあいだ」（visual）を足しました
-- 比較のストーリー `design/stories/axis-0317-slider-look.stories.tsx` は消しました
+- 比較のストーリー `design/stories/axis-0321-slider-look.stories.tsx` は消しました
 - 名前の `pressEffect` は、props の語彙（`design/props.md`）にない語です。部位の振る舞いを選ぶ `indicatorMotion`・`captionMotion` に寄せ、押したときの効果を表す名前にしました
 
 ## 原則への反映
@@ -55,4 +55,4 @@ B は細かく値を合わせるときの見やすさで検討していました
 
 ![Slider を押しているあいだの手応え](./assets/0317-slider-look.png)
 
-決めた時点のコミットは `62bb87c` です。`git checkout 62bb87c && pnpm storybook` で、比較のストーリー（`Design Review/0317 Sliderの見た目`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `62bb87c` です。`git checkout 62bb87c && pnpm storybook` で、比較のストーリー（`Design Review/0321 Sliderの見た目`）を決めたときの部品のまま開けます。
