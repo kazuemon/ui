@@ -22,7 +22,7 @@ const buttonGroupStyles = tv({
     frame: {
       gap: '',
       connected: [
-        'gap-0 overflow-hidden rounded-control',
+        'gap-0 rounded-control',
         'divide-x divide-(--color-line) data-[orientation=vertical]:divide-x-0 data-[orientation=vertical]:divide-y',
       ],
     },
