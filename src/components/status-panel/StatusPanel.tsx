@@ -43,6 +43,9 @@ const statusPanel = tv({
       'size-(--status-panel-badge-size)',
       // 塗りとアイコンの色は、root が受け取った Notice の変数をそのまま使う
       'bg-(color:--notice-bg) text-(color:--notice-icon-color)',
+      // アイコンの大きさは size で決める。既定のアイコンだけでなく、icon に渡したアイコン（Icon など）にも同じ大きさを強制する
+      //   （子孫セレクタなので、アイコン側が自分で付けた大きさのクラスより詳細度が高く、必ず勝つ）
+      '[&_svg]:size-(--status-panel-icon-size)',
     ],
     title: ['font-bold text-balance'],
     description: 'max-w-(--status-panel-description-width) text-body text-fg-muted',
@@ -91,6 +94,14 @@ const statusPanel = tv({
       },
     },
   },
+  // muted は Notice と同じく、見出しを 1 段小さくする（色だけでなく大きさでも控えめにする）。
+  //   Notice は data-slot="notice-title" を持つ要素にだけ効くセレクタで小さくするが、StatusPanel の見出しにはその data-slot がないので効かない。
+  //   ここで size ごとに、見出しの大きさを直接指定する（sm は見出しの段の外の --text-label、md・lg は 1 段小さい見出し）
+  compoundVariants: [
+    { variant: 'muted', size: 'sm', class: { title: 'text-label' } },
+    { variant: 'muted', size: 'md', class: { title: 'text-heading-4' } },
+    { variant: 'muted', size: 'lg', class: { title: 'text-heading-3' } },
+  ],
   defaultVariants: { variant: 'soft', shape: 'square', size: 'md' },
 });
 
@@ -101,7 +112,7 @@ export interface StatusPanelProps extends Omit<ComponentProps<'div'>, 'title' | 
   status?: NoticeStatus;
   /**
    * 見た目。soft は淡い塗りに状態の色の濃いバッジと見出し、filled は白文字が載る濃い塗り（警告だけ黄色に濃紺）、
-   * outline は白い面に状態の色の枠線、muted はグレーの面に小さな色です。Notice・Callout と同じ見た目の決まりです
+   * outline は白い面に状態の色の枠線、muted はグレーの面に、状態の色の小さめの見出しです。Notice・Callout と同じ見た目の決まりです
    * @default 'soft'
    */
   variant?: NoticeVariant;
@@ -155,13 +166,9 @@ export function StatusPanel({
   // 状態を書かないときは、色を持たないグレー（原則6）
   const surfaceStatus: NoticeSurfaceStatus = status ?? 'neutral';
   const DefaultIcon = noticeStatusIcons[surfaceStatus];
+  // 大きさは badge の [&_svg]:size-(--status-panel-icon-size) がそろえるので、ここでは付けない
   const shownIcon =
-    icon === false
-      ? null
-      : (icon ??
-        (DefaultIcon ? (
-          <DefaultIcon standalone className="size-(--status-panel-icon-size)" />
-        ) : null));
+    icon === false ? null : (icon ?? (DefaultIcon ? <DefaultIcon standalone /> : null));
   const Tag = `h${headingLevel}` as const;
   const s = statusPanel({ variant, shape, size });
   // Notice・Callout と同じ色の計算（--notice-bg・-icon-color・-title-color・-ink など）を、root で受け取る
@@ -181,7 +188,8 @@ export function StatusPanel({
         </span>
       ) : null}
       <Tag className={s.title()}>{title}</Tag>
-      {children ? <p className={s.description()}>{children}</p> : null}
+      {/* children は ReactNode なので、ブロック要素を渡しても不正なネストにならない div にする */}
+      {children ? <div className={s.description()}>{children}</div> : null}
       {actions ? <div className={s.actions()}>{actions}</div> : null}
     </div>
   );
