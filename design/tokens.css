@@ -1631,6 +1631,32 @@
   --duration-bar: var(--duration-normal);
   /* ── END bar */
 
+  /* ── Slider — 押しているあいだは ADR-0317。ほかは原則にない判断（backlog の Slider） ── BEGIN slider */
+  /* つまみを動かして、決まった範囲の中から 1 つの値を選ぶ。src/components/slider
+     トラックは上の Bar と同じ形（地はトグルの OFF と同じグレー、値までを部品の色で塗る、角は pill）
+     入力欄の仲間なので、hover で地が半段濃くなる（チェックボックスの箱の hover と同じ色）。エラーでは地を赤みのグレーにする
+     つまみはトグルのノブと同じ白い丸（影は押せることの記号 — 原則1。白い地にも載るので、白いボタンと同じ輪郭の線を持つ影）
+     押せる範囲は見た目の範囲（原則17）: つまみの高さの帯だけが押せる。行は部品の高さを占め、帯はその縦の中央
+     track-height: トラックの太さ（Meter の標準と同じ）。入力方式で変えない
+     thumb-size-{fine,coarse}: つまみの直径。部品が --density-coarse から --slider-thumb-size を計算する */
+  --slider-track-height: var(--bar-height-md);
+  --slider-thumb-size-fine: calc(var(--spacing) * 5); /* 20px */
+  --slider-thumb-size-coarse: calc(var(--spacing) * 6); /* 24px */
+  --slider-thumb-shadow: var(--shadow-raised);
+  /* 押しているあいだ（つまみかトラックを押してから離すまで）の手応え。部品の pressEffect で選ぶ — ADR-0317
+     grow（既定）: つまみを grow-scale 倍に膨らませる
+     halo: つまみの外側に、塗りの色を halo-mix の濃さにした幅 halo-width の輪を出す
+     lift: つまみの影を lift-shadow にして持ち上げ、塗りに本文の色を lift-darken 混ぜて濃くする（原則3の「沈む」とは逆向き）
+     none: 何も変えない */
+  --slider-press-grow-scale: 1.25;
+  --slider-press-halo-width: calc(var(--spacing) * 1.5); /* 6px */
+  --slider-press-halo-mix: 24%;
+  --slider-press-lift-shadow:
+    0 3px 10px rgb(from var(--color-shadow) r g b / 0.35),
+    0 0 0 1px rgb(from var(--color-shadow) r g b / 0.06);
+  --slider-press-lift-darken: 15%;
+  /* ── END slider */
+
   /* ── Progress — ADR-0185・0186 ── BEGIN progress */
   /* 処理の進み具合を示すバー。src/components/progress。形は上の Bar と同じ
      終わりの分からないとき（indeterminate）の動きは animation で選ぶ（ADR-0186）。keyframes はファイル末尾（progress keyframes）

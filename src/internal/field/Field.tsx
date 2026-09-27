@@ -270,6 +270,11 @@ export interface FieldProps extends FieldMarkProps {
   /** ラベルを <label> で描くか。Select のように本体がボタンの部品では false にする */
   nativeLabel?: boolean;
   /**
+   * ラベルと同じ行の右端に置くもの（Slider の値の文字）。渡したときだけ、ラベルとこれを 1 行に並べる。
+   * ラベルが長いときは、ラベルの側が折り返す
+   */
+  labelAside?: ReactNode;
+  /**
    * キャプションを Base UI の説明（Field.Description）として登録するか（既定は true）
    * false では素の p で描き、id は children に渡す describedBy だけでつなぐ
    * 中に選択肢（Field.Item）を並べるグループ（RadioGroup・CheckboxGroup）では false にする。
@@ -321,6 +326,7 @@ export function Field({
   className,
   children,
   nativeLabel = true,
+  labelAside,
   registerCaption = true,
   name,
   validate,
@@ -352,6 +358,17 @@ export function Field({
   ) : null;
   // 待っているあいだの見た目（design/adr/0042）。Form の送信中に止めるときも、止める見た目（印は出さない）
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
+  const labelNode = (
+    <BaseField.Label
+      data-slot="field-label"
+      className={styles.label({ className: labelAside != null ? 'min-w-0' : undefined })}
+      nativeLabel={nativeLabel}
+      render={nativeLabel ? undefined : <div />}
+    >
+      {label}
+      <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
+    </BaseField.Label>
+  );
   return (
     <BaseField.Root
       name={name}
@@ -366,16 +383,16 @@ export function Field({
       className={styles.root({ className })}
     >
       {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
-          印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる */}
-      <BaseField.Label
-        data-slot="field-label"
-        className={styles.label()}
-        nativeLabel={nativeLabel}
-        render={nativeLabel ? undefined : <div />}
-      >
-        {label}
-        <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
-      </BaseField.Label>
+          印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる
+          labelAside があるときは、ラベルの行の右端に並べる（基準線をそろえる） */}
+      {labelAside != null ? (
+        <div className="flex items-baseline justify-between gap-3">
+          {labelNode}
+          {labelAside}
+        </div>
+      ) : (
+        labelNode
+      )}
       <FieldBody
         captionNode={captionNode}
         captionId={captionId}
