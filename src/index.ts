@@ -516,6 +516,7 @@ export {
   type NumberFieldValueDetails,
 } from './components/number-field/NumberField';
 export type { StepperNames } from './components/number-field/NumberFieldStepper';
+export { Slider, type SliderColor, type SliderProps } from './components/slider/Slider';
 export {
   PinField,
   type PinFieldProps,
