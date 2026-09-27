@@ -30,7 +30,11 @@ export {
   type AutocompleteSheetInput,
 } from './components/autocomplete/Autocomplete';
 export { Avatar, type AvatarFallback, type AvatarProps } from './components/avatar/Avatar';
-export { AvatarGroup, type AvatarGroupProps } from './components/avatar-group/AvatarGroup';
+export {
+  AvatarGroup,
+  type AvatarGroupOverlap,
+  type AvatarGroupProps,
+} from './components/avatar-group/AvatarGroup';
 export { Badge, type BadgeProps } from './components/badge/Badge';
 export {
   Blockquote,
