@@ -116,7 +116,7 @@ export const Candidates: Story = {
   render: () => (
     <Comparison
       index={321}
-      pick="current"
+      pick="current,A,B,C"
       axis="Slider を押しているあいだの手応え"
       candidates={candidates}
       columns={columns}
@@ -126,6 +126,10 @@ export const Candidates: Story = {
         </div>
       )}
     >
+      <p>
+        決定（ADR-0321）:
+        A（つまみが膨らむ）を既定にし、current（変えない）・B（輪）・C（持ち上がる）も選べるようにする。
+      </p>
       <p>
         つまみやトラックを押してから離すまでのあいだ、押していることをどう見せるかを比べます。「押している間」の列が、その見た目です。各行の見本は実際に押して引いても同じ見た目になるので、指とマウスでも確かめてください。
       </p>
