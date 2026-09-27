@@ -5,10 +5,13 @@ import {
   Children,
   type ComponentProps,
   createContext,
+  isValidElement,
   type ReactElement,
   type ReactNode,
   use,
+  useEffect,
   useId,
+  useRef,
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -234,7 +237,11 @@ export function Stepper({
   children,
   ...props
 }: StepperProps) {
-  const items = Children.toArray(children) as ReactElement<StepperStepProps>[];
+  // StepperStep 以外（Fragment・文字列など）は並びから外す。isValidElement と型で確かめ、断定（as）はしない
+  const items = Children.toArray(children).filter(
+    (child): child is ReactElement<StepperStepProps> =>
+      isValidElement(child) && child.type === StepperStep
+  );
   const s = stepper({ orientation, color });
 
   return (
@@ -317,6 +324,7 @@ export function StepperStep({
   const clickable = onSelect !== undefined;
   const labelId = useId();
   const descriptionId = useId();
+  const statusId = useId();
 
   const markerContent =
     icon ??
@@ -328,9 +336,13 @@ export function StepperStep({
       number
     ));
 
+  // マーカー（数字・チェック・警告アイコン）は見た目の飾りで aria-hidden。伝えている状態（完了・エラー）を
+  //   見えない文で足し、aria-labelledby でラベルの後ろにつなぐ（いまの段は別に aria-current が伝える）
+  const statusText = invalid ? 'エラー' : status === 'completed' ? '完了' : undefined;
+  const labelledBy = statusText != null ? `${labelId} ${statusId}` : labelId;
+
   const content = (
     <>
-      {/* 番号・印は見た目の飾り。読み上げの名前はラベルだけ（いまの段は aria-current が伝える） */}
       <span
         aria-hidden="true"
         data-slot="stepper-marker"
@@ -339,6 +351,11 @@ export function StepperStep({
       >
         {markerContent}
       </span>
+      {statusText != null && (
+        <span id={statusId} className="sr-only">
+          {statusText}
+        </span>
+      )}
       <span data-orientation={orientation} className={s.content()}>
         <span id={labelId} data-slot="stepper-label" className={s.label()}>
           {label}
@@ -352,16 +369,29 @@ export function StepperStep({
     </>
   );
 
-  // 読み上げの名前はラベルだけ（aria-labelledby）、説明は aria-describedby（design/props.md の description）
+  // クリックできる段（button）が、押されたあと（value が動いて completed でなくなる）に
+  //   表示専用（div）へ入れ替わると、要素ごと作り直されてフォーカスが失われる。いまの段になったときだけ、
+  //   同じ場所（control）へフォーカスを戻す（tabIndex=-1 でプログラム的に当てられるようにする）
+  const controlRef = useRef<HTMLElement>(null);
+  const wasClickableRef = useRef(clickable);
+  useEffect(() => {
+    if (wasClickableRef.current && !clickable && status === 'current') {
+      controlRef.current?.focus();
+    }
+    wasClickableRef.current = clickable;
+  }, [clickable, status]);
+
+  // 読み上げの名前はラベル＋状態（aria-labelledby）、説明は aria-describedby（design/props.md の description）
   const control = useRender({
     render: clickable ? render : <div />,
+    ref: controlRef,
     defaultTagName: 'button',
     props: clickable
       ? {
           type: 'button',
           onClick: onSelect,
           'aria-current': status === 'current' ? ('step' as const) : undefined,
-          'aria-labelledby': labelId,
+          'aria-labelledby': labelledBy,
           'aria-describedby': description != null ? descriptionId : undefined,
           'data-clickable': true,
           'data-orientation': orientation,
@@ -369,12 +399,11 @@ export function StepperStep({
           children: content,
         }
       : {
-          // 見た目はボタンでも押せないので、読み上げにも「利用不可」と伝える（design/internal/link-parts.ts の disabledLinkProps と同じ考え方）
-          //   薄い見た目（data-disabled）は、その段の disabled のときだけ。いまの段・これからの段は、押せなくても普通の見た目
-          role: 'button',
+          // 押せない段はボタンではない（見た目だけ似ている）ので role・aria-disabled は付けない。
+          //   いまの段はフォーカスを戻せるよう tabIndex=-1 にする（Tab では止まらない）
+          tabIndex: status === 'current' ? -1 : undefined,
           'aria-current': status === 'current' ? ('step' as const) : undefined,
-          'aria-disabled': true,
-          'aria-labelledby': labelId,
+          'aria-labelledby': labelledBy,
           'aria-describedby': description != null ? descriptionId : undefined,
           'data-disabled': disabled ? true : undefined,
           'data-orientation': orientation,

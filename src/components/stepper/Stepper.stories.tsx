@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import {
   Stepper,
@@ -245,7 +245,8 @@ export const Densities: Story = {
   ),
 };
 
-// play: 読み上げ（aria-current="step"）と、完了した段を押すと onStepClick で index が伝わることの確かめ
+// play: 読み上げ（aria-current="step"・完了/エラーの状態文・aria-labelledby）、操作（onStepClick）、
+//   押した段が表示専用に入れ替わったあとのフォーカスの戻りを確かめる
 export const Accessibility: Story = {
   name: '読み上げと操作',
   parameters: { controls: { disable: true } },
@@ -255,27 +256,30 @@ export const Accessibility: Story = {
     const current = () => canvasElement.querySelector('[aria-current="step"]');
     await expect(current()).toHaveTextContent('お支払い');
 
-    // 完了した段（アカウント・お届け先）は押せる。いまの段・これからの段は aria-disabled（見た目はボタンでも読み上げは「利用不可」）
-    const account = canvas.getByRole('button', { name: 'アカウント' });
-    const address = canvas.getByRole('button', { name: 'お届け先' });
-    const confirm = canvas.getByRole('button', { name: '確認' });
-    await expect(account).not.toHaveAttribute('aria-disabled');
-    await expect(address).not.toHaveAttribute('aria-disabled');
-    await expect(confirm).toHaveAttribute('aria-disabled', 'true');
+    // 完了した段（アカウント・お届け先）だけが押せる。読み上げの名前にはラベルの後ろに「完了」が付く
+    const account = canvas.getByRole('button', { name: 'アカウント 完了' });
+    const address = canvas.getByRole('button', { name: 'お届け先 完了' });
 
-    // Tab は押せる段（アカウント → お届け先）だけを回る。aria-disabled の段は div なので自然にタブから外れる
+    // いまの段・これからの段はボタンではない（表示専用。role="button" を付けない）
+    await expect(canvas.queryByRole('button', { name: 'お支払い' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: '確認' })).not.toBeInTheDocument();
+    await expect(canvas.getByText('確認')).toBeVisible();
+
+    // Tab は押せる段（アカウント → お届け先）だけを回る
     await userEvent.tab();
     await expect(account).toHaveFocus();
     await userEvent.tab();
     await expect(address).toHaveFocus();
 
-    // 完了した段を押すと onStepClick(index) が呼ばれ、見本が value を更新していまの段になる
+    // 完了した段を押すと onStepClick(index) が呼ばれ、見本が value を更新していまの段になる。
+    // 押した段（button）はその場で表示専用（div）に入れ替わるが、フォーカスは同じ場所（いまの段）に戻る
     await userEvent.keyboard('{Enter}');
-    await expect(current()).toHaveTextContent('お届け先');
-    await expect(account).not.toHaveAttribute('aria-disabled');
-    await expect(canvas.getByRole('button', { name: 'お支払い' })).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    );
+    await waitFor(() => expect(current()).toHaveTextContent('お届け先'));
+    await waitFor(() => expect(current()).toHaveFocus());
+    await expect(current()).not.toHaveAttribute('role');
+
+    // それより前の段（アカウント）だけが引き続き完了で押せる
+    await expect(canvas.getByRole('button', { name: 'アカウント 完了' })).toBeVisible();
+    await expect(canvas.queryByRole('button', { name: 'お支払い' })).not.toBeInTheDocument();
   },
 };
