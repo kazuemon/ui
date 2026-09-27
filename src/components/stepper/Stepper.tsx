@@ -23,11 +23,12 @@ import { tv } from '../../internal/tv';
 // 段の状態（upcoming・current・completed）は、value と StepperStep の並び順（index）から内部で決める（Tabs の active に近い考え方）
 //   クリックでの遷移は value を書き換えず、onStepClick(index) で使う側に知らせる（Mantine の onStepClick・Ant Design の onChange と同じ考え方）
 //   onStepClick を渡したときだけ、完了した段（既定）が押せるボタンになる。渡さなければ、すべての段が表示専用（Ant Design の onChange と同じ）
-// マーカー（印）は upcoming はグレーの輪郭、current は部品の色の塗り、completed は部品の色の塗り（variant="check" ならチェックに差し替え）
+// マーカー（印）は upcoming はグレーの輪郭、current は部品の色の塗り、completed は部品の色の塗り
+//   completed の中身は variant で選ぶ。check（既定、ADR-0318）はチェックの印、number は数字のまま
 //   invalid（段ごと）は位置に関わらず danger の色と warning の印にする（原則6: 危険は明度を落とした赤）
 // 連結線（connector）は、マーカーの左右（横並び）・上下（縦並び）半分ずつ。自分の状態だけで色が決まる
 //   （before は「upcoming でない」＝進捗がここまで来た、after は「completed」＝ここを通り過ぎた）ので、隣の段の状態を見なくてよい
-// 横並び（既定）はマーカーを上、ラベルを下（中央そろえ）。縦並びはマーカーを左、ラベルを右（Steps・Timeline と同じ考え方）
+// 横並び（既定、ADR-0319）はマーカーを上、ラベルを下（中央そろえ）。縦並びはマーカーを左、ラベルを右（Steps・Timeline と同じ考え方）
 // フォーカスの線は、クリックできる段のボタン全体（マーカー＋ラベル）を囲む（focusRing）
 const stepper = tv({
   slots: {
@@ -151,7 +152,7 @@ export type StepperOrientation = 'horizontal' | 'vertical';
 export type StepperColor = 'neutral' | 'primary' | 'secondary';
 
 /**
- * 完了した段のマーカー。number は数字のまま色だけ変える（既定）。check はチェックの印に差し替える
+ * 完了した段のマーカー。check はチェックの印に差し替える（既定、ADR-0318）。number は数字のまま色だけ変える
  */
 export type StepperVariant = 'number' | 'check';
 
@@ -164,7 +165,7 @@ interface StepperContextValue {
 
 const StepperContext = createContext<StepperContextValue>({
   orientation: 'horizontal',
-  variant: 'number',
+  variant: 'check',
 });
 
 interface StepperItemContextValue {
@@ -202,8 +203,8 @@ export interface StepperProps extends Omit<ComponentProps<'nav'>, 'color' | 'chi
    */
   color?: StepperColor;
   /**
-   * 完了した段のマーカー。number は数字のまま色だけ変え、check はチェックの印に差し替えます
-   * @default 'number'
+   * 完了した段のマーカー。check はチェックの印に差し替え、number は数字のまま色だけ変えます
+   * @default 'check'
    */
   variant?: StepperVariant;
   /**
@@ -227,7 +228,7 @@ export function Stepper({
   onStepClick,
   orientation = 'horizontal',
   color,
-  variant = 'number',
+  variant = 'check',
   accessibleName = '進み具合',
   className,
   children,

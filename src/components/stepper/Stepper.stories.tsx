@@ -65,14 +65,14 @@ const meta = {
           '- `onStepClick` を渡すと、完了した段（いまの段より前、既定）が押せるようになります。押すとその段の index を渡して呼びます。値そのものは書き換えないので、呼ばれた側で `value` を更新します。渡さなければ、すべての段が表示専用になります。',
           '- `orientation` は並べる向きです。既定は `horizontal`（横に並べてラベルを下に）で、`vertical`（縦に積んでラベルを右に）を選べます。',
           '- `color` はいまの段・完了した段のマーカーの色です。指定しないときはグレー（`neutral`）です。',
-          '- `variant` は完了した段のマーカーです。既定は `number`（数字のまま色だけ変える）で、`check`（チェックの印に差し替える）を選べます。',
+          '- `variant` は完了した段のマーカーです。既定は `check`（チェックの印に差し替える）で、`number`（数字のまま色だけ変える）を選べます。',
           '- `StepperStep` の `description` にラベルの下へ添える説明を、`invalid` でその段をエラーの見た目にできます。',
         ].join('\n'),
       },
     },
   },
   // value は各ストーリーが Sample（内部で state を持つ見本）や直接の value 指定で渡すので、Controls には出さない
-  args: { color: 'neutral', variant: 'number', orientation: 'horizontal', value: 2 },
+  args: { color: 'neutral', variant: 'check', orientation: 'horizontal', value: 2 },
   argTypes: {
     value: { control: false },
     color: {
@@ -83,7 +83,7 @@ const meta = {
     variant: {
       control: 'inline-radio',
       options: ['number', 'check'],
-      table: { defaultValue: { summary: "'number'" } },
+      table: { defaultValue: { summary: "'check'" } },
     },
     orientation: {
       control: 'inline-radio',
@@ -167,7 +167,7 @@ export const Variants: Story = {
     controls: { include: ['color'] },
     docs: {
       description: {
-        story: '`variant` で選びます。既定は `number`（数字のまま色だけ変える）です。',
+        story: '`variant` で選びます。既定は `check`（チェックの印に差し替える）です。',
       },
     },
   },
