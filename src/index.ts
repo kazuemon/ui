@@ -242,6 +242,20 @@ export {
   type ImageZoomProps,
   type ImageZoomVariant,
 } from './components/image-zoom/ImageZoom';
+export {
+  Inspector,
+  type InspectorMotion,
+  type InspectorOverlayEdge,
+  type InspectorProps,
+  type InspectorSide,
+  type InspectorVariant,
+} from './components/inspector/Inspector';
+export {
+  InspectorLayout,
+  type InspectorLayoutProps,
+  InspectorTrigger,
+  type InspectorTriggerProps,
+} from './components/inspector/InspectorLayout';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
 export {
   List,
