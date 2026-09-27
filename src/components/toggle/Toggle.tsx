@@ -43,7 +43,10 @@ const toggle = tv({
     'not-data-pressed:data-disabled:opacity-100 not-data-pressed:data-disabled:[--toggle-bg:var(--color-neutral-disabled)] not-data-pressed:data-disabled:[--toggle-fg:var(--color-on-neutral-disabled)]',
     'data-pressed:disabled:opacity-(--disabled-opacity) data-pressed:data-disabled:opacity-(--disabled-opacity)',
     // ToggleGroup の詰め方（frame="connected"）のときだけ、両端以外の角丸を消す（design/stories/axis-269）
-    'in-data-[frame=connected]:rounded-none in-data-[frame=connected]:first:rounded-s-(--toggle-radius) in-data-[frame=connected]:last:rounded-e-(--toggle-radius)',
+    // 向き（data-orientation。ToggleGroup が常に持つ）で、丸める辺を左右（horizontal）と上下（vertical）に分ける
+    'in-data-[frame=connected]:rounded-none',
+    'in-data-[frame=connected]:in-data-[orientation=horizontal]:first:rounded-s-(--toggle-radius) in-data-[frame=connected]:in-data-[orientation=horizontal]:last:rounded-e-(--toggle-radius)',
+    'in-data-[frame=connected]:in-data-[orientation=vertical]:first:rounded-t-(--toggle-radius) in-data-[frame=connected]:in-data-[orientation=vertical]:last:rounded-b-(--toggle-radius)',
   ],
   variants: {
     color: {

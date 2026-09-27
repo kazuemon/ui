@@ -22,7 +22,7 @@ const toggleGroupStyles = tv({
     frame: {
       gap: '',
       connected: [
-        'gap-0 overflow-hidden rounded-(--toggle-radius)',
+        'gap-0 rounded-(--toggle-radius)',
         'divide-x divide-(--color-line) data-[orientation=vertical]:divide-x-0 data-[orientation=vertical]:divide-y',
       ],
     },
