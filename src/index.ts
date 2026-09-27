@@ -405,6 +405,8 @@ export {
   type StatusPanelHeadingLevel,
   StatusPanel,
   type StatusPanelProps,
+  type StatusPanelShape,
+  type StatusPanelSize,
   type StatusPanelStatus,
 } from './components/status-panel/StatusPanel';
 export {
