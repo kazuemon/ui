@@ -370,15 +370,18 @@ export function StepperStep({
   );
 
   // クリックできる段（button）が、押されたあと（value が動いて completed でなくなる）に
-  //   表示専用（div）へ入れ替わると、要素ごと作り直されてフォーカスが失われる。いまの段になったときだけ、
-  //   同じ場所（control）へフォーカスを戻す（tabIndex=-1 でプログラム的に当てられるようにする）
+  //   表示専用（div）へ入れ替わると、要素ごと作り直されてフォーカスが失われる。「押した」こと自体を ref のフラグで持ち、
+  //   押していない段が（無関係な value の変更で）表示専用に変わっても、フォーカスは奪わない
+  //   フラグは、この段が表示専用に変わった時点で消費して消す。いまの段になっていたときだけ、同じ場所へフォーカスを戻す
+  //   （tabIndex=-1 でプログラム的に当てられるようにする）。押してから value が更新されるまでの非同期な間も、
+  //   フラグは押しっぱなしのまま（clickable が変わらない）残るので、そのあとに戻ってきても働く
   const controlRef = useRef<HTMLElement>(null);
-  const wasClickableRef = useRef(clickable);
+  const focusPendingRef = useRef(false);
   useEffect(() => {
-    if (wasClickableRef.current && !clickable && status === 'current') {
-      controlRef.current?.focus();
+    if (!clickable && focusPendingRef.current) {
+      focusPendingRef.current = false;
+      if (status === 'current') controlRef.current?.focus();
     }
-    wasClickableRef.current = clickable;
   }, [clickable, status]);
 
   // 読み上げの名前はラベル＋状態（aria-labelledby）、説明は aria-describedby（design/props.md の description）
@@ -389,7 +392,10 @@ export function StepperStep({
     props: clickable
       ? {
           type: 'button',
-          onClick: onSelect,
+          onClick: () => {
+            focusPendingRef.current = true;
+            onSelect();
+          },
           'aria-current': status === 'current' ? ('step' as const) : undefined,
           'aria-labelledby': labelledBy,
           'aria-describedby': description != null ? descriptionId : undefined,
