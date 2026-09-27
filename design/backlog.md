@@ -657,3 +657,9 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `pnpm test -u <パス>` が範囲を絞らず全体の基準画像を書き換えることがあります。`pnpm vitest run --project=storybook <パス>` なら絞れます
 - `capture-story.mjs --pick A,B` のように採用の案を「,」区切りで渡すと、Storybook が URL の引数を安全でないとみなして捨て、採用の印が付きません。ストーリーの `pick` の既定値に書けば付きます
 - ScrollArea のつまみ（ふだんは細い）がマウスで狙いにくくないか、実機で見ます（[ADR-0119](./adr/0119-scroll-area.md)）
+
+### StatusPanel
+
+2026-09-28 に、バッジの形・塗り・見出しの色・大きさを決めました（[ADR-0326](./adr/0326-status-panel-badge.md)〜[ADR-0328](./adr/0328-status-panel-size.md)）。
+
+- `variant="filled"` のときだけ、見出しの色は Notice の `--notice-title-color`（白地に白文字で消える）を使わず、状態のインク色に差し替えています。Notice の色の決まりが変わったら、この例外がまだ要るかを見直します（[ADR-0327](./adr/0327-status-panel-notice-variant.md)）
