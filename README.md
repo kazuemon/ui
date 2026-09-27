@@ -157,7 +157,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Link
 - [x] Toggle
 - [x] ToggleGroup
-- [ ] ButtonGroup
+- [x] ButtonGroup
 - [x] CopyButton
 
 ### 入力
@@ -172,7 +172,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [ ] Fieldset
 - [x] Combobox
 - [ ] Segmented Control
-- [ ] Slider
+- [x] Slider
 - [x] NumberField
 - [x] DateField
 - [ ] DatePicker

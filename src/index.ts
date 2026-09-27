@@ -58,6 +58,12 @@ export {
   type ButtonShape,
 } from './components/button/Button';
 export {
+  ButtonGroup,
+  type ButtonGroupFrame,
+  type ButtonGroupOrientation,
+  type ButtonGroupProps,
+} from './components/button-group/ButtonGroup';
+export {
   Toggle,
   type ToggleColor,
   type ToggleIconOnlyProps,
@@ -521,6 +527,12 @@ export {
   type NumberFieldValueDetails,
 } from './components/number-field/NumberField';
 export type { StepperNames } from './components/number-field/NumberFieldStepper';
+export {
+  Slider,
+  type SliderColor,
+  type SliderPressEffect,
+  type SliderProps,
+} from './components/slider/Slider';
 export {
   PinField,
   type PinFieldProps,
