@@ -1327,6 +1327,14 @@
   --avatar-icon-scale: 0.6;
   /* ── END avatar */
 
+  /* ── AvatarGroup — 原則にない判断（design/backlog.md 2026-09-27 更新） ── BEGIN avatar-group */
+  /* Avatar を重ねて並べる。src/components/avatar-group。新しい部品ではなく Avatar の組み合わせ
+     overlap: 隣のアバターと重ねる量。--avatar-size に対する割合（--avatar-icon-scale と同じ、単位を持たない比）
+     ring-width: 重なる境目を置いた面の色（--color-surface）で区切る縁の太さ。Badge が数を相手に重ねる縁（--badge-ring-width）と同じ太さ */
+  --avatar-group-overlap: 0.3;
+  --avatar-group-ring-width: var(--border-width-thick);
+  /* ── END avatar-group */
+
   /* ── Breadcrumb — 軸 143・144 ── BEGIN breadcrumb */
   /* パンくずリスト。src/components/breadcrumb
      文字は読む文字の小さいほう（--text-body-sm。本文の上に置く注記 — 原則11）。影は付けない（原則1）
