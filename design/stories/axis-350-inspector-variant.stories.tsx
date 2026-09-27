@@ -56,12 +56,12 @@ const meta = {
   title: 'Design Review/350 Inspectorの開き方',
   id: 'design-review-350-inspector-variant',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current,A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A'],
+      options: ['', 'current', 'A', 'current,A'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -80,6 +80,10 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">
+        決定（ADR-0320）: 現行版（push）を既定にし、A（overlay）も variant
+        で選べる。「現行デフォ、重ねるも選べる、で。」
+      </p>
       <p>
         Inspector は、決まった領域の中だけで開閉する常駐のパネルです。Drawer
         から裏を止める動きと画面の最上層を抜いたもので、Sidebar の反対側に置く想定です。

@@ -67,12 +67,12 @@ const meta = {
   title: 'Design Review/355 Inspectorの開閉の動き',
   id: 'design-review-355-inspector-motion',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B'],
+      options: ['', 'current', 'A', 'B', 'current,B'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -91,6 +91,10 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">
+        決定（ADR-0325）:
+        現行版（シートと同じ長さ）を既定にし、B（動かさない）も選べる。「デフォルト現行、なしも選べる、で。」
+      </p>
       <p>
         Inspector
         を開け閉めするときの動きの長さを決めます。どの案も領域の端から滑って出て、閉じるほうを短くします（原則14）。

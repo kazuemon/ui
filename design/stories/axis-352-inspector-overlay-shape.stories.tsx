@@ -78,12 +78,12 @@ const meta = {
   title: 'Design Review/352 Inspectorの重なりの形',
   id: 'design-review-352-inspector-overlay-shape',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B'],
+      options: ['', 'current', 'A', 'B', 'A,B'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -102,6 +102,10 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">
+        決定（ADR-0322）:
+        A（端に着け、角を丸めない）を既定にし、B（端から離して浮かべる）も選べる。「Aデフォルト、Bも選べる、で。」
+      </p>
       <p>
         Inspector を overlay
         で開いたときの形を決めます。押しのける形（push）は領域の端に着いた角のない面で、

@@ -67,7 +67,7 @@ const meta = {
   title: 'Design Review/353 Inspectorを押しのけるときの面',
   id: 'design-review-353-inspector-push-surface',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -91,6 +91,7 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">決定（ADR-0323）: 現行版（白い面と細い線）。「現行で。」</p>
       <p>
         Inspector を push
         で開いたときの、本文との分け方を決めます。本文と同じレイヤーに置くので影は付けず（原則1）、

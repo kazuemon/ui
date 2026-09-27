@@ -49,7 +49,7 @@ const meta = {
   title: 'Design Review/354 Inspectorの幅',
   id: 'design-review-354-inspector-width',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -73,6 +73,11 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">
+        決定（ADR-0324）: A（360px、Drawer
+        の横のパネルと同じ）を既定にし、幅は任意に指定もできる。「A の Drawer
+        と同じで。任意指定もできるとうれしいです。」
+      </p>
       <p>
         Inspector の既定の幅を決めます。使う側は --inspector-width
         で変えられます。重ねる形では、狭い領域で本文の側に少し残して縮みます。

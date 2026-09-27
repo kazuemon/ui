@@ -69,7 +69,7 @@ const meta = {
   title: 'Design Review/351 Inspectorの重なりの影',
   id: 'design-review-351-inspector-overlay-shadow',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -93,6 +93,9 @@ export const Candidates: Story = {
       columns={columns}
       renderCell={renderCell}
     >
+      <p className="font-bold text-fg">
+        決定（ADR-0321）: 現行版（Drawer の横のパネルと同じ影と輪郭）。「ドロワーと同じで。」
+      </p>
       <p>
         Inspector を overlay
         で開いたときの、本文との離し方を決めます。重なる面には影を付けます（原則1）が、 Inspector
