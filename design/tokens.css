@@ -1335,6 +1335,18 @@
   --avatar-icon-scale: 0.6;
   /* ── END avatar */
 
+  /* ── AvatarGroup — 軸 0315 ── BEGIN avatar-group */
+  /* Avatar を重ねて並べる。src/components/avatar-group。新しい部品ではなく Avatar の組み合わせ
+     overlap-*: 隣のアバターと重ねる量の 3 段（--avatar-size に対する割合。--avatar-icon-scale と同じ、単位を持たない比）。
+       md（現行 30%）が既定。sm（18%）・lg（45%）は overlap props で選べる（ADR-0315）
+     ring-width: 重なる境目を置いた面の色（--color-surface）で区切る縁の太さ。Badge が数を相手に重ねる縁（--badge-ring-width）と同じ太さ。
+       太くする案・線に近づける案も比べたが、どちらも採らず現行のまま（ADR-0315） */
+  --avatar-group-overlap-sm: 0.18;
+  --avatar-group-overlap-md: 0.3;
+  --avatar-group-overlap-lg: 0.45;
+  --avatar-group-ring-width: var(--border-width-thick);
+  /* ── END avatar-group */
+
   /* ── Breadcrumb — 軸 143・144 ── BEGIN breadcrumb */
   /* パンくずリスト。src/components/breadcrumb
      文字は読む文字の小さいほう（--text-body-sm。本文の上に置く注記 — 原則11）。影は付けない（原則1）
@@ -1869,6 +1881,30 @@
   --stepper-line-width: var(--border-width-thin);
   --stepper-line-gap: calc(var(--spacing) * 1); /* 4px */
   /* ── END stepper */
+
+  /* ── StatusPanel — ADR-0326・0327・0328 ── BEGIN status-panel */
+  /* 空状態・見つからない・失敗の面。src/components/status-panel/StatusPanel.tsx
+     色（バッジの塗り・アイコンの色・見出しの色）は internal/notice-surface の noticeSurface（Notice・Callout・Toast と共有）が持つので、
+       ここには置かない（ADR-0326・0327）。ここに置くのは、Notice にはない StatusPanel 固有の大きさの軸だけ
+     size（sm・md・lg、既定 md）ごとに、幅の上限・間隔・バッジとアイコンの大きさを持つ（ADR-0328）。見出しの大きさは
+       text-heading-2〜4 をそのまま使うので、ここにはトークンを置かない
+     description-width は size によらない一定値（本文だけの幅の上限。見出しより読みやすい行長にする） */
+  --status-panel-width-sm: 22rem;
+  --status-panel-width-md: 28rem;
+  --status-panel-width-lg: 32rem;
+  --status-panel-gap-sm: calc(var(--spacing) * 2);
+  --status-panel-gap-md: calc(var(--spacing) * 3);
+  --status-panel-gap-lg: calc(var(--spacing) * 4);
+  --status-panel-badge-size-sm: calc(var(--spacing) * 10); /* 40px */
+  --status-panel-badge-size-md: calc(var(--spacing) * 14); /* 56px */
+  --status-panel-badge-size-lg: calc(var(--spacing) * 18); /* 72px */
+  --status-panel-icon-size-sm: var(--icon-size-md); /* 20px */
+  --status-panel-icon-size-md: var(--icon-size-lg); /* 24px。公開の Icon 部品の size="lg" と同じ */
+  --status-panel-icon-size-lg: var(
+    --icon-size-lg
+  ); /* 24px。バッジが大きくなっても、アイコンは md と同じ大きさで止める */
+  --status-panel-description-width: 40ch;
+  /* ── END status-panel */
 }
 
 /* ── toast keyframes */

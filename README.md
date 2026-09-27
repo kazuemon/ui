@@ -143,7 +143,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Timeline
 - [x] Accordion
 - [x] Image
-- [ ] AvatarGroup
+- [x] AvatarGroup
 - [x] DescriptionList
 - [x] Stat
 - [x] Meter
@@ -201,7 +201,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Toast
 - [x] Progress
 - [x] Skeleton
-- [ ] StatusPanel
+- [x] StatusPanel
 - [ ] LoadingOverlay
 
 ### 重なるもの
