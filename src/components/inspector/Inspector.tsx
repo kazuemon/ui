@@ -2,6 +2,7 @@
 
 import {
   type ComponentProps,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
   useId,
@@ -34,6 +35,20 @@ export type InspectorVariant = 'push' | 'overlay';
 /** 出す辺。領域の右の端か、左の端 */
 export type InspectorSide = 'left' | 'right';
 
+/**
+ * 重ねる形（variant="overlay"）のときの端の形
+ * flush: 領域の端に着け、角を丸めません。アプリの枠の一部として見えます
+ * floating: 領域の端から少し離し、4 つの角を丸めて浮かべます
+ */
+export type InspectorOverlayEdge = 'flush' | 'floating';
+
+/**
+ * 開閉の動き
+ * slide: 領域の端から滑らせます。閉じるほうを短くします
+ * none: 動かさず、すぐに切り替えます
+ */
+export type InspectorMotion = 'slide' | 'none';
+
 export interface InspectorProps extends Omit<
   ComponentProps<'aside'>,
   'title' | 'children' | 'autoFocus'
@@ -62,6 +77,22 @@ export interface InspectorProps extends Omit<
    * @default 'push'
    */
   variant?: InspectorVariant;
+  /**
+   * 重ねる形（variant="overlay"）のときの端の形。flush は領域の端に着け、角を丸めません。floating は端から少し離し、4 つの角を丸めて浮かべます。
+   * 押しのける形（push）では使いません
+   * @default 'flush'
+   */
+  overlayEdge?: InspectorOverlayEdge;
+  /**
+   * パネルの幅。数値は px、文字列は CSS の長さ（'24rem'・'30%' など）です。書かないときは Drawer の横のパネルと同じ幅です。
+   * 重ねる形では、狭い領域で本文の側に少し残して縮みます
+   */
+  width?: number | string;
+  /**
+   * 開閉の動き。slide は領域の端から滑らせ、none は動かさずにすぐ切り替えます。動きを減らす設定では、slide でも動かしません
+   * @default 'slide'
+   */
+  motion?: InspectorMotion;
   /**
    * パネルの中にフォーカスがあるとき、Esc で閉じるか
    * @default true
@@ -97,6 +128,9 @@ export function Inspector({
   actionsLayout = 'auto',
   side = 'right',
   variant = 'push',
+  overlayEdge = 'flush',
+  width,
+  motion = 'slide',
   closeOnEscape = true,
   hideCloseButton = false,
   closeName,
@@ -155,13 +189,21 @@ export function Inspector({
   };
 
   const layout = actionsLayout === 'auto' ? 'end' : actionsLayout;
-  const s = inspectorStyles({ variant, side });
+  const s = inspectorStyles({ variant, side, overlayEdge, motion });
+  // 幅を渡されたときは、枠に書いてパネルと一緒に読ませる
+  const widthStyle: (CSSProperties & Record<'--inspector-width', string>) | undefined =
+    width === undefined
+      ? undefined
+      : { '--inspector-width': typeof width === 'number' ? `${width}px` : width };
   return (
     <div
       data-slot="inspector-frame"
       data-variant={variant}
       data-side={side}
+      data-overlay-edge={variant === 'overlay' ? overlayEdge : undefined}
+      data-motion={motion}
       data-open={open || undefined}
+      style={widthStyle}
       className={s.frame()}
     >
       <OverlayCloseContext value={close}>

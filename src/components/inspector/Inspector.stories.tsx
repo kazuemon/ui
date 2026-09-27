@@ -83,6 +83,9 @@ const meta = {
           '- `InspectorLayout` が領域です。`inspector` にパネル（`Inspector`）を、`children` に本文を渡します。領域は親の高さいっぱいに広がり、本文はその中でスクロールします。開閉の状態（`open`・`defaultOpen`・`onOpenChange`）は `InspectorLayout` が持ちます。',
           '- 開閉のボタンは `InspectorTrigger` の `render` に Button などを渡し、`InspectorLayout` の中に置きます。押すと開け閉めし、`aria-expanded` が付きます。`header` に渡した帯はパネルを重ねても隠れないので、開閉のボタンはそこに置くのが基本です。',
           '- `variant` で開き方を選びます。`push`（既定）は本文を押しのけて場所を占め、本文の幅が狭くなります。`overlay` は領域の中で本文の上に重ね、本文の幅は変えません。',
+          '- 重ねる形の端の形は `overlayEdge` で選びます。`flush`（既定）は領域の端に着け、角を丸めません。`floating` は領域の端から少し離し、4 つの角を丸めて浮かべます。',
+          '- 幅は `width` で変えられます。数値は px、文字列は CSS の長さです。書かないときは Drawer の横のパネルと同じ幅です。',
+          '- 開閉の動きは `motion` で選びます。`slide`（既定）は領域の端から滑らせ、`none` は動かさずにすぐ切り替えます。何度も開け閉めする画面や、本文の折り返しが動くのを避けたいときは `none` にします。',
           '- `side` で出す辺を選びます。既定は `right` です。Sidebar を左に置くときは、反対の右に置きます。',
           '- 見出しには題（`title`）と説明（`description`）、右上に閉じる × を置きます。題はパネルの読み上げの名前になります。× を置かないときは `hideCloseButton` を渡し、`InspectorTrigger` か `actions` に閉じる手段を置きます。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。',
@@ -97,6 +100,8 @@ const meta = {
     description: 'PDF・2.4 MB',
     side: 'right',
     variant: 'push',
+    overlayEdge: 'flush',
+    motion: 'slide',
     closeOnEscape: true,
     hideCloseButton: false,
     closeName: '閉じる',
@@ -115,6 +120,17 @@ const meta = {
       options: ['push', 'overlay'],
       table: { defaultValue: { summary: "'push'" } },
     },
+    overlayEdge: {
+      control: 'inline-radio',
+      options: ['flush', 'floating'],
+      table: { defaultValue: { summary: "'flush'" } },
+    },
+    motion: {
+      control: 'inline-radio',
+      options: ['slide', 'none'],
+      table: { defaultValue: { summary: "'slide'" } },
+    },
+    width: { control: 'text' },
     actionsLayout: {
       control: 'inline-radio',
       options: ['auto', 'end', 'fill', 'stack', 'stack-reverse'],
@@ -188,6 +204,78 @@ export const Left: Story = {
   name: '左に置く',
   parameters: { controls: { include: ['title', 'description'] } },
   render: (args) => both(args, 'left'),
+};
+
+export const OverlayEdges: Story = {
+  tags: ['visual'],
+  name: '重ねるときの端の形',
+  parameters: {
+    controls: { include: ['side'] },
+    docs: {
+      description: {
+        story:
+          '`overlayEdge="flush"`（既定）は領域の端に着け、角を丸めません。`floating` は領域の端から少し離し、4 つの角を丸めて浮かべます。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-6">
+      {(['flush', 'floating'] as const).map((overlayEdge) => (
+        <div key={overlayEdge} className="flex flex-col gap-2">
+          <span className={labelClass}>{overlayEdge}</span>
+          <Area
+            inspector={
+              <Inspector {...args} variant="overlay" overlayEdge={overlayEdge}>
+                {details}
+              </Inspector>
+            }
+          />
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Width: Story = {
+  name: '幅を変える',
+  args: { width: 280 },
+  parameters: {
+    controls: { include: ['width', 'variant'] },
+    docs: {
+      description: {
+        story: '`width` に数値（px）か CSS の長さを渡すと、パネルの幅を変えられます。',
+      },
+    },
+  },
+  render: (args) => <Area inspector={<Inspector {...args}>{details}</Inspector>} />,
+  play: async ({ canvas }) => {
+    const panel = await canvas.findByRole('complementary', { name: '企画書.pdf' });
+    await expect(panel.getBoundingClientRect().width).toBeCloseTo(280, 0);
+  },
+};
+
+export const NoMotion: Story = {
+  name: '動かさない',
+  args: { motion: 'none' },
+  parameters: {
+    controls: { include: ['motion', 'variant'] },
+    docs: {
+      description: { story: '`motion="none"` は、開閉を動かさずにすぐ切り替えます。' },
+    },
+  },
+  render: (args) => (
+    <Area defaultOpen={false} inspector={<Inspector {...args}>{details}</Inspector>} />
+  ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '詳細' }));
+    // 押した直後から、パネルは開いた幅になっている
+    const panel = await canvas.findByRole('complementary', { name: '企画書.pdf' });
+    const frame = panel.parentElement;
+    await expect(frame?.getBoundingClientRect().width).toBeCloseTo(
+      panel.getBoundingClientRect().width,
+      0
+    );
+  },
 };
 
 export const Closed: Story = {

@@ -1,13 +1,18 @@
 import { tv } from '../../internal/tv';
 
-// Inspector の見た目 — 軸 350〜355（比較中）
-//   押しのける形（push）: ページと同じレイヤー。影を付けず、面と線で本文と分ける（原則1）。角は丸めない（領域の端に着く）
+// Inspector の見た目 — ADR-0320〜0325
+//   押しのける形（variant="push"、既定 — ADR-0320）: ページと同じレイヤー。影を付けず、白い面と本文との境の細い線で分ける（原則1・ADR-0323）
+//     角は丸めない（領域の端に着く）
 //     枠（frame）の幅を 0 ⇄ パネルの幅で滑らせ、本文を押しのける（原則14「内容が押されるときは、跳ばずに滑らせる」）
 //     パネルは枠の本文の側の端に着けておく。枠が広がるにつれ、パネルが領域の端から滑り出て見える
-//   重なる形（overlay）: 領域の中で本文の上に重なる面。影は本文の側へ向ける（原則1）。本文の側の角をカードの角に丸める（原則5・Drawer の横のパネルと同じ）
+//   重なる形（variant="overlay"）: 領域の中で本文の上に重なる面。影と輪郭は Drawer の横のパネルと同じで、影は本文の側へ向ける（原則1・ADR-0321）
+//     端の形（overlayEdge — ADR-0322）: flush（既定）は領域の端に着け、角を丸めない。輪郭は本文の側だけ
+//       floating は領域の端から離し、4 つの角をカードの角に丸め、輪郭を一周させる
+//       形の値は枠に内部の CSS 変数（--inspector-inset・--inspector-radius・--inspector-edge-line）として置き、パネルはその変数だけを読む
 //     パネルを領域の端の外から滑らせる（原則14）。領域（InspectorLayout）が外を切り取るので、画面の最上層には出ない
-//   どちらも、閉じた動きが終わったら visibility で隠す（読み上げとフォーカスからも外れる）。閉じるほうを短くする
-//   値はすべて design/tokens.css の --inspector-*
+//   幅: 既定は Drawer の横のパネルと同じ（--inspector-width — ADR-0324）。部品の width で上書きできる（枠に --inspector-width を書く）
+//   開閉の動き（motion — ADR-0325）: slide（既定）は Drawer・シートと同じ長さで滑らせ、閉じるほうを短くする。none は動かさない
+//   どちらの形も、閉じた動きが終わったら visibility で隠す（読み上げとフォーカスからも外れる）
 export const inspectorStyles = tv({
   slots: {
     frame: 'shrink-0',
@@ -29,18 +34,17 @@ export const inspectorStyles = tv({
           'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
         ],
         panel: [
-          'absolute inset-y-0 w-(--inspector-width) border-(--inspector-push-line) bg-(--inspector-push-bg)',
+          'absolute inset-y-0 w-(--inspector-width) border-line bg-surface',
           'transition-[visibility]',
         ],
       },
       overlay: {
         frame: [
-          'pointer-events-none absolute inset-y-(--inspector-overlay-inset) z-10',
-          'w-(--inspector-width) max-w-[calc(100%-var(--inspector-overlay-gap)-var(--inspector-overlay-inset))]',
+          'pointer-events-none absolute inset-y-(--inspector-inset) z-10',
+          'w-(--inspector-width) max-w-[calc(100%-var(--inspector-overlay-gap)-var(--inspector-inset))]',
         ],
         panel: [
-          'pointer-events-auto w-full border-surface-line bg-surface',
-          'border-y-(length:--inspector-overlay-edge-line-width)',
+          'pointer-events-auto w-full rounded-(--inspector-radius) border-(length:--inspector-edge-line) border-surface-line bg-surface',
           'transition-[transform,visibility,box-shadow]',
         ],
       },
@@ -49,30 +53,42 @@ export const inspectorStyles = tv({
       left: { frame: 'order-first' },
       right: { frame: 'order-last' },
     },
+    overlayEdge: {
+      flush: {
+        frame: '[--inspector-edge-line:0px] [--inspector-inset:0px] [--inspector-radius:0px]',
+      },
+      floating: {
+        frame:
+          '[--inspector-edge-line:var(--border-width-thin)] [--inspector-inset:var(--inspector-floating-inset)] [--inspector-radius:var(--inspector-floating-radius)]',
+      },
+    },
+    motion: {
+      slide: {},
+      none: { frame: 'transition-none', panel: 'transition-none' },
+    },
   },
   compoundVariants: [
     // 押しのける形: パネルは本文の側の端に着け、本文の側に線を引く
     {
       variant: 'push',
       side: 'right',
-      class: { panel: 'left-0 border-l-(length:--inspector-push-line-width)' },
+      class: { panel: 'left-0 border-l-(length:--border-width-thin)' },
     },
     {
       variant: 'push',
       side: 'left',
-      class: { panel: 'right-0 border-r-(length:--inspector-push-line-width)' },
+      class: { panel: 'right-0 border-r-(length:--border-width-thin)' },
     },
-    // 重なる形: 領域の端から出る。影と角は本文の側へ向ける
+    // 重なる形: 領域の端から出る。影は本文の側へ向け、本文の側にはいつも輪郭を引く
     {
       variant: 'overlay',
       side: 'right',
       class: {
-        frame: 'right-(--inspector-overlay-inset)',
+        frame: 'right-(--inspector-inset)',
         panel: [
-          'border-r-(length:--inspector-overlay-edge-line-width) border-l-(length:--inspector-overlay-line-width)',
-          'rounded-l-(--inspector-overlay-radius-inner) rounded-r-(--inspector-overlay-radius-outer)',
+          'border-l-(length:--border-width-thin)',
           '[box-shadow:var(--inspector-overlay-shadow-right)]',
-          '[transform:translateX(calc(100%+var(--inspector-overlay-inset)))] data-open:[transform:none]',
+          '[transform:translateX(calc(100%+var(--inspector-inset)))] data-open:[transform:none]',
         ],
       },
     },
@@ -80,17 +96,16 @@ export const inspectorStyles = tv({
       variant: 'overlay',
       side: 'left',
       class: {
-        frame: 'left-(--inspector-overlay-inset)',
+        frame: 'left-(--inspector-inset)',
         panel: [
-          'border-r-(length:--inspector-overlay-line-width) border-l-(length:--inspector-overlay-edge-line-width)',
-          'rounded-l-(--inspector-overlay-radius-outer) rounded-r-(--inspector-overlay-radius-inner)',
+          'border-r-(length:--border-width-thin)',
           '[box-shadow:var(--inspector-overlay-shadow-left)]',
-          '[transform:translateX(calc(-100%-var(--inspector-overlay-inset)))] data-open:[transform:none]',
+          '[transform:translateX(calc(-100%-var(--inspector-inset)))] data-open:[transform:none]',
         ],
       },
     },
   ],
-  defaultVariants: { variant: 'push', side: 'right' },
+  defaultVariants: { variant: 'push', side: 'right', overlayEdge: 'flush', motion: 'slide' },
 });
 
 // 本文とパネルを並べる領域。上に帯（header）、その下に本文とパネルの行

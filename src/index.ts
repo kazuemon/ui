@@ -239,6 +239,8 @@ export {
 } from './components/image-zoom/ImageZoom';
 export {
   Inspector,
+  type InspectorMotion,
+  type InspectorOverlayEdge,
   type InspectorProps,
   type InspectorSide,
   type InspectorVariant,
