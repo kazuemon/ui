@@ -402,6 +402,12 @@ export {
   type StatTrend,
 } from './components/stat/Stat';
 export {
+  type StatusPanelHeadingLevel,
+  StatusPanel,
+  type StatusPanelProps,
+  type StatusPanelStatus,
+} from './components/status-panel/StatusPanel';
+export {
   Step,
   type StepProps,
   Steps,
