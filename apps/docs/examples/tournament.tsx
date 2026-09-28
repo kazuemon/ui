@@ -261,7 +261,13 @@ function GroupScreen() {
               {matches.map((match) => (
                 <TableRow
                   key={match.no}
-                  onClick={(event) => openMatch(match, event.currentTarget)}
+                  // 行を押したときは、閉じたあと行の試合番号のボタンに焦点を戻す（行そのものは焦点を受けない）
+                  onClick={(event) =>
+                    openMatch(
+                      match,
+                      event.currentTarget.querySelector('button') ?? event.currentTarget
+                    )
+                  }
                   className="cursor-pointer hover:bg-flat-hover"
                 >
                   <TableCell>
