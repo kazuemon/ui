@@ -45,6 +45,9 @@ export interface PositionerProps extends ComponentProps<'div'> {
 export function focusTargetRef(target: OverlayFocusTarget | undefined) {
   if (target === undefined) return undefined;
   if (target === false) return false;
-  // ref かどうかで分ける。instanceof HTMLElement はサーバーで描くときに HTMLElement がなく落ちる
+  // ブラウザでは要素かどうかを先に確かめる（current という名前の値を持つ要素を ref と取り違えない）。
+  // サーバーで描くときは HTMLElement がないので、ref かどうか（current を持つか）で分ける
+  if (typeof HTMLElement !== 'undefined' && target instanceof HTMLElement)
+    return { current: target };
   return 'current' in target ? target : { current: target };
 }
