@@ -23,7 +23,14 @@ const sensors = [
 // 周りがずれる動きと、離したときに収まる動きを、Sortable（motion="slide"）と同じ長さと緩急にそろえる
 const transition = { duration: 250, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' };
 
-export function SortableList({ items, label }: { items: Item[]; label: string }) {
+// 項目は最初の 1 回だけ読み、並びだけをここで持つ。項目を足し引きする画面では、並び（order）を親で持つ
+export function SortableList({
+  defaultItems: items,
+  label,
+}: {
+  defaultItems: Item[];
+  label: string;
+}) {
   const [order, setOrder] = useState(() => items.map((item) => item.id));
   const labelOf = (id: unknown) => items.find((item) => item.id === id)?.label;
   return (

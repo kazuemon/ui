@@ -475,7 +475,15 @@ export function SortableHandle({
       {...props}
       onKeyDown={(event) => {
         onKeyDown?.(event);
-        if (event.defaultPrevented || !listContext || itemValue === undefined) return;
+        // 動かせない項目（項目の disabled・リストの disabled）は、フォーカスが残っていても動かさない
+        if (
+          event.defaultPrevented ||
+          !listContext ||
+          listContext.disabled ||
+          itemContext?.locked ||
+          itemValue === undefined
+        )
+          return;
         const delta = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
         if (!delta) return;
         event.preventDefault();

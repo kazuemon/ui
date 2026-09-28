@@ -50,7 +50,7 @@ export const Vertical: Story = {
   parameters: { docs: { source: sourceCode(code) } },
   render: () => (
     <div className="max-w-sm">
-      <SortableList items={items} label="記事を出すまで" />
+      <SortableList defaultItems={items} label="記事を出すまで" />
     </div>
   ),
   play: async ({ canvasElement }) => {
