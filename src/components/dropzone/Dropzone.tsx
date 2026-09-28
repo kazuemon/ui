@@ -8,6 +8,8 @@ import {
   type MouseEvent,
   type ReactNode,
   type Ref,
+  useEffect,
+  useRef,
   useState,
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
@@ -256,11 +258,18 @@ export function Dropzone({
 
   // 利用者の inputRef（HTMLInputElement）を、BaseField.Control の ref（HTMLElement）につなぐ
   // （既定で <input> を描くので、実体は必ず HTMLInputElement）
+  const inputElRef = useRef<HTMLInputElement | null>(null);
   const setControlRef = (node: HTMLElement | null) => {
     const input = node as HTMLInputElement | null;
+    inputElRef.current = input;
     if (typeof inputRef === 'function') inputRef(input);
     else if (inputRef) Object.assign(inputRef, { current: input });
   };
+
+  // 値が外から変わったとき（value で親が 1 つ外した、など）も、Form に送る input.files を値に合わせる
+  useEffect(() => {
+    syncInputFiles(inputElRef.current, files);
+  }, [files]);
 
   const acceptIncoming = (incoming: File[], input: HTMLInputElement | null) => {
     const { accepted, rejected } = evaluateFiles(incoming, {
@@ -274,6 +283,7 @@ export function Dropzone({
     if (accepted.length > 0) setFiles(next);
     if (rejected.length > 0) onFilesRejected?.(rejected);
     // Form に送るときの値。ブラウザは input.files に代入できるので、受け入れた分だけに合わせ直す
+    // （すべて受け付けなかったときは値が変わらず、上の effect が走らないので、ここでも合わせる）
     syncInputFiles(input, next);
   };
 
