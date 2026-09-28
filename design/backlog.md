@@ -743,8 +743,10 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 ### Sidebar
 
-2026-09-24 に決めました。決定は [ADR-0350](./adr/0350-sidebar-placement.md)〜[ADR-0354](./adr/0354-sidebar-rail-open.md) です。
+2026-09-24〜2026-09-29 に決めました。決定は [ADR-0350](./adr/0350-sidebar-placement.md)〜[ADR-0364](./adr/0364-sidebar-narrow-menu.md) です。
 
 - MegaMenu（見出し・説明・複数列の面。Navbar から開く。Sidebar の入れ子とは別物）は決めていません
-- Sidebar の高さとスクロール（上に題、中身がスクロール、下に畳むボタン）は決めていません
-- 入れ子の末尾の「作成」の行は、行き先を持たない `SidebarItem` で置きます（[ADR-0355](./adr/0355-sidebar-create-item.md)）。行を並べ替える・行ごとにメニューを持たせる操作は決めていません
+- 入れ子の末尾の「作成」の行は、行き先を持たない `SidebarItem` で置きます（[ADR-0355](./adr/0355-sidebar-create-item.md)）。行ごとのメニューは [ADR-0360](./adr/0360-sidebar-item-menu.md) で決めましたが、行を並べ替える操作は、Sortable と組み合わせる形を未決のまま残しています
+- `--sidebar-current-hover` は `:root` で `--sidebar-current-bg` から計算しています。`color` を primary・secondary にしたとき、いまいる行の hover の色がその色に追従しているかは確かめていません
+- `narrowPresentation="menu"`（[ADR-0364](./adr/0364-sidebar-narrow-menu.md)）では、件数は札ではなく、文字の後ろの「（n）」で出します
+- `SidebarLayout` の `resizable` で変えた幅は、部品の中では覚えません。使う側が `onWidthChange` で保存します
