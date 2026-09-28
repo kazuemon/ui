@@ -71,10 +71,10 @@ export function evaluateFiles(
 ): EvaluateFilesResult {
   const accepted: File[] = [];
   const rejected: DropzoneRejection[] = [];
-  // 複数選べない欄は、最初の1つだけを候補にする（<input> の multiple と同じ扱い）
-  const candidates = multiple ? files : files.slice(0, 1);
+  // 複数選べない欄は 1 つまで受け付ける。2 つ目以降も評価し、数の上限（maxFiles）の理由で弾いたと知らせる
+  const limit = multiple ? maxFiles : Math.min(maxFiles ?? 1, 1);
   let count = currentCount;
-  for (const file of candidates) {
+  for (const file of files) {
     if (accept && !matchesAccept(file, accept)) {
       rejected.push({ file, reason: 'accept' });
       continue;
@@ -83,7 +83,7 @@ export function evaluateFiles(
       rejected.push({ file, reason: 'maxSize' });
       continue;
     }
-    if (maxFiles != null && count >= maxFiles) {
+    if (limit != null && count >= limit) {
       rejected.push({ file, reason: 'maxFiles' });
       continue;
     }
