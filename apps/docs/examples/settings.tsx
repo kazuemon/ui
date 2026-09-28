@@ -2,6 +2,7 @@
 
 import {
   AlertDialog,
+  Avatar,
   type AlertDialogColor,
   Button,
   Checkbox,
@@ -37,7 +38,7 @@ import {
   type ToastPosition,
   useToast,
 } from '@kazuemon/ui';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SamplePage } from './sample-page';
 import { town } from './sites';
@@ -54,7 +55,11 @@ interface SettingsArgs {
   toastAppearance: ToastVariant;
   captionPlacement: CaptionPlacement;
   dangerTone: AlertDialogColor;
+  avatarUpload: AvatarUpload;
 }
+
+/** アイコンの選び方。preview はいまのアイコンを大きく見せてボタンで替える形、dropzone は置く場所を広く取る形 */
+type AvatarUpload = 'preview' | 'dropzone';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -96,17 +101,109 @@ const quietEnd = Temporal.PlainTime.from('07:00');
 const phoneMask = (value: string) =>
   /^0[5789]0/.test(value.replace(/\D/g, '')) ? '###-####-####' : '##-####-####';
 
-function AvatarField({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+const avatarAccept = ['image/png', 'image/jpeg'];
+const avatarMaxSize = 5 * 1000 * 1000;
+const avatarCaption = 'PNG・JPEG、5MB まで。正方形に切り取って表示します';
+
+/** いまのアイコンを大きく見せ、ボタンで画像を選び直す形。選んだ画像はその場でアイコンに映す */
+function AvatarPreviewField({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const url = useMemo(() => (file ? URL.createObjectURL(file) : undefined), [file]);
+  // 選び直したら、前の画像の URL を手放す
+  useEffect(
+    () => () => {
+      if (url) URL.revokeObjectURL(url);
+    },
+    [url]
+  );
+  const choose = (picked: File | undefined) => {
+    if (!picked) return;
+    if (!avatarAccept.includes(picked.type)) return setError(rejectionText.accept);
+    if (picked.size > avatarMaxSize) return setError(rejectionText.maxSize);
+    setError(undefined);
+    setFile(picked);
+  };
+  const caption = (
+    <Text id="avatar-caption" size="sm" variant="muted">
+      {avatarCaption}
+    </Text>
+  );
+  return (
+    <div role="group" aria-labelledby="avatar-label" className="flex flex-col gap-2">
+      <Text id="avatar-label" variant="label">
+        アイコン
+      </Text>
+      {captionPlacement === 'top' && caption}
+      <div className="flex items-center gap-4">
+        <Avatar size="xl" name="かずえもん" src={url} alt={file ? '選んだ画像' : ''} />
+        <div className="flex min-w-0 flex-col items-start gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              aria-describedby="avatar-caption"
+              onClick={() => inputRef.current?.click()}
+            >
+              画像を選ぶ
+            </Button>
+            {file && (
+              <Button variant="underline" onClick={() => setFile(null)}>
+                元に戻す
+              </Button>
+            )}
+          </div>
+          {file && (
+            <Text size="sm" variant="muted" className="max-w-full truncate">
+              {file.name}
+            </Text>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={avatarAccept.join(',')}
+          hidden
+          onChange={(event) => {
+            choose(event.currentTarget.files?.[0]);
+            // 同じファイルを選び直しても change が出るよう、値を空に戻す
+            event.currentTarget.value = '';
+          }}
+        />
+      </div>
+      {captionPlacement === 'bottom' && caption}
+      {error && (
+        <Text role="alert" size="sm" className="text-fg-danger">
+          {error}
+        </Text>
+      )}
+    </div>
+  );
+}
+
+function AvatarField({
+  captionPlacement,
+  upload,
+}: {
+  captionPlacement: CaptionPlacement;
+  upload: AvatarUpload;
+}) {
+  if (upload === 'preview') return <AvatarPreviewField captionPlacement={captionPlacement} />;
+  return <AvatarDropzoneField captionPlacement={captionPlacement} />;
+}
+
+/** 置く場所を広く取る形。ドラッグして置くか、ボタンで選ぶ */
+function AvatarDropzoneField({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
   const [files, setFiles] = useState<File[]>([]);
   const [rejections, setRejections] = useState<DropzoneRejection[]>([]);
   return (
     <div className="flex flex-col gap-3">
       <Dropzone
         label="アイコン"
-        caption="PNG・JPEG、5MB まで。正方形に切り取って表示します"
+        caption={avatarCaption}
         captionPlacement={captionPlacement}
-        accept="image/png,image/jpeg"
-        maxSize={5 * 1000 * 1000}
+        accept={avatarAccept.join(',')}
+        maxSize={avatarMaxSize}
         value={files}
         onValueChange={(next) => {
           setFiles(next);
@@ -125,15 +222,17 @@ function AvatarField({ captionPlacement }: { captionPlacement: CaptionPlacement 
 
 function AccountPanel({
   captionPlacement,
+  avatarUpload,
   onOpenSecurity,
 }: {
   captionPlacement: CaptionPlacement;
+  avatarUpload: AvatarUpload;
   onOpenSecurity: () => void;
 }) {
   return (
     <div className="flex flex-col gap-8">
       <Section title="プロフィール">
-        <AvatarField captionPlacement={captionPlacement} />
+        <AvatarField captionPlacement={captionPlacement} upload={avatarUpload} />
         <TextField
           label="表示名"
           defaultValue="かずえもん"
@@ -386,6 +485,7 @@ function SettingsScreen({ args }: { args: SettingsArgs }) {
         <TabPanel value="account">
           <AccountPanel
             captionPlacement={args.captionPlacement}
+            avatarUpload={args.avatarUpload}
             onOpenSecurity={() => setTab('security')}
           />
         </TabPanel>
@@ -462,6 +562,23 @@ export const example: Example = {
       ],
     },
     {
+      name: 'avatarUpload',
+      label: 'アイコンの選び方',
+      type: 'radio',
+      options: [
+        {
+          value: 'preview',
+          label: 'プレビュー',
+          caption: 'いまのアイコンを大きく見せ、ボタンで画像を選び直します',
+        },
+        {
+          value: 'dropzone',
+          label: 'ドロップゾーン',
+          caption: '画像をドラッグして置ける場所を広く取ります',
+        },
+      ],
+    },
+    {
       name: 'dangerTone',
       label: '危険な操作の色',
       type: 'radio',
@@ -477,6 +594,7 @@ export const example: Example = {
     toastAppearance: 'soft',
     captionPlacement: 'top',
     dangerTone: 'danger',
+    avatarUpload: 'preview',
   },
   Screen: ({ args, density }) => {
     const settingsArgs: SettingsArgs = {
@@ -485,6 +603,7 @@ export const example: Example = {
       toastAppearance: args.toastAppearance as ToastVariant,
       captionPlacement: args.captionPlacement as CaptionPlacement,
       dangerTone: args.dangerTone as AlertDialogColor,
+      avatarUpload: args.avatarUpload as AvatarUpload,
     };
     return (
       <SamplePage density={density} site={town} current="設定" width="md">
