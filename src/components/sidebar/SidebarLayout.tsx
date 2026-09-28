@@ -21,8 +21,8 @@ import {
 } from './sidebar-context';
 import { layout } from './sidebar-styles';
 
-// 列のあるページの骨組み — ADR-0350（置き方）・304（狭い画面）・305（開閉の動き）
-//   置き方: below は Header が動かず、その下で列と本文が並ぶ（既定）。full は列が上から下まで通り、Header は本文の側に入る
+// 列のあるページの骨組み — ADR-0350（置き方）・0351（狭い画面）・0352（開閉の動き）・0362（幅を変える）
+//   置き方: under-header は Header が端から端まで通り、その下で列と本文が並ぶ（既定）。full-height は列が上から下まで通り、Header は本文の側に入る
 //   置かれた面の幅が 48rem より狭いと、列をやめて Drawer にする。Navbar と同じく、画面ではなく面の幅で決める（コンテナ）
 
 // 列を出す幅（rem）。これより狭いと Drawer にする。Navbar の畳む幅と同じ
@@ -58,7 +58,8 @@ export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'childre
    */
   motion?: SidebarMotion;
   /**
-   * 広い画面で、列の端をつかんで幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で変えます。つまみを 2 回押すと、はじめの幅に戻ります
+   * 広い画面で、列の端をつかんで幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で変えます（Home・End で最小・最大）。
+   * つまみをダブルクリックすると、はじめの幅（defaultWidth。なければ部品の幅）に戻ります。width で制御するときは、defaultWidth も渡すと戻せます
    * @default false
    */
   resizable?: boolean;

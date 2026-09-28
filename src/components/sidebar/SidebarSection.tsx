@@ -63,7 +63,7 @@ export function SidebarSection({
       <BaseCollapsible.Root
         open={open}
         onOpenChange={setOpen}
-        render={<li role="none" data-slot="sidebar-section" className={s.section({ className })} />}
+        render={<li data-slot="sidebar-section" className={s.section({ className })} />}
       >
         <BaseCollapsible.Trigger
           id={titleId}
@@ -86,7 +86,7 @@ export function SidebarSection({
   }
 
   return (
-    <li role="none" data-slot="sidebar-section" className={s.section({ className })}>
+    <li data-slot="sidebar-section" className={s.section({ className })}>
       {rail ? (
         // 畳んだ列: 題は出さず、題と同じ高さの場所を残す（開いた列と行の縦の位置をそろえる）。2 つ目からの節は、その中に区切りの線を引く
         <div

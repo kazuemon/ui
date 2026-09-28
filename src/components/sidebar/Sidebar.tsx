@@ -130,7 +130,7 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    * 列の下端のボタンの文字（開いているとき）。畳んだ列では、読み上げの名前になります
    * @default '畳む'
    */
-  collapseName?: string;
+  collapseLabel?: string;
   /**
    * 列の下端のボタンの読み上げの名前（畳んでいるとき）
    * @default '開く'
@@ -179,7 +179,7 @@ export function Sidebar({
   sectionIndicator = 'subtle',
   narrowPresentation = 'drawer',
   collapseButton = false,
-  collapseName = '畳む',
+  collapseLabel = '畳む',
   expandName = '開く',
   openDelay = 0,
   closeDelay = 200,
@@ -299,7 +299,7 @@ export function Sidebar({
             {collapseButton && (
               <button
                 type="button"
-                aria-label={collapsed ? expandName : collapseName}
+                aria-label={collapsed ? expandName : collapseLabel}
                 aria-expanded={!collapsed}
                 aria-controls={navId}
                 onClick={() => setCollapsed(!collapsed)}
@@ -308,7 +308,7 @@ export function Sidebar({
                 <span aria-hidden="true" className={s.icon()}>
                   {collapsed ? <CaretRightIcon /> : <CaretLeftIcon />}
                 </span>
-                <span className={collapsed ? 'sr-only' : s.label()}>{collapseName}</span>
+                <span className={collapsed ? 'sr-only' : s.label()}>{collapseLabel}</span>
               </button>
             )}
           </div>
@@ -340,7 +340,7 @@ const EXPAND_HYSTERESIS = 24;
 /**
  * 列の端の幅を変えるつまみ。本文との境の線の上に重ねる。
  * ドラッグで幅を変え、いちばん狭い幅よりさらに細くすると畳む（collapseOnResize）。畳んだ列からは、右へ引き出すと開く。
- * ← → で 16px ずつ（いちばん狭い幅で ← を押すと畳み、畳んだ列で → を押すと開く）、Home・End で最小・最大。2 回押すとはじめの幅に戻る
+ * ← → で 16px ずつ（いちばん狭い幅で ← を押すと畳み、畳んだ列で → を押すと開く）、Home・End で最小・最大。ダブルクリックではじめの幅に戻る
  */
 function ResizeHandle({
   resize,
@@ -436,7 +436,8 @@ function ResizeHandle({
     observer.observe(nav);
     return () => observer.disconnect();
   }, [navRef]);
-  const width = resize.width ?? measured;
+  // 畳んだ列では、いちばん狭い幅を値とする（畳んだ列の幅は範囲の外なので）
+  const width = collapsed ? minWidth : (resize.width ?? measured);
   return (
     <div className={s.handleSlot()}>
       <div

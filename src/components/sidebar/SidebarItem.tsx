@@ -33,7 +33,7 @@ import {
 import { countColor, sidebar } from './sidebar-styles';
 
 // 列の 1 行。開いた列・Drawer の中では行を縦に並べ、入れ子は開け閉めする（Tree と同じ動き）
-//   畳んだ列では、最上段の行だけがアイコンになる。入れ子のある行は、載せる（か押す）と横に面が出て、そこに入れ子を出す（ADR-0350・307）
+//   畳んだ列では、最上段の行だけがアイコンになる。入れ子のある行は、載せる（か押す）と横に面が出て、そこに入れ子を出す（ADR-0350・0354）
 //   入れ子のない行は、載せると名前の札が出る。畳んでも、いまいる行を含む親のアイコンに、いまいる印を付ける（ADR-0353）
 //   面は Menu（入れ子は MenuSubmenu）。矢印キーで移り、→ で入れ子を開き、Esc で閉じる
 
@@ -257,10 +257,7 @@ function ListItem({
   ) : null;
   if (!hasChildren) {
     return (
-      <li
-        role="none"
-        className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`}
-      >
+      <li className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`}>
         {row}
         {action}
       </li>
@@ -272,10 +269,7 @@ function ListItem({
       open={open}
       onOpenChange={setOpen}
       render={
-        <li
-          role="none"
-          className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`}
-        />
+        <li className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`} />
       }
     >
       {row}
@@ -395,7 +389,7 @@ function RailItem({
 
   if (!hasChildren) {
     return (
-      <li role="none" className={`flex flex-col ${mark?.colorClass ?? ''}`}>
+      <li className={`flex flex-col ${mark?.colorClass ?? ''}`}>
         <Tooltip content={label} side="right" delay={nav.openDelay}>
           {row}
         </Tooltip>
@@ -403,7 +397,7 @@ function RailItem({
     );
   }
   return (
-    <li role="none" className={`flex flex-col ${mark?.colorClass ?? ''}`}>
+    <li className={`flex flex-col ${mark?.colorClass ?? ''}`}>
       <Menu
         trigger={row}
         open={flyoutOpen}
@@ -507,8 +501,14 @@ function FlyoutItem({
       </MenuItem>
     );
   }
-  // 面の中の行には、いまいる印（太字）と aria-current だけを付ける
-  const linkRender = current ? cloneElement(render ?? <a />, { 'aria-current': 'page' }) : render;
+  // 面の中の行には、いまいる印（太字）と aria-current を付け、押したときの処理（onClick）も開いた列と同じく呼ぶ
+  const linkProps = {
+    ...(current && { 'aria-current': 'page' as const }),
+    ...(onClick && { onClick }),
+  };
+  const linkRender = Object.keys(linkProps).length
+    ? cloneElement(render ?? <a />, linkProps)
+    : render;
   return (
     <MenuLinkItem
       icon={icon}

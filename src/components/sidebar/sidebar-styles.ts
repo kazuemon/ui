@@ -5,6 +5,17 @@ import { tv } from '../../internal/tv';
 //   行は Tree の行と同じ考え（一覧の項目の仲間。hover は入力欄の塗り、いまいる行は部品の色に従う。原則3・6）
 //   開いた形と畳んだ形で、アイコンの位置が動かない（行の左右の余白を、畳んだ列の幅の中央から決める）
 //   幅は Tailwind の width ではなく、部品のトークン（--sidebar-width・--sidebar-rail-width）で動かす
+// 他のトークンから決める値。:root で計算すると、途中の要素で差し替えた部品の高さ（密度）や、
+// color で差し替えたいまいる行の色に追従しないので、列（と Drawer の中の並び）の要素の上で計算する
+//   rail-width: 畳んだ列の幅。行が角丸の正方形になるよう、部品の高さと左右の余白から決める
+//   row-px: 行の左右の余白。畳んだ列の幅の中でアイコンが中央に来る値（開いた形と畳んだ形でアイコンの位置が動かない）
+//   current-hover: いまいる行に載せたときの塗り
+const derived = [
+  '[--sidebar-rail-width:calc(var(--spacing-control)+var(--sidebar-padding)*2)]',
+  '[--sidebar-row-px:calc((var(--sidebar-rail-width)-var(--spacing-icon))/2-var(--sidebar-padding))]',
+  '[--sidebar-current-hover:color-mix(in_oklab,var(--sidebar-current-bg),var(--color-fg)_8%)]',
+];
+
 const colorScope = {
   primary:
     '[--sidebar-current-bg:var(--color-primary-subtle)] [--sidebar-current-fg:var(--color-on-primary-subtle)]',
@@ -51,12 +62,13 @@ export const sidebar = tv({
     root: [
       'relative flex shrink-0 flex-col overflow-hidden border-e border-line bg-(color:--sidebar-bg)',
       'data-resizing:transition-none',
+      ...derived,
     ],
     // 上下に固定する場所（header・footer。ADR-0358）。スクロールする中身との境に細い線を引く（hideDivider で消す）。
     // 淡い面は、上・下それぞれに敷ける（headerVariant・footerVariant の filled）
     head: 'shrink-0 border-b border-line px-(--sidebar-padding) pt-(--sidebar-padding) pb-2',
     // Drawer の中の並び
-    drawer: 'flex flex-col gap-1',
+    drawer: ['flex flex-col gap-1', ...derived],
     // 行の並び（ScrollArea の枠）。余白は中身に持たせ、スクロールとともに動く。フォーカスの線が切れない
     list: 'min-h-0 flex-1',
     listContent: 'p-(--sidebar-padding)',
