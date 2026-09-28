@@ -12,10 +12,19 @@ import {
   useState,
 } from 'react';
 
-import { Field, FieldLoadingBar, FieldSpinner, FieldSuccessMark } from '../../internal/field/Field';
+import {
+  Field,
+  FieldLoadingBar,
+  FieldSpinner,
+  FieldSuccessMark,
+  useFieldState,
+} from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
-import type { InputFieldProps } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { cn, tv } from '../../internal/tv';
 import { countGraphemes } from './count-graphemes';
@@ -75,10 +84,21 @@ const heightVars = (
   '--textarea-max-height': `calc(${maxRows} * var(--textarea-lh) + 2 * var(--textarea-py))`,
 });
 
-export interface TextareaProps
+/** Textarea の本体（TextareaControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface TextareaControlProps
   extends
-    Omit<ComponentProps<'textarea'>, 'className' | 'children' | 'rows' | 'value' | 'defaultValue'>,
-    Omit<InputFieldProps, 'prefix' | 'suffix' | 'addonShape'> {
+    Omit<
+      ComponentProps<'textarea'>,
+      | 'className'
+      | 'children'
+      | 'rows'
+      | 'value'
+      | 'defaultValue'
+      | 'disabled'
+      | 'required'
+      | 'name'
+    >,
+    Pick<InputFieldProps, 'loadingIndicator' | 'hideSuccessMark'> {
   /**
    * 空の欄に出す見本の文字。値と見分けられるよう、「例: UI を作っています」のように、見本だと分かる書き方にします。
    * 色は、文字の基準（4.5:1）を保つ淡さまでしか淡くできないため、書き方でも値と区別します
@@ -90,7 +110,7 @@ export interface TextareaProps
   defaultValue?: string;
   /** 値が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: string) => void;
-  /** 中の textarea に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+  /** 中の textarea に渡すもの（class・data-*・autoComplete など） */
   inputProps?: ComponentProps<'textarea'>;
   /**
    * いちばん低いときの行数。空のときもこの高さです
@@ -109,7 +129,7 @@ export interface TextareaProps
   resizable?: boolean;
   /**
    * 文字数の上限。超えても打つのは止めず（貼り付けたあとで削れるように）、超えているあいだは文字数を必ず出して、数を赤にします。
-   * 超えたとき・戻ったときは読み上げでも知らせます。欄の見た目は overCountInvalid で決めます。送信を止めるのは使う側です（超えていたら error を渡す）。
+   * 超えたとき・戻ったときは読み上げでも知らせます。欄の見た目は overCountInvalid で決めます。送信を止めるのは使う側です（超えていたら errorText を渡す）。
    * 打てなくする上限は、ブラウザの maxLength を使います
    */
   maxCount?: number;
@@ -131,25 +151,18 @@ export interface TextareaProps
    * @default false
    */
   showCount?: boolean;
+  /** 本体（灰色の欄）に付くクラス */
+  className?: string;
 }
 
 /**
- * 複数行のテキスト入力。見た目・状態・ラベルとキャプションの並びは TextField と同じです
+ * 複数行のテキスト入力の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * 文字数（showCount）は本体のすぐ下に出します。maxCount を超えたときの欄の赤い枠線は、内蔵の形（Textarea）だけで引きます
  */
-export function Textarea({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
-  hideSuccessMark = false,
-  infoText,
-  disabled,
-  className,
-  loading = false,
-  loadingBehavior = 'non-blocking',
+export function TextareaControl({
   loadingIndicator = 'spinner',
+  hideSuccessMark = false,
   inputProps,
   minRows = 3,
   maxRows = 8,
@@ -159,31 +172,30 @@ export function Textarea({
   warnRemaining,
   showCount = false,
   readOnly,
-  required,
-  requiredMark,
-  optionalMark,
   style,
   value,
   defaultValue,
   maxLength,
   onChange,
   onValueChange,
-  name,
-  validate,
-  validationMode,
-  validationDebounceTime,
+  className,
   ref,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
   'aria-invalid': ariaInvalid,
   'aria-busy': ariaBusy,
   ...props
-}: TextareaProps) {
+}: TextareaControlProps) {
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const errorText = field?.messages.error;
+  const successText = field?.messages.success;
+  const messageIds = field?.describedBy;
   const id = useId();
   // Form の送信中（ADR-0059）。押せない欄と同じ見た目にし、書き換えを止める。フォーカスは外さない
   // 待っているあいだ（loading）の blocking も同じ（design/adr/0042）
-  const formLock = useFormSubmittingLock();
-  const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+  const blocking = field?.blocking ?? false;
   const [manual, setManual] = useState(false);
   // 押せないとき・止めているあいだは、つまみも使えない
   const canResize = resizable && !disabled && !blocking;
@@ -239,131 +251,139 @@ export function Textarea({
       notice: over ? `${maxCount}文字を超えています` : `${maxCount}文字以内に戻りました`,
     });
   }
-  const describe = (messageIds: string | undefined) =>
+  const describedBy =
     [ariaDescribedBy, counted ? countId : undefined, messageIds].filter(Boolean).join(' ') ||
     undefined;
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      invalid={over && overCountInvalid}
-      warning={warningText}
-      success={successText}
-      info={infoText}
-      disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
-    >
-      {(messageIds) => (
-        <>
-          <div
-            data-slot="control"
-            data-field-readonly={readOnly || undefined}
-            className={controlBox({ className: styles.box() })}
-            style={heightVars(low, high)}
+    <>
+      <div
+        data-slot="control"
+        data-field-readonly={readOnly || undefined}
+        className={controlBox({ className: [styles.box(), className] })}
+        style={heightVars(low, high)}
+      >
+        <BaseScrollArea.Root
+          data-slot="textarea-scroll"
+          className={scrollStyles.root({ className: styles.root() })}
+        >
+          <BaseScrollArea.Viewport
+            // 枠には Tab で止めない（止まるのは欄だけ）。キーボードでは、欄の中でキャレットを動かしてスクロールする
+            tabIndex={-1}
+            className={styles.viewport()}
+            onPointerDown={onViewportPointerDown}
           >
-            <BaseScrollArea.Root
-              data-slot="textarea-scroll"
-              className={scrollStyles.root({ className: styles.root() })}
-            >
-              <BaseScrollArea.Viewport
-                // 枠には Tab で止めない（止まるのは欄だけ）。キーボードでは、欄の中でキャレットを動かしてスクロールする
-                tabIndex={-1}
-                className={styles.viewport()}
-                onPointerDown={onViewportPointerDown}
-              >
-                <BaseScrollArea.Content style={{ minWidth: 0 }}>
-                  <BaseField.Control
-                    // Base UI の Field.Control を textarea で描く。値・検証・ラベルとのつなぎは Field.Control が受け持つ
-                    // textarea の props（onChange・ref など）は描く要素に渡し、Base UI が自分の props と合わせる（ハンドラーは両方呼ぶ）
-                    render={
-                      <textarea
-                        {...inputProps}
-                        {...props}
-                        ref={setInput}
-                        rows={low}
-                        maxLength={maxLength}
-                        onChange={(event) => {
-                          setTyped(countGraphemes(event.currentTarget.value));
-                          fit();
-                          onChange?.(event);
-                        }}
-                      />
-                    }
-                    className={cn(
-                      styles.input({ className: blocking && 'cursor-progress' }),
-                      inputProps?.className
-                    )}
-                    style={style}
-                    disabled={disabled}
-                    // required はブラウザのネイティブな検証を起こすので渡さない（design/adr/0255 の影響）
-                    // aria-required だけで必須であることを伝える
-                    required={false}
-                    aria-required={required || undefined}
-                    readOnly={blocking || readOnly}
-                    aria-disabled={blocking || ariaDisabled}
-                    aria-invalid={(over && overCountInvalid) || ariaInvalid}
-                    aria-busy={loading || ariaBusy}
-                    aria-describedby={describe(messageIds)}
-                    value={value}
-                    defaultValue={defaultValue}
-                    onValueChange={onValueChange && ((next) => onValueChange(next))}
+            <BaseScrollArea.Content style={{ minWidth: 0 }}>
+              <BaseField.Control
+                // Base UI の Field.Control を textarea で描く。値・検証・ラベルとのつなぎは Field.Control が受け持つ
+                // textarea の props（onChange・ref など）は描く要素に渡し、Base UI が自分の props と合わせる（ハンドラーは両方呼ぶ）
+                render={
+                  <textarea
+                    {...inputProps}
+                    {...props}
+                    ref={setInput}
+                    rows={low}
+                    maxLength={maxLength}
+                    onChange={(event) => {
+                      setTyped(countGraphemes(event.currentTarget.value));
+                      fit();
+                      onChange?.(event);
+                    }}
                   />
-                </BaseScrollArea.Content>
-              </BaseScrollArea.Viewport>
-              <BaseScrollArea.Scrollbar orientation="vertical" className={scrollStyles.scrollbar()}>
-                <BaseScrollArea.Thumb
-                  data-slot="scroll-area-thumb"
-                  className={scrollStyles.thumb()}
-                />
-              </BaseScrollArea.Scrollbar>
-            </BaseScrollArea.Root>
-            {/* 待っているあいだの印と成功のチェック（design/adr/0042・ADR-0058）。
+                }
+                className={cn(
+                  styles.input({ className: blocking && 'cursor-progress' }),
+                  inputProps?.className
+                )}
+                style={style}
+                disabled={disabled}
+                // required はブラウザのネイティブな検証を起こすので渡さない（design/adr/0255 の影響）
+                // aria-required だけで必須であることを伝える
+                required={false}
+                aria-required={field?.required || undefined}
+                readOnly={blocking || readOnly}
+                aria-disabled={blocking || ariaDisabled}
+                aria-invalid={(over && overCountInvalid) || ariaInvalid}
+                aria-busy={loading || ariaBusy}
+                aria-describedby={describedBy}
+                value={value}
+                defaultValue={defaultValue}
+                onValueChange={onValueChange && ((next) => onValueChange(next))}
+              />
+            </BaseScrollArea.Content>
+          </BaseScrollArea.Viewport>
+          <BaseScrollArea.Scrollbar orientation="vertical" className={scrollStyles.scrollbar()}>
+            <BaseScrollArea.Thumb data-slot="scroll-area-thumb" className={scrollStyles.thumb()} />
+          </BaseScrollArea.Scrollbar>
+        </BaseScrollArea.Root>
+        {/* 待っているあいだの印と成功のチェック（design/adr/0042・ADR-0058）。
                 1 行の欄では右端（suffix の前）に置くが、Textarea は高さがあるので、本体の右上に置く */}
-            {(loading && loadingIndicator === 'spinner') ||
-            (successText && !hideSuccessMark && !errorText && !loading) ? (
-              <span className="pointer-events-none absolute end-0 top-0 flex h-(--spacing-control) items-center pe-[calc(var(--spacing-control-x)-var(--field-border-width))]">
-                {loading ? <FieldSpinner /> : <FieldSuccessMark />}
-              </span>
-            ) : null}
-            {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
-          </div>
-          {counted && (
-            // 読み上げは欄の説明として、フォーカスしたときに 1 回読む（打つたびには知らせない）
-            // 超えたことは、数の赤だけでなく文でも伝える
-            <div id={countId} className={styles.count()}>
-              <span aria-hidden>
-                <span className={over ? styles.countOver() : near ? styles.countNear() : undefined}>
-                  {length}
-                </span>{' '}
-                / {limit}
-              </span>
-              <span className="sr-only">
-                {over
-                  ? `${limit}文字を超えています。いま${length}文字`
-                  : near
-                    ? `${limit}文字まで。いま${length}文字。残り${limit - length}文字`
-                    : `${limit}文字まで。いま${length}文字`}
-              </span>
-            </div>
-          )}
-          {maxCount != null && (
-            // 超えた・戻ったの知らせ。いつも置いた live region に文を入れる（ADR-0044 と同じ）
-            <div aria-live="polite" className="sr-only">
-              {overState.notice}
-            </div>
-          )}
-        </>
+        {(loading && loadingIndicator === 'spinner') ||
+        (successText && !hideSuccessMark && !errorText && !loading) ? (
+          <span className="pointer-events-none absolute end-0 top-0 flex h-(--spacing-control) items-center pe-[calc(var(--spacing-control-x)-var(--field-border-width))]">
+            {loading ? <FieldSpinner /> : <FieldSuccessMark />}
+          </span>
+        ) : null}
+        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+      </div>
+      {counted && (
+        // 読み上げは欄の説明として、フォーカスしたときに 1 回読む（打つたびには知らせない）
+        // 超えたことは、数の赤だけでなく文でも伝える
+        <div id={countId} className={styles.count()}>
+          <span aria-hidden>
+            <span className={over ? styles.countOver() : near ? styles.countNear() : undefined}>
+              {length}
+            </span>{' '}
+            / {limit}
+          </span>
+          <span className="sr-only">
+            {over
+              ? `${limit}文字を超えています。いま${length}文字`
+              : near
+                ? `${limit}文字まで。いま${length}文字。残り${limit - length}文字`
+                : `${limit}文字まで。いま${length}文字`}
+          </span>
+        </div>
+      )}
+      {maxCount != null && (
+        // 超えた・戻ったの知らせ。いつも置いた live region に文を入れる（ADR-0044 と同じ）
+        <div aria-live="polite" className="sr-only">
+          {overState.notice}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Textarea の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export type TextareaBaseProps = Omit<TextareaControlProps, 'className'> &
+  Omit<InputFieldProps, 'prefix' | 'suffix' | 'addonShape' | 'placeholder'> & {
+    /** 中の textarea に渡すもの（class・data-*・autoComplete など）。欄の外枠には className を使います */
+    inputProps?: ComponentProps<'textarea'>;
+  };
+
+/** Textarea の props。label か accessibleName のどちらかが要ります */
+export type TextareaProps = FieldNamed<TextareaBaseProps>;
+
+/**
+ * 複数行のテキスト入力。見た目・状態・ラベルとキャプションの並びは TextField と同じです
+ */
+export function Textarea(props: TextareaProps) {
+  const [field, control] = splitFieldProps(props as TextareaBaseProps);
+  // 文字数の上限（maxCount）を超えたら、欄をエラーの状態にする（overCountInvalid）。本体と同じく、打った値の文字を数える
+  const [typed, setTyped] = useState(() => countGraphemes(control.defaultValue ?? ''));
+  const length = control.value != null ? countGraphemes(control.value) : typed;
+  const over = control.maxCount != null && length > control.maxCount;
+  const { onValueChange } = control;
+  return (
+    <Field {...field} invalid={over && (control.overCountInvalid ?? true)}>
+      {() => (
+        <TextareaControl
+          {...control}
+          onValueChange={(next) => {
+            setTyped(countGraphemes(next));
+            onValueChange?.(next);
+          }}
+        />
       )}
     </Field>
   );

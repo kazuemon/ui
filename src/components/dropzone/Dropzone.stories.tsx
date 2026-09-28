@@ -3,7 +3,8 @@ import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, userEvent, waitFor } from 'storybook/test';
 
-import { Dropzone, type DropzoneProps, type DropzoneRejection } from './Dropzone';
+import { Dropzone, DropzoneControl, type DropzoneProps, type DropzoneRejection } from './Dropzone';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { DropzoneFileList } from './DropzoneFileList';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, statePseudo } from '../../stories/story-states';
@@ -324,5 +325,44 @@ export const Disabled: Story = {
     // 読み取り専用でもフォーカスできる（Tab で止まる）
     await userEvent.tab();
     // 何にフォーカスが乗るかは前後のストーリー枠に依存するため、ここでは投げないことだけを確かめる
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  parameters: {
+    docs: {
+      description: {
+        story: '`labelPlacement="start"` で、見出しを本体の左に置きます。',
+      },
+    },
+  },
+  render: () => <Dropzone label="画像" labelPlacement="start" accept="image/*" />,
+};
+
+export const Composed: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`DropzoneControl`・`FieldCaption`・`FieldMessages` を置きます。見出し・キャプション・状態の文・`disabled`・`required`・`name` は `Field` に渡し、受け付けるファイルの条件と値は `DropzoneControl` に渡します。',
+      },
+    },
+  },
+  render: () => (
+    <Field label="画像" caption="プロフィールに出ます" name="avatar" required>
+      <FieldLabel />
+      <DropzoneControl accept="image/*" />
+      <FieldCaption />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvasElement }) => {
+    const input = canvasElement.querySelector<HTMLInputElement>('input[type="file"]');
+    await expect(input).toHaveAccessibleName('画像');
+    await expect(input).toHaveAccessibleDescription('プロフィールに出ます');
+    await expect(input).toHaveAttribute('name', 'avatar');
+    await expect(input).toHaveAttribute('aria-required', 'true');
   },
 };

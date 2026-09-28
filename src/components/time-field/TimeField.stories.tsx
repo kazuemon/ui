@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent } from 'storybook/test';
 
-import { TimeField, type TimeFieldProps } from './TimeField';
+import { TimeField, TimeFieldControl, type TimeFieldProps } from './TimeField';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
@@ -311,4 +312,64 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを横に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。キャプションと状態の行は本体の下に並びます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-md">
+      <TimeField label="開始の時刻" labelPlacement="start" caption="15 分前に知らせます" />
+    </div>
+  ),
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と本体の `TimeFieldControl` を置きます。ラベル・キャプション・状態の文、`disabled`・`required`、フォームの `name` は `Field` に渡し、値・`hourCycle`・`showSeconds` などは `TimeFieldControl` に渡します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Field
+        label="開始の時刻"
+        caption="15 分前に知らせます"
+        errorText="時刻を入れてください"
+        name="start"
+      >
+        <FieldLabel />
+        <TimeFieldControl defaultValue={time} />
+        <FieldCaption />
+        <FieldMessages />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    // ラベルは区切りの group の名前になり、説明は見た目の順（キャプション → エラー）でつながる
+    await expect(canvas.getByRole('group', { name: /開始の時刻/ })).toBeInTheDocument();
+    const [hour] = canvas.getAllByRole('spinbutton');
+    await expect(hour).toHaveAttribute('aria-invalid', 'true');
+    const describedBy = (hour.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean);
+    await expect(describedBy.map((id) => document.getElementById(id)?.textContent)).toEqual([
+      '15 分前に知らせます',
+      '時刻を入れてください',
+    ]);
+    // フォームの名前は Field の name
+    const hidden = canvasElement.querySelector<HTMLInputElement>('input[name="start"]');
+    await expect(hidden?.value).toBe(time.toString({ smallestUnit: 'minute' }));
+  },
 };

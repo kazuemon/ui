@@ -2,6 +2,9 @@ import type { ReactNode } from 'react';
 
 import type {
   CaptionPlacement,
+  FieldLabelLayoutProps,
+  FieldNameProps,
+  FieldProps,
   FieldLoadingBehavior,
   FieldValidate,
   FieldValidationMode,
@@ -17,9 +20,21 @@ import type { LoadingIndicator } from '../../components/loading/Loading';
 export type FieldMessage = Exclude<ReactNode, boolean>;
 
 /** 文字を打つ欄（TextField・NumberField・DateField など）に共通の props */
-export interface InputFieldProps extends FieldMarkProps {
-  /** 本体の上に置く見出し。読み上げの名前にもなります */
-  label: ReactNode;
+export interface InputFieldProps extends FieldMarkProps, FieldLabelLayoutProps {
+  /**
+   * 本体の上（labelPlacement="start" では左）に置く見出し。読み上げの名前にもなります。
+   * 省くときは accessibleName が要ります（公開の props の型は FieldNamed で、どちらか一方を必須にします）
+   */
+  label?: ReactNode;
+  /**
+   * 読み上げだけの名前。見えるラベルを置かないときに要ります。
+   * 近くに見える文（「1 ページの件数」など）があるときは、その文と同じ語で始めます（WCAG 2.5.3）
+   */
+  accessibleName?: string;
+  /** 押せない（Disabled）状態にします */
+  disabled?: boolean;
+  /** フォームの中でこの欄を識別する名前。送信する値の名前で、Form の errors もこの名前で欄に届きます（design/adr/0255） */
+  name?: string;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
   caption?: ReactNode;
   /**
@@ -106,4 +121,96 @@ export interface InputFieldProps extends FieldMarkProps {
    * @default 0
    */
   validationDebounceTime?: number;
+}
+
+/**
+ * 公開する入力欄の props の型。label と accessibleName のどちらか一方を必須にします（軸 385）
+ * P は label・accessibleName を省いてよい形（InputFieldProps を継いだもの）
+ */
+export type FieldNamed<P> = Omit<P, 'label' | 'accessibleName'> & FieldNameProps;
+
+/** Field（外枠）が受け持つ props の名前。部品は splitFieldProps で外枠と本体に分けます */
+type FieldOwnKey =
+  | 'label'
+  | 'accessibleName'
+  | 'caption'
+  | 'captionPlacement'
+  | 'errorText'
+  | 'warningText'
+  | 'successText'
+  | 'infoText'
+  | 'disabled'
+  | 'loading'
+  | 'loadingBehavior'
+  | 'required'
+  | 'requiredMark'
+  | 'optionalMark'
+  | 'className'
+  | 'name'
+  | 'validate'
+  | 'validationMode'
+  | 'validationDebounceTime'
+  | 'labelPlacement'
+  | 'labelVariant'
+  | 'narrowLabelPlacement';
+
+/**
+ * 入力欄の props を、Field（外枠）に渡すものと本体（Control）に渡すものに分けます
+ * 状態の文（errorText など）は Field の名前（error など）に直します。disabled・loading・required は本体も Field の文脈から読みます
+ */
+export function splitFieldProps<P extends Partial<Record<FieldOwnKey, unknown>>>(
+  props: P
+): [field: Omit<FieldProps, 'children'>, control: Omit<P, FieldOwnKey>] {
+  const {
+    label,
+    accessibleName,
+    caption,
+    captionPlacement,
+    errorText,
+    warningText,
+    successText,
+    infoText,
+    disabled,
+    loading,
+    loadingBehavior,
+    required,
+    requiredMark,
+    optionalMark,
+    className,
+    name,
+    validate,
+    validationMode,
+    validationDebounceTime,
+    labelPlacement,
+    labelVariant,
+    narrowLabelPlacement,
+    ...control
+  } = props as P & InputFieldProps & { disabled?: boolean; name?: string };
+  return [
+    {
+      label,
+      accessibleName,
+      caption,
+      captionPlacement,
+      error: errorText,
+      warning: warningText,
+      success: successText,
+      info: infoText,
+      disabled,
+      loading,
+      loadingBehavior,
+      required,
+      requiredMark,
+      optionalMark,
+      className,
+      name,
+      validate,
+      validationMode,
+      validationDebounceTime,
+      labelPlacement,
+      labelVariant,
+      narrowLabelPlacement,
+    } as Omit<FieldProps, 'children'>,
+    control as Omit<P, FieldOwnKey>,
+  ];
 }

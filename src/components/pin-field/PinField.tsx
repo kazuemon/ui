@@ -1,9 +1,17 @@
 'use client';
 
 import { OTPField } from '@base-ui/react/otp-field';
-import { type ComponentProps, Fragment, type ReactNode, type Ref, useRef } from 'react';
+import {
+  type ComponentProps,
+  createContext,
+  Fragment,
+  type ReactNode,
+  type Ref,
+  useContext,
+  useRef,
+} from 'react';
 
-import { Field, FieldSpinner, FieldSuccessMark } from '../../internal/field/Field';
+import { Field, FieldSpinner, FieldSuccessMark, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import {
   type HalfWidthKind,
@@ -11,8 +19,11 @@ import {
   toHalfWidth,
   useHalfWidthNotice,
 } from '../../internal/half-width';
-import type { InputFieldProps } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { cn } from '../../internal/tv';
 
 /** 1 桁に入れてよい文字。numeric は数字、alpha は英字、alphanumeric は英数字、none は何でも */
@@ -42,32 +53,8 @@ const emptyDotClass = {
 };
 const emptyDotFocusClass = 'not-data-filled:focus-within:bg-none';
 
-export interface PinFieldProps
-  extends
-    Pick<
-      InputFieldProps,
-      | 'label'
-      | 'caption'
-      | 'captionPlacement'
-      | 'errorText'
-      | 'warningText'
-      | 'successText'
-      | 'hideSuccessMark'
-      | 'infoText'
-      | 'className'
-      | 'loadingBehavior'
-      | 'requiredMark'
-      | 'optionalMark'
-      | 'validate'
-      | 'validationMode'
-      | 'validationDebounceTime'
-    >,
-    HalfWidthNoticeProps {
-  /**
-   * 待っている（コードを確かめている・送っているなど）。箱の列の右に回る円を出し、aria-busy を付けます
-   * @default false
-   */
-  loading?: boolean;
+/** PinField の本体（PinFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface PinFieldControlProps extends Pick<InputFieldProps, 'hideSuccessMark'> {
   /**
    * 桁の数
    * @default 6
@@ -116,19 +103,10 @@ export interface PinFieldProps
    * @default false
    */
   showEmptyDots?: boolean;
-  /** 押せない */
-  disabled?: boolean;
   /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
-  /** 送るときの名前（form の値の名前） */
-  name?: string;
   /** 関連づける form の id */
   form?: string;
-  /**
-   * 必須にします。箱の列に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
-   * @default false
-   */
-  required?: boolean;
   /** 1 桁目の input の id。2 桁目からは `{id}-2` のように続きます */
   id?: string;
   /**
@@ -142,8 +120,10 @@ export interface PinFieldProps
   slotName?: (index: number, length: number) => string;
   /** 箱の列を包む要素への ref */
   ref?: Ref<HTMLDivElement>;
-  /** 1 桁ずつの input に渡すもの（class・data-* など）。欄の外枠には className を使います */
+  /** 1 桁ずつの input に渡すもの（class・data-* など） */
   inputProps?: ComponentProps<'input'>;
+  /** 箱の列と印（回る円・チェック）を包む要素に付くクラス */
+  className?: string;
 }
 
 const defaultSlotName = (index: number, length: number) => `${index + 1} 桁目（全 ${length} 桁）`;
@@ -181,50 +161,37 @@ function GroupSeparator({ separator }: { separator: ReactNode }) {
 }
 
 /**
- * 確認コード・PIN を 1 桁ずつの箱に打つ欄。SMS やメールで届いたコードの入力に使う
+ * 確認コード・PIN を打つ欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * halfWidthNotice（全角を直したことの知らせ）は内蔵の形（PinField）だけで出します
  */
-export function PinField({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function PinFieldControl({
   hideSuccessMark = false,
-  infoText,
   className,
-  loading = false,
-  loadingBehavior = 'non-blocking',
   length = 6,
   validationType = 'numeric',
   normalizeValue,
   group,
   groupSeparator,
   showEmptyDots = false,
-  disabled,
   readOnly,
-  required,
-  requiredMark,
-  optionalMark,
   onValueChange,
   onValueCompleted,
   slotName = defaultSlotName,
   ref,
   inputProps,
-  halfWidthNotice = false,
-  name,
-  validate,
-  validationMode,
-  validationDebounceTime,
   ...props
-}: PinFieldProps) {
-  // Form の送信中・blocking の待ちは、TextField と同じく押せない欄の見た目にし、書き換えを止める。フォーカスは外さない
-  const formLock = useFormSubmittingLock();
-  const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
+}: PinFieldControlProps) {
+  const field = useFieldState();
+  const loading = field?.loading ?? false;
+  const errorText = field?.messages.error;
+  const successText = field?.messages.success;
+  const messageIds = field?.describedBy;
+  const blocking = field?.blocking ?? false;
   const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
-  // 全角を半角に直したことの知らせ（既定は知らせない）。値を直す normalizeValue は描くときにも呼ばれるので、
+  // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき）。値を直す normalizeValue は描くときにも呼ばれるので、
   //   ここでは種類を覚えるだけにして、値が変わったとき（onValueChange）に知らせる
-  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+  const noticed = useContext(HalfWidthNoticedContext);
   const pending = useRef<HalfWidthKind | null>(null);
   // 文字の種類は部品の側で絞る。Base UI の numeric は全角の数字を直す前に捨ててしまうため
   const normalize = (value: string) => {
@@ -239,90 +206,118 @@ export function PinField({
     size,
   }));
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText ?? notice}
-      disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+    <div
+      data-slot="pin-field"
+      className={cn(
+        'flex items-center gap-(--pin-field-mark-gap) [--spacing-icon:var(--spacing-icon-input)]',
+        className
+      )}
     >
-      {(messageIds) => (
-        <div
-          data-slot="pin-field"
-          className="flex items-center gap-(--pin-field-mark-gap) [--spacing-icon:var(--spacing-icon-input)]"
-        >
-          <OTPField.Root
-            {...props}
-            name={name}
-            ref={ref}
-            length={length}
-            validationType="none"
-            inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
-            normalizeValue={normalize}
-            // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-            // （design/adr/0255 の影響）。渡さず、aria-required（OTPField.Root の role="group"）だけで伝える
-            required={false}
-            aria-required={required || undefined}
-            disabled={disabled}
-            readOnly={blocking || readOnly}
-            aria-describedby={messageIds}
-            aria-busy={loading || undefined}
-            onValueChange={(value) => {
-              noticed(pending.current, value === '');
-              pending.current = null;
-              onValueChange?.(value);
-            }}
-            onValueComplete={onValueCompleted && ((value) => onValueCompleted(value))}
-            className="flex min-w-0 items-center gap-(--pin-field-group-gap)"
-          >
-            {groups.map(({ first, size }, groupIndex) => {
-              return (
-                <Fragment key={first}>
-                  {groupIndex > 0 && <GroupSeparator separator={groupSeparator} />}
-                  <div data-slot="pin-field-group" className="flex min-w-0 gap-(--pin-field-gap)">
-                    {Array.from({ length: size }, (_, offset) => {
-                      const index = first + offset;
-                      return (
-                        <OTPField.Input
-                          key={index}
-                          {...inputPropsRest}
-                          data-slot="control"
-                          data-field-readonly={readOnly || undefined}
-                          aria-label={index === 0 ? undefined : slotName(index, length)}
-                          // 1 桁目にだけ説明をつなぐ。どの桁でも読むと、1 桁ごとに同じ説明が続くため
-                          aria-describedby={index === 0 ? messageIds : undefined}
-                          aria-disabled={blocking || undefined}
-                          className={cn(
-                            boxClass,
-                            showEmptyDots && emptyDotClass[props.mask ? 'ring' : 'dot'],
-                            showEmptyDots && emptyDotFocusClass,
-                            blocking && 'cursor-progress',
-                            inputProps?.className
-                          )}
-                        />
-                      );
-                    })}
-                  </div>
-                </Fragment>
-              );
-            })}
-          </OTPField.Root>
-          {loading && <FieldSpinner />}
-          {successText && !hideSuccessMark && !errorText && !loading && <FieldSuccessMark />}
-        </div>
+      <OTPField.Root
+        {...props}
+        ref={ref}
+        length={length}
+        validationType="none"
+        inputMode={validationType === 'numeric' ? 'numeric' : 'text'}
+        normalizeValue={normalize}
+        // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+        // （design/adr/0255 の影響）。渡さず、aria-required（OTPField.Root の role="group"）だけで伝える
+        required={false}
+        aria-required={field?.required || undefined}
+        disabled={field?.disabled}
+        readOnly={blocking || readOnly}
+        aria-describedby={messageIds}
+        aria-busy={loading || undefined}
+        onValueChange={(value) => {
+          noticed?.(pending.current, value === '');
+          pending.current = null;
+          onValueChange?.(value);
+        }}
+        onValueComplete={onValueCompleted && ((value) => onValueCompleted(value))}
+        className="flex min-w-0 items-center gap-(--pin-field-group-gap)"
+      >
+        {groups.map(({ first, size }, groupIndex) => {
+          return (
+            <Fragment key={first}>
+              {groupIndex > 0 && <GroupSeparator separator={groupSeparator} />}
+              <div data-slot="pin-field-group" className="flex min-w-0 gap-(--pin-field-gap)">
+                {Array.from({ length: size }, (_, offset) => {
+                  const index = first + offset;
+                  return (
+                    <OTPField.Input
+                      key={index}
+                      {...inputPropsRest}
+                      data-slot="control"
+                      data-field-readonly={readOnly || undefined}
+                      aria-label={index === 0 ? undefined : slotName(index, length)}
+                      // 1 桁目にだけ説明をつなぐ。どの桁でも読むと、1 桁ごとに同じ説明が続くため
+                      aria-describedby={index === 0 ? messageIds : undefined}
+                      aria-disabled={blocking || undefined}
+                      className={cn(
+                        boxClass,
+                        showEmptyDots && emptyDotClass[props.mask ? 'ring' : 'dot'],
+                        showEmptyDots && emptyDotFocusClass,
+                        blocking && 'cursor-progress',
+                        inputProps?.className
+                      )}
+                    />
+                  );
+                })}
+              </div>
+            </Fragment>
+          );
+        })}
+      </OTPField.Root>
+      {loading && <FieldSpinner />}
+      {successText && !hideSuccessMark && !errorText && !loading && <FieldSuccessMark />}
+    </div>
+  );
+}
+
+// 内蔵の形（PinField）が、全角を直したことの知らせを受け取る口。知らせは Field の情報の行に出す
+const HalfWidthNoticedContext = createContext<
+  ((kind: HalfWidthKind | null, empty: boolean) => void) | null
+>(null);
+
+/** PinField の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export type PinFieldBaseProps = Omit<PinFieldControlProps, 'className'> &
+  Omit<
+    InputFieldProps,
+    'placeholder' | 'prefix' | 'suffix' | 'addonShape' | 'loading' | 'loadingIndicator'
+  > &
+  HalfWidthNoticeProps & {
+    /**
+     * 待っている（コードを確かめている・送っているなど）。箱の列の右に回る円を出し、aria-busy を付けます
+     * @default false
+     */
+    loading?: boolean;
+    /**
+     * 必須にします。箱の列に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+     * @default false
+     */
+    required?: boolean;
+    /** 1 桁ずつの input に渡すもの（class・data-* など）。欄の外枠には className を使います */
+    inputProps?: ComponentProps<'input'>;
+  };
+
+/** PinField の props。label か accessibleName のどちらかが要ります */
+export type PinFieldProps = FieldNamed<PinFieldBaseProps>;
+
+/**
+ * 確認コード・PIN を 1 桁ずつの箱に打つ欄。SMS やメールで届いたコードの入力に使う
+ */
+export function PinField(props: PinFieldProps) {
+  const [field, { halfWidthNotice = false, ...control }] = splitFieldProps(
+    props as PinFieldBaseProps
+  );
+  // 全角を半角に直したことの知らせ（既定は知らせない）。infoText を渡したときは、そちらを出す
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+  return (
+    <Field {...field} info={field.info ?? notice}>
+      {() => (
+        <HalfWidthNoticedContext value={noticed}>
+          <PinFieldControl {...control} />
+        </HalfWidthNoticedContext>
       )}
     </Field>
   );

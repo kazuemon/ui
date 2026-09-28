@@ -5,7 +5,9 @@ import { type ReactNode, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
-import { Select, type SelectProps } from './Select';
+import type { FieldNamed } from '../../internal/field/input-field-props';
+import { Select, type SelectBaseProps, SelectControl } from './Select';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { TextField } from '../text-field/TextField';
 import { Gallery, Matrix, PhoneFrame, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
@@ -501,7 +503,7 @@ export const Loading: Story = {
 function LoadOnOpenSelect({
   onOpenChange,
   ...props
-}: Omit<SelectProps<boolean>, 'items' | 'loading'>) {
+}: FieldNamed<Omit<SelectBaseProps<boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -822,5 +824,66 @@ export const DensityScope: Story = {
     await expect(canvasElement.contains(option)).toBe(false);
     await expect(canvas.getByRole('combobox').offsetHeight).toBe(52);
     await expect(option.offsetHeight).toBe(52);
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { label: '1 ページの件数', caption: undefined },
+  parameters: {
+    controls: { include: ['labelVariant'] },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="subtle"` にすると、ラベルを太字にせず一段淡い色にします。',
+      },
+    },
+  },
+  render: (args) => (
+    <Select
+      {...args}
+      labelPlacement="start"
+      items={[5, 10, 20].map((size) => ({ label: `${size} 件`, value: String(size) }))}
+      defaultValue="5"
+      presentation="popover"
+      className="w-56"
+    />
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('combobox', { name: '1 ページの件数' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  args: { label: 'お届けの時間帯' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `SelectControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。',
+      },
+    },
+  },
+  decorators: [narrow],
+  render: () => (
+    <Field
+      label="お届けの時間帯"
+      caption="前日の 20 時まで変えられます"
+      warningText="18 時以降は混み合います"
+    >
+      <FieldLabel />
+      <SelectControl items={times} placeholder="選んでください" presentation="popover" />
+      <FieldCaption />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('combobox', { name: 'お届けの時間帯' });
+    // 説明はキャプション → 警告の順につながる
+    await expect(trigger).toHaveAccessibleDescription(
+      '前日の 20 時まで変えられます 18 時以降は混み合います'
+    );
   },
 };

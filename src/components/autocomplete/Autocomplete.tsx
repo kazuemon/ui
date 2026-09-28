@@ -25,18 +25,20 @@ import { useKeyboardProxy } from '../../internal/combobox-base/use-keyboard-prox
 import { useScrollRestore } from '../../internal/combobox-base/use-scroll-restore';
 import { useDensityScope } from '../../internal/density-scope';
 import {
-  type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
-  type FieldValidate,
-  type FieldValidationMode,
+  useFieldControlKind,
+  useFieldState,
 } from '../../internal/field/Field';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
@@ -115,40 +117,13 @@ export type AutocompleteFilter = (
   itemToString?: (item: ListboxItem) => string
 ) => boolean;
 
-export interface AutocompleteProps extends FieldMarkProps {
-  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
-  /**
-   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、欄の端（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
-   */
-  successText?: FieldMessage;
+/** Autocomplete の本体（AutocompleteControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface AutocompleteControlProps {
   /**
    * 成功のとき、欄の端に置くチェックを隠すか。true では下の行だけを出します
    * @default false
    */
   hideSuccessMark?: boolean;
-  /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  infoText?: FieldMessage;
-  /**
-   * 押せない（Disabled）状態にします。打てず、候補も開かず、フォームでは値が送られません
-   * @default false
-   */
-  disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
    * 一段淡い値の文字になります。フォーカスでき、文字をなぞって写せます。
@@ -361,19 +336,6 @@ export interface AutocompleteProps extends FieldMarkProps {
    */
   popoverMaxHeight?: 'none' | 'screen';
   /**
-   * 候補を読み込んでいる。印を出し、本体に aria-busy を付ける
-   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
-   * @default false
-   */
-  loading?: boolean;
-  /**
-   * 読み込んでいるあいだの欄の扱い
-   * non-blocking: 止めない。打てるままで、開くと候補の最後に loadingText の行を出す。回る円は欄の端
-   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。開けない
-   * @default 'non-blocking'
-   */
-  loadingBehavior?: FieldLoadingBehavior;
-  /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
@@ -388,45 +350,79 @@ export interface AutocompleteProps extends FieldMarkProps {
    * @default (count) => `${count} 件の候補`
    */
   loadedText?: (count: number) => string;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+}
+
+/** Autocomplete の外枠（Field）が受け持つ props */
+interface AutocompleteFieldProps extends Pick<
+  InputFieldProps,
+  | 'label'
+  | 'accessibleName'
+  | 'caption'
+  | 'captionPlacement'
+  | 'infoText'
+  | 'validate'
+  | 'validationMode'
+  | 'validationDebounceTime'
+  | 'required'
+  | 'requiredMark'
+  | 'optionalMark'
+  | 'labelPlacement'
+  | 'labelVariant'
+  | 'narrowLabelPlacement'
+> {
+  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
+  errorText?: FieldMessage;
+  /**
+   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
+   * errorText と両方あるときは、エラーの行の下に出す
+   */
+  warningText?: FieldMessage;
+  /**
+   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、欄の端（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
+   */
+  successText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。打てず、候補も開かず、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
   /** フォームに送るときの名前。送るのは欄の文字です */
   name?: string;
   /**
-   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
-   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   * 候補を読み込んでいる。印を出し、本体に aria-busy を付ける
+   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
+   * @default false
    */
-  validate?: FieldValidate;
+  loading?: boolean;
   /**
-   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
-   * @default 'onSubmit'
+   * 読み込んでいるあいだの欄の扱い
+   * non-blocking: 止めない。打てるままで、開くと候補の最後に loadingText の行を出す。回る円は欄の端
+   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。開けない
+   * @default 'non-blocking'
    */
-  validationMode?: FieldValidationMode;
-  /**
-   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
-   * @default 0
-   */
-  validationDebounceTime?: number;
-  /** 欄が属するフォームの id。フォームの外に置くときに使います */
-  form?: string;
+  loadingBehavior?: FieldLoadingBehavior;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
 
+/** Autocomplete の props から、label・accessibleName の組み合わせの決まりを外したもの。Autocomplete を包む部品が継ぎます */
+export type AutocompleteBaseProps = AutocompleteControlProps & AutocompleteFieldProps;
+
+/** Autocomplete の props。label か accessibleName のどちらかが要ります */
+export type AutocompleteProps = FieldNamed<AutocompleteBaseProps>;
+
 const defaultLoadedText = (count: number) => `${count} 件の候補`;
 
 /**
- * 文字を打つと、候補を提案してくれる入力欄
- * 値は打った文字そのもので、候補にない文字も打てます。候補を選ぶと、その文字が欄に入ります
+ * 候補を提案する入力欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function Autocomplete({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function AutocompleteControl({
   hideSuccessMark = false,
-  infoText,
-  disabled,
   readOnly,
   color = 'neutral',
   icon,
@@ -467,27 +463,28 @@ export function Autocomplete({
   sheetDetent: sheetDetentProp,
   sheetMoreCue = 'divider-always-shadow',
   popoverMaxHeight = 'screen',
-  loading = false,
-  loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
-  name,
-  validate,
-  validationMode,
-  validationDebounceTime,
   form,
-  required,
-  requiredMark,
-  optionalMark,
-  className,
-}: AutocompleteProps) {
+}: AutocompleteControlProps) {
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
+  const required = field?.required ?? false;
+  // シートの見出しに出す欄の文。見えるラベルがないときは、読み上げの名前を見出しにする
+  const label = field?.label ?? field?.accessibleName;
+  const caption = field?.caption;
+  const errorText = field?.messages.error;
+  const warningText = field?.messages.warning;
+  const successText = field?.messages.success;
+  const fieldDescribedBy = field?.describedBy;
   // 読み込んでいるあいだ。blocking は開けず、文字も変えられない
   const loadingBlocking = loading && loadingBehavior === 'blocking';
   const loadingRow = loading && !loadingBlocking;
   // Form の送信中も、同じく開けず文字も変えられない（見た目は Field の data-loading="blocking"）
-  const formLock = useFormSubmittingLock();
-  const blocking = loadingBlocking || formLock.blocking;
+  const blocking = field?.blocking ?? false;
   // 読み取り専用: 文字を打つ欄の読み取り専用と同じ見た目にし、候補は開かない
   const locked = blocking || !!readOnly;
   const portalContainer = usePortalContainer(portalContainerProp);
@@ -496,6 +493,8 @@ export function Autocomplete({
   const sheet = useSheetPresentation(presentation);
   // シートの中に打つ欄を移すか（sheetInput="inside"）。欄は押すと開くボタンになる
   const inputInSheet = sheet && sheetInput === 'inside';
+  // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない（組み立てで置いたときも）
+  useFieldControlKind({ nativeLabel: !inputInSheet });
   const sheetDetent: SheetDetent = sheetDetentProp ?? (sheetInput === 'inside' ? 'full' : 'half');
   // シートの見出しに出す欄の文。本体の下の行と同じ。両方渡したときはエラー → 警告の順
   const sheetId = useId();
@@ -776,220 +775,202 @@ export function Autocomplete({
   );
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText}
+    <BaseAutocomplete.Root<ListboxItem>
+      // 候補の形（並べるか・まとまりか）は、渡された配列から Base UI が見分ける
+      items={shownItems as readonly ListboxItem[]}
+      // 文字は部品が持ち、Base UI には制御して渡す。選んだ操作を preventDefault したときに、欄の文字を動かさないため
+      value={text}
+      onValueChange={(next, details) => {
+        // 候補を選んだとき（押す・Enter）は onSelect に知らせる。preventDefault されたら、欄も開閉も動かさない
+        if (details.reason === 'item-press') {
+          const item = pressedRef.current ?? flat.find((candidate) => candidate.label === next);
+          pressedRef.current = null;
+          preventedRef.current = false;
+          if (item && onSelect) {
+            let prevented = false;
+            onSelect(item, {
+              preventDefault: () => {
+                prevented = true;
+              },
+              get defaultPrevented() {
+                return prevented;
+              },
+            });
+            if (prevented) {
+              preventedRef.current = true;
+              details.cancel();
+              return;
+            }
+          }
+        }
+        change(next);
+      }}
+      mode={mode}
+      filter={typeof filter === 'function' ? filter : undefined}
+      autoHighlight={autoHighlight}
+      openOnInputClick={effectiveOpenOn === 'click' || effectiveOpenOn === 'focus'}
       disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない
-      nativeLabel={!inputInSheet}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+      readOnly={locked || undefined}
+      // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+      // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
+      required={false}
+      // name は包む Field から Base UI が読む
+      form={form}
+      modal={modal}
+      open={open}
+      onOpenChange={(next, details) => {
+        // 候補を選んだあとは、preventDefault されたときと、closeOnSelect が false のときは閉じない
+        if (!next && details.reason === 'item-press') {
+          if (preventedRef.current || !closeOnSelect) {
+            preventedRef.current = false;
+            details.cancel();
+            return;
+          }
+        }
+        // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        changeOpen(next);
+      }}
+      // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
+      onOpenChangeComplete={(next) => {
+        if (!next) drag.clearDragHeight();
+        onOpenChangeComplete?.(next);
+      }}
     >
-      {(messageIds) => (
-        <BaseAutocomplete.Root<ListboxItem>
-          // 候補の形（並べるか・まとまりか）は、渡された配列から Base UI が見分ける
-          items={shownItems as readonly ListboxItem[]}
-          // 文字は部品が持ち、Base UI には制御して渡す。選んだ操作を preventDefault したときに、欄の文字を動かさないため
-          value={text}
-          onValueChange={(next, details) => {
-            // 候補を選んだとき（押す・Enter）は onSelect に知らせる。preventDefault されたら、欄も開閉も動かさない
-            if (details.reason === 'item-press') {
-              const item = pressedRef.current ?? flat.find((candidate) => candidate.label === next);
-              pressedRef.current = null;
-              preventedRef.current = false;
-              if (item && onSelect) {
-                let prevented = false;
-                onSelect(item, {
-                  preventDefault: () => {
-                    prevented = true;
-                  },
-                  get defaultPrevented() {
-                    return prevented;
-                  },
-                });
-                if (prevented) {
-                  preventedRef.current = true;
-                  details.cancel();
-                  return;
-                }
-              }
-            }
-            change(next);
-          }}
-          mode={mode}
-          filter={typeof filter === 'function' ? filter : undefined}
-          autoHighlight={autoHighlight}
-          openOnInputClick={effectiveOpenOn === 'click' || effectiveOpenOn === 'focus'}
-          disabled={disabled}
-          readOnly={locked || undefined}
-          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-          // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
-          required={false}
-          name={name}
-          form={form}
-          modal={modal}
-          open={open}
-          onOpenChange={(next, details) => {
-            // 候補を選んだあとは、preventDefault されたときと、closeOnSelect が false のときは閉じない
-            if (!next && details.reason === 'item-press') {
-              if (preventedRef.current || !closeOnSelect) {
-                preventedRef.current = false;
-                details.cancel();
-                return;
-              }
-            }
-            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            changeOpen(next);
-          }}
-          // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
-          onOpenChangeComplete={(next) => {
-            if (!next) drag.clearDragHeight();
-            onOpenChangeComplete?.(next);
-          }}
+      {inputInSheet ? renderTrigger(fieldDescribedBy) : renderControl('field', fieldDescribedBy)}
+      {/* 読み込みの知らせ。Autocomplete を描いているあいだずっと置く、見えない status の箱 */}
+      <BaseAutocomplete.Status data-slot="autocomplete-status" className="sr-only">
+        {announcement}
+      </BaseAutocomplete.Status>
+      <BaseAutocomplete.Portal container={portalContainer}>
+        {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする。欄に打つ欄を残すときは暗くしない */}
+        {inputInSheet && (
+          <BaseAutocomplete.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        )}
+        <BaseAutocomplete.Positioner
+          sideOffset={() => popupSideOffset(fieldRef.current)}
+          {...positionerRest}
+          data-presentation={listPresentation}
+          data-density={densityScope.density}
+          style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+          className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
         >
-          {inputInSheet ? renderTrigger(messageIds) : renderControl('field', messageIds)}
-          {/* 読み込みの知らせ。Autocomplete を描いているあいだずっと置く、見えない status の箱 */}
-          <BaseAutocomplete.Status data-slot="autocomplete-status" className="sr-only">
-            {announcement}
-          </BaseAutocomplete.Status>
-          <BaseAutocomplete.Portal container={portalContainer}>
-            {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする。欄に打つ欄を残すときは暗くしない */}
-            {inputInSheet && (
-              <BaseAutocomplete.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+          <BaseAutocomplete.Popup
+            finalFocus={
+              inputInSheet && focusInputOnOpen
+                ? () => {
+                    // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
+                    fieldRef.current?.focus({ preventScroll: true });
+                    return false;
+                  }
+                : undefined
+            }
+            initialFocus={
+              inputInSheet && focusInputOnOpen
+                ? () =>
+                    document.querySelector<HTMLElement>(
+                      '[data-slot="autocomplete-popup"] [data-slot="autocomplete-sheet-input"] input'
+                    )
+                : undefined
+            }
+            {...popupRest}
+            ref={popupRef}
+            data-slot="autocomplete-popup"
+            data-dragging={drag.dragging || undefined}
+            style={{
+              ...comboboxPopupStyle({
+                selected,
+                sheet,
+                sheetDetent,
+                dragHeight: drag.sheetHeight,
+              }),
+              ...popupStyle,
+            }}
+            className={mergeSlotClass(
+              [
+                listboxPopup({ presentation: listPresentation }),
+                // 当たる候補がなく、出す文もないときは、面そのものを出さない（線だけが残らないように）
+                !sheet && !emptyText && !loadingRow && 'has-data-empty:hidden',
+              ]
+                .filter(Boolean)
+                .join(' '),
+              popupClassName
             )}
-            <BaseAutocomplete.Positioner
-              sideOffset={() => popupSideOffset(fieldRef.current)}
-              {...positionerRest}
-              data-presentation={listPresentation}
-              data-density={densityScope.density}
-              style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
-              className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
-            >
-              <BaseAutocomplete.Popup
-                finalFocus={
-                  inputInSheet && focusInputOnOpen
-                    ? () => {
-                        // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
-                        fieldRef.current?.focus({ preventScroll: true });
-                        return false;
-                      }
-                    : undefined
-                }
-                initialFocus={
-                  inputInSheet && focusInputOnOpen
-                    ? () =>
-                        document.querySelector<HTMLElement>(
-                          '[data-slot="autocomplete-popup"] [data-slot="autocomplete-sheet-input"] input'
-                        )
-                    : undefined
-                }
-                {...popupRest}
-                ref={popupRef}
-                data-slot="autocomplete-popup"
-                data-dragging={drag.dragging || undefined}
-                style={{
-                  ...comboboxPopupStyle({
-                    selected,
-                    sheet,
-                    sheetDetent,
-                    dragHeight: drag.sheetHeight,
-                  }),
-                  ...popupStyle,
-                }}
-                className={mergeSlotClass(
-                  [
-                    listboxPopup({ presentation: listPresentation }),
-                    // 当たる候補がなく、出す文もないときは、面そのものを出さない（線だけが残らないように）
-                    !sheet && !emptyText && !loadingRow && 'has-data-empty:hidden',
-                  ]
-                    .filter(Boolean)
-                    .join(' '),
-                  popupClassName
-                )}
-              >
-                {/* シートの見出し: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の閉じるボタン
+          >
+            {/* シートの見出し: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の閉じるボタン
                     打つ欄をシートに移したときは、その下に打つ欄を置く */}
-                {sheet && (
-                  <div ref={headerRef} className="flex shrink-0 flex-col">
-                    <SheetHeader
-                      handle={long}
-                      onPointerDown={drag.handlers.onPointerDown}
-                      onPointerMove={drag.handlers.onPointerMove}
-                      onPointerUp={drag.handlers.onPointerUp}
-                      onPointerCancel={drag.handlers.onPointerUp}
-                      className={long ? 'cursor-grab touch-none' : undefined}
-                      close={
-                        caption || inputInSheet ? (
-                          <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
-                            {renderSheetClose()}
-                          </div>
-                        ) : (
-                          renderSheetClose()
-                        )
-                      }
-                    >
-                      <SheetFieldTitle
-                        label={label}
-                        caption={caption}
-                        captionId={sheetCaptionId}
-                        messages={sheetMessages}
-                        reserveCaption={inputInSheet}
-                      />
-                    </SheetHeader>
-                    {inputInSheet && (
-                      <div className={comboboxSheetInputClass}>
-                        {renderControl('sheet', undefined)}
+            {sheet && (
+              <div ref={headerRef} className="flex shrink-0 flex-col">
+                <SheetHeader
+                  handle={long}
+                  onPointerDown={drag.handlers.onPointerDown}
+                  onPointerMove={drag.handlers.onPointerMove}
+                  onPointerUp={drag.handlers.onPointerUp}
+                  onPointerCancel={drag.handlers.onPointerUp}
+                  className={long ? 'cursor-grab touch-none' : undefined}
+                  close={
+                    caption || inputInSheet ? (
+                      <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
+                        {renderSheetClose()}
                       </div>
-                    )}
-                  </div>
+                    ) : (
+                      renderSheetClose()
+                    )
+                  }
+                >
+                  <SheetFieldTitle
+                    label={label}
+                    caption={caption}
+                    captionId={sheetCaptionId}
+                    messages={sheetMessages}
+                    reserveCaption={inputInSheet}
+                  />
+                </SheetHeader>
+                {inputInSheet && (
+                  <div className={comboboxSheetInputClass}>{renderControl('sheet', undefined)}</div>
                 )}
-                {/* 当たる候補がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
-                <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-                {long && <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
-                {sheet ? (
-                  renderList(messageIds)
-                ) : (
-                  <AutocompleteScroll viewportRef={listRef} loadingRow={loadingRow}>
-                    {renderList(messageIds)}
-                  </AutocompleteScroll>
-                )}
-                {long && <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
-                {/* 止めずに読み込んでいるあいだ、候補の最後に出す行 */}
-                {loadingRow && (
-                  <ListboxLoadingRow
-                    ref={loadingRowRef}
-                    slot="autocomplete-loading"
-                    presentation={listPresentation}
-                  >
-                    {loadingText}
-                  </ListboxLoadingRow>
-                )}
-              </BaseAutocomplete.Popup>
-            </BaseAutocomplete.Positioner>
-          </BaseAutocomplete.Portal>
-        </BaseAutocomplete.Root>
-      )}
-    </Field>
+              </div>
+            )}
+            {/* 当たる候補がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
+            <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
+            {long && <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
+            {sheet ? (
+              renderList(fieldDescribedBy)
+            ) : (
+              <AutocompleteScroll viewportRef={listRef} loadingRow={loadingRow}>
+                {renderList(fieldDescribedBy)}
+              </AutocompleteScroll>
+            )}
+            {long && <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
+            {/* 止めずに読み込んでいるあいだ、候補の最後に出す行 */}
+            {loadingRow && (
+              <ListboxLoadingRow
+                ref={loadingRowRef}
+                slot="autocomplete-loading"
+                presentation={listPresentation}
+              >
+                {loadingText}
+              </ListboxLoadingRow>
+            )}
+          </BaseAutocomplete.Popup>
+        </BaseAutocomplete.Positioner>
+      </BaseAutocomplete.Portal>
+    </BaseAutocomplete.Root>
   );
+}
+
+/**
+ * 文字を打つと、候補を提案してくれる入力欄
+ * 値は打った文字そのもので、候補にない文字も打てます。候補を選ぶと、その文字が欄に入ります
+ */
+export function Autocomplete(props: AutocompleteProps) {
+  const [field, control] = splitFieldProps(props);
+  return <Field {...field}>{() => <AutocompleteControl {...control} />}</Field>;
 }

@@ -5,7 +5,8 @@ import { type ReactNode, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
-import { TagsInput } from './TagsInput';
+import { TagsInput, TagsInputControl } from './TagsInput';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 
@@ -771,5 +772,53 @@ export const Accessibility: Story = {
     // チップのまとまりと、チップの × には、何を外すのかが分かる名前が付く
     await expect(canvas.getByRole('button', { name: 'デザイン を外す' })).toBeVisible();
     await expect(canvas.getByLabelText('追加したタグ')).toBeVisible();
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { label: '記事のタグ', defaultValue: ['デザイン'] },
+  parameters: {
+    controls: { include: ['labelVariant'] },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="subtle"` にすると、ラベルを太字にせず一段淡い色にします。',
+      },
+    },
+  },
+  render: (args) => <TagsInput {...args} labelPlacement="start" className="w-96" />,
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('combobox', { name: '記事のタグ' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  args: { label: '記事のタグ' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `TagsInputControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。組み立てでは、`validate` を通らなかった文と `rejectMessage` の文は下の行に出ず、読み上げだけで知らせます。',
+      },
+    },
+  },
+  decorators: [narrow],
+  render: () => (
+    <Field label="記事のタグ" caption="Enter か , で足せます" warningText="タグは 5 つまでです">
+      <FieldLabel />
+      <TagsInputControl defaultValue={['デザイン']} placeholder="タグを打つ" />
+      <FieldCaption />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox', { name: '記事のタグ' });
+    // 説明はキャプション → 警告の順につながる
+    await expect(input).toHaveAccessibleDescription('Enter か , で足せます タグは 5 つまでです');
+    await userEvent.type(input, '実装{Enter}');
+    await expect(canvas.getByText('実装')).toBeVisible();
   },
 };

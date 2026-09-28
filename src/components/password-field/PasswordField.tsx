@@ -4,10 +4,11 @@ import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { FieldAddonButton } from '../field-addon/FieldAddon';
-import { TextField, type TextFieldProps } from '../text-field/TextField';
+import { TextField, type TextFieldBaseProps, type TextFieldProps } from '../text-field/TextField';
+import type { FieldNamed } from '../../internal/field/input-field-props';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 
-export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffix'> {
+interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'suffix'> {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
    * @default 'current-password'
@@ -20,6 +21,9 @@ export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffi
   toggleName?: string;
 }
 
+/** PasswordField の props。label か accessibleName のどちらかが要ります */
+export type PasswordFieldProps = FieldNamed<PasswordFieldBaseProps>;
+
 function inputOf(button: HTMLElement | null) {
   return button?.closest('[data-slot="control"]')?.querySelector('input') ?? null;
 }
@@ -29,11 +33,12 @@ function inputOf(button: HTMLElement | null) {
  * 切り替えは見え方だけを変えるので、欄を止めているあいだ（待っているあいだ・送信中・読み取り専用）も押せます。押せない欄では押せません
  * フォームを送ると、伏せ字に戻します
  */
-export function PasswordField({
-  autoComplete = 'current-password',
-  toggleName = 'パスワードを表示',
-  ...props
-}: PasswordFieldProps) {
+export function PasswordField(allProps: PasswordFieldProps) {
+  const {
+    autoComplete = 'current-password',
+    toggleName = 'パスワードを表示',
+    ...props
+  } = allProps as PasswordFieldBaseProps;
   const [visible, setVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   // 送ったら伏せ字に戻す。画面に残った文字を、あとから覗かれないように
@@ -66,7 +71,7 @@ export function PasswordField({
       spellCheck={false}
       autoCapitalize="off"
       autoCorrect="off"
-      {...props}
+      {...(props as TextFieldProps)}
       autoComplete={autoComplete}
       type={visible ? 'text' : 'password'}
       suffix={

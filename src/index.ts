@@ -23,6 +23,9 @@ export {
 export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
 export {
   Autocomplete,
+  type AutocompleteBaseProps,
+  AutocompleteControl,
+  type AutocompleteControlProps,
   type AutocompleteFilter,
   type AutocompleteOpenOn,
   type AutocompleteProps,
@@ -106,6 +109,9 @@ export {
 export { Checkbox, type CheckboxProps, type ChoiceColor } from './components/checkbox/Checkbox';
 export {
   CheckboxGroup,
+  type CheckboxGroupBaseProps,
+  CheckboxGroupControl,
+  type CheckboxGroupControlProps,
   type CheckboxGroupProps,
   type ChoiceFrame,
 } from './components/checkbox/CheckboxGroup';
@@ -117,6 +123,9 @@ export {
 } from './components/collapsible/Collapsible';
 export {
   Combobox,
+  type ComboboxBaseProps,
+  ComboboxControl,
+  type ComboboxControlProps,
   type ComboboxFilter,
   type ComboboxProps,
   type ComboboxSheetInput,
@@ -359,7 +368,15 @@ export { Portal, type PortalProps } from './components/portal/Portal';
 export { ThemeProvider, type ThemeProviderProps } from './components/theme-provider/ThemeProvider';
 export { RelativeTime, type RelativeTimeProps } from './components/relative-time/RelativeTime';
 export { Prose, type ProseAs, type ProseProps } from './components/prose/Prose';
-export { Radio, RadioGroup, type RadioGroupProps, type RadioProps } from './components/radio/Radio';
+export {
+  Radio,
+  RadioGroup,
+  type RadioGroupBaseProps,
+  RadioGroupControl,
+  type RadioGroupControlProps,
+  type RadioGroupProps,
+  type RadioProps,
+} from './components/radio/Radio';
 export {
   ScrollArea,
   type ScrollAreaOrientation,
@@ -368,6 +385,9 @@ export {
 } from './components/scroll-area/ScrollArea';
 export {
   Select,
+  type SelectBaseProps,
+  SelectControl,
+  type SelectControlProps,
   type SelectProps,
   type SelectValue,
   type SheetDetent,
@@ -432,6 +452,9 @@ export {
 } from './components/sortable/Sortable';
 export {
   Dropzone,
+  type DropzoneBaseProps,
+  DropzoneControl,
+  type DropzoneControlProps,
   type DropzoneButtonColor,
   type DropzoneProps,
   type DropzoneRejection,
@@ -507,6 +530,9 @@ export {
 export { Tag, type TagProps } from './components/tag/Tag';
 export {
   TagsInput,
+  type TagsInputBaseProps,
+  TagsInputControl,
+  type TagsInputControlProps,
   type TagsInputFilter,
   type TagsInputProps,
   type TagsInputRejectReason,
@@ -589,12 +615,44 @@ export {
   type TreeProps,
   type TreeRowWidth,
 } from './components/tree/Tree';
-export { TextField, type TextFieldProps } from './components/text-field/TextField';
-export { Textarea, type TextareaProps } from './components/textarea/Textarea';
+export {
+  TextField,
+  type TextFieldBaseProps,
+  TextFieldControl,
+  type TextFieldControlProps,
+  type TextFieldProps,
+} from './components/text-field/TextField';
+export {
+  Field,
+  FieldCaption,
+  type FieldCaptionProps,
+  FieldControl,
+  type FieldControlProps,
+  FieldLabel,
+  type FieldLabelProps,
+  FieldMessages,
+  type FieldMessagesProps,
+  type FieldProps,
+} from './components/field/Field';
+export {
+  FieldGroup,
+  type FieldGroupGap,
+  type FieldGroupProps,
+} from './components/field/FieldGroup';
+export {
+  Textarea,
+  type TextareaBaseProps,
+  TextareaControl,
+  type TextareaControlProps,
+  type TextareaProps,
+} from './components/textarea/Textarea';
 export { SearchField, type SearchFieldProps } from './components/search-field/SearchField';
 export { PasswordField, type PasswordFieldProps } from './components/password-field/PasswordField';
 export {
   MaskField,
+  type MaskFieldBaseProps,
+  MaskFieldControl,
+  type MaskFieldControlProps,
   type MaskFieldProps,
   type MaskFieldMask,
   type MaskFieldHint,
@@ -603,6 +661,9 @@ export {
 } from './components/mask-field/MaskField';
 export {
   NumberField,
+  type NumberFieldBaseProps,
+  NumberFieldControl,
+  type NumberFieldControlProps,
   type NumberFieldChangeReason,
   type NumberFieldProps,
   type NumberFieldStepper,
@@ -611,21 +672,38 @@ export {
 export type { StepperNames } from './components/number-field/NumberFieldStepper';
 export {
   Slider,
+  type SliderBaseProps,
+  SliderControl,
+  type SliderControlProps,
+  SliderValue,
+  type SliderValueProps,
   type SliderColor,
   type SliderPressEffect,
   type SliderProps,
 } from './components/slider/Slider';
 export {
   PinField,
+  type PinFieldBaseProps,
+  PinFieldControl,
+  type PinFieldControlProps,
   type PinFieldProps,
   type PinFieldValidationType,
 } from './components/pin-field/PinField';
 export {
   DateField,
+  type DateFieldBaseProps,
+  DateFieldControl,
+  type DateFieldControlProps,
   type DateFieldProps,
   type SegmentPlaceholder,
 } from './components/date-field/DateField';
-export { TimeField, type TimeFieldProps } from './components/time-field/TimeField';
+export {
+  TimeField,
+  type TimeFieldBaseProps,
+  TimeFieldControl,
+  type TimeFieldControlProps,
+  type TimeFieldProps,
+} from './components/time-field/TimeField';
 export type { DateSegmentColor } from './internal/date-segments/colors';
 export {
   VisuallyHidden,
@@ -633,6 +711,11 @@ export {
 } from './components/visually-hidden/VisuallyHidden';
 export type {
   CaptionPlacement,
+  FieldLabelLayoutProps,
+  FieldLabelPlacement,
+  FieldLabelVariant,
+  FieldNameProps,
+  FieldNarrowLabelPlacement,
   FieldLoadingBehavior,
   FieldValidate,
   FieldValidationMode,

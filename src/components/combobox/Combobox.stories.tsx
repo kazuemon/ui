@@ -6,7 +6,9 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ListboxGroup } from '../../internal/listbox/listbox-items';
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
-import { Combobox, type ComboboxProps } from './Combobox';
+import type { FieldNamed } from '../../internal/field/input-field-props';
+import { Combobox, type ComboboxBaseProps, ComboboxControl } from './Combobox';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
 
@@ -676,7 +678,7 @@ export const Loading: Story = {
 function LoadOnOpenCombobox({
   onOpenChange,
   ...props
-}: Omit<ComboboxProps<boolean>, 'items' | 'loading'>) {
+}: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -774,7 +776,9 @@ export const LoadOnOpen: Story = {
 };
 
 // 打った文字を外に渡し、返ってきた結果を filteredItems で出す（絞り込みを外でする）
-function AsyncCombobox(props: Omit<ComboboxProps<boolean>, 'items' | 'loading' | 'filteredItems'>) {
+function AsyncCombobox(
+  props: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading' | 'filteredItems'>>
+) {
   const [results, setResults] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -891,4 +895,59 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { label: 'お届け先の区' },
+  parameters: {
+    controls: { include: ['labelVariant'] },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="subtle"` にすると、ラベルを太字にせず一段淡い色にします。',
+      },
+    },
+  },
+  render: (args) => (
+    <Combobox
+      {...args}
+      labelPlacement="start"
+      items={wards}
+      placeholder="区の名前で探す"
+      presentation="popover"
+      className="w-80"
+    />
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('combobox', { name: 'お届け先の区' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  args: { label: 'お届け先の区' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `ComboboxControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。',
+      },
+    },
+  },
+  decorators: [narrow],
+  render: () => (
+    <Field label="お届け先の区" caption="お届けは23区内だけです" warningText="年末は配達が遅れます">
+      <FieldLabel />
+      <ComboboxControl items={wards} placeholder="区の名前で探す" presentation="popover" />
+      <FieldCaption />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox', { name: 'お届け先の区' });
+    // 説明はキャプション → 警告の順につながる
+    await expect(input).toHaveAccessibleDescription('お届けは23区内だけです 年末は配達が遅れます');
+  },
 };

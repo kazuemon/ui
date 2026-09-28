@@ -7,11 +7,8 @@ export const fieldStyles = tv({
   slots: {
     root: [
       'group/field flex flex-col gap-(--spacing-field-gap)',
-      // 試作（Design Review 388）: 親に data-field-grid があるときは、親の列をまたいで subgrid にする
-      '[[data-field-grid]>&]:col-span-full [[data-field-grid]>&]:grid [[data-field-grid]>&]:grid-cols-subgrid',
-      // 親の列に乗るときは入れ物（container）にしない。入れ物にすると中身の幅が親の auto の列に伝わらない
-      //   狭い幅で上に戻すかは、親（並び全体）の幅で測る。親に @container を付けてもらう
-      '[[data-field-grid]>&]:[container-type:normal]',
+      // FieldGroup の中では、親の 2 列をまたぐ（横に置くときは subgrid にして、ラベルの列をそろえる。軸 388）
+      '[[data-field-group]>&]:col-span-full',
       'data-invalid:[--color-focus:var(--color-fg-danger)]',
       'data-invalid:[--color-field-focus:var(--color-field-invalid)]',
       'data-invalid:[--color-field-hover:var(--color-field-invalid)]',
@@ -25,12 +22,12 @@ export const fieldStyles = tv({
       'data-disabled:[--color-field-addon-invalid:var(--color-field-addon)] data-disabled:[--color-on-field-addon-invalid:var(--color-on-field-disabled)]',
     ],
     // ラベルとキャプションは、押せないときも薄くしない（原則1: 説明が読めるように）
-    label: 'text-(length:--text-label) leading-(--leading-label)',
-    // 試作（Design Review 385）: ラベルを本体の左に置く 2 列。ラベルの列は、本体の 1 行目の中央にそろえる
-    // 親に data-field-grid（2 列の grid）があるときは、親の列に乗る（subgrid）。欄が縦に並んでも本体の左端がそろう
+    label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
+    // ラベルを本体の左に置く 2 列（軸 385）。ラベルの列は、本体の 1 行目の真ん中にそろえる
+    // FieldGroup の中では、親の列に乗る（subgrid）。欄が縦に並んでも本体の左端がそろう
     startGrid: [
-      'grid grid-cols-[var(--field-label-width)_minmax(0,1fr)] items-start gap-x-(--field-label-gap)',
-      '[[data-field-grid]>*>&]:col-span-full [[data-field-grid]>*>&]:grid-cols-subgrid',
+      'grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-(--field-label-gap)',
+      '[[data-field-group]>*>&]:col-span-full [[data-field-group]>*>&]:grid-cols-subgrid',
     ],
     startLabelColumn:
       'flex min-w-0 flex-col gap-(--spacing-field-gap) pt-[calc((var(--spacing-control)-var(--leading-label))/2)]',
@@ -64,15 +61,21 @@ export const fieldStyles = tv({
     messageLine: 'pt-[max(0px,var(--spacing-field-gap)_-_var(--field-message-pull,0px))]',
   },
   variants: {
-    // 試作（Design Review 385）: 本体の左に置くラベルの太さと色は、トークンで比べる
+    // ラベルを本体の左に置く（軸 385）。置いた場所の幅で上に戻せるよう、根を入れ物（container）にする
+    //   FieldGroup の中では入れ物にしない。入れ物にすると中身の幅が親の auto の列に伝わらない。戻すかは並び全体の幅で測る
     start: {
-      false: { label: 'font-bold text-fg' },
       true: {
-        label:
-          '[font-weight:var(--field-start-label-weight)] text-(color:--field-start-label-color)',
+        root: [
+          '@container [[data-field-group]>&]:[container-type:normal]',
+          '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid',
+        ],
       },
     },
-    // 試作（Design Review 388）: 置いた場所が 24rem より狭いと、ラベルを上に戻す（Pagination の narrowDisplay と同じ幅）
+    // 横に置くラベルの重さ（軸 388）。subtle は標準の太さで一段淡い色
+    subtle: {
+      true: { label: 'font-normal text-fg-muted' },
+    },
+    // 置いた場所が 24rem より狭いと、ラベルを上に戻す（軸 388。Pagination の narrowDisplay と同じ幅）
     narrow: {
       start: {},
       top: {
@@ -82,7 +85,6 @@ export const fieldStyles = tv({
       },
     },
   },
-  defaultVariants: { start: false },
 });
 
 // 編集できる入力欄の本体（原則8）。TextField と Select のボタンで共有する

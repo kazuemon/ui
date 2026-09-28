@@ -5,17 +5,15 @@ import { type ComponentProps, type ReactNode, type Ref, useEffect, useId, useSta
 
 import { useDensityScope } from '../../internal/density-scope';
 import {
-  type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
-  type FieldValidate,
-  type FieldValidationMode,
+  useFieldControlKind,
+  useFieldState,
 } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
-import { useFormSubmittingLock } from '../../internal/form-context';
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddon } from '../field-addon/FieldAddon';
 import { CaretDownIcon } from '../../internal/icons';
@@ -50,8 +48,12 @@ import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-d
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
@@ -63,44 +65,13 @@ export type SelectValue<Multiple extends boolean = false> = Multiple extends tru
   ? string[]
   : string | null;
 
-export interface SelectProps<Multiple extends boolean = false> extends FieldMarkProps {
-  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。シートでは見出しのラベルの下にも出す */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /**
-   * エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする
-   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（浮かぶ選択肢には出さない — design/adr/0044）
-   */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す（design/adr/0041 の追記）
-   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（errorText と同じ。両方あるときはエラー → 警告）
-   */
-  warningText?: FieldMessage;
-  /**
-   * 成功の内容（「お届けできます」など）。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
-   */
-  successText?: FieldMessage;
+/** Select の本体（SelectControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface SelectControlProps<Multiple extends boolean = false> {
   /**
    * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
    * @default false
    */
   hideSuccessMark?: boolean;
-  /** 情報の内容（「前回と同じ時間帯を選んでいます」など）。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  infoText?: FieldMessage;
-  /**
-   * 押せない（Disabled）状態にします。押しても選択肢は開かず、フォームでは値が送られません
-   * @default false
-   */
-  disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と一段淡い値の文字になります。
    * フォーカスでき、値をなぞって写せます。読み上げでは「読み取り専用」と伝わります。
@@ -142,23 +113,6 @@ export interface SelectProps<Multiple extends boolean = false> extends FieldMark
   defaultValue?: SelectValue<Multiple>;
   /** 値が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: SelectValue<Multiple>) => void;
-  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
-  name?: string;
-  /**
-   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
-   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
-   */
-  validate?: FieldValidate;
-  /**
-   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
-   * @default 'onSubmit'
-   */
-  validationMode?: FieldValidationMode;
-  /**
-   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
-   * @default 0
-   */
-  validationDebounceTime?: number;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
@@ -236,19 +190,6 @@ export interface SelectProps<Multiple extends boolean = false> extends FieldMark
    */
   popoverMaxHeight?: 'none' | 'screen';
   /**
-   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
-   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
-   * @default false
-   */
-  loading?: boolean;
-  /**
-   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
-   * non-blocking: 止めない。プレースホルダはそのまま出し、開ける。開くと、選択肢の最後に loadingText の行を出す。回る円は ▼ の左
-   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し（回る円は ▼ のあった場所）、開けない
-   * @default 'non-blocking'
-   */
-  loadingBehavior?: FieldLoadingBehavior;
-  /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
@@ -269,9 +210,77 @@ export interface SelectProps<Multiple extends boolean = false> extends FieldMark
    * @default false
    */
   hideCaretOnDisabled?: boolean;
+  /** 本体（選択肢を開くボタン）に付くクラス */
+  className?: string;
+}
+
+/** Select の外枠（Field）が受け持つ props */
+interface SelectFieldProps extends Pick<
+  InputFieldProps,
+  | 'label'
+  | 'accessibleName'
+  | 'caption'
+  | 'captionPlacement'
+  | 'infoText'
+  | 'validate'
+  | 'validationMode'
+  | 'validationDebounceTime'
+  | 'required'
+  | 'requiredMark'
+  | 'optionalMark'
+  | 'labelPlacement'
+  | 'labelVariant'
+  | 'narrowLabelPlacement'
+> {
+  /**
+   * エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする
+   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（浮かぶ選択肢には出さない — design/adr/0044）
+   */
+  errorText?: FieldMessage;
+  /**
+   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
+   * errorText と両方あるときは、エラーの行の下に出す（design/adr/0041 の追記）
+   * シートでは、見出しのヘルプテキストの下にも同じ行を出す（errorText と同じ。両方あるときはエラー → 警告）
+   */
+  warningText?: FieldMessage;
+  /**
+   * 成功の内容（「お届けできます」など）。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
+   */
+  successText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。押しても選択肢は開かず、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
+  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
+  name?: string;
+  /**
+   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
+   * non-blocking: 止めない。プレースホルダはそのまま出し、開ける。開くと、選択肢の最後に loadingText の行を出す。回る円は ▼ の左
+   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し（回る円は ▼ のあった場所）、開けない
+   * @default 'non-blocking'
+   */
+  loadingBehavior?: FieldLoadingBehavior;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
+
+/** Select の props から、label・accessibleName の組み合わせの決まりを外したもの。Select を包む部品が継ぎます */
+export type SelectBaseProps<Multiple extends boolean = false> = Omit<
+  SelectControlProps<Multiple>,
+  'className'
+> &
+  SelectFieldProps;
+
+/** Select の props。label か accessibleName のどちらかが要ります */
+export type SelectProps<Multiple extends boolean = false> = FieldNamed<SelectBaseProps<Multiple>>;
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
@@ -287,18 +296,12 @@ function emitValue<Multiple extends boolean>(
 }
 
 /**
- * 選択肢から1つを選ぶ入力欄
+ * 選択肢から選ぶ欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function Select<Multiple extends boolean = false>({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function SelectControl<Multiple extends boolean = false>({
   hideSuccessMark = false,
-  infoText,
-  disabled,
   readOnly,
   color = 'neutral',
   items,
@@ -309,10 +312,6 @@ export function Select<Multiple extends boolean = false>({
   value,
   defaultValue,
   onValueChange,
-  name,
-  validate,
-  validationMode,
-  validationDebounceTime,
   form,
   inputRef,
   open: openProp,
@@ -330,17 +329,24 @@ export function Select<Multiple extends boolean = false>({
   sheetMoreCue = 'divider-always-shadow',
   popoverMoreCue = 'shadow',
   popoverMaxHeight = 'screen',
-  loading = false,
-  loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   hideCaretOnDisabled = false,
-  required,
-  requiredMark,
-  optionalMark,
   className,
-}: SelectProps<Multiple>) {
+}: SelectControlProps<Multiple>) {
+  const field = useFieldState();
+  // 本体はボタンなので、ラベルを <label> にしない（組み立てで置いたときも）
+  useFieldControlKind({ nativeLabel: false });
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
+  const label = field?.label ?? field?.accessibleName;
+  const caption = field?.caption;
+  const errorText = field?.messages.error;
+  const warningText = field?.messages.warning;
+  const successText = field?.messages.success;
+  const messageIds = field?.describedBy;
   const sheet = useSheetPresentation(presentation);
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない（readOnly）。フォーカスは外さない
   // non-blocking は、開いた選択肢の最後に「読み込んでいます」の行を出す
@@ -349,8 +355,7 @@ export function Select<Multiple extends boolean = false>({
   // Form の送信中（後半の軸 38）も、同じく開けず値も変えられない。見た目は Field の data-loading="blocking"（押せない欄）
   // 読み込みと違い、選んだ値はそのまま出し（loadingText に置き換えない）、回る円は出さず、▼ は押せない Select と同じ色で残す
   const portalContainer = usePortalContainer(portalContainerProp);
-  const formLock = useFormSubmittingLock();
-  const blocking = loadingBlocking || formLock.blocking;
+  const blocking = field?.blocking ?? false;
   // 読み取り専用（軸 177）。見た目は文字を打つ欄の読み取り専用にそろえる（ADR-0170。本体に data-field-readonly を置き、
   //   塗りなし・細い破線の輪郭・値は一段淡いグレー・フォーカスで破線が枠線に変わる）
   //   Base UI の readOnly で値を固定し、aria-readonly で「読み取り専用」と伝える（aria-disabled は付けない）
@@ -428,247 +433,233 @@ export function Select<Multiple extends boolean = false>({
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText}
+    <BaseSelect.Root<string, boolean>
+      items={items}
+      multiple={multiple}
+      value={value}
+      defaultValue={defaultValue}
+      onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
+      form={form}
+      inputRef={inputRef}
+      modal={modal}
       disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      nativeLabel={false}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+      // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+      // （design/adr/0255 の影響）。渡さず、Trigger の aria-required だけで伝える
+      required={false}
+      readOnly={locked || undefined}
+      open={open}
+      onOpenChange={(next, details) => {
+        // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        changeOpen(next, details.reason);
+      }}
+      // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
+      onOpenChangeComplete={(next) => {
+        if (!next) drag.clearDragHeight();
+        onOpenChangeComplete?.(next);
+      }}
     >
-      {(messageIds) => (
-        <BaseSelect.Root<string, boolean>
-          items={items}
-          multiple={multiple}
-          value={value}
-          defaultValue={defaultValue}
-          onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
-          name={name}
-          form={form}
-          inputRef={inputRef}
-          modal={modal}
-          disabled={disabled}
-          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-          // （design/adr/0255 の影響）。渡さず、Trigger の aria-required だけで伝える
-          required={false}
-          readOnly={locked || undefined}
-          open={open}
-          onOpenChange={(next, details) => {
-            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            changeOpen(next, details.reason);
-          }}
-          // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
-          onOpenChangeComplete={(next) => {
-            if (!next) drag.clearDragHeight();
-            onOpenChangeComplete?.(next);
-          }}
-        >
-          {/* 選択肢を開いているあいだも、フォーカス中と同じ見た目にする */}
-          {/* prefix は本体の左の余白を打ち消して、端から置く（--field-addon-pad） */}
-          {/* 説明はキャプション → エラー → 警告の順（見た目の順 — design/adr/0041） */}
-          {/* 読み込んでいるあいだ（design/adr/0042）: 回る円は、止めないときは ▼ の左（間は 8px。ボタンの回る円とラベルの間と同じ）、
+      {/* 選択肢を開いているあいだも、フォーカス中と同じ見た目にする */}
+      {/* prefix は本体の左の余白を打ち消して、端から置く（--field-addon-pad） */}
+      {/* 説明はキャプション → エラー → 警告の順（見た目の順 — design/adr/0041） */}
+      {/* 読み込んでいるあいだ（design/adr/0042）: 回る円は、止めないときは ▼ の左（間は 8px。ボタンの回る円とラベルの間と同じ）、
             止めるときは ▼ を隠してその場所に置く。線は本体の下端（本体を位置の基準にする）
             止めるときは、押せない欄と同じ見た目（controlBox）にする
             プレースホルダの場所の文（ふだんの文・押せないときの理由・止めるときの loadingText）は、どれも --color-fg-subtle
             押せない文字の色（--color-on-field-disabled）は選んだ値だけ。値が入った押せない欄と、文を出している欄を見分けるため */}
-          <BaseSelect.Trigger
-            ref={triggerRef}
-            aria-describedby={messageIds}
-            aria-required={required || undefined}
-            aria-disabled={blocking || undefined}
-            aria-busy={loading || undefined}
-            data-slot="control"
-            data-field-readonly={readOnly || undefined}
-            data-closing={closing || undefined}
-            onFocus={() => setClosing(false)}
-            data-addon-shape={addonShape}
-            className={controlBox({
-              className: [
-                'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
-                // 読み取り専用は文字の欄と同じで、押せない欄の禁止の形にはしない。値はなぞって写せる
-                blocking
-                  ? 'cursor-progress'
-                  : readOnly
-                    ? 'cursor-default select-text'
-                    : 'cursor-pointer',
-                loading && 'relative',
-                'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
-                // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
-                '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
-                '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
-                '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
-                // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
-                OWN_FOCUS[color],
-                '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
-              ],
-            })}
-          >
-            {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
-            <BaseSelect.Value
-              className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
-              placeholder={loadingBlocking ? loadingText : placeholder}
-            />
-            {loading && loadingIndicator === 'spinner' && (
-              <FieldSpinner
-                className={
-                  loadingBlocking
-                    ? undefined
-                    : 'me-[calc(var(--spacing)*2-var(--spacing-control-x))]'
-                }
-              />
-            )}
-            {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
-            {successText && !hideSuccessMark && !errorText && !loading && (
-              <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
-            )}
-            {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。hideCaretOnDisabled で隠す）
+      <BaseSelect.Trigger
+        ref={triggerRef}
+        aria-describedby={messageIds}
+        aria-required={field?.required || undefined}
+        aria-disabled={blocking || undefined}
+        aria-busy={loading || undefined}
+        data-slot="control"
+        data-field-readonly={readOnly || undefined}
+        data-closing={closing || undefined}
+        onFocus={() => setClosing(false)}
+        data-addon-shape={addonShape}
+        className={controlBox({
+          className: [
+            'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
+            // 読み取り専用は文字の欄と同じで、押せない欄の禁止の形にはしない。値はなぞって写せる
+            blocking
+              ? 'cursor-progress'
+              : readOnly
+                ? 'cursor-default select-text'
+                : 'cursor-pointer',
+            loading && 'relative',
+            'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
+            // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
+            '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
+            '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
+            '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
+            // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
+            OWN_FOCUS[color],
+            '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
+            className,
+          ],
+        })}
+      >
+        {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
+        <BaseSelect.Value
+          className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
+          placeholder={loadingBlocking ? loadingText : placeholder}
+        />
+        {loading && loadingIndicator === 'spinner' && (
+          <FieldSpinner
+            className={
+              loadingBlocking ? undefined : 'me-[calc(var(--spacing)*2-var(--spacing-control-x))]'
+            }
+          />
+        )}
+        {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
+        {successText && !hideSuccessMark && !errorText && !loading && (
+          <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
+        )}
+        {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。hideCaretOnDisabled で隠す）
               Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
               止めて読み込んでいるあいだは隠す
               読み取り専用（軸 177）では残すが、押せない Select と同じ色まで淡くする。塗りのないアイコンは押せない意味の印（ADR-0190）で、
               選ぶ欄だと分かる形を残しつつ、押せるようには見せない */}
-            <BaseSelect.Icon
-              className={[
-                'flex group-data-disabled/field:text-fg-subtle',
-                readOnly ? 'text-fg-subtle' : 'text-fg-muted',
-                'group-data-[loading=blocking]/field:text-fg-subtle',
-                (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            >
-              <CaretDownIcon />
-            </BaseSelect.Icon>
-            {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
-          </BaseSelect.Trigger>
-          <BaseSelect.Portal container={portalContainer}>
-            {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
-            {sheet && (
-              <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-            )}
-            {/* 浮かぶ部分は、白い面に細い境界線とやわらかい影（浮かぶ UI の影は重なりを表す — design/adr/0036）
+        <BaseSelect.Icon
+          className={[
+            'flex group-data-disabled/field:text-fg-subtle',
+            readOnly ? 'text-fg-subtle' : 'text-fg-muted',
+            'group-data-[loading=blocking]/field:text-fg-subtle',
+            (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <CaretDownIcon />
+        </BaseSelect.Icon>
+        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+      </BaseSelect.Trigger>
+      <BaseSelect.Portal container={portalContainer}>
+        {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
+        {sheet && (
+          <BaseSelect.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        )}
+        {/* 浮かぶ部分は、白い面に細い境界線とやわらかい影（浮かぶ UI の影は重なりを表す — design/adr/0036）
               選んだ項目は部品の色（color — selectedTokens）。見た目は design/tokens.css の --select-popup-*・--select-item-selected-*・--color-select-* で決める
               シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
               本体の祖先に付いた data-density・coarse-large を写し、項目の高さと文字を本体とそろえる（readDensityScope） */}
-            <BaseSelect.Positioner
-              alignItemWithTrigger={false}
-              sideOffset={() => popupSideOffset(triggerRef.current)}
-              {...positionerRest}
-              data-presentation={listPresentation}
-              data-density={densityScope.density}
-              className={mergeSlotClass(
-                [
-                  'z-10 outline-none',
-                  densityScope.large && 'coarse-large',
-                  sheet &&
-                    'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
-                ]
-                  .filter(Boolean)
-                  .join(' '),
-                positionerClassName
-              )}
-            >
-              <BaseSelect.Popup
-                {...popupRest}
-                ref={popupRef}
-                data-slot="select-popup"
-                data-dragging={drag.dragging || undefined}
-                style={
-                  drag.sheetHeight !== undefined
-                    ? { ...selected, height: drag.sheetHeight, ...popupStyle }
-                    : { ...selected, ...popupStyle }
-                }
-                className={mergeSlotClass(
-                  listboxPopup({ presentation: listPresentation }),
-                  popupClassName
-                )}
+        <BaseSelect.Positioner
+          alignItemWithTrigger={false}
+          sideOffset={() => popupSideOffset(triggerRef.current)}
+          {...positionerRest}
+          data-presentation={listPresentation}
+          data-density={densityScope.density}
+          className={mergeSlotClass(
+            [
+              'z-10 outline-none',
+              densityScope.large && 'coarse-large',
+              sheet &&
+                'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
+            ]
+              .filter(Boolean)
+              .join(' '),
+            positionerClassName
+          )}
+        >
+          <BaseSelect.Popup
+            {...popupRest}
+            ref={popupRef}
+            data-slot="select-popup"
+            data-dragging={drag.dragging || undefined}
+            style={
+              drag.sheetHeight !== undefined
+                ? { ...selected, height: drag.sheetHeight, ...popupStyle }
+                : { ...selected, ...popupStyle }
+            }
+            className={mergeSlotClass(
+              listboxPopup({ presentation: listPresentation }),
+              popupClassName
+            )}
+          >
+            {sheet && (
+              <SheetHeader
+                ref={headerRef}
+                handle={long}
+                onPointerDown={drag.handlers.onPointerDown}
+                onPointerMove={drag.handlers.onPointerMove}
+                onPointerUp={drag.handlers.onPointerUp}
+                onPointerCancel={drag.handlers.onPointerUp}
+                className={long ? 'cursor-grab touch-none' : undefined}
+                // 選ばずに閉じる。Tab では止まらない（開いた直後のフォーカスを選んだ項目に置くため）。キーボードでは Esc で閉じる
+                close={<SheetCloseButton tabIndex={-1} onClick={() => changeOpen(false)} />}
               >
-                {sheet && (
-                  <SheetHeader
-                    ref={headerRef}
-                    handle={long}
-                    onPointerDown={drag.handlers.onPointerDown}
-                    onPointerMove={drag.handlers.onPointerMove}
-                    onPointerUp={drag.handlers.onPointerUp}
-                    onPointerCancel={drag.handlers.onPointerUp}
-                    className={long ? 'cursor-grab touch-none' : undefined}
-                    // 選ばずに閉じる。Tab では止まらない（開いた直後のフォーカスを選んだ項目に置くため）。キーボードでは Esc で閉じる
-                    close={<SheetCloseButton tabIndex={-1} onClick={() => changeOpen(false)} />}
-                  >
-                    <SheetFieldTitle
-                      label={label}
-                      caption={caption}
-                      captionId={sheetCaptionId}
-                      messages={sheetMessages}
-                    />
-                  </SheetHeader>
-                )}
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                )}
-                {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
+                <SheetFieldTitle
+                  label={label}
+                  caption={caption}
+                  captionId={sheetCaptionId}
+                  messages={sheetMessages}
+                />
+              </SheetHeader>
+            )}
+            {(long || popoverCue) && (
+              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+            )}
+            {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                   シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す
                   選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
-                <BaseSelect.List
-                  ref={listRef}
-                  aria-describedby={
-                    sheet
-                      ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-                          .filter(Boolean)
-                          .join(' ') || undefined
-                      : messageIds
-                  }
-                  onScroll={sheet || popoverCue ? updateCues : undefined}
-                  className={listboxList({ presentation: listPresentation, loadingRow })}
-                >
-                  {items.map((item) => (
-                    <SelectOption key={item.value} item={item} />
-                  ))}
-                </BaseSelect.List>
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                )}
-                {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）
+            <BaseSelect.List
+              ref={listRef}
+              aria-describedby={
+                sheet
+                  ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  : messageIds
+              }
+              onScroll={sheet || popoverCue ? updateCues : undefined}
+              className={listboxList({ presentation: listPresentation, loadingRow })}
+            >
+              {items.map((item) => (
+                <SelectOption key={item.value} item={item} />
+              ))}
+            </BaseSelect.List>
+            {(long || popoverCue) && (
+              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+            )}
+            {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）
                   読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため） */}
-                {loadingRow && (
-                  <ListboxLoadingRow
-                    ref={loadingRowRef}
-                    slot="select-loading"
-                    presentation={listPresentation}
-                  >
-                    {loadingText}
-                  </ListboxLoadingRow>
-                )}
-              </BaseSelect.Popup>
-            </BaseSelect.Positioner>
-          </BaseSelect.Portal>
-          {/* 読み込みの知らせ（design/adr/0042）。Select を描いているあいだずっと置く、見えない status の箱（本体のすぐ後ろ）
+            {loadingRow && (
+              <ListboxLoadingRow
+                ref={loadingRowRef}
+                slot="select-loading"
+                presentation={listPresentation}
+              >
+                {loadingText}
+              </ListboxLoadingRow>
+            )}
+          </BaseSelect.Popup>
+        </BaseSelect.Positioner>
+      </BaseSelect.Portal>
+      {/* 読み込みの知らせ（design/adr/0042）。Select を描いているあいだずっと置く、見えない status の箱（本体のすぐ後ろ）
               絶対配置なので、欄の並び（flex の間）には入らない。浮かぶ部分の外にあるが、Select は外を読み上げから隠さない（modal でも） */}
-          <span role="status" data-slot="select-status" className="sr-only">
-            {announcement}
-          </span>
-        </BaseSelect.Root>
-      )}
+      <span role="status" data-slot="select-status" className="sr-only">
+        {announcement}
+      </span>
+    </BaseSelect.Root>
+  );
+}
+
+/**
+ * 選択肢から1つを選ぶ入力欄
+ */
+export function Select<Multiple extends boolean = false>(props: SelectProps<Multiple>) {
+  const [field, control] = splitFieldProps(props);
+  return (
+    <Field {...field} nativeLabel={false}>
+      {() => <SelectControl<Multiple> {...control} />}
     </Field>
   );
 }

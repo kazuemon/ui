@@ -2,17 +2,18 @@
 
 import { type ReactNode, useState } from 'react';
 
-import { TextField, type TextFieldProps } from '../text-field/TextField';
+import { TextField, type TextFieldBaseProps, type TextFieldProps } from '../text-field/TextField';
+import type { FieldNamed } from '../../internal/field/input-field-props';
 import { FieldClearButton } from '../../internal/field/FieldClearButton';
 import { MagnifyingGlassIcon } from '../../internal/icons';
 import { useFormSubmittingLock } from '../../internal/form-context';
 
 // Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
 type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
-  NonNullable<TextFieldProps[K]>
+  NonNullable<TextFieldBaseProps[K]>
 >[0];
 
-export interface SearchFieldProps extends Omit<TextFieldProps, 'type' | 'prefix' | 'suffix'> {
+interface SearchFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'prefix' | 'suffix'> {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
   /** はじめの値（非制御） */
@@ -30,6 +31,9 @@ export interface SearchFieldProps extends Omit<TextFieldProps, 'type' | 'prefix'
   /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
   prefix?: ReactNode;
 }
+
+/** SearchField の props。label か accessibleName のどちらかが要ります */
+export type SearchFieldProps = FieldNamed<SearchFieldBaseProps>;
 
 /**
  * 検索の語を打つ欄。値があるあいだ、右端に消去のボタンを出し、Esc でも消せます
@@ -98,7 +102,7 @@ export function SearchField({
 
   return (
     <TextField
-      {...props}
+      {...(props as TextFieldProps)}
       type="search"
       enterKeyHint={props.enterKeyHint ?? 'search'}
       value={value}

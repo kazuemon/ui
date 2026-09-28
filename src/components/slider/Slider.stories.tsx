@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { type ComponentType, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent } from 'storybook/test';
 
-import { Slider, type SliderProps } from './Slider';
+import {
+  Slider,
+  type SliderBaseProps,
+  SliderControl,
+  type SliderProps,
+  SliderValue,
+} from './Slider';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -21,7 +29,8 @@ const stateColumns: SliderColumn[] = [
 
 const meta = {
   title: 'Components/Slider',
-  component: Slider,
+  // args の型は label・accessibleName の組み合わせの決まりを外したもの（どちらも Controls で選べるように）
+  component: Slider as ComponentType<SliderBaseProps>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -70,7 +79,7 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<typeof Slider>;
+} satisfies Meta<SliderBaseProps>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -108,7 +117,9 @@ export const States: Story = {
       columns={stateColumns}
       columnWidth="9rem"
       rowLabel={(color) => color}
-      renderCell={(color, column) => <Slider {...args} color={color} {...column.props} />}
+      renderCell={(color, column) => (
+        <Slider {...(args as SliderProps)} color={color} {...column.props} />
+      )}
     />
   ),
 };
@@ -142,7 +153,9 @@ export const PressEffects: Story = {
       columns={[{ label: '通常' }, { label: '押している間', state: 'active' }]}
       columnWidth="14rem"
       rowLabel={(effect) => effect}
-      renderCell={(effect) => <Slider {...args} color="primary" pressEffect={effect} />}
+      renderCell={(effect) => (
+        <Slider {...(args as SliderProps)} color="primary" pressEffect={effect} />
+      )}
     />
   ),
 };
@@ -215,7 +228,7 @@ export const Densities: Story = {
   render: (args) => (
     <DensityPair>
       <div className="w-[300px]">
-        <Slider {...args} color="primary" />
+        <Slider {...(args as SliderProps)} color="primary" />
       </div>
     </DensityPair>
   ),
@@ -375,5 +388,66 @@ export const InForm: Story = {
     // 読み取り専用は送り、押せないものは送らない
     await expect(data.get('fixed')).toBe('70');
     await expect(data.has('off')).toBe(false);
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを横に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。値の文字はラベルの後ろに、キャプションと状態の行は本体の下に並びます。',
+      },
+    },
+  },
+  render: () => <Slider label="音量" labelPlacement="start" defaultValue={40} caption="通知の音" />,
+};
+
+function ComposedSlider() {
+  const [value, setValue] = useState(30);
+  return (
+    <Field label="作業の時間" caption="5 分ずつ選べます" name="minutes">
+      <FieldLabel aside={<SliderValue>{`${value} 分`}</SliderValue>} />
+      <FieldCaption />
+      <SliderControl
+        value={value}
+        onValueChange={setValue}
+        min={5}
+        max={120}
+        step={5}
+        getValueText={(_, v) => `${v} 分`}
+      />
+      <FieldMessages />
+    </Field>
+  );
+}
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と本体の `SliderControl` を置きます。ラベル・キャプション・状態の文、`disabled`、フォームの `name` は `Field` に渡します。値の文字は、値を制御して `<FieldLabel aside={<SliderValue>…</SliderValue>} />` でラベルの行に置きます。',
+      },
+    },
+  },
+  render: () => <ComposedSlider />,
+  play: async ({ canvas, canvasElement }) => {
+    const slider = canvas.getByRole('slider', { name: '作業の時間' });
+    await expect(slider).toHaveAttribute('aria-valuetext', '30 分');
+    await expect(slider).toHaveAttribute('name', 'minutes');
+    const describedBy = (slider.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean);
+    await expect(describedBy.map((id) => document.getElementById(id)?.textContent)).toEqual([
+      '5 分ずつ選べます',
+    ]);
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}');
+    const valueText = canvasElement.querySelector('[data-slot="slider-value"]');
+    await expect(valueText).toHaveTextContent('35 分');
+    await expect(valueText).toHaveAttribute('aria-hidden', 'true');
   },
 };

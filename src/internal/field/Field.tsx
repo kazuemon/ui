@@ -6,7 +6,7 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import type { FieldValidityState } from '@base-ui/react/field';
 import { useFormContext } from '@base-ui/react/internals/form-context';
-import { type ReactNode, useContext, useId, useState } from 'react';
+import { createContext, type ReactNode, useContext, useId, useLayoutEffect, useState } from 'react';
 
 import { FieldLayoutContext } from './field-layout';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
@@ -233,9 +233,116 @@ export function FieldMessageLine({
   );
 }
 
-export interface FieldProps extends FieldMarkProps {
-  /** 本体の上に置く太字のラベル */
+/** ラベルの置き場所（design/adr — 軸 385）。top: 本体の上（既定）、start: 本体の左 */
+export type FieldLabelPlacement = 'top' | 'start';
+
+/** 横に置くラベルの重さ（軸 388）。strong: 太字・本文の色（既定）、subtle: 標準の太さ・一段淡い色 */
+export type FieldLabelVariant = 'strong' | 'subtle';
+
+/** 置いた場所がいちばん狭いとき（24rem 未満）のラベルの置き場所（軸 388）。start: 横のまま（既定）、top: 上に戻す */
+export type FieldNarrowLabelPlacement = 'start' | 'top';
+
+/** ラベルの置き方の props。入力欄・Field・FieldGrid が同じ名前で持つ */
+export interface FieldLabelLayoutProps {
+  /**
+   * ラベルの置き場所。start は本体の左に置き、キャプションと状態の行は本体の下に並べます。
+   * 複数の欄のラベルの列をそろえるときは、FieldGrid の中に置きます
+   * @default 'top'
+   */
+  labelPlacement?: FieldLabelPlacement;
+  /**
+   * labelPlacement="start" のときのラベルの重さ。subtle は太字にせず一段淡い色にし、表の帯のように周りの文と重さをそろえます
+   * @default 'strong'
+   */
+  labelVariant?: FieldLabelVariant;
+  /**
+   * labelPlacement="start" のとき、置いた場所が 24rem 未満ならラベルを上に戻すか。top で戻します。
+   * FieldGrid の中では、並び全体の幅で測ります
+   * @default 'start'
+   */
+  narrowLabelPlacement?: FieldNarrowLabelPlacement;
+}
+
+/**
+ * 見えるラベル（label）か、読み上げだけの名前（accessibleName）のどちらかが要ります（軸 385）
+ * label を省くのは、置き場所や見本の文字・値で何の欄か分かるときだけです（検索欄、表の帯の件数など）
+ */
+export type FieldNameProps =
+  | {
+      /** 本体の上（labelPlacement="start" では左）に置く太字のラベル。読み上げの名前にもなります */
+      label: ReactNode;
+      /** 読み上げだけの名前。label があるときは要りません */
+      accessibleName?: string;
+    }
+  | {
+      label?: undefined;
+      /**
+       * 読み上げだけの名前。見えるラベルを置かないときに要ります。
+       * 近くに見える文（「1 ページの件数」など）があるときは、その文と同じ語で始めます（WCAG 2.5.3）
+       */
+      accessibleName: string;
+    };
+
+/** 欄の状態。Field が文脈で部位と本体に渡す */
+export interface FieldState {
+  /** キャプションと、出ている状態の行の id。本体の aria-describedby に渡す（見た目の順） */
+  describedBy: string | undefined;
+  /** フォームの中でこの欄を識別する名前（Field の name） */
+  name: string | undefined;
+  captionId: string;
+  ids: Record<MessageKind, string>;
   label: ReactNode;
+  accessibleName: string | undefined;
+  caption: ReactNode;
+  messages: Record<MessageKind, ReactNode>;
+  /** エラーの状態か（errorText・invalid・validate・Form の errors） */
+  invalid: boolean;
+  disabled: boolean;
+  loading: boolean;
+  loadingBehavior: FieldLoadingBehavior;
+  /** 書き換えを止めているか（loadingBehavior="blocking" で待っている、または Form の送信中） */
+  blocking: boolean;
+  required: boolean;
+  labelPlacement: FieldLabelPlacement;
+  labelVariant: FieldLabelVariant;
+  /** ラベルを <label> で描くか。本体がボタンの部品（Select など）は false にする（useFieldControlKind） */
+  nativeLabel: boolean;
+  /** キャプションを Base UI の説明として登録するか。選択肢を並べるグループは false にする（useFieldControlKind） */
+  registerCaption: boolean;
+  /** 部位が読む、ラベルの印の指定 */
+  mark: FieldMarkProps;
+  /** 本体の種類を登録する（useFieldControlKind が使う） */
+  setControlKind: (kind: FieldControlKind) => void;
+}
+
+export interface FieldControlKind {
+  nativeLabel?: boolean;
+  registerCaption?: boolean;
+}
+
+export const FieldContext = createContext<FieldState | null>(null);
+
+/** Field の中の状態を読みます。Field の外では null です */
+export function useFieldState(): FieldState | null {
+  return useContext(FieldContext);
+}
+
+/**
+ * 本体が自分の種類を Field に知らせます（ラベルを <label> にしない・キャプションを説明に登録しない）
+ * 組み立てで本体を置いたときも、ラベルの描き方が本体に合います
+ */
+export function useFieldControlKind(kind: FieldControlKind) {
+  const field = useContext(FieldContext);
+  const setControlKind = field?.setControlKind;
+  const { nativeLabel, registerCaption } = kind;
+  useLayoutEffect(() => {
+    setControlKind?.({ nativeLabel, registerCaption });
+  }, [setControlKind, nativeLabel, registerCaption]);
+}
+
+interface FieldBaseProps extends FieldMarkProps, FieldLabelLayoutProps {
+  label?: ReactNode;
+  accessibleName?: string;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない。省略してもレイアウトは崩れない */
   caption?: ReactNode;
   /** キャプションの場所。既定は top（ラベルのすぐ下）。bottom は本体の下で、エラー・警告はその下に足す */
@@ -263,11 +370,6 @@ export interface FieldProps extends FieldMarkProps {
   /** 待っているあいだの欄の扱い。blocking では、本体を押せない欄と同じ見た目にする（controlBox）。既定は non-blocking */
   loadingBehavior?: FieldLoadingBehavior;
   className?: string;
-  /**
-   * 本体。関数を渡すと、キャプションと本体の下の行の id を、見た目の順（キャプション → エラー → 警告 → 成功 → 情報）で受け取る
-   * 本体の aria-describedby の先に渡すと、読み上げの説明の順が、表示や消える順によらず見た目の順になる
-   */
-  children: ReactNode | ((describedBy: string | undefined) => ReactNode);
   /** ラベルを <label> で描くか。Select のように本体がボタンの部品では false にする */
   nativeLabel?: boolean;
   /**
@@ -301,16 +403,27 @@ export interface FieldProps extends FieldMarkProps {
    * @default 0
    */
   validationDebounceTime?: number;
+  /**
+   * 関数: 部品が内蔵する標準の並べ方（ラベル → キャプション → 本体 → 状態の行）。キャプションと状態の行の id を、
+   *   見た目の順で受け取り、本体の aria-describedby に渡す
+   * ReactNode: 組み立て。FieldLabel・FieldCaption・FieldMessages と本体を好きな順に置く
+   */
+  children: ReactNode | ((describedBy: string | undefined) => ReactNode);
 }
+
+/** 部品の中で使う Field の props（label と accessibleName のどちらも省ける。型の組み合わせは部品の props が決める） */
+export type FieldProps = FieldBaseProps;
 
 /**
  * ラベル / 本体 / キャプションの3層（原則4）。フォーム部品の外枠
  * 並びは ラベル → キャプション → 本体 → エラー → 警告 → 成功 → 情報（captionPlacement="bottom" では キャプションが本体のすぐ下）
  * DOM の順も見た目の順と同じにする（design/adr/0041）
  * Form の送信中（submittingBehavior="blocking"）は、data-loading="blocking"（押せない欄の見た目）にする
+ * children が関数なら標準の並べ方、ReactNode なら組み立て（部位を置く）
  */
 export function Field({
   label,
+  accessibleName,
   caption,
   captionPlacement = 'top',
   error,
@@ -326,9 +439,12 @@ export function Field({
   optionalMark,
   className,
   children,
-  nativeLabel = true,
+  nativeLabel,
   labelAside,
-  registerCaption = true,
+  registerCaption,
+  labelPlacement,
+  labelVariant,
+  narrowLabelPlacement,
   name,
   validate,
   validationMode,
@@ -338,49 +454,10 @@ export function Field({
   const id = useId();
   const formLock = useFormSubmittingLock();
   const appInvalid = useAppInvalid(error || invalid);
-  const captionId = `${id}caption`;
-  const ids: Record<MessageKind, string> = {
-    error: `${id}error`,
-    warning: `${id}warning`,
-    success: `${id}success`,
-    info: `${id}info`,
-  };
-  // グループ（registerCaption=false）では、Base UI に説明として登録しない。
-  // 登録すると Field.Item（中の選択肢）にも伝わり、グループの説明が1つずつの選択肢でも読まれる（原則15）
-  const captionNode = caption ? (
-    registerCaption ? (
-      <BaseField.Description id={captionId} className={styles.caption()}>
-        {caption}
-      </BaseField.Description>
-    ) : (
-      <p id={captionId} className={styles.caption()}>
-        {caption}
-      </p>
-    )
-  ) : null;
+  const defaults = useContext(FieldLayoutContext);
+  const placement = labelPlacement ?? defaults.labelPlacement ?? 'top';
   // 待っているあいだの見た目（design/adr/0042）。Form の送信中に止めるときも、止める見た目（印は出さない）
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
-  const layout = useContext(FieldLayoutContext);
-  const placement = layout.labelPlacement ?? 'top';
-  const labelNode = (
-    <BaseField.Label
-      data-slot="field-label"
-      className={styles.label({
-        start: placement === 'start',
-        className: [
-          labelAside != null ? 'min-w-0' : undefined,
-          placement === 'hidden' ? 'sr-only' : undefined,
-        ]
-          .filter(Boolean)
-          .join(' '),
-      })}
-      nativeLabel={nativeLabel}
-      render={nativeLabel ? undefined : <div />}
-    >
-      {label}
-      <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
-    </BaseField.Label>
-  );
   return (
     <BaseField.Root
       name={name}
@@ -389,109 +466,108 @@ export function Field({
       validationDebounceTime={validationDebounceTime}
       invalid={appInvalid}
       disabled={disabled || undefined}
+      data-slot="field"
+      data-label-placement={placement}
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する
       data-success={success && !error ? '' : undefined}
-      className={styles.root({
-        className: [placement === 'start' ? '@container' : undefined, className]
-          .filter(Boolean)
-          .join(' '),
-      })}
+      className={styles.root({ start: placement === 'start', className })}
     >
-      {placement === 'start' ? (
-        <FieldBody
-          captionNode={captionNode}
-          captionId={captionId}
-          captionPlacement={captionPlacement}
-          error={error}
-          warning={warning}
-          success={success}
-          info={info}
-          ids={ids}
-          name={name}
-          disabled={disabled}
-          start={{
-            label:
-              labelAside != null ? (
-                <div className="flex items-baseline justify-between gap-3">
-                  {labelNode}
-                  {labelAside}
-                </div>
-              ) : (
-                labelNode
-              ),
-            captionColumn: layout.captionColumn ?? 'control',
-            narrow: layout.narrowLabelPlacement ?? 'start',
-          }}
-        >
-          {children}
-        </FieldBody>
-      ) : null}
-      {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
-          印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる
-          labelAside があるときは、ラベルの行の右端に並べる（基準線をそろえる） */}
-      {placement === 'start' ? null : labelAside != null ? (
-        <div className="flex items-baseline justify-between gap-3">
-          {labelNode}
-          {labelAside}
-        </div>
-      ) : (
-        labelNode
-      )}
-      {placement === 'start' ? null : (
-        <FieldBody
-          captionNode={captionNode}
-          captionId={captionId}
-          captionPlacement={captionPlacement}
-          error={error}
-          warning={warning}
-          success={success}
-          info={info}
-          ids={ids}
-          name={name}
-          disabled={disabled}
-        >
-          {children}
-        </FieldBody>
-      )}
+      <FieldBody
+        id={id}
+        label={label}
+        accessibleName={accessibleName}
+        caption={caption}
+        captionPlacement={captionPlacement}
+        error={error}
+        invalid={Boolean(appInvalid)}
+        warning={warning}
+        success={success}
+        info={info}
+        name={name}
+        disabled={Boolean(disabled)}
+        loading={Boolean(loading)}
+        loadingBehavior={loadingBehavior}
+        blocking={formLock.blocking || Boolean(loading && loadingBehavior === 'blocking')}
+        required={Boolean(required)}
+        mark={{ required, requiredMark, optionalMark }}
+        nativeLabel={nativeLabel}
+        registerCaption={registerCaption}
+        labelAside={labelAside}
+        labelPlacement={placement}
+        labelVariant={labelVariant ?? defaults.labelVariant ?? 'strong'}
+        narrowLabelPlacement={narrowLabelPlacement ?? defaults.narrowLabelPlacement ?? 'start'}
+      >
+        {children}
+      </FieldBody>
     </BaseField.Root>
   );
 }
 
-// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI が見つけた検証結果を読む
+// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI が見つけた検証結果を読み、文脈に入れる
 function FieldBody({
-  captionNode,
-  captionId,
+  id,
+  label,
+  accessibleName,
+  caption,
   captionPlacement,
   error,
+  invalid,
   warning,
   success,
   info,
-  ids,
   name,
   disabled,
+  loading,
+  loadingBehavior,
+  blocking,
+  required,
+  mark,
+  nativeLabel: nativeLabelProp,
+  registerCaption: registerCaptionProp,
+  labelAside,
+  labelPlacement,
+  labelVariant,
+  narrowLabelPlacement,
   children,
-  start,
 }: {
-  /** 試作（Design Review 385）: ラベルを本体の左に置くとき、ラベルの列に置くものと並べ方 */
-  start?: {
-    label: ReactNode;
-    captionColumn: 'control' | 'label';
-    narrow: 'start' | 'top';
-  };
-  captionNode: ReactNode;
-  captionId: string;
+  id: string;
+  label: ReactNode;
+  accessibleName: string | undefined;
+  caption: ReactNode;
   captionPlacement: CaptionPlacement;
   error: ReactNode;
+  invalid: boolean;
   warning: ReactNode;
   success: ReactNode;
   info: ReactNode;
-  ids: Record<MessageKind, string>;
   name: string | undefined;
-  disabled: boolean | undefined;
+  disabled: boolean;
+  loading: boolean;
+  loadingBehavior: FieldLoadingBehavior;
+  blocking: boolean;
+  required: boolean;
+  mark: FieldMarkProps;
+  nativeLabel: boolean | undefined;
+  registerCaption: boolean | undefined;
+  labelAside: ReactNode;
+  labelPlacement: FieldLabelPlacement;
+  labelVariant: FieldLabelVariant;
+  narrowLabelPlacement: FieldNarrowLabelPlacement;
   children: FieldProps['children'];
 }) {
   const formErrors = useFormFieldErrors();
+  // 組み立てで置いた本体が知らせる種類。部品の props（標準の並べ方）が勝つ
+  const [controlKind, setControlKind] = useState<FieldControlKind>({});
+  const nativeLabel = nativeLabelProp ?? controlKind.nativeLabel ?? true;
+  const registerCaption = registerCaptionProp ?? controlKind.registerCaption ?? true;
+  const captionId = `${id}caption`;
+  const ids: Record<MessageKind, string> = {
+    error: `${id}error`,
+    warning: `${id}warning`,
+    success: `${id}success`,
+    info: `${id}info`,
+  };
   return (
     <BaseField.Validity>
       {(validity) => {
@@ -506,41 +582,187 @@ function FieldBody({
         const kinds = Object.keys(messages) as MessageKind[];
         // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
         const describedBy =
-          [captionNode && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
+          [caption && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
             .filter(Boolean)
             .join(' ') || undefined;
-        const messageNodes = kinds.map((kind) => (
-          <FieldMessageLine key={kind} kind={kind} content={messages[kind]} id={ids[kind]} />
-        ));
-        const control = typeof children === 'function' ? children(describedBy) : children;
-        if (start) {
-          // 試作（Design Review 385）: ラベルの列と本体の列の 2 列。ラベルは本体の 1 行目の中央にそろえる
-          const styles = fieldStyles({ narrow: start.narrow });
-          return (
-            <div className={styles.startGrid()}>
-              <div className={styles.startLabelColumn()}>
-                {start.label}
-                {start.captionColumn === 'label' && captionNode}
-              </div>
-              <div className={styles.startControlColumn()}>
-                {control}
-                {start.captionColumn === 'control' && captionNode}
-                {messageNodes}
-              </div>
-            </div>
-          );
-        }
+        const state: FieldState = {
+          describedBy,
+          name,
+          captionId,
+          ids,
+          label,
+          accessibleName,
+          caption,
+          messages,
+          invalid: invalid || Boolean(baseError),
+          disabled,
+          loading,
+          loadingBehavior,
+          blocking,
+          required,
+          labelPlacement,
+          labelVariant,
+          nativeLabel,
+          registerCaption,
+          mark,
+          setControlKind,
+        };
         return (
-          <>
-            {captionPlacement === 'top' && captionNode}
-            {typeof children === 'function' ? children(describedBy) : children}
-            {captionPlacement === 'bottom' && captionNode}
-            {kinds.map((kind) => (
-              <FieldMessageLine key={kind} kind={kind} content={messages[kind]} id={ids[kind]} />
-            ))}
-          </>
+          <FieldContext value={state}>
+            {typeof children === 'function' ? (
+              <FieldStandardLayout
+                control={children(describedBy)}
+                captionPlacement={captionPlacement}
+                labelAside={labelAside}
+                narrowLabelPlacement={narrowLabelPlacement}
+              />
+            ) : (
+              children
+            )}
+          </FieldContext>
         );
       }}
     </BaseField.Validity>
+  );
+}
+
+// 部品が内蔵する標準の並べ方
+//   top: ラベル → キャプション → 本体 → 状態の行（captionPlacement="bottom" ではキャプションが本体のすぐ下）
+//   start: 左の列にラベル、右の列に 本体 → キャプション → 状態の行。ラベルは本体の 1 行目の真ん中にそろえる
+function FieldStandardLayout({
+  control,
+  captionPlacement,
+  labelAside,
+  narrowLabelPlacement,
+}: {
+  control: ReactNode;
+  captionPlacement: CaptionPlacement;
+  labelAside: ReactNode;
+  narrowLabelPlacement: FieldNarrowLabelPlacement;
+}) {
+  const field = useContext(FieldContext);
+  if (!field) return null;
+  const label = <FieldLabel aside={labelAside} />;
+  if (field.labelPlacement === 'start') {
+    const styles = fieldStyles({ narrow: narrowLabelPlacement });
+    return (
+      <div className={styles.startGrid()}>
+        <div className={styles.startLabelColumn()}>{label}</div>
+        <div className={styles.startControlColumn()}>
+          {control}
+          <FieldCaption />
+          <FieldMessages />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <>
+      {label}
+      {captionPlacement === 'top' && <FieldCaption />}
+      {control}
+      {captionPlacement === 'bottom' && <FieldCaption />}
+      <FieldMessages />
+    </>
+  );
+}
+
+export interface FieldLabelProps {
+  /** ラベルの文字。省くと Field の label（なければ accessibleName を見えない文字で）を出します */
+  children?: ReactNode;
+  /** ラベルと同じ行の右端に置くもの（Slider の値の文字など） */
+  aside?: ReactNode;
+  className?: string;
+}
+
+/**
+ * 欄のラベル（組み立ての部位）。必須・任意の印も付けます
+ * Field に label がなく accessibleName だけのときは、見えない文字で置き、読み上げとエラーの一覧の名前にします
+ */
+export function FieldLabel({ children, aside, className }: FieldLabelProps) {
+  const field = useContext(FieldContext);
+  if (!field) return null;
+  const text = children ?? field.label;
+  const hidden = text == null;
+  const styles = fieldStyles();
+  const labelNode = (
+    // data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
+    // 印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる
+    <BaseField.Label
+      data-slot="field-label"
+      className={styles.label({
+        start: field.labelPlacement === 'start',
+        subtle: field.labelPlacement === 'start' && field.labelVariant === 'subtle',
+        className: [
+          aside != null ? 'min-w-0' : undefined,
+          hidden ? 'sr-only' : undefined,
+          className,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      })}
+      nativeLabel={field.nativeLabel}
+      render={field.nativeLabel ? undefined : <div />}
+    >
+      {hidden ? field.accessibleName : text}
+      {hidden ? null : <FieldMark {...field.mark} />}
+    </BaseField.Label>
+  );
+  if (aside == null || hidden) return labelNode;
+  // ラベルの行の右端に並べる（基準線をそろえる）
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      {labelNode}
+      {aside}
+    </div>
+  );
+}
+
+export interface FieldCaptionProps {
+  className?: string;
+}
+
+/** 欄のキャプション（ヘルプテキスト。組み立ての部位）。文は Field の caption です */
+export function FieldCaption({ className }: FieldCaptionProps) {
+  const field = useContext(FieldContext);
+  if (!field?.caption) return null;
+  const styles = fieldStyles();
+  // グループ（registerCaption=false）では、Base UI に説明として登録しない。
+  // 登録すると Field.Item（中の選択肢）にも伝わり、グループの説明が1つずつの選択肢でも読まれる（原則15）
+  return field.registerCaption ? (
+    <BaseField.Description id={field.captionId} className={styles.caption({ className })}>
+      {field.caption}
+    </BaseField.Description>
+  ) : (
+    <p id={field.captionId} className={styles.caption({ className })}>
+      {field.caption}
+    </p>
+  );
+}
+
+export interface FieldMessagesProps {
+  className?: string;
+}
+
+/**
+ * 本体の下の状態の行（エラー → 警告 → 成功 → 情報。組み立ての部位）。文は Field の errorText などです
+ * 行がなくても箱をいつも置き、読み上げの知らせ（live region）にします
+ */
+export function FieldMessages({ className }: FieldMessagesProps) {
+  const field = useContext(FieldContext);
+  if (!field) return null;
+  const kinds = Object.keys(field.messages) as MessageKind[];
+  return (
+    // 箱は contents にし、行の箱を親の並び（間 --spacing-field-gap）に直に置く。行の箱が上の間を打ち消す仕組みを保つ
+    <div data-slot="field-messages" className={['contents', className].filter(Boolean).join(' ')}>
+      {kinds.map((kind) => (
+        <FieldMessageLine
+          key={kind}
+          kind={kind}
+          content={field.messages[kind]}
+          id={field.ids[kind]}
+        />
+      ))}
+    </div>
   );
 }

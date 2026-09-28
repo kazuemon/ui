@@ -4,7 +4,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent } from 'storybook/test';
 
 import { TextField } from '../text-field/TextField';
-import { Textarea, type TextareaProps } from './Textarea';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Textarea, TextareaControl, type TextareaProps } from './Textarea';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -471,4 +472,66 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { caption: '返事はメールで送ります', labelPlacement: 'start' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` で、ラベルとキャプションを本体の左に置きます。設定画面のように、欄を縦に並べる画面で使います。狭い画面では上に戻ります。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-2xl">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('textbox', { name: '本文' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`TextareaControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldCaption`・`FieldMessages` と好きな順に並べます。押せない・エラーなどの状態と説明のつながりは、`Field` から受け取ります。',
+      },
+      source: {
+        code: `<Field label="本文" caption="返事はメールで送ります" errorText="本文を入力してください">
+  <FieldLabel />
+  <TextareaControl maxCount={200} showCount />
+  <FieldMessages />
+  <FieldCaption />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-md flex-col">
+      <Field label="本文" caption="返事はメールで送ります" errorText="本文を入力してください">
+        <div className="flex flex-col gap-2">
+          <FieldLabel />
+          <TextareaControl maxCount={200} showCount />
+          <FieldMessages />
+          <FieldCaption />
+        </div>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const textarea = canvas.getByRole('textbox', { name: /本文/ });
+    await expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    // 文字数・キャプション・エラーの行が説明につながる
+    const describedBy = textarea.getAttribute('aria-describedby')?.split(' ') ?? [];
+    await expect(describedBy.length).toBe(3);
+  },
 };

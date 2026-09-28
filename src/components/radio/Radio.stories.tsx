@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, userEvent } from 'storybook/test';
 
-import { Radio, RadioGroup } from './Radio';
+import { Radio, RadioGroup, RadioGroupControl } from './Radio';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
 
@@ -135,5 +136,54 @@ export const ReadOnly: Story = {
     am.focus();
     await expect(am).toHaveFocus();
     am.blur();
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { labelPlacement: 'start', defaultValue: 'am' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` で、見出しを選択肢の左に置きます。設定の画面のように、見出しと値を横に並べるときに使います。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('radiogroup', { name: '配送の時間' })).toBeInTheDocument();
+  },
+};
+
+export const Composed: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`RadioGroupControl`・`FieldCaption`・`FieldMessages` を置きます。見出し・キャプション・状態の文・`disabled`・`required` は `Field` に渡し、値と選択肢は `RadioGroupControl` に渡します。見出しはグループの名前になり、キャプションはグループにだけつながります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Field label="配送の時間" caption="14 時から 18 時は午後です" required>
+        <FieldLabel />
+        <RadioGroupControl defaultValue="am">
+          <Radio value="am" label="午前" />
+          <Radio value="pm" label="午後" />
+        </RadioGroupControl>
+        <FieldCaption />
+        <FieldMessages />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const group = canvas.getByRole('radiogroup', { name: '配送の時間' });
+    await expect(group).toHaveAttribute('aria-required', 'true');
+    await expect(group).toHaveAccessibleDescription('14 時から 18 時は午後です');
+    // 見出しは <label> ではない（グループの名前として付く）
+    await expect(canvas.getByText('配送の時間').closest('label')).toBeNull();
+    await expect(canvas.getByRole('radio', { name: '午前' })).toHaveAccessibleDescription('');
   },
 };

@@ -13,11 +13,18 @@ import {
 import {
   type CaptionPlacement,
   Field,
+  type FieldLabelLayoutProps,
   type FieldValidate,
   type FieldValidationMode,
+  useFieldControlKind,
+  useFieldState,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { tv } from '../../internal/tv';
 import { Checkbox } from './Checkbox';
 
@@ -96,14 +103,94 @@ type SelectAllProps =
       selectAllFrame?: ChoiceFrame;
     };
 
-export type CheckboxGroupProps = Omit<
+/** CheckboxGroup の本体（CheckboxGroupControl）の props。見出し・キャプション・状態の文・押せない・必須は、包む Field に渡します */
+export type CheckboxGroupControlProps = Omit<
   ComponentProps<'div'>,
   'className' | 'color' | 'defaultValue' | 'onChange' | 'children' | 'aria-required'
 > &
-  SelectAllProps &
-  FieldMarkProps & {
+  SelectAllProps & {
+    /** 選んだ値の並び（制御） */
+    value?: string[];
+    /** はじめに選んでいる値の並び（非制御） */
+    defaultValue?: string[];
+    /** 選び方が変わるときに、次の値を渡して呼びます */
+    onValueChange?: (value: string[]) => void;
+    /**
+     * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
+     * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
+     * 押してもキーボードでも値は変わりません。フォームでは値が送られます。
+     * 選択肢ごとの `readOnly` で上書きできます
+     * @default false
+     */
+    readOnly?: boolean;
+    /**
+     * 中の選択肢の色。選択肢ごとの color で上書きできます
+     * @default 'neutral'
+     */
+    color?: ChoiceColor;
+    /** 中に置く選択肢。Checkbox を value 付きで並べます */
+    children: ReactNode;
+  };
+
+/**
+ * チェックボックスのグループの本体（組み立て用）。Field の中に置き、見出し・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・エラーの状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * 見出しはグループ（role="group"）の名前になり、キャプションと状態の行はグループにだけつなぎます（中の Checkbox 1つずつには入れません）。
+ * 状態の行を選択肢に寄せる間は、Field の className に付けます（CheckboxGroup では自動で付きます）
+ */
+export function CheckboxGroupControl({
+  value,
+  defaultValue,
+  onValueChange,
+  readOnly,
+  color,
+  children,
+  selectAll,
+  allValues,
+  selectAllFrame = 'none',
+  'aria-describedby': ariaDescribedBy,
+  ...props
+}: CheckboxGroupControlProps) {
+  // 見出しは <label> ではなく、グループの名前として付ける。キャプションはグループにだけ付ける（原則15）
+  useFieldControlKind({ nativeLabel: false, registerCaption: false });
+  const field = useFieldState();
+  // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
+  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  const withSelectAll = selectAll !== undefined && selectAll !== null;
+  return (
+    <ChoiceGroupContext.Provider value={context}>
+      <BaseCheckboxGroup
+        {...props}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
+        allValues={withSelectAll ? allValues : undefined}
+        disabled={field?.disabled}
+        aria-describedby={
+          [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
+        }
+        className="flex flex-col"
+      >
+        {withSelectAll ? (
+          <SelectAllItems selectAll={selectAll} frame={selectAllFrame}>
+            {children}
+          </SelectAllItems>
+        ) : (
+          children
+        )}
+      </BaseCheckboxGroup>
+    </ChoiceGroupContext.Provider>
+  );
+}
+
+/** CheckboxGroup の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export type CheckboxGroupBaseProps = CheckboxGroupControlProps &
+  FieldMarkProps &
+  FieldLabelLayoutProps & {
     /** グループの見出し（太字）。グループ（role="group"）の名前になります */
-    label: ReactNode;
+    label?: ReactNode;
+    /** 読み上げだけの名前。見える見出しを置かないときに要ります */
+    accessibleName?: string;
     /**
      * 必須にします。見出しの後ろに印（既定は「必須」のタグ）を出します。
      * グループ（role="group"）には aria-required を付けられず、印は読み上げから外れるので、
@@ -143,35 +230,17 @@ export type CheckboxGroupProps = Omit<
      * @default 0
      */
     validationDebounceTime?: number;
-    /** 選んだ値の並び（制御） */
-    value?: string[];
-    /** はじめに選んでいる値の並び（非制御） */
-    defaultValue?: string[];
-    /** 選び方が変わるときに、次の値を渡して呼びます */
-    onValueChange?: (value: string[]) => void;
     /**
      * グループごと押せない（Disabled）状態にします。中の箱がすべてグレーになります
      * @default false
      */
     disabled?: boolean;
-    /**
-     * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
-     * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
-     * 押してもキーボードでも値は変わりません。フォームでは値が送られます。
-     * 選択肢ごとの `readOnly` で上書きできます
-     * @default false
-     */
-    readOnly?: boolean;
-    /**
-     * 中の選択肢の色。選択肢ごとの color で上書きできます
-     * @default 'neutral'
-     */
-    color?: ChoiceColor;
     /** グループの外枠（見出し・選択肢・下の行をまとめた縦の並び）に付きます */
     className?: string;
-    /** 中に置く選択肢。Checkbox を value 付きで並べます */
-    children: ReactNode;
   };
+
+/** CheckboxGroup の props。label か accessibleName のどちらかが要ります */
+export type CheckboxGroupProps = FieldNamed<CheckboxGroupBaseProps>;
 
 /**
  * チェックボックスのグループ。見出し / 選択肢 / キャプション・エラー・警告の3層（原則4）
@@ -180,81 +249,20 @@ export type CheckboxGroupProps = Omit<
  * エラー・警告の行と読み上げは入力欄と同じ（design/adr/0041・0044）。行はグループの説明（aria-describedby）につなぐ
  * required は見出しに印を出すだけ（グループには aria-required を付けられない）。必須であることは caption の文でも書きます
  */
-export function CheckboxGroup({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  infoText,
-  value,
-  defaultValue,
-  onValueChange,
-  disabled,
-  readOnly,
-  color,
-  className,
-  children,
-  selectAll,
-  allValues,
-  selectAllFrame = 'none',
-  validate,
-  validationMode,
-  validationDebounceTime,
-  required,
-  requiredMark,
-  optionalMark,
-  'aria-describedby': ariaDescribedBy,
-  ...props
-}: CheckboxGroupProps) {
-  // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
-  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
-  const withSelectAll = selectAll !== undefined && selectAll !== null;
+export function CheckboxGroup(props: CheckboxGroupProps) {
+  const [field, control] = splitFieldProps(props as CheckboxGroupBaseProps);
   return (
-    <ChoiceGroupContext.Provider value={context}>
-      <Field
-        label={label}
-        caption={caption}
-        captionPlacement={captionPlacement}
-        error={errorText}
-        warning={warningText}
-        info={infoText}
-        disabled={disabled}
-        required={required}
-        requiredMark={requiredMark}
-        optionalMark={optionalMark}
-        className={[...choiceGroupMessagePull(captionPlacement), className]
-          .filter(Boolean)
-          .join(' ')}
-        nativeLabel={false}
-        // グループのキャプションは、グループにだけ付ける。中のチェックボックス1つずつの説明には入れない（原則15）
-        registerCaption={false}
-        validate={validate}
-        validationMode={validationMode}
-        validationDebounceTime={validationDebounceTime}
-      >
-        {(describedBy) => (
-          <BaseCheckboxGroup
-            {...props}
-            value={value}
-            defaultValue={defaultValue}
-            onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
-            allValues={withSelectAll ? allValues : undefined}
-            disabled={disabled}
-            aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
-            className="flex flex-col"
-          >
-            {withSelectAll ? (
-              <SelectAllItems selectAll={selectAll} frame={selectAllFrame}>
-                {children}
-              </SelectAllItems>
-            ) : (
-              children
-            )}
-          </BaseCheckboxGroup>
-        )}
-      </Field>
-    </ChoiceGroupContext.Provider>
+    <Field
+      {...field}
+      className={[...choiceGroupMessagePull(field.captionPlacement), field.className]
+        .filter(Boolean)
+        .join(' ')}
+      nativeLabel={false}
+      // グループのキャプションは、グループにだけ付ける。中のチェックボックス1つずつの説明には入れない（原則15）
+      registerCaption={false}
+    >
+      {() => <CheckboxGroupControl {...(control as CheckboxGroupControlProps)} />}
+    </Field>
   );
 }
 

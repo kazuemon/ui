@@ -4,7 +4,8 @@ import { useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
-import { NumberField, type NumberFieldProps } from './NumberField';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { NumberField, NumberFieldControl, type NumberFieldProps } from './NumberField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -409,5 +410,66 @@ export const Scrub: Story = {
     await userEvent.click(input);
     await userEvent.keyboard('{ArrowUp}{Shift>}{ArrowUp}{/Shift}');
     await expect(input).toHaveValue('61');
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { caption: '99 個まで', labelPlacement: 'start' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` で、ラベルとキャプションを本体の左に置きます。設定画面のように、欄を縦に並べる画面で使います。狭い画面では上に戻ります。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xl">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await expect(canvas.getByLabelText('数量')).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`NumberFieldControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldCaption`・`FieldMessages` と好きな順に並べます。押せない・エラーなどの状態と説明のつながりは、`Field` から受け取ります。',
+      },
+      source: {
+        code: `<Field label="数量" caption="99 個まで">
+  <FieldLabel />
+  <NumberFieldControl defaultValue={1} min={0} max={99} />
+  <FieldCaption />
+  <FieldMessages />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col">
+      <Field label="数量" caption="99 個まで">
+        <div className="flex flex-col gap-2">
+          <FieldLabel />
+          <NumberFieldControl defaultValue={1} min={0} max={99} />
+          <FieldCaption />
+          <FieldMessages />
+        </div>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText(/数量/);
+    await expect(input.getAttribute('aria-describedby')).toBeTruthy();
+    await userEvent.click(canvas.getByRole('button', { name: '増やす' }));
+    await expect(input).toHaveValue('2');
   },
 };
