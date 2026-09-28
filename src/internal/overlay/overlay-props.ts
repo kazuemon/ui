@@ -45,9 +45,8 @@ export interface PositionerProps extends ComponentProps<'div'> {
 export function focusTargetRef(target: OverlayFocusTarget | undefined) {
   if (target === undefined) return undefined;
   if (target === false) return false;
-  // ブラウザでは要素かどうかを先に確かめる（current という名前の値を持つ要素を ref と取り違えない）。
-  // サーバーで描くときは HTMLElement がないので、ref かどうか（current を持つか）で分ける
-  if (typeof HTMLElement !== 'undefined' && target instanceof HTMLElement)
-    return { current: target };
+  // 要素かどうかを先に nodeType で確かめる（current という名前の値を持つ要素を ref と取り違えない）。
+  // instanceof HTMLElement は、サーバーで描くときに HTMLElement がなく、iframe の中の要素（別の realm）も通らない
+  if ('nodeType' in target && target.nodeType === 1) return { current: target }; // 1 は Node.ELEMENT_NODE（Node もサーバーにはない）
   return 'current' in target ? target : { current: target };
 }
