@@ -162,6 +162,7 @@
 
 - レシピに回す部品の見直し（Sidebar が部品として要るか）は決めていません。Stack は部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
 - Sortable と dnd-kit をつなぐレシピ（`src/recipes/sortable-dnd-kit.tsx`）ができました（2026-09-28、[ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0336](./adr/0336-sortable-keyboard-and-recipe.md)）。DataTable と TanStack Table をつなぐレシピも同じ形で置きます
+- DataTable の recipe（`src/recipes/data-table/OrdersDataTable.tsx`）ができました（2026-09-28）。TanStack Table（`@tanstack/react-table` 9系）で並べ替え・選択・ページ送りをつなぐ見本です（[ADR-0335](./adr/0335-headless-look-only-recipes.md)・[ADR-0343](./adr/0343-data-table-separate-from-table.md)）
 
 ### Affix
 
@@ -308,6 +309,14 @@
 - 1 つのフォームで、必須の印と任意の印を混ぜてよいかは決めていません。どちらか一方にそろえる勧め方を書くかも含めて決めます（[ADR-0194](./adr/0194-required-mark.md)）
 - 赤い「\*」を選んだときに要る「\* は必須の項目です」の一文は、使う側が書く前提です。見本のページと Docs のどこに、どう置いて見せるかは決めていません
 
+### Field（入力欄のラベルの置き場所）
+
+入力欄のラベルは、原則 4 の 3 層のとおり、いつも本体の上に出します。`label` は必須です。表の下の帯や上の道具の帯のように、1 行に詰めて並べる場所では、上のラベルが浮いて見えます（DataTable のレシピの「1 ページの件数」の Select、上の帯の検索欄）。Field の仕様として決め、使っている部品をまとめて直します。
+
+- ラベルを本体の左に置く形（`labelPlacement="start"` のような props）を作るか。作るなら、原則 4 の文（ラベルは本体の上）を「ふだんは上、1 行に詰める帯では左」のように書き換える。キャプション・エラーの置き場所、ラベルの幅、狭い画面で上に戻すかも決めます
+- ラベルを出さない形を作るか（`label` を任意にし、`accessibleName` で読み上げだけの名前を付ける）。値や案内の文で意味が分かる場所に使います（検索欄、「10 件ずつ」の Select、Video の自前のシーク）。見える文と読み上げの名前をそろえる（WCAG 2.5.3）決まりも書きます
+- 上の 2 つは両立します。決まったら、DataTable のレシピの件数の Select と検索欄、Slider の「ラベルを出さない形」（Slider の節）を直します
+
 ### Switch・Tag・Badge・Chip
 
 - Chip は 2026-09-21 に Combobox と一緒に作りました（[ADR-0217](./adr/0217-combobox-chips.md)・[ADR-0219](./adr/0219-chip-look.md)）。残りは「Combobox・Chip」にあります
@@ -436,6 +445,19 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `moveActions="item-menu"` の ︙ の中と、`buttons` の上へ・下へのボタンは、先頭へ・末尾へまとめて動かす操作を持ちません（`item-menu` のメニューだけは先頭へ・末尾へを持ちます）。長い一覧での使い勝手は実機で見ます
 - Sortable は `color` を持ちません。並びそのものが値で、選んでいることを示す部品ではないため、意味の色を渡す場面がないと判断しました。項目の中に色付きの部品（Tag など）を置く形で対応します
 - 指での並べ替え（長押し・はじく動きとの兼ね合い）と、読み上げソフト（VoiceOver・NVDA など）での確かめは、まだしていません
+
+### DataTable
+
+2026-09-28 に作りました。Table とは別の部品にする判断と props の形は [ADR-0343](./adr/0343-data-table-separate-from-table.md)、見た目は [ADR-0344](./adr/0344-data-table-sort-indicator.md)〜[ADR-0347](./adr/0347-data-table-sticky-edge.md)、下の帯・選択の帯は [ADR-0348](./adr/0348-data-table-footer-recipe.md)・[ADR-0349](./adr/0349-data-table-selection-bar.md) で決めました。TanStack Table でつなぐ見本は `src/recipes/data-table/OrdersDataTable.tsx` です。
+
+- 列の幅の調整（使う側が列ごとに幅を指定する、ユーザーがドラッグして広げる）は作っていません
+- 最初の列（見出しの列）を固定して、横にスクロールしても残す形は作っていません
+- 複数の列での並べ替え（Shift を押しながら 2 つ目の列を押すなど）と、その番号（「1」「2」のような順番の印）は決めていません。TanStack Table の複数列ソートの機能自体は使えますが、DataTableHeader の見た目（矢印だけ）は 1 列の並べ替えしか表していません
+- 行を押して選ぶ形（選択の箱を押さなくても、行のどこを押しても選べる）は作っていません。押せる範囲は選択の箱だけです（原則17。DataTableSelect.tsx のコメント）
+- 範囲選択（1 行目を選んで Shift を押しながら別の行を選ぶと、間の行もまとめて選ぶ）は作っていません
+- 読み込み直しのあいだの見せ方（並べ替え・ページ送りのあと、新しい行が届くまでの見せ方）は決めていません。`DataTableLoading` は初回の読み込みの形で、行が既にあるところへの読み込み直しは想定していません
+- `Pagination` を下の帯に置くとき、`min-w-0` が要るかは比べていません（[ADR-0348](./adr/0348-data-table-footer-recipe.md)）。狭い幅で `Select`（1 ページの件数）と並べたときに、`Pagination` 側が縮むかどうかです
+- 見出しのボタン（`DataTableHeader` の `onSortClick`）は、キーボードでは Tab で止まりますが、並べ替えている列だけに `aria-sort` を付ける以外の読み上げの確かめ（本物の読み上げソフト）はしていません
 
 ## レシピの案
 
