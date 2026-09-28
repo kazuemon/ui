@@ -25,7 +25,8 @@ import { MenuGroup, MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem
 import { Tooltip } from '../tooltip/Tooltip';
 import {
   SidebarLayoutContext,
-  type SidebarItemColor,
+  type SidebarBadgeShape,
+  type SidebarItemBadge,
   SidebarNavContext,
   type SidebarNavContextValue,
 } from './sidebar-context';
@@ -74,24 +75,10 @@ export interface SidebarItemProps extends Omit<
    */
   disabled?: boolean;
   /**
-   * 行の件数（未読の数など）。開いた列では文字の後ろに、畳んだ列ではアイコンの右上に出します。0 のときは出しません
+   * 行の札（未読の数・新着の点など）。開いた列では文字の後ろに、畳んだ列ではアイコンの右上に出します。
+   * `{ count: 3 }` で数字の札、`{ shape: 'dot' }` で点。色は color（既定はグレー）、畳んだ列での形は collapsedShape で変えます
    */
-  count?: number;
-  /**
-   * 件数の上限。これを超えると「99+」のように出します
-   * @default 99
-   */
-  countMax?: number;
-  /**
-   * 数字を出さず、点だけを付けます（新しいものがある、など）。count と一緒に渡したときは count を出します
-   * @default false
-   */
-  showDot?: boolean;
-  /**
-   * 件数の札と点の色。neutral はグレー、ほかは塗りの色です
-   * @default 'neutral'
-   */
-  color?: SidebarItemColor;
+  badge?: SidebarItemBadge;
   /**
    * 行ごとの操作（MenuItem を並べる）。渡すと、行の右端に ︙ のボタンが付き、押すとメニューが開きます。畳んだ列では出しません
    */
@@ -111,10 +98,16 @@ export interface SidebarItemProps extends Omit<
   ref?: React.Ref<HTMLElement>;
 }
 
-/** 件数を出す文字にする。0 以下や未指定は出さない */
-function countText(count: number | undefined, max: number) {
+/** 札の出し方を決める。label は数字の札の文字（点のときは null）。出さないときは null */
+function resolveBadge(badge: SidebarItemBadge | undefined, collapsedDefault: SidebarBadgeShape) {
+  if (!badge) return null;
+  const shape = badge.shape ?? (badge.count != null ? 'count' : 'dot');
+  const colorClass = countColor[badge.color ?? 'neutral'];
+  if (shape === 'dot') return { label: null, collapsedShape: 'dot' as const, colorClass };
+  const { count, max = 99 } = badge;
   if (count == null || count <= 0) return null;
-  return count > max ? `${max}+` : String(count);
+  const label = count > max ? `${max}+` : String(count);
+  return { label, collapsedShape: badge.collapsedShape ?? collapsedDefault, colorClass };
 }
 
 /** 子の行に、いまいる行があるか（畳んだ列で、親のアイコンに印を付けるため） */
@@ -162,10 +155,7 @@ function ListItem({
   expanded: _expanded,
   onExpandedChange: _onExpandedChange,
   disabled = false,
-  count,
-  countMax = 99,
-  showDot = false,
-  color = 'neutral',
+  badge,
   menu,
   menuName = 'その他の操作',
   onClick,
@@ -189,7 +179,7 @@ function ListItem({
   const nested = nav.depth > 0;
   const s = sidebar({ nested });
   const asLink = !hasChildren && href != null && !disabled;
-  const countLabel = countText(count, countMax);
+  const mark = resolveBadge(badge, nav.collapsedBadgeShape);
   const hasMenu = menu != null && menu !== false;
   // 新しいタブで開く行（Tree・Link と同じ扱い）: ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足す
   const newTab = asLink && (props.target === '_blank' || opensNewTab(render));
@@ -231,11 +221,11 @@ function ListItem({
           <span data-slot="sidebar-label" className={s.label()}>
             {label}
           </span>
-          {countLabel ? (
+          {mark?.label ? (
             <span data-slot="sidebar-count" className={s.count()}>
-              {countLabel}
+              {mark.label}
             </span>
-          ) : showDot ? (
+          ) : mark ? (
             <span data-slot="sidebar-dot" aria-hidden="true" className={s.dot()} />
           ) : null}
           {hasChildren && (
@@ -260,7 +250,10 @@ function ListItem({
   ) : null;
   if (!hasChildren) {
     return (
-      <li role="none" className={`group/sidebar-li relative flex flex-col ${countColor[color]}`}>
+      <li
+        role="none"
+        className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`}
+      >
         {row}
         {action}
       </li>
@@ -274,7 +267,7 @@ function ListItem({
       render={
         <li
           role="none"
-          className={`group/sidebar-li relative flex flex-col ${countColor[color]}`}
+          className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`}
         />
       }
     >
@@ -304,10 +297,7 @@ function RailItem({
   expanded: _expanded,
   onExpandedChange: _onExpandedChange,
   disabled = false,
-  count,
-  countMax = 99,
-  showDot = false,
-  color = 'neutral',
+  badge,
   menu: _menu,
   menuName: _menuName,
   onClick,
@@ -317,7 +307,8 @@ function RailItem({
   nav,
   ...props
 }: SidebarItemProps & { nav: SidebarNavContextValue }) {
-  const countLabel = countText(count, countMax);
+  const mark = resolveBadge(badge, nav.collapsedBadgeShape);
+  const countLabel = mark?.label ?? null;
   const noteId = useId();
   const hasChildren = children != null && children !== false;
   const s = sidebar();
@@ -378,11 +369,11 @@ function RailItem({
         <>
           <span aria-hidden="true" className={s.icon({ className: s.railIcon() })}>
             {icon ?? <span className="text-sm font-bold">{label.slice(0, 1)}</span>}
-            {countLabel && nav.countShape === 'count' ? (
+            {countLabel && mark?.collapsedShape === 'count' ? (
               <span data-slot="sidebar-rail-count" className={s.railCount()}>
                 {countLabel}
               </span>
-            ) : countLabel || showDot ? (
+            ) : mark ? (
               <span data-slot="sidebar-rail-dot" className={s.railDot()} />
             ) : null}
           </span>
@@ -396,7 +387,7 @@ function RailItem({
 
   if (!hasChildren) {
     return (
-      <li role="none" className={`flex flex-col ${countColor[color]}`}>
+      <li role="none" className={`flex flex-col ${mark?.colorClass ?? ''}`}>
         <Tooltip content={label} side="right" delay={nav.openDelay}>
           {row}
         </Tooltip>
@@ -404,7 +395,7 @@ function RailItem({
     );
   }
   return (
-    <li role="none" className={`flex flex-col ${countColor[color]}`}>
+    <li role="none" className={`flex flex-col ${mark?.colorClass ?? ''}`}>
       <Menu
         trigger={row}
         open={flyoutOpen}
@@ -477,10 +468,9 @@ function FlyoutItem({
   className,
   target,
   rel,
-  count,
-  countMax = 99,
+  badge,
 }: SidebarItemProps) {
-  const countLabel = countText(count, countMax);
+  const countLabel = resolveBadge(badge, 'count')?.label;
   const text = countLabel ? `${label}（${countLabel}）` : label;
   const hasChildren = children != null && children !== false;
   if (hasChildren) {

@@ -35,7 +35,7 @@ const meta = {
           '- 行が縦に収まらないときは、列の中がスクロールします。',
           '- `header`・`footer` に置いた行は、列の上・下に固定され、スクロールしません（大会やワークスペースの切り替え、アカウント、設定など）。スクロールする行とのあいだには区切り線を引きます（`hideDivider` で消せます）。`headerVariant`・`footerVariant` を `filled` にすると、上・下それぞれに淡い面を敷けます。',
           '- `variant="muted"` にすると、列の地が淡いグレーになります。本文との境の線は、どちらの地でも引きます。',
-          '- 行の件数は SidebarItem の `count` です（100 以上は「99+」）。数字を出さない点は `showDot` です。色は `color`（既定はグレー）です。畳んだ列では、アイコンの右上に数字の札を重ねます。点にするときは Sidebar の `collapsedCountShape="dot"` です。',
+          '- 行の札（件数・点）は SidebarItem の `badge` です。`{ count: 3 }` で数字の札（100 以上は「99+」、上限は `max`）、`{ shape: \'dot\' }` で点、色は `color`（既定はグレー）です。畳んだ列では、アイコンの右上に重ねます。点にするときは Sidebar の `collapsedItemBadgeShape="dot"`、行ごとに変えるときは `collapsedShape` です。',
           '- 行ごとの操作は SidebarItem の `menu` に MenuItem を並べます。行の右端に ︙ のボタンが付きます。ふだんの濃さは Sidebar の `itemMenuIndicator`（既定の `subtle` は半分の濃さで、載せると濃く）です。',
           '- SidebarSection に `collapsible` を付けると、題を押して節を畳めます。印の濃さは Sidebar の `sectionIndicator` です。',
           '- SidebarLayout に `resizable` を付けると、列の端をつかんで幅を変えられます（`minWidth`〜`maxWidth`。キーボードでは ← →、2 回押すとはじめの幅）。いちばん狭い幅よりさらに細くすると畳みます（`collapseOnResize={false}` で止められます）。`resizeHandle="grip"` で、つまみをいつも見せます。',
@@ -220,11 +220,11 @@ export const Dashboard: Story = {
         sidebar={<DashboardSidebar />}
       />
       <Cropped
-        label='畳んだ列（collapsedCountShape="dot"）'
+        label='畳んだ列（collapsedItemBadgeShape="dot"）'
         width={200}
         height={640}
         defaultCollapsed
-        sidebar={<DashboardSidebar collapsedCountShape="dot" />}
+        sidebar={<DashboardSidebar collapsedItemBadgeShape="dot" />}
       />
     </div>
   ),

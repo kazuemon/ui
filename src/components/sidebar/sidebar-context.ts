@@ -12,10 +12,11 @@ export type SidebarEdgeVariant = 'plain' | 'filled';
 export type SidebarNarrowPresentation = 'drawer' | 'menu';
 /** ふだんの濃さ。subtle は半分の濃さで置いて載せると濃く、always はいつも濃く、hover は載せたときだけ（DataTable の sortIndicator と同じ） */
 export type SidebarIndicator = 'subtle' | 'always' | 'hover';
-export type SidebarCountShape = 'count' | 'dot';
+/** 行の札の形。count は数字の札、dot は数字のない点 */
+export type SidebarBadgeShape = 'count' | 'dot';
 export type SidebarResizeHandle = 'line' | 'grip';
-/** 行の件数・点の色 */
-export type SidebarItemColor =
+/** 行の札の色 */
+export type SidebarBadgeColor =
   | 'neutral'
   | 'primary'
   | 'secondary'
@@ -23,6 +24,30 @@ export type SidebarItemColor =
   | 'success'
   | 'warning'
   | 'danger';
+
+/** 行の札（SidebarItem の badge）。値の名前は Badge と同じです */
+export interface SidebarItemBadge {
+  /** 数。0 以下のときは出しません */
+  count?: number;
+  /**
+   * これを超える数は「99+」のように出します
+   * @default 99
+   */
+  max?: number;
+  /**
+   * 形。書かないときは、count があれば数字の札（count）、なければ点（dot）です
+   */
+  shape?: SidebarBadgeShape;
+  /**
+   * 色。neutral はグレー（開いた列では淡いグレーの札）、ほかは塗りの色です
+   * @default 'neutral'
+   */
+  color?: SidebarBadgeColor;
+  /**
+   * 畳んだ列での形。書かないときは Sidebar の collapsedItemBadgeShape に従います。点の札（shape が dot）には効きません
+   */
+  collapsedShape?: SidebarBadgeShape;
+}
 
 /** SidebarLayout が持つ状態。SidebarTrigger と Sidebar が読む */
 export interface SidebarLayoutContextValue {
@@ -74,8 +99,8 @@ export interface SidebarNavContextValue {
   color: SidebarColor;
   openDelay: number;
   closeDelay: number;
-  /** 畳んだ列で、件数を数字の札で出すか点にするか */
-  countShape: SidebarCountShape;
+  /** 畳んだ列で、数字の札をそのまま出すか点にするか（行の badge.collapsedShape がなければこれ） */
+  collapsedBadgeShape: SidebarBadgeShape;
 }
 
 export const SidebarNavContext = createContext<SidebarNavContextValue | null>(null);

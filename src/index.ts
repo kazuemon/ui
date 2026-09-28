@@ -454,10 +454,11 @@ export {
 export {
   Sidebar,
   type SidebarColor,
-  type SidebarCountShape,
+  type SidebarBadgeColor,
+  type SidebarBadgeShape,
   type SidebarEdgeVariant,
   type SidebarIndicator,
-  type SidebarItemColor,
+  type SidebarItemBadge,
   type SidebarMotion,
   type SidebarNarrowPresentation,
   type SidebarNarrowSide,

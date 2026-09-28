@@ -21,7 +21,7 @@ import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
   type SidebarColor,
   SidebarNavContext,
-  type SidebarCountShape,
+  type SidebarBadgeShape,
   type SidebarEdgeVariant,
   type SidebarIndicator,
   type SidebarNarrowPresentation,
@@ -34,10 +34,11 @@ import { sidebar } from './sidebar-styles';
 
 export type {
   SidebarColor,
-  SidebarCountShape,
+  SidebarBadgeColor,
+  SidebarBadgeShape,
   SidebarEdgeVariant,
   SidebarIndicator,
-  SidebarItemColor,
+  SidebarItemBadge,
   SidebarMotion,
   SidebarNarrowPresentation,
   SidebarNarrowSide,
@@ -88,10 +89,10 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    */
   footerVariant?: SidebarEdgeVariant;
   /**
-   * 畳んだ列で、行の件数（SidebarItem の count）をどう出すか。count は数字の札、dot は数字を出さず点にします
+   * 畳んだ列で、行の数字の札（SidebarItem の badge）をどう出すか。count は数字の札のまま、dot は数字を出さず点にします。行ごとに badge.collapsedShape で上書きできます
    * @default 'count'
    */
-  collapsedCountShape?: SidebarCountShape;
+  collapsedItemBadgeShape?: SidebarBadgeShape;
   /**
    * 行ごとのメニュー（SidebarItem の menu）を開く ︙ のボタンの、ふだんの濃さ。subtle は半分の濃さで置き、行に載せると濃くします。
    * always はいつも濃く、hover は載せたとき（とキーボードで止まったとき）だけ出します。指で操作しているときは、hover でもいつも出します
@@ -172,7 +173,7 @@ export function Sidebar({
   hideDivider = false,
   headerVariant = 'plain',
   footerVariant = 'plain',
-  collapsedCountShape = 'count',
+  collapsedItemBadgeShape = 'count',
   itemMenuIndicator = 'subtle',
   sectionIndicator = 'subtle',
   narrowPresentation = 'drawer',
@@ -206,7 +207,7 @@ export function Sidebar({
     itemMenuIndicator,
     sectionIndicator,
   });
-  const navValue = { color, openDelay, closeDelay, countShape: collapsedCountShape };
+  const navValue = { color, openDelay, closeDelay, collapsedBadgeShape: collapsedItemBadgeShape };
 
   // 狭い画面を Menu と同じシートで出す: 行を Menu の項目にし、入れ子は同じシートの中で横に滑らせる
   if (narrow && narrowPresentation === 'menu') {

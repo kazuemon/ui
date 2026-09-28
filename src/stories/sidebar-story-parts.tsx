@@ -20,6 +20,7 @@ import {
 import { Button } from '../components/button/Button';
 import { MenuItem } from '../components/menu/MenuItem';
 import { Navbar } from '../components/navbar/Navbar';
+import type { SidebarItemBadge } from '../components/sidebar/Sidebar';
 import { SidebarItem } from '../components/sidebar/SidebarItem';
 import { SidebarSection } from '../components/sidebar/SidebarSection';
 import { SidebarTrigger } from '../components/sidebar/SidebarLayout';
@@ -62,19 +63,24 @@ export function TournamentItems({
 }) {
   const is = (name: string) => name === current;
   const menu = dashboard ? <GroupMenu /> : undefined;
-  const count = (n: number) => (dashboard ? n : undefined);
+  const badge = (value: SidebarItemBadge) => (dashboard ? value : undefined);
   return (
     <>
       <SidebarSection title="試合管理" collapsible={dashboard}>
         <SidebarItem label="大会の概要" icon={<InfoIcon />} href="#overview" current={is('概要')} />
-        <SidebarItem label="ステージ" icon={<MedalIcon />} defaultExpanded count={count(2)}>
+        <SidebarItem
+          label="ステージ"
+          icon={<MedalIcon />}
+          defaultExpanded
+          badge={badge({ count: 2 })}
+        >
           <SidebarItem label="予選リーグ" defaultExpanded menu={menu}>
             <SidebarItem label="Aグループ" href="#a" current={is('Aグループ')} menu={menu} />
             <SidebarItem
               label="Bグループ"
               href="#b"
               current={is('Bグループ')}
-              count={count(2)}
+              badge={badge({ count: 2 })}
               menu={menu}
             />
             <SidebarItem label="Cグループ" href="#c" current={is('Cグループ')} menu={menu} />
@@ -91,16 +97,14 @@ export function TournamentItems({
           label="参加チーム"
           icon={<UsersThreeIcon />}
           href="#teams"
-          count={count(3)}
-          color="primary"
+          badge={badge({ count: 3, color: 'primary' })}
         />
         <SidebarItem label="賞品・賞金" icon={<TrophyIcon />} href="#prizes" />
         <SidebarItem
           label="マッチサーバー"
           icon={<HardDrivesIcon />}
           href="#servers"
-          showDot={dashboard}
-          color="danger"
+          badge={badge({ shape: 'dot', color: 'danger' })}
         />
       </SidebarSection>
       <SidebarSection title="関連情報" collapsible={dashboard}>
@@ -120,7 +124,7 @@ export function TournamentItems({
           label="お問い合わせ"
           icon={<ChatCircleDotsIcon />}
           href="#contact"
-          count={count(128)}
+          badge={badge({ count: 128, collapsedShape: 'dot' })}
         />
       </SidebarSection>
     </>
@@ -142,7 +146,7 @@ export function TournamentSwitcher() {
 export function AccountItems() {
   return (
     <>
-      <SidebarItem label="お知らせ" icon={<BellIcon />} href="#notice" count={5} />
+      <SidebarItem label="お知らせ" icon={<BellIcon />} href="#notice" badge={{ count: 5 }} />
       <SidebarItem label="設定" icon={<GearSixIcon />} href="#settings" />
       <SidebarItem
         label="かずえもん"

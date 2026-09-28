@@ -21,7 +21,9 @@
 
 ## 決定
 
-**既定は B（淡いグレーの札に数字。畳んだ列でも数字を残す）です。** 札の色は `SidebarItem` の `color`（`neutral`・`primary`・`secondary`・`info`・`success`・`warning`・`danger`。既定 `neutral`）で変えられます。畳んだ列で数字ではなく点にすることは、`Sidebar` の `collapsedCountShape="dot"`（D）で選べます。数字を出さず点だけを付けたい行（新しいものがある、など）は、`SidebarItem` の `showDot` で作れます。100 を超える件数は「99+」にします（`countMax`、既定 `99`）。0 のときは出しません。
+**既定は B（淡いグレーの札に数字。畳んだ列でも数字を残す）です。** 札は `SidebarItem` の `badge` に、Badge と同じ名前の値をまとめて渡します（`{ count, max, shape, color, collapsedShape }`）。色は `color`（`neutral`・`primary`・`secondary`・`info`・`success`・`warning`・`danger`。既定 `neutral`）で変えられます。畳んだ列で数字ではなく点にすることは、`Sidebar` の `collapsedItemBadgeShape="dot"`（D）で選べ、行ごとには `collapsedShape` で上書きできます。数字を出さず点だけを付けたい行（新しいものがある、など）は `{ shape: 'dot' }` です。100 を超える件数は「99+」にします（`max`、既定 `99`）。0 のときは出しません。
+
+props の形は、決めたあと（2026-09-29）に見直しました。はじめは `count`・`countMax`・`showDot`・`color` を別々の props にしていましたが、`showDot` は props だけでは何の点か読みにくく、`color` は Sidebar の `color`（いまいる行の色）と同じ名前で意味が違いました。行ごとに畳んだときの形を変えたい場面もあるため、札の設定を 1 つのオブジェクトにまとめました。Badge の要素そのものを受け取る形も考えましたが、渡された要素の props は部品が読まない決まりのため、畳んだときに数字を点へ変えられず、採りませんでした。
 
 ## 理由
 
@@ -38,8 +40,8 @@
 
 ## 影響
 
-- `src/components/sidebar/SidebarItem.tsx`: `count`・`countMax`（既定 `99`）・`showDot`（既定 `false`）・`color`（`SidebarItemColor`。`neutral`・`primary`・`secondary`・`info`・`success`・`warning`・`danger`、既定 `neutral`）を公開します
-- `src/components/sidebar/Sidebar.tsx`: `collapsedCountShape`（`'count' | 'dot'`、既定 `'count'`）を公開します
+- `src/components/sidebar/SidebarItem.tsx`: `badge`（型 `SidebarItemBadge`: `count`・`max`（既定 `99`）・`shape`（`SidebarBadgeShape`）・`color`（`SidebarBadgeColor`、既定 `neutral`）・`collapsedShape`）を公開します
+- `src/components/sidebar/Sidebar.tsx`: `collapsedItemBadgeShape`（`'count' | 'dot'`、既定 `'count'`）を公開します
 - `design/tokens.css`: `--sidebar-count-bg`・`--sidebar-count-fg`・`--sidebar-mark-bg`・`--sidebar-mark-fg` を持ちます
 - 比較のストーリー `design/stories/axis-380-sidebar-count.stories.tsx` は消しました
 

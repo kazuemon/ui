@@ -104,9 +104,9 @@ export const sidebar = tv({
       'min-w-5 shrink-0 rounded-pill px-1.5 text-center text-xs leading-5 font-bold tabular-nums',
       'bg-(color:--sidebar-count-bg) text-(color:--sidebar-count-fg)',
     ],
-    // 数字のない印（showDot）。開いた列では文字の後ろに置く
+    // 数字のない点（badge の shape が dot）。開いた列では文字の後ろに置く
     dot: 'mx-1.5 size-2 shrink-0 rounded-full bg-(color:--sidebar-mark-bg)',
-    // 畳んだ列では、アイコンの右上に数字の札か点を重ねる（collapsedCountShape）。列の地の色の縁で、アイコンと分ける
+    // 畳んだ列では、アイコンの右上に数字の札か点を重ねる（collapsedItemBadgeShape・badge.collapsedShape）。列の地の色の縁で、アイコンと分ける
     railIcon: 'relative',
     railDot: [
       'pointer-events-none absolute -end-0.5 -top-0.5 size-2 rounded-full bg-(color:--sidebar-mark-bg)',
@@ -224,7 +224,11 @@ export const sidebar = tv({
     // 畳んだ列の節: 題を出さず、次の節との境に線を引く
     // 入れ子の行は、アイコンを持たず、案内線の右から文字を始める
     nested: {
-      true: { row: 'ps-[calc(var(--sidebar-nested-px)-var(--sidebar-nested-gap))] text-fg-muted' },
+      true: {
+        row: 'ps-[calc(var(--sidebar-nested-px)-var(--sidebar-nested-gap))] text-fg-muted',
+        // 入れ子の中の入れ子: 親の一覧が空けた間の分だけ戻し、案内線の位置を変えない
+        group: 'ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2-var(--sidebar-nested-gap))]',
+      },
       false: {},
     },
   },
