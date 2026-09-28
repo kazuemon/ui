@@ -52,8 +52,10 @@ const fileTree = tv({
       '[display:var(--file-tree-icon-display,grid)] [&_svg]:size-(--file-tree-icon-size)',
     ],
     icon: 'grid size-(--file-tree-icon-size) shrink-0 place-items-center [&_svg]:size-(--file-tree-icon-size)',
-    label: 'min-w-0 flex-1 truncate',
-    comment: 'ms-auto shrink-0 truncate text-(color:--file-tree-comment-color)',
+    // 狭い幅ではファイル名を優先する。ファイル名は自分の幅のまま（縮むのは、ファイル名だけで幅を越えたときだけ）、
+    //   コメントは幅 0 から残りを埋め、入りきらない分を切る。右端に寄せるのは text-end で行う
+    label: 'min-w-0 truncate',
+    comment: 'min-w-0 flex-1 truncate text-end text-(color:--file-tree-comment-color)',
     group: [
       ...listReset,
       'flex flex-col',
