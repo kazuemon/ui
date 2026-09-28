@@ -673,11 +673,15 @@ export {
 export {
   SearchField,
   type SearchFieldBaseProps,
+  SearchFieldControl,
+  type SearchFieldControlProps,
   type SearchFieldProps,
 } from './components/search-field/SearchField';
 export {
   PasswordField,
   type PasswordFieldBaseProps,
+  PasswordFieldControl,
+  type PasswordFieldControlProps,
   type PasswordFieldProps,
 } from './components/password-field/PasswordField';
 export {

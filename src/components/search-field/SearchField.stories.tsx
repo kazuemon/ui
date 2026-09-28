@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { expect, fn, userEvent } from 'storybook/test';
 
 import { Button } from '../button/Button';
-import { SearchField, type SearchFieldProps } from './SearchField';
+import { Field, FieldLabel, FieldMessages } from '../field/Field';
+import { SearchField, SearchFieldControl, type SearchFieldProps } from './SearchField';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -313,4 +314,39 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`SearchFieldControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldMessages` と並べます。消去のボタンと Esc で消す操作は本体が持ちます。',
+      },
+      source: {
+        code: `<Field label="記事を検索">
+  <FieldLabel />
+  <SearchFieldControl placeholder="例: デザイン" />
+  <FieldMessages />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-md flex-col">
+      <Field label="記事を検索">
+        <div className="flex flex-col gap-2">
+          <FieldLabel />
+          <SearchFieldControl placeholder="例: デザイン" defaultValue="デザイン" />
+          <FieldMessages />
+        </div>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('searchbox', { name: '記事を検索' });
+    await userEvent.click(canvas.getByRole('button', { name: '入力内容を消去' }));
+    await expect(input).toHaveValue('');
+  },
 };
