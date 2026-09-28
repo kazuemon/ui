@@ -45,7 +45,7 @@ const fileTree = tv({
     item: 'flex flex-col',
     row: 'flex min-w-0 items-center gap-(--file-tree-gap) ps-(--file-tree-row-px) pe-(--file-tree-row-pe) text-fg-muted',
     // アイコンの箱。既定のアイコンだけ hideIcons（--file-tree-icon-display）で消せる。渡したアイコンは icon 変体で常に出す
-    // grid は使わず [display:var(...)] だけにする（grid クラスと二重に持つと、どちらが勝つかが不定になる）
+    // grid クラスは使わず、display を --file-tree-icon-display で決める任意値のクラスだけにする（grid クラスと二重に持つと、どちらが勝つかが不定になる）
     // 色は下の kind（folder・file）が既定を付け、itemColor（軸 277）が上書きする
     iconDefault: [
       'size-(--file-tree-icon-size) shrink-0 place-items-center',
