@@ -218,7 +218,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 
 Web アプリで使うものです。実装の重い部品（DataTable・VirtualList・Sortable・Kanban）は、見た目だけを部品にし、外のヘッドレス（TanStack Table・TanStack Virtual・dnd-kit）とのつなぎ方はレシピ（Storybook の Recipes）で案内します。ヘッドレスは依存に入れないので、使う人がアプリに入れて、レシピのコードを写して使います。
 
-- [ ] DataTable
+- [x] DataTable
 - [ ] VirtualList
 - [x] Sortable
 - [ ] Kanban

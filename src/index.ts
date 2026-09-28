@@ -395,6 +395,28 @@ export {
   type TableVerticalAlign,
 } from './components/table/Table';
 export {
+  DataTable,
+  type DataTableProps,
+  type DataTableSortIndicator,
+} from './components/data-table/DataTable';
+export { DataTableEmpty, type DataTableEmptyProps } from './components/data-table/DataTableEmpty';
+export {
+  DataTableHeader,
+  type DataTableHeaderProps,
+  type DataTableSortDirection,
+} from './components/data-table/DataTableHeader';
+export {
+  DataTableLoading,
+  type DataTableLoadingProps,
+} from './components/data-table/DataTableLoading';
+export { DataTableRow, type DataTableRowProps } from './components/data-table/DataTableRow';
+export {
+  DataTableSelectCell,
+  type DataTableSelectCellProps,
+  DataTableSelectHeader,
+  type DataTableSelectHeaderProps,
+} from './components/data-table/DataTableSelect';
+export {
   Sortable,
   type SortableDragSourceVariant,
   type SortableGrabArea,

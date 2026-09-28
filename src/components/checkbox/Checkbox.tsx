@@ -4,6 +4,7 @@ import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox';
 import { Field as BaseField } from '@base-ui/react/field';
 import { type ComponentProps, type ReactNode, type Ref, useContext, useId } from 'react';
 
+import { CheckboxMark } from '../../internal/choice/CheckboxMark';
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
@@ -29,36 +30,6 @@ const soloRows = (caption: ReactNode) =>
   caption
     ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto_auto]'
     : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto_auto]';
-
-// チェック（✓）と中間の横線。線の太さは画面の px（--checkbox-mark-width）で、箱の大きさによらない
-function CheckboxMark() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className="size-full"
-      style={{ strokeWidth: 'var(--checkbox-mark-width)' }}
-    >
-      <polyline
-        points="4 8.5 6.75 11.25 12 5.5"
-        vectorEffect="non-scaling-stroke"
-        className="group-data-indeterminate/box:hidden"
-      />
-      <line
-        x1="4.5"
-        y1="8"
-        x2="11.5"
-        y2="8"
-        vectorEffect="non-scaling-stroke"
-        className="hidden group-data-indeterminate/box:inline"
-      />
-    </svg>
-  );
-}
 
 export interface CheckboxProps
   extends
