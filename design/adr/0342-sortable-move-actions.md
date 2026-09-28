@@ -37,6 +37,7 @@
 - `src/components/sortable/Sortable.tsx`: `moveActions`（`'none' | 'item-menu' | 'buttons'`、既定 `'none'`）と型 `SortableMoveActions` を持ちます。文字は `moveUpLabel`・`moveDownLabel`・`moveFirstLabel`・`moveLastLabel`・`moveMenuName` で差し替えられます
 - `src/components/sortable/SortableMoveActions.tsx`: `item-menu`（Menu を使った ︙）と `buttons`（上へ・下への 2 ボタン）を持ちます。どちらも項目の末尾に接した塊で、末尾のつまみがあればその手前に並びます
 - `design/stories/axis-377-sortable-move-actions.stories.tsx` は消しました
+- 純正のレシピ（`src/recipes/sortable-dnd-kit.tsx`）は、`moveActions="item-menu"` を指定します。写した人のアプリの既定になりやすいので、ドラッグだけの形を広めないためです（PR #84 のレビューを受けて 2026-09-28 に決めました。ユーザーの返事: 「84はAでよさそうです。」）
 
 ## 原則への反映
 
