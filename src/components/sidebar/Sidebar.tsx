@@ -17,6 +17,7 @@ import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer } from '../drawer/Drawer';
 import { Menu } from '../menu/Menu';
+import { MenuSeparator } from '../menu/MenuItem';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
   type SidebarColor,
@@ -223,9 +224,12 @@ export function Sidebar({
         returnFocus={layout.triggerRef}
         portalContainer={portalContainer}
       >
-        <SidebarNavContext value={{ ...navValue, mode: 'flyout', depth: 0 }}>
+        <SidebarNavContext value={{ ...navValue, mode: 'flyout', depth: 0, sheet: true }}>
           {header}
+          {/* 列の上下に固定した行との境は、シートの中でも区切り線で分ける（hideDivider で消す） */}
+          {header != null && !hideDivider && <MenuSeparator />}
           {children}
+          {footer != null && !hideDivider && <MenuSeparator />}
           {footer}
         </SidebarNavContext>
       </Menu>
@@ -258,7 +262,8 @@ export function Sidebar({
     );
   }
 
-  const showHandle = resize != null && !collapsed;
+  // 畳んだ列でも、幅を変えて畳める設定（collapseOnResize）なら、つまみを残して引き出せるようにする
+  const showHandle = resize != null && (!collapsed || resize.collapseOnResize);
   return (
     <SidebarNavContext value={{ ...navValue, mode: collapsed ? 'rail' : 'expanded', depth: 0 }}>
       <nav
@@ -317,7 +322,8 @@ export function Sidebar({
           name={resizeName}
           resizing={resizing}
           setResizing={setResizing}
-          collapse={() => setCollapsed(true)}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
         />
       )}
     </SidebarNavContext>
@@ -328,10 +334,13 @@ export function Sidebar({
 const KEY_STEP = 16;
 // いちばん狭い幅から、さらにこれだけ細くすると列を畳む（px）
 const COLLAPSE_OVERSHOOT = 48;
+// 畳んだ列から引き出すとき、畳む幅よりこれだけ広げたら開く（px）。行き来の境で開閉を繰り返さないよう、間をあける
+const EXPAND_HYSTERESIS = 24;
 
 /**
  * 列の端の幅を変えるつまみ。本文との境の線の上に重ねる。
- * ドラッグで幅を変え、いちばん狭い幅よりさらに細くすると畳む。← → で 16px ずつ、Home・End で最小・最大。2 回押すとはじめの幅に戻る
+ * ドラッグで幅を変え、いちばん狭い幅よりさらに細くすると畳む（collapseOnResize）。畳んだ列からは、右へ引き出すと開く。
+ * ← → で 16px ずつ（いちばん狭い幅で ← を押すと畳み、畳んだ列で → を押すと開く）、Home・End で最小・最大。2 回押すとはじめの幅に戻る
  */
 function ResizeHandle({
   resize,
@@ -340,7 +349,8 @@ function ResizeHandle({
   name,
   resizing,
   setResizing,
-  collapse,
+  collapsed,
+  setCollapsed,
 }: {
   resize: SidebarResize;
   navRef: RefObject<HTMLElement | null>;
@@ -348,20 +358,25 @@ function ResizeHandle({
   name: string;
   resizing: boolean;
   setResizing: (next: boolean) => void;
-  collapse: () => void;
+  collapsed: boolean;
+  setCollapsed: (next: boolean) => void;
 }) {
   const s = sidebar();
   const drag = useRef<{ startX: number; startWidth: number; rtl: boolean } | null>(null);
   const { minWidth, maxWidth } = resize;
   const clamp = (value: number) => Math.min(maxWidth, Math.max(minWidth, Math.round(value)));
   const current = () => resize.width ?? navRef.current?.offsetWidth ?? minWidth;
+  const collapseBelow = minWidth - COLLAPSE_OVERSHOOT;
+  const expandAbove = collapseBelow + EXPAND_HYSTERESIS;
+  // ドラッグの途中で開閉しても、同じドラッグのまま続ける（開閉のたびに描き直され、次の動きは新しい状態で読む）
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
-    drag.current = { startX: event.clientX, startWidth: current(), rtl };
+    const startWidth = collapsed ? (navRef.current?.offsetWidth ?? 0) : current();
+    drag.current = { startX: event.clientX, startWidth, rtl };
     setResizing(true);
   };
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -369,10 +384,16 @@ function ResizeHandle({
     if (!d) return;
     const delta = (event.clientX - d.startX) * (d.rtl ? -1 : 1);
     const raw = d.startWidth + delta;
-    if (resize.collapseOnResize && raw < minWidth - COLLAPSE_OVERSHOOT) {
-      drag.current = null;
-      setResizing(false);
-      collapse();
+    if (collapsed) {
+      // 畳んだ列: 十分に引き出したら開き、そこからは幅を追う
+      if (raw >= expandAbove) {
+        setCollapsed(false);
+        resize.setWidth(clamp(raw));
+      }
+      return;
+    }
+    if (resize.collapseOnResize && raw < collapseBelow) {
+      setCollapsed(true);
       return;
     }
     resize.setWidth(clamp(raw));
@@ -385,6 +406,18 @@ function ResizeHandle({
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
     const grow = rtl ? 'ArrowLeft' : 'ArrowRight';
     const shrink = rtl ? 'ArrowRight' : 'ArrowLeft';
+    if (collapsed) {
+      if (event.key === grow || event.key === 'End') {
+        event.preventDefault();
+        setCollapsed(false);
+      }
+      return;
+    }
+    if (event.key === shrink && resize.collapseOnResize && current() <= minWidth) {
+      event.preventDefault();
+      setCollapsed(true);
+      return;
+    }
     let next: number | undefined;
     if (event.key === grow) next = current() + KEY_STEP;
     else if (event.key === shrink) next = current() - KEY_STEP;

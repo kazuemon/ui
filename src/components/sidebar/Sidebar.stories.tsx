@@ -38,8 +38,8 @@ const meta = {
           '- 行の札（件数・点）は SidebarItem の `badge` です。`{ count: 3 }` で数字の札（100 以上は「99+」、上限は `max`）、`{ shape: \'dot\' }` で点、色は `color`（既定はグレー）です。畳んだ列では、アイコンの右上に重ねます。点にするときは Sidebar の `collapsedItemBadgeShape="dot"`、行ごとに変えるときは `collapsedShape` です。',
           '- 行ごとの操作は SidebarItem の `menu` に MenuItem を並べます。行の右端に ︙ のボタンが付きます。ふだんの濃さは Sidebar の `itemMenuIndicator`（既定の `subtle` は半分の濃さで、載せると濃く）です。',
           '- SidebarSection に `collapsible` を付けると、題を押して節を畳めます。印の濃さは Sidebar の `sectionIndicator` です。',
-          '- SidebarLayout に `resizable` を付けると、列の端をつかんで幅を変えられます（`minWidth`〜`maxWidth`。キーボードでは ← →、2 回押すとはじめの幅）。いちばん狭い幅よりさらに細くすると畳みます（`collapseOnResize={false}` で止められます）。`resizeHandle="grip"` で、つまみをいつも見せます。',
-          '- `narrowPresentation="menu"` にすると、狭い画面では Menu と同じく画面の下からシートを出し、入れ子の行を押すと中身が横に滑って入れ替わります。',
+          '- SidebarLayout に `resizable` を付けると、列の端をつかんで幅を変えられます（`minWidth`〜`maxWidth`。キーボードでは ← →、2 回押すとはじめの幅）。いちばん狭い幅よりさらに細くすると畳み、畳んだ列からは右へ引き出すと開きます（`collapseOnResize={false}` で止められます）。`resizeHandle="grip"` で、つまみをいつも見せます。',
+          '- `narrowPresentation="menu"` にすると、狭い画面では Menu と同じく画面の下からシートを出し、入れ子の行を押すと中身が横に滑って入れ替わります。入れ子に入ったときの題は SidebarItem の `submenuTitle`（既定は行の文字）で、畳んだ列の横に出す面の見出しにも使います。',
         ].join('\n'),
       },
     },
@@ -294,6 +294,12 @@ export const Resize: Story = {
     await expect(handle).toHaveAttribute('aria-valuenow', String(before + 16));
     await userEvent.keyboard('{Home}');
     await expect(handle).toHaveAttribute('aria-valuenow', '200');
+    // いちばん狭い幅で ← を押すと畳み、畳んだ列で → を押すと開く
+    const nav = canvas.getByRole('navigation', { name: 'メニュー' });
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(nav).toHaveAttribute('data-collapsed');
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(nav).not.toHaveAttribute('data-collapsed');
     // 行ごとの操作のボタンは、行の名前と合わせて読む
     await expect(
       canvas.getByRole('button', { name: 'Aグループ その他の操作' })

@@ -99,6 +99,8 @@ export interface SidebarNavContextValue {
   color: SidebarColor;
   openDelay: number;
   closeDelay: number;
+  /** 狭い画面を Menu のシートで出しているか（入れ子の面の見出しをシートの題に任せる） */
+  sheet?: boolean;
   /** 畳んだ列で、数字の札をそのまま出すか点にするか（行の badge.collapsedShape がなければこれ） */
   collapsedBadgeShape: SidebarBadgeShape;
 }

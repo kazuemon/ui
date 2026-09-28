@@ -17,7 +17,6 @@ import {
   UsersThreeIcon,
 } from '@phosphor-icons/react';
 
-import { Button } from '../components/button/Button';
 import { MenuItem } from '../components/menu/MenuItem';
 import { Navbar } from '../components/navbar/Navbar';
 import type { SidebarItemBadge } from '../components/sidebar/Sidebar';
@@ -134,7 +133,7 @@ export function TournamentItems({
 /** 列の上に固定する行: 大会の切り替え（入れ子にほかの大会） */
 export function TournamentSwitcher() {
   return (
-    <SidebarItem label={TOURNAMENT} icon={<TrophyIcon weight="fill" />}>
+    <SidebarItem label={TOURNAMENT} icon={<TrophyIcon weight="fill" />} submenuTitle="大会一覧">
       <SidebarItem label="ミラージュ杯 Season1" href="#s1" />
       <SidebarItem label="春のスプリント杯" href="#spring" />
       <SidebarItem label="大会を作成" icon={<PlusIcon />} />
@@ -163,7 +162,7 @@ export function AccountItems() {
   );
 }
 
-/** 帯。左端に開閉のボタン、右端に操作 */
+/** 帯。左端に開閉のボタンと題 */
 export function DemoNavbar({ title = TOURNAMENT }: { title?: string }) {
   return (
     <Navbar
@@ -174,7 +173,6 @@ export function DemoNavbar({ title = TOURNAMENT }: { title?: string }) {
           <span className="truncate text-(length:--text-control)">{title}</span>
         </span>
       }
-      actions={<Button variant="outline">同期</Button>}
     />
   );
 }

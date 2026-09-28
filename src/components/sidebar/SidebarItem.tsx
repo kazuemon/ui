@@ -80,6 +80,12 @@ export interface SidebarItemProps extends Omit<
    */
   badge?: SidebarItemBadge;
   /**
+   * 入れ子の面の題。畳んだ列の横に出す面の見出しと、狭い画面の Menu のシートで入れ子に入ったときの題になります。
+   * 行の文字と違う言い方にしたいとき（「ミラージュ杯 Season2」の入れ子を「大会一覧」と題する、など）に渡します
+   * @default label
+   */
+  submenuTitle?: string;
+  /**
    * 行ごとの操作（MenuItem を並べる）。渡すと、行の右端に ︙ のボタンが付き、押すとメニューが開きます。畳んだ列では出しません
    */
   menu?: ReactNode;
@@ -132,7 +138,7 @@ export function SidebarItem(props: SidebarItemProps) {
     if (expanded === undefined) setUncontrolled(next);
     onExpandedChange?.(next);
   };
-  if (nav.mode === 'flyout') return <FlyoutItem {...props} />;
+  if (nav.mode === 'flyout') return <FlyoutItem {...props} nav={nav} />;
   if (nav.mode === 'rail') return <RailItem {...props} nav={nav} />;
   return (
     <ListItem
@@ -156,6 +162,7 @@ function ListItem({
   onExpandedChange: _onExpandedChange,
   disabled = false,
   badge,
+  submenuTitle: _submenuTitle,
   menu,
   menuName = 'その他の操作',
   onClick,
@@ -298,6 +305,7 @@ function RailItem({
   onExpandedChange: _onExpandedChange,
   disabled = false,
   badge,
+  submenuTitle,
   menu: _menu,
   menuName: _menuName,
   onClick,
@@ -412,7 +420,7 @@ function RailItem({
       >
         <SidebarNavContext value={{ ...nav, mode: 'flyout', depth: 1 }}>
           {/* 畳んだ列の面には、親の行の名前を、面の見出しとして出す */}
-          <MenuGroup label={label}>{children}</MenuGroup>
+          <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
         </SidebarNavContext>
       </Menu>
     </li>
@@ -469,7 +477,9 @@ function FlyoutItem({
   target,
   rel,
   badge,
-}: SidebarItemProps) {
+  submenuTitle,
+  nav,
+}: SidebarItemProps & { nav: SidebarNavContextValue }) {
   const countLabel = resolveBadge(badge, 'count')?.label;
   const text = countLabel ? `${label}（${countLabel}）` : label;
   const hasChildren = children != null && children !== false;
@@ -477,8 +487,11 @@ function FlyoutItem({
     return (
       <MenuSubmenu
         icon={icon}
-        title={label}
-        items={<MenuGroup label={label}>{children}</MenuGroup>}
+        title={submenuTitle ?? label}
+        // シートでは、入れ子の題はシートの見出しに出るので、面の中の見出しは重ねない
+        items={
+          nav.sheet ? children : <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
+        }
         disabled={disabled}
         className={className}
       >
