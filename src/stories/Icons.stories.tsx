@@ -13,6 +13,7 @@ import {
   MinusIcon,
   PlusIcon,
   CaretLeftIcon,
+  DotsThreeVerticalIcon,
   CaretRightIcon,
   CheckCircleIcon,
   CheckIcon,
@@ -86,6 +87,12 @@ const entries: Entry[] = [
     regular: <CaretLeftIcon />,
     bold: <CaretLeftIcon standalone />,
     use: 'Calendar の前の月・シートの見出しの「‹」（親へ戻る）',
+  },
+  {
+    name: 'DotsThreeVerticalIcon',
+    regular: <DotsThreeVerticalIcon />,
+    bold: <DotsThreeVerticalIcon standalone />,
+    use: 'Sidebar の行ごとのメニューを開くボタン',
   },
   {
     name: 'CaretRightIcon',

@@ -109,6 +109,21 @@ export interface MenuProps {
    */
   modal?: boolean;
   /**
+   * 本体に hover したときにも開くか。押して開くこともできます。サイドバーを畳んだ列の、入れ子の行き先を出すときなどに使います
+   * @default false
+   */
+  openOnHover?: boolean;
+  /**
+   * hover してから開くまで（ms）。openOnHover のときだけ効きます
+   * @default 100
+   */
+  openDelay?: number;
+  /**
+   * 離れてから閉じるまで（ms）。openOnHover のときだけ効きます。斜めに動いて別の要素をかすめても、すぐには閉じません
+   * @default 0
+   */
+  closeDelay?: number;
+  /**
    * 外を押したときに閉じるか。false にすると、フォーカスが一覧の外へ出たときにも閉じません
    * @default true
    */
@@ -215,6 +230,9 @@ export function Menu({
   onOpenChange,
   onOpenChangeComplete,
   modal = true,
+  openOnHover = false,
+  openDelay = 100,
+  closeDelay = 0,
   dismissible = true,
   closeOnEscape = true,
   closeParentOnEsc = true,
@@ -270,7 +288,13 @@ export function Menu({
       disabled={disabled}
       closeParentOnEsc={closeParentOnEsc}
     >
-      <BaseMenu.Trigger ref={anchorRef} render={trigger} />
+      <BaseMenu.Trigger
+        ref={anchorRef}
+        render={trigger}
+        openOnHover={openOnHover}
+        delay={openDelay}
+        closeDelay={closeDelay}
+      />
       <MenuContext
         value={{
           sheet,

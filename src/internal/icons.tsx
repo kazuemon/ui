@@ -132,6 +132,15 @@ export const CaretLeftIcon = ({ standalone }: IconProps) => (
   </Icon>
 );
 
+// 縦の三点（Phosphor の DotsThreeVertical）。Sidebar の行ごとのメニューを開くボタン
+export const DotsThreeVerticalIcon = ({ standalone }: IconProps) => (
+  <Icon standalone={standalone}>
+    <circle cx="128" cy="60" r="12" fill="currentColor" stroke="none" />
+    <circle cx="128" cy="128" r="12" fill="currentColor" stroke="none" />
+    <circle cx="128" cy="196" r="12" fill="currentColor" stroke="none" />
+  </Icon>
+);
+
 // 左向き・右向きの矢印（Phosphor の ArrowLeft・ArrowRight）。Pager の前後の行き先が既定で使う
 export const ArrowLeftIcon = ({ standalone }: IconProps) => (
   <Icon standalone={standalone}>
