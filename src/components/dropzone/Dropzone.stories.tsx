@@ -247,6 +247,25 @@ export const Rejected: Story = {
   },
 };
 
+export const RemoveFromValue: Story = {
+  name: '一覧で外したファイルは送らない',
+  parameters: { controls: { disable: true } },
+  render: () => <DropzoneDemo accept={undefined} />,
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('画像') as HTMLInputElement;
+    const dt = new DataTransfer();
+    dt.items.add(new File(['a'], 'a.txt', { type: 'text/plain' }));
+    dt.items.add(new File(['b'], 'b.txt', { type: 'text/plain' }));
+    dispatchDrag('drop', input, dt);
+    await waitFor(() => expect(input.files).toHaveLength(2));
+
+    // 親の値から外すと、Form に送る input.files からも外れる
+    await userEvent.click(canvas.getByRole('button', { name: '外す: a.txt' }));
+    await waitFor(() => expect(input.files).toHaveLength(1));
+    await expect(input.files?.[0]?.name).toBe('b.txt');
+  },
+};
+
 export const Disabled: Story = {
   name: '押せない・読み取り専用は変わらない',
   parameters: { controls: { disable: true } },
