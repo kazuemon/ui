@@ -282,9 +282,10 @@ export function Dropzone({
     const next = multiple ? [...files, ...accepted] : accepted.length > 0 ? accepted : files;
     if (accepted.length > 0) setFiles(next);
     if (rejected.length > 0) onFilesRejected?.(rejected);
-    // Form に送るときの値。ブラウザは input.files に代入できるので、受け入れた分だけに合わせ直す
-    // （すべて受け付けなかったときは値が変わらず、上の effect が走らないので、ここでも合わせる）
-    syncInputFiles(input, next);
+    // Form に送るときの値。ブラウザは input.files に代入できるので、ここで合わせ直す
+    // （すべて受け付けなかったときは値が変わらず、上の effect が走らないので、ここでも合わせる）。
+    // 非制御は受け入れた値に、制御は今の value に合わせる。親が値を採ったら、上の effect が新しい値に合わせる
+    syncInputFiles(input, value === undefined ? next : files);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
