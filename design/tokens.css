@@ -1930,6 +1930,22 @@
   ); /* 24px。バッジが大きくなっても、アイコンは md と同じ大きさで止める */
   --status-panel-description-width: 40ch;
   /* ── END status-panel */
+
+  /* ── Dropzone — 軸 378〜381 で決定 ── BEGIN dropzone */
+  /* ファイルを落として選ぶ場所。src/components/dropzone。入力欄の仲間（原則8）で、読み取り専用・Form の送信中は
+     押せないときと同じ見た目にする（Slider・Switch と同じ useChoiceLock。TextField の破線は採らない）
+     枠・塗り（軸378。決定: filled を既定にし、outline・dashed も variant で選べる）
+       border-width・content-gap・icon-size・padding・min-height は variant によらない共通の値
+       枠の色・塗りそのものは variant ごとに部品のコード（Dropzone.tsx）で持つ（比べる案ではなくなったため）
+     ドラッグ中の色（軸379。決定: 面＋線のまま。色は color props（primary・secondary・neutral）で選べる。
+       受け付けないときは常に危険の色。accept の面・線は color ごとに部品のコードで持つ
+     中身の並べ方（軸380。決定: 縦に積む形のまま。横1列の案と切り替えのトークンは畳んだ） */
+  --dropzone-border-width: var(--border-width-thick);
+  --dropzone-content-gap: calc(var(--spacing) * 3); /* 12px */
+  --dropzone-icon-size: calc(var(--spacing) * 8); /* 32px */
+  --dropzone-padding: calc(var(--spacing) * 8); /* 32px */
+  --dropzone-min-height: calc(var(--spacing) * 40); /* 160px */
+  /* ── END dropzone */
 }
 
 /* ── toast keyframes */

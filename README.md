@@ -177,7 +177,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] NumberField
 - [x] DateField
 - [ ] DatePicker
-- [ ] Dropzone
+- [x] Dropzone
 - [x] SearchField
 - [x] PasswordField
 - [x] Autocomplete

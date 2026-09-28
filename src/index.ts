@@ -395,6 +395,20 @@ export {
   type TableVerticalAlign,
 } from './components/table/Table';
 export {
+  Dropzone,
+  type DropzoneButtonColor,
+  type DropzoneProps,
+  type DropzoneRejection,
+  type DropzoneRejectReason,
+  type DropzoneVariant,
+} from './components/dropzone/Dropzone';
+export {
+  type DropzoneFileEntry,
+  DropzoneFileList,
+  type DropzoneFileListProps,
+  type DropzoneFileListVariant,
+} from './components/dropzone/DropzoneFileList';
+export {
   TableOfContents,
   type TableOfContentsColor,
   type TableOfContentsCurrentIndicator,
