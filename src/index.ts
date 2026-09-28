@@ -395,6 +395,20 @@ export {
   type TableVerticalAlign,
 } from './components/table/Table';
 export {
+  Sortable,
+  type SortableDragSourceVariant,
+  type SortableGrabArea,
+  SortableHandle,
+  type SortableHandlePlacement,
+  type SortableHandleProps,
+  SortableItem,
+  type SortableItemProps,
+  type SortableMotion,
+  type SortableMoveActions,
+  type SortableProps,
+  type SortableVariant,
+} from './components/sortable/Sortable';
+export {
   Dropzone,
   type DropzoneButtonColor,
   type DropzoneProps,
