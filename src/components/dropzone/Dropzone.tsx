@@ -41,8 +41,8 @@ export type { DropzoneRejectReason, DropzoneRejection } from './dropzone-utils';
 // 本体は、隠した本物の <input type="file">（BaseField.Control）を、見た目の箱いっぱいに重ねる（opacity 0）。
 //   クリック・キーボード（Enter・Space）・ドラッグ＆ドロップは、すべてこの input が直接受ける。
 //   input の上に何もないので、dragenter/dragleave の数え方の落とし穴（子要素をまたぐたびに発火する）が起きない
-// 枠・塗り（軸378。決定: 面だけ（filled）を既定にし、現行の点線（dashed）・実線（outline）も variant で選べる）
-// ドラッグ中の色（軸379。決定: 面＋線のまま。色は color props に従う。既定は neutral。受け付けないときは常に危険の色）
+// 枠・塗り（ADR-0330。決定: 面だけ（filled）を既定にし、現行の点線（dashed）・実線（outline）も variant で選べる）
+// ドラッグ中の色（ADR-0331。決定: 面＋線のまま。色は color props に従う。既定は neutral。受け付けないときは常に危険の色）
 const dropzoneBox = tv({
   base: [
     'group/dropzone relative flex w-full flex-col items-center overflow-hidden rounded-control',
@@ -55,7 +55,7 @@ const dropzoneBox = tv({
     'focus-within:border-(color:--color-focus)',
     '[outline-width:0px] [outline-offset:var(--focus-ring-offset)] [outline-color:transparent] [outline-style:solid]',
     'has-[:focus-visible]:[outline-width:var(--focus-ring-width)] has-[:focus-visible]:[outline-color:var(--color-focus-ring)]',
-    // ファイルを上に持ってきた（軸379）: 受け付けるときは color の面＋線、受け付けないときはいつも危険の面＋線
+    // ファイルを上に持ってきた（ADR-0331）: 受け付けるときは color の面＋線、受け付けないときはいつも危険の面＋線
     'data-[drag=accept]:border-(color:--dropzone-drag-accept-border) data-[drag=accept]:bg-(color:--dropzone-drag-accept-bg)',
     'data-[drag=reject]:border-(color:--color-fg-danger) data-[drag=reject]:bg-(color:--color-danger-subtle)',
     // エラー（原則2）: 押せない・読み取り専用のときは優先しない（原則13）
@@ -65,7 +65,7 @@ const dropzoneBox = tv({
     'data-disabled:hover:[--dropzone-bg:var(--color-field-disabled)]',
   ],
   variants: {
-    // 枠の見せ方（軸378）。filled（既定）は枠線なしでグレーの面（原則8）、outline は実線、dashed は点線
+    // 枠の見せ方（ADR-0330）。filled（既定）は枠線なしでグレーの面（原則8）、outline は実線、dashed は点線
     variant: {
       filled: [
         '[border-style:solid] [--dropzone-border-color:transparent]',
@@ -80,7 +80,7 @@ const dropzoneBox = tv({
         '[--dropzone-bg-hover:var(--color-field-hover)] [--dropzone-bg:transparent]',
       ],
     },
-    // ファイルを受け付けるときの色（軸379）。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレー（原則6）
+    // ファイルを受け付けるときの色（ADR-0331）。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレー（原則6）
     color: {
       primary:
         '[--dropzone-drag-accept-bg:var(--color-primary-subtle)] [--dropzone-drag-accept-border:var(--color-primary)]',
@@ -93,12 +93,12 @@ const dropzoneBox = tv({
   defaultVariants: { variant: 'filled', color: 'neutral' },
 });
 
-// 中身の並べ方（軸380。決定: 縦に積む形のまま。横1列の案と切り替えのトークンは畳んだ）
+// 中身の並べ方（ADR-0332。決定: 縦に積む形のまま。横1列の案と切り替えのトークンは畳んだ）
 const dropzoneContent = tv({
   base: 'pointer-events-none flex w-full flex-col items-center justify-center gap-(--dropzone-content-gap) p-(--dropzone-padding) text-center',
 });
 
-/** 枠の見せ方（軸378）。filled は枠線なしのグレーの面（既定）、outline は実線、dashed は点線 */
+/** 枠の見せ方。filled は枠線なしのグレーの面（既定）、outline は実線、dashed は点線 */
 export type DropzoneVariant = NonNullable<VariantProps<typeof dropzoneBox>['variant']>;
 
 export type DropzoneButtonColor = 'white' | 'primary';
@@ -122,18 +122,18 @@ export interface DropzoneProps extends FieldMarkProps {
   /** 情報の内容。渡すと本体の下に丸の「i」と青い文字で出す。本体の見た目は変えない */
   infoText?: FieldMessage;
   /**
-   * 枠の見せ方（軸378）。filled は枠線なしのグレーの面、outline は実線、dashed は点線
+   * 枠の見せ方。filled は枠線なしのグレーの面、outline は実線、dashed は点線
    * @default 'filled'
    */
   variant?: DropzoneVariant;
   /**
-   * ファイルを受け付けるときの面と線の色（軸379）。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレー（原則6）。
+   * ファイルを受け付けるときの面と線の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレー（原則6）。
    * 受け付けないときは、この props によらずいつも危険の色
    * @default 'neutral'
    */
   color?: ChoiceColor;
   /**
-   * 中の「ファイルを選択」ボタンの色（軸382）。white は白い面に輪郭と影、primary は primary の塗り。
+   * 中の「ファイルを選択」ボタンの色。white は白い面に輪郭と影、primary は primary の塗り。
    * どちらも地のグレーの面と色の差があり、ボタンだと分かる
    * @default 'white'
    */
@@ -364,7 +364,7 @@ export function Dropzone({
                     {hint}
                   </p>
                 </div>
-                {/* ボタンの色（軸382。決定: 白い面を既定にし、primary の塗りも選べる。線だけのボタンは地の面と差がなく、ボタンに見えない） */}
+                {/* ボタンの色（ADR-0334。決定: 白い面を既定にし、primary の塗りも選べる。線だけのボタンは地の面と差がなく、ボタンに見えない） */}
                 <Button
                   type="button"
                   variant="filled"

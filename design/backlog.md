@@ -419,6 +419,12 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - ドキュメントサイトの見本には、Storybook の Controls にあたる切り替え（右下のボタン）を付けました。Storybook の argTypes とは別に持っているので、片方だけ増えることがあります
 - `apps/docs` に Tailwind のクラスを書かない縛り（`design/plans/docs-site.md`）は、写した見本の中では守れていません。寄せ方を決めるときに、縛りの範囲（見本は例外にするか）も決めます
 
+### Dropzone
+
+2026-09-28 に作りました（[ADR-0329](./adr/0329-dropzone-self-built.md)〜[ADR-0334](./adr/0334-dropzone-button-color.md)）。
+
+- 中の「ファイルを選択」ボタンの文言を差し替える専用の props（`buttonText` など）を持っていません。変えたいときは `children` で中身（アイコン・案内・ボタン）を丸ごと差し替える必要があり、その場合はアイコン・案内の文まで自分で組み立て直すことになります
+
 ## レシピの案
 
 - レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:
@@ -690,3 +696,12 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 2026-09-28 に、バッジの形・塗り・見出しの色・大きさを決めました（[ADR-0326](./adr/0326-status-panel-badge.md)〜[ADR-0328](./adr/0328-status-panel-size.md)）。
 
 - `variant="filled"` のときだけ、見出しの色は Notice の `--notice-title-color`（白地に白文字で消える）を使わず、状態のインク色に差し替えています。Notice の色の決まりが変わったら、この例外がまだ要るかを見直します（[ADR-0327](./adr/0327-status-panel-notice-variant.md)）
+
+### Dropzone
+
+2026-09-28 に作りました（[ADR-0329](./adr/0329-dropzone-self-built.md)〜[ADR-0334](./adr/0334-dropzone-button-color.md)）。
+
+- ドラッグ中（dragenter・dragover）は `DataTransferItem` に大きさ（size）がなく、`accept`・`multiple` だけで受け付ける色を決めています。受け付ける色になっても、実際に落とすと `maxSize` で弾かれることがあります（`dropzone-utils.ts` の `evaluateDragItems`）
+- `DropzoneFileList` の `thumbnail` は、画像を `<img>` でそのまま表示します。EXIF の向きの情報を考慮した表示になっているかは確かめていません
+- 実機（iOS・Android）で、隠した `<input type="file">` をタップで開く操作を確かめていません
+- 読み上げソフト（VoiceOver・NVDA）で、名前・状態（エラー・読み取り専用・押せない）・受け付けなかった理由が伝わるかを確かめていません

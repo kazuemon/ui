@@ -10,7 +10,7 @@ import { FileIcon, XIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 
 // Dropzone で選んだファイルの一覧。Dropzone 自身は選ぶ場所だけを持つので、見せ方はこちらに分ける（アップロードは行わない）
-// variant（軸381）: list は名前・大きさを1行ずつ、thumbnail は画像をタイルに並べる。どちらも外すボタンと、
+// variant（ADR-0333）: list は名前・大きさを1行ずつ、thumbnail は画像をタイルに並べる。どちらも外すボタンと、
 //   渡せば進み具合（Progress）・失敗の文を持てる
 const row = tv({
   slots: {
