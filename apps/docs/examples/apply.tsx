@@ -303,7 +303,8 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
   });
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const isFirstRender = useRef(true);
+  // 前の段階。段階が変わったときだけ見出しへ移す（Strict Mode で effect が 2 回走っても、変わっていなければ動かさない）
+  const previousStep = useRef(step);
 
   const submit = async () => {
     setSubmitting(true);
@@ -316,10 +317,8 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
 
   // 段階が変わったら、見出しへスクロールしてフォーカスを移す（初めの表示では動かさない）
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+    if (previousStep.current === step) return;
+    previousStep.current = step;
     headingRef.current?.scrollIntoView({ block: 'start' });
     headingRef.current?.focus();
   }, [step]);

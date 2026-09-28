@@ -84,14 +84,12 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
   };
 
   // 予約が終わったら、完了の見出しへフォーカスを移す（フォーカスが BODY に落ちないように）。
-  // 初めの描画（状態のボタンで「予約した」を開いたとき）は動かさない
-  const firstRender = useRef(true);
+  // 動かすのは、まだ → 済み に変わったときだけ。状態のボタンで「予約した」を開いたときは動かさない
+  // （開発時の Strict Mode は effect を 2 回走らせるので、初めの 1 回を飛ばす形では防げない）
+  const previousDone = useRef(done);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    if (done) doneHeadingRef.current?.focus();
+    if (!previousDone.current && done) doneHeadingRef.current?.focus();
+    previousDone.current = done;
   }, [done]);
 
   if (done && date && time) {
