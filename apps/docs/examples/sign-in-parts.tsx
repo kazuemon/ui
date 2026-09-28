@@ -200,8 +200,9 @@ export function SignUpScreen({
   // 検証のエラーは、値を入れたうえで実際に送って出す。エラーの一覧（errorSummary）は
   // 送ったときに作られるので、状態を組み立てるだけでは出ない。一覧の入り切りを変えたときも送り直す
   const formRef = useRef<HTMLFormElement>(null);
+  // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
-    if (scenario === 'invalid') formRef.current?.requestSubmit();
+    if (scenario === 'invalid') queueMicrotask(() => formRef.current?.requestSubmit());
   }, [scenario, errorSummary]);
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
   const [done, setDone] = useState(scenario === 'success');

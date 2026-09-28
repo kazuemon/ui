@@ -142,8 +142,9 @@ function InputStep({
   // 検証のエラーは、値を入れたうえで実際に送って出す（エラーの一覧は、送ったときに作られる）
   // 一覧の入り切りを変えたときも、送り直して出し直す
   const formRef = useRef<HTMLFormElement>(null);
+  // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
-    if (initialErrors) formRef.current?.requestSubmit();
+    if (initialErrors) queueMicrotask(() => formRef.current?.requestSubmit());
   }, [initialErrors, resubmit]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
