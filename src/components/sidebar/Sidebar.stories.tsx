@@ -25,7 +25,7 @@ const meta = {
         component: [
           'ページの横に並ぶ列です。SidebarLayout の中に置き、行（SidebarItem）を並べます。入れ子は、行の中に SidebarItem を入れます。',
           '',
-          '- SidebarLayout の `placement`: `below`（既定）は帯を動かさず、その下で列と本文を並べます。`full` は列を上から下まで通し、帯は本文の側に入ります。',
+          '- SidebarLayout の `placement`: `under-header`（既定）は帯を端から端まで通し、その下で列と本文を並べます。`full-height` は列を上から下まで通し、帯は本文の側に入ります。`header` は省けます。そのときは、狭い画面で列を開く SidebarTrigger を本文などに置いてください。',
           '- 開け閉めのボタンは SidebarTrigger です。帯の中などに置きます。`collapseButton` を付けると、列の下端にも畳む・開くボタンが出ます。',
           '- 行は SidebarSection で節に分けられます（節は何個でも並べられます）。節の題は、列の中身と一緒にスクロールし、Drawer の中にも出ます。畳んだ列では題を出さず、節のあいだに線を引きます。',
           '- 畳むと、アイコンだけが残ります。入れ子のある行は、載せる（か押す）と横に面が出て、入れ子を開きます。畳んだ列の行にはアイコンを置いてください。',
@@ -111,9 +111,11 @@ export const Placement: Story = {
   parameters: { controls: { disable: true } },
   render: (args) => (
     <div className="flex flex-col gap-4 p-4">
-      {(['below', 'full'] as const).map((placement) => (
+      {(['under-header', 'full-height'] as const).map((placement) => (
         <div key={placement} className="flex flex-col gap-2">
-          <Text variant="muted">{placement === 'below' ? 'below（既定）' : 'full'}</Text>
+          <Text variant="muted">
+            {placement === 'under-header' ? 'under-header（既定）' : 'full-height'}
+          </Text>
           <Frame
             placement={placement}
             width={880}

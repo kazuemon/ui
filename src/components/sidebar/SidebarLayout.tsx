@@ -36,8 +36,9 @@ export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'childre
   /** 本文。長いときは、ここだけスクロールします */
   children?: ReactNode;
   /**
-   * 列の置き方。below は帯を動かさず、その下で列と本文を並べます。full は列を上から下まで通し、帯は本文の側に入れます
-   * @default 'below'
+   * 列の置き方。under-header は帯を端から端まで通し、その下で列と本文を並べます。full-height は列を上から下まで通し、帯は本文の側に入れます。
+   * header がないときは、どちらも同じ見た目です
+   * @default 'under-header'
    */
   placement?: SidebarPlacement;
   /**
@@ -98,7 +99,7 @@ export function SidebarLayout({
   sidebar,
   header,
   children,
-  placement = 'below',
+  placement = 'under-header',
   collapsed: collapsedProp,
   defaultCollapsed = false,
   onCollapsedChange,
@@ -189,7 +190,7 @@ export function SidebarLayout({
         data-narrow={narrow || undefined}
         className={s.root({ className })}
       >
-        {placement === 'full' ? (
+        {placement === 'full-height' ? (
           <>
             {sidebar}
             <div className={s.body()}>

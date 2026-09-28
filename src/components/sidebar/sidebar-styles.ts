@@ -254,9 +254,9 @@ export const layout = tv({
   },
   variants: {
     placement: {
-      below: { root: 'flex-col' },
-      full: { root: 'flex-row', body: 'flex-col' },
+      'under-header': { root: 'flex-col' },
+      'full-height': { root: 'flex-row', body: 'flex-col' },
     },
   },
-  defaultVariants: { placement: 'below' },
+  defaultVariants: { placement: 'under-header' },
 });

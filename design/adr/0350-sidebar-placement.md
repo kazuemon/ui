@@ -19,7 +19,7 @@ Sidebar は、ページの横に並ぶ列の部品として作ります（重ね
 
 ## 決定
 
-**`placement` の既定は `below`（B。Header の下で本文だけ押しのける）です。`full`（A。Header ごと押しのける）も選べます。畳むと、アイコンだけ残す rail になります（幅は部品のトークン。値は tokens.css）。rail の入れ子（ステージ＞リーグ＞グループ）は、hover で横にパネルを重ねて出します。パネルには、親の行の名前を見出し（グループ名）として出します。**
+**`placement` の既定は `under-header`（B。Header の下で本文だけ押しのける）です。`full-height`（A。Header ごと押しのける）も選べます。畳むと、アイコンだけ残す rail になります（幅は部品のトークン。値は tokens.css）。rail の入れ子（ステージ＞リーグ＞グループ）は、hover で横にパネルを重ねて出します。パネルには、親の行の名前を見出し（グループ名）として出します。**
 
 ## 理由
 
@@ -35,7 +35,7 @@ Header が動かないほうが、ページ全体の枠が安定します。Head
 
 ## 影響
 
-- `src/components/sidebar/`: `SidebarLayout` の `placement`（`'below' | 'full'`、既定 `'below'`）を公開します
+- `src/components/sidebar/`: `SidebarLayout` の `placement`（`'under-header' | 'full-height'`、既定 `'under-header'`）を公開します。値ははじめ `below`・`full` でしたが、何の下か・何がいっぱいかが読めないため、2026-09-29 に列の側から見た形の名前に改めました（Material Design・MUI の「clipped under the app bar」「full-height」と同じ見方）
 - 幅は部品のトークン（`--sidebar-width`・`--sidebar-rail-width`）で持ちます。値は tokens.css にあり、実装のあとで余白と一緒に広げました（[ADR-0356](./0356-sidebar-padding-scroll.md)）
 - 比較のストーリー `design/stories/axis-303-sidebar-placement.stories.tsx` は消しました
 

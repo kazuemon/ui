@@ -2,7 +2,7 @@
 
 import { createContext, type RefObject, use } from 'react';
 
-export type SidebarPlacement = 'below' | 'full';
+export type SidebarPlacement = 'under-header' | 'full-height';
 export type SidebarMotion = 'smooth' | 'none';
 export type SidebarColor = 'primary' | 'secondary' | 'neutral';
 export type SidebarNarrowSide = 'left' | 'right' | 'bottom' | 'auto';
