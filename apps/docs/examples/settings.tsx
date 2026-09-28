@@ -125,13 +125,18 @@ function AvatarPreviewField({ captionPlacement }: { captionPlacement: CaptionPla
     setError(undefined);
     setFile(picked);
   };
+  // ラベル・キャプション・エラーの行は、ほかの欄（Field）と同じ大きさ・色・間隔にそろえる
   const caption = (
-    <Text id="avatar-caption" size="sm" variant="muted">
+    <Text id="avatar-caption" variant="caption" className="text-pretty">
       {avatarCaption}
     </Text>
   );
   return (
-    <div role="group" aria-labelledby="avatar-label" className="flex flex-col gap-2">
+    <div
+      role="group"
+      aria-labelledby="avatar-label"
+      className="flex flex-col gap-(--spacing-field-gap)"
+    >
       <Text id="avatar-label" variant="label">
         アイコン
       </Text>
@@ -142,7 +147,7 @@ function AvatarPreviewField({ captionPlacement }: { captionPlacement: CaptionPla
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              aria-describedby="avatar-caption"
+              aria-describedby={error ? 'avatar-caption avatar-error' : 'avatar-caption'}
               onClick={() => inputRef.current?.click()}
             >
               画像を選ぶ
@@ -173,7 +178,7 @@ function AvatarPreviewField({ captionPlacement }: { captionPlacement: CaptionPla
       </div>
       {captionPlacement === 'bottom' && caption}
       {error && (
-        <Text role="alert" size="sm" className="text-fg-danger">
+        <Text id="avatar-error" role="alert" variant="caption" className="text-fg-danger">
           {error}
         </Text>
       )}

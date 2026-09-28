@@ -304,6 +304,8 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
   });
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // 段階の表示と見出しの塊。段階が変わったら、この塊の頭へスクロールする
+  const introRef = useRef<HTMLDivElement>(null);
   // 前の段階。段階が変わったときだけ見出しへ移す（Strict Mode で effect が 2 回走っても、変わっていなければ動かさない）
   const previousStep = useRef(step);
 
@@ -320,15 +322,18 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
   useEffect(() => {
     if (previousStep.current === step) return;
     previousStep.current = step;
-    // 見出しの上は、貼り付けた帯（Navbar）の分を空ける（id を付けた見出しの scroll-margin-top。app/globals.css）。
-    // focus で改めてスクロールさせないよう、preventScroll を付ける
-    headingRef.current?.scrollIntoView({ block: 'start' });
+    // 段階の表示から見えるよう塊の頭へ送り、上は貼り付けた帯（Navbar）の分を空ける（塊の scroll-margin-top。
+    // app/globals.css の見出しと同じ計算）。フォーカスは見出しへ。focus で改めてスクロールさせないよう preventScroll
+    introRef.current?.scrollIntoView({ block: 'start' });
     headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
+      <div
+        ref={introRef}
+        className="flex scroll-mt-[calc(var(--navbar-height)+var(--border-width-thin)+var(--spacing)*4)] flex-col gap-2"
+      >
         <Text size="sm" variant="subtle">
           {(['input', 'confirm', 'done'] as const).map((s, i) => (
             <span key={s}>
@@ -337,7 +342,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
             </span>
           ))}
         </Text>
-        <Heading level={1} size={2} id="apply-heading" ref={headingRef} tabIndex={-1}>
+        <Heading level={1} size={2} ref={headingRef} tabIndex={-1}>
           UI 勉強会 #3 に申し込む
         </Heading>
         <Text variant="muted">
