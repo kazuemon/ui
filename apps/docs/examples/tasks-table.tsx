@@ -183,7 +183,9 @@ export function TaskTable({
   });
   const { pageIndex, pageSize } = table.state.pagination;
   const rowCount = table.getRowCount();
-  const selected = Object.keys(table.state.rowSelection);
+  // 選択は検索で行が隠れても残るので、いまの data にある行だけを数える
+  const visibleIds = new Set(data.map((row) => row.id));
+  const selected = Object.keys(table.state.rowSelection).filter((id) => visibleIds.has(id));
   const rows = table.getRowModel().rows;
   const colSpan = columns.length + 1;
 

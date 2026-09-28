@@ -83,8 +83,14 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
     toast.show({ status: 'success', title: '予約しました', timeout: 4000 });
   };
 
-  // 予約が終わったら、完了の見出しへフォーカスを移す（フォーカスが BODY に落ちないように）
+  // 予約が終わったら、完了の見出しへフォーカスを移す（フォーカスが BODY に落ちないように）。
+  // 初めの描画（状態のボタンで「予約した」を開いたとき）は動かさない
+  const firstRender = useRef(true);
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     if (done) doneHeadingRef.current?.focus();
   }, [done]);
 

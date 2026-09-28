@@ -86,8 +86,20 @@ const nav = (
   </Tree>
 );
 
-/** 検索の対象。ページの題・置き場所・書き出し */
+/** 検索の対象。ページの題・置き場所・書き出し。このページの節（#setup・#faq）のほかは、ドキュメントのほかのページへ移る */
 const searchIndex = [
+  {
+    href: '#setup',
+    title: '導入の手順',
+    section: 'インストール',
+    excerpt: 'パッケージを追加し、スタイルを読み込み、部品を置きます。',
+  },
+  {
+    href: '#faq',
+    title: 'よくある質問',
+    section: 'インストール',
+    excerpt: 'React のバージョン、Next.js で使えるか、ダークモードについて。',
+  },
   {
     href: '#intro',
     title: 'はじめに',
@@ -273,8 +285,13 @@ function DocsScreen({
             >
               <div className="flex flex-col gap-4">
                 {search}
-                {/* リンクを押したら、行き先へ移りつつドロワーを閉じる（検索欄への操作は除く） */}
-                <div className="flex flex-col gap-4" onClickCapture={() => setNavOpen(false)}>
+                {/* リンクを押したら、行き先へ移りつつドロワーを閉じる（検索欄と、Tree の開閉の行では閉じない） */}
+                <div
+                  className="flex flex-col gap-4"
+                  onClickCapture={(event) => {
+                    if ((event.target as Element).closest('a[href]')) setNavOpen(false);
+                  }}
+                >
                   {sidebarBody}
                   {/* 広い画面の右のページ内目次が隠れるので、狭い画面ではここに置く */}
                   {!searching && (
@@ -340,6 +357,9 @@ function DocsScreen({
                   <FileTreeItem label="package.json" />
                   <FileTreeItem label="postcss.config.mjs" />
                 </FileTree>
+                <CodeBlock title="postcss.config.mjs">
+                  <code>{"export default {\n  plugins: { '@tailwindcss/postcss': {} },\n};"}</code>
+                </CodeBlock>
                 <CodeBlock title="app/globals.css">
                   <code>{"@import 'tailwindcss';\n@import '@kazuemon/ui/tailwind.css';"}</code>
                 </CodeBlock>
