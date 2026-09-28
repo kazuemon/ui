@@ -143,5 +143,7 @@ export const examples: ExampleSummary[] = [
     slug: 'match',
     title: '試合の詳細',
     description: '大会の管理画面。列でグループを選び、行から押しのけない面で試合の詳細を見ます',
+    highlights: ['Sidebar'],
+    components: ['Drawer', 'Table', 'DescriptionList', 'Menu', 'Tag'],
   },
 ];

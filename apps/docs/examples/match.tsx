@@ -247,7 +247,19 @@ function GroupScreen() {
                 onClick={() => setOpen(match)}
                 className="cursor-pointer hover:bg-flat-hover"
               >
-                <TableCell>{match.no}</TableCell>
+                <TableCell>
+                  {/* 行を押しても開くが、キーボードと読み上げのために、試合番号をボタンにする */}
+                  <Button
+                    variant="underline"
+                    className="h-auto px-0"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpen(match);
+                    }}
+                  >
+                    {match.no}
+                  </Button>
+                </TableCell>
                 <TableCell>{match.teams}</TableCell>
                 <TableCell align="end">
                   <Tag color={match.color}>{match.status}</Tag>

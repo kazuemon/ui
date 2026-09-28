@@ -243,6 +243,7 @@ export function Sidebar({
         side={side}
         open={mobileOpen}
         onOpenChange={setMobileOpen}
+        returnFocus={layout.triggerRef}
         portalContainer={portalContainer}
       >
         <SidebarNavContext value={{ ...navValue, mode: 'drawer', depth: 0 }}>
