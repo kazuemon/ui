@@ -225,6 +225,8 @@ function AvatarDropzoneField({ captionPlacement }: { captionPlacement: CaptionPl
       />
       <DropzoneFileList
         files={files.map((file) => ({ file }))}
+        // 正方形に切り取って見せる画像なので、名前の一覧ではなく正方形のタイルで見せる
+        variant="thumbnail"
         onRemove={(file) => setFiles((current) => current.filter((f) => f !== file))}
       />
     </div>
