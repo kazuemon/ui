@@ -18,6 +18,17 @@ export interface SidebarLayoutContextValue {
   setMobileOpen: (next: boolean) => void;
   motion: SidebarMotion;
   navId: string;
+  /** 幅を変えられるとき（resizable）の幅と範囲。変えられないときは null */
+  resize: SidebarResize | null;
+}
+
+export interface SidebarResize {
+  /** 開いた列の幅（px）。まだ変えていないときは undefined（部品の幅のまま） */
+  width: number | undefined;
+  setWidth: (next: number | undefined) => void;
+  defaultWidth: number | undefined;
+  minWidth: number;
+  maxWidth: number;
 }
 
 export const SidebarLayoutContext = createContext<SidebarLayoutContextValue | null>(null);

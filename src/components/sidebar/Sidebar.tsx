@@ -1,15 +1,27 @@
 'use client';
 
-import { type ComponentProps, type ReactNode } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer } from '../drawer/Drawer';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
   type SidebarColor,
   SidebarNavContext,
   type SidebarNarrowSide,
+  type SidebarResize,
   useSidebarLayout,
 } from './sidebar-context';
 import { sidebar } from './sidebar-styles';
@@ -34,6 +46,19 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
   drawerLabel?: string;
   /** 行（SidebarItem）を並べます */
   children?: ReactNode;
+  /**
+   * 列の上に固定する行（SidebarItem）。大会やワークスペースの切り替えなどを置きます。行が多くても、ここはスクロールしません
+   */
+  header?: ReactNode;
+  /**
+   * 列の下に固定する行（SidebarItem）。アカウントや設定などを置きます。collapseButton の上に並びます
+   */
+  footer?: ReactNode;
+  /**
+   * 列の幅を変えるつまみの読み上げの名前（SidebarLayout の resizable のとき）
+   * @default '列の幅'
+   */
+  resizeName?: string;
   /**
    * いまいる行の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーです（原則6）
    * @default 'neutral'
@@ -84,6 +109,9 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
 export function Sidebar({
   drawerLabel = 'メニュー',
   children,
+  header,
+  footer,
+  resizeName = '列の幅',
   color = 'neutral',
   collapseButton = false,
   collapseName = '畳む',
@@ -97,7 +125,11 @@ export function Sidebar({
   ...props
 }: SidebarProps) {
   const layout = useSidebarLayout('Sidebar');
-  const { collapsed, setCollapsed, narrow, mobileOpen, setMobileOpen, motion, navId } = layout;
+  const { collapsed, setCollapsed, narrow, mobileOpen, setMobileOpen, motion, navId, resize } =
+    layout;
+  const [resizing, setResizing] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const mergedRef = useMergedRefs(navRef, ref);
   const sheet = useSheetPresentation('auto');
   const side = narrowSide === 'auto' ? (sheet ? 'bottom' : 'left') : narrowSide;
   const s = sidebar({ color, collapsed, motion });
@@ -119,26 +151,40 @@ export function Sidebar({
             data-slot="sidebar"
             className={s.drawer({ className })}
           >
+            {header != null && <ul className="flex flex-col gap-0.5">{header}</ul>}
             <ul className="flex flex-col gap-0.5">{children}</ul>
+            {footer != null && <ul className="flex flex-col gap-0.5">{footer}</ul>}
           </nav>
         </SidebarNavContext>
       </Drawer>
     );
   }
 
+  const showHandle = resize != null && !collapsed;
   return (
     <SidebarNavContext
       value={{ mode: collapsed ? 'rail' : 'expanded', depth: 0, color, openDelay, closeDelay }}
     >
       <nav
         {...props}
-        ref={ref}
+        ref={mergedRef}
         id={navId}
         aria-label={drawerLabel}
         data-slot="sidebar"
         data-collapsed={collapsed || undefined}
+        data-resizing={resizing || undefined}
         className={s.root({ className })}
+        style={
+          resize?.width !== undefined && !collapsed
+            ? ({ ...props.style, '--sidebar-width': `${resize.width}px` } as CSSProperties)
+            : props.style
+        }
       >
+        {header != null && (
+          <div data-slot="sidebar-header" className={s.head()}>
+            <ul className="flex flex-col gap-0.5">{header}</ul>
+          </div>
+        )}
         <ScrollArea
           orientation="vertical"
           className={s.list()}
@@ -146,24 +192,145 @@ export function Sidebar({
         >
           <ul className="flex flex-col gap-0.5">{children}</ul>
         </ScrollArea>
-        {collapseButton && (
-          <div className={s.footer()}>
-            <button
-              type="button"
-              aria-label={collapsed ? expandName : collapseName}
-              aria-expanded={!collapsed}
-              aria-controls={navId}
-              onClick={() => setCollapsed(!collapsed)}
-              className={s.row()}
-            >
-              <span aria-hidden="true" className={s.icon()}>
-                {collapsed ? <CaretRightIcon /> : <CaretLeftIcon />}
-              </span>
-              <span className={collapsed ? 'sr-only' : s.label()}>{collapseName}</span>
-            </button>
+        {(footer != null || collapseButton) && (
+          <div data-slot="sidebar-footer" className={s.footer()}>
+            {footer != null && <ul className="flex flex-col gap-0.5">{footer}</ul>}
+            {collapseButton && (
+              <button
+                type="button"
+                aria-label={collapsed ? expandName : collapseName}
+                aria-expanded={!collapsed}
+                aria-controls={navId}
+                onClick={() => setCollapsed(!collapsed)}
+                className={s.row()}
+              >
+                <span aria-hidden="true" className={s.icon()}>
+                  {collapsed ? <CaretRightIcon /> : <CaretLeftIcon />}
+                </span>
+                <span className={collapsed ? 'sr-only' : s.label()}>{collapseName}</span>
+              </button>
+            )}
           </div>
         )}
       </nav>
+      {showHandle && (
+        <ResizeHandle
+          resize={resize}
+          navRef={navRef}
+          navId={navId}
+          name={resizeName}
+          resizing={resizing}
+          setResizing={setResizing}
+          collapse={() => setCollapsed(true)}
+        />
+      )}
     </SidebarNavContext>
+  );
+}
+
+// 矢印キーで動かす幅（px）
+const KEY_STEP = 16;
+// いちばん狭い幅から、さらにこれだけ細くすると列を畳む（px）
+const COLLAPSE_OVERSHOOT = 48;
+
+/**
+ * 列の端の幅を変えるつまみ。本文との境の線の上に重ねる。
+ * ドラッグで幅を変え、いちばん狭い幅よりさらに細くすると畳む。← → で 16px ずつ、Home・End で最小・最大。2 回押すとはじめの幅に戻る
+ */
+function ResizeHandle({
+  resize,
+  navRef,
+  navId,
+  name,
+  resizing,
+  setResizing,
+  collapse,
+}: {
+  resize: SidebarResize;
+  navRef: RefObject<HTMLElement | null>;
+  navId: string;
+  name: string;
+  resizing: boolean;
+  setResizing: (next: boolean) => void;
+  collapse: () => void;
+}) {
+  const s = sidebar();
+  const drag = useRef<{ startX: number; startWidth: number; rtl: boolean } | null>(null);
+  const { minWidth, maxWidth } = resize;
+  const clamp = (value: number) => Math.min(maxWidth, Math.max(minWidth, Math.round(value)));
+  const current = () => resize.width ?? navRef.current?.offsetWidth ?? minWidth;
+
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
+    drag.current = { startX: event.clientX, startWidth: current(), rtl };
+    setResizing(true);
+  };
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    const delta = (event.clientX - d.startX) * (d.rtl ? -1 : 1);
+    const raw = d.startWidth + delta;
+    if (raw < minWidth - COLLAPSE_OVERSHOOT) {
+      drag.current = null;
+      setResizing(false);
+      collapse();
+      return;
+    }
+    resize.setWidth(clamp(raw));
+  };
+  const onPointerEnd = () => {
+    drag.current = null;
+    setResizing(false);
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
+    const grow = rtl ? 'ArrowLeft' : 'ArrowRight';
+    const shrink = rtl ? 'ArrowRight' : 'ArrowLeft';
+    let next: number | undefined;
+    if (event.key === grow) next = current() + KEY_STEP;
+    else if (event.key === shrink) next = current() - KEY_STEP;
+    else if (event.key === 'Home') next = minWidth;
+    else if (event.key === 'End') next = maxWidth;
+    if (next === undefined) return;
+    event.preventDefault();
+    resize.setWidth(clamp(next));
+  };
+  // まだ幅を変えていないときの読み上げの値は、描いた列の幅を測って持つ
+  const [measured, setMeasured] = useState<number>();
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+    const observer = new ResizeObserver(() => setMeasured(Math.round(nav.offsetWidth)));
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [navRef]);
+  const width = resize.width ?? measured;
+  return (
+    <div className={s.handleSlot()}>
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={name}
+        aria-controls={navId}
+        aria-valuemin={minWidth}
+        aria-valuemax={maxWidth}
+        aria-valuenow={width}
+        tabIndex={0}
+        data-slot="sidebar-resize-handle"
+        data-resizing={resizing || undefined}
+        className={s.handle()}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onDoubleClick={() => resize.setWidth(resize.defaultWidth)}
+        onKeyDown={onKeyDown}
+      >
+        <span aria-hidden="true" className={s.grip()} />
+      </div>
+    </div>
   );
 }

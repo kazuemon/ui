@@ -55,6 +55,27 @@ export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'childre
    * @default 'smooth'
    */
   motion?: SidebarMotion;
+  /**
+   * 広い画面で、列の端をつかんで幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で変えます。つまみを 2 回押すと、はじめの幅に戻ります
+   * @default false
+   */
+  resizable?: boolean;
+  /** 開いた列の幅（px。制御）。渡さないときは部品の幅（--sidebar-width） */
+  width?: number;
+  /** はじめの列の幅（px。非制御） */
+  defaultWidth?: number;
+  /** 幅を変えたときに、次の幅（px）を渡して呼びます */
+  onWidthChange?: (width: number) => void;
+  /**
+   * 幅を変えるときの、いちばん狭い幅（px）。これよりさらに細くすると、列を畳みます
+   * @default 200
+   */
+  minWidth?: number;
+  /**
+   * 幅を変えるときの、いちばん広い幅（px）
+   * @default 480
+   */
+  maxWidth?: number;
   /** いちばん外の要素に付きます。高さは、置く場所で決めます（親の高さいっぱいに広がります） */
   className?: string;
 }
@@ -71,6 +92,12 @@ export function SidebarLayout({
   defaultCollapsed = false,
   onCollapsedChange,
   motion = 'smooth',
+  resizable = false,
+  width: widthProp,
+  defaultWidth,
+  onWidthChange,
+  minWidth = 200,
+  maxWidth = 480,
   className,
   ref,
   ...props
@@ -80,6 +107,12 @@ export function SidebarLayout({
   const setCollapsed = (next: boolean) => {
     if (collapsedProp === undefined) setCollapsedState(next);
     onCollapsedChange?.(next);
+  };
+  const [widthState, setWidthState] = useState(defaultWidth);
+  const width = widthProp ?? widthState;
+  const setWidth = (next: number | undefined) => {
+    if (widthProp === undefined) setWidthState(next);
+    if (next !== undefined) onWidthChange?.(next);
   };
   const [narrow, setNarrow] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -112,7 +145,16 @@ export function SidebarLayout({
   );
   return (
     <SidebarLayoutContext
-      value={{ collapsed, setCollapsed, narrow, mobileOpen, setMobileOpen, motion, navId }}
+      value={{
+        collapsed,
+        setCollapsed,
+        narrow,
+        mobileOpen,
+        setMobileOpen,
+        motion,
+        navId,
+        resize: resizable ? { width, setWidth, defaultWidth, minWidth, maxWidth } : null,
+      }}
     >
       <div
         {...props}
