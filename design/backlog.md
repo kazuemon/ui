@@ -161,6 +161,7 @@
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
 - レシピに回す部品の見直し（Sidebar が部品として要るか）は決めていません。Stack は部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
+- Sortable と dnd-kit をつなぐレシピ（`src/recipes/sortable-dnd-kit.tsx`）ができました（2026-09-28、[ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0336](./adr/0336-sortable-keyboard-and-recipe.md)）。DataTable と TanStack Table をつなぐレシピも同じ形で置きます
 
 ### Affix
 
@@ -425,6 +426,17 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - 中の「ファイルを選択」ボタンの文言を差し替える専用の props（`buttonText` など）を持っていません。変えたいときは `children` で中身（アイコン・案内・ボタン）を丸ごと差し替える必要があり、その場合はアイコン・案内の文まで自分で組み立て直すことになります
 
+### Sortable
+
+2026-09-28 に作りました。決定は [ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0342](./adr/0342-sortable-move-actions.md) です。
+
+- 横向きのリストや、グリッド状の並び替えは持っていません。リストをまたぐ移動（Kanban のような列間のドラッグ）も、部品としてはまだ検討していません
+- 入る場所（dragSource）は、周りをずらして空ける dnd-kit の既定の動きに合わせた形だけです。線だけで入る場所を示す形（周りを動かさない）は、[ADR-0339](./adr/0339-sortable-drop-slot.md) で候補にしていません
+- `grabArea="item"` にすると、指でリストの上をスクロールしようとしたときにも引き始めることがあります（[ADR-0340](./adr/0340-sortable-grab.md)）。指で使う画面でどう使い分けるかは、実機で確かめてから案内を足します
+- `moveActions="item-menu"` の ︙ の中と、`buttons` の上へ・下へのボタンは、先頭へ・末尾へまとめて動かす操作を持ちません（`item-menu` のメニューだけは先頭へ・末尾へを持ちます）。長い一覧での使い勝手は実機で見ます
+- Sortable は `color` を持ちません。並びそのものが値で、選んでいることを示す部品ではないため、意味の色を渡す場面がないと判断しました。項目の中に色付きの部品（Tag など）を置く形で対応します
+- 指での並べ替え（長押し・はじく動きとの兼ね合い）と、読み上げソフト（VoiceOver・NVDA など）での確かめは、まだしていません
+
 ## レシピの案
 
 - レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:
@@ -477,6 +489,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - チェックボックスやスイッチを切り替えたときに色がちらつく件: スイッチのトラックは直しました（[ADR-0112](./adr/0112-fill-transition-by-registered-property.md)）。Windows の GPU あり Chrome 153 の録画で、`background-color` の 100ms の移り変わりの最後の 1 フレームに動かす前の色が出ていました（コンポジタで動かした色を主スレッドへ戻すときの取りこぼし）。`background-color` を transition で動かす要素はすべて、登録した変数を動かす形にしました。チェックボックスの箱は色を動かしていないので、チェックボックスで見えたものが同じ現象かは分かっていません（見えたら録画で確かめる）
 - タッチで速く押すと、Chrome は `:active` を離したあと（切り替わったあと）に 100〜150ms 付けることがあり、トグルのノブが滑りながら縮んで戻ります。押下を `:active` ではなく pointer イベント（pointerdown〜pointerup）で持つ直しを、レンダリングの件とは別に出します。チェックボックス・ラジオ・ボタンの `:active` も同じ
+- **見た目の比較テスト（`.storybook/visual-testing.md`）のしきい値が甘いかもしれません。** Sortable の項目の面を既定でグレーの塗り（`fill`）から白い面（`card`）に変えたとき（[ADR-0337](./adr/0337-sortable-surface.md)）、密度の一覧（`Sortable/密度`）と、レシピの基準画像（`Recipes/Sortable`）が、撮り直さないまま（古い基準画像のまま）テストを通りました。設定は `allowedMismatchedPixels: 0`（1px も許さない）のはずなので、なぜ検出できなかったかを確かめます。撮影の対象から漏れていた（`tags: ['visual']` の範囲やストーリー ID の変化）か、既定値の変更が基準画像を撮ったときのストーリーの分岐に届いていなかった可能性があります
 
 ### Link
 

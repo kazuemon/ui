@@ -32,13 +32,13 @@ export type { SortableMoveActions } from './sortable-context';
 //   エンジンが要素を直接動かせるよう、項目（SortableItem）とつまみ（SortableHandle）は ref を受ける
 // キーボード: つまみにフォーカスして上下の矢印キーで 1 つずつ動かす。value を並べ替えて onValueChange を呼ぶだけなので、エンジンに頼らない
 //   動かしたあとは、つまみにフォーカスを戻し、何番目に移ったかを読み上げの箱（role=status）で 1 回だけ伝える（原則15）
-//   動いた項目は、元の位置から滑らせる（原則14。長さは --sortable-move-duration — 軸 376。motion="none" と動きを減らす設定では 0）
-// 項目の面（variant — 軸 372）: 既定は card（白い面と細い輪郭）。fill（入力欄と同じグレーの塗り）、divided（線で区切る）も選べる
-// 持ち上げた項目（dragging — 軸 373）はページの上に重なるので、白い面と細い輪郭に、濃く近い影を付け、少しだけ大きくする（持っている実感を出す）
-// 入る場所（dragSource — 軸 374）は、中身を消した点線の枠。dragSourceVariant="filled" では淡い塗りも敷く
-// つまみ（軸 375）: 既定は先頭のつまみだけで引く。placement="end"（末尾）と grabArea="item"（項目のどこでも）も選べる
+//   動いた項目は、元の位置から滑らせる（原則14。長さは --sortable-move-duration — ADR-0341。motion="none" と動きを減らす設定では 0）
+// 項目の面（variant — ADR-0337）: 既定は card（白い面と細い輪郭）。fill（入力欄と同じグレーの塗り）、divided（線で区切る）も選べる
+// 持ち上げた項目（dragging — ADR-0338）はページの上に重なるので、白い面と細い輪郭に、濃く近い影を付け、少しだけ大きくする（持っている実感を出す）
+// 入る場所（dragSource — ADR-0339）は、中身を消した点線の枠。dragSourceVariant="filled" では淡い塗りも敷く
+// つまみ（ADR-0340）: 既定は先頭のつまみだけで引く。placement="end"（末尾）と grabArea="item"（項目のどこでも）も選べる
 // 並べ替えられないとき（disabled）は、つまみを出さない（原則16: できないことの印は出さない）。文は薄くしない（原則13）
-// 引かずに並べ替える操作（moveActions — 軸 377）: 既定は none。item-menu（︙）・buttons（上へ・下へ）で、
+// 引かずに並べ替える操作（moveActions — ADR-0342）: 既定は none。item-menu（︙）・buttons（上へ・下へ）で、
 //   ポインタだけでも引かずに並べ替えを終えられるようにする（WCAG 2.2 の 2.5.7）。SortableMoveActions.tsx
 
 const sortable = tv({
@@ -93,7 +93,7 @@ const sortable = tv({
     handleIcon: 'size-(--spacing-icon)',
   },
   variants: {
-    // 項目の面（軸 372）
+    // 項目の面（ADR-0337）
     variant: {
       // グレーの塗り。入力欄と同じ、書き換えられる値の見た目（原則8）。持ち上げると白い面に変わる
       fill: {
@@ -116,12 +116,12 @@ const sortable = tv({
         ],
       },
     },
-    // 入る場所の塗り（軸 374）。outline は点線の枠だけ（既定。地が透ける）、filled は入力欄の塗りの上に点線の枠
+    // 入る場所の塗り（ADR-0339）。outline は点線の枠だけ（既定。地が透ける）、filled は入力欄の塗りの上に点線の枠
     dragSourceVariant: {
       outline: { item: 'data-drag-source:bg-transparent' },
       filled: { item: 'data-drag-source:bg-field' },
     },
-    // 並べ替えの動き（軸 376）。slide は元の位置から滑らせる（既定）、none は動かさない
+    // 並べ替えの動き（ADR-0341）。slide は元の位置から滑らせる（既定）、none は動かさない
     motion: {
       slide: {},
       none: { list: '[--sortable-move-duration:0ms]' },
