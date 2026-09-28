@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "9ff038ef42a05b2ed688494b54db358b9211e38b",
+  "include-component-in-tag": false,
+  "bump-minor-pre-major": true,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@kazuemon/ui",
+      "exclude-paths": ["apps"],
+      "changelog-sections": [
+        { "type": "feat", "section": "新しくできること" },
+        { "type": "fix", "section": "直したこと" },
+        { "type": "design", "section": "見た目" },
+        { "type": "perf", "section": "速さ" },
+        { "type": "revert", "section": "取り消したこと" },
+        { "type": "docs", "section": "ドキュメント", "hidden": true },
+        { "type": "refactor", "section": "書き直し", "hidden": true },
+        { "type": "style", "section": "書式", "hidden": true },
+        { "type": "test", "section": "テスト", "hidden": true },
+        { "type": "chore", "section": "雑務", "hidden": true },
+        { "type": "ci", "section": "CI", "hidden": true },
+        { "type": "build", "section": "ビルド", "hidden": true }
+      ]
+    }
+  }
+}

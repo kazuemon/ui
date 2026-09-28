@@ -17,6 +17,29 @@
 
 ![フォントのサンプルテキスト「@kazuemon/uiは、「ぼくがかんがえたさいきょうのUIライブラリ」をConceptに、かずえもんが個人で制作しています。SimpleでModernな見た目かつ、Usabilityも重視したUI Libraryを目指しています。Designはほぼ独学で、Design Systemなどの勉強も兼ねているので、DesignのRuleにおいては正しくないかもしれません。ご容赦ください。」](./text-sample.png)
 
+## つかいかた
+
+Tailwind CSS v4 と React 19 以上を使うアプリで使えます。
+
+```sh
+pnpm add @kazuemon/ui
+pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
+```
+
+アプリの CSS で、`tailwindcss` のあとに読みます。部品のクラスは、アプリの Tailwind がまとめて作ります。
+
+```css
+@import 'tailwindcss';
+@import '@kazuemon/ui/tailwind.css';
+@import '@kazuemon/ui/fonts.css'; /* 欧文と等幅（Mulish・Geist Mono） */
+@import '@kazuemon/ui/fonts-ja.css'; /* 和文（IBM Plex Sans JP）。@fontsource/ibm-plex-sans-jp が要る */
+```
+
+- 部品は `@kazuemon/ui` から読みます。部品ごとに `'use client'` を持つので、Server Components のページからそのまま使えます
+- トークンは Tailwind のクラスとしても使えます（`bg-primary`・`rounded-control`・`h-control`・`text-caption` など）
+- 部品に `className` で渡したクラスは、部品のクラスより優先されます。自分で `cn()` を作るときは、`twMergeConfig` を `extendTailwindMerge(twMergeConfig)` に渡すと、部品と同じまとめ方になります
+- 部品は、ページのフォント（`body` などに置いたもの）を受け継ぎます。フォントを読まないときは、`ui-sans-serif, system-ui, sans-serif` など、端末のフォントで描かれます
+
 ## つくりたい機能
 
 部品ではなく、ライブラリとして使うときに要るものです。
@@ -26,7 +49,7 @@
 - [ ] 多言語
 - [ ] Tailwind なしでの利用
 - [ ] スタイルの衝突を避ける（Tailwind あり・なし）
-- [ ] ツリーシェイク
+- [x] ツリーシェイク
 
 ## つくりたいコンポーネント
 
@@ -80,6 +103,7 @@
 - [x] Container
 - [x] Navbar
 - [x] Sidebar
+- [x] Inspector
 - [x] Stack
 - [x] Grid
 - [x] Masonry
@@ -95,7 +119,7 @@
 - [x] Tabs
 - [x] Pagination
 - [x] Menu
-- [ ] Stepper
+- [x] Stepper
 - [ ] NavigationMenu
 - [ ] ContextMenu
 - [ ] Toolbar
@@ -120,7 +144,7 @@
 - [x] Timeline
 - [x] Accordion
 - [x] Image
-- [ ] AvatarGroup
+- [x] AvatarGroup
 - [x] DescriptionList
 - [x] Stat
 - [x] Meter
@@ -134,7 +158,7 @@
 - [x] Link
 - [x] Toggle
 - [x] ToggleGroup
-- [ ] ButtonGroup
+- [x] ButtonGroup
 - [x] CopyButton
 
 ### 入力
@@ -149,11 +173,11 @@
 - [ ] Fieldset
 - [x] Combobox
 - [ ] Segmented Control
-- [ ] Slider
+- [x] Slider
 - [x] NumberField
 - [x] DateField
 - [ ] DatePicker
-- [ ] Dropzone
+- [x] Dropzone
 - [x] SearchField
 - [x] PasswordField
 - [x] Autocomplete
@@ -178,7 +202,7 @@
 - [x] Toast
 - [x] Progress
 - [x] Skeleton
-- [ ] StatusPanel
+- [x] StatusPanel
 - [ ] LoadingOverlay
 
 ### 重なるもの
@@ -192,11 +216,11 @@
 
 ### アプリの画面
 
-Web アプリで使うものです。ポートフォリオのあとに作ります。土台は外のヘッドレス（TanStack Table・TanStack Virtual・dnd-kit）に peer dependency で乗り、ここでは見た目とトークンを持ちます。
+Web アプリで使うものです。実装の重い部品（DataTable・VirtualList・Sortable・Kanban）は、見た目だけを部品にし、外のヘッドレス（TanStack Table・TanStack Virtual・dnd-kit）とのつなぎ方はレシピ（Storybook の Recipes）で案内します。ヘッドレスは依存に入れないので、使う人がアプリに入れて、レシピのコードを写して使います。
 
-- [ ] DataTable
+- [x] DataTable
 - [ ] VirtualList
-- [ ] Sortable
+- [x] Sortable
 - [ ] Kanban
 - [ ] Popconfirm
 - [ ] ActionBar
@@ -217,3 +241,7 @@ Web アプリで使うものです。ポートフォリオのあとに作りま�
 ## Figma
 
 (準備中)
+
+## ライセンス
+
+[MIT](./LICENSE)

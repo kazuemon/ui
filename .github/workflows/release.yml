@@ -1,0 +1,88 @@
+# npm への公開。main に push されるたびに release-please がコミット（feat・fix・design など）を読み、
+# 次の版の「リリース PR」（package.json の version と CHANGELOG.md）を作り直す。
+# リリース PR をマージすると、タグと GitHub Release を作り、そのタグから npm に公開する
+# 設定は release-please-config.json、いまの版は .release-please-manifest.json
+# npm への認証は trusted publishing（OIDC）。トークンは置かない。npm 側では、パッケージの Settings → Trusted publishing に
+# GitHub Actions・kazuemon/ui・release.yml・環境 npm を登録する
+name: Release
+
+on:
+  push:
+    branches: ['main']
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write # リリース PR のラベル
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    # npm の trusted publisher に同じ名前を書く。GitHub の Environments で、承認者などの守りを足せる
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # trusted publishing と provenance
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Update npm
+        # trusted publishing は npm 11.5.1 以降が要る
+        run: |
+          if ! node -e 'const [a, b, c] = process.argv[1].split(".").map(Number); process.exit(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))) ? 0 : 1)' "$(npm --version)"; then
+            npm install --global npm@latest
+          fi
+          npm --version
+      - name: Check the version is not published yet
+        id: published
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          # 失敗したジョブをやり直したときや、はじめの版を手で公開したときは、公開を飛ばす
+          if npm view "@kazuemon/ui@${VERSION}" version > /dev/null 2>&1; then
+            echo "@kazuemon/ui@${VERSION} は公開済みです"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pack
+        if: steps.published.outputs.skip != 'true'
+        id: pack
+        # prepack が pnpm build を走らせる
+        run: |
+          pnpm pack --pack-destination "$RUNNER_TEMP/pack"
+          echo "tarball=$(ls "$RUNNER_TEMP"/pack/*.tgz)" >> "$GITHUB_OUTPUT"
+      - name: Check dist
+        if: steps.published.outputs.skip != 'true'
+        run: pnpm check:dist
+      - name: Check the package
+        if: steps.published.outputs.skip != 'true'
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: node scripts/check-pack.mjs "$TARBALL"
+      - name: Publish
+        if: steps.published.outputs.skip != 'true'
+        # pnpm pack が publishConfig を反映した .tgz を、npm の CLI で公開する（OIDC は npm の CLI が扱う）
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: npm publish "$TARBALL" --access public

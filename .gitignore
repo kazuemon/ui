@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+# pnpm pack の置き場（scripts/check-pack.mjs で中身を確かめる）
+.pack
 dist-ssr
 *.local
 

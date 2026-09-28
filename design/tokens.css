@@ -645,11 +645,11 @@
   --card-fill-hover: color-mix(in oklab, var(--color-field) 50%, var(--color-surface));
   /* ── END card */
 
-  /* ── LinkCard — 軸 115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */
+  /* ── LinkCard — ADR-115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */
   /* 記事の中から別のページへ移るカード。src/components/link-card
      面・角・輪郭・hover・押下はカードと同じ（--card-fill・--card-hover-media-scale を使う。原則1・3・5）
      画像の位置（layout）・サイトの行の位置（sitePlacement）・題と説明の行数（titleLines・descriptionLines）は props で選ぶ。
-       軸 115〜117 で比べるためだけに置いていた --link-card-areas・--link-card-columns・--link-card-site-order・
+       ADR-115〜117 で比べるためだけに置いていた --link-card-areas・--link-card-columns・--link-card-site-order・
        --link-card-favicon-display・--link-card-external-display・--link-card-title-heading・
        --link-card-title-lines・--link-card-description-lines は、決まった値へ部品に畳んで消した
      media-width: 横に並べるときの画像の幅。カードの幅の割合で、広いときは上限で止める
@@ -967,7 +967,7 @@
   --image-icon-size: calc(var(--spacing) * 8);
   /* ── END image */
 
-  /* ── Embed — 軸 271〜274 ── BEGIN embed */
+  /* ── Embed — ADR-271〜274 ── BEGIN embed */
   /* 記事に YouTube・X の投稿・CodePen などを iframe で埋める。src/components/embed
      枠（角丸・影・輪郭）は Image・Figure と同じ考え方（原則1・5）。角は常にカードの角（rounded-card）
      shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の影・輪郭（軸 272。決定: 影なし・輪郭のみ）
@@ -981,7 +981,7 @@
   --embed-idle-outline-width: 0px;
   /* ── END embed */
 
-  /* ── ImageZoom — 軸 279〜284 ── BEGIN image-zoom */
+  /* ── ImageZoom — ADR-279〜284 ── BEGIN image-zoom */
   /* 画像を押して、画面いっぱいに拡大して見る。src/components/image-zoom
      拡大したときの面（軸 279）
        backdrop・backdrop-blur: 後ろの面の色とぼかし。画像を見るための地なので、Dialog の後ろの暗さ（--color-backdrop）より濃く覆う
@@ -1028,7 +1028,7 @@
   --image-zoom-cue-inset: calc(var(--spacing) * 2);
   /* ── END image-zoom */
 
-  /* ── Carousel — 軸 285〜287・289 ── BEGIN carousel */
+  /* ── Carousel — ADR-285〜287・289 ── BEGIN carousel */
   /* 横に送って 1 枚ずつ見せる並び。src/components/carousel
      送る仕組みは横のスクロールと scroll-snap。スライドはページと同じレイヤーなので影は付けない（原則1）
      slide-size・gap: 1 枚の幅（枠の幅に対する割合。cqi で書く）と、スライドのあいだ（軸 287）。snap-align: 止まる位置（start・center）。
@@ -1080,7 +1080,7 @@
   --thumbnails-dim-hover-opacity: 0.85;
   /* ── END thumbnails */
 
-  /* ── Gallery — 軸 290〜293 ── BEGIN gallery */
+  /* ── Gallery — ADR-290〜293 ── BEGIN gallery */
   /* 画像を並べ、押すと ImageZoom と同じ拡大した面で開き、前後に送る。src/components/gallery
      拡大した面は ImageZoom と同じ（--image-zoom-*）。ここは Gallery だけの値
      並べ方（軸 292・293）
@@ -1111,7 +1111,7 @@
   --gallery-counter-width: calc(var(--spacing) * 16);
   /* ── END gallery */
 
-  /* ── Video — 軸 297〜299 ── BEGIN video */
+  /* ── Video — ADR-297〜299 ── BEGIN video */
   /* 手元の動画ファイル（mp4・webm など）を記事・作品ページに置いて再生する。src/components/video
      コントロールはブラウザ標準（controls 既定 true）。自前で持つのは、再生前に重ねる大きな再生ボタンだけ
      中身の収め方（cover・contain）は props の fit が必須で、既定値を持たない（決定: 軸299）。letterbox-fill は
@@ -1263,6 +1263,14 @@
   --toggle-group-gap: calc(var(--spacing) * 2);
   /* ── END toggle */
 
+  /* ── ButtonGroup — 2026-09-27 に作成。src/components/button-group ── BEGIN button-group */
+  /* 複数の Button を視覚的に連結して並べる、選択状態を持たない組み合わせの部品。ToggleGroup の詰め方（frame。軸269）と
+     同じ考えをいちばん近い決定として流用した（原則にない判断。design/backlog.md の ButtonGroup の節）
+     connected（既定）は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す。gap はそれぞれ離して並べ、間は --button-group-gap
+     Button は in-data-[frame=…] で、自分が属する ButtonGroup の frame を読み、connected のときだけ自分の角丸を変える（Button.tsx） */
+  --button-group-gap: calc(var(--spacing) * 2);
+  /* ── END button-group */
+
   /* ── SkipLink — 軸 99 ── BEGIN skip-link */
   /* 「本文へ移動」のリンク。ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる。src/components/skip-link
      ページの上に重なる面なので、面・輪郭・影は浮かぶ面と同じ（原則1）。リンクなので角は pill（原則5）、文字はリンクの Primary と下線
@@ -1326,6 +1334,18 @@
   --avatar-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --avatar-icon-scale: 0.6;
   /* ── END avatar */
+
+  /* ── AvatarGroup — 軸 0315 ── BEGIN avatar-group */
+  /* Avatar を重ねて並べる。src/components/avatar-group。新しい部品ではなく Avatar の組み合わせ
+     overlap-*: 隣のアバターと重ねる量の 3 段（--avatar-size に対する割合。--avatar-icon-scale と同じ、単位を持たない比）。
+       md（現行 30%）が既定。sm（18%）・lg（45%）は overlap props で選べる（ADR-0315）
+     ring-width: 重なる境目を置いた面の色（--color-surface）で区切る縁の太さ。Badge が数を相手に重ねる縁（--badge-ring-width）と同じ太さ。
+       太くする案・線に近づける案も比べたが、どちらも採らず現行のまま（ADR-0315） */
+  --avatar-group-overlap-sm: 0.18;
+  --avatar-group-overlap-md: 0.3;
+  --avatar-group-overlap-lg: 0.45;
+  --avatar-group-ring-width: var(--border-width-thick);
+  /* ── END avatar-group */
 
   /* ── Breadcrumb — 軸 143・144 ── BEGIN breadcrumb */
   /* パンくずリスト。src/components/breadcrumb
@@ -1495,7 +1515,7 @@
   --sidebar-panel-clip-margin: 6px;
   /* ── END sidebar */
 
-  /* ── FileTree — 軸 275〜278 ── BEGIN file-tree */
+  /* ── FileTree — ADR-275〜278 ── BEGIN file-tree */
   /* 記事の中で、フォルダとファイルの構成を見せる静的な図版。src/components/file-tree
      Tree と違い開閉を持たない（最初から全部描く）ので、字下げと案内線は JS の depth を持たず、
      入れ子の ul の margin・padding の積み重ねだけで作る（部品側のコメント参照）
@@ -1646,6 +1666,32 @@
   /* 値が変わったときに塗りが伸び縮みする長さ */
   --duration-bar: var(--duration-normal);
   /* ── END bar */
+
+  /* ── Slider — 押しているあいだは ADR-0317。ほかは原則にない判断（backlog の Slider） ── BEGIN slider */
+  /* つまみを動かして、決まった範囲の中から 1 つの値を選ぶ。src/components/slider
+     トラックは上の Bar と同じ形（地はトグルの OFF と同じグレー、値までを部品の色で塗る、角は pill）
+     入力欄の仲間なので、hover で地が半段濃くなる（チェックボックスの箱の hover と同じ色）。エラーでは地を赤みのグレーにする
+     つまみはトグルのノブと同じ白い丸（影は押せることの記号 — 原則1。白い地にも載るので、白いボタンと同じ輪郭の線を持つ影）
+     押せる範囲は見た目の範囲（原則17）: つまみの高さの帯だけが押せる。行は部品の高さを占め、帯はその縦の中央
+     track-height: トラックの太さ（Meter の標準と同じ）。入力方式で変えない
+     thumb-size-{fine,coarse}: つまみの直径。部品が --density-coarse から --slider-thumb-size を計算する */
+  --slider-track-height: var(--bar-height-md);
+  --slider-thumb-size-fine: calc(var(--spacing) * 5); /* 20px */
+  --slider-thumb-size-coarse: calc(var(--spacing) * 6); /* 24px */
+  --slider-thumb-shadow: var(--shadow-raised);
+  /* 押しているあいだ（つまみかトラックを押してから離すまで）の手応え。部品の pressEffect で選ぶ — ADR-0317
+     grow（既定）: つまみを grow-scale 倍に膨らませる
+     halo: つまみの外側に、塗りの色を halo-mix の濃さにした幅 halo-width の輪を出す
+     lift: つまみの影を lift-shadow にして持ち上げ、塗りに本文の色を lift-darken 混ぜて濃くする（原則3の「沈む」とは逆向き）
+     none: 何も変えない */
+  --slider-press-grow-scale: 1.25;
+  --slider-press-halo-width: calc(var(--spacing) * 1.5); /* 6px */
+  --slider-press-halo-mix: 24%;
+  --slider-press-lift-shadow:
+    0 3px 10px rgb(from var(--color-shadow) r g b / 0.35),
+    0 0 0 1px rgb(from var(--color-shadow) r g b / 0.06);
+  --slider-press-lift-darken: 15%;
+  /* ── END slider */
 
   /* ── Progress — ADR-0185・0186 ── BEGIN progress */
   /* 処理の進み具合を示すバー。src/components/progress。形は上の Bar と同じ
@@ -1827,7 +1873,7 @@
   --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
   /* ── END stat */
 
-  /* ── Masonry — 軸 294〜296 ── BEGIN masonry */
+  /* ── Masonry — ADR-294〜296 ── BEGIN masonry */
   /* 縦横の比率が違う子を列に積む枠。src/components/masonry
      column-width: 列の最小の幅。入れ物の幅をこの値で割った数だけ列にする（grid-template-columns の auto-fill）
      row-unit: 隙間なく積むための行の最小単位（grid-auto-rows）。span はこの値の倍数で計算する（JS 側の ROW_UNIT_PX と同じ値）
@@ -1844,6 +1890,125 @@
      間隔は Stack の間隔の段をそのまま使う（新しいトークンは足さない） */
   --grid-column-width: calc(var(--spacing) * 60); /* 240px */
   /* ── END grid */
+
+  /* ── Stepper ── BEGIN stepper */
+  /* 複数の段階の進み具合を示すナビゲーション。src/components/stepper。原則にない判断は design/backlog.md の Stepper 参照
+     gap: 段と段のあいだ（ol の flex gap。横並びは列のあいだ、縦並びは行のあいだ）
+     label-gap: マーカーと文（ラベル・説明）のあいだ
+     marker-size: マーカー（丸）の直径。marker-text: 中の数字の大きさ。marker-icon-size: チェック・警告の印の大きさ
+     line-width: 連結線の太さ。line-gap: 縦並びで、線と次のマーカーの上下のあいだ（線がマーカーに接しないための余白） */
+  --stepper-gap: calc(var(--spacing) * 8); /* 32px */
+  --stepper-label-gap: calc(var(--spacing) * 3); /* 12px */
+  --stepper-marker-size: calc(var(--spacing) * 8); /* 32px */
+  --stepper-marker-text: 14px;
+  --stepper-marker-icon-size: calc(var(--spacing) * 4); /* 16px */
+  --stepper-line-width: var(--border-width-thin);
+  --stepper-line-gap: calc(var(--spacing) * 1); /* 4px */
+  /* ── END stepper */
+
+  /* ── Inspector — ADR-0320〜0325 ── BEGIN inspector */
+  /* 決まった領域の中だけで開閉する、常駐のパネル。src/components/inspector
+     Drawer から裏を止める動きと画面の最上層を抜いたもの。見出し（題・説明・右上の ×）と続きの印はシートと共有する（--sheet-*）
+     押しのける形（variant="push"、既定 — ADR-0320）は、ページと同じレイヤー。影を付けず、白い面と本文との境の細い線（--color-line）で分ける（ADR-0323）
+     width: パネルの既定の幅。Drawer の横のパネルと同じ 360px（ADR-0324）。部品の width で上書きできる。
+       重なる形では、領域の幅から overlay-gap を残して縮む
+     重なる形（variant="overlay"）: 領域の中で本文の上に重なる面
+       overlay-shadow-left・overlay-shadow-right: 左から・右から出すときの影。Drawer の横のパネルと同じで、本文の側へ向ける（ADR-0321）。
+         輪郭も Drawer と同じく本文の側に細い線（--color-surface-line）
+       端の形（overlayEdge — ADR-0322）: flush（既定）は領域の端に着け、角を丸めない
+         floating-inset・floating-radius: floating のときの、領域の端からの離れと 4 つの角。輪郭は一周させる
+       overlay-gap: 狭い領域で、パネルの横に残す本文の幅
+     開閉の動き（motion="slide"、既定 — ADR-0325）: 出てくる元の側から滑る（原則14）。長さと緩急は Drawer・シートと同じで、閉じるほうを短くする。
+       motion="none" と、動きを減らす設定では動かさない */
+  --inspector-width: calc(var(--spacing) * 90); /* 360px */
+  --inspector-overlay-shadow-left: var(--shadow-sheet-left);
+  --inspector-overlay-shadow-right: var(--shadow-sheet-right);
+  --inspector-floating-inset: calc(var(--spacing) * 2); /* 8px */
+  --inspector-floating-radius: var(--radius-card);
+  --inspector-overlay-gap: calc(var(--spacing) * 12);
+  --inspector-duration-in: var(--duration-sheet);
+  --inspector-duration-out: var(--duration-normal);
+  --inspector-ease: var(--ease-sheet);
+  /* ── END inspector */
+
+  /* ── StatusPanel — ADR-0326・0327・0328 ── BEGIN status-panel */
+  /* 空状態・見つからない・失敗の面。src/components/status-panel/StatusPanel.tsx
+     色（バッジの塗り・アイコンの色・見出しの色）は internal/notice-surface の noticeSurface（Notice・Callout・Toast と共有）が持つので、
+       ここには置かない（ADR-0326・0327）。ここに置くのは、Notice にはない StatusPanel 固有の大きさの軸だけ
+     size（sm・md・lg、既定 md）ごとに、幅の上限・間隔・バッジとアイコンの大きさを持つ（ADR-0328）。見出しの大きさは
+       text-heading-2〜4 をそのまま使うので、ここにはトークンを置かない
+     description-width は size によらない一定値（本文だけの幅の上限。見出しより読みやすい行長にする） */
+  --status-panel-width-sm: 22rem;
+  --status-panel-width-md: 28rem;
+  --status-panel-width-lg: 32rem;
+  --status-panel-gap-sm: calc(var(--spacing) * 2);
+  --status-panel-gap-md: calc(var(--spacing) * 3);
+  --status-panel-gap-lg: calc(var(--spacing) * 4);
+  --status-panel-badge-size-sm: calc(var(--spacing) * 10); /* 40px */
+  --status-panel-badge-size-md: calc(var(--spacing) * 14); /* 56px */
+  --status-panel-badge-size-lg: calc(var(--spacing) * 18); /* 72px */
+  --status-panel-icon-size-sm: var(--icon-size-md); /* 20px */
+  --status-panel-icon-size-md: var(--icon-size-lg); /* 24px。公開の Icon 部品の size="lg" と同じ */
+  --status-panel-icon-size-lg: var(
+    --icon-size-lg
+  ); /* 24px。バッジが大きくなっても、アイコンは md と同じ大きさで止める */
+  --status-panel-description-width: 40ch;
+  /* ── END status-panel */
+
+  /* ── DataTable — ADR-0343〜0349 ── BEGIN data-table */
+  /* データの表。src/components/data-table。罫線・見出し・余白・文字は Table と同じ（ADR-0090）
+     sort-subtle-opacity: 並べ替えていない列の印（上下の山）を、ふだん淡く置くとき（sortIndicator="subtle"。既定）の濃さ。
+       見出しに載せる・キーボードで止まると、淡い文字の色そのままの濃さにする。並べ替えている列の矢印は、いつも本文の色 — ADR-0344
+     row-hover: 行に載せたときの面（原則3。中に押す部品を持つ行は淡く塗り、押しても濃くしない）。一覧の項目の hover と同じ入力欄の塗り
+     row-selected-hover-mix: 選んだ行に載せたとき、面に本文の色を混ぜる割合。選んだ行の面は部品が color から決める（neutral は
+       Select の選んだ項目と同じグレー、primary・secondary は淡い面）— ADR-0345
+     見出しの文字は本文の色（ADR-0346）、貼り付いた見出しの境目は ScrollArea の上の端と同じ影（ADR-0347）で、部品に書く */
+  --data-table-sort-subtle-opacity: 0.5;
+  --data-table-row-hover: var(--color-field);
+  --data-table-row-selected-hover-mix: 6%;
+  /* ── END data-table */
+
+  /* ── Sortable — ADR-0336〜0342 ── BEGIN sortable */
+  /* 並べ替えられるリスト。src/components/sortable。ポインタで引く動きは外のエンジン（dnd-kit）に任せる（src/recipes/Sortable.stories.tsx）
+     gap: 項目と項目のあいだ（variant="card"・"fill"。divided は線で区切るので 0）
+     item-radius・item-py・item-gap: 項目の角・上下の余白・中身どうしのあいだ。高さは部品の高さ（--spacing-control）から
+     handle-width・handle-radius: つまみの幅と角。項目の端に接した塊で、高さは項目いっぱい
+     lifted-*: 持ち上げた項目（dragging）— ADR-0338。面は白、影は重なる面より濃く近い影と細い輪郭、大きさは少しだけ大きく
+     source-line-*: 入る場所（dragSource）の内側の点線 — ADR-0339。dragSourceVariant="filled" では、下に入力欄の塗りを敷く
+     move-duration・move-ease: 並べ替えの動きの長さと緩急 — ADR-0341。motion="none" と、動きを減らす設定では動かさない
+       レシピ（dnd-kit）の周りがずれる動き・離したときに収まる動きも、同じ長さと緩急にそろえる */
+  --sortable-gap: calc(var(--spacing) * 2); /* 8px */
+  --sortable-item-radius: var(--radius-control);
+  --sortable-item-py: calc(var(--spacing) * 2.5); /* 10px。16px・24px の行で 44px */
+  --sortable-item-gap: calc(var(--spacing) * 3); /* 12px */
+  --sortable-handle-width: calc(var(--spacing) * 10); /* 40px */
+  --sortable-handle-radius: var(--radius-control);
+  --sortable-lifted-bg: var(--color-surface);
+  --sortable-lifted-shadow:
+    0 4px 12px rgb(from var(--color-shadow) r g b / 0.24),
+    inset 0 0 0 var(--border-width-thin) var(--color-surface-line);
+  --sortable-lifted-scale: 1.03;
+  --sortable-source-line-width: var(--border-width-medium);
+  --sortable-source-line-color: var(--color-line-strong);
+  --sortable-move-duration: var(--duration-slow);
+  --sortable-move-ease: var(--ease-sheet);
+  /* ── END sortable */
+
+  /* ── Dropzone — ADR-0329〜0334 ── BEGIN dropzone */
+  /* ファイルを落として選ぶ場所。src/components/dropzone。入力欄の仲間（原則8）で、読み取り専用・Form の送信中は
+     押せないときと同じ見た目にする（Slider・Switch と同じ useChoiceLock。TextField の破線は採らない）
+     枠・塗り（ADR-0330。決定: filled を既定にし、outline・dashed も variant で選べる）
+       border-width・content-gap・icon-size・padding・min-height は variant によらない共通の値
+       枠の色・塗りそのものは variant ごとに部品のコード（Dropzone.tsx）で持つ（比べる案ではなくなったため）
+     ドラッグ中の色（ADR-0331。決定: 面＋線のまま。色は color props（primary・secondary・neutral）で選べる。
+       受け付けないときは常に危険の色。accept の面・線は color ごとに部品のコードで持つ
+     中身の並べ方（ADR-0332。決定: 縦に積む形のまま。横1列の案と切り替えのトークンは畳んだ） */
+  --dropzone-border-width: var(--border-width-thick);
+  --dropzone-content-gap: calc(var(--spacing) * 3); /* 12px */
+  --dropzone-icon-size: calc(var(--spacing) * 8); /* 32px */
+  --dropzone-padding: calc(var(--spacing) * 8); /* 32px */
+  --dropzone-min-height: calc(var(--spacing) * 40); /* 160px */
+  /* ── END dropzone */
 }
 
 /* ── toast keyframes */

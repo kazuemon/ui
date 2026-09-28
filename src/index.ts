@@ -1,5 +1,5 @@
 // @kazuemon/ui の公開の入口。ここに並べたものだけを利用者に渡す
-// CSS は別の入口（package.json の exports の ./styles.css → src/styles/index.css）
+// CSS は別の入口（package.json の exports の ./tailwind.css・./fonts.css・./fonts-ja.css）
 
 export {
   Accordion,
@@ -30,6 +30,11 @@ export {
   type AutocompleteSheetInput,
 } from './components/autocomplete/Autocomplete';
 export { Avatar, type AvatarFallback, type AvatarProps } from './components/avatar/Avatar';
+export {
+  AvatarGroup,
+  type AvatarGroupOverlap,
+  type AvatarGroupProps,
+} from './components/avatar-group/AvatarGroup';
 export { Badge, type BadgeProps } from './components/badge/Badge';
 export {
   Blockquote,
@@ -52,6 +57,12 @@ export {
   type ButtonProps,
   type ButtonShape,
 } from './components/button/Button';
+export {
+  ButtonGroup,
+  type ButtonGroupFrame,
+  type ButtonGroupOrientation,
+  type ButtonGroupProps,
+} from './components/button-group/ButtonGroup';
 export {
   Toggle,
   type ToggleColor,
@@ -231,6 +242,20 @@ export {
   type ImageZoomProps,
   type ImageZoomVariant,
 } from './components/image-zoom/ImageZoom';
+export {
+  Inspector,
+  type InspectorMotion,
+  type InspectorOverlayEdge,
+  type InspectorProps,
+  type InspectorSide,
+  type InspectorVariant,
+} from './components/inspector/Inspector';
+export {
+  InspectorLayout,
+  type InspectorLayoutProps,
+  InspectorTrigger,
+  type InspectorTriggerProps,
+} from './components/inspector/InspectorLayout';
 export { Kbd, type KbdProps } from './components/kbd/Kbd';
 export {
   List,
@@ -370,6 +395,56 @@ export {
   type TableVerticalAlign,
 } from './components/table/Table';
 export {
+  DataTable,
+  type DataTableProps,
+  type DataTableSortIndicator,
+} from './components/data-table/DataTable';
+export { DataTableEmpty, type DataTableEmptyProps } from './components/data-table/DataTableEmpty';
+export {
+  DataTableHeader,
+  type DataTableHeaderProps,
+  type DataTableSortDirection,
+} from './components/data-table/DataTableHeader';
+export {
+  DataTableLoading,
+  type DataTableLoadingProps,
+} from './components/data-table/DataTableLoading';
+export { DataTableRow, type DataTableRowProps } from './components/data-table/DataTableRow';
+export {
+  DataTableSelectCell,
+  type DataTableSelectCellProps,
+  DataTableSelectHeader,
+  type DataTableSelectHeaderProps,
+} from './components/data-table/DataTableSelect';
+export {
+  Sortable,
+  type SortableDragSourceVariant,
+  type SortableGrabArea,
+  SortableHandle,
+  type SortableHandlePlacement,
+  type SortableHandleProps,
+  SortableItem,
+  type SortableItemProps,
+  type SortableMotion,
+  type SortableMoveActions,
+  type SortableProps,
+  type SortableVariant,
+} from './components/sortable/Sortable';
+export {
+  Dropzone,
+  type DropzoneButtonColor,
+  type DropzoneProps,
+  type DropzoneRejection,
+  type DropzoneRejectReason,
+  type DropzoneVariant,
+} from './components/dropzone/Dropzone';
+export {
+  type DropzoneFileEntry,
+  DropzoneFileList,
+  type DropzoneFileListProps,
+  type DropzoneFileListVariant,
+} from './components/dropzone/DropzoneFileList';
+export {
   TableOfContents,
   type TableOfContentsColor,
   type TableOfContentsCurrentIndicator,
@@ -411,6 +486,24 @@ export {
   type StatSize,
   type StatTrend,
 } from './components/stat/Stat';
+export {
+  type StatusPanelHeadingLevel,
+  StatusPanel,
+  type StatusPanelProps,
+  type StatusPanelShape,
+  type StatusPanelSize,
+  type StatusPanelStatus,
+} from './components/status-panel/StatusPanel';
+export {
+  Stepper,
+  type StepperColor,
+  type StepperOrientation,
+  StepperStep,
+  type StepperStepProps,
+  type StepperStepStatus,
+  type StepperProps,
+  type StepperVariant,
+} from './components/stepper/Stepper';
 export {
   Step,
   type StepProps,
@@ -532,6 +625,12 @@ export {
   type NumberFieldValueDetails,
 } from './components/number-field/NumberField';
 export type { StepperNames } from './components/number-field/NumberFieldStepper';
+export {
+  Slider,
+  type SliderColor,
+  type SliderPressEffect,
+  type SliderProps,
+} from './components/slider/Slider';
 export {
   PinField,
   type PinFieldProps,

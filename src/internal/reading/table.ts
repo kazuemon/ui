@@ -29,4 +29,15 @@ export const tableStyles = {
   ],
   // 見た目 lines: 見出しの下の線
   lines: '[&_thead_th]:border-b',
+  // ここから下は部品（Table・DataTable）だけが使う。Prose は既定の見た目（lines）だけ
+  // 見た目 framed: 外枠（スクロールの包みに付ける。部品の角）と、見出しのグレーの面
+  framedFrame: 'rounded-control border border-line',
+  framed: '[&_thead_th]:bg-field',
+  // 見た目 banded: 見出しの行を丸い帯のグレーの面にし、セルの余白を広げる
+  banded: [
+    '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3 [&_thead_th]:bg-field',
+    '[&_thead_th:first-child]:rounded-s-control [&_thead_th:last-child]:rounded-e-control',
+  ],
+  // 列のあいだの縦線（2 列目から左に引く）
+  columnDivider: '[&_tr>*+*]:border-l',
 } as const;

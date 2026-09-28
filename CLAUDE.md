@@ -14,27 +14,28 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 
 ## ファイルの地図
 
-| 場所                                   | 中身                                                                                                                                                               |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                                               |
-| `design/props.md`                      | props の名前と渡し方の決まり。語彙表と、色・variant・文字・イベント・渡し方・JSDoc の規則                                                                          |
-| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                         |
-| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                           |
-| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                              |
-| `design/review-checklist.md`           | AI が部品の PR をレビューするときの点検表（GitHub の自動化の側で書く）                                                                                             |
-| `design/plans/`                        | まだ始めていない計画（ドキュメントサイトなど）                                                                                                                     |
-| `design/references/`                   | 原則の出どころの参照画像                                                                                                                                           |
-| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す                                          |
-| `design/tools/`                        | 撮影・確かめのスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md)                                                                            |
-| `src/index.ts`                         | 公開の入口。ここに並べたものだけを利用者に渡す                                                                                                                     |
-| `src/components/<name>/`               | 部品 1 つにつき 1 フォルダ。部品・ストーリー・見た目の基準画像（`__screenshots__/`）と、その部品だけが使う部分                                                     |
-| `src/internal/`                        | 2 つ以上の部品が使う、公開しない部分（`tv`・アイコン・フォーカスの線・Form との連携・Field・choice の見た目、読む部品と Prose が共有する見た目の `reading/` など） |
-| `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン）                         |
-| `src/recipes/`                         | レシピ: 部品にせず、既存の部品を組み合わせて作るもの（Footer など）の見本のストーリー。公開の入口には足さない                                                      |
-| `src/samples/`                         | 見本のページ: 部品を実際の画面（記事・ドキュメント・サインイン・設定・一覧・SNS）に並べたストーリー。Storybook では `Overview/見本` に並ぶ。公開の入口には足さない |
-| `src/styles/`                          | `theme.css`（トークン・フォント・密度）、`index.css`（利用者向け）、`globals.css`（Storybook 用）                                                                  |
-| `templates/component/`                 | 部品とストーリーの雛形                                                                                                                                             |
-| `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                                               |
+| 場所                                   | 中身                                                                                                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                                                   |
+| `design/props.md`                      | props の名前と渡し方の決まり。語彙表と、色・variant・文字・イベント・渡し方・JSDoc の規則                                                                              |
+| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                             |
+| `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                               |
+| `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                                  |
+| `design/review-checklist.md`           | AI が部品の PR をレビューするときの点検表（GitHub の自動化の側で書く）                                                                                                 |
+| `design/plans/`                        | まだ始めていない計画（ドキュメントサイトなど）                                                                                                                         |
+| `design/references/`                   | 原則の出どころの参照画像                                                                                                                                               |
+| `design/stories/axis-NN-*.stories.tsx` | 決めている途中の軸の比較ストーリー。枠は `Comparison.tsx`（1 行目が現行版、`pick` は「,」区切りで複数可）。決まったら消す                                              |
+| `design/tools/`                        | 撮影・確かめのスクリプト。使い方は [`design/tools/README.md`](./design/tools/README.md)                                                                                |
+| `src/index.ts`                         | 公開の入口。ここに並べたものだけを利用者に渡す                                                                                                                         |
+| `src/components/<name>/`               | 部品 1 つにつき 1 フォルダ。部品・ストーリー・見た目の基準画像（`__screenshots__/`）と、その部品だけが使う部分                                                         |
+| `src/internal/`                        | 2 つ以上の部品が使う、公開しない部分（`tv`・アイコン・フォーカスの線・Form との連携・Field・choice の見た目、読む部品と Prose が共有する見た目の `reading/` など）     |
+| `src/stories/`                         | ストーリーで共有する並べ方（`story-parts.tsx`・`story-states.ts`）と、部品をまたぐ一覧（押せない状態の一覧、部品の中で使っているアイコン）                             |
+| `src/recipes/`                         | レシピ: 部品にせず、既存の部品を組み合わせて作るもの（Footer など）と、外のヘッドレス（TanStack Table・dnd-kit）に部品をつなぐ見本のストーリー。公開の入口には足さない |
+| `src/samples/`                         | 見本のページ: 部品を実際の画面（記事・ドキュメント・サインイン・設定・一覧・SNS）に並べたストーリー。Storybook では `Overview/見本` に並ぶ。公開の入口には足さない     |
+| `src/styles/`                          | `theme.css`（トークン・密度）、`tailwind.css`（Tailwind を使う利用者向け）、`fonts.css`・`ibm-plex-sans-jp.css`（フォント）、`globals.css`（Storybook 用）             |
+| `scripts/`                             | 配布物を作る・確かめるスクリプト（`build-css.mjs`・`check-dist.mjs`）と、和文フォントの補正 CSS を作る `generate-fonts.mjs`                                            |
+| `templates/component/`                 | 部品とストーリーの雛形                                                                                                                                                 |
+| `.storybook/visual-testing.md`         | 見た目の回帰テストの仕組みと落とし穴                                                                                                                                   |
 
 よく使うコマンド:
 
@@ -46,11 +47,13 @@ pnpm format                   # 書式をそろえる（CI は pnpm format:check
 pnpm test                     # 全ストーリーを Vitest で描き、play の確かめと見た目の比較を走らせる
 pnpm test src/components/tag  # 1 つの部品だけ
 pnpm test -u src/components/tag  # 見た目の基準画像を撮り直す（意図して見た目を変えたとき。範囲を絞る）
+pnpm build                    # 配布物（dist/: JS・型・CSS）を作る
+pnpm check:dist               # 配布物を確かめる（'use client'・依存・ツリーシェイク）
 pnpm run fonts                # 和文フォントの補正 CSS を作り直す
 node design/tools/capture-story.mjs <story-id> --pick A --out design/adr/assets/NNNN-title.png
 ```
 
-CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・test を走らせます。
+CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・lint・format:check・build・check:dist・test を走らせます。npm への公開は `.github/workflows/release.yml` です（下の「リリース」）。
 
 ## 部品を作る
 
@@ -121,6 +124,17 @@ principles.md は、かずえもんがデザインをどう捉えているかを
 - ですます調。毎行「だから、」や太字で始める型は避ける。書いたら `node design/tools/check-principles.mjs` で禁止語を確かめ、手元にある日本語の推敲スキルがあればそれで見直す
 
 props・既定値・使い方の推奨は、部品の JSDoc と Storybook の Docs に書きます。
+
+## リリース
+
+npm への公開は release-please で回します。main に push されるたびに、release-please がコミットを読んで、次の版の「リリース PR」（`package.json` の version と `CHANGELOG.md`）を作り直します。リリース PR をマージすると、タグ（`v0.1.0` など）と GitHub Release ができ、そのタグからビルドして npm に公開します。設定は `release-please-config.json` です。
+
+- 版はコミットの種類で決まります。`feat:` は minor、`fix:`・`design:`・`perf:`・`revert:` は patch を上げます。`feat!:` や `BREAKING CHANGE:` は、1.0.0 までは minor を上げます
+- CHANGELOG に載るのは `feat`・`fix`・`design`・`perf`・`revert` だけです。`docs`・`refactor`・`style`・`test`・`chore`・`ci`・`build` は載らず、それだけでは版も上がりません。利用者に見える変更は、載る種類で書きます
+- `apps/` だけを変えたコミットは、版に数えません
+- 版を指定したいときは、載る種類のコミットの本文に `Release-As: 0.2.0` を書きます。release-please は変えたファイルでコミットを振り分けるので、ファイルを変えない空のコミットは数えられません
+- `CHANGELOG.md` と `.release-please-manifest.json` は release-please が書くので、手で直しません
+- 公開の前に `scripts/check-pack.mjs` が、`exports` などの指すファイルがパッケージの中にあるかを確かめます。手元では `pnpm pack --pack-destination .pack && node scripts/check-pack.mjs .pack/*.tgz`（`pack` の前に `prepack` がビルドします）
 
 ## コミット
 

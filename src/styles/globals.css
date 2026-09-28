@@ -1,4 +1,4 @@
-/* Storybook 用の CSS（.storybook/preview.tsx）。利用者向けの index.css に、比較ストーリーと既定の色・影の打ち消しを足す */
+/* Storybook 用の CSS（.storybook/preview.tsx）。利用者向けのテーマに、比較ストーリーと既定の色・影の打ち消しを足す */
 @import 'tailwindcss' source(none);
 /* クラス名を探す場所。自動検出だと design/ の文書まで読み、文書の更新でも CSS が作り直される
    部品とストーリーに加え、決めている途中の軸の比較ストーリー（design/stories）も拾う */
@@ -13,3 +13,8 @@
 }
 
 @import './theme.css';
+
+@import './fonts.css';
+/* 和文フォントは、縦の寸法の補正を足した @font-face を読む（scripts/generate-fonts.mjs が作る — design/adr/0032）。
+   400・500・600・700 の4つの太さ */
+@import './ibm-plex-sans-jp.css';

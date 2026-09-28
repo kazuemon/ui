@@ -1,4 +1,4 @@
-# 型・lint・書式・テスト（ストーリーの描画、play、見た目の回帰）を確かめる
+# 型・lint・書式・ビルド・テスト（ストーリーの描画、play、見た目の回帰）を確かめる
 # 見た目の基準画像は Linux の Chromium で撮っているので、ubuntu で走らせる
 name: CI
 
@@ -37,6 +37,10 @@ jobs:
         run: pnpm lint
       - name: Format
         run: pnpm format:check
+      - name: Build
+        run: pnpm build
+      - name: Check dist
+        run: pnpm check:dist
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps --only-shell chromium
       - name: Test

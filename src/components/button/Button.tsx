@@ -61,6 +61,12 @@ const button = tv({
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 送信中: 押せない。下端の線を角丸で切り抜く
     'data-loading:cursor-progress data-loading:overflow-hidden',
+    // ButtonGroup の詰め方（frame="connected"）のときだけ、両端以外の角丸を消す。ToggleGroup と同じ仕組み
+    //   （in-data-[frame=…] で、自分が属する ButtonGroup の frame を読む。design/components/button-group）
+    //   向き（data-orientation。ButtonGroup がいつも明示する）で、丸める辺を変える。横は左右端、縦は上下端
+    'in-data-[frame=connected]:rounded-none',
+    'in-data-[frame=connected]:in-data-[orientation=horizontal]:first:rounded-s-control in-data-[frame=connected]:in-data-[orientation=horizontal]:last:rounded-e-control',
+    'in-data-[frame=connected]:in-data-[orientation=vertical]:first:rounded-t-control in-data-[frame=connected]:in-data-[orientation=vertical]:last:rounded-b-control',
   ],
   variants: {
     variant: {
@@ -196,8 +202,9 @@ const button = tv({
 //   形（shape）: square（既定）は文字のボタンと同じ部品の角、circle は丸（pill）— 軸 101
 //   中に文字が加わったとき（CopyButton の「コピーしました」）は、使う側が左右の余白を足して横に伸ばす
 //   アイコンは単体なので太い線（design/adr/0018）。読み上げの名前（aria-label）は型で必須にする
+// square は rounded-control を持たせない（base がすでに持つ。ButtonGroup の連結の角丸上書きと衝突させないため）
 const iconOnlyClass = {
-  square: 'min-w-(--spacing-control) px-0 rounded-control',
+  square: 'min-w-(--spacing-control) px-0',
   circle: 'min-w-(--spacing-control) px-0 rounded-pill',
 } as const;
 

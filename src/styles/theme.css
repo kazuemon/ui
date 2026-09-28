@@ -1,14 +1,7 @@
-/* @kazuemon/ui のテーマ: トークン・フォント・密度。Tailwind の読み込みとクラス名を探す場所は、読む側（index.css・globals.css）が決める */
+/* @kazuemon/ui のテーマ: トークン・フォントの名前・密度。Tailwind の読み込みとクラス名を探す場所は、読む側（tailwind.css・globals.css）が決める
+   フォントのファイルは読まない（fonts.css・ibm-plex-sans-jp.css。使う側が選んで読む） */
 
 @import '../../design/tokens.css';
-
-@import '@fontsource-variable/mulish';
-
-/* 和文フォントは、縦の寸法の補正を足した @font-face を読む（scripts/generate-fonts.mjs が作る — design/adr/0032）。
-   400・500・600・700 の4つの太さ */
-@import './ibm-plex-sans-jp.css';
-
-@import '@fontsource-variable/geist-mono';
 
 @theme {
   --font-sans:
