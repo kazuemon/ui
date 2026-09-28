@@ -8,6 +8,7 @@ import type { FieldValidityState } from '@base-ui/react/field';
 import { useFormContext } from '@base-ui/react/internals/form-context';
 import { type ReactNode, useContext, useId, useState } from 'react';
 
+import { FieldLayoutContext } from './field-layout';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
@@ -359,10 +360,20 @@ export function Field({
   ) : null;
   // 待っているあいだの見た目（design/adr/0042）。Form の送信中に止めるときも、止める見た目（印は出さない）
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
+  const layout = useContext(FieldLayoutContext);
+  const placement = layout.labelPlacement ?? 'top';
   const labelNode = (
     <BaseField.Label
       data-slot="field-label"
-      className={styles.label({ className: labelAside != null ? 'min-w-0' : undefined })}
+      className={styles.label({
+        start: placement === 'start',
+        className: [
+          labelAside != null ? 'min-w-0' : undefined,
+          placement === 'hidden' ? 'sr-only' : undefined,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      })}
       nativeLabel={nativeLabel}
       render={nativeLabel ? undefined : <div />}
     >
@@ -381,12 +392,45 @@ export function Field({
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する
       data-success={success && !error ? '' : undefined}
-      className={styles.root({ className })}
+      className={styles.root({
+        className: [placement === 'start' ? '@container' : undefined, className]
+          .filter(Boolean)
+          .join(' '),
+      })}
     >
+      {placement === 'start' ? (
+        <FieldBody
+          captionNode={captionNode}
+          captionId={captionId}
+          captionPlacement={captionPlacement}
+          error={error}
+          warning={warning}
+          success={success}
+          info={info}
+          ids={ids}
+          name={name}
+          disabled={disabled}
+          start={{
+            label:
+              labelAside != null ? (
+                <div className="flex items-baseline justify-between gap-3">
+                  {labelNode}
+                  {labelAside}
+                </div>
+              ) : (
+                labelNode
+              ),
+            captionColumn: layout.captionColumn ?? 'control',
+            narrow: layout.narrowLabelPlacement ?? 'start',
+          }}
+        >
+          {children}
+        </FieldBody>
+      ) : null}
       {/* data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（design/adr/0044 の追記）
           印（必須・任意）はラベルの中に置く。ラベルが折り返すと一緒に折り返し、読み上げと一覧からは外れる
           labelAside があるときは、ラベルの行の右端に並べる（基準線をそろえる） */}
-      {labelAside != null ? (
+      {placement === 'start' ? null : labelAside != null ? (
         <div className="flex items-baseline justify-between gap-3">
           {labelNode}
           {labelAside}
@@ -394,20 +438,22 @@ export function Field({
       ) : (
         labelNode
       )}
-      <FieldBody
-        captionNode={captionNode}
-        captionId={captionId}
-        captionPlacement={captionPlacement}
-        error={error}
-        warning={warning}
-        success={success}
-        info={info}
-        ids={ids}
-        name={name}
-        disabled={disabled}
-      >
-        {children}
-      </FieldBody>
+      {placement === 'start' ? null : (
+        <FieldBody
+          captionNode={captionNode}
+          captionId={captionId}
+          captionPlacement={captionPlacement}
+          error={error}
+          warning={warning}
+          success={success}
+          info={info}
+          ids={ids}
+          name={name}
+          disabled={disabled}
+        >
+          {children}
+        </FieldBody>
+      )}
     </BaseField.Root>
   );
 }
@@ -425,7 +471,14 @@ function FieldBody({
   name,
   disabled,
   children,
+  start,
 }: {
+  /** 試作（Design Review 385）: ラベルを本体の左に置くとき、ラベルの列に置くものと並べ方 */
+  start?: {
+    label: ReactNode;
+    captionColumn: 'control' | 'label';
+    narrow: 'start' | 'top';
+  };
   captionNode: ReactNode;
   captionId: string;
   captionPlacement: CaptionPlacement;
@@ -456,6 +509,27 @@ function FieldBody({
           [captionNode && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
             .filter(Boolean)
             .join(' ') || undefined;
+        const messageNodes = kinds.map((kind) => (
+          <FieldMessageLine key={kind} kind={kind} content={messages[kind]} id={ids[kind]} />
+        ));
+        const control = typeof children === 'function' ? children(describedBy) : children;
+        if (start) {
+          // 試作（Design Review 385）: ラベルの列と本体の列の 2 列。ラベルは本体の 1 行目の中央にそろえる
+          const styles = fieldStyles({ narrow: start.narrow });
+          return (
+            <div className={styles.startGrid()}>
+              <div className={styles.startLabelColumn()}>
+                {start.label}
+                {start.captionColumn === 'label' && captionNode}
+              </div>
+              <div className={styles.startControlColumn()}>
+                {control}
+                {start.captionColumn === 'control' && captionNode}
+                {messageNodes}
+              </div>
+            </div>
+          );
+        }
         return (
           <>
             {captionPlacement === 'top' && captionNode}
