@@ -4,8 +4,9 @@ import {
   Button,
   DescriptionItem,
   DescriptionList,
-  Drawer,
   Heading,
+  Inspector,
+  InspectorLayout,
   MenuItem,
   Navbar,
   Sidebar,
@@ -41,12 +42,12 @@ import {
   UserCircleIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import type { Example } from './types';
 
-// 試合の詳細: 大会の管理画面。左の列（Sidebar）でステージ＞リーグ＞グループを選び、表の行を押すと
-// 右から出る面（Drawer の modal="passive"）で試合の詳細を見る。押しのけない: 裏を暗くせず、裏の操作も止めない。閉じるのは × だけ
+// 大会プラットフォーム: 大会の管理画面。左の列（Sidebar）でステージ＞リーグ＞グループを選び、表の行を押すと
+// 右の常駐パネル（Inspector）で試合の詳細を見る。本文を押しのけ、閉じるのは × か Esc
 // 架空のゲーム「ミラージュ・ストライカーズ」の大会（src/stories/sidebar-story-parts.tsx と同じ中身）
 
 const TOURNAMENT = 'ミラージュ杯 Season2 チーム戦';
@@ -115,7 +116,7 @@ function TournamentSidebar() {
   return (
     <Sidebar
       header={
-        <SidebarItem label={TOURNAMENT} icon={<TrophyIcon weight="fill" />}>
+        <SidebarItem label={TOURNAMENT} icon={<TrophyIcon weight="fill" />} submenuTitle="大会一覧">
           <SidebarItem label="ミラージュ杯 Season1" href="#s1" />
           <SidebarItem label="春のスプリント杯" href="#spring" />
           <SidebarItem label="大会を作成" icon={<PlusIcon />} />
@@ -217,78 +218,84 @@ function MatchDetail({ match }: { match: Match }) {
 
 function GroupScreen() {
   const [open, setOpen] = useState<Match | null>(null);
+  // パネルの中に焦点があるまま閉じたとき、焦点を戻す先（最後に押した試合番号か行）
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const openMatch = (match: Match, trigger: HTMLElement) => {
+    returnFocus.current = trigger;
+    setOpen(match);
+  };
   return (
-    <div className="mx-auto flex max-w-[880px] flex-col gap-8 p-6">
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <Text variant="muted">ステージ / 予選リーグ</Text>
-          <Heading level={1} size={2}>
-            Aグループ
-          </Heading>
+    <InspectorLayout
+      className="h-full"
+      open={open != null}
+      onOpenChange={(next) => !next && setOpen(null)}
+      inspector={
+        <Inspector title={open?.no ?? ''} description={open?.teams} returnFocus={returnFocus}>
+          {open && <MatchDetail match={open} />}
+        </Inspector>
+      }
+    >
+      <div className="mx-auto flex max-w-[880px] flex-col gap-8 p-6">
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <Text variant="muted">ステージ / 予選リーグ</Text>
+            <Heading level={1} size={2}>
+              Aグループ
+            </Heading>
+          </div>
+          <Button color="primary">試合を追加</Button>
         </div>
-        <Button color="primary">試合を追加</Button>
-      </div>
-      <section className="flex flex-col gap-3" aria-labelledby="matches">
-        <Heading level={2} size={3} id="matches">
-          試合
-        </Heading>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>試合</TableHeader>
-              <TableHeader>対戦</TableHeader>
-              <TableHeader align="end">状態</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {matches.map((match) => (
-              <TableRow
-                key={match.no}
-                onClick={() => setOpen(match)}
-                className="cursor-pointer hover:bg-flat-hover"
-              >
-                <TableCell>
-                  {/* 行を押しても開くが、キーボードと読み上げのために、試合番号をボタンにする */}
-                  <Button
-                    variant="underline"
-                    className="h-auto px-0"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setOpen(match);
-                    }}
-                  >
-                    {match.no}
-                  </Button>
-                </TableCell>
-                <TableCell>{match.teams}</TableCell>
-                <TableCell align="end">
-                  <Tag color={match.color}>{match.status}</Tag>
-                </TableCell>
+        <section className="flex flex-col gap-3" aria-labelledby="matches">
+          <Heading level={2} size={3} id="matches">
+            試合
+          </Heading>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>試合</TableHeader>
+                <TableHeader>対戦</TableHeader>
+                <TableHeader align="end">状態</TableHeader>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </section>
-      {/* 押しのけない、重ねて出す面。passive: 裏を暗くせず、裏の操作も止めない。閉じるのは × だけ */}
-      <Drawer
-        title={open?.no ?? ''}
-        description={open?.teams}
-        side="right"
-        modal="passive"
-        open={open != null}
-        onOpenChange={(next) => !next && setOpen(null)}
-      >
-        {open && <MatchDetail match={open} />}
-      </Drawer>
-    </div>
+            </TableHead>
+            <TableBody>
+              {matches.map((match) => (
+                <TableRow
+                  key={match.no}
+                  onClick={(event) => openMatch(match, event.currentTarget)}
+                  className="cursor-pointer hover:bg-flat-hover"
+                >
+                  <TableCell>
+                    {/* 行を押しても開くが、キーボードと読み上げのために、試合番号をボタンにする */}
+                    <Button
+                      variant="underline"
+                      className="h-auto px-0"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openMatch(match, event.currentTarget);
+                      }}
+                    >
+                      {match.no}
+                    </Button>
+                  </TableCell>
+                  <TableCell>{match.teams}</TableCell>
+                  <TableCell align="end">
+                    <Tag color={match.color}>{match.status}</Tag>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
+      </div>
+    </InspectorLayout>
   );
 }
 
 export const example: Example = {
-  slug: 'match',
-  title: '試合の詳細',
+  slug: 'tournament',
+  title: '大会プラットフォーム',
   description:
-    '大会の管理画面。列でステージ＞リーグ＞グループを選び、行を押すと押しのけない面（Drawer）で試合の詳細を見ます。',
+    '大会の管理画面。左の列（Sidebar）でステージ＞リーグ＞グループを選び、行を押すと横のパネル（Inspector）で試合の詳細を見ます。',
   controls: [],
   defaults: {},
   Screen: ({ density }) => (

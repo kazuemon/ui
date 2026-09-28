@@ -140,10 +140,10 @@ export const examples: ExampleSummary[] = [
     components: ['Inspector', 'ToggleGroup', 'DateField'],
   },
   {
-    slug: 'match',
-    title: '試合の詳細',
-    description: '大会の管理画面。列でグループを選び、行から押しのけない面で試合の詳細を見ます',
-    highlights: ['Sidebar'],
-    components: ['Drawer', 'Table', 'DescriptionList', 'Menu', 'Tag'],
+    slug: 'tournament',
+    title: '大会プラットフォーム',
+    description: '大会の管理画面。列でグループを選び、行から横のパネルで試合の詳細を見ます',
+    highlights: ['Sidebar', 'Inspector'],
+    components: ['Table', 'DescriptionList', 'Menu', 'Tag'],
   },
 ];
