@@ -45,7 +45,7 @@ DataTable に `maxHeight` を渡すと、表の中で縦にスクロールし、
 ## 影響
 
 - `src/components/data-table/DataTable.tsx`: `banded` の見出しの帯を `th::before` に描くよう直しました（`before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:bg-field`、角丸は `before:rounded-s-control`・`before:rounded-e-control`）。影（`after:...`）は `th` の下の辺から、`variant` によらず同じ形で落とします
-- 見出しの行は、`maxHeight` を渡したときだけ `sticky` になります（[ADR-0343](./0343-data-table-separate-from-table.md)）
+- 見出しの行はいつも `sticky` です。枠の高さに上限がなければ縦にスクロールしないので動かず、`maxHeight`（や、利用者がレイアウトで決めた枠の高さ）でスクロールするときだけ貼り付きます（[ADR-0343](./0343-data-table-separate-from-table.md)）
 - 比較のストーリー `design/stories/axis-367-data-table-sticky-edge.stories.tsx` は消しました
 
 ## 原則への反映
