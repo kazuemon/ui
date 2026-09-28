@@ -17,7 +17,7 @@ import { Text } from '../components/text/Text';
 import { DemoNavbar, TournamentItems } from '../stories/sidebar-story-parts';
 import { densityOf } from './SamplePage';
 
-// 大会の試合管理の画面: ハンバーガーで開け閉めする列（畳むとアイコンだけ）と、ステージ＞リーグ＞グループの入れ子
+// 大会プラットフォームの画面: ハンバーガーで開け閉めする列（畳むとアイコンだけ）と、ステージ＞リーグ＞グループの入れ子
 // 見本の中身は、架空のゲーム「ミラージュ・ストライカーズ」の大会
 
 const standings = [
@@ -111,7 +111,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Tournament: Story = {
-  name: '試合管理',
+  name: '大会プラットフォーム',
   render: (_args, { globals }) => (
     <div data-density={densityOf(globals)} className="h-screen bg-bg text-fg">
       <SidebarLayout
