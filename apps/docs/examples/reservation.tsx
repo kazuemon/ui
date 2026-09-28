@@ -20,7 +20,7 @@ import {
   ToastProvider,
   useToast,
 } from '@kazuemon/ui';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SamplePage } from './sample-page';
 import { salon } from './sites';
@@ -61,6 +61,8 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState(scenario === 'done');
   const toast = useToast();
+  const nameRef = useRef<HTMLInputElement>(null);
+  const doneHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const taken = date ? takenOn(date) : [];
   const ready = date !== null && time !== null;
@@ -68,6 +70,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
   const openConfirm = () => {
     if (!name) {
       setNameError('予約する人の名前を入力してください');
+      nameRef.current?.focus();
       return;
     }
     setNameError(undefined);
@@ -80,10 +83,19 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
     toast.show({ status: 'success', title: '予約しました', timeout: 4000 });
   };
 
+  // 予約が終わったら、完了の見出しへフォーカスを移す（フォーカスが BODY に落ちないように）。
+  // 動かすのは、まだ → 済み に変わったときだけ。状態のボタンで「予約した」を開いたときは動かさない
+  // （開発時の Strict Mode は effect を 2 回走らせるので、初めの 1 回を飛ばす形では防げない）
+  const previousDone = useRef(done);
+  useEffect(() => {
+    if (!previousDone.current && done) doneHeadingRef.current?.focus();
+    previousDone.current = done;
+  }, [done]);
+
   if (done && date && time) {
     return (
       <div className="flex flex-col gap-6">
-        <Heading level={1} size={2}>
+        <Heading level={1} size={2} ref={doneHeadingRef} tabIndex={-1}>
           予約しました
         </Heading>
         <Notice status="success" title={`${formatDate(date)} ${time} にお待ちしています`}>
@@ -131,6 +143,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
           max={today.add({ months: 2 })}
           isDateDisabled={(d) => d.dayOfWeek === 1 || fullDays.has(d.toString())}
           getHoliday={(d) => holidays[d.toString()]}
+          today={today}
           shape={calendar.shape}
           color={calendar.color}
           weekendColor={calendar.weekendColor}
@@ -147,7 +160,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
           2. 時刻を選ぶ
         </Heading>
         {date ? (
-          <>
+          <div className="flex flex-col gap-3">
             <Text size="sm" variant="muted">
               {formatDate(date)}の空き
             </Text>
@@ -169,7 +182,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
                 );
               })}
             </Grid>
-          </>
+          </div>
         ) : (
           <Text variant="muted">先に日を選んでください。</Text>
         )}
@@ -194,6 +207,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
           value={name}
           onChange={(e) => setName(e.target.value)}
           errorText={nameError}
+          ref={nameRef}
         />
       </section>
 
@@ -246,7 +260,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
 export const example: Example = {
   slug: 'reservation',
   title: '予約',
-  description: '美容室の予約。カレンダーで日を、ボタンで時刻を選び、確認のダイアログを挟みます。',
+  description: '日と時刻を選んで予約する画面',
   initialLabel: '選ぶ前',
   presets: [
     { label: '日時を選んだ', args: { scenario: 'chosen' } },

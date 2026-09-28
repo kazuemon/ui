@@ -142,8 +142,9 @@ function InputStep({
   // 検証のエラーは、値を入れたうえで実際に送って出す（エラーの一覧は、送ったときに作られる）
   // 一覧の入り切りを変えたときも、送り直して出し直す
   const formRef = useRef<HTMLFormElement>(null);
+  // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
-    if (initialErrors) formRef.current?.requestSubmit();
+    if (initialErrors) queueMicrotask(() => formRef.current?.requestSubmit());
   }, [initialErrors, resubmit]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -302,6 +303,11 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
     return scenario === 'invalid' ? wrong : sample;
   });
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  // 段階の表示と見出しの塊。段階が変わったら、この塊の頭へスクロールする
+  const introRef = useRef<HTMLDivElement>(null);
+  // 前の段階。段階が変わったときだけ見出しへ移す（Strict Mode で effect が 2 回走っても、変わっていなければ動かさない）
+  const previousStep = useRef(step);
 
   const submit = async () => {
     setSubmitting(true);
@@ -312,9 +318,22 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
 
   const stepLabel = { input: '1. 入力', confirm: '2. 確認', done: '3. 完了' } as const;
 
+  // 段階が変わったら、見出しへスクロールしてフォーカスを移す（初めの表示では動かさない）
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    // 段階の表示から見えるよう塊の頭へ送り、上は貼り付けた帯（Navbar）の分を空ける（塊の scroll-margin-top。
+    // app/globals.css の見出しと同じ計算）。フォーカスは見出しへ。focus で改めてスクロールさせないよう preventScroll
+    introRef.current?.scrollIntoView({ block: 'start' });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
+
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
+      <div
+        ref={introRef}
+        className="flex scroll-mt-[calc(var(--navbar-height)+var(--border-width-thin)+var(--spacing)*4)] flex-col gap-2"
+      >
         <Text size="sm" variant="subtle">
           {(['input', 'confirm', 'done'] as const).map((s, i) => (
             <span key={s}>
@@ -323,7 +342,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
             </span>
           ))}
         </Text>
-        <Heading level={1} size={2}>
+        <Heading level={1} size={2} ref={headingRef} tabIndex={-1}>
           UI 勉強会 #3 に申し込む
         </Heading>
         <Text variant="muted">
@@ -379,7 +398,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
 export const example: Example = {
   slug: 'apply',
   title: '申込フォーム',
-  description: '勉強会の申し込み。入力・確認・完了の 3 つの画面と、必須と任意の印を確かめます。',
+  description: '勉強会の申し込み。入力・確認・完了の 3 つの画面',
   initialLabel: '入力前',
   presets: [
     { label: '検証のエラー', args: { scenario: 'invalid' } },

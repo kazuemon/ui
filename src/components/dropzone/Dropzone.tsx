@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type ComponentProps,
   type DragEvent,
+  Fragment,
   type MouseEvent,
   type ReactNode,
   type Ref,
@@ -19,6 +20,7 @@ import {
   type DropzoneRejection,
   evaluateDragItems,
   evaluateFiles,
+  formatAccept,
   formatFileSize,
   syncInputFiles,
 } from './dropzone-utils';
@@ -320,14 +322,17 @@ export function Dropzone({
   };
 
   // 案内の2行目（原則にない判断）: accept・multiple・maxSize・maxFiles から、条件があるものだけをつなぐ
-  const hint = [
-    accept && `対応形式: ${accept}`,
+  //   accept は形式名（PNG・JPEG・画像）で見せる。大きさの数と単位は、行の途中で割れないようにまとめる
+  const hint: ReactNode[] = [
+    accept && `対応形式: ${formatAccept(accept)}`,
     multiple ? 'まとめて選べます' : '1 つだけ選べます',
-    maxSize != null && `1 つ ${formatFileSize(maxSize)} まで`,
+    maxSize != null && (
+      <>
+        1 つ <span className="whitespace-nowrap">{formatFileSize(maxSize)}</span> まで
+      </>
+    ),
     maxFiles != null && `最大 ${maxFiles} 件`,
-  ]
-    .filter(Boolean)
-    .join(' ・ ');
+  ].filter(Boolean);
 
   const handleDrop = (event: DragEvent<HTMLInputElement>) => {
     event.preventDefault();
@@ -372,7 +377,12 @@ export function Dropzone({
                     ここにファイルをドラッグ、またはクリックして選択
                   </p>
                   <p className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
-                    {hint}
+                    {hint.map((part, index) => (
+                      <Fragment key={index}>
+                        {index > 0 && ' ・ '}
+                        {part}
+                      </Fragment>
+                    ))}
                   </p>
                 </div>
                 {/* ボタンの色（ADR-0334。決定: 白い面を既定にし、primary の塗りも選べる。線だけのボタンは地の面と差がなく、ボタンに見えない） */}

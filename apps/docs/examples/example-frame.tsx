@@ -124,6 +124,7 @@ export function ExampleFrame({ slug }: { slug: string }) {
   const [density, setDensity] = useState<Density>('auto');
   // 状態のボタンを押すたびに増やす。これを key にして画面を作り直すので、同じボタンを押しても同じ状態が出る
   const [run, setRun] = useState(0);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const change = (name: string, value: string | boolean) =>
     setArgs((current) => ({ ...current, [name]: value }));
   const environment = useEnvironment();
@@ -133,22 +134,41 @@ export function ExampleFrame({ slug }: { slug: string }) {
     setArgs(example.defaults);
     setRun((current) => current + 1);
   };
+  // いまの状態が、開いたときの状態と同じかどうか（「はじめの表示」ボタンに示す）
+  const isInitial = Object.entries(example.defaults).every(([name, value]) => args[name] === value);
 
   return (
     <>
-      <example.Screen key={run} args={args} density={density} />
+      {/* 右下の帯（ボタンと札）がページ末尾の中身に重なるので、その高さぶんの余白を足す
+      広い画面で切替画面（右のパネル）が開いているあいだは、同じ幅の余白を右に足して隠れないようにする */}
+      <div
+        className="pb-20 transition-[padding] duration-200"
+        style={
+          controlsOpen && !environment.sheet
+            ? { paddingRight: 'var(--sheet-side-width)' }
+            : undefined
+        }
+      >
+        <example.Screen key={run} args={args} density={density} />
+      </div>
 
       {/* 右下の断りとボタン。重なる面（z-10）と同じ層に置き、開いているあいだは面が上に来る
-      断りは読むものではないので、小さく薄く、ボタンの横に中央をそろえて置く（下に薄い面を敷く） */}
+      断りは読むものではないので、小さく薄く、ボタンの横に中央をそろえて置く（下に薄い面を敷く）
+      狭い画面では場所を取りすぎるので、札は隠してボタンだけにする */}
       <div className="fixed right-4 bottom-4 z-10 flex items-center gap-3">
-        <div className="pointer-events-none rounded-pill bg-neutral/80 px-3 py-1">
+        <div className="pointer-events-none hidden rounded-pill bg-neutral/80 px-3 py-1 sm:block">
           <Text size="sm" variant="subtle">
             @kazuemon/ui の見本のページです
           </Text>
         </div>
         <Drawer
           title="見本のコントロール"
-          side="right"
+          // 狭い画面では右のパネルがほぼ画面いっぱいになり、切り替えた結果が見えないので、
+          // 下から半分のシートにする（指で操作していて縦横とも狭いときだけ）
+          side={environment.sheet ? 'bottom' : 'right'}
+          detent="half"
+          open={controlsOpen}
+          onOpenChange={setControlsOpen}
           // ページを覆わない: 後ろを暗くせず、開いたまま画面を触れる（押した結果がその場で見える）
           // フォーカスが外へ出ても閉じない。閉じるのは下の「閉じる」か Esc。
           // 上の × は隠す（下と 2 つ「閉じる」ボタンがあると、読み上げで見分けが付かないため）
@@ -178,26 +198,37 @@ export function ExampleFrame({ slug }: { slug: string }) {
             </div>
           }
         >
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 pb-4">
             <div className="flex flex-col gap-2">
               {/* 見出しは、欄（TextField など）のラベルと同じ見た目にそろえる */}
               <span className="text-(length:--text-label) leading-(--leading-label) font-bold text-fg">
                 状態を再現する
               </span>
               <div className="flex flex-wrap gap-2">
-                {example.presets?.map((preset) => (
-                  <Button
-                    key={preset.label}
-                    variant="outline"
-                    onClick={() => {
-                      setArgs((current) => ({ ...current, ...preset.args }));
-                      setRun((current) => current + 1);
-                    }}
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
-                <Button variant="outline" onClick={toInitial}>
+                {example.presets?.map((preset) => {
+                  // いまの状態がこの状態と同じかどうか（渡した項目だけを比べる）
+                  const active = Object.entries(preset.args).every(
+                    ([name, value]) => args[name] === value
+                  );
+                  return (
+                    <Button
+                      key={preset.label}
+                      variant={active ? 'filled' : 'outline'}
+                      aria-pressed={active}
+                      onClick={() => {
+                        setArgs((current) => ({ ...current, ...preset.args }));
+                        setRun((current) => current + 1);
+                      }}
+                    >
+                      {preset.label}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant={isInitial ? 'filled' : 'outline'}
+                  aria-pressed={isInitial}
+                  onClick={toInitial}
+                >
                   {example.initialLabel ?? 'はじめの表示'}
                 </Button>
               </div>

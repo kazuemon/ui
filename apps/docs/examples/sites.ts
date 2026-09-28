@@ -80,3 +80,24 @@ export const pages: Site = {
     { label: 'ヘルプ', href: '#help' },
   ],
 };
+
+/** 架空の美術館（所蔵品・展覧会・チケット） */
+export const museum: Site = {
+  name: 'Kazue Museum',
+  nav: [
+    { label: '展覧会', href: '#exhibitions' },
+    { label: 'コレクション', href: '#collection' },
+    { label: 'チケット', href: '#tickets' },
+    { label: 'アクセス', href: '#access' },
+  ],
+};
+
+/** 小さなチームのタスク管理（タスクボード） */
+export const board: Site = {
+  name: 'Kazue Tasks',
+  nav: [
+    { label: 'ボード', href: '#board' },
+    { label: '予定', href: '#schedule' },
+    { label: 'メンバー', href: '#members' },
+  ],
+};

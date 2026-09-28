@@ -8,6 +8,8 @@ import {
   Heading,
   Link,
   Notice,
+  PasswordField,
+  PinField,
   Switch,
   Text,
   TextField,
@@ -159,9 +161,8 @@ export function SignInScreen({
           errorText={errors.email}
         />
         <div className="flex flex-col gap-2">
-          <TextField
+          <PasswordField
             name="password"
-            type="password"
             label="パスワード"
             autoComplete="current-password"
             defaultValue={values.password}
@@ -199,8 +200,9 @@ export function SignUpScreen({
   // 検証のエラーは、値を入れたうえで実際に送って出す。エラーの一覧（errorSummary）は
   // 送ったときに作られるので、状態を組み立てるだけでは出ない。一覧の入り切りを変えたときも送り直す
   const formRef = useRef<HTMLFormElement>(null);
+  // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
-    if (scenario === 'invalid') formRef.current?.requestSubmit();
+    if (scenario === 'invalid') queueMicrotask(() => formRef.current?.requestSubmit());
   }, [scenario, errorSummary]);
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
   const [done, setDone] = useState(scenario === 'success');
@@ -266,9 +268,8 @@ export function SignUpScreen({
           defaultValue={values.email}
           errorText={errors.email}
         />
-        <TextField
+        <PasswordField
           name="password"
-          type="password"
           label="パスワード"
           caption="8 文字以上"
           autoComplete="new-password"
@@ -345,6 +346,116 @@ export function ResetPasswordScreen({ scenario = 'empty' }: { scenario?: Scenari
         <Button type="submit" color="primary">
           リンクを送る
         </Button>
+      </Form>
+    </AuthLayout>
+  );
+}
+
+/** 確認コードの桁の数と、再送を押せるようになるまでの秒数 */
+const codeLength = 6;
+const resendWait = 30;
+/** 状態を再現するときの、途中まで打ったコードと、打ち終えたコード */
+const partialCode = '382';
+const sampleCode = '382915';
+const wrongCodeText = 'コードが違います。メールに届いた 6 桁の数字をお確かめください';
+
+const checkCode = (value: string) => {
+  if (!value) return '確認コードを入力してください';
+  return value.length === codeLength ? undefined : `${codeLength} 桁すべて入力してください`;
+};
+
+/** 再送を押せるようになるまでの残りの秒数。start で数え直す */
+function useCooldown(seconds: number) {
+  const [left, setLeft] = useState(seconds);
+  useEffect(() => {
+    if (left <= 0) return undefined;
+    const timer = setTimeout(() => setLeft((current) => current - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [left]);
+  return { left, start: () => setLeft(seconds) };
+}
+
+export function VerifyCodeScreen({ scenario = 'empty' }: { scenario?: Scenario }) {
+  const [code, setCode] = useState(() => {
+    if (scenario === 'empty') return '';
+    return scenario === 'invalid' ? partialCode : sampleCode;
+  });
+  const [error, setError] = useState<string | undefined>(() => {
+    if (scenario === 'invalid') return checkCode(partialCode);
+    return scenario === 'failed' ? wrongCodeText : undefined;
+  });
+  const [submitting, setSubmitting] = useState(scenario === 'submitting');
+  const [done, setDone] = useState(scenario === 'success');
+  const reply: ServerReply = scenario === 'failed' ? 'error' : 'ok';
+  const cooldown = useCooldown(resendWait);
+  const toast = useToast();
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // 全部の桁が埋まると、PinField が form を送る（autoSubmit）。値は form の隠れた欄から読む
+    const invalid = checkCode(valueOf(event.currentTarget, 'code'));
+    setDone(false);
+    setError(invalid);
+    if (invalid) return;
+    setSubmitting(true);
+    await wait(1200);
+    setSubmitting(false);
+    if (reply === 'ok') setDone(true);
+    else setError(wrongCodeText);
+  };
+
+  // 送り直したら、打った途中のコードとエラーを消し、また待つ
+  const resend = () => {
+    setCode('');
+    setError(undefined);
+    setDone(false);
+    cooldown.start();
+    toast.show({
+      status: 'info',
+      title: '確認コードを送り直しました',
+      description: `${sample.email} に届きます`,
+    });
+  };
+
+  return (
+    <AuthLayout
+      title="確認コード"
+      lead={`${sample.email} に届いた ${codeLength} 桁のコードを入力してください。`}
+      footer={
+        <>
+          メールアドレスが違うときは、<Link href="#sign-up">入れ直してください</Link>
+        </>
+      }
+    >
+      <Form submitting={submitting} onSubmit={onSubmit} className="flex flex-col gap-5">
+        {done && (
+          <Notice status="success" title="確認しました">
+            メールアドレスの確認が終わりました。このままサービスを使い始められます。
+          </Notice>
+        )}
+        <PinField
+          name="code"
+          label="確認コード"
+          caption="コードの有効期限は 10 分です"
+          length={codeLength}
+          value={code}
+          onValueChange={setCode}
+          autoSubmit
+          errorText={error}
+        />
+        <Button type="submit" color="primary">
+          確認する
+        </Button>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Button variant="underline" disabled={cooldown.left > 0} onClick={resend}>
+            コードを再送する
+          </Button>
+          {cooldown.left > 0 && (
+            <Text size="sm" variant="muted">
+              あと {cooldown.left} 秒で送り直せます
+            </Text>
+          )}
+        </div>
       </Form>
     </AuthLayout>
   );

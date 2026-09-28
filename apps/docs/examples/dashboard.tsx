@@ -1,21 +1,26 @@
 'use client';
 
+import { MagnifyingGlassIcon, PackageIcon } from '@phosphor-icons/react';
 import {
   Badge,
   Button,
+  ButtonGroup,
   Card,
   CardBody,
   Grid,
   Heading,
+  Icon,
   Meter,
   Notice,
   NumberFormat,
   Progress,
   RelativeTime,
-  Select,
+  SearchField,
   Skeleton,
+  Spinner,
   Stat,
   type StatSize,
+  StatusPanel,
   Table,
   TableBody,
   TableCell,
@@ -31,10 +36,12 @@ import { shop } from './sites';
 import type { Example } from './types';
 
 // ダッシュボード: 小さなお店の管理画面。数字のまとめ（Stat）、容量（Meter）、目標までの進み（Progress）、最近の注文（Table）
-// 期間を替えると数字が替わる。読み込み中は面だけを置き、容量が足りないときは上に知らせを出す
+// 期間（ButtonGroup: 今日・7 日・30 日）を替えると数字が替わる。注文は SearchField で探せて、0 件なら StatusPanel を出す。
+// 読み込み中は見出しの横に回る円（Spinner）を出して、中身は面（Skeleton）だけを置く。
+// 注文がまだないときは、数字を 0 にして表の代わりに StatusPanel を出す。容量が足りないときは上に知らせを出す
 
-type DashboardState = 'normal' | 'loading' | 'full';
-type Period = '7d' | '30d' | '90d';
+type DashboardState = 'normal' | 'loading' | 'full' | 'empty';
+type Period = 'today' | '7d' | '30d';
 
 const now = new Date('2026-09-21T10:00:00+09:00').getTime();
 const ago = (minutes: number) => now - minutes * 60_000;
@@ -43,6 +50,13 @@ const figures: Record<
   Period,
   { sales: number; orders: number; visitors: number; conversion: number; deltas: string[] }
 > = {
+  today: {
+    sales: 27_000,
+    orders: 9,
+    visitors: 468,
+    conversion: 1.92,
+    deltas: ['18%', '2', '5%', '0.4pt'],
+  },
   '7d': {
     sales: 184_200,
     orders: 62,
@@ -57,20 +71,13 @@ const figures: Record<
     conversion: 1.95,
     deltas: ['6%', '14', '9%', '0.2pt'],
   },
-  '90d': {
-    sales: 2_118_400,
-    orders: 703,
-    visitors: 40_210,
-    conversion: 1.75,
-    deltas: ['3%', '21', '2%', '0.3pt'],
-  },
 };
 const trends = ['up', 'up', 'up', 'down'] as const;
-const periodLabel: Record<Period, string> = {
-  '7d': '前の 7 日',
-  '30d': '前の 30 日',
-  '90d': '前の 90 日',
-};
+const periods: { value: Period; label: string; before: string }[] = [
+  { value: 'today', label: '今日', before: '昨日' },
+  { value: '7d', label: '7 日', before: '前の 7 日' },
+  { value: '30d', label: '30 日', before: '前の 30 日' },
+];
 
 type OrderStatus = 'paid' | 'shipped' | 'refunded';
 const orders: { id: string; customer: string; total: number; status: OrderStatus; at: number }[] = [
@@ -78,6 +85,8 @@ const orders: { id: string; customer: string; total: number; status: OrderStatus
   { id: '#1041', customer: 'Taro Suzuki', total: 12_600, status: 'shipped', at: ago(95) },
   { id: '#1040', customer: 'Mika Tanaka', total: 2_200, status: 'refunded', at: ago(60 * 5) },
   { id: '#1039', customer: 'Ken Ito', total: 7_400, status: 'shipped', at: ago(60 * 26) },
+  { id: '#1038', customer: 'Yui Kobayashi', total: 3_300, status: 'shipped', at: ago(60 * 30) },
+  { id: '#1037', customer: 'Sota Watanabe', total: 9_900, status: 'paid', at: ago(60 * 49) },
 ];
 const statusLabel: Record<OrderStatus, string> = {
   paid: '支払い済み',
@@ -115,16 +124,31 @@ function DashboardScreen({
   statSize,
   deltaIcon,
   deltaFill,
+  initialQuery,
 }: {
   state: DashboardState;
   statSize: StatSize;
   deltaIcon: boolean;
   deltaFill: boolean;
+  initialQuery: string;
 }) {
   const [period, setPeriod] = useState<Period>('7d');
+  const [query, setQuery] = useState(initialQuery);
   const busy = state === 'loading';
-  const f = figures[period];
+  const empty = state === 'empty';
+  // 注文がまだないお店は、どの期間も 0（増減は出さない）
+  const f = empty
+    ? { sales: 0, orders: 0, visitors: 0, conversion: 0, deltas: [] }
+    : figures[period];
+  const before = periods.find((p) => p.value === period)?.before;
   const storage = state === 'full' ? 4.7 : 3.2;
+
+  const q = query.trim().toLowerCase();
+  const shown = empty
+    ? []
+    : orders.filter(
+        (o) => !q || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q)
+      );
 
   const stats = [
     { label: '売上', value: <NumberFormat value={f.sales} currency="JPY" />, unit: undefined },
@@ -137,26 +161,36 @@ function DashboardScreen({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Heading level={1} size={2}>
-            ダッシュボード
-          </Heading>
+          <div className="flex items-center gap-3">
+            <Heading level={1} size={2}>
+              ダッシュボード
+            </Heading>
+            {busy && (
+              <Text as="span" size="sm" variant="muted" className="inline-flex items-center gap-2">
+                <Spinner />
+                <span role="status">読み込み中</span>
+              </Text>
+            )}
+          </div>
           <Text variant="muted" className="mt-1">
             お店の、最近のようすです。
           </Text>
         </div>
-        <div className="w-full sm:w-44">
-          <Select
-            label="期間"
-            value={period}
-            onValueChange={(value) => value && setPeriod(value as Period)}
-            disabled={busy}
-            items={[
-              { label: '直近 7 日', value: '7d' },
-              { label: '直近 30 日', value: '30d' },
-              { label: '直近 90 日', value: '90d' },
-            ]}
-          />
-        </div>
+        {/* 期間の切り替え。選んでいる期間はブルーの塗りにして、hover と見分けられるようにする。aria-pressed でも伝える */}
+        <ButtonGroup aria-label="期間">
+          {periods.map((p) => (
+            <Button
+              key={p.value}
+              variant={p.value === period ? 'filled' : 'outline'}
+              color={p.value === period ? 'primary' : 'neutral'}
+              aria-pressed={p.value === period}
+              disabled={busy}
+              onClick={() => setPeriod(p.value)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
 
       {state === 'full' && (
@@ -187,10 +221,14 @@ function DashboardScreen({
                   size={statSize}
                   // 矢印を出さないときは、増減の文字に符号を書く（色だけで伝えない）
                   delta={
-                    deltaIcon ? f.deltas[i] : `${trends[i] === 'down' ? '-' : '+'}${f.deltas[i]}`
+                    empty
+                      ? undefined
+                      : deltaIcon
+                        ? f.deltas[i]
+                        : `${trends[i] === 'down' ? '-' : '+'}${f.deltas[i]}`
                   }
-                  deltaIndicator={trends[i]}
-                  caption={periodLabel[period] + 'と比べて'}
+                  deltaIndicator={empty ? undefined : trends[i]}
+                  caption={empty ? undefined : `${before}と比べて`}
                   hideDeltaIcon={!deltaIcon}
                   deltaFill={deltaFill}
                 />
@@ -201,50 +239,86 @@ function DashboardScreen({
       </Grid>
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Panel title="最近の注文" action={<Button variant="underline">すべて見る</Button>}>
+        <Panel
+          title="最近の注文"
+          action={empty ? undefined : <Button variant="underline">すべて見る</Button>}
+        >
+          {/* 注文がまだないときは、探すものがないので欄を出さない */}
+          {!empty && (
+            <SearchField
+              label="注文を探す"
+              placeholder="注文の番号・お客さまの名前"
+              value={query}
+              onValueChange={setQuery}
+              disabled={busy}
+            />
+          )}
           {busy ? (
             <Skeleton variant="text" lines={4} />
+          ) : empty ? (
+            <StatusPanel
+              size="sm"
+              icon={<Icon icon={PackageIcon} size="lg" standalone />}
+              title="まだ注文がありません"
+              actions={<Button variant="outline">お店のページを見る</Button>}
+            >
+              はじめての注文が入ると、ここに並びます。
+            </StatusPanel>
+          ) : shown.length === 0 ? (
+            <StatusPanel
+              size="sm"
+              icon={<Icon icon={MagnifyingGlassIcon} size="lg" standalone />}
+              title={`「${query.trim()}」に合う注文はありません`}
+              actions={
+                <Button variant="outline" onClick={() => setQuery('')}>
+                  探す語を消す
+                </Button>
+              }
+            >
+              注文の番号（#1042 など）か、お客さまの名前で探せます。
+            </StatusPanel>
           ) : (
-            // 狭い画面では、表だけを横に送る（カードからはみ出さない）
-            <div className="overflow-x-auto">
-              <Table accessibleName="最近の注文" verticalAlign="middle">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>注文</TableHeader>
-                    <TableHeader>お客さま</TableHeader>
-                    <TableHeader>状態</TableHeader>
-                    <TableHeader align="end">金額</TableHeader>
+            // 表そのものが横に送れる（Table の中の overflow-x-auto）ので、ここで二重に枠を作らない。
+            // セルは折り返さず、送れば全部読める形にする
+            <Table accessibleName="最近の注文" verticalAlign="middle">
+              <TableHead>
+                <TableRow>
+                  <TableHeader className="whitespace-nowrap">注文</TableHeader>
+                  <TableHeader className="whitespace-nowrap">お客さま</TableHeader>
+                  <TableHeader className="whitespace-nowrap">状態</TableHeader>
+                  <TableHeader align="end" className="whitespace-nowrap">
+                    金額
+                  </TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {shown.map((o) => (
+                  <TableRow key={o.id}>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span>{o.id}</span>
+                        <Text as="span" size="sm" variant="subtle">
+                          <RelativeTime dateTime={o.at} now={now} />
+                        </Text>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{o.customer}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <span className="inline-flex items-center gap-2">
+                        <Badge
+                          color={statusColor[o.status]}
+                          accessibleName={statusLabel[o.status]}
+                        />
+                        {statusLabel[o.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell align="end" className="whitespace-nowrap">
+                      <NumberFormat value={o.total} currency="JPY" />
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {orders.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span>{o.id}</span>
-                          <Text as="span" size="sm" variant="subtle">
-                            <RelativeTime dateTime={o.at} now={now} />
-                          </Text>
-                        </div>
-                      </TableCell>
-                      <TableCell>{o.customer}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center gap-2">
-                          <Badge
-                            color={statusColor[o.status]}
-                            accessibleName={statusLabel[o.status]}
-                          />
-                          {statusLabel[o.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell align="end">
-                        <NumberFormat value={o.total} currency="JPY" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </Panel>
 
@@ -255,8 +329,10 @@ function DashboardScreen({
             ) : (
               <Progress
                 label="売上 100 万円まで"
-                value={74}
-                caption="あと 25 万 7,200 円。残りは 9 日です"
+                value={empty ? 0 : 74}
+                caption={
+                  empty ? 'あと 100 万円。残りは 9 日です' : 'あと 25 万 7,200 円。残りは 9 日です'
+                }
               />
             )}
           </Panel>
@@ -285,11 +361,13 @@ function DashboardScreen({
 export const example: Example = {
   slug: 'dashboard',
   title: 'ダッシュボード',
-  description: 'お店の管理画面。数字のまとめ・目標までの進み・容量・最近の注文を並べます。',
+  description: 'お店の売上や注文をまとめた管理画面',
   initialLabel: '読み込み済み',
   presets: [
-    { label: '読み込み中', args: { state: 'loading' } },
-    { label: '容量が足りない', args: { state: 'full' } },
+    { label: '読み込み中', args: { state: 'loading', query: '' } },
+    { label: '注文がない', args: { state: 'empty', query: '' } },
+    { label: '探して 0 件', args: { state: 'normal', query: 'Sato' } },
+    { label: '容量が足りない', args: { state: 'full', query: '' } },
   ],
   controls: [
     {
@@ -310,10 +388,19 @@ export const example: Example = {
     },
     { name: 'deltaFill', label: '増減を淡い面に載せる', type: 'switch' },
   ],
-  defaults: { state: 'normal', statSize: 'heading-2', deltaIcon: true, deltaFill: false },
+  defaults: {
+    state: 'normal',
+    query: '',
+    statSize: 'heading-2',
+    deltaIcon: true,
+    deltaFill: false,
+  },
   Screen: ({ args, density }) => (
     <SamplePage density={density} site={shop} current="ダッシュボード" width="lg">
       <DashboardScreen
+        // 「探して 0 件」のように探す語を当てたときは、欄をその語で作り直す
+        key={String(args.query)}
+        initialQuery={String(args.query)}
         state={args.state as DashboardState}
         statSize={args.statSize as StatSize}
         deltaIcon={args.deltaIcon as boolean}

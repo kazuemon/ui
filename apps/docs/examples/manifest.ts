@@ -4,84 +4,140 @@
 export interface ExampleSummary {
   slug: string;
   title: string;
+  /** どういう画面かを 1 文で */
   description: string;
+  /** その画面をいちばんよく表す部品。カードでは先頭に並べ、色を付けて目立たせる */
+  highlights: string[];
+  /** そのほかに、その画面で見られる部品 */
+  components: string[];
 }
 
 export const examples: ExampleSummary[] = [
   {
     slug: 'article',
     title: '記事',
-    description: 'ブログの記事。囲みや引用の見た目を組み合わせて確かめます',
+    description: '見出し・引用・囲み・コード・図を並べた、ブログの記事 1 本',
+    highlights: ['Prose'],
+    components: ['Callout', 'Blockquote', 'CodeBlock', 'ImageZoom', 'Spoiler'],
   },
   {
     slug: 'markdown-prose',
     title: 'Markdown（Prose）',
-    description: 'Markdown を変換した HTML を、Prose にそのまま入れた記事',
+    description: 'Markdown から変換した HTML を、そのまま流し込んだ記事',
+    highlights: ['Prose'],
+    components: ['CodeBlock'],
   },
   {
     slug: 'docs',
     title: 'ドキュメント',
-    description: '上の帯・左の目次・本文・前後のページを、部品だけで組んだドキュメント',
+    description: '上の帯・左の目次・本文・ページ内の目次で組んだドキュメントサイト',
+    highlights: ['Tree', 'TableOfContents'],
+    components: ['Steps', 'CodeGroup', 'FileTree', 'Navbar'],
   },
   {
     slug: 'sign-in',
     title: 'サインイン',
-    description: '検証のエラー、送信中、サーバーの返事までを通しで確かめます',
+    description: 'メールアドレスとパスワードで入る画面',
+    highlights: ['PasswordField'],
+    components: ['Form', 'TextField', 'Notice'],
   },
   {
     slug: 'sign-up',
     title: '新規登録',
-    description: '複数の欄の検証と、エラーの一覧（errorSummary）を確かめます',
+    description: 'いくつかの欄を入れて、アカウントを作る画面',
+    highlights: ['Form'],
+    components: ['PasswordField', 'TextField', 'Checkbox'],
   },
   {
     slug: 'reset-password',
     title: 'パスワードの再設定',
-    description: '1 つの欄だけの画面。送ったあとの案内まで出します',
+    description: 'メールアドレスを入れて、再設定の案内を送る画面',
+    highlights: ['Form'],
+    components: ['TextField', 'Notice'],
+  },
+  {
+    slug: 'verify-code',
+    title: '確認コード',
+    description: 'メールで届いた確認コードを入れる画面',
+    highlights: ['PinField'],
+    components: ['Form', 'Button'],
   },
   {
     slug: 'settings',
     title: '設定',
-    description: 'タブで分けた設定。保存はトースト、削除は確認のダイアログを挟みます',
+    description: 'アカウント・通知・表示などを、タブで分けた設定の画面',
+    highlights: ['Tabs'],
+    components: ['Switch', 'Slider', 'Dropzone', 'PinField', 'AlertDialog'],
   },
   {
     slug: 'list',
     title: '一覧',
-    description: '管理画面ふうの一覧。行から詳細を開き、状態も切り替えられます',
+    description: 'メンバーを管理する画面の一覧。行から詳細を開く',
+    highlights: ['Table'],
+    components: ['Menu', 'Dialog', 'Pagination', 'Skeleton'],
   },
   {
     slug: 'sns',
     title: 'SNS',
-    description: 'タイムライン。タブ・投稿のメニュー・プロフィールのプレビューを備えます',
+    description: '小さなコミュニティの SNS のタイムライン',
+    highlights: ['Avatar'],
+    components: ['Tabs', 'Menu', 'Popover', 'Dialog'],
   },
   {
     slug: 'apply',
     title: '申込フォーム',
-    description: '勉強会の申し込み。入力・確認・完了の 3 つの画面と、必須と任意の印を確かめます',
+    description: '勉強会の申し込み。入力・確認・完了の 3 つの画面',
+    highlights: ['Form'],
+    components: ['Combobox', 'TagsInput', 'NumberField', 'RadioGroup'],
   },
   {
     slug: 'blog-list',
     title: '記事一覧',
-    description: 'ブログの記事をカードで並べた一覧。言葉で探す・タグで絞る・並べ替える',
+    description: 'ブログの記事をカードで並べた一覧',
+    highlights: ['Card'],
+    components: ['Autocomplete', 'Chip', 'Pagination'],
   },
   {
     slug: 'profile',
     title: 'プロフィール',
-    description: 'コミュニティのメンバーのページ。数字・プロフィールの項目・活動の流れ',
+    description: 'コミュニティのメンバーのプロフィールのページ',
+    highlights: ['Avatar', 'Timeline'],
+    components: ['Stat', 'LinkCard'],
   },
   {
     slug: 'dashboard',
     title: 'ダッシュボード',
-    description: 'お店の管理画面。数字のまとめ・目標までの進み・容量・最近の注文',
+    description: 'お店の売上や注文をまとめた管理画面',
+    highlights: ['Stat'],
+    components: ['ButtonGroup', 'Progress', 'Meter', 'SearchField', 'StatusPanel'],
   },
   {
     slug: 'reservation',
     title: '予約',
-    description: 'カレンダーで日を、ボタンで時刻を選び、確認のダイアログを挟む予約',
+    description: '日と時刻を選んで予約する画面',
+    highlights: ['Calendar'],
+    components: ['Dialog', 'NumberField', 'Notice'],
   },
   {
     slug: 'pricing',
     title: '料金プラン',
-    description: 'プランのカード、月払いと年払いの切り替え、機能を比べる表、よくある質問',
+    description: '料金プランを紹介して、比べてもらうページ',
+    highlights: ['Card', 'Table'],
+    components: ['Tabs', 'Accordion'],
+  },
+  {
+    slug: 'museum',
+    title: '美術館',
+    description: '架空の美術館のサイト。展覧会・所蔵品・チケットの購入',
+    highlights: ['Gallery', 'Carousel'],
+    components: ['Masonry', 'ImageZoom', 'Video', 'Stepper'],
+  },
+  {
+    slug: 'tasks',
+    title: 'タスクボード',
+    description: 'チームのタスクを、ボードと表で管理する画面',
+    highlights: ['Sortable', 'DataTable'],
+    components: ['Inspector', 'ToggleGroup', 'DateField'],
   },
   {
     slug: 'match',

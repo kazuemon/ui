@@ -6,14 +6,22 @@ import {
   Blockquote,
   Callout,
   Code,
+  CodeBlock,
   Heading,
+  HeadingAnchor,
+  ImageZoom,
   Kbd,
   Link,
+  Mark,
+  Spoiler,
   Tag,
   Text,
   type BlockquoteProps,
   type NoticeVariant,
 } from '@kazuemon/ui';
+
+import { screenshot } from './images';
+
 /** 引用符のアイコン（Phosphor の Quotes、Regular の線）。見本のページで Blockquote の icon に渡す */
 export const QuotesIcon = () => (
   <svg
@@ -55,13 +63,15 @@ export const ArticleScreen = ({
       <Tag>Design System</Tag>
     </div>
     <Text className="mt-4">
-      3 年ぶりに、自分のサイトを作り直しました。今回は UI Library の @kazuemon/ui
-      を先に作り、その部品だけでページを組んでいます。くわしい経緯は
+      3 年ぶりに、自分のサイトを作り直しました。今回は UI Library の @kazuemon/ui を先に作り、
+      <Mark>その部品だけでページを組んでいます</Mark>
+      。くわしい経緯は
       <Link href="#about">このサイトについて</Link>
       にまとめました。
     </Text>
-    <Heading level={2} className="mt-10">
+    <Heading level={2} id="why" className="mt-10">
       Design System を作る理由
+      <HeadingAnchor href="#why" />
     </Heading>
     <Text className="mt-3">
       デスクトップ優先の UI はモバイルに合わず、モバイル優先の UI
@@ -69,6 +79,11 @@ export const ArticleScreen = ({
     </Text>
     {full && (
       <>
+        <Text className="mt-4">
+          ちなみに、サイトを作り直すのは何回目でしょう。答えは
+          <Spoiler accessibleName="答えを表示">4 回目</Spoiler>
+          です。
+        </Text>
         <Blockquote
           className="mt-5"
           variant={blockquote.variant}
@@ -90,15 +105,25 @@ export const ArticleScreen = ({
         </Callout>
       </>
     )}
-    <Heading level={3} className="mt-8">
+    <Heading level={3} id="density" className="mt-8">
       密度の切り替え
+      <HeadingAnchor href="#density" />
     </Heading>
     <Text className="mt-2">
-      寸法は入力方式で決めます。<Code>data-density="coarse"</Code>{' '}
+      寸法は入力方式で決めます。<Code wrap="nowrap">data-density="coarse"</Code>{' '}
       を付けると、指で操作するときの大きさに固定できます。
     </Text>
     {full && (
       <>
+        <CodeBlock title="layout.tsx" className="mt-5">
+          <code>{'<div data-density="coarse">{children}</div>'}</code>
+        </CodeBlock>
+        <ImageZoom
+          src={screenshot}
+          alt="設定の画面。見出しと、灰色の面の欄が 2 つ並ぶ"
+          caption="指で操作するときの設定画面。押すと拡大します"
+          figureProps={{ className: 'mt-5' }}
+        />
         <Callout
           variant={callout === 'soft-no-icon' ? 'soft' : callout}
           icon={callout === 'soft-no-icon' ? false : undefined}
@@ -109,13 +134,17 @@ export const ArticleScreen = ({
           <Code>coarse-large</Code> は、名前を変えるかもしれません。
         </Callout>
         <Text className="mt-4">
-          Storybook では、ツールバーの「密度」か <Kbd>⌘</Kbd> + <Kbd>K</Kbd>{' '}
+          Storybook では、ツールバーの「密度」か {/* キーの組み合わせは、行の途中で割らない */}
+          <span className="whitespace-nowrap">
+            <Kbd>⌘</Kbd> + <Kbd>K</Kbd>
+          </span>{' '}
           から切り替えます。閉じるときは <Kbd>Esc</Kbd> です。
         </Text>
       </>
     )}
-    <Heading level={4} className="mt-6">
+    <Heading level={4} id="touch" className="mt-6">
       指で操作するとき
+      <HeadingAnchor href="#touch" />
     </Heading>
     <Text className="mt-2">Select は、画面の下から出る Bottom Sheet になります。</Text>
     {full && (

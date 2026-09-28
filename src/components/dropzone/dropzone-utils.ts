@@ -114,3 +114,32 @@ export function formatFileSize(bytes: number): string {
   const digits = unitIndex === 0 || value >= 100 ? 0 : value >= 10 ? 1 : 2;
   return `${value.toFixed(digits)} ${units[unitIndex]}`;
 }
+
+// ワイルドカードの MIME タイプ（"image/*" など）を、人が読む名前にする
+const acceptGroupNames: Record<string, string> = {
+  image: '画像',
+  video: '動画',
+  audio: '音声',
+  text: 'テキスト',
+};
+
+/**
+ * accept（input[type=file] の書式）を、案内の文で読む形にする。
+ * 拡張子（".pdf"）と MIME タイプ（"image/png"）は大文字の形式名（PDF・PNG）に、"image/*" は「画像」にする。
+ * MIME タイプの x- と +xml などの後ろは外す（image/svg+xml → SVG）。形式名にできないものは、書いたまま残す
+ */
+export function formatAccept(accept: string): string {
+  const names = accept
+    .split(',')
+    .map((pattern) => pattern.trim())
+    .filter(Boolean)
+    .map((pattern) => {
+      if (pattern.startsWith('.')) return pattern.slice(1).toUpperCase();
+      const [type, subtype] = pattern.toLowerCase().split('/');
+      if (!type || !subtype) return pattern;
+      if (subtype === '*') return acceptGroupNames[type] ?? pattern;
+      const name = subtype.replace(/^x-/, '').replace(/\+.*$/, '');
+      return /^[a-z0-9]+$/.test(name) ? name.toUpperCase() : pattern;
+    });
+  return [...new Set(names)].join('、');
+}

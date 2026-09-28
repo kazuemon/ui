@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type FormEvent, useState } from 'react';
+import { flushSync } from 'react-dom';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, userEvent, waitFor, within } from 'storybook/test';
@@ -760,4 +761,96 @@ export const SubmitButtons: Story = {
     await expect(draft).not.toHaveAttribute('aria-busy');
     await expect(draft).toHaveAttribute('aria-disabled', 'true');
   },
+};
+
+// 人が押したときの描画の区切りを、テストで再現する。ブラウザが送る submit（人が押した・Enter を押した）では、
+// React のキャプチャのリスナーとバブルのリスナーのあいだでマイクロタスクが走り、キャプチャで積んだ更新がそこで描かれる。
+// userEvent（JS から送るイベント）ではこの区切りが起きないので、フォーム自身のリスナー（2 つのあいだに呼ばれる）で描かせる
+function splitRenderLikeUser(form: HTMLFormElement) {
+  form.addEventListener('submit', () => flushSync(() => {}), { once: true });
+}
+
+// onSubmit で errorText を決め、直して送り直すフォーム
+function ResubmitForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [done, setDone] = useState(false);
+  return (
+    <Form
+      {...props}
+      onSubmit={(event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const email = data.get('email');
+        const next = {
+          name: data.get('name') ? undefined : '名前を入力してください',
+          email: checkEmail(typeof email === 'string' ? email : ''),
+        };
+        setErrors(next);
+        setDone(!next.name && !next.email);
+      }}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      {done && <Notice status="success" title="送りました" />}
+      <TextField name="name" label="名前" autoComplete="off" errorText={errors.name} />
+      <TextField name="email" label="メールアドレス" autoComplete="off" errorText={errors.email} />
+      <Button type="submit" color="primary" className="self-start">
+        送る
+      </Button>
+    </Form>
+  );
+}
+
+export const Resubmit: Story = {
+  name: '直して送り直す',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`onSubmit` の中で決めた `errorText` は、送信を止めません。欄を直して送り直すと、もう一度 `onSubmit` が呼ばれ、そこでエラーを決め直します。',
+      },
+    },
+  },
+  render: (args) => <ResubmitForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ args, canvas, canvasElement }) => {
+    const form = canvasElement.querySelector('form');
+    if (!form) throw new Error('form がありません');
+    const submit = canvas.getByRole('button', { name: '送る' });
+    const name = canvas.getByLabelText('名前');
+    const email = canvas.getByLabelText('メールアドレス');
+
+    // 送ると、最初のエラーの欄（一覧を出すときは一覧）へフォーカスが移る
+    splitRenderLikeUser(form);
+    await userEvent.click(submit);
+    if (args.showErrorSummary) {
+      const summary = await canvas.findByRole('group', { name: '入力を確かめてください（2件）' });
+      await waitFor(() => expect(summary).toHaveFocus());
+    } else {
+      await waitFor(() => expect(name).toHaveFocus());
+    }
+
+    // 1 つだけ直して送り直すと、残ったエラーへ移る
+    await userEvent.type(name, 'かずえもん');
+    splitRenderLikeUser(form);
+    await userEvent.click(submit);
+    if (args.showErrorSummary) {
+      const summary = await canvas.findByRole('group', { name: '入力を確かめてください（1件）' });
+      await waitFor(() => expect(summary).toHaveFocus());
+    } else {
+      await waitFor(() => expect(email).toHaveFocus());
+    }
+    await expect(name).not.toHaveAttribute('aria-invalid');
+
+    // 全部直して送り直すと、onSubmit が呼ばれて送れる
+    await userEvent.type(email, 'kazu@example.com');
+    splitRenderLikeUser(form);
+    await userEvent.click(submit);
+    await expect(await canvas.findByText('送りました')).toBeInTheDocument();
+    await expect(email).not.toHaveAttribute('aria-invalid');
+  },
+};
+
+export const ResubmitWithSummary: Story = {
+  ...Resubmit,
+  name: '直して送り直す（エラーの一覧）',
+  args: { showErrorSummary: true },
 };

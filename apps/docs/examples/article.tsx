@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Heading, TextField } from '@kazuemon/ui';
+import { Button, Heading, Textarea, TextField } from '@kazuemon/ui';
 
 import { SamplePage } from './sample-page';
 import { note } from './sites';
@@ -12,7 +12,7 @@ import type { Example } from './types';
 export const example: Example = {
   slug: 'article',
   title: '記事',
-  description: 'ブログの記事。囲みや引用の見た目を組み合わせて確かめます',
+  description: '見出し・引用・囲み・コード・図を並べた、ブログの記事 1 本',
   controls: [
     {
       name: 'callout',
@@ -114,7 +114,7 @@ export const example: Example = {
             コメント
           </Heading>
           <TextField label="名前" placeholder="かずえもん" />
-          <TextField label="コメント" caption="公開されます" />
+          <Textarea label="コメント" caption="公開されます" />
           <div>
             <Button color="primary">送信する</Button>
           </div>
