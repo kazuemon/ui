@@ -44,7 +44,13 @@ export function collectErrors(form: HTMLFormElement): ErrorEntry[] {
     const control = line && controlOf(form, line.id);
     if (!line || !control) continue;
     // 同じ欄（いちばん近い Field の根）のラベル。組み立てや横置きでは、行の箱とラベルが兄弟とは限らない
-    const label = region.closest('[data-slot="field"]')?.querySelector('[data-slot="field-label"]');
+    // 中の選択肢（1 つずつの Checkbox）もラベルを持つので、同じ根に属するラベルだけを取る
+    const root = region.closest('[data-slot="field"]');
+    const label = root
+      ? [...root.querySelectorAll('[data-slot="field-label"]')].find(
+          (element) => element.closest('[data-slot="field"]') === root
+        )
+      : null;
     entries.push({
       messageId: line.id,
       controlId: control.id,

@@ -646,8 +646,16 @@ export {
   type TextareaControlProps,
   type TextareaProps,
 } from './components/textarea/Textarea';
-export { SearchField, type SearchFieldProps } from './components/search-field/SearchField';
-export { PasswordField, type PasswordFieldProps } from './components/password-field/PasswordField';
+export {
+  SearchField,
+  type SearchFieldBaseProps,
+  type SearchFieldProps,
+} from './components/search-field/SearchField';
+export {
+  PasswordField,
+  type PasswordFieldBaseProps,
+  type PasswordFieldProps,
+} from './components/password-field/PasswordField';
 export {
   MaskField,
   type MaskFieldBaseProps,

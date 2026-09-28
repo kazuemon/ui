@@ -127,7 +127,9 @@ export interface InputFieldProps extends FieldMarkProps, FieldLabelLayoutProps {
  * 公開する入力欄の props の型。label と accessibleName のどちらか一方を必須にします（軸 385）
  * P は label・accessibleName を省いてよい形（InputFieldProps を継いだもの）
  */
-export type FieldNamed<P> = Omit<P, 'label' | 'accessibleName'> & FieldNameProps;
+export type FieldNamed<P> = P extends unknown
+  ? Omit<P, 'label' | 'accessibleName'> & FieldNameProps
+  : never;
 
 /** Field（外枠）が受け持つ props の名前。部品は splitFieldProps で外枠と本体に分けます */
 type FieldOwnKey =

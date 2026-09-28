@@ -30,6 +30,8 @@ const stateColumns: SliderColumn[] = [
 const meta = {
   title: 'Components/Slider',
   // args の型は label・accessibleName の組み合わせの決まりを外したもの（どちらも Controls で選べるように）
+  // Storybook の Meta は、label と accessibleName のどちらか一方を必須にする union の props を扱えない（ストーリーの型が never になる）。
+  // union を外した SliderBaseProps で書き、描くところで SliderProps に戻す
   component: Slider as ComponentType<SliderBaseProps>,
   tags: ['autodocs'],
   parameters: {

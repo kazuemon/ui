@@ -48,6 +48,9 @@ export type FieldProps = FieldNamed<FieldBaseProps>;
  * 入力欄を組み立てる外枠。ラベル・キャプション・状態の文と、欄の状態（押せない・待っている・エラー）を持ち、
  * 中の部位と本体に渡します。並べ方は自由ですが、読み上げの説明の順は ラベル → キャプション → 状態の行 のままです
  * ふだんは TextField などの入力欄をそのまま使い、並べ方を変えたいとき・ライブラリにない本体を入れたいときに使います
+ * FieldLabel と FieldMessages は必ず置きます（欄の名前と、エラーの文・Form のエラーの一覧を担います）
+ * ラベルを横に置くときは FieldGroup の中に置き、子を 2 つの箱（ラベルの列・本体の列）に分けます。
+ * FieldGroup の外では labelPlacement は並べ方を変えず、並べ方は子の箱で決めます
  */
 export function Field({ children, ...props }: FieldProps) {
   const [field, { invalid }] = splitFieldProps(props as FieldBaseProps);
@@ -71,6 +74,8 @@ export interface FieldControlProps {
 /**
  * ライブラリにない本体を Field につなぎます。ラベルとの結び付き（id）、説明のつながり（aria-describedby）、
  * エラーの状態（aria-invalid）、押せない状態を、渡した要素に付けます
+ * 待つあいだ止めるとき・Form の送信中は、readOnly と aria-disabled を付けて書き換えを止めます（フォーカスは外しません）。
+ * readOnly を受けない要素では、止める扱いは渡した部品の側で行います
  */
 export function FieldControl({ render, className, children }: FieldControlProps) {
   const field = useFieldState();
@@ -79,6 +84,9 @@ export function FieldControl({ render, className, children }: FieldControlProps)
       render={render}
       className={className}
       disabled={field?.disabled}
+      readOnly={field?.blocking || undefined}
+      aria-disabled={field?.blocking || undefined}
+      aria-busy={field?.loading || undefined}
       aria-describedby={field?.describedBy}
       aria-required={field?.required || undefined}
     >

@@ -13,7 +13,10 @@ type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
   NonNullable<TextFieldBaseProps[K]>
 >[0];
 
-interface SearchFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'prefix' | 'suffix'> {
+export interface SearchFieldBaseProps extends Omit<
+  TextFieldBaseProps,
+  'type' | 'prefix' | 'suffix'
+> {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
   /** はじめの値（非制御） */

@@ -58,7 +58,7 @@ export const LabelPlacement: Story = {
         <Select
           label="1 ページの件数"
           labelPlacement="start"
-          labelVariant="subtle"
+          labelVariant="muted"
           items={pageSizes}
           defaultValue="5"
           className="w-56"

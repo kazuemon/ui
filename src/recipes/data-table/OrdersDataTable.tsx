@@ -194,7 +194,7 @@ export function OrdersDataTable({ orders }: { orders: Order[] }) {
           <Select
             label="1 ページの件数"
             labelPlacement="start"
-            labelVariant="subtle"
+            labelVariant="muted"
             items={pageSizes.map((size) => ({ label: `${size} 件`, value: String(size) }))}
             value={String(pageSize)}
             onValueChange={(value) => table.setPageSize(Number(value))}

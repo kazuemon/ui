@@ -407,6 +407,8 @@ export function Switch({
       {...locked.data}
     >
       <BaseField.Label
+        // Form のエラーの一覧が、欄の名前として読む（form-dom.ts）
+        data-slot="field-label"
         className={s.label({ className: locked.readOnlyLook ? switchReadOnly.label : undefined })}
       >
         {label}

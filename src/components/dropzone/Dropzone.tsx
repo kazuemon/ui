@@ -299,7 +299,7 @@ export function DropzoneControl({
       data-slot="dropzone"
       data-drag={dragState === 'idle' ? undefined : dragState}
       data-disabled={dimmed || undefined}
-      data-invalid={field?.messages.error ? '' : undefined}
+      data-invalid={field?.invalid ? '' : undefined}
       className={dropzoneBox({ variant, color })}
     >
       <div aria-hidden className={dropzoneContent()}>

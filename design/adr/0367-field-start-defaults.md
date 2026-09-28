@@ -21,7 +21,7 @@
 
 ## 決定
 
-**A（太字・戻さない）を既定にします。** 軽いラベルは `labelVariant="subtle"`、上に戻すのは `narrowLabelPlacement="top"` で選べます。
+**A（太字・戻さない）を既定にします。** 軽いラベルは `labelVariant="muted"`、上に戻すのは `narrowLabelPlacement="top"` で選べます。
 
 - 戻す幅は、置いた場所の 24rem（384px）で固定します。Pagination の `narrowDisplay` と同じ幅です
 - 置いた場所は、FieldGroup の中では並び全体、それ以外では欄そのものです。FieldGroup の中の欄は入れ物（container）にしません。入れ物にすると、中身の幅が親の列（auto）に伝わらず、列がそろわないためです
@@ -44,7 +44,7 @@
 
 ## 影響
 
-- 入力欄と Field・FieldGroup に `labelVariant`（`strong`・`subtle`）・`narrowLabelPlacement`（`start`・`top`）を足しました
+- 入力欄と Field・FieldGroup に `labelVariant`（`default`・`muted`）・`narrowLabelPlacement`（`start`・`top`）を足しました
 - 比較のストーリーは消しました
 
 ## 原則への反映

@@ -63,16 +63,12 @@ export const fieldStyles = tv({
   variants: {
     // ラベルを本体の左に置く（軸 385）。置いた場所の幅で上に戻せるよう、根を入れ物（container）にする
     //   FieldGroup の中では入れ物にしない。入れ物にすると中身の幅が親の auto の列に伝わらない。戻すかは並び全体の幅で測る
+    // FieldGroup の中では subgrid にして、親の 2 列に乗る
     start: {
-      true: {
-        root: [
-          '@container [[data-field-group]>&]:[container-type:normal]',
-          '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid',
-        ],
-      },
+      true: { root: '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid' },
     },
-    // 横に置くラベルの重さ（軸 388）。subtle は標準の太さで一段淡い色
-    subtle: {
+    // 横に置くラベルの重さ（ADR-0367）。muted は標準の太さで一段淡い色
+    muted: {
       true: { label: 'font-normal text-fg-muted' },
     },
     // 置いた場所が 24rem より狭いと、ラベルを上に戻す（軸 388。Pagination の narrowDisplay と同じ幅）
@@ -85,6 +81,16 @@ export const fieldStyles = tv({
       },
     },
   },
+  compoundVariants: [
+    // 狭いときに上に戻すときだけ、根を入れ物（container）にして、置いた場所の幅を測る
+    //   いつも入れ物にすると、中身の幅が外に伝わらず、幅を決めていない帯の中で欄が潰れる
+    //   FieldGroup の中では入れ物にしない。中身の幅が親の auto の列に伝わらなくなる。戻すかは FieldGroup の幅で測る
+    {
+      start: true,
+      narrow: 'top',
+      class: { root: '@container [[data-field-group]>&]:[container-type:normal]' },
+    },
+  ],
 });
 
 // 編集できる入力欄の本体（原則8）。TextField と Select のボタンで共有する

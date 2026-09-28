@@ -8,7 +8,7 @@ import { TextField, type TextFieldBaseProps, type TextFieldProps } from '../text
 import type { FieldNamed } from '../../internal/field/input-field-props';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 
-interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'suffix'> {
+export interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'suffix'> {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
    * @default 'current-password'

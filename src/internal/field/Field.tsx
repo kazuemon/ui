@@ -6,7 +6,17 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import type { FieldValidityState } from '@base-ui/react/field';
 import { useFormContext } from '@base-ui/react/internals/form-context';
-import { createContext, type ReactNode, useContext, useId, useLayoutEffect, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { FieldLayoutContext } from './field-layout';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
@@ -14,6 +24,7 @@ import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
 import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
 import { LoadingBar, Spinner } from '../../components/loading/Loading';
+import { warnOnce } from '../link-parts';
 
 /**
  * 欄の検証のタイミング（design/adr/0255）。Base UI の Form・Field.Root の validationMode と同じ意味
@@ -233,13 +244,13 @@ export function FieldMessageLine({
   );
 }
 
-/** ラベルの置き場所（design/adr — 軸 385）。top: 本体の上（既定）、start: 本体の左 */
+/** ラベルの置き場所（ADR-0365）。top: 本体の上（既定）、start: 本体の左 */
 export type FieldLabelPlacement = 'top' | 'start';
 
-/** 横に置くラベルの重さ（軸 388）。strong: 太字・本文の色（既定）、subtle: 標準の太さ・一段淡い色 */
-export type FieldLabelVariant = 'strong' | 'subtle';
+/** 横に置くラベルの重さ（ADR-0367）。default: 太字・本文の色（既定）、muted: 標準の太さ・一段淡い色 */
+export type FieldLabelVariant = 'default' | 'muted';
 
-/** 置いた場所がいちばん狭いとき（24rem 未満）のラベルの置き場所（軸 388）。start: 横のまま（既定）、top: 上に戻す */
+/** 置いた場所がいちばん狭いとき（24rem 未満）のラベルの置き場所（ADR-0367）。start: 横のまま（既定）、top: 上に戻す */
 export type FieldNarrowLabelPlacement = 'start' | 'top';
 
 /** ラベルの置き方の props。入力欄・Field・FieldGroup が同じ名前で持つ */
@@ -251,13 +262,13 @@ export interface FieldLabelLayoutProps {
    */
   labelPlacement?: FieldLabelPlacement;
   /**
-   * labelPlacement="start" のときのラベルの重さ。subtle は太字にせず一段淡い色にし、表の帯のように周りの文と重さをそろえます
-   * @default 'strong'
+   * labelPlacement="start" のときのラベルの重さ。muted は太字にせず一段淡い色にし、表の帯のように周りの文と重さをそろえます
+   * @default 'default'
    */
   labelVariant?: FieldLabelVariant;
   /**
    * labelPlacement="start" のとき、置いた場所が 24rem 未満ならラベルを上に戻すか。top で戻します。
-   * FieldGroup の中では、並び全体の幅で測ります
+   * 置いた場所の幅を測るので、欄（FieldGroup の中では FieldGroup）に幅を与えてください
    * @default 'start'
    */
   narrowLabelPlacement?: FieldNarrowLabelPlacement;
@@ -270,7 +281,7 @@ export interface FieldLabelLayoutProps {
 export type FieldNameProps =
   | {
       /** 本体の上（labelPlacement="start" では左）に置く太字のラベル。読み上げの名前にもなります */
-      label: ReactNode;
+      label: Exclude<ReactNode, null | undefined | boolean>;
       /** 読み上げだけの名前。label があるときは要りません */
       accessibleName?: string;
     }
@@ -313,6 +324,20 @@ export interface FieldState {
   mark: FieldMarkProps;
   /** 本体の種類を登録する（useFieldControlKind が使う） */
   setControlKind: (kind: FieldControlKind) => void;
+  /** FieldGroup の中か */
+  inGroup: boolean;
+  /** 組み立てで置いた部位を知らせる（置き忘れを開発時に知らせるため） */
+  registerPart: (part: FieldPart) => void;
+}
+
+type FieldPart = 'label' | 'messages';
+
+// 組み立てで部位が置かれたかを知らせる。置き忘れると、名前や状態の行が本体に届かない
+function useFieldPart(part: FieldPart) {
+  const registerPart = useContext(FieldContext)?.registerPart;
+  useLayoutEffect(() => {
+    registerPart?.(part);
+  }, [registerPart, part]);
 }
 
 export interface FieldControlKind {
@@ -322,9 +347,17 @@ export interface FieldControlKind {
 
 export const FieldContext = createContext<FieldState | null>(null);
 
-/** Field の中の状態を読みます。Field の外では null です */
+/**
+ * Field の中の状態を読みます。本体（XxxControl・FieldControl）が使います
+ * Field の外では null を返し、開発時に知らせます（名前・押せない状態・送る名前が本体に届かないため）
+ */
 export function useFieldState(): FieldState | null {
-  return useContext(FieldContext);
+  const field = useContext(FieldContext);
+  if (!field)
+    warnOnce(
+      '入力欄の本体（XxxControl・FieldControl）は Field の中に置いてください。Field の外では、名前・押せない状態・送る名前が本体に付きません'
+    );
+  return field;
 }
 
 /**
@@ -456,6 +489,7 @@ export function Field({
   const appInvalid = useAppInvalid(error || invalid);
   const defaults = useContext(FieldLayoutContext);
   const placement = labelPlacement ?? defaults.labelPlacement ?? 'top';
+  const narrow = narrowLabelPlacement ?? defaults.narrowLabelPlacement ?? 'start';
   // 待っているあいだの見た目（design/adr/0042）。Form の送信中に止めるときも、止める見た目（印は出さない）
   const loadingState = formLock.blocking ? 'blocking' : loading ? loadingBehavior : undefined;
   return (
@@ -471,7 +505,7 @@ export function Field({
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する
       data-success={success && !error ? '' : undefined}
-      className={styles.root({ start: placement === 'start', className })}
+      className={styles.root({ start: placement === 'start', narrow, className })}
     >
       <FieldBody
         id={id}
@@ -495,8 +529,9 @@ export function Field({
         registerCaption={registerCaption}
         labelAside={labelAside}
         labelPlacement={placement}
-        labelVariant={labelVariant ?? defaults.labelVariant ?? 'strong'}
-        narrowLabelPlacement={narrowLabelPlacement ?? defaults.narrowLabelPlacement ?? 'start'}
+        labelVariant={labelVariant ?? defaults.labelVariant ?? 'default'}
+        narrowLabelPlacement={narrow}
+        inGroup={Boolean(defaults.group)}
       >
         {children}
       </FieldBody>
@@ -529,8 +564,10 @@ function FieldBody({
   labelPlacement,
   labelVariant,
   narrowLabelPlacement,
+  inGroup,
   children,
 }: {
+  inGroup: boolean;
   id: string;
   label: ReactNode;
   accessibleName: string | undefined;
@@ -560,6 +597,24 @@ function FieldBody({
   // 組み立てで置いた本体が知らせる種類。部品の props（標準の並べ方）が勝つ
   const [controlKind, setControlKind] = useState<FieldControlKind>({});
   const nativeLabel = nativeLabelProp ?? controlKind.nativeLabel ?? true;
+  // 組み立てで置いた部位。置き忘れを開発時に知らせる（ラベルがないと本体に名前が付かず、
+  // 状態の行がないと説明の id が宙に浮き、Form のエラーの一覧にも入らない）
+  const composed = typeof children !== 'function';
+  const parts = useRef(new Set<FieldPart>());
+  const registerPart = useCallback((part: FieldPart) => {
+    parts.current.add(part);
+  }, []);
+  useEffect(() => {
+    if (!composed) return;
+    if (!parts.current.has('label'))
+      warnOnce(
+        'Field を組み立てるときは FieldLabel を置いてください。欄の名前（label・accessibleName）は FieldLabel が本体に付けます'
+      );
+    if (!parts.current.has('messages'))
+      warnOnce(
+        'Field を組み立てるときは FieldMessages を置いてください。エラーの文と、Form のエラーの一覧は FieldMessages が出します'
+      );
+  }, [composed]);
   const registerCaption = registerCaptionProp ?? controlKind.registerCaption ?? true;
   const captionId = `${id}caption`;
   const ids: Record<MessageKind, string> = {
@@ -606,6 +661,8 @@ function FieldBody({
           registerCaption,
           mark,
           setControlKind,
+          inGroup,
+          registerPart,
         };
         return (
           <FieldContext value={state}>
@@ -643,7 +700,8 @@ function FieldStandardLayout({
   const field = useContext(FieldContext);
   if (!field) return null;
   const label = <FieldLabel aside={labelAside} />;
-  if (field.labelPlacement === 'start') {
+  // 見えるラベルのない欄は、FieldGroup の外では上の並べ方にする（空のラベルの列と、列の間が残らないように）
+  if (field.labelPlacement === 'start' && (field.label != null || field.inGroup)) {
     const styles = fieldStyles({ narrow: narrowLabelPlacement });
     return (
       <div className={styles.startGrid()}>
@@ -681,6 +739,7 @@ export interface FieldLabelProps {
  */
 export function FieldLabel({ children, aside, className }: FieldLabelProps) {
   const field = useContext(FieldContext);
+  useFieldPart('label');
   if (!field) return null;
   const text = children ?? field.label;
   const hidden = text == null;
@@ -692,7 +751,7 @@ export function FieldLabel({ children, aside, className }: FieldLabelProps) {
       data-slot="field-label"
       className={styles.label({
         start: field.labelPlacement === 'start',
-        subtle: field.labelPlacement === 'start' && field.labelVariant === 'subtle',
+        muted: field.labelPlacement === 'start' && field.labelVariant === 'muted',
         className: [
           aside != null ? 'min-w-0' : undefined,
           hidden ? 'sr-only' : undefined,
@@ -708,7 +767,15 @@ export function FieldLabel({ children, aside, className }: FieldLabelProps) {
       {hidden ? null : <FieldMark {...field.mark} />}
     </BaseField.Label>
   );
-  if (aside == null || hidden) return labelNode;
+  if (aside == null) return labelNode;
+  // 見えないラベルでも、行の右端のもの（Slider の値の文字）は出す
+  if (hidden)
+    return (
+      <div className="flex justify-end">
+        {labelNode}
+        {aside}
+      </div>
+    );
   // ラベルの行の右端に並べる（基準線をそろえる）
   return (
     <div className="flex items-baseline justify-between gap-3">
@@ -740,21 +807,22 @@ export function FieldCaption({ className }: FieldCaptionProps) {
   );
 }
 
-export interface FieldMessagesProps {
-  className?: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- 部位の props の型をそろえる（いまは渡すものがない）
+export interface FieldMessagesProps {}
 
 /**
  * 本体の下の状態の行（エラー → 警告 → 成功 → 情報。組み立ての部位）。文は Field の errorText などです
  * 行がなくても箱をいつも置き、読み上げの知らせ（live region）にします
  */
-export function FieldMessages({ className }: FieldMessagesProps) {
+// 箱は contents にし、行の箱を親の並びに直に置くので、箱にはクラスを付けられない（置き場所は親の箱で決める）
+export function FieldMessages(_props: FieldMessagesProps) {
   const field = useContext(FieldContext);
+  useFieldPart('messages');
   if (!field) return null;
   const kinds = Object.keys(field.messages) as MessageKind[];
   return (
     // 箱は contents にし、行の箱を親の並び（間 --spacing-field-gap）に直に置く。行の箱が上の間を打ち消す仕組みを保つ
-    <div data-slot="field-messages" className={['contents', className].filter(Boolean).join(' ')}>
+    <div data-slot="field-messages" className="contents">
       {kinds.map((kind) => (
         <FieldMessageLine
           key={kind}

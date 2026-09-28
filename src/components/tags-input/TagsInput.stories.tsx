@@ -783,7 +783,7 @@ export const LabelStart: Story = {
     docs: {
       description: {
         story:
-          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="subtle"` にすると、ラベルを太字にせず一段淡い色にします。',
+          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="muted"` にすると、ラベルを太字にせず一段淡い色にします。',
       },
     },
   },

@@ -972,5 +972,7 @@ export function AutocompleteControl({
  */
 export function Autocomplete(props: AutocompleteProps) {
   const [field, control] = splitFieldProps(props);
+  // ラベルを <label> にするかは、打つ欄をシートの中に置くか（本体の中で決まる）で変わるので、外枠には渡さず本体が useFieldControlKind で知らせる
+  //   最初の描画だけ <label> で描かれ、layout effect のあと本体に合う
   return <Field {...field}>{() => <AutocompleteControl {...control} />}</Field>;
 }

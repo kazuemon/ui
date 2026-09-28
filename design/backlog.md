@@ -342,7 +342,8 @@
 - **本体から状態の行へ文を足す口が、Field にありません。** 組み立てた NumberField・MaskField・PinField・DateField・TimeField では全角を半角に直した知らせ（情報の行）が、TagsInput では validate を通らなかった文と弾いた文（エラーの行）が出ません（TagsInput は読み上げでは知らせます）。内蔵の形では、部品の側で状態を持って出しています。本体が文を登録する口（本体の種類を知らせる口に近いもの）を Field に持たせるかは決めていません
 - 組み立てた NumberField で数字を左右にずらす操作（scrub）を使うには、Field に `relative` を付け、FieldLabel を先頭に置く必要があります（本体の JSDoc に書いてあります）。部品の側で要らなくするかは決めていません
 - 組み立てた DateField・TimeField では、範囲（min・max）の外の値でも枠線が赤くなりません（区切りに aria-invalid は付きます）。いまは使う側が Field の `invalid` で渡します。本体から Field をエラーの状態にする口を持たせるかは決めていません
-- 組み立てで部位を置き忘れたとき（FieldMessages を置かないなど）に、開発中に知らせるかは決めていません。エラーの文が画面に出ないまま、説明（aria-describedby）には id が入ります
+- 横に置いた NumberField で数字を左右にずらす操作（scrub）の押せる範囲が、ラベルからずれます（ラベルの見えない写しを根の左上に重ねているため。横ではラベルの列に上の余白があり、`labelVariant="muted"` では太さも違います）。押せる範囲をラベルの要素そのものに重ねるかは決めていません（2026-09-29、PR #89 のセルフレビュー）
+- 全角を半角に直した知らせのつなぎ方が、NumberField・MaskField・PinField（それぞれの文脈）、DateField・TimeField（中の部品への関数）、TagsInput（別の文脈）で 3 通りあります。上の「本体から状態の行へ文を足す口」を作るときに 1 つにまとめます
 
 ### Switch・Tag・Badge・Chip
 
