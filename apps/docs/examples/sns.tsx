@@ -27,7 +27,7 @@ import {
   ThemeProvider,
 } from '@kazuemon/ui';
 import { ChatCircleIcon, DotsThreeIcon, HeartIcon, ShareNetworkIcon } from '@phosphor-icons/react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { SamplePage } from './sample-page';
 import { town } from './sites';
@@ -66,7 +66,7 @@ function ProfilePreview({
       align="start"
       className="w-64"
       trigger={
-        <button type="button" className="cursor-pointer rounded-control text-left">
+        <button type="button" className="cursor-pointer rounded-control text-left hover:underline">
           {children}
         </button>
       }
@@ -142,14 +142,15 @@ function Post({
             ))}
           </div>
         )}
-        <div className="flex gap-4">
-          <Link href="#reply">
+        <div className="-my-2 flex gap-4">
+          {/* 指で押す範囲を部品の高さまで広げる（見た目は文字のリンクのまま。負のマージンで行間への影響を消す） */}
+          <Link href="#reply" className="inline-flex h-(--spacing-control) items-center">
             <Icon icon={ChatCircleIcon} /> 返信
           </Link>
-          <Link href="#like">
+          <Link href="#like" className="inline-flex h-(--spacing-control) items-center">
             <Icon icon={HeartIcon} /> いいね
           </Link>
-          <Link href="#share">
+          <Link href="#share" className="inline-flex h-(--spacing-control) items-center">
             <Icon icon={ShareNetworkIcon} /> 共有
           </Link>
         </div>
@@ -183,11 +184,16 @@ function Timeline({ loading, posts }: { loading: boolean; posts: ReactNode }) {
 }
 
 function Compose() {
+  // 開いた直後のフォーカスは、閉じるボタンではなくテキストエリアへ
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   return (
     <Dialog
       title="投稿する"
       trigger={<Button color="primary">投稿する</Button>}
       dismissible={false}
+      // 書きかけが消えないよう、Esc でも閉じない（dismissible は後ろを押したときだけ）
+      closeOnEscape={false}
+      autoFocus={textareaRef}
       actions={
         <>
           <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
@@ -195,7 +201,7 @@ function Compose() {
         </>
       }
     >
-      <Textarea label="いまどうしてる？" minRows={4} caption="280 文字まで" />
+      <Textarea label="いまどうしてる？" minRows={4} maxCount={280} showCount ref={textareaRef} />
     </Dialog>
   );
 }
@@ -253,7 +259,8 @@ function SnsScreen({
                   avatarShape={avatarShape}
                   tags={['kazuemonui', 'デザイン']}
                 >
-                  見出しと本文の大きさを決めています。<Code>--text-body</Code> は密度で変わります。
+                  見出しと本文の大きさを決めています。<Code wrap="nowrap">--text-body</Code>{' '}
+                  は密度で変わります。
                 </Post>
                 <Post person={hanako} time="5 時間前" avatarShape={avatarShape}>
                   スマホで読むと、行の間が広いほうが読みやすいですね。

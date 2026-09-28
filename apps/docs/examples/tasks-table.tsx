@@ -15,7 +15,6 @@ import {
   DataTableSelectHeader,
   Link,
   Pagination,
-  ScrollArea,
   SearchField,
   Select,
   StatusPanel,
@@ -226,72 +225,62 @@ export function TaskTable({
         </div>
       </div>
 
-      {/* 狭い画面では、表だけを横に送る */}
-      <ScrollArea orientation="horizontal" accessibleName="タスクの表">
-        <DataTable accessibleName="タスク" loading={loading}>
-          <TableHead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                <DataTableSelectHeader
-                  checked={table.getIsAllPageRowsSelected()}
-                  indeterminate={table.getIsSomePageRowsSelected()}
-                  onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked)}
-                  disabled={loading || rows.length === 0}
+      <DataTable accessibleName="タスク" loading={loading}>
+        <TableHead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              <DataTableSelectHeader
+                checked={table.getIsAllPageRowsSelected()}
+                indeterminate={table.getIsSomePageRowsSelected()}
+                onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked)}
+                disabled={loading || rows.length === 0}
+              />
+              {headerGroup.headers.map((header) => (
+                <DataTableHeader
+                  key={header.id}
+                  align={header.column.columnDef.meta?.align}
+                  sorted={header.column.getIsSorted()}
+                  onSortClick={
+                    header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined
+                  }
+                >
+                  <table.FlexRender header={header} />
+                </DataTableHeader>
+              ))}
+            </TableRow>
+          ))}
+        </TableHead>
+        <TableBody>
+          {loading ? (
+            <DataTableLoading columns={colSpan} rows={pageSize} showSelectColumn />
+          ) : rows.length === 0 ? (
+            <DataTableEmpty colSpan={colSpan}>
+              {allRows.length === 0 ? (
+                empty
+              ) : (
+                <StatusPanel size="sm" status="info" title="見つかりませんでした" headingLevel={3}>
+                  ほかの言葉で検索してください。
+                </StatusPanel>
+              )}
+            </DataTableEmpty>
+          ) : (
+            rows.map((row) => (
+              <DataTableRow key={row.id} selected={row.getIsSelected()}>
+                <DataTableSelectCell
+                  checked={row.getIsSelected()}
+                  onCheckedChange={(checked) => row.toggleSelected(checked)}
+                  accessibleName={`${row.original.title}を選ぶ`}
                 />
-                {headerGroup.headers.map((header) => (
-                  <DataTableHeader
-                    key={header.id}
-                    align={header.column.columnDef.meta?.align}
-                    sorted={header.column.getIsSorted()}
-                    onSortClick={
-                      header.column.getCanSort()
-                        ? header.column.getToggleSortingHandler()
-                        : undefined
-                    }
-                  >
-                    <table.FlexRender header={header} />
-                  </DataTableHeader>
+                {row.getAllCells().map((cell) => (
+                  <TableCell key={cell.id} align={cell.column.columnDef.meta?.align}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
                 ))}
-              </TableRow>
-            ))}
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <DataTableLoading columns={colSpan} rows={pageSize} showSelectColumn />
-            ) : rows.length === 0 ? (
-              <DataTableEmpty colSpan={colSpan}>
-                {allRows.length === 0 ? (
-                  empty
-                ) : (
-                  <StatusPanel
-                    size="sm"
-                    status="info"
-                    title="見つかりませんでした"
-                    headingLevel={3}
-                  >
-                    ほかの言葉で検索してください。
-                  </StatusPanel>
-                )}
-              </DataTableEmpty>
-            ) : (
-              rows.map((row) => (
-                <DataTableRow key={row.id} selected={row.getIsSelected()}>
-                  <DataTableSelectCell
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(checked) => row.toggleSelected(checked)}
-                    accessibleName={`${row.original.title}を選ぶ`}
-                  />
-                  {row.getAllCells().map((cell) => (
-                    <TableCell key={cell.id} align={cell.column.columnDef.meta?.align}>
-                      <table.FlexRender cell={cell} />
-                    </TableCell>
-                  ))}
-                </DataTableRow>
-              ))
-            )}
-          </TableBody>
-        </DataTable>
-      </ScrollArea>
+              </DataTableRow>
+            ))
+          )}
+        </TableBody>
+      </DataTable>
 
       {/* 下の帯: ページ送りと、件数・1 ページの件数 */}
       {!loading && rowCount > 0 && (

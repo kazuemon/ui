@@ -302,6 +302,8 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
     return scenario === 'invalid' ? wrong : sample;
   });
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const isFirstRender = useRef(true);
 
   const submit = async () => {
     setSubmitting(true);
@@ -311,6 +313,16 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
   };
 
   const stepLabel = { input: '1. 入力', confirm: '2. 確認', done: '3. 完了' } as const;
+
+  // 段階が変わったら、見出しへスクロールしてフォーカスを移す（初めの表示では動かさない）
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    headingRef.current?.scrollIntoView({ block: 'start' });
+    headingRef.current?.focus();
+  }, [step]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -323,7 +335,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
             </span>
           ))}
         </Text>
-        <Heading level={1} size={2}>
+        <Heading level={1} size={2} ref={headingRef} tabIndex={-1}>
           UI 勉強会 #3 に申し込む
         </Heading>
         <Text variant="muted">

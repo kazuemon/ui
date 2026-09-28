@@ -6,6 +6,7 @@ import {
   Blockquote,
   Callout,
   Code,
+  CodeBlock,
   Heading,
   HeadingAnchor,
   ImageZoom,
@@ -79,8 +80,9 @@ export const ArticleScreen = ({
     {full && (
       <>
         <Text className="mt-4">
-          ちなみに、サイトを作り直すのは何回目でしょう。答えは{' '}
-          <Spoiler accessibleName="答えを表示">4 回目</Spoiler> です。
+          ちなみに、サイトを作り直すのは何回目でしょう。答えは
+          <Spoiler accessibleName="答えを表示">4 回目</Spoiler>
+          です。
         </Text>
         <Blockquote
           className="mt-5"
@@ -113,6 +115,9 @@ export const ArticleScreen = ({
     </Text>
     {full && (
       <>
+        <CodeBlock title="layout.tsx" className="mt-5">
+          <code>{'<div data-density="coarse">{children}</div>'}</code>
+        </CodeBlock>
         <ImageZoom
           src={screenshot}
           alt="設定の画面。見出しと、灰色の面の欄が 2 つ並ぶ"
@@ -129,7 +134,10 @@ export const ArticleScreen = ({
           <Code>coarse-large</Code> は、名前を変えるかもしれません。
         </Callout>
         <Text className="mt-4">
-          Storybook では、ツールバーの「密度」か <Kbd>⌘</Kbd> + <Kbd>K</Kbd>{' '}
+          Storybook では、ツールバーの「密度」か {/* キーの組み合わせは、行の途中で割らない */}
+          <span className="whitespace-nowrap">
+            <Kbd>⌘</Kbd> + <Kbd>K</Kbd>
+          </span>{' '}
           から切り替えます。閉じるときは <Kbd>Esc</Kbd> です。
         </Text>
       </>

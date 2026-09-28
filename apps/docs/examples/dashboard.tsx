@@ -15,7 +15,6 @@ import {
   NumberFormat,
   Progress,
   RelativeTime,
-  ScrollArea,
   SearchField,
   Skeleton,
   Spinner,
@@ -177,12 +176,13 @@ function DashboardScreen({
             お店の、最近のようすです。
           </Text>
         </div>
-        {/* 期間の切り替え。選んでいる期間を塗り（filled）にし、aria-pressed でも伝える */}
+        {/* 期間の切り替え。選んでいる期間はブルーの塗りにして、hover と見分けられるようにする。aria-pressed でも伝える */}
         <ButtonGroup aria-label="期間">
           {periods.map((p) => (
             <Button
               key={p.value}
               variant={p.value === period ? 'filled' : 'outline'}
+              color={p.value === period ? 'primary' : 'neutral'}
               aria-pressed={p.value === period}
               disabled={busy}
               onClick={() => setPeriod(p.value)}
@@ -278,46 +278,47 @@ function DashboardScreen({
               注文の番号（#1042 など）か、お客さまの名前で探せます。
             </StatusPanel>
           ) : (
-            // 狭い画面では、表だけを横に送る（カードからはみ出さない）
-            <ScrollArea orientation="horizontal" accessibleName="最近の注文の表">
-              <Table accessibleName="最近の注文" verticalAlign="middle">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>注文</TableHeader>
-                    <TableHeader>お客さま</TableHeader>
-                    <TableHeader>状態</TableHeader>
-                    <TableHeader align="end">金額</TableHeader>
+            // 表そのものが横に送れる（Table の中の overflow-x-auto）ので、ここで二重に枠を作らない。
+            // セルは折り返さず、送れば全部読める形にする
+            <Table accessibleName="最近の注文" verticalAlign="middle">
+              <TableHead>
+                <TableRow>
+                  <TableHeader className="whitespace-nowrap">注文</TableHeader>
+                  <TableHeader className="whitespace-nowrap">お客さま</TableHeader>
+                  <TableHeader className="whitespace-nowrap">状態</TableHeader>
+                  <TableHeader align="end" className="whitespace-nowrap">
+                    金額
+                  </TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {shown.map((o) => (
+                  <TableRow key={o.id}>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span>{o.id}</span>
+                        <Text as="span" size="sm" variant="subtle">
+                          <RelativeTime dateTime={o.at} now={now} />
+                        </Text>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{o.customer}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <span className="inline-flex items-center gap-2">
+                        <Badge
+                          color={statusColor[o.status]}
+                          accessibleName={statusLabel[o.status]}
+                        />
+                        {statusLabel[o.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell align="end" className="whitespace-nowrap">
+                      <NumberFormat value={o.total} currency="JPY" />
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {shown.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span>{o.id}</span>
-                          <Text as="span" size="sm" variant="subtle">
-                            <RelativeTime dateTime={o.at} now={now} />
-                          </Text>
-                        </div>
-                      </TableCell>
-                      <TableCell>{o.customer}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center gap-2">
-                          <Badge
-                            color={statusColor[o.status]}
-                            accessibleName={statusLabel[o.status]}
-                          />
-                          {statusLabel[o.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell align="end">
-                        <NumberFormat value={o.total} currency="JPY" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </Panel>
 

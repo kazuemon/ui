@@ -32,8 +32,8 @@ import {
   TextField,
   Tooltip,
 } from '@kazuemon/ui';
-import { DotsThreeIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { DotsThreeIcon, InfoIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SamplePage } from './sample-page';
 import { desk } from './sites';
@@ -123,13 +123,16 @@ function RowMenu({ member, onOpen }: { member: Member; onOpen: () => void }) {
   return (
     <Menu
       title={member.name}
+      align="end"
       trigger={
         <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
           <Icon icon={DotsThreeIcon} standalone />
         </Button>
       }
     >
-      <MenuItem onClick={onOpen}>詳細を見る</MenuItem>
+      <MenuItem icon={<InfoIcon />} onClick={onOpen}>
+        詳細を見る
+      </MenuItem>
       <MenuItem icon={<PencilSimpleIcon />}>編集する</MenuItem>
       <MenuSeparator />
       <MenuItem icon={<TrashIcon />} status="danger">
@@ -154,10 +157,10 @@ function SkeletonRows() {
       <TableCell>
         <Skeleton variant="text" className="w-16" />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <Skeleton radius="pill" className="h-5 w-16" />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <Skeleton variant="text" className="w-20" />
       </TableCell>
       <TableCell>
@@ -181,6 +184,7 @@ function ListPage({
   const [selected, setSelected] = useState<Member | null>(null);
   // 見本なので、ページを替えても行は替わらない（ページ送りの置き方だけを見る）
   const [page, setPage] = useState(1);
+  const tableWrapRef = useRef<HTMLDivElement>(null);
 
   const shown =
     state === 'empty'
@@ -191,6 +195,21 @@ function ListPage({
             (m.name + m.email).toLowerCase().includes(query.toLowerCase())
         );
   const busy = state === 'loading';
+  // 見本の全体では 12 ページぶんある想定。絞り込むと件数が減るので、ページ数もそれに合わせて減らす
+  const pageCount = Math.max(1, Math.ceil((shown.length / members.length) * 12));
+
+  // 絞り込みが変わったら、ページを先頭に戻す（レンダー中に直接更新する。effect にすると 2 度描画になる）
+  const filterKey = `${query}\0${status}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(1);
+  }
+
+  // 横スクロールの位置は DOM を触る必要があるので、こちらは effect で戻す
+  useEffect(() => {
+    tableWrapRef.current?.querySelector('[data-slot="table-scroll"]')?.scrollTo({ left: 0 });
+  }, [query, status]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -232,17 +251,18 @@ function ListPage({
         </div>
       </div>
 
-      <div aria-busy={busy}>
+      <div ref={tableWrapRef} aria-busy={busy}>
         {/* 行の中身（アバター・タグ・ボタン）の高さがまちまちなので、セルは縦中央でそろえる
         （ライブラリの表は、読みものに合わせて上そろえが既定） */}
+        {/* スマホでは、タグ・最終ログインの列を隠し、名前・役割・状態と操作だけを見せる（sm から全列） */}
         <Table accessibleName="メンバーの一覧" variant={tableAppearance} verticalAlign="middle">
           <TableHead>
             <TableRow>
               <TableHeader>名前</TableHeader>
               <TableHeader>役割</TableHeader>
               <TableHeader>状態</TableHeader>
-              <TableHeader>タグ</TableHeader>
-              <TableHeader>最終ログイン</TableHeader>
+              <TableHeader className="hidden sm:table-cell">タグ</TableHeader>
+              <TableHeader className="hidden sm:table-cell">最終ログイン</TableHeader>
               <TableHeader>
                 <span className="sr-only">操作</span>
               </TableHeader>
@@ -257,9 +277,11 @@ function ListPage({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar name={m.name} size="sm" />
-                      <div className="flex min-w-0 flex-col">
+                      {/* スマホでは操作の列まで見えるように、名前とメールを幅の分だけ切り詰める */}
+                      <div className="flex max-w-16 min-w-0 flex-col sm:max-w-none">
                         <Link
                           href={`#member-${m.id}`}
+                          className="block truncate"
                           onClick={(e) => {
                             e.preventDefault();
                             setSelected(m);
@@ -267,7 +289,7 @@ function ListPage({
                         >
                           {m.name}
                         </Link>
-                        <Text as="span" size="sm" variant="subtle">
+                        <Text as="span" size="sm" variant="subtle" className="block truncate">
                           {m.email}
                         </Text>
                       </div>
@@ -277,8 +299,8 @@ function ListPage({
                   <TableCell>
                     <StatusBadge status={m.status} />
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
+                  <TableCell className="hidden sm:table-cell">
+                    <div className="flex flex-nowrap gap-1">
                       {m.tags.length === 0 ? (
                         <Text as="span" size="sm" variant="subtle">
                           なし
@@ -288,7 +310,7 @@ function ListPage({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Tooltip content="ログインした日時">
                       <span>
                         <RelativeTime dateTime={m.lastSeen} now={now} />
@@ -317,7 +339,7 @@ function ListPage({
       {state === 'normal' && (
         <Pagination
           page={page}
-          count={12}
+          count={pageCount}
           onPageChange={setPage}
           currentIndicator={currentIndicator}
         />

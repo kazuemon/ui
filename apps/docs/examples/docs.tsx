@@ -211,6 +211,7 @@ function DocsScreen({
   accordionAppearance: AccordionVariant;
 }) {
   const [query, setQuery] = useState('');
+  const [navOpen, setNavOpen] = useState(false);
   const searching = query.trim() !== '';
   const search = (
     <SearchField
@@ -261,6 +262,8 @@ function DocsScreen({
             <Drawer
               side="left"
               title="ドキュメント"
+              open={navOpen}
+              onOpenChange={setNavOpen}
               trigger={
                 <Button variant="outline">
                   <Icon icon={ListIcon} />
@@ -270,7 +273,18 @@ function DocsScreen({
             >
               <div className="flex flex-col gap-4">
                 {search}
-                {sidebarBody}
+                {/* リンクを押したら、行き先へ移りつつドロワーを閉じる（検索欄への操作は除く） */}
+                <div className="flex flex-col gap-4" onClickCapture={() => setNavOpen(false)}>
+                  {sidebarBody}
+                  {/* 広い画面の右のページ内目次が隠れるので、狭い画面ではここに置く */}
+                  {!searching && (
+                    <TableOfContents
+                      label="このページの内容"
+                      items={tocItems}
+                      className="border-t border-line pt-4"
+                    />
+                  )}
+                </div>
               </div>
             </Drawer>
           </div>
@@ -297,7 +311,7 @@ function DocsScreen({
             スタイルは Tailwind CSS v4 の <code>@theme</code> を前提にしています。先に Tailwind
             を入れてください。
           </Callout>
-          <Heading level={2} size={3} id="setup" className="mt-10">
+          <Heading level={2} id="setup" className="mt-10">
             導入の手順
             <HeadingAnchor href="#setup" />
           </Heading>
@@ -339,7 +353,7 @@ function DocsScreen({
               </Step>
             </Steps>
           </div>
-          <Heading level={2} size={3} id="faq" className="mt-10">
+          <Heading level={2} id="faq" className="mt-10">
             よくある質問
             <HeadingAnchor href="#faq" />
           </Heading>

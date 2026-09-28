@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Heading, TextField } from '@kazuemon/ui';
+import { Button, Heading, Textarea, TextField } from '@kazuemon/ui';
 
 import { SamplePage } from './sample-page';
 import { note } from './sites';
@@ -114,7 +114,7 @@ export const example: Example = {
             コメント
           </Heading>
           <TextField label="名前" placeholder="かずえもん" />
-          <TextField label="コメント" caption="公開されます" />
+          <Textarea label="コメント" caption="公開されます" />
           <div>
             <Button color="primary">送信する</Button>
           </div>

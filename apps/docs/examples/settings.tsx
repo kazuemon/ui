@@ -349,7 +349,7 @@ function DangerPanel({ dangerTone }: { dangerTone: AlertDialogColor }) {
           <AlertDialog
             color={dangerTone}
             title="アカウントを削除しますか？"
-            description="投稿・フォロー・設定がすべて消えます。この操作は元に戻せません。"
+            description="投稿・フォロー・設定がすべて消え、元に戻せません。"
             actionLabel="削除する"
             onAction={() => {
               setDeleted(true);
@@ -381,7 +381,7 @@ function SettingsScreen({ args }: { args: SettingsArgs }) {
           <Tab value="security">セキュリティ</Tab>
           <Tab value="notification">通知</Tab>
           <Tab value="display">表示</Tab>
-          <Tab value="danger">危険な操作</Tab>
+          <Tab value="danger">削除</Tab>
         </TabList>
         <TabPanel value="account">
           <AccountPanel
@@ -487,7 +487,7 @@ export const example: Example = {
       dangerTone: args.dangerTone as AlertDialogColor,
     };
     return (
-      <SamplePage density={density} site={town} current="設定" width="sm">
+      <SamplePage density={density} site={town} current="設定" width="md">
         <ToastProvider position={settingsArgs.toastPosition} variant={settingsArgs.toastAppearance}>
           <SettingsScreen args={settingsArgs} />
         </ToastProvider>
