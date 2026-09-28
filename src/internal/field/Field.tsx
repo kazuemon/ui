@@ -242,11 +242,11 @@ export type FieldLabelVariant = 'strong' | 'subtle';
 /** 置いた場所がいちばん狭いとき（24rem 未満）のラベルの置き場所（軸 388）。start: 横のまま（既定）、top: 上に戻す */
 export type FieldNarrowLabelPlacement = 'start' | 'top';
 
-/** ラベルの置き方の props。入力欄・Field・FieldGrid が同じ名前で持つ */
+/** ラベルの置き方の props。入力欄・Field・FieldGroup が同じ名前で持つ */
 export interface FieldLabelLayoutProps {
   /**
    * ラベルの置き場所。start は本体の左に置き、キャプションと状態の行は本体の下に並べます。
-   * 複数の欄のラベルの列をそろえるときは、FieldGrid の中に置きます
+   * 複数の欄のラベルの列をそろえるときは、FieldGroup の中に置きます
    * @default 'top'
    */
   labelPlacement?: FieldLabelPlacement;
@@ -257,7 +257,7 @@ export interface FieldLabelLayoutProps {
   labelVariant?: FieldLabelVariant;
   /**
    * labelPlacement="start" のとき、置いた場所が 24rem 未満ならラベルを上に戻すか。top で戻します。
-   * FieldGrid の中では、並び全体の幅で測ります
+   * FieldGroup の中では、並び全体の幅で測ります
    * @default 'start'
    */
   narrowLabelPlacement?: FieldNarrowLabelPlacement;

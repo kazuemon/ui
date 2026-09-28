@@ -481,7 +481,7 @@ export const LabelStart: Story = {
     docs: {
       description: {
         story:
-          '`labelPlacement="start"` で、ラベルとキャプションを本体の左に置きます。設定画面のように、欄を縦に並べる画面で使います。狭い画面では上に戻ります。',
+          '`labelPlacement="start"` で、ラベルを本体の左に置きます。キャプションと状態の行は本体の下に並びます。狭い画面で上に戻すときは `narrowLabelPlacement="top"` を渡します。',
       },
     },
   },

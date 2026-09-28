@@ -610,8 +610,9 @@ export function TagsInputControl({
   const shownError = field?.messages.error ?? invalidMessage;
   const rejectText = tagsRejectText(flash, rejectMessage);
   // 弾いた文の読み上げ。内蔵の形では、利用者が info を渡していて、同じ行の文が入れ替わるときだけ、見えない箱で知らせる
-  //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱で知らせる
-  const announceReject = Boolean(rejectMessage) && (outer ? Boolean(infoText) : true);
+  //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱を置き、validate を通らなかった文も知らせる
+  const announceReject = outer ? Boolean(rejectMessage) && Boolean(infoText) : true;
+  const statusText = outer ? rejectText : (rejectText ?? invalidMessage);
   const sheetMessages: SheetMessage[] = [];
   if (shownError) sheetMessages.push({ kind: 'error', content: shownError, id: `${sheetId}error` });
   if (warningText)
@@ -868,7 +869,7 @@ export function TagsInputControl({
               文が出ていないあいだも箱は残す（あとから現れる箱は読まれないため — ADR-0055） */}
       {announceReject && (
         <div role="status" data-slot="tags-input-reject-status" className="sr-only">
-          {rejectText}
+          {statusText}
         </div>
       )}
       {hasItems && (
