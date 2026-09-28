@@ -14,7 +14,7 @@ import {
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { focusRing } from '../../internal/focus-styles';
-import { useChoiceLock } from '../../internal/form-context';
+import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
 
 // OFF のトラックはグレー（チェックボックスの選んでいない箱と同じ色。--color-switch-off）で、輪郭を付けない（design/adr/0011）
@@ -372,6 +372,7 @@ export function Switch({
   // Form の送信中と読み取り専用（軸 177）は、押せないトグルと同じ見た目にして切り替えを止める（Checkbox.tsx の useChoiceLock）
   //   ラベル・行の塗り（root）とノブも押せないときの規則で描くので、root・トラック・ノブの3つに印を付ける
   const locked = useChoiceLock(disabled, readOnly);
+  const appInvalid = useAppInvalid(errorText);
   // 行を明示する（ラベルの行・キャプションの行・エラーの行・警告の行）。
   // 囲みのあるトラックの row-[1/-3] の -3 は明示した行の線を指すので、行を明示しないと数が合わない
   const rows = caption ? 'grid-rows-[auto_auto_auto_auto]' : 'grid-rows-[auto_auto_auto]';
@@ -395,7 +396,7 @@ export function Switch({
   return (
     <BaseField.Root
       disabled={disabled}
-      invalid={errorText ? true : undefined}
+      invalid={appInvalid}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
       data-switch-frame={frame === 'none' ? undefined : frame}
       className={s.root({

@@ -15,22 +15,22 @@ const comment = (text: string) => `<span style="color:var(--shiki-token-comment)
 
 export const pnpmHtml = pre([
   fn('pnpm') + str(' add') + str(' @kazuemon/ui'),
-  fn('pnpm') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/vite'),
+  fn('pnpm') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/postcss'),
 ]);
 
 export const npmHtml = pre([
   fn('npm') + str(' install') + str(' @kazuemon/ui'),
-  fn('npm') + str(' install') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/vite'),
+  fn('npm') + str(' install') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/postcss'),
 ]);
 
 export const yarnHtml = pre([
   fn('yarn') + str(' add') + str(' @kazuemon/ui'),
-  fn('yarn') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/vite'),
+  fn('yarn') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/postcss'),
 ]);
 
 export const bunHtml = pre([
   fn('bun') + str(' add') + str(' @kazuemon/ui'),
-  fn('bun') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/vite'),
+  fn('bun') + str(' add') + str(' -D') + str(' tailwindcss') + str(' @tailwindcss/postcss'),
 ]);
 
 export const tsxHtml = pre([

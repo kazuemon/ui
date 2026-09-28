@@ -30,9 +30,25 @@ export interface FormSubmitState {
    * 送信のボタン（type="submit" の Button）は、自分がこれなら印を出し、ほかは押せない見た目にするだけにする
    */
   submitter: Element | null;
+  /**
+   * Form が、送信を止めるかを Base UI に確かめさせている一瞬（送信のイベントの中だけ true）
+   * アプリが決めたエラー（errorText・invalid）は送信を止めない（design/adr/0255: 止めるのは欄の validate と Form の errors だけ）。
+   * Base UI の Form は、欄に渡した invalid を見て送信を止めるので、このあいだだけ欄は invalid を渡さない（useAppInvalid）
+   */
+  checkingSubmit: boolean;
 }
 
 export const FormSubmitContext = createContext<FormSubmitState | null>(null);
+
+/**
+ * アプリが決めたエラー（errorText・invalid）を、Base UI の Field.Root の invalid に渡す値にする
+ * 見た目と読み上げ（data-invalid・aria-invalid）はそのまま出し、Form が送信を確かめる一瞬だけ外して、送信を止めないようにする
+ * （onSubmit でエラーを決め直すので、直して送り直したときに onSubmit まで届く）
+ */
+export function useAppInvalid(invalid: unknown): true | undefined {
+  const checking = !!use(FormSubmitContext)?.checkingSubmit;
+  return invalid && !checking ? true : undefined;
+}
 
 /** Form の送信中に、欄をどう止めるか。Form の外や、送っていないときは false */
 export interface FormSubmittingLock {

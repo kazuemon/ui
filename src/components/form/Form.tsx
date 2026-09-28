@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { flushSync } from 'react-dom';
 
 import type { FieldValidationMode } from '../../internal/field/Field';
 import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark';
@@ -161,13 +162,32 @@ export function Form({
   const wasSubmitting = useRef(submitting);
   // 送ったときにフォーカスのあった場所（押した送信のボタン、Enter を押した欄、body）。送信中が終わったときに比べる
   const [origin, setOrigin] = useState<Element | null>(null);
-  // 送信の回数（focusCount のもと）は、押した瞬間（capture）に数える。欄の validate が通っていない欄を Base UI が
-  // 見つけて先にフォーカスを移す（onSubmit を呼ばずに止める）ときも、一覧・フォーカスの仕組みを動かすため
-  const handleSubmitCapture: NonNullable<FormProps['onSubmit']> = (event) => {
-    if (submitting) return;
-    setSubmitter(submitterOf(event));
-    setOrigin(event.currentTarget.ownerDocument.activeElement);
-    setSubmitCount((count) => count + 1);
+  // Base UI に送信を止めるかを確かめさせているあいだ（送信のイベントの中だけ）。欄は、アプリが決めたエラー（errorText）を
+  // Base UI の invalid に渡さない（useAppInvalid）。止めるのは欄の validate と errors だけにする（design/adr/0255）
+  const [checkingSubmit, setCheckingSubmit] = useState(false);
+  // 送信のイベント（Base UI の Form の onSubmit を包む）。送信の回数（focusCount のもと）は、Base UI の検証とアプリの onSubmit と
+  // 同じリスナーの中で数える。人が押した送信では、キャプチャとバブルのリスナーのあいだで React が描くので、キャプチャで数えると
+  // エラーの行が出る前の描画でフォーカスの仕組みが動いてしまう。Base UI が欄の validate で止めた（onSubmit を呼ばない）ときも数える
+  const handleSubmitEvent = (
+    event: Parameters<NonNullable<FormProps['onSubmit']>>[0],
+    baseSubmit: FormProps['onSubmit']
+  ) => {
+    const pressed = submitterOf(event);
+    // 送ったときにフォーカスのあった場所。Base UI が止めてフォーカスを移す前に読む
+    const focused = event.currentTarget.ownerDocument.activeElement;
+    // 欄の invalid を外した形を、Base UI の欄の登録まで描いてから確かめさせる。確かめ終えたら戻す（同じ描画にまとめるので、外した形は画面に出ない）
+    flushSync(() => setCheckingSubmit(true));
+    try {
+      baseSubmit?.(event);
+    } finally {
+      setCheckingSubmit(false);
+      // 送っているあいだの送信は数えない（handleSubmit が onSubmit を呼ばずに止める）
+      if (!submitting) {
+        setSubmitter(pressed);
+        setOrigin(focused);
+        setSubmitCount((count) => count + 1);
+      }
+    }
   };
   const handleSubmit: NonNullable<FormProps['onSubmit']> = (event) => {
     if (submitting) {
@@ -264,8 +284,9 @@ export function Form({
       submitting,
       submittingBehavior,
       submitter: submitting ? submitter : null,
+      checkingSubmit,
     }),
-    [focusCount, submitting, submittingBehavior, submitter]
+    [focusCount, submitting, submittingBehavior, submitter, checkingSubmit]
   );
   return (
     <FormSubmitContext.Provider value={context}>
@@ -276,9 +297,14 @@ export function Form({
           noValidate={noValidate}
           errors={errors}
           validationMode={validationMode}
-          onSubmitCapture={handleSubmitCapture}
           onSubmit={handleSubmit}
           onFormSubmit={handleFormSubmit}
+          render={(formProps) => (
+            <form
+              {...formProps}
+              onSubmit={(event) => handleSubmitEvent(event, formProps.onSubmit)}
+            />
+          )}
         >
           {summary && (
             // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く

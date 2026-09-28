@@ -12,7 +12,7 @@ import type { Example } from './types';
 export const example: Example = {
   slug: 'markdown-prose',
   title: 'Markdown（Prose）',
-  description: 'Markdown を変換した HTML を、Prose にそのまま入れた記事',
+  description: 'Markdown から変換した HTML を、そのまま流し込んだ記事',
   controls: [
     {
       name: 'width',

@@ -1,8 +1,8 @@
 // 見本のページの一覧。部品を実際の画面に並べたものを、1 つずつ開いて確かめられる
-import { Container, Grid, LinkCard, Prose } from '@kazuemon/ui';
+import { Container, Grid, Prose } from '@kazuemon/ui';
 import type { Metadata } from 'next';
-import NextLink from 'next/link';
 
+import { ExampleCard } from '../../examples/example-card';
 import { examples } from '../../examples/manifest';
 import { SiteHeader } from '../site-header';
 
@@ -27,14 +27,8 @@ export default function ExamplesIndex() {
         </Prose>
 
         <Grid columns={{ base: 1, sm: 2 }} className="mt-8">
-          {examples.map(({ slug, title, description }) => (
-            <LinkCard
-              key={slug}
-              title={title}
-              description={description}
-              site={false}
-              render={<NextLink href={`/examples/${slug}`} />}
-            />
+          {examples.map((example) => (
+            <ExampleCard key={example.slug} example={example} />
           ))}
         </Grid>
       </Container>

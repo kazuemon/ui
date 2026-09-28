@@ -10,7 +10,7 @@ import { type ReactNode, useContext, useId, useState } from 'react';
 
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
-import { FormSubmitContext, useFormSubmittingLock } from '../form-context';
+import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
 import { CheckCircleIcon, CheckIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../icons';
 import { LoadingBar, Spinner } from '../../components/loading/Loading';
 
@@ -336,6 +336,7 @@ export function Field({
   const styles = fieldStyles();
   const id = useId();
   const formLock = useFormSubmittingLock();
+  const appInvalid = useAppInvalid(error || invalid);
   const captionId = `${id}caption`;
   const ids: Record<MessageKind, string> = {
     error: `${id}error`,
@@ -375,7 +376,7 @@ export function Field({
       validate={validate}
       validationMode={validationMode}
       validationDebounceTime={validationDebounceTime}
-      invalid={error || invalid ? true : undefined}
+      invalid={appInvalid}
       disabled={disabled || undefined}
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する

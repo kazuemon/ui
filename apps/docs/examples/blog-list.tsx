@@ -203,17 +203,32 @@ function BlogListScreen({
   currentIndicator: PaginationCurrentIndicator;
 }) {
   const [query, setQuery] = useState(state === 'empty' ? 'Vue' : '');
-  const [tag, setTag] = useState<string | null>(null);
+  const [tag, setTag] = useState('all');
   const [order, setOrder] = useState<string | null>('new');
   const [page, setPage] = useState(1);
   const busy = state === 'loading';
 
-  const shown = posts
-    .filter((p) => (tag ? p.tags.includes(tag) : true))
+  // 絞り込みが変わったら 1 ページ目へ戻す
+  const setQueryAndResetPage = (next: string) => {
+    setQuery(next);
+    setPage(1);
+  };
+  const setTagAndResetPage = (next: string | null) => {
+    setTag(next ?? 'all');
+    setPage(1);
+  };
+
+  const filtered = posts
+    .filter((p) => (tag === 'all' ? true : p.tags.includes(tag)))
     .filter((p) => (p.title + p.excerpt).toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) =>
       order === 'new' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)
     );
+  // 1 ページに出す件数。ページ送りの総数は、絞り込んだあとの件数から出す
+  const pageSize = 3;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const shown = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="flex flex-col gap-6">
@@ -234,20 +249,28 @@ function BlogListScreen({
             icon={<Icon icon={MagnifyingGlassIcon} />}
             items={posts.map((p) => ({ label: p.title, value: p.title }))}
             emptyText="当てはまる題がありません"
+            // 一覧の探し方（題＋本文）と同じ条件で候補を絞る
+            filter={(item, q) => {
+              const post = posts.find((p) => p.title === item.value);
+              const haystack = post ? post.title + post.excerpt : String(item.label ?? '');
+              return haystack.toLowerCase().includes(q.toLowerCase());
+            }}
             clearable
             value={query}
-            onValueChange={setQuery}
+            onValueChange={setQueryAndResetPage}
             disabled={busy}
           />
         </div>
         <div className="w-full sm:w-40">
           <Select
             label="タグ"
-            placeholder="すべて"
             value={tag}
-            onValueChange={setTag}
+            onValueChange={setTagAndResetPage}
             disabled={busy}
-            items={allTags.map((t) => ({ label: t, value: t }))}
+            items={[
+              { label: 'すべて', value: 'all' },
+              ...allTags.map((t) => ({ label: t, value: t })),
+            ]}
           />
         </div>
         <div className="w-full sm:w-36">
@@ -265,18 +288,21 @@ function BlogListScreen({
       </div>
 
       {/* 絞り込んでいる条件は、外せる小物で並べる */}
-      {(tag || query) && !busy && (
+      {(tag !== 'all' || query) && !busy && (
         <div className="flex flex-wrap items-center gap-2">
           <Text as="span" size="sm" variant="subtle">
-            {shown.length} 件
+            {filtered.length} 件
           </Text>
-          {tag && (
-            <Chip onRemove={() => setTag(null)} removeName={`タグ「${tag}」を外す`}>
+          {tag !== 'all' && (
+            <Chip onRemove={() => setTagAndResetPage('all')} removeName={`タグ「${tag}」を外す`}>
               {tag}
             </Chip>
           )}
           {query && (
-            <Chip onRemove={() => setQuery('')} removeName={`「${query}」での絞り込みを外す`}>
+            <Chip
+              onRemove={() => setQueryAndResetPage('')}
+              removeName={`「${query}」での絞り込みを外す`}
+            >
               「{query}」
             </Chip>
           )}
@@ -299,8 +325,8 @@ function BlogListScreen({
             <Button
               variant="outline"
               onClick={() => {
-                setQuery('');
-                setTag(null);
+                setQueryAndResetPage('');
+                setTagAndResetPage('all');
               }}
             >
               絞り込みを外す
@@ -321,10 +347,10 @@ function BlogListScreen({
         )}
       </div>
 
-      {!busy && shown.length > 0 && (
+      {!busy && filtered.length > 0 && (
         <Pagination
-          page={page}
-          count={8}
+          page={currentPage}
+          count={pageCount}
           onPageChange={setPage}
           currentIndicator={currentIndicator}
         />
@@ -336,7 +362,7 @@ function BlogListScreen({
 export const example: Example = {
   slug: 'blog-list',
   title: '記事一覧',
-  description: 'ブログの記事をカードで並べた一覧。言葉で探す・タグで絞る・並べ替えるを確かめます。',
+  description: 'ブログの記事をカードで並べた一覧',
   initialLabel: '読み込み済み',
   presets: [
     { label: '読み込み中', args: { state: 'loading' } },
@@ -365,7 +391,12 @@ export const example: Example = {
         { value: 'nested', label: '入れ子', caption: '画像をカードの内側に、余白を空けて収めます' },
       ],
     },
-    { name: 'imageZoom', label: 'hover で画像を少し大きくする', type: 'switch' },
+    {
+      name: 'imageZoom',
+      label: 'hover で画像を少し大きくする',
+      caption: 'マウスのときだけ効きます。指の操作では hover がないので変わりません',
+      type: 'switch',
+    },
     {
       name: 'currentIndicator',
       label: 'ページ送りの印',

@@ -121,20 +121,29 @@ function PlanCard({
             {plan.lead}
           </Text>
         </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-(length:--text-heading-1) leading-(--leading-heading-1) font-bold">
-            <NumberFormat value={price} currency="JPY" />
-          </span>
-          <Text as="span" size="sm" variant="subtle">
-            {billing === 'monthly' ? '/ 月' : '/ 年'}
-          </Text>
+        {/* 価格と「月あたり」の行はひと続きの情報なので、他の余白より詰めて gap-1 でまとめる */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-baseline gap-1">
+            <span className="text-(length:--text-heading-1) leading-(--leading-heading-1) font-bold">
+              <NumberFormat value={price} currency="JPY" />
+            </span>
+            <Text as="span" size="sm" variant="subtle">
+              {billing === 'monthly' ? '/ 月' : '/ 年'}
+            </Text>
+          </div>
+          {billing === 'yearly' &&
+            (plan.monthly > 0 ? (
+              <Text size="sm" variant="subtle">
+                月あたり <NumberFormat value={Math.round(price / 12)} currency="JPY" />
+                。2 か月分お得です
+              </Text>
+            ) : (
+              // フリーは値段が変わらないので、他の 2 枚と高さをそろえるための行
+              <Text size="sm" variant="subtle">
+                ずっと無料です
+              </Text>
+            ))}
         </div>
-        {billing === 'yearly' && plan.monthly > 0 && (
-          <Text size="sm" variant="subtle">
-            月あたり <NumberFormat value={Math.round(price / 12)} currency="JPY" />
-            。2 か月分お得です
-          </Text>
-        )}
         <ul className="flex flex-1 flex-col gap-2">
           {plan.features.map((feature) => (
             <li
@@ -173,12 +182,18 @@ function PlanCard({
 
 function ComparisonTable() {
   return (
-    <Table accessibleName="プランの機能を比べる" verticalAlign="middle">
+    <Table
+      accessibleName="プランの機能を比べる"
+      verticalAlign="middle"
+      className="[&_table]:table-fixed"
+    >
       <TableHead>
         <TableRow>
-          <TableHeader>機能</TableHeader>
+          <TableHeader className="w-2/5">機能</TableHeader>
           {plans.map((p) => (
-            <TableHeader key={p.id}>{p.name}</TableHeader>
+            <TableHeader key={p.id} className="w-1/5">
+              {p.name}
+            </TableHeader>
           ))}
         </TableRow>
       </TableHead>
@@ -263,9 +278,7 @@ function PricingScreen({
         <Heading level={2} size={3}>
           機能を比べる
         </Heading>
-        <div className="overflow-x-auto">
-          <ComparisonTable />
-        </div>
+        <ComparisonTable />
       </section>
 
       <section className="flex flex-col gap-4">
@@ -291,7 +304,7 @@ function PricingScreen({
 export const example: Example = {
   slug: 'pricing',
   title: '料金プラン',
-  description: '3 つのプランのカード、月払いと年払いの切り替え、機能を比べる表、よくある質問です。',
+  description: '料金プランを紹介して、比べてもらうページ',
   initialLabel: '月払い・サインイン前',
   presets: [
     { label: '年払い', args: { billing: 'yearly' } },

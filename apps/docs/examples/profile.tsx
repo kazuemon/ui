@@ -170,7 +170,7 @@ function ProfileScreen({
 export const example: Example = {
   slug: 'profile',
   title: 'プロフィール',
-  description: 'コミュニティのメンバーのページ。数字・プロフィールの項目・活動の流れを並べます。',
+  description: 'コミュニティのメンバーのプロフィールのページ',
   initialLabel: 'ほかの人のページ',
   presets: [
     { label: '自分のページ', args: { viewer: 'self' } },
