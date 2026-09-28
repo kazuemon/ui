@@ -55,7 +55,7 @@ export function SidebarSection({
   const rail = nav?.mode === 'rail';
   // 狭い画面を Menu のシートで出すときは、節を Menu の見出し付きのまとまりにする
   if (nav?.mode === 'flyout') return <MenuGroup label={title}>{children}</MenuGroup>;
-  const s = sidebar({ railed: rail });
+  const s = sidebar();
 
   // 畳める節: 題をボタンにし、行の並びを Collapsible で開け閉めする（行の入れ子と同じ動き）
   if (collapsible && !rail) {
@@ -87,7 +87,21 @@ export function SidebarSection({
 
   return (
     <li role="none" data-slot="sidebar-section" className={s.section({ className })}>
-      {rail ? null : (
+      {rail ? (
+        // 畳んだ列: 題は出さず、題と同じ高さの場所を残す（開いた列と行の縦の位置をそろえる）。2 つ目からの節は、その中に区切りの線を引く
+        <div
+          aria-hidden="true"
+          data-slot="sidebar-section-spacer"
+          className={
+            collapsible
+              ? s.sectionToggle({ className: 'pointer-events-none relative' })
+              : s.sectionTitle({ className: 'relative' })
+          }
+        >
+          <span className="invisible block w-0 overflow-hidden whitespace-nowrap">{title}</span>
+          <span className={s.railDivider()} />
+        </div>
+      ) : (
         <p id={titleId} data-slot="sidebar-section-title" className={s.sectionTitle()}>
           {title}
         </p>

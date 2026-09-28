@@ -748,5 +748,6 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - MegaMenu（見出し・説明・複数列の面。Navbar から開く。Sidebar の入れ子とは別物）は決めていません
 - 入れ子の末尾の「作成」の行は、行き先を持たない `SidebarItem` で置きます（[ADR-0355](./adr/0355-sidebar-create-item.md)）。行ごとのメニューは [ADR-0360](./adr/0360-sidebar-item-menu.md) で決めましたが、行を並べ替える操作は、Sortable と組み合わせる形を未決のまま残しています
 - `--sidebar-current-hover` は `:root` で `--sidebar-current-bg` から計算しています。`color` を primary・secondary にしたとき、いまいる行の hover の色がその色に追従しているかは確かめていません
-- `narrowPresentation="menu"`（[ADR-0364](./adr/0364-sidebar-narrow-menu.md)）では、件数は札ではなく、文字の後ろの「（n）」で出します
+- `narrowPresentation="menu"`（[ADR-0364](./adr/0364-sidebar-narrow-menu.md)）では、件数は札ではなく、文字の後ろの「（n）」で出します。当面はこのままにします
+- Menu の項目にも、Sidebar の行と同じように件数（数字の札）や点を出せる口（MenuItem・MenuLinkItem・MenuSubmenu の `count`・`showDot` など）を作ります。できたら、`narrowPresentation="menu"` の件数もそれで出します
 - `SidebarLayout` の `resizable` で変えた幅は、部品の中では覚えません。使う側が `onWidthChange` で保存します

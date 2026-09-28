@@ -454,10 +454,17 @@ export {
 export {
   Sidebar,
   type SidebarColor,
+  type SidebarCountShape,
+  type SidebarEdgeVariant,
+  type SidebarIndicator,
+  type SidebarItemColor,
   type SidebarMotion,
+  type SidebarNarrowPresentation,
   type SidebarNarrowSide,
   type SidebarPlacement,
   type SidebarProps,
+  type SidebarResizeHandle,
+  type SidebarVariant,
 } from './components/sidebar/Sidebar';
 export { SidebarItem, type SidebarItemProps } from './components/sidebar/SidebarItem';
 export { SidebarSection, type SidebarSectionProps } from './components/sidebar/SidebarSection';

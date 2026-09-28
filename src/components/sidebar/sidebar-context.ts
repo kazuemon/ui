@@ -7,6 +7,8 @@ export type SidebarMotion = 'smooth' | 'none';
 export type SidebarColor = 'primary' | 'secondary' | 'neutral';
 export type SidebarNarrowSide = 'left' | 'right' | 'bottom' | 'auto';
 export type SidebarVariant = 'plain' | 'muted';
+/** 上下に固定する行の面。plain は列の地のまま、filled は淡い面 */
+export type SidebarEdgeVariant = 'plain' | 'filled';
 export type SidebarNarrowPresentation = 'drawer' | 'menu';
 /** ふだんの濃さ。subtle は半分の濃さで置いて載せると濃く、always はいつも濃く、hover は載せたときだけ（DataTable の sortIndicator と同じ） */
 export type SidebarIndicator = 'subtle' | 'always' | 'hover';

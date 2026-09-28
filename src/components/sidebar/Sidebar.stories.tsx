@@ -33,7 +33,7 @@ const meta = {
           '- `color` は、いまいる行の色です。指定しないときはグレーです。',
           '- 入れ子に足す操作（グループの作成など）は、入れ子の末尾に「作成」の行（行き先を持たない SidebarItem）として置きます。`target="_blank"` の行には、右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。',
           '- 行が縦に収まらないときは、列の中がスクロールします。',
-          '- `header`・`footer` に置いた行は、列の上・下に固定され、スクロールしません（大会やワークスペースの切り替え、アカウント、設定など）。スクロールする行とのあいだには細い線を引きます（`hideEdgeLine` で消せます）。`showHeaderFill`・`showFooterFill` で、上・下それぞれに淡い面を敷けます。',
+          '- `header`・`footer` に置いた行は、列の上・下に固定され、スクロールしません（大会やワークスペースの切り替え、アカウント、設定など）。スクロールする行とのあいだには区切り線を引きます（`hideDivider` で消せます）。`headerVariant`・`footerVariant` を `filled` にすると、上・下それぞれに淡い面を敷けます。',
           '- `variant="muted"` にすると、列の地が淡いグレーになります。本文との境の線は、どちらの地でも引きます。',
           '- 行の件数は SidebarItem の `count` です（100 以上は「99+」）。数字を出さない点は `showDot` です。色は `color`（既定はグレー）です。畳んだ列では、アイコンの右上に数字の札を重ねます。点にするときは Sidebar の `collapsedCountShape="dot"` です。',
           '- 行ごとの操作は SidebarItem の `menu` に MenuItem を並べます。行の右端に ︙ のボタンが付きます。ふだんの濃さは Sidebar の `itemMenuIndicator`（既定の `subtle` は半分の濃さで、載せると濃く）です。',
@@ -240,9 +240,12 @@ export const Surfaces: Story = {
         [
           ['plain（既定）', {}],
           ['muted', { variant: 'muted' }],
-          ['hideEdgeLine', { hideEdgeLine: true }],
-          ['showHeaderFill', { showHeaderFill: true }],
-          ['muted・上下の面', { variant: 'muted', showHeaderFill: true, showFooterFill: true }],
+          ['hideDivider', { hideDivider: true }],
+          ['headerVariant="filled"', { headerVariant: 'filled' }],
+          [
+            'muted・上下の面',
+            { variant: 'muted', headerVariant: 'filled', footerVariant: 'filled' },
+          ],
         ] as const
       ).map(([label, props]) => (
         <Cropped

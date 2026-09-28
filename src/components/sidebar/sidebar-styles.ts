@@ -52,8 +52,8 @@ export const sidebar = tv({
       'relative flex shrink-0 flex-col overflow-hidden border-e border-line bg-(color:--sidebar-bg)',
       'data-resizing:transition-none',
     ],
-    // 上下に固定する場所（header・footer。ADR-0358）。スクロールする中身との境に細い線を引く（hideEdgeLine で消す）。
-    // 淡い面は、上・下それぞれに敷ける（showHeaderFill・showFooterFill）
+    // 上下に固定する場所（header・footer。ADR-0358）。スクロールする中身との境に細い線を引く（hideDivider で消す）。
+    // 淡い面は、上・下それぞれに敷ける（headerVariant・footerVariant の filled）
     head: 'shrink-0 border-b border-line px-(--sidebar-padding) pt-(--sidebar-padding) pb-2',
     // Drawer の中の並び
     drawer: 'flex flex-col gap-1',
@@ -134,7 +134,10 @@ export const sidebar = tv({
       'group-aria-expanded/sidebar-row:rotate-0',
     ],
     // 節（SidebarSection）。題は行と同じ左の位置から始める。畳んだ列では題を出さず、節のあいだに線を引く
-    section: 'flex flex-col not-first:mt-4',
+    section: 'group/sidebar-section-li flex flex-col not-first:mt-4',
+    // 畳んだ列の節の区切り。題の代わりに残した場所の、縦の真ん中に引く（最初の節には引かない）
+    railDivider:
+      'pointer-events-none absolute inset-x-0 top-1/2 hidden border-t border-line group-not-first/sidebar-section-li:block',
     sectionTitle: 'px-(--sidebar-row-px) pb-1 text-xs text-fg-subtle',
     // 畳める節の題（ADR-0363）。題を押すと、節の行を開け閉めする。印は右端
     //   ふだんの濃さは Sidebar の sectionIndicator が --sidebar-section-idle に書く（DataTable の sortIndicator と同じ）
@@ -158,7 +161,8 @@ export const sidebar = tv({
     ],
     // 入れ子の並び。案内線は、親のアイコンの中心の下に引く
     group: [
-      'relative ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2)] flex flex-col gap-0.5 border-s border-line',
+      // 行の塗りは案内線に着けず、Tree と同じ間（--sidebar-nested-gap）だけ離す
+      'relative ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2)] flex flex-col gap-0.5 border-s border-line ps-(--sidebar-nested-gap)',
       'h-(--collapsible-panel-height) [overflow:clip] [overflow-clip-margin:var(--sidebar-panel-clip-margin)]',
       'transition-[height] duration-(--collapsible-duration) ease-(--collapsible-ease)',
       'data-ending-style:h-0 data-starting-style:h-0',
@@ -178,17 +182,17 @@ export const sidebar = tv({
         ],
       },
     },
-    hideEdgeLine: {
+    hideDivider: {
       true: { head: 'border-b-0', footer: 'border-t-0' },
       false: {},
     },
-    showHeaderFill: {
-      true: { head: 'bg-(color:--sidebar-edge-fill)' },
-      false: {},
+    headerVariant: {
+      plain: {},
+      filled: { head: 'bg-(color:--sidebar-edge-fill)' },
     },
-    showFooterFill: {
-      true: { footer: 'bg-(color:--sidebar-edge-fill)' },
-      false: {},
+    footerVariant: {
+      plain: {},
+      filled: { footer: 'bg-(color:--sidebar-edge-fill)' },
     },
     // ふだんの濃さ（行ごとのメニューのボタン・畳める節の印）。hover は、指の密度（--density-coarse が 1）ではいつも出す（原則16）
     itemMenuIndicator: {
@@ -218,28 +222,23 @@ export const sidebar = tv({
       none: {},
     },
     // 畳んだ列の節: 題を出さず、次の節との境に線を引く
-    railed: {
-      true: { section: 'not-first:mt-2 not-first:border-t not-first:border-line not-first:pt-2' },
-      false: {},
-    },
     // 入れ子の行は、アイコンを持たず、案内線の右から文字を始める
     nested: {
-      true: { row: 'ps-(--sidebar-nested-px) text-fg-muted' },
+      true: { row: 'ps-[calc(var(--sidebar-nested-px)-var(--sidebar-nested-gap))] text-fg-muted' },
       false: {},
     },
   },
   defaultVariants: {
     variant: 'plain',
-    hideEdgeLine: false,
-    showHeaderFill: false,
-    showFooterFill: false,
+    hideDivider: false,
+    headerVariant: 'plain',
+    footerVariant: 'plain',
     itemMenuIndicator: 'subtle',
     sectionIndicator: 'subtle',
     color: 'neutral',
     collapsed: false,
     motion: 'smooth',
     nested: false,
-    railed: false,
   },
 });
 

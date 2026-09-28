@@ -1505,6 +1505,9 @@
   );
   --sidebar-gap: calc(var(--spacing) * 3);
   --sidebar-nested-px: calc(var(--spacing) * 4);
+  --sidebar-nested-gap: calc(
+    var(--spacing) * 1.5
+  ); /* 案内線と入れ子の行の塗りのあいだ（Tree の --tree-gap と同じ） */
   --sidebar-row-rest: transparent;
   --sidebar-row-hover: var(--color-field);
   --sidebar-row-press: color-mix(in oklab, var(--color-field), var(--color-fg) 6%);
@@ -1515,7 +1518,7 @@
   --sidebar-panel-clip-margin: 6px;
   /* 列の面（ADR-0361）。bg: 列の地。variant="muted" で淡いグレーに差し替える。本文との境の細い線はいつも引く */
   --sidebar-bg: var(--color-surface);
-  /* 上下に固定する場所（ADR-0358）。fill: showHeaderFill・showFooterFill で敷く淡い面（入力欄の塗りと同じ）。
+  /* 上下に固定する場所（ADR-0358）。fill: headerVariant・footerVariant の filled で敷く淡い面（入力欄の塗りと同じ）。
      variant="muted" では、グレーの地と見分けられるよう部品が一段濃い色に差し替える */
   --sidebar-edge-fill: var(--color-field);
   /* 行の件数（ADR-0359）。count-*: 開いた列の件数の札（既定はグレー。color で差し替える）。mark-*: 畳んだ列でアイコンに重ねる札と点 */

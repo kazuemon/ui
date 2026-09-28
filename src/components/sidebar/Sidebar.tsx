@@ -22,6 +22,7 @@ import {
   type SidebarColor,
   SidebarNavContext,
   type SidebarCountShape,
+  type SidebarEdgeVariant,
   type SidebarIndicator,
   type SidebarNarrowPresentation,
   type SidebarNarrowSide,
@@ -34,6 +35,7 @@ import { sidebar } from './sidebar-styles';
 export type {
   SidebarColor,
   SidebarCountShape,
+  SidebarEdgeVariant,
   SidebarIndicator,
   SidebarItemColor,
   SidebarMotion,
@@ -71,20 +73,20 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    */
   variant?: SidebarVariant;
   /**
-   * 上下に固定する行（header・footer）と、スクロールする行のあいだの線を消します
+   * 上下に固定する行（header・footer）と、スクロールする行のあいだの区切り線を消します
    * @default false
    */
-  hideEdgeLine?: boolean;
+  hideDivider?: boolean;
   /**
-   * 上に固定する行（header）に、淡い面を敷きます。いまいる大会やワークスペースを、列の中身と分けて見せたいときに使います
-   * @default false
+   * 上に固定する行（header）の面。plain は列の地のまま、filled は淡い面を敷きます。いまいる大会やワークスペースを、列の中身と分けて見せたいときに使います
+   * @default 'plain'
    */
-  showHeaderFill?: boolean;
+  headerVariant?: SidebarEdgeVariant;
   /**
-   * 下に固定する行（footer）に、淡い面を敷きます
-   * @default false
+   * 下に固定する行（footer）の面。値の意味は headerVariant と同じです
+   * @default 'plain'
    */
-  showFooterFill?: boolean;
+  footerVariant?: SidebarEdgeVariant;
   /**
    * 畳んだ列で、行の件数（SidebarItem の count）をどう出すか。count は数字の札、dot は数字を出さず点にします
    * @default 'count'
@@ -167,9 +169,9 @@ export function Sidebar({
   resizeName = '列の幅',
   color = 'neutral',
   variant = 'plain',
-  hideEdgeLine = false,
-  showHeaderFill = false,
-  showFooterFill = false,
+  hideDivider = false,
+  headerVariant = 'plain',
+  footerVariant = 'plain',
   collapsedCountShape = 'count',
   itemMenuIndicator = 'subtle',
   sectionIndicator = 'subtle',
@@ -198,9 +200,9 @@ export function Sidebar({
     collapsed,
     motion,
     variant,
-    hideEdgeLine,
-    showHeaderFill,
-    showFooterFill,
+    hideDivider,
+    headerVariant,
+    footerVariant,
     itemMenuIndicator,
     sectionIndicator,
   });

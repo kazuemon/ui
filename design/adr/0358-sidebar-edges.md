@@ -21,7 +21,7 @@ Sidebar の列の上に大会の切り替え、下にお知らせ・設定・ア
 
 ## 決定
 
-**既定は A（固定の場所とスクロールする中身のあいだに、細い線を引く）です。** 線をなくすこと（`hideEdgeLine`）と、上・下それぞれに淡い面を敷くこと（C の上だけ・下だけ、`showHeaderFill`・`showFooterFill`）も選べます。D（線と淡い面の両方）は、既定の組み合わせには含めず、`hideEdgeLine={false}` と `showHeaderFill`／`showFooterFill` を一緒に渡せば作れます。
+**既定は A（固定の場所とスクロールする中身のあいだに、細い線を引く）です。** 線をなくすこと（`hideDivider`）と、上・下それぞれに淡い面を敷くこと（C の上だけ・下だけ、`headerVariant`・`footerVariant` の `filled`）も選べます。D（線と淡い面の両方）は、線を残したまま `headerVariant`／`footerVariant` を `filled` にすれば作れます。
 
 ## 理由
 
@@ -33,7 +33,7 @@ Sidebar の列の上に大会の切り替え、下にお知らせ・設定・ア
 
 ## 影響
 
-- `src/components/sidebar/Sidebar.tsx`: `hideEdgeLine`（既定 `false`）、`showHeaderFill`（既定 `false`）、`showFooterFill`（既定 `false`）を公開します
+- `src/components/sidebar/Sidebar.tsx`: `hideDivider`（既定 `false`）、`headerVariant`・`footerVariant`（`'plain' | 'filled'`、既定 `'plain'`。型 `SidebarEdgeVariant`）を公開します。名前は、区切り線の出し分けは Stack の `showDivider`、部位の面は Sortable の `dragSourceVariant`・Collapsible の `filled` にそろえました
 - `design/tokens.css`: `--sidebar-edge-fill` を持ちます
 - 比較のストーリー `design/stories/axis-379-sidebar-edges.stories.tsx` は消しました
 
