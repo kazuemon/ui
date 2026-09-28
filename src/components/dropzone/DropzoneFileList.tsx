@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useEffect, useMemo } from 'react';
+import { type ComponentProps, type ReactNode, useEffect, useRef } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { formatFileSize } from './dropzone-utils';
@@ -74,25 +74,28 @@ function defaultRemoveName(file: File) {
 
 /** thumbnail のタイルに置く画像。ブラウザの中だけの URL（createObjectURL）を、file が変わるたびに作り直す */
 function Thumbnail({ file }: { file: File }) {
-  const url = useMemo(
-    () => (file.type.startsWith('image/') ? URL.createObjectURL(file) : null),
-    [file]
-  );
-  // 作った URL は、次の URL に置き換わるとき・外れるときに片付ける（setState はしない）
-  useEffect(
-    () => () => {
-      if (url) URL.revokeObjectURL(url);
-    },
-    [url]
-  );
-  if (!url) {
+  const isImage = file.type.startsWith('image/');
+  const imgRef = useRef<HTMLImageElement>(null);
+  // URL は描画の途中ではなく effect の中で作り、同じ effect の片付けで解放する（描画が中断されても URL が残らない）。
+  // setState はせず、img に直接渡す
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img || !isImage) return undefined;
+    const url = URL.createObjectURL(file);
+    img.src = url;
+    return () => {
+      img.removeAttribute('src');
+      URL.revokeObjectURL(url);
+    };
+  }, [file, isImage]);
+  if (!isImage) {
     return (
       <div className="flex flex-1 items-center justify-center text-fg-muted">
         <FileIcon className="size-(--icon-size-lg)" />
       </div>
     );
   }
-  return <img src={url} alt="" className="size-full object-cover" />;
+  return <img ref={imgRef} alt="" className="size-full object-cover" />;
 }
 
 /**
