@@ -266,6 +266,20 @@ export const SingleRejectsExtra: Story = {
   },
 };
 
+export const ControlledIgnored: Story = {
+  name: '親が値を採らなければ送らない',
+  parameters: { controls: { disable: true } },
+  // value を固定し、onValueChange を受けても値を変えない（制御モードで親が提案を採らない）
+  render: () => <Dropzone label="画像" multiple value={[]} onValueChange={() => {}} />,
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('画像') as HTMLInputElement;
+    const dt = new DataTransfer();
+    dt.items.add(new File(['a'], 'a.txt', { type: 'text/plain' }));
+    dispatchDrag('drop', input, dt);
+    await waitFor(() => expect(input.files).toHaveLength(0));
+  },
+};
+
 export const RemoveFromValue: Story = {
   name: '一覧で外したファイルは送らない',
   parameters: { controls: { disable: true } },
