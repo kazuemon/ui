@@ -31,7 +31,7 @@ const meta = {
           '- キーボードでの並べ替え（つまみにフォーカスして上下の矢印キー）と、動かしたことの読み上げは `Sortable` が持ち、`onValueChange` で新しい並びを返します。そのため dnd-kit にはポインタだけ（`PointerSensor`）を任せ、dnd-kit の読み上げの仕組み（`Accessibility`）は外します。残すと、つまみに英語の役割（draggable）と押した状態（aria-pressed）が付き、引いたときに英語で読み上げます。',
           '- `PointerSensor` には、4px 動かしてから引き始める条件を付けます。付けないと、つまみを押しただけで持ち上げた写しが出て、ちらついて見えます。',
           '- 周りがずれる動き（`useSortable` の `transition`）と、離したときに収まる動き（`DragOverlay` の `dropAnimation`）は、`Sortable` の動きと同じ 250ms とシートと同じ緩急にそろえます。`Sortable` を `motion="none"` にするときは、どちらにも `null` を渡します。動きを減らす設定では、dnd-kit も動かしません。',
-          '- ドラッグだけでしか並べ替えられないと、WCAG 2.2 の 2.5.7 を満たしません。ポインタで使う人がいるなら、`Sortable` の `moveActions` に `item-menu` か `buttons` を選びます。',
+          '- ドラッグだけでしか並べ替えられないと、WCAG 2.2 の 2.5.7 を満たしません。このレシピは `moveActions="item-menu"` で、行の末尾に ︙ のメニュー（上へ・下へ・先頭へ・末尾へ）を置きます。`buttons` にすると、上へ・下へのボタンを並べます。',
           '- `useSortable` の `ref` を `SortableItem` に、`handleRef` を `SortableHandle` に渡すと、つまみだけで引けます。項目のどこでも引けるようにするときは `handleRef` を渡さず、`Sortable` に `grabArea="item"` を付けます。',
           '- 引いているあいだは、`DragOverlay` の中に `dragging` を付けた写しを描き、元の項目には `isDragSource` を `dragSource` で渡します。元の項目は、入る場所の枠になって周りと一緒に動きます。',
           "- Next.js の App Router では、先頭の `'use client'` が要ります。",

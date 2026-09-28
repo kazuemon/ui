@@ -39,7 +39,8 @@ export function SortableList({
       plugins={(defaults) => defaults.filter((plugin) => plugin !== Accessibility)}
       onDragEnd={(event) => setOrder((current) => move(current, event))}
     >
-      <Sortable value={order} onValueChange={setOrder} aria-label={label}>
+      {/* ドラッグしなくても並べ替えられるよう、行の末尾に ︙ のメニューを置く（WCAG 2.2 の 2.5.7） */}
+      <Sortable value={order} onValueChange={setOrder} aria-label={label} moveActions="item-menu">
         {order.map((id, index) => (
           <Row key={id} id={id} index={index} label={labelOf(id)} />
         ))}
