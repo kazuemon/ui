@@ -110,7 +110,7 @@ export const ArticleScreen = ({
       <HeadingAnchor href="#density" />
     </Heading>
     <Text className="mt-2">
-      寸法は入力方式で決めます。<Code>data-density="coarse"</Code>{' '}
+      寸法は入力方式で決めます。<Code wrap="nowrap">data-density="coarse"</Code>{' '}
       を付けると、指で操作するときの大きさに固定できます。
     </Text>
     {full && (

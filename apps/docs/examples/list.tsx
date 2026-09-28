@@ -157,10 +157,10 @@ function SkeletonRows() {
       <TableCell>
         <Skeleton variant="text" className="w-16" />
       </TableCell>
-      <TableCell className="hidden sm:table-cell">
+      <TableCell>
         <Skeleton radius="pill" className="h-5 w-16" />
       </TableCell>
-      <TableCell className="hidden sm:table-cell">
+      <TableCell>
         <Skeleton variant="text" className="w-20" />
       </TableCell>
       <TableCell>
@@ -261,8 +261,8 @@ function ListPage({
               <TableHeader>名前</TableHeader>
               <TableHeader>役割</TableHeader>
               <TableHeader>状態</TableHeader>
-              <TableHeader className="hidden sm:table-cell">タグ</TableHeader>
-              <TableHeader className="hidden sm:table-cell">最終ログイン</TableHeader>
+              <TableHeader>タグ</TableHeader>
+              <TableHeader>最終ログイン</TableHeader>
               <TableHeader>
                 <span className="sr-only">操作</span>
               </TableHeader>
@@ -277,11 +277,10 @@ function ListPage({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar name={m.name} size="sm" />
-                      {/* スマホでは操作の列まで見えるように、名前とメールを幅の分だけ切り詰める */}
-                      <div className="flex max-w-16 min-w-0 flex-col sm:max-w-none">
+                      {/* 狭い幅でも列を隠さず、名前とメールを折り返さないまま、表を横に送る */}
+                      <div className="flex flex-col whitespace-nowrap">
                         <Link
                           href={`#member-${m.id}`}
-                          className="block truncate"
                           onClick={(e) => {
                             e.preventDefault();
                             setSelected(m);
@@ -289,7 +288,7 @@ function ListPage({
                         >
                           {m.name}
                         </Link>
-                        <Text as="span" size="sm" variant="subtle" className="block truncate">
+                        <Text as="span" size="sm" variant="subtle">
                           {m.email}
                         </Text>
                       </div>
@@ -299,7 +298,7 @@ function ListPage({
                   <TableCell>
                     <StatusBadge status={m.status} />
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell>
                     <div className="flex flex-nowrap gap-1">
                       {m.tags.length === 0 ? (
                         <Text as="span" size="sm" variant="subtle">
@@ -310,7 +309,7 @@ function ListPage({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell className="whitespace-nowrap">
                     <Tooltip content="ログインした日時">
                       <span>
                         <RelativeTime dateTime={m.lastSeen} now={now} />

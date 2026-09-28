@@ -319,8 +319,10 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
   useEffect(() => {
     if (previousStep.current === step) return;
     previousStep.current = step;
+    // 見出しの上は、貼り付けた帯（Navbar）の分を空ける（id を付けた見出しの scroll-margin-top。app/globals.css）。
+    // focus で改めてスクロールさせないよう、preventScroll を付ける
     headingRef.current?.scrollIntoView({ block: 'start' });
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
   return (
@@ -334,7 +336,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
             </span>
           ))}
         </Text>
-        <Heading level={1} size={2} ref={headingRef} tabIndex={-1}>
+        <Heading level={1} size={2} id="apply-heading" ref={headingRef} tabIndex={-1}>
           UI 勉強会 #3 に申し込む
         </Heading>
         <Text variant="muted">
