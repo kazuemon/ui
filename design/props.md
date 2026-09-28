@@ -39,18 +39,18 @@
 
 ### 文字
 
-| 名前             | 意味                                                                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`          | 画面に出る見出し。読み上げの名前にもなります                                                                                           |
-| `accessibleName` | 画面に出ない、読み上げだけの名前。`label` があれば自動でそれが名前になるので、`label` のない部品や、読み上げだけ変えたいときに書きます |
-| `title`          | 題。見出しの行に出ます                                                                                                                 |
-| `caption`        | 本体の下に小さく添える文（ヘルプテキスト、図のキャプション）                                                                           |
-| `description`    | 題に対する説明。`aria-describedby` になります                                                                                          |
-| `placeholder`    | 空のときに薄く出る例                                                                                                                   |
-| `<何>Label`      | 画面に出る短い文字。別の要素の見出しや、ボタン自身の文字（`prevLabel`・`actionLabel`・`cancelLabel`）                                  |
-| `<何>Name`       | 画面に出ない、読み上げだけの名前（`closeName`・`clearName`・`pageName`）                                                               |
-| `<何>Text`       | 文章。画面に出るもの（`errorText`・`emptyText`・`copiedText`）も、読み上げで知らせるもの（`loadedText`・`summaryText`）も              |
-| `<何>Title`      | 題（`errorSummaryTitle`・`menuTitle`）                                                                                                 |
+| 名前             | 意味                                                                                                                                                                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | 画面に出る見出し。読み上げの名前にもなります                                                                                                                                                                                       |
+| `accessibleName` | 画面に出ない、読み上げだけの名前。`label` があれば自動でそれが名前になるので、`label` のない部品や、読み上げだけ変えたいときに書きます。入力欄と Field は、`label` か `accessibleName` のどちらか一方が要ります（型 `FieldNamed`） |
+| `title`          | 題。見出しの行に出ます                                                                                                                                                                                                             |
+| `caption`        | 本体の下に小さく添える文（ヘルプテキスト、図のキャプション）                                                                                                                                                                       |
+| `description`    | 題に対する説明。`aria-describedby` になります                                                                                                                                                                                      |
+| `placeholder`    | 空のときに薄く出る例                                                                                                                                                                                                               |
+| `<何>Label`      | 画面に出る短い文字。別の要素の見出しや、ボタン自身の文字（`prevLabel`・`actionLabel`・`cancelLabel`）                                                                                                                              |
+| `<何>Name`       | 画面に出ない、読み上げだけの名前（`closeName`・`clearName`・`pageName`）                                                                                                                                                           |
+| `<何>Text`       | 文章。画面に出るもの（`errorText`・`emptyText`・`copiedText`）も、読み上げで知らせるもの（`loadedText`・`summaryText`）も                                                                                                          |
+| `<何>Title`      | 題（`errorSummaryTitle`・`menuTitle`）                                                                                                                                                                                             |
 
 ### 中身と印
 
@@ -81,7 +81,8 @@
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `side` / `align`                     | 浮かぶものの辺と、その辺に沿った寄せ。表のセルの横の寄せも `align`。Grid の同じ行の子の上下の揃えも `align`（`stretch` を含む）                                                                                       | `top`・`right`・`bottom`・`left` / `start`・`center`・`end` |
 | `verticalAlign`                      | 表のセルの縦の寄せ。Table・TableRow・TableCell で持ち、子が上書きします                                                                                                                                               | `top`・`middle`・`bottom`                                   |
-| `<何>Placement`                      | ある部位の置き場所                                                                                                                                                                                                    | `start`・`end`                                              |
+| `<何>Placement`                      | ある部位の置き場所。入力欄のラベル（`labelPlacement`）は、本体の上（`top`）か左（`start`）                                                                                                                            | `start`・`end`・`top`・`bottom`                             |
+| `narrow<何>`                         | 置いた場所がいちばん狭いとき（24rem 未満）の見せ方。Pagination の `narrowDisplay`、入力欄の `narrowLabelPlacement`（横のラベルを上に戻すか）                                                                          | 部品ごと                                                    |
 | `direction` / `gap` / `justify`      | 並べる向き・間隔・主軸の寄せ（Stack）。`gap` は Grid も同じ段                                                                                                                                                         |                                                             |
 | `columns` / `minColumnWidth`         | 列の数と、列の最小の幅（px）（Masonry・Grid）。Grid の `columns` は数のほか、段ごとの数（`{ base: 1, md: 3 }`）も渡せる。`columns` だけなら固定、`minColumnWidth` だけなら入れ物の幅で決め、両方なら `columns` が上限 | 数 / `Partial<Record<段, 数>>` / px                         |
 | 段（`base`・`sm`・`md`・`lg`・`xl`） | 画面の幅の段の名前。Tailwind の既定の画面の幅から上（sm は 40rem、md は 48rem、lg は 64rem、xl は 80rem）。渡していない段は 1 つ下の段の値を使う（いまは Grid の `columns` だけ）                                     |                                                             |
@@ -162,7 +163,9 @@ Base UI の props のうち、名前を変えて出すものです。
 
 重なる部品（Dialog・AlertDialog・Drawer・Popover・Menu・Tooltip・Select・Combobox）は、`dismissible`・`closeOnEscape`・`modal`・`autoFocus`・`returnFocus`・`onOpenChangeComplete`・`popupProps`・`positionerProps` のうち、土台が持つものを同じ名前・同じ型で持ちます（Menu は Base UI に `initialFocus` がないので `autoFocus` を持ちません。Tooltip は焦点を持たないので焦点の props を持ちません）。シートを開いたとき入力欄に焦点を当てるかは `focusInputOnOpen`（真偽値）で、`autoFocus` とは別です。
 
-入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps`・`validate`・`validationMode` を同じ名前で持ちます（Select は Base UI に input の部位がないので `inputProps` の代わりに `inputRef` です）。1 つの部品だけ欠けているのは直します。Form は、欄の `name` に合わせて外から返すエラーを `errors` で、送信を通ったときの値を `onFormSubmit` で受けます（design/adr/0255）。
+入力欄（TextField・Textarea・SearchField・PasswordField・MaskField・NumberField・PinField・DateField・TimeField・Select・Combobox・Checkbox・Radio・Switch）は `InputFieldProps` を継承し、`label`・`caption`・`captionPlacement`・`errorText`・`warningText`・`successText`・`infoText`・`loading`・`name`・`ref`・`inputProps`・`validate`・`validationMode` を同じ名前で持ちます（Select は Base UI に input の部位がないので `inputProps` の代わりに `inputRef` です）。1 つの部品だけ欠けているのは直します。ラベルの置き方は `labelPlacement`・`labelVariant`（横に置くラベルの重さ。`strong`・`subtle`）・`narrowLabelPlacement` で、FieldGroup が中の欄の既定を決めます。Form は、欄の `name` に合わせて外から返すエラーを `errors` で、送信を通ったときの値を `onFormSubmit` で受けます（design/adr/0255）。
+
+入力欄は、組み立て用に、ラベルを持たない本体を `<部品名>Control`（`TextFieldControl`・`SelectControl` など）で公開します。本体の props は値と本体の見た目だけで、ラベル・キャプション・状態の文と、押せない・待っている・必須は、包む `Field` に渡します。部位は `FieldLabel`・`FieldCaption`・`FieldMessages`、ライブラリにない本体は `FieldControl` の `render` で包みます。部位は文を持たず、どこに出すかだけを決めます。
 
 ## props を足すか、className に任せるか
 

@@ -414,3 +414,6 @@
 | [0347](./0347-data-table-sticky-edge.md)                 | DataTable の貼り付いた見出しの境目は、現行版（影）のまま。banded は帯を ::before に描き、影が角にかからないようにする                                            | Accepted                                     |
 | [0348](./0348-data-table-footer-recipe.md)               | DataTable の下の帯（件数とページ送り）は部品にせず recipe で組む。純正レシピは A（ページ送りを中央、下に件数と Select）                                          | Accepted                                     |
 | [0349](./0349-data-table-selection-bar.md)               | DataTable で行を選んでいるあいだの件数と一括操作は、現行版（検索の右に並べる）のまま                                                                             | Accepted                                     |
+| [0365](./0365-field-label-placement.md)                  | 入力欄のラベルは上が既定で、横（本体の左）に置くことも、見えるラベルを置かないこと（accessibleName）もできる。列そろえは FieldGroup（subgrid）                   | Accepted                                     |
+| [0366](./0366-field-composition.md)                      | 入力欄は内蔵の形のまま、Field の部位とラベルを持たない本体（`<部品名>Control`）も公開して組み立てられるようにする                                                | Accepted                                     |
+| [0367](./0367-field-start-defaults.md)                   | 横に置くラベルは太字・狭くても戻さないのが既定。軽いラベル（labelVariant）と 24rem 未満で上に戻す形（narrowLabelPlacement）も選べる                              | Accepted                                     |
