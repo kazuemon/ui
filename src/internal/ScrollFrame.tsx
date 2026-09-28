@@ -55,6 +55,11 @@ export interface ScrollFrameProps {
    */
   inlineEdges?: boolean;
   /**
+   * 上の端に影を落とすか。中身の上端に貼り付く見出し（DataTable の固定ヘッダー）が、自分の下に影を描くときは false にする
+   * @default true
+   */
+  topEdge?: boolean;
+  /**
    * つまみを出す向き。vertical は縦だけ、horizontal は横だけ
    * @default 'both'
    */
@@ -85,6 +90,7 @@ export function ScrollFrame({
   focusable = true,
   edgeShadow = true,
   inlineEdges = true,
+  topEdge = true,
   orientation = 'both',
   scrollbarClassName,
   scrollbar = 'scroll',
@@ -136,9 +142,11 @@ export function ScrollFrame({
       {edgeShadow && (
         <div className={styles.edges()}>
           {/* 上下の端の影。Select・シートと同じ部品で描く */}
-          <div className="absolute inset-x-0 top-0">
-            <SheetMoreCue edge="top" sheet={false} sheetMoreCue="shadow" />
-          </div>
+          {topEdge && (
+            <div className="absolute inset-x-0 top-0">
+              <SheetMoreCue edge="top" sheet={false} sheetMoreCue="shadow" />
+            </div>
+          )}
           <div className="absolute inset-x-0 bottom-0">
             <SheetMoreCue edge="bottom" sheet={false} sheetMoreCue="shadow" />
           </div>

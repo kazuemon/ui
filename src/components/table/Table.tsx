@@ -28,17 +28,12 @@ const table = tv({
   variants: {
     variant: {
       lines: { table: tableStyles.lines },
-      framed: { scroll: 'rounded-control border border-line', table: '[&_thead_th]:bg-field' },
-      banded: {
-        table: [
-          '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3 [&_thead_th]:bg-field',
-          '[&_thead_th:first-child]:rounded-s-control [&_thead_th:last-child]:rounded-e-control',
-        ],
-      },
+      framed: { scroll: tableStyles.framedFrame, table: tableStyles.framed },
+      banded: { table: tableStyles.banded },
     },
     showColumnDivider: {
       // 2 列目から左に引く
-      true: { table: '[&_tr>*+*]:border-l' },
+      true: { table: tableStyles.columnDivider },
       false: {},
     },
     verticalAlign: {
