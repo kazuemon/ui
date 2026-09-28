@@ -247,6 +247,25 @@ export const Rejected: Story = {
   },
 };
 
+export const SingleRejectsExtra: Story = {
+  name: '1 つしか選べない欄に 2 つ落とす',
+  parameters: { controls: { disable: true } },
+  render: () => <DropzoneDemo multiple={false} maxFiles={undefined} accept={undefined} />,
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('画像') as HTMLInputElement;
+    const dt = new DataTransfer();
+    dt.items.add(new File(['a'], 'a.txt', { type: 'text/plain' }));
+    dt.items.add(new File(['b'], 'b.txt', { type: 'text/plain' }));
+    dispatchDrag('drop', input, dt);
+    // 先頭だけを受け付け、2 つ目は数の上限の理由で知らせる
+    await expect(await canvas.findByText('a.txt')).toBeVisible();
+    await waitFor(async () =>
+      expect(await canvas.findByText(/b\.txt: 選べる数を超えています/)).toBeVisible()
+    );
+    await waitFor(() => expect(input.files).toHaveLength(1));
+  },
+};
+
 export const RemoveFromValue: Story = {
   name: '一覧で外したファイルは送らない',
   parameters: { controls: { disable: true } },
