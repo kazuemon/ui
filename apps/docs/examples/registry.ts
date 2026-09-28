@@ -15,6 +15,7 @@ import { resetPassword, signIn, signUp, verifyCode } from './sign-in';
 import { example as settings } from './settings';
 import { example as sns } from './sns';
 import { example as tasks } from './tasks';
+import { example as tournament } from './tournament';
 import type { Example } from './types';
 
 // 名前から見本を引く表。画面は 'use client' なので、サーバーからは manifest.ts の方を読む
@@ -39,5 +40,6 @@ export const registry: Record<string, Example> = Object.fromEntries(
     pricing,
     museum,
     tasks,
+    tournament,
   ].map((example) => [example.slug, example])
 );

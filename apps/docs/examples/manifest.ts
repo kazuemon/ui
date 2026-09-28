@@ -139,4 +139,11 @@ export const examples: ExampleSummary[] = [
     highlights: ['Sortable', 'DataTable'],
     components: ['Inspector', 'ToggleGroup', 'DateField'],
   },
+  {
+    slug: 'tournament',
+    title: '大会プラットフォーム',
+    description: '大会の管理画面。列でグループを選び、行から横のパネルで試合の詳細を見ます',
+    highlights: ['Sidebar', 'Inspector'],
+    components: ['Table', 'DescriptionList', 'Menu', 'Tag'],
+  },
 ];
