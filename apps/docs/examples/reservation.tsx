@@ -160,8 +160,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
           2. 時刻を選ぶ
         </Heading>
         {date ? (
-          // 幅は Calendar と同じ（7 マス分）にし、右端をそろえる
-          <div className="flex max-w-[calc(var(--spacing-control)*7)] flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <Text size="sm" variant="muted">
               {formatDate(date)}の空き
             </Text>
