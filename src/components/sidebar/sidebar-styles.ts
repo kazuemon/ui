@@ -1,7 +1,7 @@
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
 
-// ページの横に並ぶ列 — 軸 303〜307（design/adr/0313〜0317）
+// ページの横に並ぶ列 — ADR-0350〜0357
 //   行は Tree の行と同じ考え（一覧の項目の仲間。hover は入力欄の塗り、いまいる行は部品の色に従う。原則3・6）
 //   開いた形と畳んだ形で、アイコンの位置が動かない（行の左右の余白を、畳んだ列の幅の中央から決める）
 //   幅は Tailwind の width ではなく、部品のトークン（--sidebar-width・--sidebar-rail-width）で動かす
@@ -34,7 +34,7 @@ export const sidebar = tv({
       'active:translate-y-(--flat-press-depth) active:[--flat-bg:var(--sidebar-row-press)]',
       '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
-      // いまいる行（軸 306）: 文字を太くし、部品の色の面を敷く。畳んだ列では、いまいる行を含む親のアイコンにも同じ印
+      // いまいる行（ADR-0353）: 文字を太くし、部品の色の面を敷く。畳んだ列では、いまいる行を含む親のアイコンにも同じ印
       'aria-[current=page]:font-bold aria-[current=page]:text-(color:--sidebar-current-fg)',
       'aria-[current=page]:[--sidebar-row-rest:var(--sidebar-current-bg)]',
       'aria-[current=page]:hover:[--flat-bg:var(--sidebar-current-hover)]',
@@ -77,7 +77,7 @@ export const sidebar = tv({
       true: { root: 'w-(--sidebar-rail-width)' },
       false: { root: 'w-(--sidebar-width)' },
     },
-    // 開け閉めの動き（軸 305）。smooth は列の幅を動かし、none はすぐ切り替える
+    // 開け閉めの動き（ADR-0352）。smooth は列の幅を動かし、none はすぐ切り替える
     motion: {
       smooth: {
         root: 'transition-[width] duration-(--duration-normal) ease-out motion-reduce:transition-none',

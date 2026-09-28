@@ -1,4 +1,4 @@
-# 0315. Sidebar の開閉は、列の幅を滑らかに変える
+# 0352. Sidebar の開閉は、列の幅を滑らかに変える
 
 - ステータス: Accepted
 - 日付: 2026-09-24
@@ -41,6 +41,6 @@
 
 ## 比較画像
 
-![Sidebar の開閉は、列の幅を滑らかに変える](./assets/0315-sidebar-motion.png)
+![Sidebar の開閉は、列の幅を滑らかに変える](./assets/0352-sidebar-motion.png)
 
 決めた時点のコミットは `fceaea2` です。`git checkout fceaea2 && pnpm storybook` で、比較のストーリー（`Design Review/305 Sidebar の開閉の動き`）を決めたときの部品のまま開けます。

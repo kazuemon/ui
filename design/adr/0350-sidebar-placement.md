@@ -1,4 +1,4 @@
-# 0313. Sidebar は、Header の下で本文だけを押しのける。畳むとアイコンだけ残す
+# 0350. Sidebar は、Header の下で本文だけを押しのける。畳むとアイコンだけ残す
 
 - ステータス: Accepted
 - 日付: 2026-09-24
@@ -36,7 +36,7 @@ Header が動かないほうが、ページ全体の枠が安定します。Head
 ## 影響
 
 - `src/components/sidebar/`: `SidebarLayout` の `placement`（`'below' | 'full'`、既定 `'below'`）を公開します
-- 幅は部品のトークン（`--sidebar-width`・`--sidebar-rail-width`）で持ちます。値は tokens.css にあり、実装のあとで余白と一緒に広げました（[ADR-0319](./0319-sidebar-padding-scroll.md)）
+- 幅は部品のトークン（`--sidebar-width`・`--sidebar-rail-width`）で持ちます。値は tokens.css にあり、実装のあとで余白と一緒に広げました（[ADR-0356](./0356-sidebar-padding-scroll.md)）
 - 比較のストーリー `design/stories/axis-303-sidebar-placement.stories.tsx` は消しました
 
 ## 原則への反映
@@ -45,6 +45,6 @@ Header が動かないほうが、ページ全体の枠が安定します。Head
 
 ## 比較画像
 
-![Sidebar は、Header の下で本文だけを押しのける。畳むとアイコンだけ残す](./assets/0313-sidebar-placement.png)
+![Sidebar は、Header の下で本文だけを押しのける。畳むとアイコンだけ残す](./assets/0350-sidebar-placement.png)
 
 決めた時点のコミットは `fceaea2` です。`git checkout fceaea2 && pnpm storybook` で、比較のストーリー（`Design Review/303 Sidebar の置き方と畳み方`）を決めたときの部品のまま開けます。

@@ -160,7 +160,7 @@
 
 2026-09-19 に決めました。決定は [ADR-0132](./adr/0132-recipes.md) です。
 
-- Sidebar は部品にしました（[ADR-0313](./adr/0313-sidebar-placement.md)〜[ADR-0317](./adr/0317-sidebar-rail-open.md)）。レシピには回しません。Stack も部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
+- Sidebar は部品にしました（[ADR-0350](./adr/0350-sidebar-placement.md)〜[ADR-0354](./adr/0354-sidebar-rail-open.md)）。レシピには回しません。Stack も部品にしました（[ADR-0212](./adr/0212-stack-gap.md)・[ADR-0213](./adr/0213-stack-horizontal.md)）
 - Sortable と dnd-kit をつなぐレシピ（`src/recipes/sortable-dnd-kit.tsx`）ができました（2026-09-28、[ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0336](./adr/0336-sortable-keyboard-and-recipe.md)）。DataTable と TanStack Table をつなぐレシピも同じ形で置きます
 - DataTable の recipe（`src/recipes/data-table/OrdersDataTable.tsx`）ができました（2026-09-28）。TanStack Table（`@tanstack/react-table` 9系）で並べ替え・選択・ページ送りをつなぐ見本です（[ADR-0335](./adr/0335-headless-look-only-recipes.md)・[ADR-0343](./adr/0343-data-table-separate-from-table.md)）
 
@@ -743,8 +743,8 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 ### Sidebar
 
-2026-09-24 に決めました。決定は [ADR-0313](./adr/0313-sidebar-placement.md)〜[ADR-0317](./adr/0317-sidebar-rail-open.md) です。
+2026-09-24 に決めました。決定は [ADR-0350](./adr/0350-sidebar-placement.md)〜[ADR-0354](./adr/0354-sidebar-rail-open.md) です。
 
 - MegaMenu（見出し・説明・複数列の面。Navbar から開く。Sidebar の入れ子とは別物）は決めていません
 - Sidebar の高さとスクロール（上に題、中身がスクロール、下に畳むボタン）は決めていません
-- 入れ子の末尾の「作成」の行は、行き先を持たない `SidebarItem` で置きます（[ADR-0318](./adr/0318-sidebar-create-item.md)）。行を並べ替える・行ごとにメニューを持たせる操作は決めていません
+- 入れ子の末尾の「作成」の行は、行き先を持たない `SidebarItem` で置きます（[ADR-0355](./adr/0355-sidebar-create-item.md)）。行を並べ替える・行ごとにメニューを持たせる操作は決めていません

@@ -1,4 +1,4 @@
-# 0317. Sidebar の rail は、アイコンに載ったら待たずに開き、離れても 200ms は閉じない
+# 0354. Sidebar の rail は、アイコンに載ったら待たずに開き、離れても 200ms は閉じない
 
 - ステータス: Accepted
 - 日付: 2026-09-24
@@ -42,6 +42,6 @@
 
 ## 比較画像
 
-![Sidebar の rail は、アイコンに載ったら待たずに開き、離れても 200ms は閉じない](./assets/0317-sidebar-rail-open.png)
+![Sidebar の rail は、アイコンに載ったら待たずに開き、離れても 200ms は閉じない](./assets/0354-sidebar-rail-open.png)
 
 決めた時点のコミットは `fceaea2` です。`git checkout fceaea2 && pnpm storybook` で、比較のストーリー（`Design Review/307 Sidebar の rail の開き方`）を決めたときの部品のまま開けます。

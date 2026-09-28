@@ -1,4 +1,4 @@
-# 0314. Sidebar は、狭い画面では Drawer と同じ挙動に切り替わる
+# 0351. Sidebar は、狭い画面では Drawer と同じ挙動に切り替わる
 
 - ステータス: Accepted
 - 日付: 2026-09-24
@@ -41,6 +41,6 @@
 
 ## 比較画像
 
-![Sidebar は、狭い画面では Drawer と同じ挙動に切り替わる](./assets/0314-sidebar-narrow.png)
+![Sidebar は、狭い画面では Drawer と同じ挙動に切り替わる](./assets/0351-sidebar-narrow.png)
 
 決めた時点のコミットは `fceaea2` です。`git checkout fceaea2 && pnpm storybook` で、比較のストーリー（`Design Review/304 Sidebar の狭い画面`）を決めたときの部品のまま開けます。
