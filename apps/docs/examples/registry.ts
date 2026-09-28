@@ -7,6 +7,7 @@ import { example as dashboard } from './dashboard';
 import { example as docs } from './docs';
 import { example as list } from './list';
 import { example as markdownProse } from './markdown-prose';
+import { example as match } from './match';
 import { example as pricing } from './pricing';
 import { example as profile } from './profile';
 import { example as reservation } from './reservation';
@@ -34,5 +35,6 @@ export const registry: Record<string, Example> = Object.fromEntries(
     dashboard,
     reservation,
     pricing,
+    match,
   ].map((example) => [example.slug, example])
 );

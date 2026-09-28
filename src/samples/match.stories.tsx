@@ -25,8 +25,9 @@ import {
 } from '../stories/sidebar-story-parts';
 import { densityOf } from './SamplePage';
 
-// 試合を押すと、右から出る面で詳細を見る。押しのけない（重ねて出す）。× で閉じる、モーダルではない
-//   Sidebar とは別の、Drawer の modal="passive" で作った試し置き。Overview/試合 に置き、押しのける列と混同しない
+// 大会の試合管理の画面: 試合を押すと、右から出る面（Drawer の modal="passive"）で詳細を見る。
+// 押しのけない（重ねて出す）: 裏を暗くせず、裏の操作も止めない。閉じるのは × だけ
+// 見本の中身は tournament.stories.tsx と同じ、架空のゲーム「ミラージュ・ストライカーズ」の大会
 
 interface Match {
   no: string;
@@ -137,7 +138,7 @@ function GroupScreen() {
 }
 
 const meta = {
-  title: 'Overview/試合',
+  title: 'Overview/見本',
   parameters: { layout: 'fullscreen' },
 } satisfies Meta;
 
@@ -145,7 +146,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const MatchDrawer: Story = {
-  name: '試合の詳細（押しのけない）',
+  name: '試合の詳細',
   render: (_args, { globals }) => (
     <div data-density={densityOf(globals)} className="h-screen bg-bg text-fg">
       <SidebarLayout

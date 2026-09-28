@@ -83,4 +83,9 @@ export const examples: ExampleSummary[] = [
     title: '料金プラン',
     description: 'プランのカード、月払いと年払いの切り替え、機能を比べる表、よくある質問',
   },
+  {
+    slug: 'match',
+    title: '試合の詳細',
+    description: '大会の管理画面。列でグループを選び、行から押しのけない面で試合の詳細を見ます',
+  },
 ];
