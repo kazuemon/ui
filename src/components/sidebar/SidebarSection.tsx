@@ -4,6 +4,7 @@ import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible';
 import { type ReactNode, use, useId, useState } from 'react';
 
 import { CaretDownIcon } from '../../internal/icons';
+import { MenuGroup } from '../menu/MenuItem';
 import { SidebarNavContext } from './sidebar-context';
 import { sidebar } from './sidebar-styles';
 
@@ -52,6 +53,8 @@ export function SidebarSection({
     onExpandedChange?.(next);
   };
   const rail = nav?.mode === 'rail';
+  // 狭い画面を Menu のシートで出すときは、節を Menu の見出し付きのまとまりにする
+  if (nav?.mode === 'flyout') return <MenuGroup label={title}>{children}</MenuGroup>;
   const s = sidebar({ railed: rail });
 
   // 畳める節: 題をボタンにし、行の並びを Collapsible で開け閉めする（行の入れ子と同じ動き）

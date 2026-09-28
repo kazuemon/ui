@@ -1,11 +1,26 @@
 'use client';
 
-import { createContext, use } from 'react';
+import { createContext, type RefObject, use } from 'react';
 
 export type SidebarPlacement = 'below' | 'full';
 export type SidebarMotion = 'smooth' | 'none';
 export type SidebarColor = 'primary' | 'secondary' | 'neutral';
 export type SidebarNarrowSide = 'left' | 'right' | 'bottom' | 'auto';
+export type SidebarVariant = 'plain' | 'muted';
+export type SidebarNarrowPresentation = 'drawer' | 'menu';
+/** ふだんの濃さ。subtle は半分の濃さで置いて載せると濃く、always はいつも濃く、hover は載せたときだけ（DataTable の sortIndicator と同じ） */
+export type SidebarIndicator = 'subtle' | 'always' | 'hover';
+export type SidebarCountShape = 'count' | 'dot';
+export type SidebarResizeHandle = 'line' | 'grip';
+/** 行の件数・点の色 */
+export type SidebarItemColor =
+  | 'neutral'
+  | 'primary'
+  | 'secondary'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 /** SidebarLayout が持つ状態。SidebarTrigger と Sidebar が読む */
 export interface SidebarLayoutContextValue {
@@ -18,6 +33,8 @@ export interface SidebarLayoutContextValue {
   setMobileOpen: (next: boolean) => void;
   motion: SidebarMotion;
   navId: string;
+  /** 帯の SidebarTrigger。狭い画面のシートを閉じたあと、ここに焦点を戻す */
+  triggerRef: RefObject<HTMLButtonElement | null>;
   /** 幅を変えられるとき（resizable）の幅と範囲。変えられないときは null */
   resize: SidebarResize | null;
 }
@@ -29,6 +46,9 @@ export interface SidebarResize {
   defaultWidth: number | undefined;
   minWidth: number;
   maxWidth: number;
+  handle: SidebarResizeHandle;
+  /** いちばん狭い幅よりさらに細くしたら畳むか */
+  collapseOnResize: boolean;
 }
 
 export const SidebarLayoutContext = createContext<SidebarLayoutContextValue | null>(null);
@@ -52,6 +72,8 @@ export interface SidebarNavContextValue {
   color: SidebarColor;
   openDelay: number;
   closeDelay: number;
+  /** 畳んだ列で、件数を数字の札で出すか点にするか */
+  countShape: SidebarCountShape;
 }
 
 export const SidebarNavContext = createContext<SidebarNavContextValue | null>(null);

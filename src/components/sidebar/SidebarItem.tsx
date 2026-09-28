@@ -25,10 +25,11 @@ import { MenuGroup, MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem
 import { Tooltip } from '../tooltip/Tooltip';
 import {
   SidebarLayoutContext,
+  type SidebarItemColor,
   SidebarNavContext,
   type SidebarNavContextValue,
 } from './sidebar-context';
-import { sidebar } from './sidebar-styles';
+import { countColor, sidebar } from './sidebar-styles';
 
 // 列の 1 行。開いた列・Drawer の中では行を縦に並べ、入れ子は開け閉めする（Tree と同じ動き）
 //   畳んだ列では、最上段の行だけがアイコンになる。入れ子のある行は、載せる（か押す）と横に面が出て、そこに入れ子を出す（ADR-0350・307）
@@ -81,6 +82,16 @@ export interface SidebarItemProps extends Omit<
    * @default 99
    */
   countMax?: number;
+  /**
+   * 数字を出さず、点だけを付けます（新しいものがある、など）。count と一緒に渡したときは count を出します
+   * @default false
+   */
+  showDot?: boolean;
+  /**
+   * 件数の札と点の色。neutral はグレー、ほかは塗りの色です
+   * @default 'neutral'
+   */
+  color?: SidebarItemColor;
   /**
    * 行ごとの操作（MenuItem を並べる）。渡すと、行の右端に ︙ のボタンが付き、押すとメニューが開きます。畳んだ列では出しません
    */
@@ -153,6 +164,8 @@ function ListItem({
   disabled = false,
   count,
   countMax = 99,
+  showDot = false,
+  color = 'neutral',
   menu,
   menuName = 'その他の操作',
   onClick,
@@ -218,11 +231,13 @@ function ListItem({
           <span data-slot="sidebar-label" className={s.label()}>
             {label}
           </span>
-          {countLabel && (
+          {countLabel ? (
             <span data-slot="sidebar-count" className={s.count()}>
               {countLabel}
             </span>
-          )}
+          ) : showDot ? (
+            <span data-slot="sidebar-dot" aria-hidden="true" className={s.dot()} />
+          ) : null}
           {hasChildren && (
             <span aria-hidden="true" className={s.caret()}>
               <CaretDownIcon />
@@ -245,7 +260,7 @@ function ListItem({
   ) : null;
   if (!hasChildren) {
     return (
-      <li role="none" className="group/sidebar-li relative flex flex-col">
+      <li role="none" className={`group/sidebar-li relative flex flex-col ${countColor[color]}`}>
         {row}
         {action}
       </li>
@@ -256,7 +271,12 @@ function ListItem({
     <BaseCollapsible.Root
       open={open}
       onOpenChange={setOpen}
-      render={<li role="none" className="group/sidebar-li relative flex flex-col" />}
+      render={
+        <li
+          role="none"
+          className={`group/sidebar-li relative flex flex-col ${countColor[color]}`}
+        />
+      }
     >
       {row}
       {action}
@@ -286,6 +306,8 @@ function RailItem({
   disabled = false,
   count,
   countMax = 99,
+  showDot = false,
+  color = 'neutral',
   menu: _menu,
   menuName: _menuName,
   onClick,
@@ -356,14 +378,13 @@ function RailItem({
         <>
           <span aria-hidden="true" className={s.icon({ className: s.railIcon() })}>
             {icon ?? <span className="text-sm font-bold">{label.slice(0, 1)}</span>}
-            {countLabel && (
-              <>
-                <span data-slot="sidebar-rail-dot" className={s.railDot()} />
-                <span data-slot="sidebar-rail-count" className={s.railCount()}>
-                  {countLabel}
-                </span>
-              </>
-            )}
+            {countLabel && nav.countShape === 'count' ? (
+              <span data-slot="sidebar-rail-count" className={s.railCount()}>
+                {countLabel}
+              </span>
+            ) : countLabel || showDot ? (
+              <span data-slot="sidebar-rail-dot" className={s.railDot()} />
+            ) : null}
           </span>
           {/* 畳んだ列では文字は見せない。読み上げの名前として残す（件数も読む） */}
           <span className="sr-only">{countLabel ? `${label} ${countLabel}` : label}</span>
@@ -375,7 +396,7 @@ function RailItem({
 
   if (!hasChildren) {
     return (
-      <li role="none" className="flex flex-col">
+      <li role="none" className={`flex flex-col ${countColor[color]}`}>
         <Tooltip content={label} side="right" delay={nav.openDelay}>
           {row}
         </Tooltip>
@@ -383,7 +404,7 @@ function RailItem({
     );
   }
   return (
-    <li role="none" className="flex flex-col">
+    <li role="none" className={`flex flex-col ${countColor[color]}`}>
       <Menu
         trigger={row}
         open={flyoutOpen}

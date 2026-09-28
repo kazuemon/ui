@@ -17,7 +17,12 @@ import {
   TableRow,
 } from '../components/table/Table';
 import { Text } from '../components/text/Text';
-import { DemoNavbar, TournamentItems } from '../stories/sidebar-story-parts';
+import {
+  AccountItems,
+  DemoNavbar,
+  TournamentItems,
+  TournamentSwitcher,
+} from '../stories/sidebar-story-parts';
 import { densityOf } from './SamplePage';
 
 // 試合を押すと、右から出る面で詳細を見る。押しのけない（重ねて出す）。× で閉じる、モーダルではない
@@ -145,9 +150,10 @@ export const MatchDrawer: Story = {
     <div data-density={densityOf(globals)} className="h-screen bg-bg text-fg">
       <SidebarLayout
         header={<DemoNavbar />}
+        resizable
         sidebar={
-          <Sidebar collapseButton>
-            <TournamentItems />
+          <Sidebar header={<TournamentSwitcher />} footer={<AccountItems />} collapseButton>
+            <TournamentItems dashboard />
           </Sidebar>
         }
       >

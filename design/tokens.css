@@ -1513,31 +1513,21 @@
   --sidebar-current-hover: color-mix(in oklab, var(--sidebar-current-bg), var(--color-fg) 8%);
   /* 開け閉めで高さを動かすあいだ、中身を切る場所（Tree と同じ理由で、計算せずに書く） */
   --sidebar-panel-clip-margin: 6px;
-  /* 列の面（軸 382 で比較中）。bg: 列の地。line-width: 本文との境の線の太さ */
+  /* 列の面（ADR-0361）。bg: 列の地。variant="muted" で淡いグレーに差し替える。本文との境の細い線はいつも引く */
   --sidebar-bg: var(--color-surface);
-  --sidebar-line-width: var(--border-width-thin);
-  /* 列の上下に固定する場所（軸 379 で比較中）。edge-line-width: スクロールする中身との境の線。edge-bg: 固定の場所の地 */
-  --sidebar-edge-line-width: var(--border-width-thin);
-  --sidebar-edge-bg: transparent;
-  /* 行の件数（軸 380 で比較中）。count-*: 開いた列の件数の札。rail-*-display: 畳んだ列で、アイコンに付ける点・数字の札の出し分け */
-  --sidebar-count-bg: transparent;
-  --sidebar-count-fg: var(--color-fg-subtle);
-  --sidebar-count-px: 0px;
-  --sidebar-rail-dot-display: block;
-  --sidebar-rail-count-display: none;
-  --sidebar-rail-mark-bg: var(--color-primary);
-  --sidebar-rail-mark-fg: var(--color-on-primary);
-  /* 行ごとのメニューのボタン（軸 381 で比較中）。rest: 行に載せていないときの濃さ。current: いまいる行での濃さ */
-  --sidebar-action-rest-opacity: 1;
-  --sidebar-action-current-opacity: var(--sidebar-action-rest-opacity);
-  /* 列の幅を変えるつまみ（軸 383 で比較中）。hit: つかめる幅。line-*: 載せたとき・動かしているときの線。grip-display: ふだんから見せる小さなつまみ */
+  /* 上下に固定する場所（ADR-0358）。fill: showHeaderFill・showFooterFill で敷く淡い面（入力欄の塗りと同じ）。
+     variant="muted" では、グレーの地と見分けられるよう部品が一段濃い色に差し替える */
+  --sidebar-edge-fill: var(--color-field);
+  /* 行の件数（ADR-0359）。count-*: 開いた列の件数の札（既定はグレー。color で差し替える）。mark-*: 畳んだ列でアイコンに重ねる札と点 */
+  --sidebar-count-bg: var(--color-select-neutral-selected);
+  --sidebar-count-fg: var(--color-fg-muted);
+  --sidebar-mark-bg: var(--color-neutral-strong);
+  --sidebar-mark-fg: var(--color-on-neutral-strong);
+  /* 行ごとのメニューのボタンと、畳める節の印（ADR-0360・0363）。DataTable の並べ替えの印と同じく、ふだん淡く置くとき（subtle。既定）の濃さ */
+  --sidebar-indicator-subtle-opacity: 0.5;
+  /* 列の幅を変えるつまみ（ADR-0362）。hit: つかめる幅。line-width: 載せたとき・動かしているときに出す線の太さ */
   --sidebar-handle-hit: calc(var(--spacing) * 2);
-  --sidebar-handle-line-color: var(--color-line-strong);
   --sidebar-handle-line-width: var(--border-width-thick);
-  --sidebar-handle-grip-display: none;
-  /* 節の畳み（軸 384 で比較中）。caret-order: 題に対する印の位置（1 は後ろ、-1 は前）。caret-rest-opacity: 載せていないときの印の濃さ */
-  --sidebar-section-caret-order: 1;
-  --sidebar-section-caret-rest-opacity: 1;
   /* ── END sidebar */
 
   /* ── FileTree — ADR-275〜278 ── BEGIN file-tree */

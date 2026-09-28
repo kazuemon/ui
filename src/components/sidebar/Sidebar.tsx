@@ -16,21 +16,32 @@ import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer } from '../drawer/Drawer';
+import { Menu } from '../menu/Menu';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 import {
   type SidebarColor,
   SidebarNavContext,
+  type SidebarCountShape,
+  type SidebarIndicator,
+  type SidebarNarrowPresentation,
   type SidebarNarrowSide,
   type SidebarResize,
+  type SidebarVariant,
   useSidebarLayout,
 } from './sidebar-context';
 import { sidebar } from './sidebar-styles';
 
 export type {
   SidebarColor,
+  SidebarCountShape,
+  SidebarIndicator,
+  SidebarItemColor,
   SidebarMotion,
+  SidebarNarrowPresentation,
   SidebarNarrowSide,
   SidebarPlacement,
+  SidebarResizeHandle,
+  SidebarVariant,
 } from './sidebar-context';
 
 // ページの横に並ぶ列 — ADR-0350〜0357
@@ -54,6 +65,48 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    * 列の下に固定する行（SidebarItem）。アカウントや設定などを置きます。collapseButton の上に並びます
    */
   footer?: ReactNode;
+  /**
+   * 列の地。plain は本文と同じ白、muted は淡いグレーです。どちらも本文との境に細い線を引きます。狭い画面の Drawer の中では使いません
+   * @default 'plain'
+   */
+  variant?: SidebarVariant;
+  /**
+   * 上下に固定する行（header・footer）と、スクロールする行のあいだの線を消します
+   * @default false
+   */
+  hideEdgeLine?: boolean;
+  /**
+   * 上に固定する行（header）に、淡い面を敷きます。いまいる大会やワークスペースを、列の中身と分けて見せたいときに使います
+   * @default false
+   */
+  showHeaderFill?: boolean;
+  /**
+   * 下に固定する行（footer）に、淡い面を敷きます
+   * @default false
+   */
+  showFooterFill?: boolean;
+  /**
+   * 畳んだ列で、行の件数（SidebarItem の count）をどう出すか。count は数字の札、dot は数字を出さず点にします
+   * @default 'count'
+   */
+  collapsedCountShape?: SidebarCountShape;
+  /**
+   * 行ごとのメニュー（SidebarItem の menu）を開く ︙ のボタンの、ふだんの濃さ。subtle は半分の濃さで置き、行に載せると濃くします。
+   * always はいつも濃く、hover は載せたとき（とキーボードで止まったとき）だけ出します。指で操作しているときは、hover でもいつも出します
+   * @default 'subtle'
+   */
+  itemMenuIndicator?: SidebarIndicator;
+  /**
+   * 畳める節（SidebarSection の collapsible）の、開閉の印のふだんの濃さ。値の意味は itemMenuIndicator と同じです
+   * @default 'subtle'
+   */
+  sectionIndicator?: SidebarIndicator;
+  /**
+   * 狭い画面での出し方。drawer は列の中身をそのまま Drawer に並べ、入れ子はその場で開け閉めします。
+   * menu は Menu と同じく画面の下からシートを出し、入れ子の行を押すと中身が横に滑って入れ替わります（narrowSide は使いません）
+   * @default 'drawer'
+   */
+  narrowPresentation?: SidebarNarrowPresentation;
   /**
    * 列の幅を変えるつまみの読み上げの名前（SidebarLayout の resizable のとき）
    * @default '列の幅'
@@ -113,6 +166,14 @@ export function Sidebar({
   footer,
   resizeName = '列の幅',
   color = 'neutral',
+  variant = 'plain',
+  hideEdgeLine = false,
+  showHeaderFill = false,
+  showFooterFill = false,
+  collapsedCountShape = 'count',
+  itemMenuIndicator = 'subtle',
+  sectionIndicator = 'subtle',
+  narrowPresentation = 'drawer',
   collapseButton = false,
   collapseName = '畳む',
   expandName = '開く',
@@ -132,7 +193,41 @@ export function Sidebar({
   const mergedRef = useMergedRefs(navRef, ref);
   const sheet = useSheetPresentation('auto');
   const side = narrowSide === 'auto' ? (sheet ? 'bottom' : 'left') : narrowSide;
-  const s = sidebar({ color, collapsed, motion });
+  const s = sidebar({
+    color,
+    collapsed,
+    motion,
+    variant,
+    hideEdgeLine,
+    showHeaderFill,
+    showFooterFill,
+    itemMenuIndicator,
+    sectionIndicator,
+  });
+  const navValue = { color, openDelay, closeDelay, countShape: collapsedCountShape };
+
+  // 狭い画面を Menu と同じシートで出す: 行を Menu の項目にし、入れ子は同じシートの中で横に滑らせる
+  if (narrow && narrowPresentation === 'menu') {
+    return (
+      <Menu
+        // 開くのは帯の SidebarTrigger なので、Menu 自身の開くボタンは隠して置く
+        trigger={<button type="button" hidden aria-hidden="true" tabIndex={-1} />}
+        open={mobileOpen}
+        onOpenChange={setMobileOpen}
+        title={drawerLabel}
+        presentation="sheet"
+        color={color}
+        returnFocus={layout.triggerRef}
+        portalContainer={portalContainer}
+      >
+        <SidebarNavContext value={{ ...navValue, mode: 'flyout', depth: 0 }}>
+          {header}
+          {children}
+          {footer}
+        </SidebarNavContext>
+      </Menu>
+    );
+  }
 
   if (narrow) {
     return (
@@ -143,7 +238,7 @@ export function Sidebar({
         onOpenChange={setMobileOpen}
         portalContainer={portalContainer}
       >
-        <SidebarNavContext value={{ mode: 'drawer', depth: 0, color, openDelay, closeDelay }}>
+        <SidebarNavContext value={{ ...navValue, mode: 'drawer', depth: 0 }}>
           <nav
             {...props}
             ref={ref}
@@ -162,9 +257,7 @@ export function Sidebar({
 
   const showHandle = resize != null && !collapsed;
   return (
-    <SidebarNavContext
-      value={{ mode: collapsed ? 'rail' : 'expanded', depth: 0, color, openDelay, closeDelay }}
-    >
+    <SidebarNavContext value={{ ...navValue, mode: collapsed ? 'rail' : 'expanded', depth: 0 }}>
       <nav
         {...props}
         ref={mergedRef}
@@ -273,7 +366,7 @@ function ResizeHandle({
     if (!d) return;
     const delta = (event.clientX - d.startX) * (d.rtl ? -1 : 1);
     const raw = d.startWidth + delta;
-    if (raw < minWidth - COLLAPSE_OVERSHOOT) {
+    if (resize.collapseOnResize && raw < minWidth - COLLAPSE_OVERSHOOT) {
       drag.current = null;
       setResizing(false);
       collapse();
@@ -329,7 +422,7 @@ function ResizeHandle({
         onDoubleClick={() => resize.setWidth(resize.defaultWidth)}
         onKeyDown={onKeyDown}
       >
-        <span aria-hidden="true" className={s.grip()} />
+        {resize.handle === 'grip' && <span aria-hidden="true" className={s.grip()} />}
       </div>
     </div>
   );

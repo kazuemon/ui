@@ -3,8 +3,13 @@ import { expect, userEvent, within } from 'storybook/test';
 import { type ReactNode } from 'react';
 
 import { Text } from '../text/Text';
-import { DemoNavbar, TournamentItems } from '../../stories/sidebar-story-parts';
-import { Sidebar } from './Sidebar';
+import {
+  AccountItems,
+  DemoNavbar,
+  TournamentItems,
+  TournamentSwitcher,
+} from '../../stories/sidebar-story-parts';
+import { Sidebar, type SidebarProps } from './Sidebar';
 import { SidebarLayout, type SidebarLayoutProps } from './SidebarLayout';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
@@ -28,6 +33,13 @@ const meta = {
           '- `color` は、いまいる行の色です。指定しないときはグレーです。',
           '- 入れ子に足す操作（グループの作成など）は、入れ子の末尾に「作成」の行（行き先を持たない SidebarItem）として置きます。`target="_blank"` の行には、右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。',
           '- 行が縦に収まらないときは、列の中がスクロールします。',
+          '- `header`・`footer` に置いた行は、列の上・下に固定され、スクロールしません（大会やワークスペースの切り替え、アカウント、設定など）。スクロールする行とのあいだには細い線を引きます（`hideEdgeLine` で消せます）。`showHeaderFill`・`showFooterFill` で、上・下それぞれに淡い面を敷けます。',
+          '- `variant="muted"` にすると、列の地が淡いグレーになります。本文との境の線は、どちらの地でも引きます。',
+          '- 行の件数は SidebarItem の `count` です（100 以上は「99+」）。数字を出さない点は `showDot` です。色は `color`（既定はグレー）です。畳んだ列では、アイコンの右上に数字の札を重ねます。点にするときは Sidebar の `collapsedCountShape="dot"` です。',
+          '- 行ごとの操作は SidebarItem の `menu` に MenuItem を並べます。行の右端に ︙ のボタンが付きます。ふだんの濃さは Sidebar の `itemMenuIndicator`（既定の `subtle` は半分の濃さで、載せると濃く）です。',
+          '- SidebarSection に `collapsible` を付けると、題を押して節を畳めます。印の濃さは Sidebar の `sectionIndicator` です。',
+          '- SidebarLayout に `resizable` を付けると、列の端をつかんで幅を変えられます（`minWidth`〜`maxWidth`。キーボードでは ← →、2 回押すとはじめの幅）。いちばん狭い幅よりさらに細くすると畳みます（`collapseOnResize={false}` で止められます）。`resizeHandle="grip"` で、つまみをいつも見せます。',
+          '- `narrowPresentation="menu"` にすると、狭い画面では Menu と同じく画面の下からシートを出し、入れ子の行を押すと中身が横に滑って入れ替わります。',
         ].join('\n'),
       },
     },
@@ -162,6 +174,150 @@ export const Colors: Story = {
       ))}
     </div>
   ),
+};
+
+/** 広い骨組み（800px）の左の一部だけを見せる。SidebarLayout は置かれた面が 48rem より狭いと Drawer にするため */
+function Cropped({
+  label,
+  width = 360,
+  height = 400,
+  ...props
+}: Omit<SidebarLayoutProps, 'children'> & { label: string; width?: number; height?: number }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Text variant="muted">{label}</Text>
+      <div style={{ width, height }} className="overflow-hidden border border-line">
+        <div style={{ width: 800, height }}>
+          <SidebarLayout header={<DemoNavbar />} {...props}>
+            <Content />
+          </SidebarLayout>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashboardSidebar(props: Partial<SidebarProps>) {
+  return (
+    <Sidebar header={<TournamentSwitcher />} footer={<AccountItems />} {...props}>
+      <TournamentItems dashboard />
+    </Sidebar>
+  );
+}
+
+export const Dashboard: Story = {
+  name: '管理画面（上下の固定・件数・行ごとの操作）',
+  tags: ['visual'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-wrap gap-4 p-4">
+      <Cropped label="開いた列" height={640} resizable sidebar={<DashboardSidebar />} />
+      <Cropped
+        label="畳んだ列"
+        width={200}
+        height={640}
+        defaultCollapsed
+        sidebar={<DashboardSidebar />}
+      />
+      <Cropped
+        label='畳んだ列（collapsedCountShape="dot"）'
+        width={200}
+        height={640}
+        defaultCollapsed
+        sidebar={<DashboardSidebar collapsedCountShape="dot" />}
+      />
+    </div>
+  ),
+};
+
+export const Surfaces: Story = {
+  name: '列の地と上下の面',
+  tags: ['visual'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-wrap gap-4 p-4">
+      {(
+        [
+          ['plain（既定）', {}],
+          ['muted', { variant: 'muted' }],
+          ['hideEdgeLine', { hideEdgeLine: true }],
+          ['showHeaderFill', { showHeaderFill: true }],
+          ['muted・上下の面', { variant: 'muted', showHeaderFill: true, showFooterFill: true }],
+        ] as const
+      ).map(([label, props]) => (
+        <Cropped
+          key={label}
+          label={label}
+          width={340}
+          height={380}
+          sidebar={<DashboardSidebar {...props} />}
+        />
+      ))}
+    </div>
+  ),
+};
+
+export const Indicators: Story = {
+  name: '行ごとの操作と節の印の濃さ',
+  tags: ['visual'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-wrap gap-4 p-4">
+      {(['subtle', 'always', 'hover'] as const).map((indicator) => (
+        <Cropped
+          key={indicator}
+          label={indicator === 'subtle' ? 'subtle（既定）' : indicator}
+          width={340}
+          height={600}
+          sidebar={<DashboardSidebar itemMenuIndicator={indicator} sectionIndicator={indicator} />}
+        />
+      ))}
+    </div>
+  ),
+};
+
+export const Resize: Story = {
+  name: '幅を変える',
+  parameters: { controls: { disable: true } },
+  render: () => <Frame resizable resizeHandle="grip" sidebar={<DashboardSidebar />} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole('separator', { name: '列の幅' });
+    const before = Number(handle.getAttribute('aria-valuenow'));
+    handle.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(handle).toHaveAttribute('aria-valuenow', String(before + 16));
+    await userEvent.keyboard('{Home}');
+    await expect(handle).toHaveAttribute('aria-valuenow', '200');
+    // 行ごとの操作のボタンは、行の名前と合わせて読む
+    await expect(
+      canvas.getByRole('button', { name: 'Aグループ その他の操作' })
+    ).toBeInTheDocument();
+    // 畳める節は、題が開け閉めのボタンになる
+    const section = canvas.getByRole('button', { name: '関連情報' });
+    await expect(section).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(section);
+    await expect(section).toHaveAttribute('aria-expanded', 'false');
+  },
+};
+
+export const NarrowMenu: Story = {
+  name: '狭い画面（Menu のシート）',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="p-6">
+      <Frame width={400} height={560} sidebar={<DashboardSidebar narrowPresentation="menu" />} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'メニューを開閉する' }));
+    const body = within(canvasElement.ownerDocument.body);
+    const menu = await body.findByRole('menu');
+    // 入れ子の行を押すと、同じシートの中で入れ子の中身に入れ替わる
+    await userEvent.click(within(menu).getByRole('menuitem', { name: /ステージ/ }));
+    await expect(await body.findByRole('menuitem', { name: /予選リーグ/ })).toBeVisible();
+  },
 };
 
 export const Narrow: Story = {

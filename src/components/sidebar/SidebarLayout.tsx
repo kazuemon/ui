@@ -15,6 +15,7 @@ import { Button } from '../button/Button';
 import {
   type SidebarMotion,
   type SidebarPlacement,
+  type SidebarResizeHandle,
   SidebarLayoutContext,
   useSidebarLayout,
 } from './sidebar-context';
@@ -76,6 +77,16 @@ export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'childre
    * @default 480
    */
   maxWidth?: number;
+  /**
+   * 幅を変えるつまみの見せ方。line はふだん境の線だけで、載せると濃い線になります。grip は境の真ん中に小さなつまみをいつも出します
+   * @default 'line'
+   */
+  resizeHandle?: SidebarResizeHandle;
+  /**
+   * 幅を変えるとき、いちばん狭い幅よりさらに細くしたら列を畳むか
+   * @default true
+   */
+  collapseOnResize?: boolean;
   /** いちばん外の要素に付きます。高さは、置く場所で決めます（親の高さいっぱいに広がります） */
   className?: string;
 }
@@ -98,6 +109,8 @@ export function SidebarLayout({
   onWidthChange,
   minWidth = 200,
   maxWidth = 480,
+  resizeHandle = 'line',
+  collapseOnResize = true,
   className,
   ref,
   ...props
@@ -117,6 +130,7 @@ export function SidebarLayout({
   const [narrow, setNarrow] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRef = useMergedRefs(rootRef, ref);
 
@@ -153,7 +167,18 @@ export function SidebarLayout({
         setMobileOpen,
         motion,
         navId,
-        resize: resizable ? { width, setWidth, defaultWidth, minWidth, maxWidth } : null,
+        triggerRef,
+        resize: resizable
+          ? {
+              width,
+              setWidth,
+              defaultWidth,
+              minWidth,
+              maxWidth,
+              handle: resizeHandle,
+              collapseOnResize,
+            }
+          : null,
       }}
     >
       <div
@@ -203,11 +228,12 @@ export function SidebarTrigger({
   accessibleName = 'メニューを開閉する',
   className,
 }: SidebarTriggerProps) {
-  const { collapsed, setCollapsed, narrow, mobileOpen, setMobileOpen, navId } =
+  const { collapsed, setCollapsed, narrow, mobileOpen, setMobileOpen, navId, triggerRef } =
     useSidebarLayout('SidebarTrigger');
   const expanded = narrow ? mobileOpen : !collapsed;
   return (
     <Button
+      ref={triggerRef}
       iconOnly
       variant="outline"
       aria-label={accessibleName}
