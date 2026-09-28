@@ -5,7 +5,6 @@ import {
   Container,
   Grid,
   Link,
-  LinkCard,
   Prose,
   TableOfContents,
   type TableOfContentsItem,
@@ -13,6 +12,7 @@ import {
 } from '@kazuemon/ui';
 import NextLink from 'next/link';
 
+import { ExampleCard } from '../examples/example-card';
 import { examples } from '../examples/manifest';
 import { SiteHeader } from './site-header';
 
@@ -144,14 +144,8 @@ export default function Home() {
             </Prose>
 
             <Grid columns={{ base: 1, sm: 3 }} className="mt-4">
-              {featuredExamples.map(({ slug, title, description }) => (
-                <LinkCard
-                  key={slug}
-                  title={title}
-                  description={description}
-                  site={false}
-                  render={<NextLink href={`/examples/${slug}`} />}
-                />
+              {featuredExamples.map((example) => (
+                <ExampleCard key={example.slug} example={example} headingLevel={4} />
               ))}
             </Grid>
 

@@ -12,7 +12,7 @@ import type { Example } from './types';
 export const example: Example = {
   slug: 'article',
   title: '記事',
-  description: 'ブログの記事。囲みや引用の見た目を組み合わせて確かめます',
+  description: '見出し・引用・囲み・コード・図を並べた、ブログの記事 1 本',
   controls: [
     {
       name: 'callout',

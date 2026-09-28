@@ -365,7 +365,7 @@ function ListPage({
 export const example: Example = {
   slug: 'list',
   title: '一覧',
-  description: '検索・絞り込みができる表と、行から開く詳細です。',
+  description: 'メンバーを管理する画面の一覧。行から詳細を開く',
   initialLabel: '読み込み済み',
   presets: [
     { label: '読み込み中', args: { state: 'loading' } },

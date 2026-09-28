@@ -246,7 +246,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
 export const example: Example = {
   slug: 'reservation',
   title: '予約',
-  description: '美容室の予約。カレンダーで日を、ボタンで時刻を選び、確認のダイアログを挟みます。',
+  description: '日と時刻を選んで予約する画面',
   initialLabel: '選ぶ前',
   presets: [
     { label: '日時を選んだ', args: { scenario: 'chosen' } },

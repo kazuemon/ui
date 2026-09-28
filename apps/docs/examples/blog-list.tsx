@@ -336,7 +336,7 @@ function BlogListScreen({
 export const example: Example = {
   slug: 'blog-list',
   title: '記事一覧',
-  description: 'ブログの記事をカードで並べた一覧。言葉で探す・タグで絞る・並べ替えるを確かめます。',
+  description: 'ブログの記事をカードで並べた一覧',
   initialLabel: '読み込み済み',
   presets: [
     { label: '読み込み中', args: { state: 'loading' } },

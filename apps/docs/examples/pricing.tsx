@@ -11,6 +11,7 @@ import {
   Heading,
   Icon,
   NumberFormat,
+  ScrollArea,
   Tab,
   Table,
   TableBody,
@@ -263,9 +264,9 @@ function PricingScreen({
         <Heading level={2} size={3}>
           機能を比べる
         </Heading>
-        <div className="overflow-x-auto">
+        <ScrollArea orientation="horizontal" accessibleName="機能を比べる表">
           <ComparisonTable />
-        </div>
+        </ScrollArea>
       </section>
 
       <section className="flex flex-col gap-4">
@@ -291,7 +292,7 @@ function PricingScreen({
 export const example: Example = {
   slug: 'pricing',
   title: '料金プラン',
-  description: '3 つのプランのカード、月払いと年払いの切り替え、機能を比べる表、よくある質問です。',
+  description: '料金プランを紹介して、比べてもらうページ',
   initialLabel: '月払い・サインイン前',
   presets: [
     { label: '年払い', args: { billing: 'yearly' } },

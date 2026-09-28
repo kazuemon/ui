@@ -3,7 +3,13 @@
 import { ToastProvider } from '@kazuemon/ui';
 
 import { SamplePage } from './sample-page';
-import { ResetPasswordScreen, type Scenario, SignInScreen, SignUpScreen } from './sign-in-parts';
+import {
+  ResetPasswordScreen,
+  type Scenario,
+  SignInScreen,
+  SignUpScreen,
+  VerifyCodeScreen,
+} from './sign-in-parts';
 import type { Example } from './types';
 
 // サインイン・新規登録・パスワードの再設定。自分で打って送ると、検証のエラー →
@@ -19,7 +25,7 @@ const scenarios = [
 export const signIn: Example = {
   slug: 'sign-in',
   title: 'サインイン',
-  description: '検証のエラー・送信中・サーバーの返事を、ボタン 1 つで出せます',
+  description: 'メールアドレスとパスワードで入る画面',
   presets: scenarios,
   initialLabel: '入力前',
   controls: [{ name: 'remember', label: 'サインインしたままにする欄を出す', type: 'switch' }],
@@ -36,7 +42,7 @@ export const signIn: Example = {
 export const signUp: Example = {
   slug: 'sign-up',
   title: '新規登録',
-  description: '複数の欄の検証と、エラーの一覧（errorSummary）を確かめます',
+  description: 'いくつかの欄を入れて、アカウントを作る画面',
   presets: scenarios,
   initialLabel: '入力前',
   controls: [{ name: 'errorSummary', label: 'エラーの一覧を出す', type: 'switch' }],
@@ -54,7 +60,7 @@ export const signUp: Example = {
 export const resetPassword: Example = {
   slug: 'reset-password',
   title: 'パスワードの再設定',
-  description: '1 つの欄だけの画面。送ったあとの案内まで出します',
+  description: 'メールアドレスを入れて、再設定の案内を送る画面',
   presets: scenarios,
   initialLabel: '入力前',
   controls: [],
@@ -62,6 +68,23 @@ export const resetPassword: Example = {
   Screen: ({ args, density }) => (
     <SamplePage density={density} bare>
       <ResetPasswordScreen scenario={args.scenario as Scenario} />
+    </SamplePage>
+  ),
+};
+
+export const verifyCode: Example = {
+  slug: 'verify-code',
+  title: '確認コード',
+  description: 'メールで届いた確認コードを入れる画面',
+  presets: scenarios,
+  initialLabel: '入力前',
+  controls: [],
+  defaults: { scenario: 'empty' },
+  Screen: ({ args, density }) => (
+    <SamplePage density={density} bare>
+      <ToastProvider timeout={4000}>
+        <VerifyCodeScreen scenario={args.scenario as Scenario} />
+      </ToastProvider>
     </SamplePage>
   ),
 };

@@ -301,8 +301,7 @@ function SnsScreen({
 export const example: Example = {
   slug: 'sns',
   title: 'SNS',
-  description:
-    'タイムライン・タブ・投稿のメニュー・プロフィールのプレビューを備えた SNS の見本です。',
+  description: '小さなコミュニティの SNS のタイムライン',
   initialLabel: '読み込み中',
   presets: [{ label: '読み込み済み', args: { initialLoading: false } }],
   controls: [

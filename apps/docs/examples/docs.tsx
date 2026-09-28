@@ -13,14 +13,23 @@ import {
   CodeGroup,
   type CodeGroupIndicator,
   Drawer,
+  FileTree,
+  FileTreeItem,
   Heading,
+  HeadingAnchor,
   Icon,
   Link,
+  Mark,
   Navbar,
   type NavbarCurrentIndicator,
   NavbarLink,
   Pager,
   Prose,
+  ScrollArea,
+  SearchField,
+  SkipLink,
+  Step,
+  Steps,
   TableOfContents,
   Text,
   Time,
@@ -28,15 +37,18 @@ import {
   TreeItem,
 } from '@kazuemon/ui';
 import { ListIcon } from '@phosphor-icons/react';
+import { type ReactNode, useState } from 'react';
 
 import { bunHtml, jsxHtml, npmHtml, pnpmHtml, tsxHtml, yarnHtml } from './code-group-fixtures';
 import { SamplePage } from './sample-page';
 import type { Example } from './types';
 
-// 見本のページ: ドキュメントサイト。上に Navbar、左に Tree（狭い幅では Drawer）、本文、右にページ内の目次（広い幅だけ）、下に Pager
+// 見本のページ: ドキュメントサイト。先頭に本文へ飛ぶ SkipLink、上に Navbar、左に検索の欄と Tree の目次
+// （長いので ScrollArea の中。狭い幅では Drawer）、本文、右にページ内の目次（広い幅だけ）、下に Pager。
+// 本文の見出しには HeadingAnchor、導入は Steps、ファイルの置き場所は FileTree で見せる。
+// 検索の欄に語を打つと、目次の代わりに一致したページを並べ、一致した語を Mark で目立たせる
 const tocItems = [
-  { id: 'add-package', text: 'パッケージを追加する', level: 2 },
-  { id: 'try-it', text: '使ってみる', level: 2 },
+  { id: 'setup', text: '導入の手順', level: 2 },
   { id: 'faq', text: 'よくある質問', level: 2 },
 ];
 
@@ -47,17 +59,143 @@ const nav = (
       <TreeItem label="インストール" href="#install" current />
       <TreeItem label="Tailwind の設定" href="#tailwind" />
       <TreeItem label="テーマと密度" href="#theme" />
+      <TreeItem label="フォント" href="#fonts" />
     </TreeItem>
     <TreeItem label="部品" defaultExpanded>
       <TreeItem label="Button" href="#button" />
+      <TreeItem label="Link" href="#link" />
       <TreeItem label="入力" defaultExpanded>
         <TreeItem label="TextField" href="#text-field" />
+        <TreeItem label="SearchField" href="#search-field" />
         <TreeItem label="Checkbox" href="#checkbox" />
+        <TreeItem label="Select" href="#select" />
+      </TreeItem>
+      <TreeItem label="重なる面" defaultExpanded>
+        <TreeItem label="Dialog" href="#dialog" />
+        <TreeItem label="Drawer" href="#drawer" />
+        <TreeItem label="Popover" href="#popover" />
+      </TreeItem>
+      <TreeItem label="読みもの" defaultExpanded>
+        <TreeItem label="Prose" href="#prose" />
+        <TreeItem label="CodeBlock" href="#code-block" />
+        <TreeItem label="Steps" href="#steps" />
       </TreeItem>
     </TreeItem>
     <TreeItem label="デザイン原則" href="#principles" />
+    <TreeItem label="更新の記録" href="#changelog" />
   </Tree>
 );
+
+/** 検索の対象。ページの題・置き場所・書き出し */
+const searchIndex = [
+  {
+    href: '#intro',
+    title: 'はじめに',
+    section: 'ドキュメント',
+    excerpt: 'かずえもんのための部品集です。React と Tailwind CSS で動きます。',
+  },
+  {
+    href: '#install',
+    title: 'インストール',
+    section: '導入',
+    excerpt: 'パッケージを追加して、スタイルを読み込みます。',
+  },
+  {
+    href: '#tailwind',
+    title: 'Tailwind の設定',
+    section: '導入',
+    excerpt: 'CSS の入口で tailwind.css を読み込み、テーマの値を使えるようにします。',
+  },
+  {
+    href: '#theme',
+    title: 'テーマと密度',
+    section: '導入',
+    excerpt: 'ダークモードは ThemeProvider で、指とマウスの密度は data-density で切り替えます。',
+  },
+  {
+    href: '#fonts',
+    title: 'フォント',
+    section: '導入',
+    excerpt: '欧文と和文のフォントを、別々の CSS で読み込みます。',
+  },
+  {
+    href: '#button',
+    title: 'Button',
+    section: '部品',
+    excerpt: '押すと何かが起きるボタン。色と見た目を選べます。',
+  },
+  {
+    href: '#search-field',
+    title: 'SearchField',
+    section: '部品 / 入力',
+    excerpt: '検索の語を打つ欄。Esc で値を消せます。',
+  },
+  {
+    href: '#drawer',
+    title: 'Drawer',
+    section: '部品 / 重なる面',
+    excerpt: '画面の端から出る面。狭い幅の目次やメニューに使います。',
+  },
+  {
+    href: '#steps',
+    title: 'Steps',
+    section: '部品 / 読みもの',
+    excerpt: '番号の付いた手順。導入の説明に使います。',
+  },
+  {
+    href: '#principles',
+    title: 'デザイン原則',
+    section: 'ドキュメント',
+    excerpt: '部品の見た目と振る舞いを決めている考えです。',
+  },
+];
+
+/** text の中の query（大文字と小文字は区別しない）を Mark で包む */
+function highlight(text: string, query: string): ReactNode {
+  const needle = query.toLowerCase();
+  const lower = text.toLowerCase();
+  const parts: ReactNode[] = [];
+  let from = 0;
+  let at = lower.indexOf(needle);
+  while (at !== -1) {
+    if (at > from) parts.push(text.slice(from, at));
+    parts.push(<Mark key={at}>{text.slice(at, at + needle.length)}</Mark>);
+    from = at + needle.length;
+    at = lower.indexOf(needle, from);
+  }
+  if (from < text.length) parts.push(text.slice(from));
+  return parts;
+}
+
+/** 検索の結果。題・置き場所・書き出しのどれかに語を含むページを並べる */
+function SearchResults({ query }: { query: string }) {
+  const needle = query.toLowerCase();
+  const hits = searchIndex.filter((page) =>
+    [page.title, page.section, page.excerpt].some((text) => text.toLowerCase().includes(needle))
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <Text size="sm" variant="subtle" role="status">
+        {hits.length > 0
+          ? `${hits.length} 件見つかりました`
+          : `「${query}」に一致するページはありません`}
+      </Text>
+      {hits.length > 0 && (
+        <ul className="flex flex-col gap-4">
+          {hits.map((page) => (
+            <li key={page.href} className="flex flex-col gap-1">
+              <Link href={page.href}>{highlight(page.title, query)}</Link>
+              <Text size="sm" variant="subtle">
+                {highlight(page.section, query)}
+              </Text>
+              <Text size="sm">{highlight(page.excerpt, query)}</Text>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function DocsScreen({
   navbarCurrentIndicator,
@@ -72,8 +210,22 @@ function DocsScreen({
   codeGroupIndicator: CodeGroupIndicator;
   accordionAppearance: AccordionVariant;
 }) {
+  const [query, setQuery] = useState('');
+  const searching = query.trim() !== '';
+  const search = (
+    <SearchField
+      label="ドキュメント内を検索"
+      placeholder="例: テーマ"
+      value={query}
+      onValueChange={setQuery}
+    />
+  );
+  // 語があるあいだは、目次の代わりに検索の結果を出す
+  const sidebarBody = searching ? <SearchResults query={query.trim()} /> : nav;
+
   return (
     <>
+      <SkipLink href="#docs-main" />
       <Navbar
         sticky={navbarSticky}
         currentIndicator={navbarCurrentIndicator}
@@ -93,8 +245,18 @@ function DocsScreen({
         <NavbarLink href="#blog">ブログ</NavbarLink>
       </Navbar>
       <div className="mx-auto flex max-w-[1280px] gap-10 px-5 py-8">
-        <aside className="sticky top-20 hidden h-fit w-60 shrink-0 lg:block">{nav}</aside>
-        <main className="min-w-0 flex-1">
+        {/* 目次が画面より長いときは、ScrollArea の中だけをスクロールさせる（ページは動かさない） */}
+        <aside className="sticky top-20 hidden h-fit w-60 shrink-0 flex-col gap-4 lg:flex">
+          {search}
+          <ScrollArea
+            accessibleName={searching ? '検索の結果' : 'ドキュメントの目次'}
+            orientation="vertical"
+            className="max-h-[calc(100dvh-13rem)]"
+          >
+            {sidebarBody}
+          </ScrollArea>
+        </aside>
+        <main id="docs-main" className="min-w-0 flex-1">
           <div className="mb-4 lg:hidden">
             <Drawer
               side="left"
@@ -106,7 +268,10 @@ function DocsScreen({
                 </Button>
               }
             >
-              {nav}
+              <div className="flex flex-col gap-4">
+                {search}
+                {sidebarBody}
+              </div>
             </Drawer>
           </div>
           <Breadcrumb>
@@ -123,20 +288,6 @@ function DocsScreen({
               を使うプロジェクトで動きます。
             </p>
           </Prose>
-          <Heading level={2} size={3} id="add-package" className="mt-10">
-            パッケージを追加する
-          </Heading>
-          <Prose className="mt-2">
-            <p>お使いのパッケージマネージャで追加します。</p>
-          </Prose>
-          <div data-reading className="mt-4">
-            <CodeGroup indicator={codeGroupIndicator}>
-              <CodeBlock title="pnpm" html={pnpmHtml} />
-              <CodeBlock title="npm" html={npmHtml} />
-              <CodeBlock title="yarn" html={yarnHtml} />
-              <CodeBlock title="bun" html={bunHtml} />
-            </CodeGroup>
-          </div>
           <Callout
             status="warning"
             variant={calloutAppearance}
@@ -146,20 +297,51 @@ function DocsScreen({
             スタイルは Tailwind CSS v4 の <code>@theme</code> を前提にしています。先に Tailwind
             を入れてください。
           </Callout>
-          <Heading level={2} size={3} id="try-it" className="mt-10">
-            使ってみる
+          <Heading level={2} size={3} id="setup" className="mt-10">
+            導入の手順
+            <HeadingAnchor href="#setup" />
           </Heading>
-          <Prose className="mt-2">
-            <p>部品は名前つきで読み込みます。ボタンを置く例です。</p>
-          </Prose>
           <div data-reading className="mt-4">
-            <CodeGroup indicator={codeGroupIndicator}>
-              <CodeBlock title="TypeScript" html={tsxHtml} />
-              <CodeBlock title="JavaScript" html={jsxHtml} />
-            </CodeGroup>
+            <Steps>
+              <Step title="パッケージを追加する">
+                <p>お使いのパッケージマネージャで追加します。</p>
+                <CodeGroup indicator={codeGroupIndicator}>
+                  <CodeBlock title="pnpm" html={pnpmHtml} />
+                  <CodeBlock title="npm" html={npmHtml} />
+                  <CodeBlock title="yarn" html={yarnHtml} />
+                  <CodeBlock title="bun" html={bunHtml} />
+                </CodeGroup>
+              </Step>
+              <Step title="スタイルを読み込む">
+                <p>
+                  アプリの CSS の入口で、Tailwind のあとに読み込みます。Next.js
+                  なら、ふつうは次の場所です。
+                </p>
+                <FileTree title="my-app">
+                  <FileTreeItem label="app">
+                    <FileTreeItem label="layout.tsx" comment="globals.css を読み込む" />
+                    <FileTreeItem label="globals.css" comment="ここに書き足す" highlighted />
+                    <FileTreeItem label="page.tsx" />
+                  </FileTreeItem>
+                  <FileTreeItem label="package.json" />
+                  <FileTreeItem label="postcss.config.mjs" />
+                </FileTree>
+                <CodeBlock title="app/globals.css">
+                  <code>{"@import 'tailwindcss';\n@import '@kazuemon/ui/tailwind.css';"}</code>
+                </CodeBlock>
+              </Step>
+              <Step title="部品を置く">
+                <p>部品は名前つきで読み込みます。ボタンを置く例です。</p>
+                <CodeGroup indicator={codeGroupIndicator}>
+                  <CodeBlock title="TypeScript" html={tsxHtml} />
+                  <CodeBlock title="JavaScript" html={jsxHtml} />
+                </CodeGroup>
+              </Step>
+            </Steps>
           </div>
           <Heading level={2} size={3} id="faq" className="mt-10">
             よくある質問
+            <HeadingAnchor href="#faq" />
           </Heading>
           <Accordion variant={accordionAppearance} className="mt-2">
             <AccordionItem value="react" title="React のバージョンは？">
@@ -196,8 +378,7 @@ function DocsScreen({
 export const example: Example = {
   slug: 'docs',
   title: 'ドキュメント',
-  description:
-    'ドキュメントサイトの見本。上の帯・左の目次（狭い幅では Drawer）・本文・前後のページを部品だけで組みます。',
+  description: '上の帯・左の目次・本文・ページ内の目次で組んだドキュメントサイト',
   controls: [
     {
       name: 'navbarCurrentIndicator',

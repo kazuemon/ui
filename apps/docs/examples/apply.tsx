@@ -379,7 +379,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
 export const example: Example = {
   slug: 'apply',
   title: '申込フォーム',
-  description: '勉強会の申し込み。入力・確認・完了の 3 つの画面と、必須と任意の印を確かめます。',
+  description: '勉強会の申し込み。入力・確認・完了の 3 つの画面',
   initialLabel: '入力前',
   presets: [
     { label: '検証のエラー', args: { scenario: 'invalid' } },

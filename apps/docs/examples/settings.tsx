@@ -7,21 +7,31 @@ import {
   Checkbox,
   CheckboxGroup,
   type CaptionPlacement,
+  Dropzone,
+  DropzoneFileList,
+  type DropzoneRejection,
   Heading,
   Link,
+  MaskField,
   Notice,
+  PasswordField,
+  PinField,
   Radio,
   RadioGroup,
   Select,
+  Slider,
   Switch,
   Tab,
   TabList,
   TabPanel,
   Tabs,
   type TabsColor,
+  type TabValue,
   Text,
   Textarea,
   TextField,
+  Temporal,
+  TimeField,
   type ToastVariant,
   ToastProvider,
   type ToastPosition,
@@ -34,6 +44,9 @@ import { town } from './sites';
 import { environmentNote, type Example } from './types';
 
 // 設定の画面: タブで分けた設定と、保存のお知らせ（Toast）、取り消せない操作の確認（AlertDialog）
+// アカウント: アイコン画像（Dropzone）・ウェブサイト（https:// の prefix）
+// セキュリティ: パスワードの変更（PasswordField）・二段階認証（電話番号の MaskField と、確認コードの PinField）
+// 通知: 通知を止める時間帯（TimeField）。表示: 文字の大きさ（Slider）
 
 interface SettingsArgs {
   tabsColor: TabsColor;
@@ -69,10 +82,58 @@ function SaveBar({ label = '保存する' }: { label?: string }) {
   );
 }
 
-function AccountPanel({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+const rejectionText: Record<DropzoneRejection['reason'], string> = {
+  accept: 'PNG か JPEG の画像を選んでください',
+  maxSize: '5MB までの画像を選んでください',
+  maxFiles: '画像は 1 つだけ選べます',
+};
+
+// 通知を止める時間帯の初めの値（夜 23 時から朝 7 時まで）
+const quietStart = Temporal.PlainTime.from('23:00');
+const quietEnd = Temporal.PlainTime.from('07:00');
+
+// 携帯電話・IP 電話（070・080・090・050）は 3-4-4、ほかは 2-4-4
+const phoneMask = (value: string) =>
+  /^0[5789]0/.test(value.replace(/\D/g, '')) ? '###-####-####' : '##-####-####';
+
+function AvatarField({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  const [files, setFiles] = useState<File[]>([]);
+  const [rejections, setRejections] = useState<DropzoneRejection[]>([]);
+  return (
+    <div className="flex flex-col gap-3">
+      <Dropzone
+        label="アイコン"
+        caption="PNG・JPEG、5MB まで。正方形に切り取って表示します"
+        captionPlacement={captionPlacement}
+        accept="image/png,image/jpeg"
+        maxSize={5 * 1000 * 1000}
+        value={files}
+        onValueChange={(next) => {
+          setFiles(next);
+          setRejections([]);
+        }}
+        onFilesRejected={setRejections}
+        errorText={rejections.length > 0 ? rejectionText[rejections[0].reason] : undefined}
+      />
+      <DropzoneFileList
+        files={files.map((file) => ({ file }))}
+        onRemove={(file) => setFiles((current) => current.filter((f) => f !== file))}
+      />
+    </div>
+  );
+}
+
+function AccountPanel({
+  captionPlacement,
+  onOpenSecurity,
+}: {
+  captionPlacement: CaptionPlacement;
+  onOpenSecurity: () => void;
+}) {
   return (
     <div className="flex flex-col gap-8">
       <Section title="プロフィール">
+        <AvatarField captionPlacement={captionPlacement} />
         <TextField
           label="表示名"
           defaultValue="かずえもん"
@@ -92,6 +153,15 @@ function AccountPanel({ captionPlacement }: { captionPlacement: CaptionPlacement
           captionPlacement={captionPlacement}
           minRows={3}
         />
+        <TextField
+          label="ウェブサイト"
+          prefix="https://"
+          placeholder="例: example.com"
+          type="url"
+          autoComplete="url"
+          caption="プロフィールに載せるリンクです"
+          captionPlacement={captionPlacement}
+        />
         <Select
           label="言語"
           items={[
@@ -102,14 +172,104 @@ function AccountPanel({ captionPlacement }: { captionPlacement: CaptionPlacement
         />
       </Section>
       <Text size="sm" variant="subtle">
-        メールアドレスの変更は、<Link href="#security">セキュリティ</Link>から行います。
+        メールアドレスとパスワードの変更は、
+        <Link
+          href="#security"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenSecurity();
+          }}
+        >
+          セキュリティ
+        </Link>
+        から行います。
       </Text>
       <SaveBar />
     </div>
   );
 }
 
+function TwoFactorSection({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  const [enabled, setEnabled] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const toast = useToast();
+  return (
+    <Section title="二段階認証">
+      <Switch
+        label="二段階認証を使う"
+        caption="ログインのたびに、SMS で届くコードを確かめます"
+        checked={enabled}
+        onCheckedChange={(next) => {
+          setEnabled(next);
+          setVerified(false);
+        }}
+      />
+      {enabled &&
+        (verified ? (
+          <Notice status="success" title="二段階認証を有効にしました">
+            次のログインから、SMS で届くコードを入力します。
+          </Notice>
+        ) : (
+          <>
+            <MaskField
+              label="電話番号"
+              mask={phoneMask}
+              type="tel"
+              autoComplete="tel"
+              defaultValue="09012345678"
+              caption="この番号に確認コードを送ります"
+              captionPlacement={captionPlacement}
+            />
+            <PinField
+              label="確認コード"
+              caption="SMS で届いた 6 桁のコードを入力します"
+              captionPlacement={captionPlacement}
+              showEmptyDots
+              onValueCompleted={() => {
+                setVerified(true);
+                toast.show({
+                  status: 'success',
+                  title: '二段階認証を有効にしました',
+                  timeout: 4000,
+                });
+              }}
+            />
+          </>
+        ))}
+    </Section>
+  );
+}
+
+function SecurityPanel({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  return (
+    <div className="flex flex-col gap-8">
+      <Section title="メールアドレス">
+        <TextField
+          label="メールアドレス"
+          type="email"
+          autoComplete="email"
+          defaultValue="kazuemon@example.com"
+          caption="変更すると、新しいアドレスに確認のメールが届きます"
+          captionPlacement={captionPlacement}
+        />
+      </Section>
+      <Section title="パスワードの変更">
+        <PasswordField label="いまのパスワード" autoComplete="current-password" />
+        <PasswordField
+          label="新しいパスワード"
+          autoComplete="new-password"
+          caption="8 文字以上で、英字と数字を混ぜます"
+          captionPlacement={captionPlacement}
+        />
+      </Section>
+      <SaveBar />
+      <TwoFactorSection captionPlacement={captionPlacement} />
+    </div>
+  );
+}
+
 function NotificationPanel({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  const [quiet, setQuiet] = useState(true);
   return (
     <div className="flex flex-col gap-8">
       <Section title="通知の方法">
@@ -130,6 +290,18 @@ function NotificationPanel({ captionPlacement }: { captionPlacement: CaptionPlac
           <Checkbox value="news" label="お知らせ" caption="新しい機能や、メンテナンスの予定です" />
         </CheckboxGroup>
       </Section>
+      <Section title="通知を止める時間帯">
+        <Switch
+          label="夜は通知を止める"
+          caption="この時間帯に届いた通知は、終わる時刻にまとめて届きます"
+          checked={quiet}
+          onCheckedChange={setQuiet}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <TimeField label="始まり" defaultValue={quietStart} disabled={!quiet} />
+          <TimeField label="終わり" defaultValue={quietEnd} disabled={!quiet} />
+        </div>
+      </Section>
       <SaveBar />
     </div>
   );
@@ -144,16 +316,17 @@ function DisplayPanel({ captionPlacement }: { captionPlacement: CaptionPlacement
           <Radio value="light" label="ライト" />
           <Radio value="dark" label="ダーク" />
         </RadioGroup>
-        <RadioGroup
+        <Slider
           label="文字の大きさ"
-          caption="読みやすい大きさを選びます"
+          caption="読みやすい大きさにします"
           captionPlacement={captionPlacement}
-          defaultValue="md"
-        >
-          <Radio value="sm" label="小" />
-          <Radio value="md" label="標準" />
-          <Radio value="lg" label="大" />
-        </RadioGroup>
+          defaultValue={1}
+          min={0.8}
+          max={1.5}
+          step={0.1}
+          largeStep={0.2}
+          format={{ style: 'percent' }}
+        />
         <Switch label="動きを減らす" caption="画面の動きを小さくします" />
       </Section>
       <SaveBar />
@@ -191,6 +364,7 @@ function DangerPanel({ dangerTone }: { dangerTone: AlertDialogColor }) {
 }
 
 function SettingsScreen({ args }: { args: SettingsArgs }) {
+  const [tab, setTab] = useState<TabValue>('account');
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -198,18 +372,25 @@ function SettingsScreen({ args }: { args: SettingsArgs }) {
           設定
         </Heading>
         <Text variant="muted" className="mt-1">
-          アカウントと通知、表示の設定です。
+          アカウントとセキュリティ、通知、表示の設定です。
         </Text>
       </div>
-      <Tabs defaultValue="account" color={args.tabsColor} panelGap="lg">
+      <Tabs value={tab} onValueChange={setTab} color={args.tabsColor} panelGap="lg">
         <TabList aria-label="設定の項目">
           <Tab value="account">アカウント</Tab>
+          <Tab value="security">セキュリティ</Tab>
           <Tab value="notification">通知</Tab>
           <Tab value="display">表示</Tab>
           <Tab value="danger">危険な操作</Tab>
         </TabList>
         <TabPanel value="account">
-          <AccountPanel captionPlacement={args.captionPlacement} />
+          <AccountPanel
+            captionPlacement={args.captionPlacement}
+            onOpenSecurity={() => setTab('security')}
+          />
+        </TabPanel>
+        <TabPanel value="security">
+          <SecurityPanel captionPlacement={args.captionPlacement} />
         </TabPanel>
         <TabPanel value="notification">
           <NotificationPanel captionPlacement={args.captionPlacement} />
@@ -228,7 +409,7 @@ function SettingsScreen({ args }: { args: SettingsArgs }) {
 export const example: Example = {
   slug: 'settings',
   title: '設定',
-  description: 'タブで分けた設定画面。保存はトーストで知らせ、削除は確認のダイアログを挟みます。',
+  description: 'アカウント・通知・表示などを、タブで分けた設定の画面',
   controls: [
     {
       name: 'tabsColor',
