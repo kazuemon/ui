@@ -1,6 +1,12 @@
 'use client';
 
-import { type ComponentProps, type KeyboardEvent, type ReactNode, useState } from 'react';
+import {
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { CodeIcon, PlayIcon, XLogoIcon } from '../../internal/icons';
@@ -19,6 +25,8 @@ import { AspectRatio } from '../aspect-ratio/AspectRatio';
 //   渡せるようにするため、中身を持てない実際の button 要素にはしていない
 
 type EmbedStatus = 'idle' | 'loading' | 'loaded';
+
+const subscribeNothing = () => () => {};
 
 /** どのサービスの埋め込みか。既定の比率・アイコン・allow 属性を決める */
 export type EmbedProvider = 'youtube' | 'vimeo' | 'x' | 'codepen' | 'custom';
@@ -177,6 +185,12 @@ export function Embed({
 }: EmbedProps) {
   const config = embedProviders[provider];
   const [status, setStatus] = useState<EmbedStatus>(clickToLoad ? 'idle' : 'loading');
+  // iframe は描いたあとに作る。サーバーで描いた HTML に入れると、hydrate の前に load が終わって onLoad を取り逃し、読み込み中のまま残る
+  const mounted = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false
+  );
   const s = styles();
   const Icon = config.icon;
   const load = () => setStatus('loading');
@@ -195,7 +209,7 @@ export function Embed({
         {...(frameProps as ComponentProps<'div'>)}
         className={s.frame({ className: frameProps?.className })}
       >
-        {status !== 'idle' && (
+        {status !== 'idle' && mounted && (
           <iframe
             {...props}
             src={src}
