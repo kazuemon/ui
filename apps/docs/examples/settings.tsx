@@ -153,7 +153,13 @@ function AvatarPreviewField({ captionPlacement }: { captionPlacement: CaptionPla
               画像を選ぶ
             </Button>
             {file && (
-              <Button variant="underline" onClick={() => setFile(null)}>
+              <Button
+                variant="underline"
+                onClick={() => {
+                  setFile(null);
+                  setError(undefined);
+                }}
+              >
                 元に戻す
               </Button>
             )}
@@ -487,20 +493,21 @@ function SettingsScreen({ args }: { args: SettingsArgs }) {
           <Tab value="display">表示</Tab>
           <Tab value="danger">削除</Tab>
         </TabList>
-        <TabPanel value="account">
+        {/* 入力のあるタブは、ほかのタブへ移っても入れた値（選んだアイコンなど）を残す */}
+        <TabPanel value="account" keepMounted>
           <AccountPanel
             captionPlacement={args.captionPlacement}
             avatarUpload={args.avatarUpload}
             onOpenSecurity={() => setTab('security')}
           />
         </TabPanel>
-        <TabPanel value="security">
+        <TabPanel value="security" keepMounted>
           <SecurityPanel captionPlacement={args.captionPlacement} />
         </TabPanel>
-        <TabPanel value="notification">
+        <TabPanel value="notification" keepMounted>
           <NotificationPanel captionPlacement={args.captionPlacement} />
         </TabPanel>
-        <TabPanel value="display">
+        <TabPanel value="display" keepMounted>
           <DisplayPanel captionPlacement={args.captionPlacement} />
         </TabPanel>
         <TabPanel value="danger">
