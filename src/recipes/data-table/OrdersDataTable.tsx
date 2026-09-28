@@ -110,17 +110,20 @@ export function OrdersDataTable({ orders }: { orders: Order[] }) {
           onValueChange={setQuery}
           className="w-64 max-w-full"
         />
-        {selectedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <Text as="span" size="sm" variant="muted" aria-live="polite">
-              {selectedCount} 件を選択中
-            </Text>
-            <Button variant="outline">書き出す</Button>
-            <Button variant="underline" onClick={() => table.resetRowSelection(true)}>
-              選択を外す
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {/* 読み上げの領域は、あとから足すと最初の内容が読まれないことがあるので、いつも置いて中身だけを変える */}
+          <Text as="span" size="sm" variant="muted" aria-live="polite">
+            {selectedCount > 0 ? `${selectedCount} 件を選択中` : ''}
+          </Text>
+          {selectedCount > 0 && (
+            <>
+              <Button variant="outline">書き出す</Button>
+              <Button variant="underline" onClick={() => table.resetRowSelection(true)}>
+                選択を外す
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       <DataTable accessibleName="注文">
         <TableHead>
