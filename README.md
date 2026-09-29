@@ -170,7 +170,7 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 - [x] Textarea
 - [x] Checkbox
 - [x] Radio
-- [ ] Fieldset
+- [x] Fieldset
 - [x] Combobox
 - [ ] Segmented Control
 - [x] Slider
