@@ -213,11 +213,18 @@ export const ErrorText: Story = {
     );
     const [checkIn] = canvas.getAllByRole('textbox', { name: 'チェックイン' });
     await expect(checkIn).toHaveAttribute('aria-invalid', 'true');
+    // まとまりのエラーは、中の欄の説明にも入る（欄にじかにフォーカスしても理由が聞こえる）
+    await expect(checkIn).toHaveAccessibleDescription(
+      'チェックアウトは、チェックインより後の日にしてください'
+    );
     // 警告は中の欄の見た目を変えない。1 つの欄のエラーは、その欄だけ
     const checkIns = canvas.getAllByRole('textbox', { name: 'チェックイン' });
     const checkOuts = canvas.getAllByRole('textbox', { name: 'チェックアウト' });
     await expect(checkIns[2]).not.toHaveAttribute('aria-invalid', 'true');
     await expect(checkOuts[2]).toHaveAttribute('aria-invalid', 'true');
+    // 警告は中の欄の説明に入れない。欄の説明は欄のエラーだけ
+    await expect(checkIns[2]).toHaveAccessibleDescription('');
+    await expect(checkOuts[2]).toHaveAccessibleDescription('日付の形で入れてください');
     const groups = canvas.getAllByRole('group', { name: '宿泊の期間' });
     await expect(groups[2]).not.toHaveAttribute('data-invalid');
     // 説明につなぐ id は、どれも開いている行（閉じた行はつながない）
@@ -266,6 +273,14 @@ export const Nested: Story = {
       'aria-invalid',
       'true'
     );
+    // 入れ子でも、外のまとまりのエラーが中の欄の説明に入る。1 つだけの Checkbox・Switch も
+    for (const control of [
+      canvas.getByRole('textbox', { name: 'チェックイン' }),
+      canvas.getByRole('checkbox', { name: '朝食を付ける' }),
+      canvas.getByRole('switch', { name: '禁煙の部屋' }),
+    ]) {
+      await expect(control).toHaveAccessibleDescription('予約の内容を確かめてください');
+    }
     // 押せない状態も、入れ子の中の欄まで届く
     const arrival = canvas.getByRole('textbox', { name: '到着の時刻' });
     await expect(arrival).toHaveAttribute('disabled');

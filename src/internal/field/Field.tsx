@@ -19,7 +19,7 @@ import {
 } from 'react';
 
 import { FieldLayoutContext } from './field-layout';
-import { FieldsetContext } from './fieldset-context';
+import { FieldsetContext, withFieldsetErrors } from './fieldset-context';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
@@ -598,6 +598,7 @@ function FieldBody({
   children: FieldProps['children'];
 }) {
   const formErrors = useFormFieldErrors();
+  const fieldsetErrorIds = useContext(FieldsetContext).errorIds;
   // 組み立てで置いた本体が知らせる種類。部品の props（標準の並べ方）が勝つ
   const [controlKind, setControlKind] = useState<FieldControlKind>({});
   const nativeLabel = nativeLabelProp ?? controlKind.nativeLabel ?? true;
@@ -640,10 +641,12 @@ function FieldBody({
         };
         const kinds = Object.keys(messages) as MessageKind[];
         // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
-        const describedBy =
+        const describedBy = withFieldsetErrors(
+          fieldsetErrorIds,
           [caption && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
             .filter(Boolean)
-            .join(' ') || undefined;
+            .join(' ') || undefined
+        );
         const state: FieldState = {
           describedBy,
           name,

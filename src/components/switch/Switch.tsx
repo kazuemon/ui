@@ -11,7 +11,7 @@ import {
   mergeBaseFieldError,
   useFormFieldErrors,
 } from '../../internal/field/Field';
-import { FieldsetContext } from '../../internal/field/fieldset-context';
+import { FieldsetContext, withFieldsetErrors } from '../../internal/field/fieldset-context';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { focusRing } from '../../internal/focus-styles';
@@ -381,10 +381,12 @@ export function Switch({
   const rows = caption ? 'grid-rows-[auto_auto_auto_auto]' : 'grid-rows-[auto_auto_auto]';
   // 説明は見た目の順（キャプション → エラー → 警告）でつなぐ（design/adr/0041）
   const ids = { caption: `${id}caption`, error: `${id}error`, warning: `${id}warning` };
-  const describedBy =
+  const describedBy = withFieldsetErrors(
+    fieldset.errorIds,
     [ariaDescribedBy, caption && ids.caption, errorText && ids.error, warningText && ids.warning]
       .filter(Boolean)
-      .join(' ') || undefined;
+      .join(' ') || undefined
+  );
   // キャプションは、top ではラベルの列（トラックの横）、bottom では行の下に幅いっぱいで置く
   const captionNode = caption ? (
     <BaseField.Description

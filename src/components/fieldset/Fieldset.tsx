@@ -5,7 +5,7 @@ import { type ComponentProps, type ReactNode, useContext, useId, useMemo } from 
 
 import { FieldMessageLine, type MessageKind } from '../../internal/field/Field';
 import { fieldStyles } from '../../internal/field/field-styles';
-import { FieldsetContext } from '../../internal/field/fieldset-context';
+import { FieldsetContext, withFieldsetErrors } from '../../internal/field/fieldset-context';
 import type { FieldMessage, FieldNamed } from '../../internal/field/input-field-props';
 import { headingStyles } from '../../internal/reading/heading';
 import { tv } from '../../internal/tv';
@@ -131,9 +131,14 @@ export function Fieldset(props: FieldsetProps) {
   // 行を開くかは FieldMessageLine と同じ判定（空の文字では開かない）
   const invalid = Boolean(errorText);
   const parent = useContext(FieldsetContext);
+  // まとまりのエラーは、中の欄の説明にもつなぐ（欄にじかにフォーカスしても理由が聞こえる — design/adr/0372）
   const context = useMemo(
-    () => ({ disabled: parent.disabled || disabled, invalid: parent.invalid || invalid }),
-    [parent.disabled, parent.invalid, disabled, invalid]
+    () => ({
+      disabled: parent.disabled || disabled,
+      invalid: parent.invalid || invalid,
+      errorIds: withFieldsetErrors(parent.errorIds, invalid ? `${id}-error` : undefined),
+    }),
+    [parent.disabled, parent.invalid, parent.errorIds, disabled, invalid, id]
   );
   const hasLabel = present(label);
   const hasCaption = present(caption);

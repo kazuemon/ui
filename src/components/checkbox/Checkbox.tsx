@@ -18,7 +18,7 @@ import {
   mergeBaseFieldError,
   useFormFieldErrors,
 } from '../../internal/field/Field';
-import { FieldsetContext } from '../../internal/field/fieldset-context';
+import { FieldsetContext, withFieldsetErrors } from '../../internal/field/fieldset-context';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
@@ -290,12 +290,14 @@ function ChoiceSoloFields({
   disabled: boolean | undefined;
 }) {
   const formErrors = useFormFieldErrors();
+  const fieldsetErrorIds = useContext(FieldsetContext).errorIds;
   return (
     <BaseField.Validity>
       {(validity) => {
         const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
         const error = errorText ?? baseError;
-        const describedBy =
+        const describedBy = withFieldsetErrors(
+          fieldsetErrorIds,
           [
             ariaDescribedBy,
             caption && ids.caption,
@@ -304,7 +306,8 @@ function ChoiceSoloFields({
             infoText && ids.info,
           ]
             .filter(Boolean)
-            .join(' ') || undefined;
+            .join(' ') || undefined
+        );
         return (
           <>
             {box(describedBy)}
