@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `1637010` の比較のストーリー（`design/stories/axis-391-fieldset-message.stories.tsx`）です。列は、[ADR-0370](./0370-fieldset-variant.md) で選べるようにした囲み方（囲まない・枠・縦線）です。
+比較は、決めた時点のコミット `5132b4b` の比較のストーリー（`design/stories/axis-391-fieldset-message.stories.tsx`）です。列は、[ADR-0370](./0370-fieldset-variant.md) で選べるようにした囲み方（囲まない・枠・縦線）です。
 
 | 案                                  | 場所                       | 赤くするもの             |
 | ----------------------------------- | -------------------------- | ------------------------ |
@@ -51,4 +51,4 @@
 
 ![Fieldset のまとまりのエラーの比較。現行版・A〜D を、囲まない・枠・縦線、の 3 列で並べたもの。D に印](./assets/0372-fieldset-error.png)
 
-決めた時点のコミットは `1637010` です。`git checkout 1637010 && pnpm storybook` で、比較のストーリー（`Design Review/391 Fieldset のまとまりのエラー`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `5132b4b` です。`git checkout 5132b4b && pnpm storybook` で、比較のストーリー（`Design Review/391 Fieldset のまとまりのエラー`）を決めたときの部品のまま開けます。
