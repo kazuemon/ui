@@ -447,7 +447,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - Tabs の縦向きで、並びが画面に入り切らないときの扱い（縦のスクロールと端の影）。横向きのスクロールの帯（ADR-0258 の軸では決めていません）
 - Menu の項目の照合文字の `label` の扱い（typeahead 用に別名にするか、Base UI と同じ意味のまま残すかは決めていません）
 - Fieldset のまとまりのエラーを、Form の検証（`validate`・Form の `errors` の名前）から受ける口がありません。いまは Fieldset の `errorText` に直に渡す形だけです
-- Form のエラーの一覧に、Fieldset のまとまりのエラーが載りません。一覧は `data-slot="field"` の中だけを探すため、`data-slot="fieldset"` のエラーを拾えません（`src/components/form/form-dom.ts`）
+- Fieldset のまとまりのエラーで中の欄はエラー（aria-invalid）になりますが、欄の説明にはまとまりのエラーの文が入りません。まとまりに入ったときに説明を読む読み上げソフトでは伝わりますが、欄にじかにフォーカスすると「無効」だけが聞こえます。欄の説明にも足すかは、見えている文を二度読ませないこと（原則 15）との兼ね合いで決めていません
 
 ### List・Table・Text
 

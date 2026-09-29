@@ -1,9 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+// userEvent は play の引数ではなく storybook/test から読む（LAN の IP で開くと、引数の userEvent が空になる）
+import { type FormEvent, useState } from 'react';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Checkbox } from '../checkbox/Checkbox';
 import { FieldGroup } from '../field/FieldGroup';
+import { Form } from '../form/Form';
 import { Radio, RadioGroup } from '../radio/Radio';
 import { Select } from '../select/Select';
 import { Switch } from '../switch/Switch';
@@ -96,10 +99,15 @@ export const Disabled: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('textbox', { name: '知らせるアドレス' })).toBeDisabled();
+    // 祖先の <fieldset disabled> だけでなく、欄そのものが押せない状態になる（見た目も Field が受け持つ）
+    const address = canvas.getByRole('textbox', { name: '知らせるアドレス' });
+    await expect(address).toHaveAttribute('disabled');
+    await expect(address.closest('[data-slot="field"]')).toHaveAttribute('data-disabled');
     await expect(canvas.getByRole('switch', { name: 'メールで知らせる' })).toHaveAttribute(
       'data-disabled'
     );
+    // ボタンは <fieldset disabled> の働きで押せない（:disabled の見た目）
+    await expect(canvas.getByRole('button', { name: '送って試す' })).toBeDisabled();
   },
 };
 
@@ -192,5 +200,122 @@ export const ErrorText: Story = {
     const checkOuts = canvas.getAllByRole('textbox', { name: 'チェックアウト' });
     await expect(checkIns[2]).not.toHaveAttribute('aria-invalid', 'true');
     await expect(checkOuts[2]).toHaveAttribute('aria-invalid', 'true');
+    const groups = canvas.getAllByRole('group', { name: '宿泊の期間' });
+    await expect(groups[2]).not.toHaveAttribute('data-invalid');
+    // 説明につなぐ id は、どれも開いている行（閉じた行はつながない）
+    for (const fieldset of groups) {
+      for (const id of (fieldset.getAttribute('aria-describedby') ?? '').split(' ')) {
+        await expect(canvasElement.ownerDocument.getElementById(id)).not.toBeNull();
+      }
+    }
+  },
+};
+
+export const Nested: Story = {
+  render: () => (
+    <div className="flex max-w-md flex-col gap-12">
+      <Fieldset label="予約" errorText="予約の内容を確かめてください">
+        <Fieldset label="宿泊の期間">
+          <StayFields />
+        </Fieldset>
+        <Checkbox label="朝食を付ける" />
+        <Switch label="禁煙の部屋" />
+      </Fieldset>
+      <Fieldset label="オプション" disabled>
+        <Fieldset label="送迎">
+          <TextField label="到着の時刻" defaultValue="15:00" />
+        </Fieldset>
+        <Checkbox label="駐車場を使う" />
+        <Switch label="レイトチェックアウト" />
+      </Fieldset>
+      <Fieldset accessibleName="連絡先" errorText="">
+        <TextField label="電話番号" defaultValue="03-1234-5678" />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // 入れ子の中の欄にも、外のまとまりのエラーが届く。Field を通らない 1 つだけの Checkbox・Switch も
+    await expect(canvas.getByRole('textbox', { name: 'チェックイン' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+    await expect(canvas.getByRole('checkbox', { name: '朝食を付ける' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+    await expect(canvas.getByRole('switch', { name: '禁煙の部屋' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+    // 押せない状態も、入れ子の中の欄まで届く
+    const arrival = canvas.getByRole('textbox', { name: '到着の時刻' });
+    await expect(arrival).toHaveAttribute('disabled');
+    await expect(arrival.closest('[data-slot="field"]')).toHaveAttribute('data-disabled');
+    await expect(canvas.getByRole('checkbox', { name: '駐車場を使う' })).toHaveAttribute(
+      'data-disabled'
+    );
+    await expect(canvas.getByRole('switch', { name: 'レイトチェックアウト' })).toHaveAttribute(
+      'data-disabled'
+    );
+    // 空の文字のエラーは、ないのと同じ（行を開かず、中の欄も赤くしない）
+    const contact = canvas.getByRole('group', { name: '連絡先' });
+    await expect(contact).not.toHaveAttribute('data-invalid');
+    await expect(contact).not.toHaveAttribute('aria-describedby');
+    await expect(canvas.getByRole('textbox', { name: '電話番号' })).not.toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+  },
+};
+
+function StayForm() {
+  const [error, setError] = useState<string>();
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const checkIn = data.get('checkIn');
+    const checkOut = data.get('checkOut');
+    setError(
+      typeof checkIn === 'string' && typeof checkOut === 'string' && checkOut > checkIn
+        ? undefined
+        : 'チェックアウトは、チェックインより後の日にしてください'
+    );
+  };
+  return (
+    <Form showErrorSummary onSubmit={onSubmit} className="flex max-w-md flex-col gap-6">
+      <Fieldset label="宿泊の期間" errorText={error}>
+        <TextField label="チェックイン" name="checkIn" defaultValue="2026-10-10" />
+        <TextField label="チェックアウト" name="checkOut" defaultValue="2026-10-08" />
+      </Fieldset>
+      <Button type="submit" color="primary" className="self-start">
+        予約する
+      </Button>
+    </Form>
+  );
+}
+
+export const InForm: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Form の中では、まとまりのエラーもエラーの一覧に載ります（名前はまとまりの見出し）。一覧のリンクを押すと、まとまりの中の最初の欄へフォーカスを移します。',
+      },
+    },
+  },
+  render: () => <StayForm />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: '予約する' }));
+    const summary = await canvas.findByRole('group', { name: '入力を確かめてください（1件）' });
+    await userEvent.click(
+      within(summary).getByRole('link', {
+        name: '宿泊の期間: チェックアウトは、チェックインより後の日にしてください',
+      })
+    );
+    await waitFor(() =>
+      expect(canvas.getByRole('textbox', { name: 'チェックイン' })).toHaveFocus()
+    );
   },
 };

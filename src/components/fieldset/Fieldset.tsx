@@ -76,7 +76,9 @@ export interface FieldsetBaseProps extends Omit<ComponentProps<'fieldset'>, 'chi
 /** Fieldset の props。label か accessibleName のどちらかが要ります */
 export type FieldsetProps = FieldNamed<FieldsetBaseProps>;
 
-const present = (value: ReactNode) => value !== undefined && value !== null && value !== false;
+// 見出し・ヘルプテキストは、空の文字も「ない」とみなす（空の要素を名前や説明につながない）
+const present = (value: ReactNode) =>
+  value !== undefined && value !== null && value !== false && value !== '';
 
 /**
  * いくつかの欄を、1 つの問いのまとまりにします（住所、宿泊の期間など）。
@@ -96,6 +98,8 @@ export function Fieldset(props: FieldsetProps) {
     disabled = false,
     className,
     children,
+    id: idProp,
+    'aria-label': ariaLabel,
     'aria-describedby': ariaDescribedBy,
     ...rest
   } = props as FieldsetBaseProps;
@@ -103,7 +107,8 @@ export function Fieldset(props: FieldsetProps) {
   const f = fieldStyles();
   const id = useId();
   const captionId = `${id}-caption`;
-  const invalid = present(errorText);
+  // 行を開くかは FieldMessageLine と同じ判定（空の文字では開かない）
+  const invalid = Boolean(errorText);
   const parent = useContext(FieldsetContext);
   const context = useMemo(
     () => ({ disabled: parent.disabled || disabled, invalid: parent.invalid || invalid }),
@@ -122,7 +127,7 @@ export function Fieldset(props: FieldsetProps) {
   ));
   const describedBy = [
     hasCaption ? captionId : undefined,
-    ...lines.filter(([, content]) => present(content)).map(([kind]) => `${id}-${kind}`),
+    ...lines.filter(([, content]) => Boolean(content)).map(([kind]) => `${id}-${kind}`),
     ariaDescribedBy,
   ]
     .filter(Boolean)
@@ -131,8 +136,10 @@ export function Fieldset(props: FieldsetProps) {
     <FieldsetContext value={context}>
       <BaseFieldset.Root
         {...rest}
+        // Form のエラーの一覧が、まとまりのエラーのリンクの先にする
+        id={idProp ?? `${id}-fieldset`}
         disabled={disabled}
-        aria-label={hasLabel ? undefined : accessibleName}
+        aria-label={hasLabel ? undefined : (accessibleName ?? ariaLabel)}
         aria-describedby={describedBy || undefined}
         data-slot="fieldset"
         data-invalid={invalid ? '' : undefined}
@@ -140,7 +147,12 @@ export function Fieldset(props: FieldsetProps) {
       >
         {hasLabel || hasCaption ? (
           <div className={s.head()}>
-            {hasLabel && <BaseFieldset.Legend className={s.legend()}>{label}</BaseFieldset.Legend>}
+            {hasLabel && (
+              // Form のエラーの一覧が、まとまりの名前として読む（form-dom.ts）
+              <BaseFieldset.Legend data-slot="fieldset-legend" className={s.legend()}>
+                {label}
+              </BaseFieldset.Legend>
+            )}
             {hasCaption && (
               <p id={captionId} className={f.caption({ className: 'm-0' })}>
                 {caption}
@@ -152,7 +164,17 @@ export function Fieldset(props: FieldsetProps) {
           // 見出しもヘルプテキストもないときは、行を中の欄の上にじかに置く（閉じた行は高さを持たない）
           messages
         )}
-        <div className={s.body()}>{children}</div>
+        <div
+          className={s.body({
+            // 見出しなしで行が開いているときも、行から中の欄までを見出しのあるときと同じ間にする
+            className:
+              !hasLabel && !hasCaption && lines.some(([, content]) => Boolean(content))
+                ? 'mt-[calc(var(--stack-gap-md)-var(--spacing-field-gap))]'
+                : undefined,
+          })}
+        >
+          {children}
+        </div>
       </BaseFieldset.Root>
     </FieldsetContext>
   );

@@ -45,16 +45,22 @@ export function collectErrors(form: HTMLFormElement): ErrorEntry[] {
     if (!line || !control) continue;
     // 同じ欄（いちばん近い Field の根）のラベル。組み立てや横置きでは、行の箱とラベルが兄弟とは限らない
     // 中の選択肢（1 つずつの Checkbox）もラベルを持つので、同じ根に属するラベルだけを取る
+    // Fieldset のまとまりのエラー（本体が fieldset）は、まとまりの見出しか読み上げの名前
     const root = region.closest('[data-slot="field"]');
-    const label = root
-      ? [...root.querySelectorAll('[data-slot="field-label"]')].find(
-          (element) => element.closest('[data-slot="field"]') === root
-        )
-      : null;
+    const label =
+      control.dataset.slot === 'fieldset'
+        ? [...control.querySelectorAll('[data-slot="fieldset-legend"]')].find(
+            (element) => element.closest('[data-slot="fieldset"]') === control
+          )
+        : root
+          ? [...root.querySelectorAll('[data-slot="field-label"]')].find(
+              (element) => element.closest('[data-slot="field"]') === root
+            )
+          : null;
     entries.push({
       messageId: line.id,
       controlId: control.id,
-      label: labelTextOf(label),
+      label: label ? labelTextOf(label) : (control.getAttribute('aria-label') ?? ''),
       text: (line.textContent ?? '').trim(),
     });
   }
@@ -71,9 +77,27 @@ export const sameEntries = (a: ErrorEntry[], b: ErrorEntry[]) =>
       entry.text === b[i].text
   );
 
+// Fieldset の中の、最初にフォーカスを受ける本体（押せないものと隠れた input は飛ばす）
+const focusableInFieldset = [
+  'input:not([type="hidden"]):not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
 // フォーカスを移す先。チェックボックス・ラジオのグループ（role="group"・"radiogroup"）は、グループそのものは
 // フォーカスを受けないので、中の最初の選んだ項目（なければ最初の押せる項目）にする
-function focusTargetOf(control: HTMLElement) {
+// Fieldset（まとまりのエラー）も受けないので、中の最初の本体にする。本体がグループなら、同じ決まりでその中へ
+function focusTargetOf(control: HTMLElement): HTMLElement {
+  if (control.dataset.slot === 'fieldset') {
+    const first = [...control.querySelectorAll<HTMLElement>(focusableInFieldset)].find(
+      (element) => element.getAttribute('aria-disabled') !== 'true' && !element.hidden
+    );
+    const group = first?.closest<HTMLElement>('[role="group"], [role="radiogroup"]');
+    if (group && control.contains(group)) return focusTargetOf(group);
+    return first ?? control;
+  }
   const role = control.getAttribute('role');
   if (role !== 'group' && role !== 'radiogroup') return control;
   const items = [

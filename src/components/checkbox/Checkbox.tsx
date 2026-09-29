@@ -18,6 +18,7 @@ import {
   mergeBaseFieldError,
   useFormFieldErrors,
 } from '../../internal/field/Field';
+import { FieldsetContext } from '../../internal/field/fieldset-context';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
@@ -157,7 +158,9 @@ export function Checkbox({
   // Form の送信中と読み取り専用（軸 177）は、どちらも押せない箱と同じ見た目にして切り替えを止める
   // 読み取り専用はグループ（CheckboxGroup の readOnly）からも来る
   const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
-  const appInvalid = useAppInvalid(errorText);
+  // Fieldset のまとまりのエラーと押せない状態も受ける（Field を通らないので、ここで足す）
+  const fieldset = useContext(FieldsetContext);
+  const appInvalid = useAppInvalid(errorText || fieldset.invalid);
   // 読み取り専用では、横の文字を本文の色に戻す（箱は押せないときと同じ見た目のまま — 軸 177）
   const labelReadOnly = locked.readOnlyLook ? choiceReadOnly.label : undefined;
   const box = (describedBy: string | undefined) => (
@@ -244,7 +247,7 @@ export function Checkbox({
         ariaDescribedBy={ariaDescribedBy}
         s={s}
         name={name}
-        disabled={disabled}
+        disabled={disabled || fieldset.disabled}
       />
     </BaseField.Root>
   );
