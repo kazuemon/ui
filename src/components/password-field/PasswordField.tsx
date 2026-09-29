@@ -4,10 +4,16 @@ import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { FieldAddonButton } from '../field-addon/FieldAddon';
-import { TextField, type TextFieldProps } from '../text-field/TextField';
+import {
+  type TextFieldBaseProps,
+  TextFieldControl,
+  type TextFieldControlProps,
+} from '../text-field/TextField';
+import { Field } from '../../internal/field/Field';
+import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 
-export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffix'> {
+export interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'suffix'> {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
    * @default 'current-password'
@@ -20,20 +26,39 @@ export interface PasswordFieldProps extends Omit<TextFieldProps, 'type' | 'suffi
   toggleName?: string;
 }
 
+/** PasswordField の本体（PasswordFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface PasswordFieldControlProps extends Omit<
+  TextFieldControlProps,
+  'type' | 'suffix' | 'autoComplete'
+> {
+  /**
+   * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
+   * @default 'current-password'
+   */
+  autoComplete?: string;
+  /**
+   * 表示の切り替えのボタンの、読み上げの名前。押しているかは aria-pressed で伝えるので、名前は変えません
+   * @default 'パスワードを表示'
+   */
+  toggleName?: string;
+}
+
+/** PasswordField の props。label か accessibleName のどちらかが要ります */
+export type PasswordFieldProps = FieldNamed<PasswordFieldBaseProps>;
+
 function inputOf(button: HTMLElement | null) {
   return button?.closest('[data-slot="control"]')?.querySelector('input') ?? null;
 }
 
 /**
- * パスワードを打つ欄。右端のボタンで伏せ字と文字の表示を切り替えます
- * 切り替えは見え方だけを変えるので、欄を止めているあいだ（待っているあいだ・送信中・読み取り専用）も押せます。押せない欄では押せません
- * フォームを送ると、伏せ字に戻します
+ * パスワードを打つ欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 右端のボタンで伏せ字と文字の表示を切り替え、フォームを送ると伏せ字に戻します
  */
-export function PasswordField({
+export function PasswordFieldControl({
   autoComplete = 'current-password',
   toggleName = 'パスワードを表示',
   ...props
-}: PasswordFieldProps) {
+}: PasswordFieldControlProps) {
   const [visible, setVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   // 送ったら伏せ字に戻す。画面に残った文字を、あとから覗かれないように
@@ -62,7 +87,7 @@ export function PasswordField({
   };
 
   return (
-    <TextField
+    <TextFieldControl
       spellCheck={false}
       autoCapitalize="off"
       autoCorrect="off"
@@ -82,4 +107,14 @@ export function PasswordField({
       }
     />
   );
+}
+
+/**
+ * パスワードを打つ欄。右端のボタンで伏せ字と文字の表示を切り替えます
+ * 切り替えは見え方だけを変えるので、欄を止めているあいだ（待っているあいだ・送信中・読み取り専用）も押せます。押せない欄では押せません
+ * フォームを送ると、伏せ字に戻します
+ */
+export function PasswordField(props: PasswordFieldProps) {
+  const [field, control] = splitFieldProps(props as PasswordFieldBaseProps);
+  return <Field {...field}>{() => <PasswordFieldControl {...control} />}</Field>;
 }

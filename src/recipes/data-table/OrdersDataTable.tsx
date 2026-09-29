@@ -101,10 +101,10 @@ export function OrdersDataTable({ orders }: { orders: Order[] }) {
   const rows = table.getRowModel().rows;
   return (
     <div className="flex flex-col gap-3">
-      {/* 上の帯: 検索と、選んでいるあいだの一括操作 */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      {/* 上の帯: 検索と、選んでいるあいだの一括操作。検索欄は虫眼鏡と見本の文字で分かるので、見えるラベルを置かない */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <SearchField
-          label="注文を検索"
+          accessibleName="注文を検索"
           placeholder="注文番号・お店"
           value={query}
           onValueChange={setQuery}
@@ -184,24 +184,21 @@ export function OrdersDataTable({ orders }: { orders: Order[] }) {
             accessibleName="注文のページ送り"
           />
         )}
-        <div className="flex flex-wrap items-end justify-center gap-x-4 gap-y-2">
-          {/* 件数の文は、Select の欄（ラベルの下）の高さの真ん中にそろえる */}
-          <Text
-            as="span"
-            size="sm"
-            variant="muted"
-            className="flex h-(--spacing-control) items-center"
-          >
+        {/* 件数の文と「1 ページの件数」を 1 行に並べる。ラベルは本体の左に置き、周りの文と同じ重さにする */}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <Text as="span" size="sm" variant="muted">
             {rowCount === 0
               ? '0 件'
               : `${rowCount} 件中 ${pageIndex * pageSize + 1}〜${Math.min(rowCount, (pageIndex + 1) * pageSize)} 件`}
           </Text>
           <Select
             label="1 ページの件数"
+            labelPlacement="start"
+            labelVariant="muted"
             items={pageSizes.map((size) => ({ label: `${size} 件`, value: String(size) }))}
             value={String(pageSize)}
             onValueChange={(value) => table.setPageSize(Number(value))}
-            className="w-32"
+            className="w-56"
           />
         </div>
       </div>

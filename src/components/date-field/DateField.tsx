@@ -9,15 +9,27 @@ import { parseDateText } from '../../internal/date-segments/parse';
 import { dateLayout, fromPlainDate, toPlainDate } from '../../internal/date-segments/segments';
 import { type PlainDate, Temporal, todayIn } from '../../internal/date/plain-date';
 import { useLocale } from '../../internal/date/use-locale';
-import { Field } from '../../internal/field/Field';
+import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { FieldBox } from '../../internal/field/FieldBox';
-import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
-import type { InputFieldProps } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type HalfWidthKind,
+  type HalfWidthNoticeProps,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
+import {
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
+import { cn } from '../../internal/tv';
 
 export type { SegmentPlaceholder } from '../../internal/date-segments/labels';
 
-export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, HalfWidthNoticeProps {
+/** DateField の本体（DateFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface DateFieldControlProps extends Pick<
+  InputFieldProps,
+  'prefix' | 'suffix' | 'addonShape' | 'loadingIndicator' | 'hideSuccessMark'
+> {
   /** 値（制御）。年・月・日がそろっていないときは null */
   value?: PlainDate | null;
   /** はじめの値（非制御） */
@@ -37,17 +49,8 @@ export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
   ref?: Ref<HTMLDivElement>;
   /** 中の区切りを並べる要素に渡すもの（class・data-* など）。欄の外枠には className を使います */
   inputProps?: ComponentProps<'div'>;
-  /** フォームに送る名前。値は ISO 8601 の日付（「2026-09-20」）で、そろっていないときは空 */
-  name?: string;
-  /** 押せない（Disabled）状態にします */
-  disabled?: boolean;
   /** 読み取り専用。値は読めて写せますが、書き換えられません */
   readOnly?: boolean;
-  /**
-   * 必須にします。欄に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
-   * @default false
-   */
-  required?: boolean;
   /** 描いたあとに、最初の区切りへフォーカスを移します */
   autoFocus?: boolean;
   /**
@@ -74,39 +77,46 @@ export interface DateFieldProps extends Omit<InputFieldProps, 'placeholder'>, Ha
   /** 貼り付けた文字が日付として読めなかったあとに呼びます。値は変えません。`infoText` などで知らせるときに使います */
   onParseFailed?: (text: string) => void;
   'aria-describedby'?: string;
+  /** 本体（灰色の欄）に付くクラス */
+  className?: string;
+}
+
+/** 本体の中だけで使う口。内蔵の形（DateField）が、全角を直したことを Field の info に渡すために使います */
+interface DateFieldControlInnerProps extends DateFieldControlProps {
+  onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
+}
+
+/** いまの値が min・max の外か */
+function isOutOfRange(current: PlainDate | null, min?: PlainDate, max?: PlainDate) {
+  return (
+    current != null &&
+    ((min != null && Temporal.PlainDate.compare(current, min) < 0) ||
+      (max != null && Temporal.PlainDate.compare(current, max) > 0))
+  );
 }
 
 /**
- * 日付を年・月・日の区切りごとに打つ欄
+ * 日付の区切りの欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・成功・必須の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * フォームに送る名前は Field の name です。min・max の外の値は区切りを aria-invalid にしますが、欄の枠線を赤くするには Field に errorText を渡します
  */
-export function DateField({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function DateFieldControl(props: DateFieldControlProps) {
+  return <DateFieldControlInner {...props} />;
+}
+
+function DateFieldControlInner({
   hideSuccessMark = false,
-  infoText,
-  disabled,
   readOnly,
-  required,
-  requiredMark,
-  optionalMark,
   autoFocus,
-  className,
   prefix,
   suffix,
   addonShape = 'attached',
-  loading = false,
-  loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   value,
   defaultValue,
   onValueChange,
   min,
   max,
-  name,
   id,
   ref,
   inputProps,
@@ -115,106 +125,122 @@ export function DateField({
   timeZone: timeZoneProp,
   color = 'neutral',
   onParseFailed,
-  halfWidthNotice = false,
-  validate,
-  validationMode,
-  validationDebounceTime,
+  onHalfWidth,
+  className,
   'aria-describedby': ariaDescribedBy,
-}: DateFieldProps) {
-  const formLock = useFormSubmittingLock();
-  const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
-  // 全角を半角に直したことの知らせ（既定は知らせない）。直すのは区切りの欄（NFKC）で、ここは知らせるだけ
-  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+}: DateFieldControlInnerProps) {
+  // ラベルは <label> にしない（本体は区切りの group で、ラベルは aria-labelledby でつなぐ）
+  useFieldControlKind({ nativeLabel: false });
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const blocking = field?.blocking ?? false;
   const { locale, timeZone } = useLocale(localeProp, timeZoneProp);
   const layout = useMemo(() => dateLayout(locale), [locale]);
   // 範囲の外かどうかを決めるため、いまの値をここでも持つ
   const [inner, setInner] = useState<PlainDate | null>(defaultValue ?? null);
-  const current = value !== undefined ? value : inner;
-  const outOfRange =
-    current != null &&
-    ((min != null && Temporal.PlainDate.compare(current, min) < 0) ||
-      (max != null && Temporal.PlainDate.compare(current, max) > 0));
+  const outOfRange = isOutOfRange(value !== undefined ? value : inner, min, max);
   // 年が後ろの書き方（9/20/2026）は、並びで月が日より前なら 月/日 と読む
   const types = layout.parts.flatMap((part) => (part.kind === 'segment' ? [part.type] : []));
   const monthFirst = types.indexOf('month') < types.indexOf('day');
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      invalid={outOfRange}
-      warning={warningText}
-      success={successText}
-      info={infoText ?? notice}
+    <FieldBox
+      prefix={prefix}
+      suffix={suffix}
+      addonShape={addonShape}
+      readOnly={readOnly}
       disabled={disabled}
       loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      nativeLabel={false}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+      loadingIndicator={loadingIndicator}
+      success={field?.messages.success}
+      successMark={!hideSuccessMark}
+      error={field?.messages.error}
+      describedBy={ariaDescribedBy}
+      messageIds={field?.describedBy}
+      className={cn(dateSegmentColorClass[color], className)}
+      focusTarget={(box) => box.querySelector<HTMLElement>('[role="spinbutton"]')}
     >
-      {(messageIds) => (
-        <FieldBox
-          prefix={prefix}
-          suffix={suffix}
-          addonShape={addonShape}
-          readOnly={readOnly}
+      {(describedBy) => (
+        <DateSegmentGroup<PlainDate>
+          layout={layout}
+          locale={locale}
+          placeholderStyle={segmentPlaceholder}
+          value={value}
+          defaultValue={defaultValue}
+          onValueChange={(next) => {
+            setInner(next);
+            onValueChange?.(next);
+          }}
+          toValue={toPlainDate}
+          fromValue={fromPlainDate}
+          equals={(a, b) => a.equals(b)}
+          placeholderValues={() => fromPlainDate(todayIn(timeZone))}
+          parseText={(text) => {
+            const parsed = parseDateText(text, monthFirst);
+            return parsed && { ...parsed };
+          }}
+          onParseFailed={onParseFailed}
+          onHalfWidth={onHalfWidth}
+          toFormValue={(date) => date?.toString() ?? ''}
+          id={id}
+          ref={ref}
+          groupProps={inputProps}
           disabled={disabled}
-          loading={loading}
-          loadingIndicator={loadingIndicator}
-          success={successText}
-          successMark={!hideSuccessMark}
-          error={errorText}
-          describedBy={ariaDescribedBy}
-          messageIds={messageIds}
-          className={dateSegmentColorClass[color]}
-          focusTarget={(box) => box.querySelector<HTMLElement>('[role="spinbutton"]')}
-        >
-          {(describedBy) => (
-            <DateSegmentGroup<PlainDate>
-              layout={layout}
-              locale={locale}
-              placeholderStyle={segmentPlaceholder}
-              value={value}
-              defaultValue={defaultValue}
-              onValueChange={(next) => {
-                setInner(next);
-                onValueChange?.(next);
-              }}
-              toValue={toPlainDate}
-              fromValue={fromPlainDate}
-              equals={(a, b) => a.equals(b)}
-              placeholderValues={() => fromPlainDate(todayIn(timeZone))}
-              parseText={(text) => {
-                const parsed = parseDateText(text, monthFirst);
-                return parsed && { ...parsed };
-              }}
-              onParseFailed={onParseFailed}
-              onHalfWidth={noticed}
-              toFormValue={(date) => date?.toString() ?? ''}
-              name={name}
-              id={id}
-              ref={ref}
-              groupProps={inputProps}
-              disabled={disabled}
-              readOnly={readOnly}
-              blocking={blocking}
-              invalid={!!errorText || outOfRange}
-              required={required}
-              autoFocus={autoFocus}
-              busy={loading}
-              describedBy={describedBy}
-            />
-          )}
-        </FieldBox>
+          readOnly={readOnly}
+          blocking={blocking}
+          invalid={Boolean(field?.invalid) || outOfRange}
+          required={field?.required}
+          autoFocus={autoFocus}
+          busy={loading}
+          describedBy={describedBy}
+        />
+      )}
+    </FieldBox>
+  );
+}
+
+/** DateField の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export type DateFieldBaseProps = Omit<DateFieldControlProps, 'className'> &
+  Omit<InputFieldProps, 'placeholder'> &
+  HalfWidthNoticeProps & {
+    /** フォームに送る名前。値は ISO 8601 の日付（「2026-09-20」）で、そろっていないときは空 */
+    name?: string;
+    /**
+     * 必須にします。欄に aria-required を付け、ラベルの後ろに印（既定は「必須」のタグ）を出します。印は読み上げから外れます
+     * @default false
+     */
+    required?: boolean;
+  };
+
+/** DateField の props。label か accessibleName のどちらかが要ります */
+export type DateFieldProps = FieldNamed<DateFieldBaseProps>;
+
+/**
+ * 日付を年・月・日の区切りごとに打つ欄
+ */
+export function DateField(props: DateFieldProps) {
+  const [field, { halfWidthNotice = false, ...control }] = splitFieldProps(
+    props as DateFieldBaseProps
+  );
+  // 全角を半角に直したことの知らせ（既定は知らせない）。直すのは区切りの欄（NFKC）で、ここは知らせるだけ
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+  // 範囲の外のときは欄をエラーの見た目にする。いまの値を外枠でも持つ
+  const [inner, setInner] = useState<PlainDate | null>(control.defaultValue ?? null);
+  const current = control.value !== undefined ? control.value : inner;
+  const outOfRange = isOutOfRange(current, control.min, control.max);
+  const { onValueChange } = control;
+  return (
+    <Field {...field} info={field.info ?? notice} invalid={outOfRange} nativeLabel={false}>
+      {() => (
+        <DateFieldControlInner
+          {...control}
+          onValueChange={(next) => {
+            setInner(next);
+            onValueChange?.(next);
+          }}
+          onHalfWidth={noticed}
+        />
       )}
     </Field>
   );

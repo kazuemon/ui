@@ -395,6 +395,8 @@ export function Switch({
   ) : null;
   return (
     <BaseField.Root
+      // Form のエラーの一覧が、欄の名前をこの根の中のラベルから読む（form-dom.ts）
+      data-slot="field"
       disabled={disabled}
       invalid={appInvalid}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
@@ -405,6 +407,8 @@ export function Switch({
       {...locked.data}
     >
       <BaseField.Label
+        // Form のエラーの一覧が、欄の名前として読む（form-dom.ts）
+        data-slot="field-label"
         className={s.label({ className: locked.readOnlyLook ? switchReadOnly.label : undefined })}
       >
         {label}

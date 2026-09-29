@@ -5,7 +5,14 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Autocomplete, type AutocompleteProps } from './Autocomplete';
+import {
+  Autocomplete,
+  type AutocompleteBaseProps,
+  AutocompleteControl,
+  type AutocompleteProps,
+} from './Autocomplete';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import type { FieldNamed } from '../../internal/field/input-field-props';
 import type { ListboxGroup } from '../../internal/listbox/listbox-items';
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { Icon } from '../icon/Icon';
@@ -947,7 +954,7 @@ export const Loading: Story = {
 };
 
 // 打った文字で、1 秒後に候補を返す（外で絞り込む）
-function AsyncAutocomplete(props: Omit<AutocompleteProps, 'items' | 'loading'>) {
+function AsyncAutocomplete(props: FieldNamed<Omit<AutocompleteBaseProps, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -1034,4 +1041,65 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { label: 'お住まいの都市' },
+  parameters: {
+    controls: { include: ['labelVariant'] },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。表の帯のように 1 行に詰める場所で使います。`labelVariant="muted"` にすると、ラベルを太字にせず一段淡い色にします。',
+      },
+    },
+  },
+  render: (args) => (
+    <Autocomplete
+      {...args}
+      labelPlacement="start"
+      items={cities}
+      placeholder="都市名を打って探す"
+      presentation="popover"
+      className="w-80"
+    />
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('combobox', { name: 'お住まいの都市' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  args: { label: 'お住まいの都市' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `AutocompleteControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。',
+      },
+    },
+  },
+  decorators: [narrow],
+  render: () => (
+    <Field
+      label="お住まいの都市"
+      caption="候補にない都市も打てます"
+      warningText="市区町村までで止めてください"
+    >
+      <FieldLabel />
+      <AutocompleteControl items={cities} placeholder="都市名を打って探す" presentation="popover" />
+      <FieldCaption />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox', { name: 'お住まいの都市' });
+    // 説明はキャプション → 警告の順につながる
+    await expect(input).toHaveAccessibleDescription(
+      '候補にない都市も打てます 市区町村までで止めてください'
+    );
+  },
 };

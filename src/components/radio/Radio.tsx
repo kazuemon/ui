@@ -16,11 +16,18 @@ import {
 import {
   type CaptionPlacement,
   Field,
+  type FieldLabelLayoutProps,
   type FieldValidate,
   type FieldValidationMode,
+  useFieldControlKind,
+  useFieldState,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 
 // ラジオ（原則8・原則5）— 後半の軸 40。見た目はチェックボックスと同じ（internal/choice/choice-styles.ts）で、形だけが完全な丸
@@ -112,12 +119,94 @@ export function Radio({
   );
 }
 
-export interface RadioGroupProps<Value>
-  extends
-    Omit<ComponentProps<'div'>, 'className' | 'color' | 'defaultValue' | 'onChange' | 'children'>,
-    FieldMarkProps {
+/** RadioGroup の本体（RadioGroupControl）の props。見出し・キャプション・状態の文・押せない・必須は、包む Field に渡します */
+export interface RadioGroupControlProps<Value> extends Omit<
+  ComponentProps<'div'>,
+  'className' | 'color' | 'defaultValue' | 'onChange' | 'children'
+> {
+  /** 選んでいる値（制御） */
+  value?: Value;
+  /** はじめに選んでいる値（非制御） */
+  defaultValue?: Value;
+  /** 選び方が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: Value) => void;
+  /** グループが属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
+  inputRef?: Ref<HTMLInputElement>;
+  /**
+   * グループごと読み取り専用にします。丸は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
+   * フォーカスでき、読み上げではグループが「読み取り専用」と伝わります。矢印キーでも押しても選び直せません。フォームでは値が送られます
+   * @default false
+   */
+  readOnly?: boolean;
+  /**
+   * 選んだときの色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（濃いグレー）を選べます（原則6）
+   * @default 'neutral'
+   */
+  color?: ChoiceColor;
+  /** 中に置く選択肢。Radio を value 付きで並べます */
+  children: ReactNode;
+}
+
+/**
+ * ラジオのグループの本体（組み立て用）。Field の中に置き、見出し・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・必須・エラーの状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * 見出しはグループ（role="radiogroup"）の名前になり、キャプションと状態の行はグループにだけつなぎます（中の Radio 1つずつには入れません）。
+ * 状態の行を選択肢に寄せる間は、Field の className に付けます（RadioGroup では自動で付きます）
+ */
+export function RadioGroupControl<Value>({
+  value,
+  defaultValue,
+  onValueChange,
+  form,
+  inputRef,
+  color,
+  children,
+  readOnly,
+  'aria-describedby': ariaDescribedBy,
+  ...props
+}: RadioGroupControlProps<Value>) {
+  // 見出しは <label> ではなく、グループの名前として付ける。キャプションはグループにだけ付ける（原則15）
+  useFieldControlKind({ nativeLabel: false, registerCaption: false });
+  const field = useFieldState();
+  const disabled = field?.disabled;
+  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
+  const locked = useChoiceLock(disabled, readOnly);
+  return (
+    <ChoiceGroupContext.Provider value={context}>
+      <BaseRadioGroup<Value>
+        {...props}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
+        form={form}
+        inputRef={inputRef}
+        disabled={disabled}
+        // required はグループの context を通って、中の Radio の隠れた input にもネイティブの required を付けてしまう
+        // （design/adr/0255 の影響）。渡さず、aria-required（role="radiogroup"）だけを直に付けて伝える
+        required={false}
+        aria-required={field?.required || undefined}
+        readOnly={locked.readOnly}
+        aria-describedby={
+          [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
+        }
+        className="flex flex-col"
+      >
+        {children}
+      </BaseRadioGroup>
+    </ChoiceGroupContext.Provider>
+  );
+}
+
+/** RadioGroup の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export interface RadioGroupBaseProps<Value>
+  extends RadioGroupControlProps<Value>, FieldMarkProps, FieldLabelLayoutProps {
   /** グループの見出し（太字）。グループ（role="radiogroup"）の名前になります */
-  label: ReactNode;
+  label?: ReactNode;
+  /** 読み上げだけの名前。見える見出しを置かないときに要ります */
+  accessibleName?: string;
   /** 見出しの補足（ヘルプテキスト）。エラー・警告のあいだも消えません */
   caption?: ReactNode;
   /**
@@ -131,12 +220,6 @@ export interface RadioGroupProps<Value>
   warningText?: FieldMessage;
   /** 情報の内容。選択肢の下に丸の「i」と青い文字で出します。丸の見た目は変えません */
   infoText?: FieldMessage;
-  /** 選んでいる値（制御） */
-  value?: Value;
-  /** はじめに選んでいる値（非制御） */
-  defaultValue?: Value;
-  /** 選び方が変わるときに、次の値を渡して呼びます */
-  onValueChange?: (value: Value) => void;
   /** フォームに送るときの名前 */
   name?: string;
   /**
@@ -154,10 +237,6 @@ export interface RadioGroupProps<Value>
    * @default 0
    */
   validationDebounceTime?: number;
-  /** グループが属するフォームの id。フォームの外に置くときに使います */
-  form?: string;
-  /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
-  inputRef?: Ref<HTMLInputElement>;
   /**
    * グループごと押せない（Disabled）状態にします。中の丸がすべてグレーになります
    * @default false
@@ -169,22 +248,12 @@ export interface RadioGroupProps<Value>
    * @default false
    */
   required?: boolean;
-  /**
-   * グループごと読み取り専用にします。丸は押せないとき（`disabled`）と同じ見た目になりますが、横の文字は本文の色のままです。
-   * フォーカスでき、読み上げではグループが「読み取り専用」と伝わります。矢印キーでも押しても選び直せません。フォームでは値が送られます
-   * @default false
-   */
-  readOnly?: boolean;
-  /**
-   * 選んだときの色。利用者が選ぶ primary・secondary に加え、色を持たない neutral（濃いグレー）を選べます（原則6）
-   * @default 'neutral'
-   */
-  color?: ChoiceColor;
   /** グループの外枠（見出し・選択肢・下の行をまとめた縦の並び）に付きます */
   className?: string;
-  /** 中に置く選択肢。Radio を value 付きで並べます */
-  children: ReactNode;
 }
+
+/** RadioGroup の props。label か accessibleName のどちらかが要ります */
+export type RadioGroupProps<Value> = FieldNamed<RadioGroupBaseProps<Value>>;
 
 /**
  * ラジオのグループ。見出し / 選択肢 / キャプション・エラー・警告の3層（原則4）
@@ -192,82 +261,19 @@ export interface RadioGroupProps<Value>
  * キャプションと行はグループにだけ付け、中のラジオ1つずつの説明には入れない（原則15: 見えている文字を、二度読ませない）
  * 選択肢ごとの説明は、その Radio の caption（2 行目）だけ
  */
-export function RadioGroup<Value>({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  infoText,
-  value,
-  defaultValue,
-  onValueChange,
-  name,
-  form,
-  inputRef,
-  disabled,
-  color,
-  className,
-  children,
-  readOnly,
-  required,
-  requiredMark,
-  optionalMark,
-  validate,
-  validationMode,
-  validationDebounceTime,
-  'aria-describedby': ariaDescribedBy,
-  ...props
-}: RadioGroupProps<Value>) {
-  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
-  // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
-  const locked = useChoiceLock(disabled, readOnly);
+export function RadioGroup<Value>(props: RadioGroupProps<Value>) {
+  const [field, control] = splitFieldProps(props as RadioGroupBaseProps<Value>);
   return (
-    <ChoiceGroupContext.Provider value={context}>
-      <Field
-        label={label}
-        caption={caption}
-        captionPlacement={captionPlacement}
-        error={errorText}
-        warning={warningText}
-        info={infoText}
-        disabled={disabled}
-        required={required}
-        requiredMark={requiredMark}
-        optionalMark={optionalMark}
-        className={[...choiceGroupMessagePull(captionPlacement), className]
-          .filter(Boolean)
-          .join(' ')}
-        nativeLabel={false}
-        // グループのキャプションは、グループにだけ付ける。中のラジオ1つずつの説明には入れない（原則15）
-        registerCaption={false}
-        name={name}
-        validate={validate}
-        validationMode={validationMode}
-        validationDebounceTime={validationDebounceTime}
-      >
-        {(describedBy) => (
-          <BaseRadioGroup<Value>
-            {...props}
-            value={value}
-            defaultValue={defaultValue}
-            onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
-            name={name}
-            form={form}
-            inputRef={inputRef}
-            disabled={disabled}
-            // required はグループの context を通って、中の Radio の隠れた input にもネイティブの required を付けてしまう
-            // （design/adr/0255 の影響）。渡さず、aria-required（role="radiogroup"）だけを直に付けて伝える
-            required={false}
-            aria-required={required || undefined}
-            readOnly={locked.readOnly}
-            aria-describedby={[ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined}
-            className="flex flex-col"
-          >
-            {children}
-          </BaseRadioGroup>
-        )}
-      </Field>
-    </ChoiceGroupContext.Provider>
+    <Field
+      {...field}
+      className={[...choiceGroupMessagePull(field.captionPlacement), field.className]
+        .filter(Boolean)
+        .join(' ')}
+      nativeLabel={false}
+      // グループのキャプションは、グループにだけ付ける。中のラジオ1つずつの説明には入れない（原則15）
+      registerCaption={false}
+    >
+      {() => <RadioGroupControl<Value> {...control} />}
+    </Field>
   );
 }

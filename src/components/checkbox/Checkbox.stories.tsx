@@ -5,7 +5,8 @@ import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Checkbox } from './Checkbox';
-import { CheckboxGroup } from './CheckboxGroup';
+import { CheckboxGroup, CheckboxGroupControl } from './CheckboxGroup';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { Form } from '../form/Form';
 import { DensityPair } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
@@ -318,4 +319,59 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const GroupLabelStart: Story = {
+  name: 'グループのラベルを左に置く',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`CheckboxGroup` に `labelPlacement="start"` を渡すと、見出しを選択肢の左に置きます。設定の画面のように、見出しと値を横に並べるときに使います。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-md">
+      <CheckboxGroup label="連絡の方法" labelPlacement="start" defaultValue={['mail']}>
+        <Checkbox value="mail" label="メール" />
+        <Checkbox value="phone" label="電話" />
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('group', { name: '連絡の方法' })).toBeInTheDocument();
+  },
+};
+
+export const GroupComposed: Story = {
+  name: 'グループを組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`CheckboxGroupControl`・`FieldCaption`・`FieldMessages` を置きます。見出し・キャプション・状態の文・`disabled`・`required` は `Field` に渡し、値と選択肢は `CheckboxGroupControl` に渡します。見出しはグループの名前になり、キャプションはグループにだけつながります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Field label="連絡の方法" caption="1つ以上選んでください" required>
+        <FieldLabel />
+        <CheckboxGroupControl defaultValue={['mail']}>
+          <Checkbox value="mail" label="メール" />
+          <Checkbox value="phone" label="電話" />
+        </CheckboxGroupControl>
+        <FieldCaption />
+        <FieldMessages />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const group = canvas.getByRole('group', { name: '連絡の方法' });
+    await expect(group).toHaveAccessibleDescription('1つ以上選んでください');
+    // 見出しは <label> ではない（グループの名前として付く）
+    await expect(canvas.getByText('連絡の方法').closest('label')).toBeNull();
+    await expect(canvas.getByRole('checkbox', { name: 'メール' })).toHaveAccessibleDescription('');
+  },
 };

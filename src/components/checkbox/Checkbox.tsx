@@ -221,6 +221,8 @@ export function Checkbox({
   };
   return (
     <BaseField.Root
+      // Form のエラーの一覧が、欄の名前をこの根の中のラベルから読む（form-dom.ts）
+      data-slot="field"
       disabled={disabled}
       invalid={appInvalid}
       className={s.item({

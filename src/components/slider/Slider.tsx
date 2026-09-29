@@ -4,14 +4,12 @@ import { Slider as BaseSlider } from '@base-ui/react/slider';
 import { type ReactNode, type Ref, useEffect, useRef, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { Field, useFieldState } from '../../internal/field/Field';
 import {
-  type CaptionPlacement,
-  Field,
-  type FieldValidate,
-  type FieldValidationMode,
-} from '../../internal/field/Field';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
@@ -120,24 +118,8 @@ export type SliderColor = NonNullable<VariantProps<typeof slider>['color']>;
 /** 押しているあいだの手応え。grow はつまみが膨らむ、halo はつまみの周りに輪、lift はつまみが持ち上がり塗りが濃くなる、none は変えない */
 export type SliderPressEffect = NonNullable<VariantProps<typeof slider>['pressEffect']>;
 
-export interface SliderProps extends FieldMarkProps {
-  /** 本体の上に置く見出し。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。渡すと本体の下に丸の「!」と赤い文字で出し、本体をエラーの状態にする */
-  errorText?: FieldMessage;
-  /** 警告の内容。渡すと本体の下に三角とオリーブ色の文字で出す。本体の見た目は変えない */
-  warningText?: FieldMessage;
-  /** 成功の内容。渡すと本体の下に丸のチェックと緑の文字で出す。本体の見た目は変えない */
-  successText?: FieldMessage;
-  /** 情報の内容。渡すと本体の下に丸の「i」と青い文字で出す。本体の見た目は変えない */
-  infoText?: FieldMessage;
+/** Slider の本体（SliderControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface SliderControlProps {
   /** 値（制御） */
   value?: number;
   /** はじめの値（非制御）。渡さないときは min です */
@@ -176,11 +158,6 @@ export interface SliderProps extends FieldMarkProps {
    */
   getValueText?: (formattedValue: string, value: number) => string;
   /**
-   * 値の文字を出さなくします。値の文字は、ふだんラベルの行の右端に出ます。隠しても、読み上げは値を伝えます
-   * @default false
-   */
-  hideValue?: boolean;
-  /**
    * 塗りとフォーカスの線の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです（原則6）
    * @default 'neutral'
    */
@@ -195,53 +172,53 @@ export interface SliderProps extends FieldMarkProps {
    */
   pressEffect?: SliderPressEffect;
   /**
-   * 押せない（Disabled）状態にします。フォームでは値が送られません
-   * @default false
-   */
-  disabled?: boolean;
-  /**
    * 読み取り専用にします。本体は押せないとき（`disabled`）と同じ見た目になりますが、フォーカスでき、
    * 読み上げでは「読み取り専用」と伝わります。つまみもキーボードも値を変えません。フォームでは値が送られます
    * @default false
    */
   readOnly?: boolean;
-  /** フォームに送るときの名前 */
-  name?: string;
   /** スライダーが属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /** 中の input（type="range"）への ref。フォーカスや検証の API に触るときに使います */
   inputRef?: Ref<HTMLInputElement>;
-  /**
-   * 値を確かめる関数です。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文を返します。
-   * 返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
-   */
-  validate?: FieldValidate;
-  /**
-   * 検証のタイミングです。Form の validationMode より、この欄の指定が勝ちます
-   * @default 'onSubmit'
-   */
-  validationMode?: FieldValidationMode;
-  /**
-   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
-   * @default 0
-   */
-  validationDebounceTime?: number;
-  /** ラベル・本体・キャプション・下の行を包むいちばん外の要素に付きます */
-  className?: string;
   'aria-describedby'?: string;
+  /** 本体（トラックの行）に付くクラス */
+  className?: string;
+}
+
+/** 値を、見える文字と読み上げの文にする（format → getValueText） */
+function sliderValueText(
+  value: number,
+  { format, locale, getValueText }: Pick<SliderControlProps, 'format' | 'locale' | 'getValueText'>
+) {
+  const formatted = new Intl.NumberFormat(locale, format).format(value);
+  return getValueText ? getValueText(formatted, value) : formatted;
+}
+
+export interface SliderValueProps {
+  /** 値の文字 */
+  children?: ReactNode;
+  className?: string;
 }
 
 /**
- * つまみを動かして、決まった範囲の中から 1 つの値を選ぶ。音量・明るさ・金額の上限など、おおよその値を手早く決めるときに使う
+ * Slider の値の文字（組み立て用）。`<FieldLabel aside={<SliderValue>…</SliderValue>} />` で、ラベルの行の右端に置きます。
+ * 値は本体の読み上げが伝えるので、この文字は読み上げから外します
  */
-export function Slider({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
-  infoText,
+export function SliderValue({ children, className }: SliderValueProps) {
+  return (
+    <span aria-hidden data-slot="slider-value" className={slider().value({ className })}>
+      {children}
+    </span>
+  );
+}
+
+/**
+ * スライダーの本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・エラーの状態、フォームに送る名前、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * 値の文字は自分では出しません。ラベルの行に置くときは、値を制御して `<FieldLabel aside={<SliderValue>…</SliderValue>} />` で置きます
+ */
+export function SliderControl({
   value,
   defaultValue,
   onValueChange,
@@ -253,31 +230,22 @@ export function Slider({
   format,
   locale,
   getValueText,
-  hideValue = false,
   color,
   pressEffect = 'grow',
-  disabled,
   readOnly,
-  required,
-  requiredMark,
-  optionalMark,
-  name,
   form,
   inputRef,
-  validate,
-  validationMode,
-  validationDebounceTime,
   className,
   'aria-describedby': ariaDescribedBy,
-}: SliderProps) {
+}: SliderControlProps) {
+  const field = useFieldState();
+  const disabled = field?.disabled;
   const s = slider({ color, pressEffect });
   // 読み取り専用と Form の送信中は、押せないときと同じ見た目で値を変えない（トグルと同じ）。フォーカスは外さない
   const locked = useChoiceLock(disabled, readOnly);
   // Base UI の Slider は読み取り専用を持たないので、値は部品が持ち、止めているあいだは変更を受け取らない
   const [uncontrolled, setUncontrolled] = useState(defaultValue ?? min);
   const current = value ?? uncontrolled;
-  const formatted = new Intl.NumberFormat(locale, format).format(current);
-  const valueText = getValueText ? getValueText(formatted, current) : formatted;
 
   // 読み取り専用・送信中は、中の input（role="slider"）に aria-readonly・aria-disabled を付ける
   //   Base UI の Thumb は、この 2 つを input に渡す口を持たないため
@@ -297,81 +265,122 @@ export function Slider({
   const lockedLook = locked.readOnlyLook ? 'data-disabled:cursor-default' : undefined;
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText}
+    <BaseSlider.Root
+      value={current}
+      onValueChange={(next) => {
+        if (locked.readOnly) return;
+        if (value === undefined) setUncontrolled(next);
+        onValueChange?.(next);
+      }}
+      onValueCommitted={(next) => {
+        if (locked.readOnly) return;
+        onValueCommitted?.(next);
+      }}
+      min={min}
+      max={max}
+      step={step}
+      largeStep={largeStep}
+      format={format}
+      locale={locale}
+      form={form}
       disabled={disabled}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+      thumbAlignment="edge"
+      data-slot="slider"
+      className={s.root({ className })}
+      {...locked.data}
+    >
+      <BaseSlider.Control
+        data-slot="slider-control"
+        className={s.control({ className: lockedLook })}
+        {...locked.data}
+      >
+        <BaseSlider.Track className={s.track()} {...locked.data}>
+          <BaseSlider.Indicator
+            data-slot="slider-indicator"
+            className={s.indicator()}
+            {...locked.data}
+          />
+          <BaseSlider.Thumb
+            data-slot="slider-thumb"
+            className={s.thumb()}
+            inputRef={mergedInputRef}
+            aria-describedby={
+              [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
+            }
+            getAriaValueText={getValueText ? (text, raw) => getValueText(text, raw) : undefined}
+            {...locked.data}
+          />
+        </BaseSlider.Track>
+      </BaseSlider.Control>
+    </BaseSlider.Root>
+  );
+}
+
+/** Slider の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export type SliderBaseProps = Omit<SliderControlProps, 'className'> &
+  Pick<
+    InputFieldProps,
+    | 'label'
+    | 'accessibleName'
+    | 'caption'
+    | 'captionPlacement'
+    | 'errorText'
+    | 'warningText'
+    | 'successText'
+    | 'infoText'
+    | 'required'
+    | 'requiredMark'
+    | 'optionalMark'
+    | 'labelPlacement'
+    | 'labelVariant'
+    | 'narrowLabelPlacement'
+    | 'validate'
+    | 'validationMode'
+    | 'validationDebounceTime'
+    | 'className'
+  > & {
+    /**
+     * 値の文字を出さなくします。値の文字は、ふだんラベルの行の右端に出ます。隠しても、読み上げは値を伝えます
+     * @default false
+     */
+    hideValue?: boolean;
+    /**
+     * 押せない（Disabled）状態にします。フォームでは値が送られません
+     * @default false
+     */
+    disabled?: boolean;
+    /** フォームに送るときの名前 */
+    name?: string;
+  };
+
+/** Slider の props。label か accessibleName のどちらかが要ります */
+export type SliderProps = FieldNamed<SliderBaseProps>;
+
+/**
+ * つまみを動かして、決まった範囲の中から 1 つの値を選ぶ。音量・明るさ・金額の上限など、おおよその値を手早く決めるときに使う
+ */
+export function Slider(props: SliderProps) {
+  const [field, { hideValue = false, ...control }] = splitFieldProps(props as SliderBaseProps);
+  const { value, defaultValue, onValueChange, min = 0 } = control;
+  // 値の文字をラベルの行に出すため、値は外枠でも持ち、本体には制御の値として渡す
+  const [uncontrolled, setUncontrolled] = useState(defaultValue ?? min);
+  const current = value ?? uncontrolled;
+  return (
+    <Field
+      {...field}
       labelAside={
-        hideValue ? undefined : (
-          <span aria-hidden data-slot="slider-value" className={s.value()}>
-            {valueText}
-          </span>
-        )
+        hideValue ? undefined : <SliderValue>{sliderValueText(current, control)}</SliderValue>
       }
     >
-      {(describedBy) => (
-        <BaseSlider.Root
+      {() => (
+        <SliderControl
+          {...control}
           value={current}
           onValueChange={(next) => {
-            if (locked.readOnly) return;
             if (value === undefined) setUncontrolled(next);
             onValueChange?.(next);
           }}
-          onValueCommitted={(next) => {
-            if (locked.readOnly) return;
-            onValueCommitted?.(next);
-          }}
-          min={min}
-          max={max}
-          step={step}
-          largeStep={largeStep}
-          format={format}
-          locale={locale}
-          name={name}
-          form={form}
-          disabled={disabled}
-          thumbAlignment="edge"
-          data-slot="slider"
-          className={s.root()}
-          {...locked.data}
-        >
-          <BaseSlider.Control
-            data-slot="slider-control"
-            className={s.control({ className: lockedLook })}
-            {...locked.data}
-          >
-            <BaseSlider.Track className={s.track()} {...locked.data}>
-              <BaseSlider.Indicator
-                data-slot="slider-indicator"
-                className={s.indicator()}
-                {...locked.data}
-              />
-              <BaseSlider.Thumb
-                data-slot="slider-thumb"
-                className={s.thumb()}
-                inputRef={mergedInputRef}
-                aria-describedby={
-                  [describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
-                }
-                getAriaValueText={getValueText ? (text, raw) => getValueText(text, raw) : undefined}
-                {...locked.data}
-              />
-            </BaseSlider.Track>
-          </BaseSlider.Control>
-        </BaseSlider.Root>
+        />
       )}
     </Field>
   );

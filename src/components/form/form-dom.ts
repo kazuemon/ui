@@ -34,7 +34,7 @@ function labelTextOf(label: Element | null | undefined) {
 
 // 開いているエラーの行（Field の data-slot="field-message"）を、見た目の順（DOM の順）に集める
 // 警告は送信を止めないので入れない（エラーと警告が両方ある欄も、エラーの行だけ）
-// 欄の名前は、同じ欄（行の箱の親）のラベル（data-slot="field-label"）の文字
+// 欄の名前は、同じ欄（Field の根）のラベル（data-slot="field-label"）の文字
 export function collectErrors(form: HTMLFormElement): ErrorEntry[] {
   const entries: ErrorEntry[] = [];
   for (const region of form.querySelectorAll(
@@ -43,7 +43,14 @@ export function collectErrors(form: HTMLFormElement): ErrorEntry[] {
     const line = region.querySelector<HTMLElement>('[id]');
     const control = line && controlOf(form, line.id);
     if (!line || !control) continue;
-    const label = region.parentElement?.querySelector(':scope > [data-slot="field-label"]');
+    // 同じ欄（いちばん近い Field の根）のラベル。組み立てや横置きでは、行の箱とラベルが兄弟とは限らない
+    // 中の選択肢（1 つずつの Checkbox）もラベルを持つので、同じ根に属するラベルだけを取る
+    const root = region.closest('[data-slot="field"]');
+    const label = root
+      ? [...root.querySelectorAll('[data-slot="field-label"]')].find(
+          (element) => element.closest('[data-slot="field"]') === root
+        )
+      : null;
     entries.push({
       messageId: line.id,
       controlId: control.id,

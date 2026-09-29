@@ -29,11 +29,17 @@ import type { ChoiceColor } from '../../internal/choice/choice-styles';
 import {
   type CaptionPlacement,
   Field,
+  type FieldLabelLayoutProps,
   type FieldValidate,
   type FieldValidationMode,
+  useFieldState,
 } from '../../internal/field/Field';
 import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 import { cn, tv } from '../../internal/tv';
 
@@ -107,24 +113,8 @@ export type DropzoneVariant = NonNullable<VariantProps<typeof dropzoneBox>['vari
 
 export type DropzoneButtonColor = 'white' | 'primary';
 
-export interface DropzoneProps extends FieldMarkProps {
-  /** 本体の上に置く見出し。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。渡すと本体の下に丸の「!」と赤い文字で出し、本体をエラーの状態にする */
-  errorText?: FieldMessage;
-  /** 警告の内容。渡すと本体の下に三角とオリーブ色の文字で出す。本体の見た目は変えない */
-  warningText?: FieldMessage;
-  /** 成功の内容。渡すと本体の下に丸のチェックと緑の文字で出す。本体の見た目は変えない */
-  successText?: FieldMessage;
-  /** 情報の内容。渡すと本体の下に丸の「i」と青い文字で出す。本体の見た目は変えない */
-  infoText?: FieldMessage;
+/** Dropzone の本体（DropzoneControl）の props。見出し・キャプション・状態の文・押せない・必須・name は、包む Field に渡します */
+export interface DropzoneControlProps {
   /**
    * 枠の見せ方。filled は枠線なしのグレーの面、outline は実線、dashed は点線
    * @default 'filled'
@@ -162,41 +152,17 @@ export interface DropzoneProps extends FieldMarkProps {
   /** 受け付けなかったファイルがあったときに呼ぶ。選ぶ・落とすたびに 1 回 */
   onFilesRejected?: (rejections: DropzoneRejection[]) => void;
   /**
-   * 押せない（Disabled）状態にする。フォームでは値が送られない
-   * @default false
-   */
-  disabled?: boolean;
-  /**
    * 読み取り専用にする。選んだファイルは残るが、選び直せない。押せないときと同じ見た目で、フォーカスはでき、
    * フォームでは値が送られる（Slider・Switch と同じ useChoiceLock）
    * @default false
    */
   readOnly?: boolean;
-  /** フォームに送るときの名前。<input type="file"> の name と同じ */
-  name?: string;
   /** Dropzone が属するフォームの id。フォームの外に置くときに使う */
   form?: string;
   /** 中の input（type="file"）への ref */
   inputRef?: Ref<HTMLInputElement>;
   /** 中の input に渡すもの（data-* など）。className は Dropzone の className を使う */
   inputProps?: Omit<ComponentProps<'input'>, 'type' | 'accept' | 'multiple' | 'onChange'>;
-  /**
-   * 値を確かめる関数。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文を返す。
-   * 返したエラーの文は errorText と同じ行に出す。errorText があるときは、そちらを優先する
-   */
-  validate?: FieldValidate;
-  /**
-   * 検証のタイミング。Form の validationMode より、この欄の指定が勝つ
-   * @default 'onSubmit'
-   */
-  validationMode?: FieldValidationMode;
-  /**
-   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）
-   * @default 0
-   */
-  validationDebounceTime?: number;
-  /** ラベル・本体・キャプション・下の行を包むいちばん外の要素に付く */
-  className?: string;
   /**
    * 箱の中身。渡さないときは、アイコン・案内の文・「ファイルを選択」の見た目のボタンを既定で出す
    * 箱の外側はどこを押してもファイル選択が開くので、渡す中身は説明のためだけに置く（実際に押せるようにはならない）
@@ -206,16 +172,10 @@ export interface DropzoneProps extends FieldMarkProps {
 }
 
 /**
- * ファイルを落とす・押して選ぶ場所。画像やドキュメントをアップロードする画面で使う（アップロードそのものは行わない）
+ * ファイルを落とす・押して選ぶ場所の本体（組み立て用）。Field の中に置き、見出し・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・必須・エラーの状態と、説明のつながり（aria-describedby）と、フォームに送る名前（name）は、包む Field から受け取ります
  */
-export function Dropzone({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
-  infoText,
+export function DropzoneControl({
   variant,
   color,
   buttonColor = 'white',
@@ -227,25 +187,18 @@ export function Dropzone({
   defaultValue,
   onValueChange,
   onFilesRejected,
-  disabled,
   readOnly,
-  required,
-  requiredMark,
-  optionalMark,
-  name,
   form,
   inputRef,
   inputProps,
-  validate,
-  validationMode,
-  validationDebounceTime,
-  className,
   children,
   'aria-describedby': ariaDescribedBy,
-}: DropzoneProps) {
+}: DropzoneControlProps) {
   // 読み取り専用・Form の送信中は、押せないときと同じ見た目にし、値を変えない（Slider・Switch と同じ useChoiceLock）
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
   const locked = useChoiceLock(disabled, readOnly);
-  const dimmed = !!disabled || locked.data['data-disabled'] !== undefined;
+  const dimmed = disabled || locked.data['data-disabled'] !== undefined;
 
   const [filesState, setFilesState] = useState<File[]>(() => defaultValue ?? []);
   const files = value ?? filesState;
@@ -342,89 +295,128 @@ export function Dropzone({
   };
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText}
-      disabled={disabled}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+    <div
+      data-slot="dropzone"
+      data-drag={dragState === 'idle' ? undefined : dragState}
+      data-disabled={dimmed || undefined}
+      data-invalid={field?.invalid ? '' : undefined}
+      className={dropzoneBox({ variant, color })}
     >
-      {(describedBy) => (
-        <div
-          data-slot="dropzone"
-          data-drag={dragState === 'idle' ? undefined : dragState}
-          data-disabled={dimmed || undefined}
-          data-invalid={errorText ? '' : undefined}
-          className={dropzoneBox({ variant, color })}
-        >
-          <div aria-hidden className={dropzoneContent()}>
-            {children ?? (
-              <>
-                <UploadIcon className="size-(--dropzone-icon-size) shrink-0 text-fg-muted group-data-disabled/dropzone:text-(color:--color-on-field-disabled)" />
-                <div className="flex flex-col gap-1">
-                  <p className="font-bold text-fg group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
-                    ここにファイルをドラッグ、またはクリックして選択
-                  </p>
-                  <p className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
-                    {hint.map((part, index) => (
-                      <Fragment key={index}>
-                        {index > 0 && ' ・ '}
-                        {part}
-                      </Fragment>
-                    ))}
-                  </p>
-                </div>
-                {/* ボタンの色（ADR-0334。決定: 白い面を既定にし、primary の塗りも選べる。線だけのボタンは地の面と差がなく、ボタンに見えない） */}
-                <Button
-                  type="button"
-                  variant="filled"
-                  color={buttonColor}
-                  tabIndex={-1}
-                  disabled={dimmed}
-                  className="pointer-events-none"
-                >
-                  ファイルを選択
-                </Button>
-              </>
-            )}
-          </div>
-          <BaseField.Control
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            disabled={disabled}
-            required={false}
-            aria-required={required || undefined}
-            aria-readonly={locked.readOnlyLook || undefined}
-            aria-disabled={locked.ariaDisabled}
-            name={name}
-            form={form}
-            {...inputProps}
-            ref={setControlRef}
-            className={cn(
-              'absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none disabled:cursor-not-allowed'
-            )}
-            aria-describedby={[describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined}
-            onChange={handleChange}
-            onClick={handleClick}
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          />
-        </div>
-      )}
-    </Field>
+      <div aria-hidden className={dropzoneContent()}>
+        {children ?? (
+          <>
+            <UploadIcon className="size-(--dropzone-icon-size) shrink-0 text-fg-muted group-data-disabled/dropzone:text-(color:--color-on-field-disabled)" />
+            <div className="flex flex-col gap-1">
+              <p className="font-bold text-fg group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
+                ここにファイルをドラッグ、またはクリックして選択
+              </p>
+              <p className="text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
+                {hint.map((part, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && ' ・ '}
+                    {part}
+                  </Fragment>
+                ))}
+              </p>
+            </div>
+            {/* ボタンの色（ADR-0334。決定: 白い面を既定にし、primary の塗りも選べる。線だけのボタンは地の面と差がなく、ボタンに見えない） */}
+            <Button
+              type="button"
+              variant="filled"
+              color={buttonColor}
+              tabIndex={-1}
+              disabled={dimmed}
+              className="pointer-events-none"
+            >
+              ファイルを選択
+            </Button>
+          </>
+        )}
+      </div>
+      <BaseField.Control
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        disabled={disabled}
+        required={false}
+        aria-required={field?.required || undefined}
+        aria-readonly={locked.readOnlyLook || undefined}
+        aria-disabled={locked.ariaDisabled}
+        form={form}
+        {...inputProps}
+        ref={setControlRef}
+        className={cn(
+          'absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none disabled:cursor-not-allowed'
+        )}
+        aria-describedby={
+          [field?.describedBy, ariaDescribedBy].filter(Boolean).join(' ') || undefined
+        }
+        onChange={handleChange}
+        onClick={handleClick}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
+    </div>
   );
+}
+
+/** Dropzone の props から、label・accessibleName の組み合わせの決まりを外したもの */
+export interface DropzoneBaseProps
+  extends DropzoneControlProps, FieldMarkProps, FieldLabelLayoutProps {
+  /** 本体の上に置く見出し。読み上げの名前にもなります */
+  label?: ReactNode;
+  /** 読み上げだけの名前。見える見出しを置かないときに要ります */
+  accessibleName?: string;
+  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
+  caption?: ReactNode;
+  /**
+   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下
+   * @default 'top'
+   */
+  captionPlacement?: CaptionPlacement;
+  /** エラーの内容。渡すと本体の下に丸の「!」と赤い文字で出し、本体をエラーの状態にする */
+  errorText?: FieldMessage;
+  /** 警告の内容。渡すと本体の下に三角とオリーブ色の文字で出す。本体の見た目は変えない */
+  warningText?: FieldMessage;
+  /** 成功の内容。渡すと本体の下に丸のチェックと緑の文字で出す。本体の見た目は変えない */
+  successText?: FieldMessage;
+  /** 情報の内容。渡すと本体の下に丸の「i」と青い文字で出す。本体の見た目は変えない */
+  infoText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にする。フォームでは値が送られない
+   * @default false
+   */
+  disabled?: boolean;
+  /** フォームに送るときの名前。<input type="file"> の name と同じ */
+  name?: string;
+  /**
+   * 値を確かめる関数。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文を返す。
+   * 返したエラーの文は errorText と同じ行に出す。errorText があるときは、そちらを優先する
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミング。Form の validationMode より、この欄の指定が勝つ
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）
+   * @default 0
+   */
+  validationDebounceTime?: number;
+  /** ラベル・本体・キャプション・下の行を包むいちばん外の要素に付く */
+  className?: string;
+}
+
+/** Dropzone の props。label か accessibleName のどちらかが要ります */
+export type DropzoneProps = FieldNamed<DropzoneBaseProps>;
+
+/**
+ * ファイルを落とす・押して選ぶ場所。画像やドキュメントをアップロードする画面で使う（アップロードそのものは行わない）
+ */
+export function Dropzone(props: DropzoneProps) {
+  const [field, control] = splitFieldProps(props as DropzoneBaseProps);
+  return <Field {...field}>{() => <DropzoneControl {...control} />}</Field>;
 }

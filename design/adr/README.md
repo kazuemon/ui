@@ -429,3 +429,6 @@
 | [0362](./0362-sidebar-resize.md)                         | Sidebar の幅を変えるつまみは、載せると線が出るのが既定（つまみをいつも見せるも選べる）。細くすると畳む動きは既定でオン                                           | Accepted                                     |
 | [0363](./0363-sidebar-section-collapse.md)               | Sidebar の畳める節の開閉の印は、DataTable の並べ替えの印と同じ見せ方（右端に半分の濃さ・載せると濃く）                                                           | Accepted                                     |
 | [0364](./0364-sidebar-narrow-menu.md)                    | Sidebar の狭い画面は、Drawer に加えて Menu と同じシートも選べる                                                                                                  | Accepted                                     |
+| [0365](./0365-field-label-placement.md)                  | 入力欄のラベルは上が既定で、横（本体の左）に置くことも、見えるラベルを置かないこと（accessibleName）もできる。列そろえは FieldGroup（subgrid）                   | Accepted                                     |
+| [0366](./0366-field-composition.md)                      | 入力欄は内蔵の形のまま、Field の部位とラベルを持たない本体（`<部品名>Control`）も公開して組み立てられるようにする                                                | Accepted                                     |
+| [0367](./0367-field-start-defaults.md)                   | 横に置くラベルは太字・狭くても戻さないのが既定。軽いラベル（labelVariant）と 24rem 未満で上に戻す形（narrowLabelPlacement）も選べる                              | Accepted                                     |

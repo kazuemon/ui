@@ -3,8 +3,10 @@ import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent } from 'storybook/test';
 
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import {
   MaskField,
+  MaskFieldControl,
   type MaskFieldHintStyle,
   type MaskFieldProps,
   type MaskFieldValueDetails,
@@ -395,4 +397,65 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { labelPlacement: 'start' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` で、ラベルを本体の左に置きます。キャプションと状態の行は本体の下に並びます。狭い画面で上に戻すときは `narrowLabelPlacement="top"` を渡します。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xl">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('textbox', { name: '郵便番号' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`MaskFieldControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldCaption`・`FieldMessages` と好きな順に並べます。押せない・エラーなどの状態と説明のつながりは、`Field` から受け取ります。',
+      },
+      source: {
+        code: `<Field label="郵便番号" caption="ハイフンは自動で入ります">
+  <FieldLabel />
+  <MaskFieldControl mask="###-####" />
+  <FieldCaption />
+  <FieldMessages />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col">
+      <Field label="郵便番号" caption="ハイフンは自動で入ります">
+        <div className="flex flex-col gap-2">
+          <FieldLabel />
+          <MaskFieldControl mask="###-####" />
+          <FieldCaption />
+          <FieldMessages />
+        </div>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('textbox', { name: /郵便番号/ });
+    await expect(input.getAttribute('aria-describedby')).toBeTruthy();
+    await userEvent.type(input, '1500042');
+    await expect(input).toHaveValue('150-0042');
+  },
 };

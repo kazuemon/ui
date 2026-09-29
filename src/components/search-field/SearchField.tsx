@@ -2,17 +2,25 @@
 
 import { type ReactNode, useState } from 'react';
 
-import { TextField, type TextFieldProps } from '../text-field/TextField';
+import {
+  type TextFieldBaseProps,
+  TextFieldControl,
+  type TextFieldControlProps,
+} from '../text-field/TextField';
+import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldClearButton } from '../../internal/field/FieldClearButton';
+import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { MagnifyingGlassIcon } from '../../internal/icons';
-import { useFormSubmittingLock } from '../../internal/form-context';
 
 // Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
 type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
-  NonNullable<TextFieldProps[K]>
+  NonNullable<TextFieldBaseProps[K]>
 >[0];
 
-export interface SearchFieldProps extends Omit<TextFieldProps, 'type' | 'prefix' | 'suffix'> {
+export interface SearchFieldBaseProps extends Omit<
+  TextFieldBaseProps,
+  'type' | 'prefix' | 'suffix'
+> {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
   /** はじめの値（非制御） */
@@ -31,11 +39,39 @@ export interface SearchFieldProps extends Omit<TextFieldProps, 'type' | 'prefix'
   prefix?: ReactNode;
 }
 
+/** 検索の欄だけが持つ props。外枠（SearchField）と本体（SearchFieldControl）が同じものを受けます */
+interface SearchOwnProps {
+  /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
+  value?: string;
+  /** はじめの値（非制御） */
+  defaultValue?: string;
+  /** 値が変わるときに、次の値を渡して呼びます */
+  onValueChange?: (value: string) => void;
+  /** 消去のボタンか Esc で値を消したあとに呼びます。onValueChange('') のあとです */
+  onCleared?: () => void;
+  /**
+   * 本体の内側の虫眼鏡を隠すか。虫眼鏡は検索の欄だと伝える印で、押せません
+   * @default false
+   */
+  hideSearchIcon?: boolean;
+  /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
+  prefix?: ReactNode;
+}
+
+/** SearchField の本体（SearchFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface SearchFieldControlProps
+  extends
+    Omit<TextFieldControlProps, 'type' | 'prefix' | 'suffix' | keyof SearchOwnProps>,
+    SearchOwnProps {}
+
+/** SearchField の props。label か accessibleName のどちらかが要ります */
+export type SearchFieldProps = FieldNamed<SearchFieldBaseProps>;
+
 /**
- * 検索の語を打つ欄。値があるあいだ、右端に消去のボタンを出し、Esc でも消せます
- * 実行（「検索」）のボタンは欄の外に置きます。Enter はフォームを送ります
+ * 検索の欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 値があるあいだ右端に消去のボタンを出し、Esc でも消せます。押せない・止めている状態は、包む Field から受け取ります
  */
-export function SearchField({
+export function SearchFieldControl({
   value: valueProp,
   defaultValue = '',
   onValueChange,
@@ -43,20 +79,17 @@ export function SearchField({
   hideSearchIcon = false,
   prefix,
   className,
-  disabled,
   readOnly,
-  loading,
-  loadingBehavior,
   onChange,
   onKeyDown,
   ...props
-}: SearchFieldProps) {
+}: SearchFieldControlProps) {
+  const field = useFieldState();
   const [innerValue, setInnerValue] = useState(defaultValue);
   const value = valueProp ?? innerValue;
-  const formLock = useFormSubmittingLock();
+  const disabled = field?.disabled ?? false;
   // 値を変えるもの（消去のボタン・Esc）は、欄と一緒に止める（design/adr/0168）
-  const blocking = (loading && loadingBehavior === 'blocking') || formLock.blocking;
-  const locked = disabled || readOnly || blocking;
+  const locked = disabled || readOnly || (field?.blocking ?? false);
 
   const change = (next: string) => {
     if (valueProp === undefined) setInnerValue(next);
@@ -97,17 +130,14 @@ export function SearchField({
   );
 
   return (
-    <TextField
+    <TextFieldControl
       {...props}
       type="search"
       enterKeyHint={props.enterKeyHint ?? 'search'}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
-      disabled={disabled}
       readOnly={readOnly}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
       // ブラウザの既定の ×（WebKit・Blink）は消し、消去のボタンを出す
       className={[
         '[&_input::-webkit-search-cancel-button]:appearance-none [&_input::-webkit-search-decoration]:appearance-none',
@@ -121,9 +151,18 @@ export function SearchField({
           value={value}
           onClear={clear}
           readOnly={readOnly}
-          disabled={disabled || (loading && loadingBehavior === 'blocking')}
+          disabled={disabled || Boolean(field?.loading && field.loadingBehavior === 'blocking')}
         />
       }
     />
   );
+}
+
+/**
+ * 検索の語を打つ欄。値があるあいだ、右端に消去のボタンを出し、Esc でも消せます
+ * 実行（「検索」）のボタンは欄の外に置きます。Enter はフォームを送ります
+ */
+export function SearchField(props: SearchFieldProps) {
+  const [field, control] = splitFieldProps(props as SearchFieldBaseProps);
+  return <Field {...field}>{() => <SearchFieldControl {...control} />}</Field>;
 }

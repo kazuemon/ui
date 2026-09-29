@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, userEvent } from 'storybook/test';
 
-import { PasswordField, type PasswordFieldProps } from './PasswordField';
+import { Field, FieldLabel, FieldMessages } from '../field/Field';
+import { PasswordField, PasswordFieldControl, type PasswordFieldProps } from './PasswordField';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -246,4 +247,40 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`PasswordFieldControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldMessages` と並べます。表示の切り替えは本体が持ちます。',
+      },
+      source: {
+        code: `<Field label="パスワード">
+  <FieldLabel />
+  <PasswordFieldControl />
+  <FieldMessages />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-md flex-col">
+      <Field label="パスワード">
+        <div className="flex flex-col gap-2">
+          <FieldLabel />
+          <PasswordFieldControl defaultValue="kazuemon-2026" />
+          <FieldMessages />
+        </div>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('パスワード', { selector: 'input' });
+    await expect(input).toHaveAttribute('type', 'password');
+    await userEvent.click(canvas.getByRole('button', { name: 'パスワードを表示' }));
+    await expect(input).toHaveAttribute('type', 'text');
+  },
 };

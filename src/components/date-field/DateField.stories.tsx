@@ -3,7 +3,8 @@ import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { DateField, type DateFieldProps } from './DateField';
+import { DateField, DateFieldControl, type DateFieldProps } from './DateField';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
@@ -391,4 +392,67 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを横に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` でラベルを本体の左に置きます。キャプションと状態の行は本体の下に並びます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-md">
+      <DateField label="生年月日" labelPlacement="start" caption="本人確認に使います" />
+    </div>
+  ),
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と本体の `DateFieldControl` を置きます。ラベル・キャプション・状態の文、`disabled`・`required`、フォームの `name` は `Field` に渡し、値・`min`・`max`・`locale` などは `DateFieldControl` に渡します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Field
+        label="生年月日"
+        caption="本人確認に使います"
+        errorText="日付を入れてください"
+        name="birthday"
+        required
+      >
+        <FieldLabel />
+        <DateFieldControl defaultValue={day} />
+        <FieldCaption />
+        <FieldMessages />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    // ラベルは区切りの group の名前になり、説明は見た目の順（キャプション → エラー）でつながる
+    const group = canvas.getByRole('group', { name: /生年月日/ });
+    const [year] = canvas.getAllByRole('spinbutton');
+    await expect(year).toHaveAttribute('aria-invalid', 'true');
+    await expect(year).toHaveAttribute('aria-required', 'true');
+    const describedBy = (year.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean);
+    await expect(describedBy.map((id) => document.getElementById(id)?.textContent)).toEqual([
+      '本人確認に使います',
+      '日付を入れてください',
+    ]);
+    await expect(group).toBeInTheDocument();
+    // フォームの名前は Field の name
+    const hidden = canvasElement.querySelector<HTMLInputElement>('input[name="birthday"]');
+    await expect(hidden?.value).toBe(day.toString());
+  },
 };

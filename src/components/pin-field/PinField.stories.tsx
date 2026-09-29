@@ -4,7 +4,8 @@ import { useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
-import { PinField, type PinFieldProps } from './PinField';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { PinField, PinFieldControl, type PinFieldProps } from './PinField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -321,5 +322,62 @@ export const Invalid: Story = {
     await expect(first).toHaveAttribute('aria-invalid', 'true');
     const message = canvas.getByText('コードが違います').closest('[id]');
     await expect(first.getAttribute('aria-describedby')).toContain(message?.id);
+  },
+};
+
+export const LabelStart: Story = {
+  name: 'ラベルを左に置く',
+  args: { caption: 'メールで届いた 6 桁の数字', labelPlacement: 'start' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`labelPlacement="start"` で、ラベルを本体の左に置きます。キャプションと状態の行は本体の下に並びます。狭い画面で上に戻すときは `narrowLabelPlacement="top"` を渡します。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-2xl">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('textbox', { name: '確認コード' })).toBeInTheDocument();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`PinFieldControl` は、ラベルを持たない本体です。`Field` の中に置き、`FieldLabel`・`FieldCaption`・`FieldMessages` と好きな順に並べます。押せない・エラーなどの状態と説明のつながりは、`Field` から受け取ります。',
+      },
+      source: {
+        code: `<Field label="確認コード" caption="メールで届いた 6 桁の数字を入力してください">
+  <FieldLabel />
+  <FieldCaption />
+  <PinFieldControl length={6} />
+  <FieldMessages />
+</Field>`,
+      },
+    },
+  },
+  render: () => (
+    <Field label="確認コード" caption="メールで届いた 6 桁の数字を入力してください">
+      <div className="flex flex-col gap-2">
+        <FieldLabel />
+        <FieldCaption />
+        <PinFieldControl length={6} />
+        <FieldMessages />
+      </div>
+    </Field>
+  ),
+  play: async ({ canvas }) => {
+    const first = canvas.getByRole('textbox', { name: /確認コード/ });
+    await expect(first.getAttribute('aria-describedby')).toBeTruthy();
   },
 };

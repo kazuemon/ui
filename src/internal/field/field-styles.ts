@@ -7,6 +7,8 @@ export const fieldStyles = tv({
   slots: {
     root: [
       'group/field flex flex-col gap-(--spacing-field-gap)',
+      // FieldGroup の中では、親の 2 列をまたぐ（横に置くときは subgrid にして、ラベルの列をそろえる。軸 388）
+      '[[data-field-group]>&]:col-span-full',
       'data-invalid:[--color-focus:var(--color-fg-danger)]',
       'data-invalid:[--color-field-focus:var(--color-field-invalid)]',
       'data-invalid:[--color-field-hover:var(--color-field-invalid)]',
@@ -21,6 +23,15 @@ export const fieldStyles = tv({
     ],
     // ラベルとキャプションは、押せないときも薄くしない（原則1: 説明が読めるように）
     label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
+    // ラベルを本体の左に置く 2 列（軸 385）。ラベルの列は、本体の 1 行目の真ん中にそろえる
+    // FieldGroup の中では、親の列に乗る（subgrid）。欄が縦に並んでも本体の左端がそろう
+    startGrid: [
+      'grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-(--field-label-gap)',
+      '[[data-field-group]>*>&]:col-span-full [[data-field-group]>*>&]:grid-cols-subgrid',
+    ],
+    startLabelColumn:
+      'flex min-w-0 flex-col gap-(--spacing-field-gap) pt-[calc((var(--spacing-control)-var(--leading-label))/2)]',
+    startControlColumn: 'flex min-w-0 flex-col gap-(--spacing-field-gap)',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     // エラー・警告の行（design/adr/0041）。色は呼び出し側で足す（エラーは text-danger、警告は text-fg-warning）
@@ -49,6 +60,37 @@ export const fieldStyles = tv({
     ],
     messageLine: 'pt-[max(0px,var(--spacing-field-gap)_-_var(--field-message-pull,0px))]',
   },
+  variants: {
+    // ラベルを本体の左に置く（軸 385）。置いた場所の幅で上に戻せるよう、根を入れ物（container）にする
+    //   FieldGroup の中では入れ物にしない。入れ物にすると中身の幅が親の auto の列に伝わらない。戻すかは並び全体の幅で測る
+    // FieldGroup の中では subgrid にして、親の 2 列に乗る
+    start: {
+      true: { root: '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid' },
+    },
+    // 横に置くラベルの重さ（ADR-0367）。muted は標準の太さで一段淡い色
+    muted: {
+      true: { label: 'font-normal text-fg-muted' },
+    },
+    // 置いた場所が 24rem より狭いと、ラベルを上に戻す（軸 388。Pagination の narrowDisplay と同じ幅）
+    narrow: {
+      start: {},
+      top: {
+        startGrid:
+          '@max-sm:flex @max-sm:flex-col @max-sm:items-stretch @max-sm:gap-(--spacing-field-gap)',
+        startLabelColumn: '@max-sm:pt-0',
+      },
+    },
+  },
+  compoundVariants: [
+    // 狭いときに上に戻すときだけ、根を入れ物（container）にして、置いた場所の幅を測る
+    //   いつも入れ物にすると、中身の幅が外に伝わらず、幅を決めていない帯の中で欄が潰れる
+    //   FieldGroup の中では入れ物にしない。中身の幅が親の auto の列に伝わらなくなる。戻すかは FieldGroup の幅で測る
+    {
+      start: true,
+      narrow: 'top',
+      class: { root: '@container [[data-field-group]>&]:[container-type:normal]' },
+    },
+  ],
 });
 
 // 編集できる入力欄の本体（原則8）。TextField と Select のボタンで共有する

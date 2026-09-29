@@ -5,6 +5,7 @@ import {
   type ComponentProps,
   type CSSProperties,
   type ReactNode,
+  useContext,
   useId,
   useMemo,
   useRef,
@@ -30,16 +31,19 @@ import {
 } from '../../internal/combobox-base/combobox-popup-styles';
 import { useDensityScope } from '../../internal/density-scope';
 import {
-  type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
+  useFieldState,
 } from '../../internal/field/Field';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
@@ -89,8 +93,8 @@ import {
   takeTags,
   type TagsInputRejectReason,
 } from './tags-input-commit';
+import { TagsFeedbackContext, tagsRejectText, useTagsFeedback } from './tags-input-feedback';
 import { TagsInputChips } from './TagsInputChips';
-import { useTagsFlash } from './use-tags-flash';
 
 export type { TagsInputRejectReason } from './tags-input-commit';
 
@@ -110,40 +114,13 @@ const defaultChipRemoveName = (label: string) => `${label} を外す`;
 // 貼り付けでは、区切りの文字に加えて、改行とタブでも分ける
 const pasteBreaks = ['\r\n', '\n', '\r', '\t'];
 
-export interface TagsInputProps extends FieldMarkProps {
-  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
-  /**
-   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の端（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
-   */
-  successText?: FieldMessage;
+/** TagsInput の本体（TagsInputControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface TagsInputControlProps {
   /**
    * 成功のとき、本体の端に置くチェックを隠すか。true では下の行だけを出します
    * @default false
    */
   hideSuccessMark?: boolean;
-  /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  infoText?: FieldMessage;
-  /**
-   * 押せない（Disabled）状態にします。打てず、候補も開かず、フォームでは値が送られません
-   * @default false
-   */
-  disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
    * 一段淡い値の文字になります。フォーカスでき、値をなぞって写せます。
@@ -362,18 +339,6 @@ export interface TagsInputProps extends FieldMarkProps {
    */
   popoverMaxHeight?: 'none' | 'screen';
   /**
-   * 候補を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
-   * @default false
-   */
-  loading?: boolean;
-  /**
-   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
-   * non-blocking: 止めない。打てるままで、開くと候補の最後に loadingText の行を出す
-   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す
-   * @default 'non-blocking'
-   */
-  loadingBehavior?: FieldLoadingBehavior;
-  /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
@@ -388,27 +353,73 @@ export interface TagsInputProps extends FieldMarkProps {
    * @default (count) => `${count} 件の候補`
    */
   loadedText?: (count: number) => string;
-  /** フォームに送るときの名前。タグの数だけ、同じ名前で送られます */
-  name?: string;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
+}
+
+/** TagsInput の外枠（Field）が受け持つ props */
+interface TagsInputFieldProps extends Pick<
+  InputFieldProps,
+  | 'label'
+  | 'accessibleName'
+  | 'caption'
+  | 'captionPlacement'
+  | 'infoText'
+  | 'required'
+  | 'requiredMark'
+  | 'optionalMark'
+  | 'labelPlacement'
+  | 'labelVariant'
+  | 'narrowLabelPlacement'
+> {
+  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
+  errorText?: FieldMessage;
+  /**
+   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
+   * errorText と両方あるときは、エラーの行の下に出す
+   */
+  warningText?: FieldMessage;
+  /**
+   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の端（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
+   */
+  successText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。打てず、候補も開かず、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
+  /** フォームに送るときの名前。タグの数だけ、同じ名前で送られます */
+  name?: string;
+  /**
+   * 候補を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
+   * non-blocking: 止めない。打てるままで、開くと候補の最後に loadingText の行を出す
+   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す
+   * @default 'non-blocking'
+   */
+  loadingBehavior?: FieldLoadingBehavior;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
 
+/** TagsInput の props から、label・accessibleName の組み合わせの決まりを外したもの。TagsInput を包む部品が継ぎます */
+export type TagsInputBaseProps = TagsInputControlProps & TagsInputFieldProps;
+
+/** TagsInput の props。label か accessibleName のどちらかが要ります */
+export type TagsInputProps = FieldNamed<TagsInputBaseProps>;
+
 /**
- * 打った文字をタグにして並べる入力欄
+ * 打った文字をタグにして並べる欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * 組み立てでは、validate を通らなかった文と rejectMessage の文は、本体の下の行には出ず、読み上げで知らせます
  */
-export function TagsInput({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function TagsInputControl({
   hideSuccessMark = false,
-  infoText,
-  disabled,
   readOnly,
   color = 'neutral',
   value: valueProp,
@@ -457,24 +468,34 @@ export function TagsInput({
   sheetMoreCue = 'divider-always-shadow',
   popoverMoreCue = 'shadow',
   popoverMaxHeight = 'screen',
-  loading = false,
-  loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
-  name,
   form,
-  required,
-  requiredMark,
-  optionalMark,
-  className,
-}: TagsInputProps) {
+}: TagsInputControlProps) {
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
+  const required = field?.required ?? false;
+  // シートの見出しに出す欄の文。見えるラベルがないときは、読み上げの名前を見出しにする
+  const label = field?.label ?? field?.accessibleName;
+  const caption = field?.caption;
+  const warningText = field?.messages.warning;
+  const successText = field?.messages.success;
+  const messageIds = field?.describedBy;
+  // 弾いた・通らなかったことの合図。内蔵の形（TagsInput）では、外枠の側で持ち、Field の下の行にも出す
+  const outer = useContext(TagsFeedbackContext);
+  const ownFeedback = useTagsFeedback();
+  const { invalidMessage, setInvalidMessage, controlRef, flash, fire } =
+    outer?.feedback ?? ownFeedback;
+  // 利用者が渡した info。内蔵の形では、Field の info は弾いた文と入れ替えたあとのものなので、元の文を受け取る
+  const infoText = outer ? outer.info : field?.messages.info;
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、タグも変えられない
   const loadingBlocking = loading && loadingBehavior === 'blocking';
   const loadingRow = loading && !loadingBlocking;
   // Form の送信中も、同じく開けず変えられない
-  const formLock = useFormSubmittingLock();
-  const blocking = loadingBlocking || formLock.blocking;
+  const blocking = field?.blocking ?? false;
   // 読み取り専用（ADR-0170）: 文字を打つ欄の読み取り専用と同じ見た目にし、候補は開かない
   const locked = blocking || !!readOnly;
   const portalContainer = usePortalContainer(portalContainerProp);
@@ -495,11 +516,6 @@ export function TagsInput({
     onInputValueChange?.(next);
   };
 
-  // validate を通らなかったときの文。次に足せたときと、打ち直したときに消す
-  const [invalidMessage, setInvalidMessage] = useState<ReactNode>(null);
-  // 弾いたことの一瞬の合図（軸 261）。欄の計算済みの値から、見せる長さを読む
-  const controlRef = useRef<HTMLDivElement | null>(null);
-  const { flash, fire } = useTagsFlash(controlRef);
   // IME の変換中（変換中の Enter と区切りの文字では確定しない）
   const composing = useRef(false);
   // 候補に印が付いているか（Enter を候補に渡すか、打った文字をタグにするかの分かれ目）
@@ -591,25 +607,12 @@ export function TagsInput({
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ
   const sheetId = useId();
   const sheetCaptionId = `${sheetId}caption`;
-  const shownError = errorText ?? invalidMessage;
-  // 弾いたことを、本体の下の行でも一瞬だけ知らせる。文は呼び出し側が書く（原則20）
-  const rejected = flash && rejectMessage ? rejectMessage(flash.reason, flash.tag) : null;
-  const rejectText = rejected === false ? null : rejected;
-  // 利用者がいつも info を渡している欄では、弾いた文が同じ行に入れ替わって入る。
-  //   行は読み上げの箱（aria-live）なので、文をそのまま差し替えると、弾いた文と、戻ってきた元の info の両方が読まれる。
-  //   そこで、読み上げに渡る中身（元の info）は見えない形で置いたままにし、見える文だけを差し替える。
-  //   弾いた文の読み上げは、下の見えない status の箱が担う（1 回だけ読まれる）
-  const infoConflict = rejectText != null && Boolean(infoText);
-  const shownInfo = infoConflict ? (
-    <>
-      <span className="sr-only">{infoText}</span>
-      <span aria-hidden>{rejectText}</span>
-    </>
-  ) : (
-    (rejectText ?? infoText)
-  );
-  // 見えている行が読み上げないとき（元の info と入れ替わるとき）だけ、見えない箱で知らせる
-  const announceReject = Boolean(rejectMessage) && Boolean(infoText);
+  const shownError = field?.messages.error ?? invalidMessage;
+  const rejectText = tagsRejectText(flash, rejectMessage);
+  // 弾いた文の読み上げ。内蔵の形では、利用者が info を渡していて、同じ行の文が入れ替わるときだけ、見えない箱で知らせる
+  //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱を置き、validate を通らなかった文も知らせる
+  const announceReject = outer ? Boolean(rejectMessage) && Boolean(infoText) : true;
+  const statusText = outer ? rejectText : (rejectText ?? invalidMessage);
   const sheetMessages: SheetMessage[] = [];
   if (shownError) sheetMessages.push({ kind: 'error', content: shownError, id: `${sheetId}error` });
   if (warningText)
@@ -692,320 +695,325 @@ export function TagsInput({
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={shownError}
-      warning={warningText}
-      success={successText}
-      info={shownInfo}
+    <BaseCombobox.Root<string, true, ListboxItem>
+      items={collection}
+      multiple
+      value={values}
+      onValueChange={(next) => changeValues(next)}
+      inputValue={text}
+      onInputValueChange={(next) => changeText(next)}
+      onItemHighlighted={(item) => {
+        highlighted.current = item;
+      }}
+      filter={filter}
+      filteredItems={filteredItems}
+      autoHighlight={autoHighlight}
+      openOnInputClick={openOnInputClick && hasItems}
       disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      name={name}
+      readOnly={locked || undefined}
+      // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+      // （design/adr/0255 の影響）。渡さず、Input に直に付けた aria-required だけで伝える
+      required={false}
+      // name は包む Field から Base UI が読む
+      form={form}
+      modal={modal}
+      open={open}
+      onOpenChange={(next, details) => {
+        // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        changeOpen(next);
+      }}
+      onOpenChangeComplete={(next) => {
+        if (!next) drag.clearDragHeight();
+        onOpenChangeComplete?.(next);
+      }}
     >
-      {(messageIds) => (
-        <BaseCombobox.Root<string, true, ListboxItem>
-          items={collection}
-          multiple
-          value={values}
-          onValueChange={(next) => changeValues(next)}
-          inputValue={text}
-          onInputValueChange={(next) => changeText(next)}
-          onItemHighlighted={(item) => {
-            highlighted.current = item;
-          }}
-          filter={filter}
-          filteredItems={filteredItems}
-          autoHighlight={autoHighlight}
-          openOnInputClick={openOnInputClick && hasItems}
-          disabled={disabled}
-          readOnly={locked || undefined}
-          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-          // （design/adr/0255 の影響）。渡さず、Input に直に付けた aria-required だけで伝える
-          required={false}
-          name={name}
-          form={form}
-          modal={modal}
-          open={open}
-          onOpenChange={(next, details) => {
-            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            changeOpen(next);
-          }}
-          onOpenChangeComplete={(next) => {
-            if (!next) drag.clearDragHeight();
-            onOpenChangeComplete?.(next);
-          }}
+      <BaseCombobox.InputGroup
+        ref={setControlElement}
+        data-slot="control"
+        data-field-readonly={readOnly || undefined}
+        // 行数の上限（maxRows）。枠とチップが読む変数を、欄に置く
+        style={rowsStyle}
+        className={comboboxControl({
+          color,
+          loading,
+          // タグが増えたときの伸び方は、チップを並べる箱（TagsInputChips）が持つ。
+          // 端の消去 × は欄の側に残し、チップだけが流れる
+          className: ['group/tags h-auto min-h-(--spacing-control) gap-0 px-0'],
+        })}
+      >
+        <TagsInputChips
+          labelOf={labelOf}
+          chipsName={chipsName}
+          chipRemoveName={chipRemoveName}
+          color={color}
+          chipSize={chipSize}
+          readOnly={readOnly}
+          disabled={disabled || blocking}
+          chipStyle={chipStyle}
+          flashTag={flash?.reason === 'duplicate' ? flash.tag : undefined}
         >
-          <BaseCombobox.InputGroup
-            ref={setControlElement}
-            data-slot="control"
-            data-field-readonly={readOnly || undefined}
-            // 行数の上限（maxRows）。枠とチップが読む変数を、欄に置く
-            style={rowsStyle}
-            className={comboboxControl({
-              color,
-              loading,
-              // タグが増えたときの伸び方は、チップを並べる箱（TagsInputChips）が持つ。
-              // 端の消去 × は欄の側に残し、チップだけが流れる
-              className: ['group/tags h-auto min-h-(--spacing-control) gap-0 px-0'],
-            })}
-          >
-            <TagsInputChips
-              labelOf={labelOf}
-              chipsName={chipsName}
-              chipRemoveName={chipRemoveName}
-              color={color}
-              chipSize={chipSize}
-              readOnly={readOnly}
-              disabled={disabled || blocking}
-              chipStyle={chipStyle}
-              flashTag={flash?.reason === 'duplicate' ? flash.tag : undefined}
-            >
-              {(chips) => (
-                <BaseCombobox.Input
-                  aria-describedby={messageIds}
-                  aria-required={required || undefined}
-                  aria-disabled={blocking || undefined}
-                  aria-busy={loading || undefined}
-                  // ソフトウェアキーボードの実行キー。既定では Enter を送るキーにする（enterKeyHint）
-                  enterKeyHint={enterKeyHint}
-                  placeholder={loadingBlocking ? loadingText : chips.length > 0 ? '' : placeholder}
-                  onCompositionStart={() => {
-                    composing.current = true;
-                  }}
-                  onCompositionEnd={(event) => {
-                    composing.current = false;
-                    // 変換が終わった文字にも区切りが混ざりうる（「、」を区切りにしたときなど）
-                    changeText(event.currentTarget.value);
-                  }}
-                  onKeyDown={(event) => {
-                    if (locked) return;
-                    // IME の変換中は、Enter も区切りの文字も確定に使わない
-                    //   Android の IME は、変換していないあいだも keyCode に 229 を送ることがあるので、
-                    //   229 だけでは変換中と決めない（key が Enter なら、そのまま確定に使う）
-                    const composingNow =
-                      composing.current ||
-                      event.nativeEvent.isComposing ||
-                      (event.which === 229 && event.key !== 'Enter');
-                    if (composingNow) return;
-                    if (event.key === 'Enter') {
-                      // 候補に印が付いているときは、その候補を選ぶ（Base UI に任せる）
-                      if (open && highlighted.current !== undefined) return;
-                      event.preventBaseUIHandler();
-                      // 打っている途中の文字は、フォームを送らずにタグにする
-                      if (text !== '') event.preventDefault();
-                      commitText();
-                      return;
-                    }
-                    if (event.key === 'Escape' && !open) {
-                      // Base UI の既定はタグもすべて消すので、打っている文字だけを消す
-                      event.preventBaseUIHandler();
-                      if (text !== '') {
-                        event.preventDefault();
-                        setText('');
-                      }
-                      return;
-                    }
-                    if (event.key === 'Backspace' && text === '' && values.length > 0) {
-                      // 1回目は最後のチップを選ぶだけ（Base UI の既定はすぐ消す）
-                      event.preventBaseUIHandler();
-                      event.preventDefault();
-                      focusLastChip();
-                    }
-                  }}
-                  onPaste={(event) => {
-                    if (locked) return;
-                    const clip = event.clipboardData?.getData('text') ?? '';
-                    const parts = splitBySeparators(clip, [...separators, ...pasteBreaks])
-                      .map((part) => part.trim())
-                      .filter(Boolean);
-                    // 区切りのない貼り付けは、ふつうに欄へ入れる
-                    if (parts.length <= 1) return;
-                    event.preventDefault();
-                    addTags(parts);
-                  }}
-                  onBlur={(event) => {
-                    if (!commitOnBlur || locked) return;
-                    const next = event.relatedTarget;
-                    // チップ・× や候補へ移ったときは、まだ欄の中にいる
-                    if (
-                      next instanceof HTMLElement &&
-                      (controlRef.current?.contains(next) ||
-                        next.closest('[data-slot="tags-input-popup"]'))
-                    )
-                      return;
-                    commitText();
-                  }}
-                  {...inputRest}
-                  className={mergeSlotClass(
-                    `${inputClass} h-(--combobox-chip-height) min-w-16`,
-                    inputClassName
-                  )}
-                />
-              )}
-            </TagsInputChips>
-            {loading && loadingIndicator === 'spinner' && (
-              <FieldSpinner className={loadingBlocking ? controlInsetEnd : 'me-2'} />
-            )}
-            {successText && !hideSuccessMark && !shownError && !loading && (
-              <FieldSuccessMark className="me-2" />
-            )}
-            {clearable && !readOnly && (
-              <BaseCombobox.Clear
-                tabIndex={0}
-                render={
-                  <FieldAddonButton>
-                    <XIcon standalone />
-                  </FieldAddonButton>
+          {(chips) => (
+            <BaseCombobox.Input
+              aria-describedby={messageIds}
+              aria-required={required || undefined}
+              aria-disabled={blocking || undefined}
+              aria-busy={loading || undefined}
+              // ソフトウェアキーボードの実行キー。既定では Enter を送るキーにする（enterKeyHint）
+              enterKeyHint={enterKeyHint}
+              placeholder={loadingBlocking ? loadingText : chips.length > 0 ? '' : placeholder}
+              onCompositionStart={() => {
+                composing.current = true;
+              }}
+              onCompositionEnd={(event) => {
+                composing.current = false;
+                // 変換が終わった文字にも区切りが混ざりうる（「、」を区切りにしたときなど）
+                changeText(event.currentTarget.value);
+              }}
+              onKeyDown={(event) => {
+                if (locked) return;
+                // IME の変換中は、Enter も区切りの文字も確定に使わない
+                //   Android の IME は、変換していないあいだも keyCode に 229 を送ることがあるので、
+                //   229 だけでは変換中と決めない（key が Enter なら、そのまま確定に使う）
+                const composingNow =
+                  composing.current ||
+                  event.nativeEvent.isComposing ||
+                  (event.which === 229 && event.key !== 'Enter');
+                if (composingNow) return;
+                if (event.key === 'Enter') {
+                  // 候補に印が付いているときは、その候補を選ぶ（Base UI に任せる）
+                  if (open && highlighted.current !== undefined) return;
+                  event.preventBaseUIHandler();
+                  // 打っている途中の文字は、フォームを送らずにタグにする
+                  if (text !== '') event.preventDefault();
+                  commitText();
+                  return;
                 }
-                disabled={blocking || disabled || undefined}
-                data-slot="tags-input-clear"
-                aria-label={clearName}
-              />
-            )}
-            {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
-          </BaseCombobox.InputGroup>
-          {/* 弾いたことの読み上げ。ふだんは本体の下の行がすでに読み上げの箱なので置かない（二重に読ませない — 原則15）。
+                if (event.key === 'Escape' && !open) {
+                  // Base UI の既定はタグもすべて消すので、打っている文字だけを消す
+                  event.preventBaseUIHandler();
+                  if (text !== '') {
+                    event.preventDefault();
+                    setText('');
+                  }
+                  return;
+                }
+                if (event.key === 'Backspace' && text === '' && values.length > 0) {
+                  // 1回目は最後のチップを選ぶだけ（Base UI の既定はすぐ消す）
+                  event.preventBaseUIHandler();
+                  event.preventDefault();
+                  focusLastChip();
+                }
+              }}
+              onPaste={(event) => {
+                if (locked) return;
+                const clip = event.clipboardData?.getData('text') ?? '';
+                const parts = splitBySeparators(clip, [...separators, ...pasteBreaks])
+                  .map((part) => part.trim())
+                  .filter(Boolean);
+                // 区切りのない貼り付けは、ふつうに欄へ入れる
+                if (parts.length <= 1) return;
+                event.preventDefault();
+                addTags(parts);
+              }}
+              onBlur={(event) => {
+                if (!commitOnBlur || locked) return;
+                const next = event.relatedTarget;
+                // チップ・× や候補へ移ったときは、まだ欄の中にいる
+                if (
+                  next instanceof HTMLElement &&
+                  (controlRef.current?.contains(next) ||
+                    next.closest('[data-slot="tags-input-popup"]'))
+                )
+                  return;
+                commitText();
+              }}
+              {...inputRest}
+              className={mergeSlotClass(
+                `${inputClass} h-(--combobox-chip-height) min-w-16`,
+                inputClassName
+              )}
+            />
+          )}
+        </TagsInputChips>
+        {loading && loadingIndicator === 'spinner' && (
+          <FieldSpinner className={loadingBlocking ? controlInsetEnd : 'me-2'} />
+        )}
+        {successText && !hideSuccessMark && !shownError && !loading && (
+          <FieldSuccessMark className="me-2" />
+        )}
+        {clearable && !readOnly && (
+          <BaseCombobox.Clear
+            tabIndex={0}
+            render={
+              <FieldAddonButton>
+                <XIcon standalone />
+              </FieldAddonButton>
+            }
+            disabled={blocking || disabled || undefined}
+            data-slot="tags-input-clear"
+            aria-label={clearName}
+          />
+        )}
+        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+      </BaseCombobox.InputGroup>
+      {/* 弾いたことの読み上げ。ふだんは本体の下の行がすでに読み上げの箱なので置かない（二重に読ませない — 原則15）。
               利用者が info を渡していて、同じ行の文が入れ替わるときだけ、行の代わりにこの箱が知らせる
               文が出ていないあいだも箱は残す（あとから現れる箱は読まれないため — ADR-0055） */}
-          {announceReject && (
-            <div role="status" data-slot="tags-input-reject-status" className="sr-only">
-              {rejectText}
-            </div>
-          )}
-          {hasItems && (
-            <>
-              <BaseCombobox.Status data-slot="tags-input-status" className="sr-only">
-                {announcement}
-              </BaseCombobox.Status>
-              <BaseCombobox.Portal container={portalContainer}>
-                <BaseCombobox.Positioner
-                  sideOffset={() => popupSideOffset(fieldRef.current)}
-                  {...positionerRest}
-                  data-presentation={listPresentation}
-                  data-density={densityScope.density}
-                  style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
-                  className={mergeSlotClass(
-                    comboboxPositionerClass(popupShell),
-                    positionerClassName
-                  )}
-                >
-                  <BaseCombobox.Popup
-                    {...popupRest}
-                    ref={popupRef}
-                    data-slot="tags-input-popup"
-                    data-dragging={drag.dragging || undefined}
-                    style={{
-                      ...comboboxPopupStyle({
-                        selected,
-                        sheet,
-                        sheetDetent,
-                        dragHeight: drag.sheetHeight,
-                      }),
-                      ...popupStyle,
-                    }}
-                    className={mergeSlotClass(
-                      listboxPopup({ presentation: listPresentation }),
-                      popupClassName
-                    )}
-                  >
-                    {/* シートの見出し（design/adr/0037）。打つ欄は欄に残る（欄にフォーカスとキーボードが残り、
-                        候補だけがシートに出る）ので、シートの中に打つ欄は置かない */}
-                    {sheet && (
-                      <div ref={headerRef} className="flex shrink-0 flex-col">
-                        <SheetHeader
-                          handle={long}
-                          onPointerDown={drag.handlers.onPointerDown}
-                          onPointerMove={drag.handlers.onPointerMove}
-                          onPointerUp={drag.handlers.onPointerUp}
-                          onPointerCancel={drag.handlers.onPointerUp}
-                          className={long ? 'cursor-grab touch-none' : undefined}
-                          close={
-                            <ComboboxSheetClose
-                              icon="check"
-                              text="完了"
-                              onClose={() => changeOpen(false)}
-                            />
-                          }
-                        >
-                          <SheetFieldTitle
-                            label={label}
-                            caption={caption}
-                            captionId={sheetCaptionId}
-                            messages={sheetMessages}
-                          />
-                        </SheetHeader>
-                      </div>
-                    )}
-                    <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-                    {(long || popoverCue) && (
-                      <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                    )}
-                    <BaseCombobox.List
-                      ref={listRef}
-                      aria-describedby={
-                        sheet
-                          ? [
-                              caption && sheetCaptionId,
-                              ...sheetMessages.map((message) => message.id),
-                            ]
-                              .filter(Boolean)
-                              .join(' ') || undefined
-                          : messageIds
-                      }
-                      onScroll={sheet || popoverCue ? updateCues : undefined}
-                      className={listboxList({
-                        presentation: listPresentation,
-                        loadingRow,
-                        className: 'data-empty:py-0',
-                      })}
-                    >
-                      {grouped
-                        ? (group: ListboxGroup, index: number) => (
-                            <ComboboxGroupSection
-                              key={index}
-                              group={group}
-                              separator={showGroupSeparator && index > 0}
-                              labelStyle={groupLabelStyle}
-                            >
-                              {(item) => <ComboboxOption key={item.value} item={item} />}
-                            </ComboboxGroupSection>
-                          )
-                        : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
-                    </BaseCombobox.List>
-                    {(long || popoverCue) && (
-                      <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                    )}
-                    {loadingRow && (
-                      <ListboxLoadingRow
-                        ref={loadingRowRef}
-                        slot="tags-input-loading"
-                        presentation={listPresentation}
-                      >
-                        {loadingText}
-                      </ListboxLoadingRow>
-                    )}
-                  </BaseCombobox.Popup>
-                </BaseCombobox.Positioner>
-              </BaseCombobox.Portal>
-            </>
-          )}
-        </BaseCombobox.Root>
+      {announceReject && (
+        <div role="status" data-slot="tags-input-reject-status" className="sr-only">
+          {statusText}
+        </div>
       )}
-    </Field>
+      {hasItems && (
+        <>
+          <BaseCombobox.Status data-slot="tags-input-status" className="sr-only">
+            {announcement}
+          </BaseCombobox.Status>
+          <BaseCombobox.Portal container={portalContainer}>
+            <BaseCombobox.Positioner
+              sideOffset={() => popupSideOffset(fieldRef.current)}
+              {...positionerRest}
+              data-presentation={listPresentation}
+              data-density={densityScope.density}
+              style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+              className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
+            >
+              <BaseCombobox.Popup
+                {...popupRest}
+                ref={popupRef}
+                data-slot="tags-input-popup"
+                data-dragging={drag.dragging || undefined}
+                style={{
+                  ...comboboxPopupStyle({
+                    selected,
+                    sheet,
+                    sheetDetent,
+                    dragHeight: drag.sheetHeight,
+                  }),
+                  ...popupStyle,
+                }}
+                className={mergeSlotClass(
+                  listboxPopup({ presentation: listPresentation }),
+                  popupClassName
+                )}
+              >
+                {/* シートの見出し（design/adr/0037）。打つ欄は欄に残る（欄にフォーカスとキーボードが残り、
+                        候補だけがシートに出る）ので、シートの中に打つ欄は置かない */}
+                {sheet && (
+                  <div ref={headerRef} className="flex shrink-0 flex-col">
+                    <SheetHeader
+                      handle={long}
+                      onPointerDown={drag.handlers.onPointerDown}
+                      onPointerMove={drag.handlers.onPointerMove}
+                      onPointerUp={drag.handlers.onPointerUp}
+                      onPointerCancel={drag.handlers.onPointerUp}
+                      className={long ? 'cursor-grab touch-none' : undefined}
+                      close={
+                        <ComboboxSheetClose
+                          icon="check"
+                          text="完了"
+                          onClose={() => changeOpen(false)}
+                        />
+                      }
+                    >
+                      <SheetFieldTitle
+                        label={label}
+                        caption={caption}
+                        captionId={sheetCaptionId}
+                        messages={sheetMessages}
+                      />
+                    </SheetHeader>
+                  </div>
+                )}
+                <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
+                {(long || popoverCue) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
+                <BaseCombobox.List
+                  ref={listRef}
+                  aria-describedby={
+                    sheet
+                      ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
+                          .filter(Boolean)
+                          .join(' ') || undefined
+                      : messageIds
+                  }
+                  onScroll={sheet || popoverCue ? updateCues : undefined}
+                  className={listboxList({
+                    presentation: listPresentation,
+                    loadingRow,
+                    className: 'data-empty:py-0',
+                  })}
+                >
+                  {grouped
+                    ? (group: ListboxGroup, index: number) => (
+                        <ComboboxGroupSection
+                          key={index}
+                          group={group}
+                          separator={showGroupSeparator && index > 0}
+                          labelStyle={groupLabelStyle}
+                        >
+                          {(item) => <ComboboxOption key={item.value} item={item} />}
+                        </ComboboxGroupSection>
+                      )
+                    : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
+                </BaseCombobox.List>
+                {(long || popoverCue) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )}
+                {loadingRow && (
+                  <ListboxLoadingRow
+                    ref={loadingRowRef}
+                    slot="tags-input-loading"
+                    presentation={listPresentation}
+                  >
+                    {loadingText}
+                  </ListboxLoadingRow>
+                )}
+              </BaseCombobox.Popup>
+            </BaseCombobox.Positioner>
+          </BaseCombobox.Portal>
+        </>
+      )}
+    </BaseCombobox.Root>
+  );
+}
+
+/**
+ * 打った文字をタグにして並べる入力欄
+ */
+export function TagsInput({ validate, ...props }: TagsInputProps) {
+  // validate はタグ 1 つずつを確かめる本体の props（Field の validate ではない）なので、外枠に渡さない
+  const [field, control] = splitFieldProps(props);
+  const feedback = useTagsFeedback();
+  const error = field.error ?? feedback.invalidMessage;
+  const rejectText = tagsRejectText(feedback.flash, control.rejectMessage);
+  // 利用者がいつも info を渡している欄では、弾いた文が同じ行に入れ替わって入る。
+  //   行は読み上げの箱（aria-live）なので、文をそのまま差し替えると、弾いた文と、戻ってきた元の info の両方が読まれる。
+  //   そこで、読み上げに渡る中身（元の info）は見えない形で置いたままにし、見える文だけを差し替える。
+  //   弾いた文の読み上げは、本体の見えない status の箱が担う（1 回だけ読まれる）
+  const info =
+    rejectText != null && Boolean(field.info) ? (
+      <>
+        <span className="sr-only">{field.info}</span>
+        <span aria-hidden>{rejectText}</span>
+      </>
+    ) : (
+      (rejectText ?? field.info)
+    );
+  return (
+    <TagsFeedbackContext value={{ feedback, info: field.info }}>
+      <Field {...field} error={error} info={info}>
+        {() => <TagsInputControl {...control} validate={validate} />}
+      </Field>
+    </TagsFeedbackContext>
   );
 }

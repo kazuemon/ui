@@ -29,18 +29,20 @@ import { useKeyboardProxy } from '../../internal/combobox-base/use-keyboard-prox
 import { useScrollRestore } from '../../internal/combobox-base/use-scroll-restore';
 import { useDensityScope } from '../../internal/density-scope';
 import {
-  type CaptionPlacement,
   Field,
   type FieldLoadingBehavior,
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
-  type FieldValidate,
-  type FieldValidationMode,
+  useFieldControlKind,
+  useFieldState,
 } from '../../internal/field/Field';
-import type { FieldMarkProps } from '../../internal/field/FieldMark';
-import type { FieldMessage } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import {
+  type FieldMessage,
+  type FieldNamed,
+  type InputFieldProps,
+  splitFieldProps,
+} from '../../internal/field/input-field-props';
 import { CaretDownIcon, XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
@@ -108,40 +110,13 @@ export type ComboboxValue<Multiple extends boolean = false> = Multiple extends t
   ? string[]
   : string | null;
 
-export interface ComboboxProps<Multiple extends boolean = false> extends FieldMarkProps {
-  /** 本体の上に置く太字のラベル。読み上げの名前にもなります */
-  label: ReactNode;
-  /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
-  caption?: ReactNode;
-  /**
-   * キャプションの場所。top はラベルと本体のあいだ、bottom は本体の下（design/adr/0041）
-   * @default 'top'
-   */
-  captionPlacement?: CaptionPlacement;
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
-  /**
-   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
-   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
-   */
-  successText?: FieldMessage;
+/** Combobox の本体（ComboboxControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface ComboboxControlProps<Multiple extends boolean = false> {
   /**
    * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
    * @default false
    */
   hideSuccessMark?: boolean;
-  /** 情報の内容。本体の下に丸の「i」と青い文字で出す。欄の見た目は変えない */
-  infoText?: FieldMessage;
-  /**
-   * 押せない（Disabled）状態にします。打てず、選択肢も開かず、フォームでは値が送られません
-   * @default false
-   */
-  disabled?: boolean;
   /**
    * 読み取り専用にします。見た目は文字を打つ欄の読み取り専用と同じで、塗りを持たず、細い破線の輪郭と
    * 一段淡い値の文字になります。フォーカスでき、値をなぞって写せます。
@@ -350,19 +325,6 @@ export interface ComboboxProps<Multiple extends boolean = false> extends FieldMa
    */
   popoverMaxHeight?: 'none' | 'screen';
   /**
-   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
-   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
-   * @default false
-   */
-  loading?: boolean;
-  /**
-   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
-   * non-blocking: 止めない。打てるままで、開くと選択肢の最後に loadingText の行を出す。回る円は ▼ の左
-   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し、開けない
-   * @default 'non-blocking'
-   */
-  loadingBehavior?: FieldLoadingBehavior;
-  /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
@@ -398,28 +360,72 @@ export interface ComboboxProps<Multiple extends boolean = false> extends FieldMa
    * @default 'md'
    */
   chipSize?: ComboboxChipSize;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
+}
+
+/** Combobox の外枠（Field）が受け持つ props */
+interface ComboboxFieldProps extends Pick<
+  InputFieldProps,
+  | 'label'
+  | 'accessibleName'
+  | 'caption'
+  | 'captionPlacement'
+  | 'infoText'
+  | 'validate'
+  | 'validationMode'
+  | 'validationDebounceTime'
+  | 'required'
+  | 'requiredMark'
+  | 'optionalMark'
+  | 'labelPlacement'
+  | 'labelVariant'
+  | 'narrowLabelPlacement'
+> {
+  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
+  errorText?: FieldMessage;
+  /**
+   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
+   * errorText と両方あるときは、エラーの行の下に出す
+   */
+  warningText?: FieldMessage;
+  /**
+   * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
+   * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
+   */
+  successText?: FieldMessage;
+  /**
+   * 押せない（Disabled）状態にします。打てず、選択肢も開かず、フォームでは値が送られません
+   * @default false
+   */
+  disabled?: boolean;
   /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
   name?: string;
   /**
-   * 値を確かめる関数です（design/adr/0255）。いまの値とフォーム全体の値を受け取り、正しくないときはエラーの文
-   * （複数あれば配列）を返します。返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
+   * 読み込んでいるあいだに開くと、読み上げで loadingText を知らせ、開いたまま読み込みが終わると loadedText を知らせる
+   * @default false
    */
-  validate?: FieldValidate;
+  loading?: boolean;
   /**
-   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この欄の指定が勝ちます
-   * @default 'onSubmit'
+   * 読み込んでいるあいだの欄の扱い（design/adr/0042）
+   * non-blocking: 止めない。打てるままで、開くと選択肢の最後に loadingText の行を出す。回る円は ▼ の左
+   * blocking: 止める。押せない欄と同じ見た目にし、プレースホルダの場所に loadingText を出す。▼ を隠し、開けない
+   * @default 'non-blocking'
    */
-  validationMode?: FieldValidationMode;
-  /**
-   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
-   * @default 0
-   */
-  validationDebounceTime?: number;
-  /** 欄が属するフォームの id。フォームの外に置くときに使います */
-  form?: string;
+  loadingBehavior?: FieldLoadingBehavior;
   /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
   className?: string;
 }
+
+/** Combobox の props から、label・accessibleName の組み合わせの決まりを外したもの。Combobox を包む部品が継ぎます */
+export type ComboboxBaseProps<Multiple extends boolean = false> = ComboboxControlProps<Multiple> &
+  ComboboxFieldProps;
+
+/** Combobox の props。label か accessibleName のどちらかが要ります */
+export type ComboboxProps<Multiple extends boolean = false> = FieldNamed<
+  ComboboxBaseProps<Multiple>
+>;
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 const defaultChipRemoveName = (label: string) => `${label} を外す`;
@@ -436,18 +442,12 @@ function emitValue<Multiple extends boolean>(
 }
 
 /**
- * 選択肢を打って絞り込み、選ぶ入力欄
+ * 選択肢を打って絞り込み、選ぶ欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function Combobox<Multiple extends boolean = false>({
-  label,
-  caption,
-  captionPlacement,
-  errorText,
-  warningText,
-  successText,
+export function ComboboxControl<Multiple extends boolean = false>({
   hideSuccessMark = false,
-  infoText,
-  disabled,
   readOnly,
   color = 'neutral',
   items,
@@ -491,8 +491,6 @@ export function Combobox<Multiple extends boolean = false>({
   sheetMoreCue = 'divider-always-shadow',
   popoverMoreCue = 'shadow',
   popoverMaxHeight = 'screen',
-  loading = false,
-  loadingBehavior = 'non-blocking',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
@@ -500,24 +498,27 @@ export function Combobox<Multiple extends boolean = false>({
   chevron = 'always',
   chipMaxWidth,
   chipSize = 'md',
-  name,
-  validate,
-  validationMode,
-  validationDebounceTime,
   form,
-  required,
-  requiredMark,
-  optionalMark,
-  className,
-}: ComboboxProps<Multiple>) {
+}: ComboboxControlProps<Multiple>) {
+  const field = useFieldState();
+  const disabled = field?.disabled ?? false;
+  const loading = field?.loading ?? false;
+  const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
+  const required = field?.required ?? false;
+  // シートの見出しに出す欄の文。見えるラベルがないときは、読み上げの名前を見出しにする
+  const label = field?.label ?? field?.accessibleName;
+  const caption = field?.caption;
+  const errorText = field?.messages.error;
+  const warningText = field?.messages.warning;
+  const successText = field?.messages.success;
+  const fieldDescribedBy = field?.describedBy;
   // multiple は型（ComboboxValue）を決めるので props では Multiple のまま受け、中では boolean として扱う
   const multiple = multipleProp ?? false;
   // 読み込んでいるあいだ（design/adr/0042）。blocking は開けず、値も変えられない
   const loadingBlocking = loading && loadingBehavior === 'blocking';
   const loadingRow = loading && !loadingBlocking;
   // Form の送信中も、同じく開けず値も変えられない（見た目は Field の data-loading="blocking"）
-  const formLock = useFormSubmittingLock();
-  const blocking = loadingBlocking || formLock.blocking;
+  const blocking = field?.blocking ?? false;
   // 読み取り専用（ADR-0170）: 文字を打つ欄の読み取り専用と同じ見た目にし、選択肢は開かない
   const locked = blocking || !!readOnly;
   const portalContainer = usePortalContainer(portalContainerProp);
@@ -526,6 +527,8 @@ export function Combobox<Multiple extends boolean = false>({
   const sheet = useSheetPresentation(presentation);
   // シートの中に打つ欄を移すか（sheetInput="inside"）。欄は押すと開くボタンになる
   const inputInSheet = sheet && sheetInput === 'inside';
+  // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない（Select と同じ。組み立てで置いたときも）
+  useFieldControlKind({ nativeLabel: !inputInSheet });
   const sheetDetent: SheetDetent = sheetDetentProp ?? (sheetInput === 'inside' ? 'full' : 'half');
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときはエラー → 警告の順
   const sheetId = useId();
@@ -822,218 +825,201 @@ export function Combobox<Multiple extends boolean = false>({
   );
 
   return (
-    <Field
-      label={label}
-      caption={caption}
-      captionPlacement={captionPlacement}
-      error={errorText}
-      warning={warningText}
-      success={successText}
-      info={infoText}
+    <BaseCombobox.Root<string, boolean, ListboxItem>
+      items={collection}
+      multiple={multiple}
+      value={value}
+      defaultValue={defaultValue}
+      onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
+      inputValue={inputValue}
+      defaultInputValue={defaultInputValue}
+      onInputValueChange={(next) => onInputValueChange?.(next)}
+      filter={filter}
+      filteredItems={filteredItems}
+      autoHighlight={autoHighlight}
+      openOnInputClick={openOnInputClick}
       disabled={disabled}
-      loading={loading}
-      loadingBehavior={loadingBehavior}
-      required={required}
-      requiredMark={requiredMark}
-      optionalMark={optionalMark}
-      className={className}
-      // シートの中に打つ欄を移したときの本体はボタンなので、ラベルは <label> にしない（Select と同じ）
-      nativeLabel={!inputInSheet}
-      name={name}
-      validate={validate}
-      validationMode={validationMode}
-      validationDebounceTime={validationDebounceTime}
+      readOnly={locked || undefined}
+      // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+      // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
+      required={false}
+      // name は包む Field から Base UI が読む
+      form={form}
+      modal={modal}
+      open={open}
+      onOpenChange={(next, details) => {
+        // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
+        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
+          details.cancel();
+          return;
+        }
+        changeOpen(next);
+      }}
+      // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
+      onOpenChangeComplete={(next) => {
+        if (!next) drag.clearDragHeight();
+        onOpenChangeComplete?.(next);
+      }}
     >
-      {(messageIds) => (
-        <BaseCombobox.Root<string, boolean, ListboxItem>
-          items={collection}
-          multiple={multiple}
-          value={value}
-          defaultValue={defaultValue}
-          onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
-          inputValue={inputValue}
-          defaultInputValue={defaultInputValue}
-          onInputValueChange={(next) => onInputValueChange?.(next)}
-          filter={filter}
-          filteredItems={filteredItems}
-          autoHighlight={autoHighlight}
-          openOnInputClick={openOnInputClick}
-          disabled={disabled}
-          readOnly={locked || undefined}
-          // required は隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-          // （design/adr/0255 の影響）。渡さず、Input・Trigger に直に付けた aria-required だけで伝える
-          required={false}
-          name={name}
-          form={form}
-          modal={modal}
-          open={open}
-          onOpenChange={(next, details) => {
-            // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-            if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-              details.cancel();
-              return;
-            }
-            changeOpen(next);
-          }}
-          // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
-          onOpenChangeComplete={(next) => {
-            if (!next) drag.clearDragHeight();
-            onOpenChangeComplete?.(next);
-          }}
-        >
-          {inputInSheet ? renderTrigger(messageIds) : renderControl('field', messageIds)}
-          {/* 読み込みの知らせ（ADR-0055）。Combobox を描いているあいだずっと置く、見えない status の箱 */}
-          <BaseCombobox.Status data-slot="combobox-status" className="sr-only">
-            {announcement}
-          </BaseCombobox.Status>
-          <BaseCombobox.Portal container={portalContainer}>
-            {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする（design/adr/0037）
+      {inputInSheet ? renderTrigger(fieldDescribedBy) : renderControl('field', fieldDescribedBy)}
+      {/* 読み込みの知らせ（ADR-0055）。Combobox を描いているあいだずっと置く、見えない status の箱 */}
+      <BaseCombobox.Status data-slot="combobox-status" className="sr-only">
+        {announcement}
+      </BaseCombobox.Status>
+      <BaseCombobox.Portal container={portalContainer}>
+        {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする（design/adr/0037）
                 欄に打つ欄を残すとき（sheetInput="field"）は暗くしない。欄はシートの外にあり、打っているあいだも読めるようにするため */}
-            {inputInSheet && (
-              <BaseCombobox.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-            )}
-            {/* シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
+        {inputInSheet && (
+          <BaseCombobox.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        )}
+        {/* シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
                 ソフトウェアキーボードが隠している分（--visualViewport）だけ持ち上げ、残りの高さに収める */}
-            <BaseCombobox.Positioner
-              sideOffset={() => popupSideOffset(fieldRef.current)}
-              {...positionerRest}
-              data-presentation={listPresentation}
-              data-density={densityScope.density}
-              style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
-              className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
-            >
-              <BaseCombobox.Popup
-                finalFocus={
-                  inputInSheet && focusInputOnOpen
-                    ? () => {
-                        // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
-                        fieldRef.current?.focus({ preventScroll: true });
-                        return false;
-                      }
-                    : undefined
-                }
-                initialFocus={
-                  inputInSheet && focusInputOnOpen
-                    ? () =>
-                        document.querySelector<HTMLElement>(
-                          '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
-                        )
-                    : undefined
-                }
-                {...popupRest}
-                ref={popupRef}
-                data-slot="combobox-popup"
-                data-dragging={drag.dragging || undefined}
-                style={{
-                  ...comboboxPopupStyle({
-                    selected,
-                    sheet,
-                    sheetDetent,
-                    dragHeight: drag.sheetHeight,
-                  }),
-                  ...popupStyle,
-                }}
-                className={mergeSlotClass(
-                  listboxPopup({ presentation: listPresentation }),
-                  popupClassName
-                )}
-              >
-                {/* シートの見出し（design/adr/0037）: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の ×
-                    打つ欄をシートに移したときは、その下に打つ欄を置く。高さを測る箱は見出しと打つ欄の両方を囲む */}
-                {sheet && (
-                  <div ref={headerRef} className="flex shrink-0 flex-col">
-                    <SheetHeader
-                      handle={long}
-                      onPointerDown={drag.handlers.onPointerDown}
-                      onPointerMove={drag.handlers.onPointerMove}
-                      onPointerUp={drag.handlers.onPointerUp}
-                      onPointerCancel={drag.handlers.onPointerUp}
-                      className={long ? 'cursor-grab touch-none' : undefined}
-                      close={
-                        // 閉じるは、見出しとヘルプテキストのまとまりの上下中央に置く。
-                        // 見出しの行の中央からは、ヘルプテキストの行（と間の 2px）の半分だけ下がる。エラー・警告の行は数えない（出入りで動かないように）
-                        caption || inputInSheet ? (
-                          <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
-                            {renderSheetClose()}
-                          </div>
-                        ) : (
-                          renderSheetClose()
-                        )
-                      }
-                    >
-                      <SheetFieldTitle
-                        label={label}
-                        caption={caption}
-                        captionId={sheetCaptionId}
-                        messages={sheetMessages}
-                        reserveCaption={inputInSheet}
-                      />
-                    </SheetHeader>
-                    {inputInSheet && (
-                      <div className={comboboxSheetInputClass}>
-                        {renderControl('sheet', undefined)}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {/* 当たる選択肢がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
-                <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                )}
-                {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
-                    シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
-                <BaseCombobox.List
-                  ref={listRef}
-                  aria-describedby={
-                    sheet
-                      ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-                          .filter(Boolean)
-                          .join(' ') || undefined
-                      : messageIds
+        <BaseCombobox.Positioner
+          sideOffset={() => popupSideOffset(fieldRef.current)}
+          {...positionerRest}
+          data-presentation={listPresentation}
+          data-density={densityScope.density}
+          style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+          className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
+        >
+          <BaseCombobox.Popup
+            finalFocus={
+              inputInSheet && focusInputOnOpen
+                ? () => {
+                    // 閉じたら欄へフォーカスを戻す。戻すときにページをスクロールさせない
+                    fieldRef.current?.focus({ preventScroll: true });
+                    return false;
                   }
-                  onScroll={sheet || popoverCue ? updateCues : undefined}
-                  className={listboxList({
-                    presentation: listPresentation,
-                    loadingRow,
-                    className: 'data-empty:py-0',
-                  })}
+                : undefined
+            }
+            initialFocus={
+              inputInSheet && focusInputOnOpen
+                ? () =>
+                    document.querySelector<HTMLElement>(
+                      '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
+                    )
+                : undefined
+            }
+            {...popupRest}
+            ref={popupRef}
+            data-slot="combobox-popup"
+            data-dragging={drag.dragging || undefined}
+            style={{
+              ...comboboxPopupStyle({
+                selected,
+                sheet,
+                sheetDetent,
+                dragHeight: drag.sheetHeight,
+              }),
+              ...popupStyle,
+            }}
+            className={mergeSlotClass(
+              listboxPopup({ presentation: listPresentation }),
+              popupClassName
+            )}
+          >
+            {/* シートの見出し（design/adr/0037）: つまみ・ラベル・ヘルプテキスト・エラー・警告と、右上の ×
+                    打つ欄をシートに移したときは、その下に打つ欄を置く。高さを測る箱は見出しと打つ欄の両方を囲む */}
+            {sheet && (
+              <div ref={headerRef} className="flex shrink-0 flex-col">
+                <SheetHeader
+                  handle={long}
+                  onPointerDown={drag.handlers.onPointerDown}
+                  onPointerMove={drag.handlers.onPointerMove}
+                  onPointerUp={drag.handlers.onPointerUp}
+                  onPointerCancel={drag.handlers.onPointerUp}
+                  className={long ? 'cursor-grab touch-none' : undefined}
+                  close={
+                    // 閉じるは、見出しとヘルプテキストのまとまりの上下中央に置く。
+                    // 見出しの行の中央からは、ヘルプテキストの行（と間の 2px）の半分だけ下がる。エラー・警告の行は数えない（出入りで動かないように）
+                    caption || inputInSheet ? (
+                      <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
+                        {renderSheetClose()}
+                      </div>
+                    ) : (
+                      renderSheetClose()
+                    )
+                  }
                 >
-                  {grouped
-                    ? (group: ListboxGroup, index: number) => (
-                        <ComboboxGroupSection
-                          key={index}
-                          group={group}
-                          separator={showGroupSeparator && index > 0}
-                          labelStyle={groupLabelStyle}
-                        >
-                          {(item) => <ComboboxOption key={item.value} item={item} />}
-                        </ComboboxGroupSection>
-                      )
-                    : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
-                </BaseCombobox.List>
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                  <SheetFieldTitle
+                    label={label}
+                    caption={caption}
+                    captionId={sheetCaptionId}
+                    messages={sheetMessages}
+                    reserveCaption={inputInSheet}
+                  />
+                </SheetHeader>
+                {inputInSheet && (
+                  <div className={comboboxSheetInputClass}>{renderControl('sheet', undefined)}</div>
                 )}
-                {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042） */}
-                {loadingRow && (
-                  <ListboxLoadingRow
-                    ref={loadingRowRef}
-                    slot="combobox-loading"
-                    presentation={listPresentation}
-                  >
-                    {loadingText}
-                  </ListboxLoadingRow>
-                )}
-              </BaseCombobox.Popup>
-            </BaseCombobox.Positioner>
-          </BaseCombobox.Portal>
-        </BaseCombobox.Root>
-      )}
-    </Field>
+              </div>
+            )}
+            {/* 当たる選択肢がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
+            <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
+            {(long || popoverCue) && (
+              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+            )}
+            {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
+                    シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
+            <BaseCombobox.List
+              ref={listRef}
+              aria-describedby={
+                sheet
+                  ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  : fieldDescribedBy
+              }
+              onScroll={sheet || popoverCue ? updateCues : undefined}
+              className={listboxList({
+                presentation: listPresentation,
+                loadingRow,
+                className: 'data-empty:py-0',
+              })}
+            >
+              {grouped
+                ? (group: ListboxGroup, index: number) => (
+                    <ComboboxGroupSection
+                      key={index}
+                      group={group}
+                      separator={showGroupSeparator && index > 0}
+                      labelStyle={groupLabelStyle}
+                    >
+                      {(item) => <ComboboxOption key={item.value} item={item} />}
+                    </ComboboxGroupSection>
+                  )
+                : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
+            </BaseCombobox.List>
+            {(long || popoverCue) && (
+              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+            )}
+            {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042） */}
+            {loadingRow && (
+              <ListboxLoadingRow
+                ref={loadingRowRef}
+                slot="combobox-loading"
+                presentation={listPresentation}
+              >
+                {loadingText}
+              </ListboxLoadingRow>
+            )}
+          </BaseCombobox.Popup>
+        </BaseCombobox.Positioner>
+      </BaseCombobox.Portal>
+    </BaseCombobox.Root>
   );
+}
+
+/**
+ * 選択肢を打って絞り込み、選ぶ入力欄
+ */
+export function Combobox<Multiple extends boolean = false>(props: ComboboxProps<Multiple>) {
+  const [field, control] = splitFieldProps(props);
+  // ラベルを <label> にするかは、打つ欄をシートの中に置くか（本体の中で決まる）で変わるので、外枠には渡さず本体が useFieldControlKind で知らせる
+  //   最初の描画だけ <label> で描かれ、layout effect のあと本体に合う
+  return <Field {...field}>{() => <ComboboxControl<Multiple> {...control} />}</Field>;
 }
