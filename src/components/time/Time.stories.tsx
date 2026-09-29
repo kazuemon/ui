@@ -32,7 +32,10 @@ const meta = {
     withTime: { control: 'boolean' },
     dateStyle: { control: 'inline-radio', options: ['full', 'long', 'medium', 'short'] },
     timeStyle: { control: 'inline-radio', options: ['full', 'long', 'medium', 'short'] },
-    size: { control: 'inline-radio', options: ['md', 'sm'] },
+    size: {
+      control: 'inline-radio',
+      options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'],
+    },
     variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
     timeZone: { control: 'text' },

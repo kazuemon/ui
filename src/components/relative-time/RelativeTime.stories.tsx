@@ -33,7 +33,10 @@ const meta = {
   argTypes: {
     dateTime: { control: 'text' },
     withTime: { control: 'boolean' },
-    size: { control: 'inline-radio', options: ['md', 'sm'] },
+    size: {
+      control: 'inline-radio',
+      options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'],
+    },
     variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
     timeZone: { control: 'text' },

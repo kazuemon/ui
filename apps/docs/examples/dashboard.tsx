@@ -375,9 +375,9 @@ export const example: Example = {
       label: '数字の大きさ',
       type: 'radio',
       options: [
-        { value: '2xl', label: '見出し 1 と同じ' },
-        { value: 'xl', label: '見出し 2 と同じ' },
-        { value: 'lg', label: '見出し 3 と同じ', caption: '4 つ並べて狭いときに' },
+        { value: '2xl', label: '2xl（h1 の見出しと同じ）' },
+        { value: 'xl', label: 'xl（h2 の見出しと同じ）' },
+        { value: 'lg', label: 'lg（h3 の見出しと同じ）', caption: '4 つ並べて狭いときに' },
       ],
     },
     {

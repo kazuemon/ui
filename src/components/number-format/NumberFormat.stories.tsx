@@ -36,7 +36,10 @@ const meta = {
     percent: { control: 'boolean' },
     unit: { control: 'text' },
     unitDisplay: { control: 'inline-radio', options: ['short', 'long', 'narrow'] },
-    size: { control: 'inline-radio', options: ['md', 'sm'] },
+    size: {
+      control: 'inline-radio',
+      options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'],
+    },
     variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle'] },
     locale: { control: 'text' },
   },

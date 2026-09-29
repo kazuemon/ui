@@ -1982,7 +1982,7 @@
      色（バッジの塗り・アイコンの色・見出しの色）は internal/notice-surface の noticeSurface（Notice・Callout・Toast と共有）が持つので、
        ここには置かない（ADR-0326・0327）。ここに置くのは、Notice にはない StatusPanel 固有の大きさの軸だけ
      size（sm・md・lg、既定 md）ごとに、幅の上限・間隔・バッジとアイコンの大きさを持つ（ADR-0328）。見出しの大きさは
-       text-heading-xl〜4 をそのまま使うので、ここにはトークンを置かない
+       text-heading-md〜xl をそのまま使うので、ここにはトークンを置かない
      description-width は size によらない一定値（本文だけの幅の上限。見出しより読みやすい行長にする） */
   --status-panel-width-sm: 22rem;
   --status-panel-width-md: 28rem;

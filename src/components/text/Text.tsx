@@ -47,7 +47,7 @@ export interface TextProps extends ComponentProps<'p'> {
    */
   as?: TextAs;
   /**
-   * 大きさ。Heading の size と同じ段の名前です。md は本文、sm は日付や注記のような本文より小さい文、xs はキャプションと同じ大きさです。
+   * 大きさ。Heading の size と同じ段の名前です。md は本文、sm は日付や注記のような本文より小さい文、xs はキャプションと同じ大きさです（指で操作するときは sm と同じ大きさで、行の高さだけが詰まります）。
    * lg〜5xl は見出しの段と同じ大きさで、料金の「¥980」のように見出しではない大きな文字に使います（太さは weight で選びます）。
    * variant が label・caption のときは、その段の大きさになります
    * @default 'md'

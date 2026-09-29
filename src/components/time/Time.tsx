@@ -46,7 +46,7 @@ export interface TimeProps
    */
   timeZone?: string;
   /**
-   * 大きさ。指定しなければ周りの文字のままです。md は本文、sm は日付や注記です
+   * 大きさ。指定しなければ周りの文字のままです。Text の size と同じ段の名前で、md は本文、sm は注記、lg〜5xl は見出しと同じ大きさです
    */
   size?: VariantProps<typeof timeText>['size'];
   /**

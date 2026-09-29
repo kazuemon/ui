@@ -124,9 +124,9 @@ function PlanCard({
         {/* 価格と「月あたり」の行はひと続きの情報なので、他の余白より詰めて gap-1 でまとめる */}
         <div className="flex flex-col gap-1">
           <div className="flex items-baseline gap-1">
-            <span className="text-(length:--text-heading-2xl) leading-(--leading-heading-2xl) font-bold">
+            <Text as="span" size="2xl" weight="bold">
               <NumberFormat value={price} currency="JPY" />
-            </span>
+            </Text>
             <Text as="span" size="sm" variant="subtle">
               {billing === 'monthly' ? '/ 月' : '/ 年'}
             </Text>

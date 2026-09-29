@@ -21,7 +21,8 @@
 **② を採用します。** Text と Heading の `size` は、同じ段の名前（`xs`〜`5xl`）を使います。
 
 - Heading の `size` は `md`〜`5xl` です。既定は段から決まり、h1 は `2xl`、h2 は `xl`、h3 は `lg`、h4〜h6 は `md` です（今の 1〜4 段と同じ大きさ）
-- Text の `size` は `xs`〜`5xl` です。`md` が本文、`sm` が注記、`xs` はキャプションと同じ大きさ、`lg` 以上は見出しと同じ大きさで、太さは `weight` で決めます
+- Text の `size` は `xs`〜`5xl` です。`md` が本文、`sm` が注記、`xs` はキャプションと同じ大きさ、`lg` 以上は見出しと同じ大きさで、太さは `weight` で決めます。`xs` は密度によらず 12/16 なので、指で操作するときは `sm`（12/20）と同じ大きさで、行の高さだけが詰まります
+- Text と同じ見た目を使う Time・RelativeTime・NumberFormat の `size` も、同じ段（`xs`〜`5xl`）を選べます
 - Stat の数字の大きさ（`size`）も `md`〜`5xl` です（今の `heading-1`・`heading-2`・`heading-3`・`body` は `2xl`・`xl`・`lg`・`md`）
 - トークンとクラスには接頭辞を付けます。見出しの段は `--text-heading-md`〜`5xl`（クラス `text-heading-5xl` など）、本文は今の `--text-body`・`--text-body-sm` のままです。Tailwind の既定の `text-xl` などは上書きしません
 
@@ -46,7 +47,8 @@
 ## 影響
 
 - Heading の `size` が `1`〜`4` から `md`〜`2xl` に変わります（破壊的な変更。`size={2}` は `size="xl"`）
-- Stat の `size` の値が変わります（破壊的な変更）
+- Stat の `size` の値が変わります（破壊的な変更）。大きい段（3xl〜5xl）では、数字の字間も見出しと同じく詰めます
+- Time・RelativeTime・NumberFormat の `size` も `xs`〜`5xl` を選べるようになります
 - トークン・クラスの `heading-1`〜`4` は `heading-2xl`・`xl`・`lg`・`md` になりました。Prose の見出しの余白のトークン（`--prose-heading-1-before` など）は要素の段を指すので、そのままです
 - props.md の `size` の決まりを書き換え、[ADR-0237](./0237-size-scale.md) に追記しました
 - backlog の「Text に大きい文字の段がありません」を消しました

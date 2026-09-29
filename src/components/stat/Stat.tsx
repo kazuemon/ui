@@ -20,7 +20,7 @@ const stat = tv({
     body: 'flex min-w-0 flex-col gap-(--stat-caption-gap)',
     valueRow: 'flex flex-wrap items-baseline gap-x-(--stat-value-gap) gap-y-1',
     value: [
-      'text-(length:--stat-value-text) leading-(--stat-value-leading)',
+      'text-(length:--stat-value-text) leading-(--stat-value-leading) [letter-spacing:var(--stat-value-tracking,normal)]',
       '[font-weight:var(--stat-value-weight)] text-fg tabular-nums',
     ],
     unit: 'text-body text-fg-muted',
@@ -51,14 +51,15 @@ const stat = tv({
     },
     // 数字の大きさ。文字の尺度の段を指すので、密度でも一緒に変わる
     size: {
+      // 大きい段は見出しと同じく字間を詰める（ADR-0368）
       '5xl': {
-        root: '[--stat-value-leading:var(--leading-heading-5xl)] [--stat-value-text:var(--text-heading-5xl)]',
+        root: '[--stat-value-leading:var(--leading-heading-5xl)] [--stat-value-text:var(--text-heading-5xl)] [--stat-value-tracking:var(--heading-large-tracking)]',
       },
       '4xl': {
-        root: '[--stat-value-leading:var(--leading-heading-4xl)] [--stat-value-text:var(--text-heading-4xl)]',
+        root: '[--stat-value-leading:var(--leading-heading-4xl)] [--stat-value-text:var(--text-heading-4xl)] [--stat-value-tracking:var(--heading-large-tracking)]',
       },
       '3xl': {
-        root: '[--stat-value-leading:var(--leading-heading-3xl)] [--stat-value-text:var(--text-heading-3xl)]',
+        root: '[--stat-value-leading:var(--leading-heading-3xl)] [--stat-value-text:var(--text-heading-3xl)] [--stat-value-tracking:var(--heading-large-tracking)]',
       },
       '2xl': {},
       xl: {
