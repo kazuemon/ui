@@ -20,6 +20,7 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | `design/props.md`                      | props の名前と渡し方の決まり。語彙表と、色・variant・文字・イベント・渡し方・JSDoc の規則                                                                              |
 | `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                             |
 | `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                               |
+| `design/roadmap.md`                    | 作りたい部品・機能の一覧と進み具合（チェックボックス）                                                                                                                 |
 | `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                                  |
 | `design/review-checklist.md`           | AI が部品の PR をレビューするときの点検表（GitHub の自動化の側で書く）                                                                                                 |
 | `design/plans/`                        | まだ始めていない計画（ドキュメントサイトなど）                                                                                                                         |
@@ -71,7 +72,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
    - Docs の文は使い方だけ。開発の経緯や ADR の番号は書かない
    - 状態・色・密度の一覧には `tags: ['visual']` を付ける。操作しないと出ない状態は `statePseudo` で固定する。`Playground`（Controls で変わる）と動きの途中は撮らない
    - 読み上げや props の確かめは `play` に書く。`userEvent` は `storybook/test` から読む（LAN の IP で開くと、play の引数の `userEvent` が空になる）
-5. `src/index.ts` に部品と props の型を足し、README の一覧にチェックを付ける
+5. `src/index.ts` に部品と props の型を足し、`design/roadmap.md` の一覧にチェックを付ける
 6. `pnpm typecheck`・`pnpm lint`・`pnpm format`・`pnpm test <フォルダ>` を通す。新しい `visual` のストーリーは、はじめの 1 回で基準画像が作られて落ちるので、画像を見てからもう一度流す
 
 ## ループの進め方
