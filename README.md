@@ -33,7 +33,7 @@
   - コンポーネントを組み合わせて作るもの（Footer など）
   - 外部ライブラリと組み合わせて使うもの（TanStack Table・dnd-kit など）
 
-Tailwind CSS v4 と React 19 以上が必要です。
+Tailwind CSS v4 と React 19 が必要です。
 
 ```sh
 pnpm add @kazuemon/ui
