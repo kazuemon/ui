@@ -303,6 +303,10 @@ function StayForm() {
   return (
     <Form showErrorSummary onSubmit={onSubmit} className="flex max-w-md flex-col gap-6">
       <Fieldset label="宿泊の期間" errorText={error}>
+        {/* 隠れた欄にはフォーカスを移さない */}
+        <div hidden>
+          <TextField label="予約の番号" name="reservation" />
+        </div>
         <TextField label="チェックイン" name="checkIn" defaultValue="2026-10-10" />
         <TextField label="チェックアウト" name="checkOut" defaultValue="2026-10-08" />
       </Fieldset>

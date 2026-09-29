@@ -92,7 +92,12 @@ const focusableInFieldset = [
 function focusTargetOf(control: HTMLElement): HTMLElement {
   if (control.dataset.slot === 'fieldset') {
     const first = [...control.querySelectorAll<HTMLElement>(focusableInFieldset)].find(
-      (element) => element.getAttribute('aria-disabled') !== 'true' && !element.hidden
+      (element) =>
+        element.getAttribute('aria-disabled') !== 'true' &&
+        // Base UI のチェックボックス・スイッチの隠れた input（tabIndex -1）と、隠れた・操作できない祖先の中の欄は飛ばす
+        element.tabIndex >= 0 &&
+        !element.closest('[inert]') &&
+        element.checkVisibility({ visibilityProperty: true })
     );
     const group = first?.closest<HTMLElement>('[role="group"], [role="radiogroup"]');
     if (group && control.contains(group)) return focusTargetOf(group);

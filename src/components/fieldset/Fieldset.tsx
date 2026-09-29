@@ -126,6 +126,8 @@ export function Fieldset(props: FieldsetProps) {
   const f = fieldStyles();
   const id = useId();
   const captionId = `${id}-caption`;
+  // 見出しの id は自分で決めて根につなぐ。Base UI は描いたあとで見出しを登録するので、サーバーで描いた HTML に名前が入らない
+  const legendId = `${id}-legend`;
   // 行を開くかは FieldMessageLine と同じ判定（空の文字では開かない）
   const invalid = Boolean(errorText);
   const parent = useContext(FieldsetContext);
@@ -158,6 +160,7 @@ export function Fieldset(props: FieldsetProps) {
         // Form のエラーの一覧が、まとまりのエラーのリンクの先にする
         id={idProp ?? `${id}-fieldset`}
         disabled={disabled}
+        aria-labelledby={hasLabel ? legendId : undefined}
         aria-label={hasLabel ? undefined : (accessibleName ?? ariaLabel)}
         aria-describedby={describedBy || undefined}
         data-slot="fieldset"
@@ -168,7 +171,7 @@ export function Fieldset(props: FieldsetProps) {
           <div className={s.head()}>
             {hasLabel && (
               // Form のエラーの一覧が、まとまりの名前として読む（form-dom.ts）
-              <BaseFieldset.Legend data-slot="fieldset-legend" className={s.legend()}>
+              <BaseFieldset.Legend id={legendId} data-slot="fieldset-legend" className={s.legend()}>
                 {label}
               </BaseFieldset.Legend>
             )}
