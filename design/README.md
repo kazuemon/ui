@@ -8,6 +8,7 @@
 | `tokens.css`    | 現行版の値。Tailwind v4 の `@theme` にそのまま取り込める形式                              |
 | `adr/`          | 決定の記録。1 決定につき 1 本。索引と書き方は [`adr/README.md`](./adr/README.md)          |
 | `adr/assets/`   | ADR に添える比較画像。決めた時点の記録                                                    |
+| `roadmap.md`    | 作りたい部品・機能の一覧と進み具合                                                        |
 | `backlog.md`    | 決めていないこと・作っていないこと                                                        |
 | `references/`   | 原則の出どころになった参照画像（一覧は [`references/README.md`](./references/README.md)） |
 | `plans/`        | まだ始めていない計画（ドキュメントサイトなど）                                            |

@@ -1,6 +1,13 @@
 # @kazuemon/ui
 
-![banner](./banner.png)
+![@kazuemon/ui のバナー。ぼくがかんがえたさいきょうのUIライブラリをつくりたい](./banner.png)
+
+[![npm](https://img.shields.io/npm/v/@kazuemon/ui)](https://www.npmjs.com/package/@kazuemon/ui) [![license](https://img.shields.io/npm/l/@kazuemon/ui)](./LICENSE)
+
+かずえもんが個人で作っている、React と Tailwind CSS の UI コンポーネントライブラリです。
+
+- ドキュメント: https://ui.k6n.jp
+- Storybook: https://story.ui.k6n.jp
 
 ## もくひょう
 
@@ -19,11 +26,29 @@
 
 ## つかいかた
 
-Tailwind CSS v4 と React 19 以上を使うアプリで使えます。
+@kazuemon/ui は、Component と Recipe で構成されています。
+
+- **Component**: `@kazuemon/ui` から読んで使う部品です（Button・TextField・Dialog など）
+- **Recipe**: 部品にはせず、コードを写して使う見本です。[Storybook](https://story.ui.k6n.jp) の Recipes に並んでいます
+  - コンポーネントを組み合わせて作るもの（Footer など）
+  - 外部ライブラリと組み合わせて使うもの（TanStack Table・dnd-kit など）
+
+Tailwind CSS v4 と React 19 が必要です。
 
 ```sh
 pnpm add @kazuemon/ui
-pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
+
+# 日本語の推奨フォント（IBM Plex Sans JP）を使うときに必要です
+pnpm add @fontsource/ibm-plex-sans-jp
+
+# Icon などに Phosphor のアイコンを渡すときに必要です
+pnpm add @phosphor-icons/react
+
+# DataTable の Recipe（TanStack Table でつなぐ）を使うときに必要です
+pnpm add @tanstack/react-table
+
+# Sortable の Recipe（dnd-kit でつなぐ）を使うときに必要です
+pnpm add @dnd-kit/react @dnd-kit/helpers @dnd-kit/dom
 ```
 
 アプリの CSS で、`tailwindcss` のあとに読みます。部品のクラスは、アプリの Tailwind がまとめて作ります。
@@ -35,212 +60,22 @@ pnpm add @fontsource/ibm-plex-sans-jp  # 和文フォントも読むとき
 @import '@kazuemon/ui/fonts-ja.css'; /* 和文（IBM Plex Sans JP）。@fontsource/ibm-plex-sans-jp が要る */
 ```
 
+```tsx
+import { Button } from '@kazuemon/ui';
+
+export function SaveButton() {
+  return <Button>保存する</Button>;
+}
+```
+
 - 部品は `@kazuemon/ui` から読みます。部品ごとに `'use client'` を持つので、Server Components のページからそのまま使えます
 - トークンは Tailwind のクラスとしても使えます（`bg-primary`・`rounded-control`・`h-control`・`text-caption` など）
 - 部品に `className` で渡したクラスは、部品のクラスより優先されます。自分で `cn()` を作るときは、`twMergeConfig` を `extendTailwindMerge(twMergeConfig)` に渡すと、部品と同じまとめ方になります
 - 部品は、ページのフォント（`body` などに置いたもの）を受け継ぎます。フォントを読まないときは、`ui-sans-serif, system-ui, sans-serif` など、端末のフォントで描かれます
 
-## つくりたい機能
+## つくりたいもの
 
-部品ではなく、ライブラリとして使うときに要るものです。
-
-- [ ] ダークモード
-- [x] Server Components 対応
-- [ ] 多言語
-- [ ] Tailwind なしでの利用
-- [ ] スタイルの衝突を避ける（Tailwind あり・なし）
-- [x] ツリーシェイク
-
-## つくりたいコンポーネント
-
-### 土台
-
-- [x] Icon
-- [x] VisuallyHidden
-- [x] ThemeProvider
-- [x] Collapsible
-- [x] ScrollArea
-- [x] AspectRatio
-- [x] Portal
-- [x] Transition
-
-### 文字
-
-- [x] Heading
-- [x] HeadingAnchor
-- [x] Text
-- [x] Code
-- [x] Kbd
-- [x] Mark
-- [ ] Ruby
-- [ ] Highlight
-- [x] NumberFormat
-
-### 本文
-
-- [x] Prose
-- [x] CodeBlock
-- [x] Blockquote
-- [x] Figure
-- [x] Callout
-- [x] LinkCard
-- [x] Footnote
-- [x] Steps
-- [x] FileTree
-- [x] CodeGroup
-- [x] Embed
-- [x] Video
-- [x] Gallery
-- [x] ImageZoom
-- [x] Bleed
-- [x] Spoiler
-- [ ] TypeTable
-- [ ] Mermaid
-- [ ] Math
-
-### ページの枠
-
-- [x] Container
-- [x] Navbar
-- [x] Sidebar
-- [x] Inspector
-- [x] Stack
-- [x] Grid
-- [x] Masonry
-- [x] SkipLink
-- [x] Affix
-- [ ] Splitter
-
-### ナビゲーション
-
-- [x] TableOfContents
-- [x] Pager
-- [x] Breadcrumb
-- [x] Tabs
-- [x] Pagination
-- [x] Menu
-- [x] Stepper
-- [ ] NavigationMenu
-- [ ] ContextMenu
-- [ ] Toolbar
-- [ ] CommandPalette
-- [ ] BackToTop
-- [ ] Menubar
-- [x] Tree
-- [ ] Tour
-
-### 表示
-
-- [x] Tag
-- [x] Card
-- [x] List
-- [x] Table
-- [x] Divider
-- [x] Time
-- [x] RelativeTime
-- [x] Avatar
-- [x] Badge
-- [x] Chip
-- [x] Timeline
-- [x] Accordion
-- [x] Image
-- [x] AvatarGroup
-- [x] DescriptionList
-- [x] Stat
-- [x] Meter
-- [x] Carousel
-- [x] Thumbnails
-- [ ] Indicator
-
-### 操作
-
-- [x] Button
-- [x] Link
-- [x] Toggle
-- [x] ToggleGroup
-- [x] ButtonGroup
-- [x] CopyButton
-
-### 入力
-
-- [x] TextField
-- [x] Select
-- [x] Switch
-- [x] Form
-- [x] Textarea
-- [x] Checkbox
-- [x] Radio
-- [x] Fieldset
-- [x] Combobox
-- [ ] Segmented Control
-- [x] Slider
-- [x] NumberField
-- [x] DateField
-- [ ] DatePicker
-- [x] Dropzone
-- [x] SearchField
-- [x] PasswordField
-- [x] Autocomplete
-- [x] PinField
-- [x] TagsInput
-- [x] TimeField
-- [ ] TimePicker
-- [ ] ColorPicker
-- [ ] Rating
-- [x] Calendar
-- [ ] DateRangePicker
-- [x] CheckboxGroup
-- [x] MaskField
-- [ ] Editable
-- [ ] FileInput
-
-### 通知
-
-- [x] Notice
-- [x] Loading
-- [ ] Spinner
-- [x] Toast
-- [x] Progress
-- [x] Skeleton
-- [x] StatusPanel
-- [ ] LoadingOverlay
-
-### 重なるもの
-
-- [x] Dialog
-- [x] Drawer
-- [x] Popover
-- [x] Tooltip
-- [x] AlertDialog
-- [ ] PreviewCard
-
-### アプリの画面
-
-Web アプリで使うものです。実装の重い部品（DataTable・VirtualList・Sortable・Kanban）は、見た目だけを部品にし、外のヘッドレス（TanStack Table・TanStack Virtual・dnd-kit）とのつなぎ方はレシピ（Storybook の Recipes）で案内します。ヘッドレスは依存に入れないので、使う人がアプリに入れて、レシピのコードを写して使います。
-
-- [x] DataTable
-- [ ] VirtualList
-- [x] Sortable
-- [ ] Kanban
-- [ ] Popconfirm
-- [ ] ActionBar
-- [ ] Mentions
-- [ ] Cascader
-- [ ] TreeSelect
-- [ ] Transfer
-
-### チャット
-
-- [ ] Composer
-- [ ] MessageList
-- [ ] Bubble
-- [ ] TypingIndicator
-- [ ] Attachment
-- [ ] StreamingText
-
-## Figma
-
-(準備中)
+作りたい部品と機能、その進み具合は [`design/roadmap.md`](./design/roadmap.md) にあります。
 
 ## ライセンス
 
