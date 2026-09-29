@@ -9,17 +9,17 @@
 //   部品の中の子孫に当てるクラス（[&_:is(th,td)]: など）は、部品と Prose の根のどちらに付けても同じ要素に効くので、そのまま使う
 //   Tailwind はソースの文字列からクラスを作るので、クラス列はここに文字で書く（組み立てない）
 
-// 段の大きさは、Prose では h1→1、h2→2、h3→3、h4・h5・h6→4
+// 段の大きさ（ADR-0369）。Prose では h1→2xl、h2→xl、h3→lg、h4・h5・h6→md
 export const headingStyles = {
   base: '[:where(&:not([data-prose]),&_:is(h1,h2,h3,h4,h5,h6))]:font-heading [:where(&:not([data-prose]),&_:is(h1,h2,h3,h4,h5,h6))]:text-fg',
   size: {
-    1: '[:where(&:not([data-prose]),&_h1)]:text-heading-1',
-    2: '[:where(&:not([data-prose]),&_h2)]:text-heading-2',
-    3: '[:where(&:not([data-prose]),&_h3)]:text-heading-3',
-    4: '[:where(&:not([data-prose]),&_:is(h4,h5,h6))]:text-heading-4',
-    // 試作（Design Review 387）: 見出し 1 より大きい段。Prose の要素には割り当てない
-    'display-1': '[:where(&:not([data-prose]))]:text-display-1',
-    'display-2': '[:where(&:not([data-prose]))]:text-display-2',
-    'display-3': '[:where(&:not([data-prose]))]:text-display-3',
+    // 大きい段（Hero・節の大見出し）は Prose の要素には割り当てない（ADR-0368）
+    '5xl': '[:where(&:not([data-prose]))]:text-heading-5xl',
+    '4xl': '[:where(&:not([data-prose]))]:text-heading-4xl',
+    '3xl': '[:where(&:not([data-prose]))]:text-heading-3xl',
+    '2xl': '[:where(&:not([data-prose]),&_h1)]:text-heading-2xl',
+    xl: '[:where(&:not([data-prose]),&_h2)]:text-heading-xl',
+    lg: '[:where(&:not([data-prose]),&_h3)]:text-heading-lg',
+    md: '[:where(&:not([data-prose]),&_:is(h4,h5,h6))]:text-heading-md',
   },
 } as const;

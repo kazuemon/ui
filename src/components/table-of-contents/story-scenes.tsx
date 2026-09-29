@@ -11,13 +11,13 @@ import type { SceneItem } from './story-items';
 const paragraph =
   '部品は自分がどこに置かれるかを知りません。知らないことは決めず、使う側に渡します。値は役割のトークンで持ち、部品の中だけで使う値は部品のトークンに分けます。';
 
-const headingSize = { 2: 3, 3: 4, 4: 4 } as const;
+const headingSize = { 2: 'lg', 3: 'md', 4: 'md' } as const;
 
 /** 見出しと段落を並べた記事 */
 export function Article({ items }: { items: SceneItem[] }) {
   return (
     <article className="flex min-w-0 flex-col gap-4">
-      <Heading level={1} size={2}>
+      <Heading level={1} size="xl">
         デザインの決め方
       </Heading>
       {items.map((item) => (

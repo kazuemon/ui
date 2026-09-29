@@ -181,7 +181,7 @@ function ListPage({ state }: { state: ListState }) {
     <Stack gap="lg">
       <Stack direction="horizontal" gap="md" justify="between" align="end">
         <div>
-          <Heading level={1} size={2}>
+          <Heading level={1} size="xl">
             メンバー
           </Heading>
           <Text variant="muted" className="mt-1">
@@ -288,7 +288,7 @@ function ListPage({ state }: { state: ListState }) {
         </Table>
         {!busy && shown.length === 0 && (
           <Stack gap="sm" align="center" className="py-12 text-center">
-            <Heading level={2} size={4}>
+            <Heading level={2} size="md">
               見つかりませんでした
             </Heading>
             <Text variant="muted">条件を変えるか、新しいメンバーを招待してください。</Text>

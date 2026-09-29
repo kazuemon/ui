@@ -151,7 +151,7 @@ export const InCards: Story = {
             <Image ratio="var(--card-media-aspect)" radius={radius} src={landscape} alt="" />
           </div>
           <div className="flex flex-col gap-2 p-4">
-            <Heading level={3} size={4}>
+            <Heading level={3} size="md">
               {radius === 'none' ? '標準の型' : '入れ子の型'}
             </Heading>
             <Text size="sm" variant="subtle">

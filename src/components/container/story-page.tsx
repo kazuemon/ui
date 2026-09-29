@@ -78,7 +78,7 @@ export function SamplePage({ guides = false }: { guides?: boolean }) {
                   key={title}
                   className="flex flex-col gap-1 rounded-card border border-line bg-surface p-4"
                 >
-                  <Heading level={3} size={4}>
+                  <Heading level={3} size="md">
                     {title}
                   </Heading>
                   <Text size="sm" variant="muted">

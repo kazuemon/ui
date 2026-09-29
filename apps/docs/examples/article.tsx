@@ -110,7 +110,7 @@ export const example: Example = {
       </div>
       {args.comments && (
         <section className="mt-12 flex flex-col gap-4 border-t border-line pt-8">
-          <Heading level={2} size={3}>
+          <Heading level={2} size="lg">
             コメント
           </Heading>
           <TextField label="名前" placeholder="かずえもん" />

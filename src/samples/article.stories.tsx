@@ -86,7 +86,7 @@ export const Article: Story = {
         />
       </div>
       <Stack gap="md" className="mt-12 border-t border-line pt-8" render={<section />}>
-        <Heading level={2} size={3}>
+        <Heading level={2} size="lg">
           コメント
         </Heading>
         <TextField label="名前" placeholder="かずえもん" />

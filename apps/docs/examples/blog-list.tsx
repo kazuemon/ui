@@ -156,7 +156,7 @@ function PostCard({
             <Tag key={tag}>{tag}</Tag>
           ))}
         </div>
-        <Heading level={2} size={4}>
+        <Heading level={2} size="md">
           {post.title}
         </Heading>
         <Text size="sm" variant="muted">
@@ -233,7 +233,7 @@ function BlogListScreen({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           ブログ
         </Heading>
         <Text variant="muted" className="mt-1">
@@ -318,7 +318,7 @@ function BlogListScreen({
           </PostList>
         ) : shown.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
-            <Heading level={2} size={4}>
+            <Heading level={2} size="md">
               記事が見つかりませんでした
             </Heading>
             <Text variant="muted">言葉を変えるか、絞り込みを外してください。</Text>

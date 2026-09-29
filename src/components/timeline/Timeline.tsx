@@ -102,9 +102,9 @@ const inner = tv({
     },
     // 1 行目の高さ（点をそろえる行）。題の大きさ、題がないときは日付か説明
     firstLine: {
-      2: '[--tl-line:var(--leading-heading-2)]',
-      3: '[--tl-line:var(--leading-heading-3)]',
-      4: '[--tl-line:var(--leading-heading-4)]',
+      xl: '[--tl-line:var(--leading-heading-xl)]',
+      lg: '[--tl-line:var(--leading-heading-lg)]',
+      md: '[--tl-line:var(--leading-heading-md)]',
       date: '[--tl-line:var(--leading-body-sm)]',
       body: '[--tl-line:var(--leading-body)]',
     },
@@ -195,8 +195,8 @@ const body = tv({
 
 export type TimelineHeadingLevel = 2 | 3 | 4 | 5 | 6;
 
-// 段から題の大きさ。5・6 段は 4（Heading と同じ）
-const sizeOfLevel = { 2: 2, 3: 3, 4: 4, 5: 4, 6: 4 } as const;
+// 段から題の大きさ。h2 は xl、h3 は lg、h4〜h6 は md（Heading と同じ）
+const sizeOfLevel = { 2: 'xl', 3: 'lg', 4: 'md', 5: 'md', 6: 'md' } as const;
 
 export type TimelineMarkerSize = 'sm' | 'md' | 'lg';
 

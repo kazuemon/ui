@@ -110,7 +110,7 @@ function PlanCard({
       <CardBody className="flex h-full flex-col gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-2">
-            <Heading level={2} size={3}>
+            <Heading level={2} size="lg">
               {plan.name}
             </Heading>
             {featured && (
@@ -124,7 +124,7 @@ function PlanCard({
         {/* 価格と「月あたり」の行はひと続きの情報なので、他の余白より詰めて gap-1 でまとめる */}
         <div className="flex flex-col gap-1">
           <div className="flex items-baseline gap-1">
-            <span className="text-(length:--text-heading-1) leading-(--leading-heading-1) font-bold">
+            <span className="text-(length:--text-heading-2xl) leading-(--leading-heading-2xl) font-bold">
               <NumberFormat value={price} currency="JPY" />
             </span>
             <Text as="span" size="sm" variant="subtle">
@@ -243,7 +243,7 @@ function PricingScreen({
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Heading level={1} size={1}>
+        <Heading level={1} size="2xl">
           料金プラン
         </Heading>
         <Text variant="muted">
@@ -275,14 +275,14 @@ function PricingScreen({
       </Grid>
 
       <section className="flex flex-col gap-4">
-        <Heading level={2} size={3}>
+        <Heading level={2} size="lg">
           機能を比べる
         </Heading>
         <ComparisonTable />
       </section>
 
       <section className="flex flex-col gap-4">
-        <Heading level={2} size={3}>
+        <Heading level={2} size="lg">
           よくある質問
         </Heading>
         <Accordion variant={accordionAppearance}>

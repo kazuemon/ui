@@ -159,7 +159,7 @@ function TasksScreen({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           0.2.0 のリリース
         </Heading>
         <Text variant="muted" className="mt-1">

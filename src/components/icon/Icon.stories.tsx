@@ -92,7 +92,7 @@ export const Sizes: Story = {
           </Specimen>
         ))}
       </Gallery>
-      <Heading level={3} size={2}>
+      <Heading level={3} size="xl">
         <Icon icon={BellIcon} /> お知らせの設定
       </Heading>
       <Text>
@@ -116,9 +116,9 @@ export const InText: Story = {
   },
   render: () => (
     <div className="flex flex-col gap-4 text-fg">
-      {([1, 2, 3, 4] as const).map((level) => (
-        <Heading key={level} level={2} size={level}>
-          <Icon icon={BellIcon} /> 見出し {level} の Settings
+      {(['2xl', 'xl', 'lg', 'md'] as const).map((size) => (
+        <Heading key={size} level={2} size={size}>
+          <Icon icon={BellIcon} /> 見出し {size} の Settings
         </Heading>
       ))}
       <Text>

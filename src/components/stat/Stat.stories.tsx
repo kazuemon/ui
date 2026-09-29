@@ -9,7 +9,7 @@ import type { MatrixColumn } from '../../stories/story-states';
 const deltaIndicators = ['up', 'down', 'flat'] as const;
 const trends = ['positive', 'negative', 'neutral'] as const;
 const aligns = ['start', 'center', 'end'] as const;
-const sizes = ['heading-1', 'heading-2', 'heading-3', 'body'] as const;
+const sizes = ['5xl', '4xl', '3xl', '2xl', 'xl', 'lg', 'md'] as const;
 
 interface TrendColumn extends MatrixColumn {
   trend: (typeof trends)[number];
@@ -69,7 +69,7 @@ const meta = {
     size: {
       control: 'inline-radio',
       options: sizes,
-      table: { defaultValue: { summary: "'heading-1'" } },
+      table: { defaultValue: { summary: "'2xl'" } },
     },
     hideDeltaIcon: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     deltaFill: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },

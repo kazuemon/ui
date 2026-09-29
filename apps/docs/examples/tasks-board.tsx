@@ -146,7 +146,7 @@ function Column({
       className="flex min-w-0 flex-col gap-3 rounded-card bg-neutral p-3"
     >
       <div className="flex items-baseline justify-between gap-2">
-        <Heading level={2} size={4} id={`column-${status}`}>
+        <Heading level={2} size="md" id={`column-${status}`}>
           {statusLabel[status]}
         </Heading>
         <Text as="span" size="sm" variant="subtle">

@@ -342,7 +342,7 @@ function ApplyScreen({ scenario, args }: { scenario: Scenario; args: FormArgs })
             </span>
           ))}
         </Text>
-        <Heading level={1} size={2} ref={headingRef} tabIndex={-1}>
+        <Heading level={1} size="xl" ref={headingRef} tabIndex={-1}>
           UI 勉強会 #3 に申し込む
         </Heading>
         <Text variant="muted">

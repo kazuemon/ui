@@ -8,7 +8,8 @@ import { tv } from '../../internal/tv';
 // 読む文字の大きさは密度で変わる（原則11）。行の高さは整数 px（原則10）
 // 英語のサブ（原則10 の和欧併記）は持たない。レイアウト層で組む（原則9）
 // 折り返し（text-wrap: balance、word-break: auto-phrase など）は部品で決めず、利用者が className で付ける
-// 大きさは軸 51 の E（マウスで 28・22・18・16、指で 24・20・16・14。読みものの中ではマウスと同じ）。文字は本文と同じ濃紺
+// 大きさは Text と共有する段の名前（ADR-0369）。md〜2xl は軸 51 の E（マウスで 16・18・22・28、指で 14・16・20・24。読みものの中ではマウスと同じ）、
+// 3xl〜5xl は Hero・節の大見出しの段（マウスで 36・44・56、指で 28・32・40 — ADR-0368）。文字は本文と同じ濃紺
 // 見た目のクラス列は src/internal/reading/heading.ts（Prose も同じものを使う）
 const heading = tv({
   base: [headingStyles.base, textLinkSizeReset],
@@ -18,14 +19,18 @@ const heading = tv({
 });
 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
-// 'display-*' は試作（Design Review 387）。段の名前（数字を振り直すか）は比較で決める
-export type HeadingSize = 1 | 2 | 3 | 4 | 'display-1' | 'display-2' | 'display-3';
+/** 見出しの大きさ。Text の size と同じ段の名前で、md が本文と同じ大きさ（ADR-0369） */
+export type HeadingSize = 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
 
-// 段から既定の大きさ。5・6 段は 4
-const sizeOfLevel = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 4, 6: 4 } as const satisfies Record<
-  HeadingLevel,
-  HeadingSize
->;
+// 段から既定の大きさ。h1 は 2xl、h2 は xl、h3 は lg、h4〜h6 は md。3xl〜5xl は size で選ぶ
+const sizeOfLevel = {
+  1: '2xl',
+  2: 'xl',
+  3: 'lg',
+  4: 'md',
+  5: 'md',
+  6: 'md',
+} as const satisfies Record<HeadingLevel, HeadingSize>;
 
 export interface HeadingProps extends ComponentProps<'h2'> {
   /**
@@ -34,8 +39,9 @@ export interface HeadingProps extends ComponentProps<'h2'> {
    */
   level?: HeadingLevel;
   /**
-   * 見た目の大きさ（1 が最も大きい）。指定しないときは段と同じで、5・6 段は 4 になります。
-   * 構造と見た目を分けたいとき（カードの中の h3 を小さく見せるなど）に使います
+   * 見た目の大きさ。Text の size と同じ段の名前で、md が本文と同じ大きさです。
+   * 指定しないときは段から決まり、h1 は 2xl、h2 は xl、h3 は lg、h4〜h6 は md です。
+   * 構造と見た目を分けたいとき（カードの中の h3 を小さく見せるなど）と、Hero や節の大見出し（3xl〜5xl）に使います
    */
   size?: HeadingSize;
 }

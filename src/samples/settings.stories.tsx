@@ -24,7 +24,7 @@ import { SamplePage, densityOf } from './SamplePage';
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Stack gap="md" render={<section />}>
-      <Heading level={2} size={3}>
+      <Heading level={2} size="lg">
         {title}
       </Heading>
       {children}
@@ -158,7 +158,7 @@ function SettingsScreen() {
   return (
     <Stack gap="lg">
       <div>
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           設定
         </Heading>
         <Text variant="muted" className="mt-1">

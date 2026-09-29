@@ -239,14 +239,14 @@ function GroupScreen() {
         <div className="flex items-end justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Text variant="muted">ステージ / 予選リーグ</Text>
-            <Heading level={1} size={2}>
+            <Heading level={1} size="xl">
               Aグループ
             </Heading>
           </div>
           <Button color="primary">試合を追加</Button>
         </div>
         <section className="flex flex-col gap-3" aria-labelledby="matches">
-          <Heading level={2} size={3} id="matches">
+          <Heading level={2} size="lg" id="matches">
             試合
           </Heading>
           <Table>

@@ -95,7 +95,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
   if (done && date && time) {
     return (
       <div className="flex flex-col gap-6">
-        <Heading level={1} size={2} ref={doneHeadingRef} tabIndex={-1}>
+        <Heading level={1} size="xl" ref={doneHeadingRef} tabIndex={-1}>
           予約しました
         </Heading>
         <Notice status="success" title={`${formatDate(date)} ${time} にお待ちしています`}>
@@ -121,7 +121,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           予約する
         </Heading>
         <Text variant="muted" className="mt-1">
@@ -130,7 +130,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
       </div>
 
       <section className="flex flex-col gap-3">
-        <Heading level={2} size={4}>
+        <Heading level={2} size="md">
           1. 日を選ぶ
         </Heading>
         <Calendar
@@ -156,7 +156,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
       </section>
 
       <section className="flex flex-col gap-3">
-        <Heading level={2} size={4}>
+        <Heading level={2} size="md">
           2. 時刻を選ぶ
         </Heading>
         {date ? (
@@ -189,7 +189,7 @@ function ReservationScreen({ scenario, calendar }: { scenario: Scenario; calenda
       </section>
 
       <section className="flex flex-col gap-4">
-        <Heading level={2} size={4}>
+        <Heading level={2} size="md">
           3. 予約する人
         </Heading>
         <NumberField

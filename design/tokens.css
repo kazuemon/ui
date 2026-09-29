@@ -348,39 +348,41 @@
   --text-caption: var(--text-caption-fine);
   --text-caption--line-height: var(--leading-caption);
   /* 読む文字（Text・Heading）。部品の中の文字とは別に持つ — 軸 51
-     --text-body・--text-body-sm          本文と、本文より小さい注記
-     --text-heading-1〜4                  見出しの 4 段（h5・h6 は 4 段目） */
+     --text-body・--text-body-sm          本文（md）と、本文より小さい注記（sm）
+     --text-heading-md〜2xl               見出しの 4 段（h4〜h6 は md）
+     --text-heading-3xl〜5xl              Hero・節の大見出しの段
+     名前は Text・Heading の size と同じ段（xs〜5xl — ADR-0369）。Tailwind の既定の text-xl などを上書きしないよう、heading- を付ける */
   --text-body: var(--text-body-fine);
   --text-body--line-height: var(--leading-body);
   --leading-body: var(--leading-body-fine);
   --text-body-sm: var(--text-body-sm-fine);
   --text-body-sm--line-height: var(--leading-body-sm);
   --leading-body-sm: var(--leading-body-sm-fine);
-  --text-heading-1: var(--text-heading-1-fine);
-  --text-heading-1--line-height: var(--leading-heading-1);
-  --leading-heading-1: var(--leading-heading-1-fine);
-  --text-heading-2: var(--text-heading-2-fine);
-  --text-heading-2--line-height: var(--leading-heading-2);
-  --leading-heading-2: var(--leading-heading-2-fine);
-  --text-heading-3: var(--text-heading-3-fine);
-  --text-heading-3--line-height: var(--leading-heading-3);
-  --leading-heading-3: var(--leading-heading-3-fine);
-  --text-heading-4: var(--text-heading-4-fine);
-  --text-heading-4--line-height: var(--leading-heading-4);
-  --leading-heading-4: var(--leading-heading-4-fine);
-  /* 試作（Design Review 387）: 見出し 1 より大きい段（Hero・節の大見出し）。値は下の :root。候補はそこを上書きする */
-  --text-display-1: var(--text-display-1);
-  --text-display-1--line-height: var(--leading-display-1);
-  --text-display-1--letter-spacing: var(--display-1-tracking);
-  --leading-display-1: var(--leading-display-1);
-  --text-display-2: var(--text-display-2);
-  --text-display-2--line-height: var(--leading-display-2);
-  --text-display-2--letter-spacing: var(--display-2-tracking);
-  --leading-display-2: var(--leading-display-2);
-  --text-display-3: var(--text-display-3);
-  --text-display-3--line-height: var(--leading-display-3);
-  --text-display-3--letter-spacing: var(--display-3-tracking);
-  --leading-display-3: var(--leading-display-3);
+  --text-heading-2xl: var(--text-heading-2xl-fine);
+  --text-heading-2xl--line-height: var(--leading-heading-2xl);
+  --leading-heading-2xl: var(--leading-heading-2xl-fine);
+  --text-heading-xl: var(--text-heading-xl-fine);
+  --text-heading-xl--line-height: var(--leading-heading-xl);
+  --leading-heading-xl: var(--leading-heading-xl-fine);
+  --text-heading-lg: var(--text-heading-lg-fine);
+  --text-heading-lg--line-height: var(--leading-heading-lg);
+  --leading-heading-lg: var(--leading-heading-lg-fine);
+  --text-heading-md: var(--text-heading-md-fine);
+  --text-heading-md--line-height: var(--leading-heading-md);
+  --leading-heading-md: var(--leading-heading-md-fine);
+  /* Hero・節の大見出しの段（3xl〜5xl — ADR-0368）。大きな太字の和文は、字間を少し詰める */
+  --text-heading-5xl: var(--text-heading-5xl-fine);
+  --text-heading-5xl--line-height: var(--leading-heading-5xl);
+  --text-heading-5xl--letter-spacing: var(--heading-large-tracking);
+  --leading-heading-5xl: var(--leading-heading-5xl-fine);
+  --text-heading-4xl: var(--text-heading-4xl-fine);
+  --text-heading-4xl--line-height: var(--leading-heading-4xl);
+  --text-heading-4xl--letter-spacing: var(--heading-large-tracking);
+  --leading-heading-4xl: var(--leading-heading-4xl-fine);
+  --text-heading-3xl: var(--text-heading-3xl-fine);
+  --text-heading-3xl--line-height: var(--leading-heading-3xl);
+  --text-heading-3xl--letter-spacing: var(--heading-large-tracking);
+  --leading-heading-3xl: var(--leading-heading-3xl-fine);
 }
 
 /* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
@@ -443,41 +445,36 @@
   --text-body-sm-coarse: 12px;
   --leading-body-sm-fine: 24px;
   --leading-body-sm-coarse: 20px;
-  --text-heading-1-fine: 28px;
-  --text-heading-1-coarse: 24px;
-  --leading-heading-1-fine: 40px;
-  --leading-heading-1-coarse: 34px;
-  --text-heading-2-fine: 22px;
-  --text-heading-2-coarse: 20px;
-  --leading-heading-2-fine: 32px;
-  --leading-heading-2-coarse: 30px;
-  --text-heading-3-fine: 18px;
-  --text-heading-3-coarse: 16px;
-  --leading-heading-3-fine: 28px;
-  --leading-heading-3-coarse: 26px;
-  --text-heading-4-fine: 16px;
-  --text-heading-4-coarse: 14px;
-  --leading-heading-4-fine: 28px;
-  --leading-heading-4-coarse: 24px;
-  /* 試作（Design Review 387）: 見出し 1 より大きい段（でかい・おおきい・おおきめ）。密度で切り替える。候補はここを上書きする */
-  --text-display-1-fine: 56px;
-  --leading-display-1-fine: 68px;
-  --display-1-tracking-fine: -0.01em;
-  --text-display-1-coarse: 40px;
-  --leading-display-1-coarse: 50px;
-  --display-1-tracking-coarse: -0.01em;
-  --text-display-2-fine: 44px;
-  --leading-display-2-fine: 56px;
-  --display-2-tracking-fine: -0.01em;
-  --text-display-2-coarse: 32px;
-  --leading-display-2-coarse: 42px;
-  --display-2-tracking-coarse: -0.01em;
-  --text-display-3-fine: 36px;
-  --leading-display-3-fine: 48px;
-  --display-3-tracking-fine: -0.01em;
-  --text-display-3-coarse: 28px;
-  --leading-display-3-coarse: 38px;
-  --display-3-tracking-coarse: -0.01em;
+  --text-heading-2xl-fine: 28px;
+  --text-heading-2xl-coarse: 24px;
+  --leading-heading-2xl-fine: 40px;
+  --leading-heading-2xl-coarse: 34px;
+  --text-heading-xl-fine: 22px;
+  --text-heading-xl-coarse: 20px;
+  --leading-heading-xl-fine: 32px;
+  --leading-heading-xl-coarse: 30px;
+  --text-heading-lg-fine: 18px;
+  --text-heading-lg-coarse: 16px;
+  --leading-heading-lg-fine: 28px;
+  --leading-heading-lg-coarse: 26px;
+  --text-heading-md-fine: 16px;
+  --text-heading-md-coarse: 14px;
+  --leading-heading-md-fine: 28px;
+  --leading-heading-md-coarse: 24px;
+  /* Hero・節の大見出しの段（3xl〜5xl — ADR-0368）。見出しの 4 段と同じく密度で切り替える */
+  --heading-large-tracking: -0.01em;
+  --text-heading-5xl-fine: 56px;
+  --leading-heading-5xl-fine: 68px;
+  --text-heading-5xl-coarse: 40px;
+  --leading-heading-5xl-coarse: 50px;
+  --text-heading-4xl-fine: 44px;
+  --leading-heading-4xl-fine: 56px;
+  --text-heading-4xl-coarse: 32px;
+  --leading-heading-4xl-coarse: 42px;
+  --text-heading-3xl-fine: 36px;
+  --leading-heading-3xl-fine: 48px;
+  --text-heading-3xl-coarse: 28px;
+  --leading-heading-3xl-coarse: 38px;
 
   /* キー（Kbd）— 軸 53 の B。白い面に白いボタンと同じ細い輪郭、下辺だけを太くしてキーの厚みを線で見せる。影は付けない（押せないので原則1のまま）
      大きさと余白は周りの文字に対する比 */
@@ -1912,8 +1909,8 @@
      増減: 矢印の有無（deltaIcon）と淡い面の有無（deltaFill）は部品が持つ。色は tone（成功の緑・危険の赤・グレー） */
   --stat-gap: var(--spacing); /* ラベルと数字のあいだ */
   --stat-caption-gap: var(--spacing); /* 数字とキャプションのあいだ */
-  --stat-value-text: var(--text-heading-1);
-  --stat-value-leading: var(--leading-heading-1);
+  --stat-value-text: var(--text-heading-2xl);
+  --stat-value-leading: var(--leading-heading-2xl);
   --stat-value-weight: var(--font-weight-heading);
   --stat-value-gap: calc(var(--spacing) * 2); /* 数字と、単位・増減のあいだ */
   --stat-delta-text: var(--text-body-sm);
@@ -1985,7 +1982,7 @@
      色（バッジの塗り・アイコンの色・見出しの色）は internal/notice-surface の noticeSurface（Notice・Callout・Toast と共有）が持つので、
        ここには置かない（ADR-0326・0327）。ここに置くのは、Notice にはない StatusPanel 固有の大きさの軸だけ
      size（sm・md・lg、既定 md）ごとに、幅の上限・間隔・バッジとアイコンの大きさを持つ（ADR-0328）。見出しの大きさは
-       text-heading-2〜4 をそのまま使うので、ここにはトークンを置かない
+       text-heading-xl〜4 をそのまま使うので、ここにはトークンを置かない
      description-width は size によらない一定値（本文だけの幅の上限。見出しより読みやすい行長にする） */
   --status-panel-width-sm: 22rem;
   --status-panel-width-md: 28rem;

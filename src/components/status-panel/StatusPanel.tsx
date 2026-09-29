@@ -75,21 +75,21 @@ const statusPanel = tv({
         root: '[--status-panel-gap:var(--status-panel-gap-sm)] [--status-panel-width:var(--status-panel-width-sm)]',
         badge:
           '[--status-panel-badge-size:var(--status-panel-badge-size-sm)] [--status-panel-icon-size:var(--status-panel-icon-size-sm)]',
-        title: 'text-heading-4',
+        title: 'text-heading-md',
         actions: '[--status-panel-actions-gap:var(--status-panel-gap-sm)]',
       },
       md: {
         root: '[--status-panel-gap:var(--status-panel-gap-md)] [--status-panel-width:var(--status-panel-width-md)]',
         badge:
           '[--status-panel-badge-size:var(--status-panel-badge-size-md)] [--status-panel-icon-size:var(--status-panel-icon-size-md)]',
-        title: 'text-heading-3',
+        title: 'text-heading-lg',
         actions: '[--status-panel-actions-gap:var(--status-panel-gap-md)]',
       },
       lg: {
         root: '[--status-panel-gap:var(--status-panel-gap-lg)] [--status-panel-width:var(--status-panel-width-lg)]',
         badge:
           '[--status-panel-badge-size:var(--status-panel-badge-size-lg)] [--status-panel-icon-size:var(--status-panel-icon-size-lg)]',
-        title: 'text-heading-2',
+        title: 'text-heading-xl',
         actions: '[--status-panel-actions-gap:var(--status-panel-gap-lg)]',
       },
     },
@@ -99,8 +99,8 @@ const statusPanel = tv({
   //   ここで size ごとに、見出しの大きさを直接指定する（sm は見出しの段の外の --text-label、md・lg は 1 段小さい見出し）
   compoundVariants: [
     { variant: 'muted', size: 'sm', class: { title: 'text-label' } },
-    { variant: 'muted', size: 'md', class: { title: 'text-heading-4' } },
-    { variant: 'muted', size: 'lg', class: { title: 'text-heading-3' } },
+    { variant: 'muted', size: 'md', class: { title: 'text-heading-md' } },
+    { variant: 'muted', size: 'lg', class: { title: 'text-heading-lg' } },
   ],
   defaultVariants: { variant: 'soft', shape: 'square', size: 'md' },
 });

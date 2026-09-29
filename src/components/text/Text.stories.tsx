@@ -17,7 +17,8 @@ const meta = {
         component: [
           '段落や注記などの、読む文字です。',
           '',
-          '- `size` は `md`（既定、本文）と `sm`（日付や注記）です。',
+          '- `size` は `md`（既定、本文）・`sm`（日付や注記）・`xs`（キャプションと同じ大きさ）と、見出しと同じ段の `lg`〜`5xl` です。Heading の `size` と同じ名前です。',
+          '- `lg`〜`5xl` は、料金の「¥980」のように、見出しではない大きな文字に使います。太さは `weight` で選びます。',
           '- `variant` は見た目です。`body`（既定）は本文、`muted` は補足、`subtle` は目立たせない文、`label` は欄のラベルと同じ大きさ・太さ・色、`caption` は欄のキャプションと同じ大きさ・色です。',
           '- `weight` は太さです。`normal`・`medium`・`bold` から選びます。書かないと、`variant` と要素の既定の太さのままです。',
           '- `as` で要素を選びます。段落は `p`（既定）、文の中の一部は `span`、ほかの部品を含むときは `div` です。強調は `strong`、強勢は `em`、打ち消しは `del` で、記事の本文と同じ飾りが付きます。',
@@ -35,7 +36,10 @@ const meta = {
   },
   argTypes: {
     children: { control: 'text' },
-    size: { control: 'inline-radio', options: ['md', 'sm'] },
+    size: {
+      control: 'inline-radio',
+      options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'],
+    },
     variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle', 'label', 'caption'] },
     weight: { control: 'inline-radio', options: ['normal', 'medium', 'bold'] },
     as: { control: 'inline-radio', options: ['p', 'span', 'div', 'strong', 'em', 'del'] },
@@ -47,6 +51,34 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {
   name: '基本',
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '左がマウス、右が指です。`lg` 以上は見出しと同じ大きさで、太さは標準のままです。料金のように大きく見せる数字は `weight="bold"` にします。',
+      },
+    },
+  },
+  render: () => (
+    <DensityPair>
+      <div className="flex w-[24rem] flex-col gap-2">
+        {(['5xl', '4xl', '3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'] as const).map((size) => (
+          <Text key={size} size={size}>
+            {size} ¥980
+          </Text>
+        ))}
+        <Text size="4xl" weight="bold">
+          ¥980
+        </Text>
+      </div>
+    </DensityPair>
+  ),
 };
 
 export const Variants: Story = {

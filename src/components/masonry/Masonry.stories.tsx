@@ -108,7 +108,7 @@ export const Playground: Story = {
             <Text size="sm" variant="subtle">
               {work.date}
             </Text>
-            <Heading level={3} size={4}>
+            <Heading level={3} size="md">
               {work.title}
             </Heading>
           </CardBody>

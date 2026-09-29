@@ -104,7 +104,7 @@ function DocsScreen() {
               を使うプロジェクトで動きます。
             </p>
           </Prose>
-          <Heading level={2} size={3} id="add-package" className="mt-10">
+          <Heading level={2} size="lg" id="add-package" className="mt-10">
             パッケージを追加する
           </Heading>
           <Prose className="mt-2">
@@ -122,7 +122,7 @@ function DocsScreen() {
             スタイルは Tailwind CSS v4 の <code>@theme</code> を前提にしています。先に Tailwind
             を入れてください。
           </Callout>
-          <Heading level={2} size={3} id="try-it" className="mt-10">
+          <Heading level={2} size="lg" id="try-it" className="mt-10">
             使ってみる
           </Heading>
           <Prose className="mt-2">
@@ -147,7 +147,7 @@ function DocsScreen() {
           <div className="mt-4 flex items-center gap-3">
             <CopyButton text="pnpm add @kazuemon/ui" label="インストールのコマンドをコピー" />
           </div>
-          <Heading level={2} size={3} id="faq" className="mt-10">
+          <Heading level={2} size="lg" id="faq" className="mt-10">
             よくある質問
           </Heading>
           <Accordion className="mt-2">
