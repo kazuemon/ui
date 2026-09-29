@@ -9,34 +9,36 @@ import { FieldsetContext } from '../../internal/field/fieldset-context';
 import type { FieldMessage, FieldNamed } from '../../internal/field/input-field-props';
 import { tv } from '../../internal/tv';
 
-// 欄のまとまり（原則4: 見出し / 中の欄 / ヘルプテキスト・ステータスメッセージ）。見出しは中の欄のラベルより一段強くする
-// 囲み方と見出しの強さは部品のトークン（--fieldset-*）で決める（軸 389・390 で比べている途中）
-// まとまり全体のステータスメッセージの置き場所と、エラーのときの線の色は軸 391 で比べている途中
+// 欄のまとまり（原則4: 見出し / ヘルプテキスト / ステータスメッセージ / 中の欄）
+// 見出しは本文の大きさの太字で、中の欄のラベルより一段強い（design/adr/0371）
+// 囲み方は、囲まないが既定。枠（カードのような薄いフチ）と、中の欄だけを縦線で字下げする形も選べる（design/adr/0370）
+// まとまりのエラーは見出しの下に出し、中の欄をすべてエラーの見た目にする。囲みの線の色は変えない（design/adr/0372）
 const fieldset = tv({
   slots: {
-    root: [
-      'm-0 flex min-w-0 flex-col gap-(--spacing-field-gap) border-solid',
-      'border-(color:--fieldset-line) data-invalid:border-(color:--fieldset-line-invalid)',
-      '[border-width:var(--fieldset-border-top)_var(--fieldset-border-side)_var(--fieldset-border-bottom)]',
-      'rounded-(--fieldset-radius) px-(--fieldset-pad-x) pt-(--fieldset-pad-top) pb-(--fieldset-pad-bottom)',
-    ],
-    // 見出し・ヘルプテキスト（と、上に置くときのステータスメッセージ）。行の箱は上の間を自分で打ち消す（Field と同じ）
-    //   まとまりの間（行の間）に足して、中の欄までを --fieldset-gap にする
-    head: 'mb-[calc(var(--fieldset-gap)-var(--spacing-field-gap))] flex flex-col gap-(--spacing-field-gap)',
-    legend: [
-      'text-(length:--fieldset-legend-size) leading-(--fieldset-legend-leading)',
-      'font-(weight:--fieldset-legend-weight) text-(color:--fieldset-legend-color)',
-    ],
-    body: [
-      'flex min-w-0 flex-col gap-(--fieldset-stack-gap)',
-      'border-0 border-s-(length:--fieldset-rule-start) border-solid border-(color:--fieldset-line) ps-(--fieldset-indent)',
-      'group-data-invalid/fieldset:border-(color:--fieldset-line-invalid)',
-    ],
+    root: 'm-0 flex min-w-0 flex-col gap-(--spacing-field-gap) border-0 p-0',
+    // 見出し・ヘルプテキスト・ステータスメッセージ。行の箱は上の間を自分で打ち消す（Field と同じ）
+    //   まとまりの行の間に足して、中の欄までを --stack-gap-md にする
+    head: 'mb-[calc(var(--stack-gap-md)-var(--spacing-field-gap))] flex flex-col gap-(--spacing-field-gap)',
+    legend: 'text-(length:--text-body) leading-(--leading-body) font-bold text-fg',
+    body: 'flex min-w-0 flex-col gap-(--stack-gap-lg)',
   },
+  variants: {
+    variant: {
+      plain: {},
+      // 原則5: 包むものは部品より一段大きい角。線は細い境界線、影なし（原則1: ページと同じレイヤー）
+      framed: {
+        root: 'rounded-card border-(length:--border-width-thin) border-solid border-line p-(--spacing-control-x)',
+      },
+      indented: {
+        body: 'border-s-(length:--border-width-thin) border-solid border-line ps-(--spacing-control-x)',
+      },
+    },
+  },
+  defaultVariants: { variant: 'plain' },
 });
 
-/** まとまり全体のステータスメッセージの場所。bottom は中の欄の下、top は見出し（とヘルプテキスト）の下 */
-export type FieldsetMessagePlacement = 'top' | 'bottom';
+/** Fieldset の囲み方。plain は囲まない、framed は枠で囲む、indented は中の欄だけを左の縦線で字下げする */
+export type FieldsetVariant = 'plain' | 'framed' | 'indented';
 
 /** Fieldset の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export interface FieldsetBaseProps extends Omit<ComponentProps<'fieldset'>, 'children'> {
@@ -47,21 +49,21 @@ export interface FieldsetBaseProps extends Omit<ComponentProps<'fieldset'>, 'chi
   /** 見出しの補足（ヘルプテキスト）。見出しのすぐ下に出し、まとまりの説明として読み上げます */
   caption?: ReactNode;
   /**
-   * まとまり全体のエラー（「開始日は終了日より前にしてください」など、1 つの欄に帰せないもの）。
-   * 丸の「!」と赤い文字で出します。1 つの欄のエラーは、その欄の errorText に渡します
+   * まとまり全体のエラー（「チェックアウトはチェックインより後の日にしてください」のような、欄どうしを照らし合わせた結果）。
+   * 見出しの下に丸の「!」と赤い文字で出し、中の欄をすべてエラーの見た目にします。
+   * 1 つの欄だけのエラーは、その欄の errorText に渡します
    */
   errorText?: FieldMessage;
-  /** まとまり全体の警告。三角とオリーブ色の文字で出します */
+  /** まとまり全体の警告。見出しの下に三角とオリーブ色の文字で出します。中の欄の見た目は変えません */
   warningText?: FieldMessage;
-  /** まとまり全体の情報。丸の「i」と青い文字で出します */
+  /** まとまり全体の情報。見出しの下に丸の「i」と青い文字で出します。中の欄の見た目は変えません */
   infoText?: FieldMessage;
   /**
-   * ステータスメッセージの場所（軸 391 で比べている途中）
-   * @default 'bottom'
+   * 囲み方。plain は囲まず、見出しと間だけでまとめます。framed はカードのような薄いフチで見出しごと囲みます。
+   * indented は見出しを左端に残し、中の欄だけを左の縦線で字下げします
+   * @default 'plain'
    */
-  messagePlacement?: FieldsetMessagePlacement;
-  /** エラーのとき、中の欄もすべてエラーの見た目にする（軸 391 の比較のためだけ。決まったら消す） */
-  invalidFields?: boolean;
+  variant?: FieldsetVariant;
   /**
    * まとまりごと押せない（Disabled）状態にします。中の欄とボタンがすべて押せなくなります
    * @default false
@@ -77,8 +79,9 @@ export type FieldsetProps = FieldNamed<FieldsetBaseProps>;
 const present = (value: ReactNode) => value !== undefined && value !== null && value !== false;
 
 /**
- * いくつかの欄を、1 つの問いのまとまりにします（住所、支払い方法など）。
+ * いくつかの欄を、1 つの問いのまとまりにします（住所、宿泊の期間など）。
  * 見出しはまとまりの名前として、ヘルプテキストとステータスメッセージはまとまりの説明として読み上げます。
+ * errorText は欄どうしを照らし合わせたエラーで、中の欄をすべてエラーの見た目にします。
  * disabled を渡すと、中の欄をまとめて押せなくします
  */
 export function Fieldset(props: FieldsetProps) {
@@ -89,26 +92,22 @@ export function Fieldset(props: FieldsetProps) {
     errorText,
     warningText,
     infoText,
-    messagePlacement = 'bottom',
-    invalidFields = false,
+    variant,
     disabled = false,
     className,
     children,
     'aria-describedby': ariaDescribedBy,
     ...rest
   } = props as FieldsetBaseProps;
-  const s = fieldset();
+  const s = fieldset({ variant });
   const f = fieldStyles();
   const id = useId();
   const captionId = `${id}-caption`;
   const invalid = present(errorText);
   const parent = useContext(FieldsetContext);
   const context = useMemo(
-    () => ({
-      disabled: parent.disabled || disabled,
-      invalid: parent.invalid || (invalid && invalidFields),
-    }),
-    [parent.disabled, parent.invalid, disabled, invalid, invalidFields]
+    () => ({ disabled: parent.disabled || disabled, invalid: parent.invalid || invalid }),
+    [parent.disabled, parent.invalid, disabled, invalid]
   );
   const hasLabel = present(label);
   const hasCaption = present(caption);
@@ -128,7 +127,6 @@ export function Fieldset(props: FieldsetProps) {
   ]
     .filter(Boolean)
     .join(' ');
-  const top = messagePlacement === 'top';
   return (
     <FieldsetContext value={context}>
       <BaseFieldset.Root
@@ -138,9 +136,9 @@ export function Fieldset(props: FieldsetProps) {
         aria-describedby={describedBy || undefined}
         data-slot="fieldset"
         data-invalid={invalid ? '' : undefined}
-        className={s.root({ className: ['group/fieldset', className].filter(Boolean).join(' ') })}
+        className={s.root({ className })}
       >
-        {(hasLabel || hasCaption || top) && (
+        {hasLabel || hasCaption ? (
           <div className={s.head()}>
             {hasLabel && <BaseFieldset.Legend className={s.legend()}>{label}</BaseFieldset.Legend>}
             {hasCaption && (
@@ -148,11 +146,13 @@ export function Fieldset(props: FieldsetProps) {
                 {caption}
               </p>
             )}
-            {top && messages}
+            {messages}
           </div>
+        ) : (
+          // 見出しもヘルプテキストもないときは、行を中の欄の上にじかに置く（閉じた行は高さを持たない）
+          messages
         )}
         <div className={s.body()}>{children}</div>
-        {!top && messages}
       </BaseFieldset.Root>
     </FieldsetContext>
   );

@@ -667,6 +667,7 @@ export {
   Fieldset,
   type FieldsetBaseProps,
   type FieldsetProps,
+  type FieldsetVariant,
 } from './components/fieldset/Fieldset';
 export {
   Textarea,

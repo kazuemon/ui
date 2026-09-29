@@ -21,6 +21,8 @@ const meta = {
           '',
           '- 見出し（`label`）はまとまりの名前として、ヘルプテキスト（`caption`）はまとまりの説明として読み上げます',
           '- 選択肢が 1 つの問いに答えるときは、Fieldset ではなく RadioGroup・CheckboxGroup を使います。どちらも見出しがグループの名前になります',
+          '- 囲み方は `variant` で選びます。既定の `plain` は囲まず、`framed` は枠で囲み、`indented` は中の欄だけを縦線で字下げします',
+          '- `errorText` は、欄どうしを照らし合わせたエラー（「チェックアウトはチェックインより後の日」など）です。見出しの下に出し、中の欄をすべてエラーの見た目にします。1 つの欄だけのエラーは、その欄の `errorText` に渡します',
           '- `disabled` で、中の欄とボタンをまとめて押せなくします',
           '- ラベルを横に置いて列をそろえるときは、中に `FieldGroup` を置きます',
         ].join('\n'),
@@ -125,5 +127,70 @@ export const WithoutVisibleLabel: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('group', { name: '住所' })).toBeInTheDocument();
+  },
+};
+
+export const Variants: Story = {
+  tags: ['visual'],
+  render: () => (
+    <div className="grid max-w-5xl grid-cols-3 gap-8">
+      <Fieldset label="住所" caption="plain（既定）">
+        <AddressFields />
+      </Fieldset>
+      <Fieldset label="住所" caption="framed" variant="framed">
+        <AddressFields />
+      </Fieldset>
+      <Fieldset label="住所" caption="indented" variant="indented">
+        <AddressFields />
+      </Fieldset>
+    </div>
+  ),
+};
+
+function StayFields({ checkOutError }: { checkOutError?: string }) {
+  return (
+    <>
+      <TextField label="チェックイン" defaultValue="2026-10-10" />
+      <TextField label="チェックアウト" defaultValue="2026-10-08" errorText={checkOutError} />
+    </>
+  );
+}
+
+export const ErrorText: Story = {
+  tags: ['visual'],
+  render: () => (
+    <div className="flex max-w-md flex-col gap-12">
+      <Fieldset
+        label="宿泊の期間"
+        caption="チェックインとチェックアウトの日です"
+        errorText="チェックアウトは、チェックインより後の日にしてください"
+      >
+        <StayFields />
+      </Fieldset>
+      <Fieldset
+        label="宿泊の期間"
+        variant="framed"
+        errorText="チェックアウトは、チェックインより後の日にしてください"
+      >
+        <StayFields />
+      </Fieldset>
+      <Fieldset label="宿泊の期間" warningText="連泊の割引は 3 泊からです">
+        <StayFields checkOutError="日付の形で入れてください" />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [group] = canvas.getAllByRole('group', { name: '宿泊の期間' });
+    await expect(group).toHaveAccessibleDescription(
+      'チェックインとチェックアウトの日です チェックアウトは、チェックインより後の日にしてください'
+    );
+    const [checkIn] = canvas.getAllByRole('textbox', { name: 'チェックイン' });
+    await expect(checkIn).toHaveAttribute('aria-invalid', 'true');
+    // 警告は中の欄の見た目を変えない。1 つの欄のエラーは、その欄だけ
+    const checkIns = canvas.getAllByRole('textbox', { name: 'チェックイン' });
+    const checkOuts = canvas.getAllByRole('textbox', { name: 'チェックアウト' });
+    await expect(checkIns[2]).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(checkOuts[2]).toHaveAttribute('aria-invalid', 'true');
   },
 };
