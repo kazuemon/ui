@@ -304,11 +304,9 @@ export const example: Example = {
     '大会の管理画面。左の列（Sidebar）でステージ＞リーグ＞グループを選び、行を押すと横のパネル（Inspector）で試合の詳細を見ます。',
   controls: [],
   defaults: {},
+  fillViewport: true,
   Screen: ({ density }) => (
-    <div
-      data-density={density === 'auto' ? undefined : density}
-      className="min-h-screen bg-bg text-fg"
-    >
+    <div data-density={density === 'auto' ? undefined : density} className="h-dvh bg-bg text-fg">
       <SidebarLayout
         header={
           <Navbar
