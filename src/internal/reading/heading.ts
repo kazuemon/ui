@@ -17,5 +17,9 @@ export const headingStyles = {
     2: '[:where(&:not([data-prose]),&_h2)]:text-heading-2',
     3: '[:where(&:not([data-prose]),&_h3)]:text-heading-3',
     4: '[:where(&:not([data-prose]),&_:is(h4,h5,h6))]:text-heading-4',
+    // 試作（Design Review 387）: 見出し 1 より大きい段。Prose の要素には割り当てない
+    'display-1': '[:where(&:not([data-prose]))]:text-display-1',
+    'display-2': '[:where(&:not([data-prose]))]:text-display-2',
+    'display-3': '[:where(&:not([data-prose]))]:text-display-3',
   },
 } as const;

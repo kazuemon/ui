@@ -18,7 +18,8 @@ const heading = tv({
 });
 
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
-export type HeadingSize = 1 | 2 | 3 | 4;
+// 'display-*' は試作（Design Review 387）。段の名前（数字を振り直すか）は比較で決める
+export type HeadingSize = 1 | 2 | 3 | 4 | 'display-1' | 'display-2' | 'display-3';
 
 // 段から既定の大きさ。5・6 段は 4
 const sizeOfLevel = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 4, 6: 4 } as const satisfies Record<

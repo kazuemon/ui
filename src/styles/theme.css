@@ -67,6 +67,16 @@
     --leading-heading-3: var(--leading-heading-3-fine);
     --text-heading-4: var(--text-heading-4-fine);
     --leading-heading-4: var(--leading-heading-4-fine);
+    /* 試作（Design Review 387）: 見出し 1 より大きい段 */
+    --text-display-1: var(--text-display-1-fine);
+    --leading-display-1: var(--leading-display-1-fine);
+    --display-1-tracking: var(--display-1-tracking-fine);
+    --text-display-2: var(--text-display-2-fine);
+    --leading-display-2: var(--leading-display-2-fine);
+    --display-2-tracking: var(--display-2-tracking-fine);
+    --text-display-3: var(--text-display-3-fine);
+    --leading-display-3: var(--leading-display-3-fine);
+    --display-3-tracking: var(--display-3-tracking-fine);
     --switch-w: var(--switch-w-fine);
     --switch-h: var(--switch-h-fine);
     --switch-knob: var(--switch-knob-fine);
@@ -116,6 +126,16 @@
       --leading-heading-3: var(--leading-heading-3-coarse);
       --text-heading-4: var(--text-heading-4-coarse);
       --leading-heading-4: var(--leading-heading-4-coarse);
+      /* 試作（Design Review 387）: 見出し 1 より大きい段 */
+      --text-display-1: var(--text-display-1-coarse);
+      --leading-display-1: var(--leading-display-1-coarse);
+      --display-1-tracking: var(--display-1-tracking-coarse);
+      --text-display-2: var(--text-display-2-coarse);
+      --leading-display-2: var(--leading-display-2-coarse);
+      --display-2-tracking: var(--display-2-tracking-coarse);
+      --text-display-3: var(--text-display-3-coarse);
+      --leading-display-3: var(--leading-display-3-coarse);
+      --display-3-tracking: var(--display-3-tracking-coarse);
       --switch-w: var(--switch-w-coarse);
       --switch-h: var(--switch-h-coarse);
       --switch-knob: var(--switch-knob-coarse);
@@ -165,6 +185,16 @@
     --leading-heading-3: var(--leading-heading-3-coarse);
     --text-heading-4: var(--text-heading-4-coarse);
     --leading-heading-4: var(--leading-heading-4-coarse);
+    /* 試作（Design Review 387）: 見出し 1 より大きい段 */
+    --text-display-1: var(--text-display-1-coarse);
+    --leading-display-1: var(--leading-display-1-coarse);
+    --display-1-tracking: var(--display-1-tracking-coarse);
+    --text-display-2: var(--text-display-2-coarse);
+    --leading-display-2: var(--leading-display-2-coarse);
+    --display-2-tracking: var(--display-2-tracking-coarse);
+    --text-display-3: var(--text-display-3-coarse);
+    --leading-display-3: var(--leading-display-3-coarse);
+    --display-3-tracking: var(--display-3-tracking-coarse);
     --switch-w: var(--switch-w-coarse);
     --switch-h: var(--switch-h-coarse);
     --switch-knob: var(--switch-knob-coarse);
@@ -188,6 +218,16 @@
     --leading-heading-3: var(--leading-heading-3-fine);
     --text-heading-4: var(--text-heading-4-fine);
     --leading-heading-4: var(--leading-heading-4-fine);
+    /* 試作（Design Review 387）: 見出し 1 より大きい段 */
+    --text-display-1: var(--text-display-1-fine);
+    --leading-display-1: var(--leading-display-1-fine);
+    --display-1-tracking: var(--display-1-tracking-fine);
+    --text-display-2: var(--text-display-2-fine);
+    --leading-display-2: var(--leading-display-2-fine);
+    --display-2-tracking: var(--display-2-tracking-fine);
+    --text-display-3: var(--text-display-3-fine);
+    --leading-display-3: var(--leading-display-3-fine);
+    --display-3-tracking: var(--display-3-tracking-fine);
   }
 }
 

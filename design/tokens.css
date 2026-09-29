@@ -368,6 +368,19 @@
   --text-heading-4: var(--text-heading-4-fine);
   --text-heading-4--line-height: var(--leading-heading-4);
   --leading-heading-4: var(--leading-heading-4-fine);
+  /* 試作（Design Review 387）: 見出し 1 より大きい段（Hero・節の大見出し）。値は下の :root。候補はそこを上書きする */
+  --text-display-1: var(--text-display-1);
+  --text-display-1--line-height: var(--leading-display-1);
+  --text-display-1--letter-spacing: var(--display-1-tracking);
+  --leading-display-1: var(--leading-display-1);
+  --text-display-2: var(--text-display-2);
+  --text-display-2--line-height: var(--leading-display-2);
+  --text-display-2--letter-spacing: var(--display-2-tracking);
+  --leading-display-2: var(--leading-display-2);
+  --text-display-3: var(--text-display-3);
+  --text-display-3--line-height: var(--leading-display-3);
+  --text-display-3--letter-spacing: var(--display-3-tracking);
+  --leading-display-3: var(--leading-display-3);
 }
 
 /* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
@@ -446,6 +459,25 @@
   --text-heading-4-coarse: 14px;
   --leading-heading-4-fine: 28px;
   --leading-heading-4-coarse: 24px;
+  /* 試作（Design Review 387）: 見出し 1 より大きい段（でかい・おおきい・おおきめ）。密度で切り替える。候補はここを上書きする */
+  --text-display-1-fine: 56px;
+  --leading-display-1-fine: 68px;
+  --display-1-tracking-fine: -0.01em;
+  --text-display-1-coarse: 40px;
+  --leading-display-1-coarse: 50px;
+  --display-1-tracking-coarse: -0.01em;
+  --text-display-2-fine: 44px;
+  --leading-display-2-fine: 56px;
+  --display-2-tracking-fine: -0.01em;
+  --text-display-2-coarse: 32px;
+  --leading-display-2-coarse: 42px;
+  --display-2-tracking-coarse: -0.01em;
+  --text-display-3-fine: 36px;
+  --leading-display-3-fine: 48px;
+  --display-3-tracking-fine: -0.01em;
+  --text-display-3-coarse: 28px;
+  --leading-display-3-coarse: 38px;
+  --display-3-tracking-coarse: -0.01em;
 
   /* キー（Kbd）— 軸 53 の B。白い面に白いボタンと同じ細い輪郭、下辺だけを太くしてキーの厚みを線で見せる。影は付けない（押せないので原則1のまま）
      大きさと余白は周りの文字に対する比 */
