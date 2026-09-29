@@ -139,10 +139,14 @@ export function ExampleFrame({ slug }: { slug: string }) {
 
   return (
     <>
-      {/* 右下の帯（ボタンと札）がページ末尾の中身に重なるので、その高さぶんの余白を足す
+      {/* 右下の帯（ボタンと札）がページ末尾の中身に重なるので、その高さぶんの余白を足す（画面の高さちょうどに描く見本は、足すと下に空白ができるので足さない）
       広い画面で切替画面（右のパネル）が開いているあいだは、同じ幅の余白を右に足して隠れないようにする */}
       <div
-        className="pb-20 transition-[padding] duration-200"
+        className={
+          example.fillViewport
+            ? 'transition-[padding] duration-200'
+            : 'pb-20 transition-[padding] duration-200'
+        }
         style={
           controlsOpen && !environment.sheet
             ? { paddingRight: 'var(--sheet-side-width)' }

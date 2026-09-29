@@ -71,6 +71,12 @@ export interface Example {
   initialLabel?: string;
   /** 切替の初めの値 */
   defaults: ExampleArgs;
+  /**
+   * 画面の高さちょうどに描くか（列のあるアプリの画面など、ページではなく中の面がスクロールするもの）。
+   * true のときは、右下のボタンのための余白をページの下に足さない
+   * @default false
+   */
+  fillViewport?: boolean;
   /** 画面。SamplePage で包むところまでを持つ */
   Screen: (props: { args: ExampleArgs; density: Density }) => ReactNode;
 }
