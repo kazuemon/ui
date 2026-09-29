@@ -22,12 +22,12 @@ function Article() {
   return (
     <Container>
       <article className="flex flex-col gap-4 py-8">
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           デザインの決め方
         </Heading>
         {['候補を並べる', '1 軸ずつ決める', '記録を残す'].map((title) => (
           <section key={title} className="flex flex-col gap-3">
-            <Heading level={2} size={3}>
+            <Heading level={2} size="lg">
               {title}
             </Heading>
             <Text>{paragraph}</Text>

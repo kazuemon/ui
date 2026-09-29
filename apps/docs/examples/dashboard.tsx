@@ -108,7 +108,7 @@ function Panel({
     <Card>
       <CardBody className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
-          <Heading level={2} size={4}>
+          <Heading level={2} size="md">
             {title}
           </Heading>
           {action}
@@ -162,7 +162,7 @@ function DashboardScreen({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <Heading level={1} size={2}>
+            <Heading level={1} size="xl">
               ダッシュボード
             </Heading>
             {busy && (
@@ -375,9 +375,9 @@ export const example: Example = {
       label: '数字の大きさ',
       type: 'radio',
       options: [
-        { value: 'heading-1', label: '見出し 1 と同じ' },
-        { value: 'heading-2', label: '見出し 2 と同じ' },
-        { value: 'heading-3', label: '見出し 3 と同じ', caption: '4 つ並べて狭いときに' },
+        { value: '2xl', label: '2xl（h1 の見出しと同じ）' },
+        { value: 'xl', label: 'xl（h2 の見出しと同じ）' },
+        { value: 'lg', label: 'lg（h3 の見出しと同じ）', caption: '4 つ並べて狭いときに' },
       ],
     },
     {
@@ -391,7 +391,7 @@ export const example: Example = {
   defaults: {
     state: 'normal',
     query: '',
-    statSize: 'heading-2',
+    statSize: 'xl',
     deltaIcon: true,
     deltaFill: false,
   },

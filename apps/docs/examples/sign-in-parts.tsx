@@ -74,7 +74,7 @@ export function AuthLayout({
           <Text as="span" className="font-heading text-fg-brand">
             {town.name}
           </Text>
-          <Heading level={1} size={2}>
+          <Heading level={1} size="xl">
             {title}
           </Heading>
           {lead && <Text variant="muted">{lead}</Text>}

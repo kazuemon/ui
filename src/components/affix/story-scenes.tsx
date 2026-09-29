@@ -95,7 +95,7 @@ function useSectionId() {
 function Sections({ sectionId }: { sectionId: (id: string) => string }) {
   return sections.map(([id, title]) => (
     <section key={id} id={sectionId(id)} className="flex flex-col gap-3">
-      <Heading level={2} size={3}>
+      <Heading level={2} size="lg">
         {title}
       </Heading>
       <Text>{paragraph}</Text>
@@ -135,7 +135,7 @@ export function ArticleScene({
       <Container>
         <div className={`grid ${toc ? 'grid-cols-[1fr_9rem]' : 'grid-cols-1'} gap-8 py-8`}>
           <article className="flex min-w-0 flex-col gap-8">
-            <Heading level={1} size={2}>
+            <Heading level={1} size="xl">
               デザインの決め方
             </Heading>
             <Sections sectionId={sectionId} />

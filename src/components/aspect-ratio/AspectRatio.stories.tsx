@@ -60,7 +60,7 @@ export const Ratios: Story = {
           <AspectRatio ratio={card.ratio} className="rounded-card">
             <img src={card.src} alt="" />
           </AspectRatio>
-          <Heading level={3} size={4}>
+          <Heading level={3} size="md">
             {card.title}
           </Heading>
           <Text size="sm" variant="subtle">

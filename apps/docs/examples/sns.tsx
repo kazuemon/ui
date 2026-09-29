@@ -232,7 +232,7 @@ function SnsScreen({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
-        <Heading level={1} size={2}>
+        <Heading level={1} size="xl">
           ホーム
         </Heading>
         <div className="flex items-center gap-2">
@@ -281,7 +281,7 @@ function SnsScreen({
         </TabPanel>
       </Tabs>
       <section className="flex flex-col gap-3 pt-2">
-        <Heading level={2} size={4}>
+        <Heading level={2} size="md">
           おすすめのユーザー
         </Heading>
         <div className="flex items-center justify-between gap-3">

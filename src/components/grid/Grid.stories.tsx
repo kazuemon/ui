@@ -27,7 +27,7 @@ function planCards() {
   return plans.map((plan) => (
     <Card key={plan.name}>
       <CardBody>
-        <Heading level={3} size={4}>
+        <Heading level={3} size="md">
           {plan.name}
         </Heading>
         <Text size="sm" variant="muted">

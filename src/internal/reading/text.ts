@@ -6,9 +6,18 @@
 // variant は濃さ（body・muted・subtle）と、欄と同じ見た目の組（label・caption）。label・caption は大きさ・太さ・色をまとめて決める
 //   label・caption の見た目は、欄のラベル・キャプション（src/internal/field/field-styles.ts）と同じ値（ADR-0260）
 export const textStyles = {
+  // 大きさ。Heading と同じ段の名前（ADR-0369）。md が本文、sm が注記、xs はキャプションと同じ大きさ
+  //   lg〜5xl は見出しの段と同じ大きさ（太さは weight で決める。既定は標準の太さ）。料金の「¥980」のような大きな文字に使う
   size: {
-    md: 'text-body',
+    xs: 'text-caption',
     sm: 'text-body-sm',
+    md: 'text-body',
+    lg: 'text-heading-lg',
+    xl: 'text-heading-xl',
+    '2xl': 'text-heading-2xl',
+    '3xl': 'text-heading-3xl',
+    '4xl': 'text-heading-4xl',
+    '5xl': 'text-heading-5xl',
   },
   // 濃さ。Text・Time・RelativeTime・NumberFormat が同じ値を持つ
   variant: {

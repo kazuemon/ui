@@ -86,9 +86,9 @@ const inner = tv({
     },
     // 1 行目の高さ（印をそろえる行）。題の大きさ、題がないときは本文
     firstLine: {
-      2: '[--step-line:var(--leading-heading-2)]',
-      3: '[--step-line:var(--leading-heading-3)]',
-      4: '[--step-line:var(--leading-heading-4)]',
+      xl: '[--step-line:var(--leading-heading-xl)]',
+      lg: '[--step-line:var(--leading-heading-lg)]',
+      md: '[--step-line:var(--leading-heading-md)]',
       body: '[--step-line:var(--leading-body)]',
     },
   },
@@ -120,8 +120,8 @@ const body = tv({
 
 export type StepsHeadingLevel = 2 | 3 | 4 | 5 | 6;
 
-// 段から題の大きさ。5・6 段は 4（Heading と同じ）
-const sizeOfLevel = { 2: 2, 3: 3, 4: 4, 5: 4, 6: 4 } as const;
+// 段から題の大きさ。h2 は xl、h3 は lg、h4〜h6 は md（Heading と同じ）
+const sizeOfLevel = { 2: 'xl', 3: 'lg', 4: 'md', 5: 'md', 6: 'md' } as const;
 
 export type StepsLine = 'solid' | 'dotted' | 'none';
 

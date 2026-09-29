@@ -91,7 +91,11 @@ const proseClassName = [
   textLinkSizeReset,
   // 見出し
   headingStyles.base,
-  ...Object.values(headingStyles.size),
+  // 大きい段（3xl〜5xl）は記事の要素には割り当てない
+  headingStyles.size['2xl'],
+  headingStyles.size.xl,
+  headingStyles.size.lg,
+  headingStyles.size.md,
   // 文の中
   s.strong(),
   s.em(),

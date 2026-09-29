@@ -15,7 +15,7 @@ export function ExampleCard({
   return (
     <Card render={<NextLink href={`/examples/${slug}`} />}>
       <CardBody className="flex flex-col gap-2">
-        <Heading level={headingLevel} size={4}>
+        <Heading level={headingLevel} size="md">
           {title}
         </Heading>
         <Text size="sm" variant="muted">

@@ -160,7 +160,7 @@ function Section({
   return (
     <section id={id} className="flex scroll-mt-20 flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <Heading level={2} size={3}>
+        <Heading level={2} size="lg">
           {title}
         </Heading>
         {lead && <Text variant="muted">{lead}</Text>}
@@ -190,7 +190,7 @@ function Hero() {
             2026 年 9 月 12 日（土）〜 12 月 6 日（日）・本館 2 階
           </Text>
         </div>
-        <Heading level={1} size={1}>
+        <Heading level={1} size="2xl">
           光の庭　色と形の百年
         </Heading>
         <Text className="max-w-[40em]">
@@ -258,7 +258,7 @@ function Collection({ zoomVariant }: { zoomVariant: ImageZoomVariant }) {
       lead="当館の所蔵品から、いま展示しているものの一部です。押すと大きく見られます。"
     >
       <div className="flex flex-col gap-3">
-        <Heading level={3} size={4}>
+        <Heading level={3} size="md">
           絵画
         </Heading>
         <Gallery
@@ -273,7 +273,7 @@ function Collection({ zoomVariant }: { zoomVariant: ImageZoomVariant }) {
         />
       </div>
       <div className="flex flex-col gap-3">
-        <Heading level={3} size={4}>
+        <Heading level={3} size="md">
           工芸と彫刻
         </Heading>
         <Masonry minColumnWidth={220}>

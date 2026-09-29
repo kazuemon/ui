@@ -18,7 +18,7 @@ const Content = ({ title = 'やった仕事のタイトルがここに入りま�
     <Text size="sm" variant="subtle">
       2026.09.19
     </Text>
-    <Heading level={3} size={4}>
+    <Heading level={3} size="md">
       {title}
     </Heading>
   </>
@@ -75,7 +75,7 @@ export const Playground: Story = {
           <CardImage src="/works/1.png" alt="" />
           <CardBody>
             <Text size="sm" variant="subtle">2026.09.19</Text>
-            <Heading level={3} size={4}>やった仕事のタイトルがここに入ります</Heading>
+            <Heading level={3} size="md">やった仕事のタイトルがここに入ります</Heading>
           </CardBody>
         </Card>
       `),

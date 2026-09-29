@@ -432,3 +432,5 @@
 | [0365](./0365-field-label-placement.md)                  | 入力欄のラベルは上が既定で、横（本体の左）に置くことも、見えるラベルを置かないこと（accessibleName）もできる。列そろえは FieldGroup（subgrid）                   | Accepted                                     |
 | [0366](./0366-field-composition.md)                      | 入力欄は内蔵の形のまま、Field の部位とラベルを持たない本体（`<部品名>Control`）も公開して組み立てられるようにする                                                | Accepted                                     |
 | [0367](./0367-field-start-defaults.md)                   | 横に置くラベルは太字・狭くても戻さないのが既定。軽いラベル（labelVariant）と 24rem 未満で上に戻す形（narrowLabelPlacement）も選べる                              | Accepted                                     |
+| [0368](./0368-display-type-scale.md)                     | 見出し 1 より大きい 3 段（Hero・節の大見出し）を足す。値は C（デスクトップ 56・44・36、スマホ 40・32・28）                                                       | Accepted                                     |
+| [0369](./0369-type-scale-names.md)                       | 文字の大きさの段は Text と Heading で共有する xs〜5xl。トークンとクラスは heading-・body- を付ける                                                               | Accepted                                     |

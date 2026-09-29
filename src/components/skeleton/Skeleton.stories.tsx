@@ -81,7 +81,7 @@ export const Variants: Story = {
         <Skeleton variant="text" lines={3} className="text-body" />
       </Specimen>
       <Specimen label="text（見出し）">
-        <Skeleton variant="text" className="w-2/3 text-heading-3" />
+        <Skeleton variant="text" className="w-2/3 text-heading-lg" />
       </Specimen>
     </Gallery>
   ),
@@ -96,7 +96,7 @@ export const MatchesText: Story = {
     <DensityPair>
       <div className="grid w-[36rem] grid-cols-2 gap-6">
         <div className="flex flex-col gap-3">
-          <Skeleton variant="text" className="w-1/2 text-heading-3" />
+          <Skeleton variant="text" className="w-1/2 text-heading-lg" />
           <Skeleton variant="text" lines={3} className="text-body" />
           <Skeleton className="h-(--spacing-control) w-28" />
         </div>

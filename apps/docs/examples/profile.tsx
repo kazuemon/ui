@@ -77,7 +77,7 @@ function ProfileScreen({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Avatar name="かずえもん" size="xl" shape={avatarShape} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <Heading level={1} size={2}>
+          <Heading level={1} size="xl">
             かずえもん
           </Heading>
           <Text variant="subtle">@kazuemon</Text>
@@ -116,9 +116,9 @@ function ProfileScreen({
       )}
 
       <Grid columns={3}>
-        <Stat label="記事" value={blank ? 0 : 12} size="heading-3" />
-        <Stat label="フォロワー" value={blank ? 0 : following ? 129 : 128} size="heading-3" />
-        <Stat label="フォロー中" value={blank ? 0 : 36} size="heading-3" />
+        <Stat label="記事" value={blank ? 0 : 12} size="lg" />
+        <Stat label="フォロワー" value={blank ? 0 : following ? 129 : 128} size="lg" />
+        <Stat label="フォロー中" value={blank ? 0 : 36} size="lg" />
       </Grid>
 
       <DescriptionList divider={divider}>
