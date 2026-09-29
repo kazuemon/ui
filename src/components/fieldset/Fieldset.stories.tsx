@@ -27,6 +27,7 @@ const meta = {
           '- 囲み方は `variant` で選びます。既定の `plain` は囲まず、`framed` は枠で囲み、`indented` は中の欄だけを縦線で字下げします',
           '- `errorText` は、欄どうしを照らし合わせたエラー（「チェックアウトはチェックインより後の日」など）です。見出しの下に出し、中の欄をすべてエラーの見た目にします。1 つの欄だけのエラーは、その欄の `errorText` に渡します',
           '- `disabled` で、中の欄とボタンをまとめて押せなくします',
+          '- 見出しの大きさは `labelSize` で、Heading の size と同じ段から選びます（既定は本文と同じ大きさの `md`）',
           '- ラベルを横に置いて列をそろえるときは、中に `FieldGroup` を置きます',
         ].join('\n'),
       },
@@ -136,6 +137,23 @@ export const WithoutVisibleLabel: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('group', { name: '住所' })).toBeInTheDocument();
   },
+};
+
+export const LabelSize: Story = {
+  tags: ['visual'],
+  render: () => (
+    <div className="grid max-w-5xl grid-cols-3 gap-8">
+      <Fieldset label="住所" caption="md（既定）">
+        <AddressFields />
+      </Fieldset>
+      <Fieldset label="住所" caption="lg" labelSize="lg">
+        <AddressFields />
+      </Fieldset>
+      <Fieldset label="住所" caption="xl" labelSize="xl">
+        <AddressFields />
+      </Fieldset>
+    </div>
+  ),
 };
 
 export const Variants: Story = {

@@ -7,10 +7,12 @@ import { FieldMessageLine, type MessageKind } from '../../internal/field/Field';
 import { fieldStyles } from '../../internal/field/field-styles';
 import { FieldsetContext } from '../../internal/field/fieldset-context';
 import type { FieldMessage, FieldNamed } from '../../internal/field/input-field-props';
+import { headingStyles } from '../../internal/reading/heading';
 import { tv } from '../../internal/tv';
+import type { HeadingSize } from '../heading/Heading';
 
 // 欄のまとまり（原則4: 見出し / ヘルプテキスト / ステータスメッセージ / 中の欄）
-// 見出しは本文の大きさの太字で、中の欄のラベルより一段強い（design/adr/0371）
+// 見出しは本文の大きさの太字で、中の欄のラベルより一段強い。大きさは Heading と同じ段（labelSize）で選べる（design/adr/0371）
 // 囲み方は、囲まないが既定。枠（カードのような薄いフチ）と、中の欄だけを縦線で字下げする形も選べる（design/adr/0370）
 // まとまりのエラーは見出しの下に出し、中の欄をすべてエラーの見た目にする。囲みの線の色は変えない（design/adr/0372）
 const fieldset = tv({
@@ -19,7 +21,7 @@ const fieldset = tv({
     // 見出し・ヘルプテキスト・ステータスメッセージ。行の箱は上の間を自分で打ち消す（Field と同じ）
     //   まとまりの行の間に足して、中の欄までを --stack-gap-md にする
     head: 'mb-[calc(var(--stack-gap-md)-var(--spacing-field-gap))] flex flex-col gap-(--spacing-field-gap)',
-    legend: 'text-(length:--text-body) leading-(--leading-body) font-bold text-fg',
+    legend: 'font-bold text-fg',
     body: 'flex min-w-0 flex-col gap-(--stack-gap-lg)',
   },
   variants: {
@@ -33,8 +35,18 @@ const fieldset = tv({
         body: 'border-s-(length:--border-width-thin) border-solid border-line ps-(--spacing-control-x)',
       },
     },
+    // 見出しの大きさ。Heading の size と同じ段のクラス列（ADR-0369）
+    labelSize: {
+      md: { legend: headingStyles.size.md },
+      lg: { legend: headingStyles.size.lg },
+      xl: { legend: headingStyles.size.xl },
+      '2xl': { legend: headingStyles.size['2xl'] },
+      '3xl': { legend: headingStyles.size['3xl'] },
+      '4xl': { legend: headingStyles.size['4xl'] },
+      '5xl': { legend: headingStyles.size['5xl'] },
+    },
   },
-  defaultVariants: { variant: 'plain' },
+  defaultVariants: { variant: 'plain', labelSize: 'md' },
 });
 
 /** Fieldset の囲み方。plain は囲まない、framed は枠で囲む、indented は中の欄だけを左の縦線で字下げする */
@@ -46,6 +58,12 @@ export interface FieldsetBaseProps extends Omit<ComponentProps<'fieldset'>, 'chi
   label?: ReactNode;
   /** 読み上げだけの名前。見える見出しを置かないときに要ります */
   accessibleName?: string;
+  /**
+   * 見出しの大きさ。Heading の size と同じ段の名前で、md が本文と同じ大きさです。
+   * 太さはどの段でも太字です。フォームの中の節として大きく見せたいときに上げます
+   * @default 'md'
+   */
+  labelSize?: HeadingSize;
   /** 見出しの補足（ヘルプテキスト）。見出しのすぐ下に出し、まとまりの説明として読み上げます */
   caption?: ReactNode;
   /**
@@ -95,6 +113,7 @@ export function Fieldset(props: FieldsetProps) {
     warningText,
     infoText,
     variant,
+    labelSize,
     disabled = false,
     className,
     children,
@@ -103,7 +122,7 @@ export function Fieldset(props: FieldsetProps) {
     'aria-describedby': ariaDescribedBy,
     ...rest
   } = props as FieldsetBaseProps;
-  const s = fieldset({ variant });
+  const s = fieldset({ variant, labelSize });
   const f = fieldStyles();
   const id = useId();
   const captionId = `${id}-caption`;
