@@ -664,6 +664,12 @@ export {
   type FieldGroupProps,
 } from './components/field/FieldGroup';
 export {
+  Fieldset,
+  type FieldsetBaseProps,
+  type FieldsetProps,
+  type FieldsetVariant,
+} from './components/fieldset/Fieldset';
+export {
   Textarea,
   type TextareaBaseProps,
   TextareaControl,

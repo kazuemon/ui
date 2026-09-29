@@ -19,6 +19,7 @@ import {
 } from 'react';
 
 import { FieldLayoutContext } from './field-layout';
+import { FieldsetContext, withFieldsetErrors } from './fieldset-context';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
@@ -464,7 +465,7 @@ export function Field({
   warning,
   success,
   info,
-  disabled,
+  disabled: disabledProp,
   loading,
   loadingBehavior = 'non-blocking',
   required,
@@ -483,10 +484,13 @@ export function Field({
   validationMode,
   validationDebounceTime,
 }: FieldProps) {
+  // Fieldset ごと押せないときは、中の欄も押せない
+  const fieldset = useContext(FieldsetContext);
+  const disabled = disabledProp || fieldset.disabled;
   const styles = fieldStyles();
   const id = useId();
   const formLock = useFormSubmittingLock();
-  const appInvalid = useAppInvalid(error || invalid);
+  const appInvalid = useAppInvalid(error || invalid || fieldset.invalid);
   const defaults = useContext(FieldLayoutContext);
   const placement = labelPlacement ?? defaults.labelPlacement ?? 'top';
   const narrow = narrowLabelPlacement ?? defaults.narrowLabelPlacement ?? 'start';
@@ -519,7 +523,7 @@ export function Field({
         success={success}
         info={info}
         name={name}
-        disabled={Boolean(disabled)}
+        disabled={disabled}
         loading={Boolean(loading)}
         loadingBehavior={loadingBehavior}
         blocking={formLock.blocking || Boolean(loading && loadingBehavior === 'blocking')}
@@ -594,6 +598,7 @@ function FieldBody({
   children: FieldProps['children'];
 }) {
   const formErrors = useFormFieldErrors();
+  const fieldsetErrorIds = useContext(FieldsetContext).errorIds;
   // 組み立てで置いた本体が知らせる種類。部品の props（標準の並べ方）が勝つ
   const [controlKind, setControlKind] = useState<FieldControlKind>({});
   const nativeLabel = nativeLabelProp ?? controlKind.nativeLabel ?? true;
@@ -636,10 +641,12 @@ function FieldBody({
         };
         const kinds = Object.keys(messages) as MessageKind[];
         // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
-        const describedBy =
+        const describedBy = withFieldsetErrors(
+          fieldsetErrorIds,
           [caption && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
             .filter(Boolean)
-            .join(' ') || undefined;
+            .join(' ') || undefined
+        );
         const state: FieldState = {
           describedBy,
           name,

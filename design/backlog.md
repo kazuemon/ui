@@ -444,9 +444,9 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `as` と `render` の使い分け（タグ名を選ぶだけなら `as`、部品を差し替えるなら `render`、という暗黙の線引きのままです。polymorphism の扱いを詰めます。N-16）
 - 見本の入口 `@kazuemon/ui/samples`（`src/samples/` と見本用の fixtures をそこへ寄せるかは決めていません。M-12）
 - `render` に渡した要素の `target` を部品が読む作り（サーバーコンポーネントから渡すと読めません。対応策は別途検討します。M-18）
-- Fieldset と Field の公開（`InputFieldProps` の型は公開しましたが、`Field` 自体の公開は Fieldset を作るときに検討します。M-13）
 - Tabs の縦向きで、並びが画面に入り切らないときの扱い（縦のスクロールと端の影）。横向きのスクロールの帯（ADR-0258 の軸では決めていません）
 - Menu の項目の照合文字の `label` の扱い（typeahead 用に別名にするか、Base UI と同じ意味のまま残すかは決めていません）
+- Fieldset のまとまりのエラーを、Form の検証（`validate`・Form の `errors` の名前）から受ける口がありません。いまは Fieldset の `errorText` に直に渡す形だけです
 
 ### List・Table・Text
 
