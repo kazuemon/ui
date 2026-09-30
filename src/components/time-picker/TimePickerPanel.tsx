@@ -4,13 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '../button/Button';
 import { TimeListbox } from './TimeListbox';
-import {
-  listKeyOf,
-  listOptions,
-  nearestIndex,
-  timeColumns,
-  withColumn,
-} from './time-options';
+import { listKeyOf, listOptions, nearestIndex, timeColumns, withColumn } from './time-options';
 import type { TimeLayout, TimeSegmentType } from '../../internal/date-segments/segments';
 import { fromPlainTime } from '../../internal/date-segments/segments';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
@@ -97,13 +91,12 @@ export function TimePickerPanel({
   if (variant === 'list') {
     const selectedKey = listKeyOf(value);
     const hasSelected = options.some((option) => option.key === selectedKey);
-    // 値がないときの行き先（いまの時刻の近く）は、選べる項目の中から探す
+    // 開いたときの行き先（選んでいる時刻、なければいまの時刻の近く）は、選べる項目の中から探す
+    //   値が min・max の外でも、フォーカス（tabIndex=0）を押せない項目に置かず、選べる項目のうちいちばん近いものにする
     const enabled = options.some((option) => !option.disabled)
       ? options.filter((option) => !option.disabled)
       : options;
-    const initialKey = openedWith
-      ? (options[nearestIndex(options, openedWith)]?.key ?? null)
-      : (enabled[nearestIndex(enabled, now)]?.key ?? null);
+    const initialKey = enabled[nearestIndex(enabled, openedWith ?? now)]?.key ?? null;
     return (
       <div data-slot="time-picker-panel" data-variant="list" className="text-input">
         <TimeListbox

@@ -92,7 +92,13 @@ export function TimeListbox({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const index = options.findIndex((item) => item.key === active);
-    const page = Math.max(1, Math.floor((viewportRef.current?.clientHeight ?? 0) / 40) - 1);
+    // 1 ページの行数は、見えている高さを項目の実際の高さ（密度で変わる）で割って出す
+    const viewport = viewportRef.current;
+    const rowHeight = viewport?.querySelector<HTMLElement>('[role="option"]')?.offsetHeight ?? 0;
+    const page =
+      viewport && rowHeight > 0
+        ? Math.max(1, Math.floor(viewport.clientHeight / rowHeight) - 1)
+        : 1;
     const moves: Record<string, number> = {
       ArrowDown: index + 1,
       ArrowUp: index - 1,
