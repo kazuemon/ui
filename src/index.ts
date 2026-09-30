@@ -537,6 +537,7 @@ export {
   Stack,
   type StackAlign,
   type StackDirection,
+  type StackDirections,
   type StackGap,
   type StackJustify,
   type StackProps,
