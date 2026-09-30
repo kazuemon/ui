@@ -46,7 +46,8 @@ const meta = {
           '',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
           '- その場で実行する項目は `MenuItem`、別の場所へ移る項目は `MenuLinkItem` です。`MenuLinkItem` に `target="_blank"` を付けると、後ろに右上向きの矢印が付きます。',
-          '- `MenuItem` には `icon`（前のアイコン）、`shortcut`（後ろのショートカットの文字）、`description`（2 行目）を付けられます。ショートカットは表示だけで、キーの操作は使う側で付けます。',
+          '- `MenuItem` には `icon`（前のアイコン）、`shortcut`（後ろのショートカットの文字）、`description`（2 行目）を付けられます。ショートカットは表示だけで、キーの操作は使う側で付けます。`MenuCheckboxItem` にも `shortcut` を付けられます。',
+          '- `MenuLinkItem` の `onClick` は、移る前に呼びます（押したことを記録するときなど）。移るのを止めるときは `event.preventDefault()` を呼びます。',
           '- 削除のように取り消せない操作には `status="danger"` を付けます。文字が赤くなり、hover で赤を淡く敷きます。',
           '- 押せない項目は `disabled` にし、理由を `description` に書きます。`MenuLinkItem` も `disabled` にでき、押しても移りません。',
           '- 入・切を切り替える項目は `MenuCheckboxItem`、1 つだけを選ぶ項目は `MenuRadioGroup` の中の `MenuRadioItem` です。どちらも押しても閉じません。印の色は `color`、印の場所（前か右端か）は `markPlacement` で選びます。ラジオの印は `radioMark` で選びます（既定の `radio` はラジオと同じ丸、`dot` は選んだ項目に小さな点、`check` はチェック）。',
@@ -436,6 +437,70 @@ export const Links: Story = {
       )}
     </ScreenFrame>
   ),
+};
+
+// リンクの項目を押したことを受け取る見本（play で呼ばれたことを確かめる）
+const onSettingsClick = fn();
+
+export const LinkClickAndCheckboxShortcut: Story = {
+  name: 'リンクの項目の onClick・チェックの項目のショートカット',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`MenuLinkItem` の `onClick` は移る前に呼びます。`MenuCheckboxItem` の `shortcut` は、`MenuItem` と同じく文字の後ろに出し、読み上げでは説明になります。',
+      },
+      source: sourceCode(`
+        <Menu trigger={<Button variant="outline">表示</Button>}>
+          <MenuCheckboxItem shortcut="Ctrl+Shift+L">行番号</MenuCheckboxItem>
+          <MenuLinkItem href="/settings" onClick={() => track('menu-settings')}>
+            設定
+          </MenuLinkItem>
+        </Menu>
+      `),
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <ScreenFrame height="h-[240px]">
+      {(frame) => (
+        <Menu
+          trigger={<Button variant="outline">表示</Button>}
+          presentation="popover"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <MenuCheckboxItem defaultChecked shortcut="Ctrl+Shift+L">
+            行番号
+          </MenuCheckboxItem>
+          <MenuCheckboxItem shortcut="Alt+Z">折り返し</MenuCheckboxItem>
+          <MenuSeparator />
+          <MenuLinkItem
+            href="#settings"
+            onClick={(event) => {
+              // 見本では移らない
+              event.preventDefault();
+              onSettingsClick();
+            }}
+          >
+            設定
+          </MenuLinkItem>
+        </Menu>
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    onSettingsClick.mockClear();
+    const body = within(canvasElement.ownerDocument.body);
+    const menu = await body.findByRole('menu');
+    // チェックの項目のショートカットは、名前に入れず説明として読む
+    const lines = within(menu).getByRole('menuitemcheckbox', { name: '行番号' });
+    await expect(lines).toHaveAccessibleDescription('Ctrl+Shift+L');
+    await expect(lines).toHaveTextContent('Ctrl+Shift+L');
+    // リンクの項目の onClick が呼ばれる
+    await userEvent.click(within(menu).getByRole('menuitem', { name: '設定' }));
+    await expect(onSettingsClick).toHaveBeenCalledTimes(1);
+  },
 };
 
 const submenuItems = (
