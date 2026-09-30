@@ -10,7 +10,12 @@ import { Fieldset } from '../fieldset/Fieldset';
 import { Icon } from '../icon/Icon';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Matrix } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { name: string; props: Partial<DatePickerProps> };
 
@@ -126,12 +131,10 @@ export const States: Story = {
     controls: { exclude: ['variant'] },
     pseudo: {
       ...statePseudo({
-        hover: '[data-slot="control"]:not([data-disabled] *, :disabled)',
-        focusWithin: '[data-slot="control"]:not([data-disabled] *, :disabled)',
+        hover: enabledControl,
+        focusWithin: enabledControl,
       }),
-      focus: [
-        '[data-preview="focus"] [data-slot="control"]:not([data-disabled] *, :disabled) [data-segment="year"]',
-      ],
+      focus: [`[data-preview="focus"] ${enabledControl} [data-segment="year"]`],
     },
     docs: {
       description: {

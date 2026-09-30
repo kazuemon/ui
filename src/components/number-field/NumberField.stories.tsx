@@ -7,7 +7,12 @@ import { expect, fn, userEvent, waitFor } from 'storybook/test';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { NumberField, NumberFieldControl, type NumberFieldProps } from './NumberField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { props: Partial<NumberFieldProps> };
 
@@ -113,7 +118,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
+    pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
     docs: {
       description: {
         story:

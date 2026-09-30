@@ -43,6 +43,12 @@ export const pressColumns: StateColumn[] = [
   { label: '押せない', disabled: true },
 ];
 
+/**
+ * 押せる欄の本体。押せない欄（Field の data-disabled の中か、:disabled の本体）を外す。
+ * 状態の一覧で、押せない行に hover・フォーカスの見た目を当てないために、hover・focusWithin の的に使う
+ */
+export const enabledControl = '[data-slot="control"]:not([data-disabled] *, :disabled)';
+
 interface PseudoTargets {
   hover?: string;
   active?: string;

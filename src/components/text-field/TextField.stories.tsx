@@ -8,7 +8,12 @@ import { FieldAddonButton } from '../field-addon/FieldAddon';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 import { TextField, type TextFieldProps } from './TextField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { props: Partial<TextFieldProps> };
 
@@ -151,7 +156,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
+    pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
     docs: {
       description: {
         story:

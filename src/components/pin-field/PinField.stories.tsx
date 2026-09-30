@@ -28,7 +28,9 @@ const stateColumns: MatrixColumn[] = [
 ];
 
 // 1 桁目の箱だけに状態を当てる
-const firstBox = '[data-slot="pin-field-group"]:first-of-type > [data-slot="control"]:first-child';
+// 押せない欄（Field の data-disabled の中）には、hover・フォーカスを当てない
+const firstBox =
+  '[data-slot="pin-field-group"]:first-of-type > [data-slot="control"]:first-child:not([data-disabled] *, :disabled)';
 
 const behaviors = ['non-blocking', 'blocking'] as const;
 

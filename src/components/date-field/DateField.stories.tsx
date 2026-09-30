@@ -7,7 +7,12 @@ import { DateField, DateFieldControl, type DateFieldProps } from './DateField';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { props: Partial<DateFieldProps> };
 
@@ -128,8 +133,8 @@ export const States: Story = {
   name: '状態',
   parameters: {
     pseudo: {
-      ...statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
-      focus: ['[data-preview="focus"] [data-segment="year"]'],
+      ...statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
+      focus: [`[data-preview="focus"] ${enabledControl} [data-segment="year"]`],
     },
     docs: {
       description: {
@@ -168,8 +173,8 @@ export const Colors: Story = {
   parameters: {
     controls: { exclude: ['color'] },
     pseudo: {
-      ...statePseudo({ focusWithin: '[data-slot="control"]' }),
-      focus: ['[data-preview="focus"] [data-segment="year"]'],
+      ...statePseudo({ focusWithin: enabledControl }),
+      focus: [`[data-preview="focus"] ${enabledControl} [data-segment="year"]`],
     },
     docs: {
       description: {
