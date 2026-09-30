@@ -398,3 +398,27 @@ export const InputPropsFocusBlur: Story = {
     await expect(groupOnBlur).toHaveBeenCalled();
   },
 };
+
+export const OutsideForm: Story = {
+  name: 'フォームの外に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '欄を `<form>` の外に置くときは、`form` にフォームの id を渡します。送る値（ISO 8601 の文字）はフォームの値に入ります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col gap-4">
+      <form id="time-field-outside-form" />
+      <TimeField label="開始時刻" name="start" form="time-field-outside-form" defaultValue={time} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // 外に置いた欄の値も、form で指したフォームの値に入る
+    const form = canvasElement.querySelector<HTMLFormElement>('#time-field-outside-form');
+    await expect(form && new FormData(form).get('start')).toBe('15:05');
+  },
+};

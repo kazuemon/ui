@@ -375,3 +375,35 @@ export const GroupComposed: Story = {
     await expect(canvas.getByRole('checkbox', { name: 'メール' })).toHaveAccessibleDescription('');
   },
 };
+
+export const GroupOutsideForm: Story = {
+  name: 'グループをフォームの外に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'グループを `<form>` の外に置くときは、`form` にフォームの id を渡します。中の箱がすべてそのフォームに属します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <form id="checkbox-group-outside-form" />
+      <CheckboxGroup
+        label="連絡の方法"
+        form="checkbox-group-outside-form"
+        defaultValue={['mail', 'post']}
+      >
+        <Checkbox name="contact" value="mail" label="メール" />
+        <Checkbox name="contact" value="tel" label="電話" />
+        <Checkbox name="contact" value="post" label="郵送" />
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // 外に置いたグループの値も、form で指したフォームの値に入る
+    const form = canvasElement.querySelector<HTMLFormElement>('#checkbox-group-outside-form');
+    await expect(form && new FormData(form).getAll('contact')).toEqual(['mail', 'post']);
+  },
+};

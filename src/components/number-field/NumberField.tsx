@@ -118,6 +118,8 @@ export interface NumberFieldControlProps extends Pick<
   allowOutOfRange?: boolean;
   /** 中の input の id */
   id?: string;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
   /** 中の input への ref */
   ref?: Ref<HTMLInputElement>;
   /** 中の input に渡すもの（class・data-*・autoComplete など） */
@@ -168,6 +170,7 @@ export function NumberFieldControl({
   snapOnStep,
   allowOutOfRange,
   id,
+  form,
   ref,
   inputProps,
   autoFocus,
@@ -246,6 +249,7 @@ export function NumberFieldControl({
   return (
     <BaseNumberField.Root
       id={id}
+      form={form}
       value={value}
       defaultValue={defaultValue}
       onValueChange={(next, details) => {

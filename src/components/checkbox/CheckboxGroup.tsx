@@ -115,6 +115,8 @@ export type CheckboxGroupControlProps = Omit<
     defaultValue?: string[];
     /** 選び方が変わるときに、次の値を渡して呼びます */
     onValueChange?: (value: string[]) => void;
+    /** 中の箱が属するフォームの id。フォームの外に置くときに使います。選択肢ごとの `form` で上書きできます */
+    form?: string;
     /**
      * グループごと読み取り専用にします。中の箱（「すべて選ぶ」を含む）は押せないとき（`disabled`）と同じ見た目になりますが、
      * 横の文字は本文の色のままです。フォーカスでき、読み上げでは1つずつ「読み取り専用」と伝わります。
@@ -144,6 +146,7 @@ export function CheckboxGroupControl({
   onValueChange,
   readOnly,
   color,
+  form,
   children,
   selectAll,
   allValues,
@@ -155,7 +158,7 @@ export function CheckboxGroupControl({
   useFieldControlKind({ nativeLabel: false, registerCaption: false });
   const field = useFieldState();
   // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
-  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  const context = useMemo(() => ({ color, readOnly, form }), [color, readOnly, form]);
   const withSelectAll = selectAll !== undefined && selectAll !== null;
   return (
     <ChoiceGroupContext.Provider value={context}>

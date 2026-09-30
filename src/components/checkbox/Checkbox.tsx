@@ -64,7 +64,7 @@ export interface CheckboxProps
   value?: string;
   /** フォームに送るときの名前 */
   name?: string;
-  /** 箱が属するフォームの id。フォームの外に置くときに使います */
+  /** 箱が属するフォームの id。フォームの外に置くときに使います。CheckboxGroup の中では、指定しなければグループの form になります */
   form?: string;
   /** 隠れた input の id */
   id?: string;
@@ -171,7 +171,7 @@ export function Checkbox({
       indeterminate={indeterminate}
       value={value}
       name={name}
-      form={form}
+      form={form ?? group?.form}
       id={idProp}
       inputRef={inputRef}
       uncheckedValue={uncheckedValue}
