@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useId, useRef } from 'react';
+import { type ComponentProps, type CSSProperties, type ReactNode, useId, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { tableStyles } from '../../internal/reading/table';
@@ -16,6 +16,9 @@ import { useScrollable } from '../../internal/use-scrollable';
 // 見た目（variant）: lines（既定）は行のあいだの横線と、見出しの下の線。framed は外枠（部品の角）と見出しのグレーの面（軸 62 の A）。
 //   banded は見出しの行を丸い帯のグレーの面にし、セルの余白を広げる（D）。縦線は showColumnDivider でどれにも足せる
 // 縦の寄せ（verticalAlign）は --table-valign で配る。表・行・セルのどこにでも書け、いちばん内側の指定が効く（ADR-0246）
+// 詰めた余白（size="sm"）・縞（showStripes）は比較中（Design Review/422・423）。値は tokens.css の --table-sm-*・--table-stripe-*
+// maxHeight を渡すと、包みが縦にもスクロールし、見出しの行が上に貼り付く。見出しには地と同じ面を置き、下を通る本文を隠す
+//   Table は端の影の出る枠（ScrollFrame）を持たないので、貼り付いた見出しの下に影は落とさない（DataTable は落とす）
 const table = tv({
   slots: {
     root: 'flex min-w-0 flex-col gap-2',
@@ -41,8 +44,34 @@ const table = tv({
       middle: { table: '[--table-valign:middle]' },
       bottom: { table: '[--table-valign:bottom]' },
     },
+    // variant の後に置く。banded の広い余白より、詰めた余白を優先する
+    size: {
+      md: {},
+      sm: { table: tableStyles.sm },
+    },
+    showStripes: {
+      true: { table: tableStyles.stripes },
+      false: {},
+    },
+    scrollY: {
+      true: {
+        scroll: 'max-h-(--table-max-height) overflow-y-auto',
+        table: '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
+      },
+      false: {},
+    },
   },
-  defaultVariants: { variant: 'lines', showColumnDivider: false },
+  compoundVariants: [
+    // 貼り付いた見出しの面。lines は地と同じ白、framed・banded はもとのグレーの面
+    { scrollY: true, variant: 'lines', class: { table: '[&_thead_th]:bg-bg' } },
+  ],
+  defaultVariants: {
+    variant: 'lines',
+    showColumnDivider: false,
+    size: 'md',
+    showStripes: false,
+    scrollY: false,
+  },
 });
 
 // 行・セルの縦の寄せ。--table-valign を自分に書き、中のセルがそれを読む
@@ -62,6 +91,8 @@ export type TableVariant = 'lines' | 'framed' | 'banded';
 export type TableVerticalAlign = 'top' | 'middle' | 'bottom';
 /** セルの横の寄せ */
 export type TableCellAlign = 'start' | 'center' | 'end';
+/** セルの余白の大きさ */
+export type TableSize = 'sm' | 'md';
 
 // 列の寄せは、GFM を変換した HTML と同じ align 属性で出す（start は left、end は right）
 const alignAttr = { start: 'left', center: 'center', end: 'right' } as const;
@@ -82,13 +113,27 @@ export interface TableProps extends ComponentProps<'table'> {
    * @default 'top'
    */
   verticalAlign?: TableVerticalAlign;
+  /**
+   * セルの余白の大きさ。sm は余白を詰め、一度に多くの行を見せます
+   * @default 'md'
+   */
+  size?: TableSize;
+  /**
+   * 本文の行を 1 行おきに塗ります。列の多い横に長い表で、行を目で追いやすくします
+   * @default false
+   */
+  showStripes?: boolean;
+  /**
+   * 表の高さの上限（数は px、文字は CSS の長さ）。渡すと、はみ出した行は表の中で縦にスクロールし、見出しの行が上に貼り付きます
+   */
+  maxHeight?: number | string;
   /** 表の説明。表の下に小さく出し、表とスクロールの包みの名前にもします */
   caption?: ReactNode;
   /**
    * caption を出さないときの、表の名前（読み上げ用）。はみ出してスクロールできるとき、包みの名前として読まれます
    */
   accessibleName?: string;
-  /** 行をまとめる TableHead・TableBody を入れます */
+  /** 行をまとめる TableHead・TableBody・TableFoot を入れます */
   children?: ReactNode;
   /** 表とキャプションを包む要素（figure）に付きます。表そのものに付けるクラスは、中の要素に当たるセレクタで書きます */
   className?: string;
@@ -102,13 +147,21 @@ export function Table({
   variant,
   showColumnDivider,
   verticalAlign,
+  size,
+  showStripes,
+  maxHeight,
   caption,
   accessibleName,
   className,
   children,
   ...props
 }: TableProps) {
-  const styles = table({ variant, showColumnDivider, verticalAlign });
+  const scrollY = maxHeight != null;
+  const styles = table({ variant, showColumnDivider, verticalAlign, size, showStripes, scrollY });
+  const style: CSSProperties & Record<`--${string}`, string> = {};
+  if (scrollY) {
+    style['--table-max-height'] = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
+  }
   const captionId = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollable = useScrollable(scrollRef);
@@ -119,6 +172,7 @@ export function Table({
       <div
         ref={scrollRef}
         className={styles.scroll()}
+        style={style}
         data-slot="table-scroll"
         {...(scrollable
           ? { role: 'region', tabIndex: 0, 'aria-labelledby': labelledBy, 'aria-label': ariaLabel }
@@ -150,6 +204,11 @@ export function TableHead(props: ComponentProps<'thead'>) {
 /** 本文の行をまとめる（tbody） */
 export function TableBody(props: ComponentProps<'tbody'>) {
   return <tbody {...props} />;
+}
+
+/** 合計などの行をまとめる（tfoot）。本文の下に置き、上に線を引いて太字にします */
+export function TableFoot(props: ComponentProps<'tfoot'>) {
+  return <tfoot {...props} />;
 }
 
 export interface TableRowProps extends ComponentProps<'tr'> {
