@@ -13,7 +13,7 @@ import {
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
 import { isTimeOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
-import { Field } from '../../internal/field/Field';
+import { Field, useFieldState } from '../../internal/field/Field';
 import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -62,10 +62,16 @@ export interface TimePickerControlProps extends Omit<
   /** 開閉が変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
   /**
-   * 右端のボタンと、開いた面の読み上げの名前
+   * 一覧を開くボタンの読み上げの名前。1 列の形（list）では、一覧（listbox）の名前にもなります。
+   * 開いた面の名前は、欄のラベル（label・accessibleName）です
    * @default '時刻を選ぶ'
    */
-  pickerName?: string;
+  triggerName?: string;
+  /**
+   * 面を閉じるボタンの読み上げの名前（シートの ×）
+   * @default '閉じる'
+   */
+  closeName?: string;
   /**
    * columns の列ごとの読み上げの名前
    * @default { hour: '時', minute: '分', second: '秒', dayPeriod: '午前・午後' }
@@ -148,7 +154,8 @@ function TimePickerControlInner({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
-  pickerName = '時刻を選ぶ',
+  triggerName = '時刻を選ぶ',
+  closeName = '閉じる',
   columnNames,
   closeOnSelect,
   showDoneButton,
@@ -174,12 +181,19 @@ function TimePickerControlInner({
       `TimePicker: minuteStep={${minuteStep}} の一覧は項目が多く重くなります。細かい刻みでは variant="columns" を使ってください`
     );
   const [value, setValue] = useTimeValue(valueProp, defaultValue, onValueChange);
+  const fieldState = useFieldState();
+  // 読み取り専用・押せない（Fieldset から受けたものも含む）・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
+  //   defaultOpen・制御の open で開こうとしても、面を出さない
+  const locked = Boolean(readOnly || fieldState?.disabled || fieldState?.blocking);
   const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
+  const open = (openProp ?? openState) && !locked;
   const changeOpen = (next: boolean) => {
+    if (next && locked) return;
     setOpenState(next);
     onOpenChange?.(next);
   };
+  // 面の名前は欄のラベル（DatePicker と同じ）。1 列の一覧の名前は、面と同じ文を二度読ませないよう開く口の名前にする（原則15）
+  const title = fieldState?.label ?? fieldState?.accessibleName ?? triggerName;
   const { locale, timeZone } = useLocale(localeProp);
   const layout = useMemo(
     () => timeLayout(locale, { hourCycle, showSeconds }),
@@ -201,7 +215,7 @@ function TimePickerControlInner({
       min={min}
       max={max}
       columnNames={names}
-      listName={pickerName}
+      listName={triggerName}
       doneLabel={doneLabel}
       closeOnSelect={closeOnSelect}
       showDoneButton={showDoneButton}
@@ -219,7 +233,7 @@ function TimePickerControlInner({
     <PickerOverlay
       open={open}
       onOpenChange={changeOpen}
-      title={pickerName}
+      title={title}
       presentation={presentation}
       portalContainer={portalContainer}
       positionerProps={positionerProps}
@@ -236,7 +250,7 @@ function TimePickerControlInner({
       // 幅は中身の幅で、欄より狭いときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）。シートでは Drawer の幅
       popoverClassName="w-max min-w-(--anchor-width) overflow-clip"
       panel={panel}
-      closeName="閉じる"
+      closeName={closeName}
     >
       {(renderTrigger) => (
         <TimeFieldControlInner
@@ -256,7 +270,7 @@ function TimePickerControlInner({
             readOnly
               ? undefined
               : renderTrigger(
-                  <PickerTriggerButton aria-label={pickerName}>
+                  <PickerTriggerButton aria-label={triggerName}>
                     <ClockIcon standalone />
                   </PickerTriggerButton>
                 )
