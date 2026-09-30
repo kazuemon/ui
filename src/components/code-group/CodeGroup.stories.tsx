@@ -1,11 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { useState } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { CodeGroup } from './CodeGroup';
 import { bunHtml, jsxHtml, npmHtml, pnpmHtml, tsxHtml, yarnHtml } from './fixtures';
 import { CodeBlock } from '../code-block/CodeBlock';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
-import { type PreviewState, statePseudo } from '../../stories/story-states';
+import { type PreviewState, sourceCode, statePseudo } from '../../stories/story-states';
+import { Button } from '../button/Button';
 
 const meta = {
   title: 'Components/CodeGroup',
@@ -24,6 +28,8 @@ const meta = {
           '- `variant` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地で、中の `CodeBlock` にも渡ります。',
           '- `indicator` は、開いているタブの印です。`line`（既定）は文字を濃く太くして下に線を引き、`text` は文字の濃さと太さだけにします。',
           '- タブは ← → キーで移れます。タブが入りきらないときは、帯だけが横にスクロールします。',
+          '- 開いているタブは、タブの名前（`title` の文字）で `value`・`defaultValue`・`onValueChange` に渡します。',
+          '- ページの中の CodeGroup をそろえるときは、同じ `groupId` を付けます。1 つで選ぶと、同じ名前のタブを持つほかの CodeGroup も切り替わり、選んだ名前は端末に覚えて、次に開いたページでも同じタブから始めます。MDX の中でも、状態を渡さずに使えます。',
         ].join('\n'),
       },
     },
@@ -208,5 +214,189 @@ export const Accessibility: Story = {
     });
     // 開いているタブのコードだけが見えている
     await expect(canvas.getByRole('tabpanel')).toBeVisible();
+  },
+};
+
+export const Controlled: Story = {
+  name: '外から開くタブを決める',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`value` と `onValueChange` で、開くタブを外から決めます。値はタブの名前（`title` の文字）です。',
+      },
+      source: sourceCode(`
+        const [manager, setManager] = useState('npm');
+
+        <CodeGroup value={manager} onValueChange={setManager}>
+          <CodeBlock title="pnpm" html={pnpmHtml} />
+          <CodeBlock title="npm" html={npmHtml} />
+          <CodeBlock title="yarn" html={yarnHtml} />
+        </CodeGroup>
+      `),
+    },
+  },
+  args: { onValueChange: fn() },
+  render: function Render({ onValueChange, ...args }) {
+    const [manager, setManager] = useState('npm');
+    return (
+      <div data-reading className="flex max-w-xl flex-col gap-3">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setManager('yarn')}>
+            yarn にする
+          </Button>
+        </div>
+        <CodeGroup
+          {...args}
+          value={manager}
+          onValueChange={(next) => {
+            setManager(next);
+            onValueChange?.(next);
+          }}
+        >
+          <CodeBlock title="pnpm" html={pnpmHtml} />
+          <CodeBlock title="npm" html={npmHtml} />
+          <CodeBlock title="yarn" html={yarnHtml} />
+        </CodeGroup>
+      </div>
+    );
+  },
+  play: async ({ args, canvas }) => {
+    await expect(canvas.getByRole('tab', { name: 'npm' })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.click(canvas.getByRole('tab', { name: 'pnpm' }));
+    await expect(args.onValueChange).toHaveBeenLastCalledWith('pnpm');
+    await waitFor(() =>
+      expect(canvas.getByRole('tab', { name: 'pnpm' })).toHaveAttribute('aria-selected', 'true')
+    );
+    await userEvent.click(canvas.getByRole('button', { name: 'yarn にする' }));
+    await waitFor(() =>
+      expect(canvas.getByRole('tab', { name: 'yarn' })).toHaveAttribute('aria-selected', 'true')
+    );
+  },
+};
+
+const syncGroupId = 'story-package-manager';
+
+export const Synced: Story = {
+  name: 'ページの中でそろえる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '同じ `groupId` の CodeGroup は、同じ名前のタブがそろって切り替わります。選んだ名前は端末に覚えます。その名前のタブを持たない CodeGroup（下の 2 つ目は yarn がない）は、そのままです。',
+      },
+      source: sourceCode(`
+        <CodeGroup groupId="package-manager">
+          <CodeBlock title="pnpm" html={pnpmHtml} />
+          <CodeBlock title="npm" html={npmHtml} />
+          <CodeBlock title="yarn" html={yarnHtml} />
+        </CodeGroup>
+
+        <CodeGroup groupId="package-manager">
+          <CodeBlock title="pnpm" html={pnpmHtml} />
+          <CodeBlock title="npm" html={npmHtml} />
+        </CodeGroup>
+      `),
+    },
+  },
+  render: (args) => (
+    <div data-reading className="flex max-w-xl flex-col gap-4">
+      <CodeGroup {...args} groupId={syncGroupId} data-testid="first">
+        <CodeBlock title="pnpm" html={pnpmHtml} />
+        <CodeBlock title="npm" html={npmHtml} />
+        <CodeBlock title="yarn" html={yarnHtml} />
+      </CodeGroup>
+      <CodeGroup {...args} groupId={syncGroupId} data-testid="second">
+        <CodeBlock title="pnpm" html={pnpmHtml} />
+        <CodeBlock title="npm" html={npmHtml} />
+      </CodeGroup>
+    </div>
+  ),
+  beforeEach: () => {
+    const key = `kazuemon-ui:code-group:${syncGroupId}`;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // 保存が使えない環境では、消すものもない
+    }
+    return () => {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // 同上
+      }
+    };
+  },
+  play: async ({ canvas }) => {
+    const first = within(canvas.getByTestId('first'));
+    const second = within(canvas.getByTestId('second'));
+    // 1 つ目で npm を選ぶと、2 つ目も npm になり、端末に覚える
+    await userEvent.click(first.getByRole('tab', { name: 'npm' }));
+    await waitFor(() =>
+      expect(second.getByRole('tab', { name: 'npm' })).toHaveAttribute('aria-selected', 'true')
+    );
+    await expect(localStorage.getItem(`kazuemon-ui:code-group:${syncGroupId}`)).toBe('npm');
+    // 2 つ目にない yarn を選んでも、2 つ目は npm のまま
+    await userEvent.click(first.getByRole('tab', { name: 'yarn' }));
+    await waitFor(() =>
+      expect(first.getByRole('tab', { name: 'yarn' })).toHaveAttribute('aria-selected', 'true')
+    );
+    await expect(second.getByRole('tab', { name: 'npm' })).toHaveAttribute('aria-selected', 'true');
+    // 2 つ目で pnpm を選ぶと、1 つ目も pnpm に戻る
+    await userEvent.click(second.getByRole('tab', { name: 'pnpm' }));
+    await waitFor(() =>
+      expect(first.getByRole('tab', { name: 'pnpm' })).toHaveAttribute('aria-selected', 'true')
+    );
+  },
+};
+
+const hydrateGroupId = 'story-hydrate';
+
+export const Hydration: Story = {
+  name: 'サーバーで描いたとき',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'サーバーで描いた HTML は、覚えた名前を読まずに最初のタブで描きます。ブラウザで水和（hydration）したあとで、覚えたタブに切り替えます。サーバーの HTML とずれません。',
+      },
+    },
+  },
+  render: () => <div data-reading className="max-w-xl" data-testid="host" />,
+  play: async ({ canvas }) => {
+    const key = `kazuemon-ui:code-group:${hydrateGroupId}`;
+    localStorage.setItem(key, 'yarn');
+    try {
+      const group = (
+        <CodeGroup groupId={hydrateGroupId}>
+          <CodeBlock title="pnpm" html={pnpmHtml} />
+          <CodeBlock title="npm" html={npmHtml} />
+          <CodeBlock title="yarn" html={yarnHtml} />
+        </CodeGroup>
+      );
+      const host = canvas.getByTestId('host');
+      host.innerHTML = renderToString(group);
+      // サーバーの HTML は最初のタブ
+      await expect(within(host).getByRole('tab', { name: 'pnpm' })).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      const errors: unknown[] = [];
+      const root = hydrateRoot(host, group, { onRecoverableError: (error) => errors.push(error) });
+      // 水和のあとで、覚えたタブに切り替わる
+      await waitFor(() =>
+        expect(within(host).getByRole('tab', { name: 'yarn' })).toHaveAttribute(
+          'aria-selected',
+          'true'
+        )
+      );
+      await expect(errors).toEqual([]);
+      root.unmount();
+    } finally {
+      localStorage.removeItem(key);
+    }
   },
 };
