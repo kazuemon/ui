@@ -224,10 +224,13 @@ export interface SegmentedControlControlProps<Value> extends Omit<
   ComponentProps<'div'>,
   'className' | 'color' | 'defaultValue' | 'onChange' | 'children'
 > {
-  /** 選んでいる値（制御） */
-  value?: Value;
-  /** はじめに選んでいる値（非制御）。必ずどれかを選んでおくため、どれかの項目の value を渡します */
-  defaultValue?: Value;
+  /** 選んでいる値（制御）。null は何も選んでいない状態です */
+  value?: Value | null;
+  /**
+   * はじめに選んでいる値（非制御）。どれかの項目の value を渡します。
+   * 何も選んでいない状態から始めるときは null を渡します。一度選ぶと、何も選んでいない状態には戻せません
+   */
+  defaultValue?: Value | null;
   /** 選ぶ項目が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: Value) => void;
   /** 属するフォームの id。フォームの外に置くときに使います */
@@ -327,13 +330,20 @@ export function SegmentedControlControl<Value>({
   const s = segmented({ color, variant, shape, itemWidth, frame, showDivider, indicatorMotion });
   return (
     <SegmentedControlContext.Provider value={context}>
-      <BaseRadioGroup<Value>
+      {/* null は何も選んでいない状態。選び直しで null に戻ることはない（選んでいる項目をもう一度押しても外れない） */}
+      <BaseRadioGroup<Value | null>
         {...props}
         ref={mergedRef}
         data-slot="segmented-control"
         value={value}
         defaultValue={defaultValue}
-        onValueChange={onValueChange ? (next) => onValueChange(next) : undefined}
+        onValueChange={
+          onValueChange
+            ? (next) => {
+                if (next !== null) onValueChange(next);
+              }
+            : undefined
+        }
         form={form}
         inputRef={inputRef}
         disabled={disabled}
@@ -473,8 +483,9 @@ export interface SegmentedControlBaseProps<Value>
 export type SegmentedControlProps<Value> = FieldNamed<SegmentedControlBaseProps<Value>>;
 
 /**
- * 必ずどれか 1 つを選ぶ切り替え。溝の中に項目を並べ、選んだ項目の下地（つまみ）がそこへ滑ります。
- * 読み上げはラジオのグループで、矢印キーで移ると、移った項目を選びます。選んでいる項目をもう一度押しても外れません
+ * どれか 1 つを選ぶ切り替え。溝の中に項目を並べ、選んだ項目の下地（つまみ）がそこへ滑ります。
+ * 読み上げはラジオのグループで、矢印キーで移ると、移った項目を選びます。選んでいる項目をもう一度押しても外れません。
+ * value・defaultValue に null を渡すと、何も選んでいない状態から始められます
  */
 export function SegmentedControl<Value>(props: SegmentedControlProps<Value>) {
   const [field, control] = splitFieldProps(props as SegmentedControlBaseProps<Value>);

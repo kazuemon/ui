@@ -5,6 +5,7 @@ import { type RefObject, useLayoutEffect } from 'react';
 // 選んだ項目の位置と大きさを、溝（ルート）の CSS 変数（--segmented-control-knob-*）に書く。つまみはその変数だけを読む
 //   選び方は制御・非制御のどちらでも変わるので、値ではなく、項目の data-checked の付け外しを見て測り直す
 //   文字の読み込みや幅の変化でも位置が変わるので、溝と項目の大きさも見る。項目の追加・削除・並べ替えでも測り直し、足された項目も見る
+//   何も選んでいないとき（value が null）は、つまみを出さない
 //   0 でない大きさで初めて置けたあとに data-knob-ready を付ける。付くまではつまみを出さず、選んだ項目が自分で下地を塗る
 //   （サーバーで描いた直後や、測る前や、display:none の中で大きさ 0 のまま測ったあとに見えたとき、つまみが左上から滑ってこないようにする）
 export function useSegmentedKnob(rootRef: RefObject<HTMLElement | null>) {
@@ -18,7 +19,11 @@ export function useSegmentedKnob(rootRef: RefObject<HTMLElement | null>) {
         '[data-slot="segmented-control-item"][data-checked]'
       );
       if (!item) {
+        // 何も選んでいないときは、つまみを出さない。次に選んだときは、その項目の上に出す（前の場所から滑らせない）
         root.style.setProperty('--segmented-control-knob-opacity', '0');
+        cancelAnimationFrame(frame);
+        frame = 0;
+        root.removeAttribute('data-knob-ready');
         return;
       }
       // 見えていない（display:none の中など）と大きさが 0 になる。置かずに、見えて大きさが変わったときに測り直す

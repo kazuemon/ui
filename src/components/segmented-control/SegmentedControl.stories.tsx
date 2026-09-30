@@ -29,9 +29,10 @@ const meta = {
     docs: {
       description: {
         component: [
-          '必ずどれか 1 つを選ぶ切り替えです。グレーの溝の中に項目を並べ、選んだ項目の下地（つまみ）がそこへ滑って移ります。一覧の表示（ボード・表）や、期間（日・週・月）の切り替えに使います。',
+          'どれか 1 つを選ぶ切り替えです。グレーの溝の中に項目を並べ、選んだ項目の下地（つまみ）がそこへ滑って移ります。一覧の表示（ボード・表）や、期間（日・週・月）の切り替えに使います。',
           '',
-          '- 中には `SegmentedControlItem` を `value` 付きで並べます。選んでいる value が `value`（`defaultValue`）です。はじめからどれかを選んでおきます。',
+          '- 中には `SegmentedControlItem` を `value` 付きで並べます。選んでいる value が `value`（`defaultValue`）です。ふつうは、はじめからどれかを選んでおきます。',
+          '- まだ選んでいない状態から始めるとき（答えを選んでもらう欄など）は、`defaultValue`（`value`）に `null` を渡します。選ぶまでつまみは出ず、一度選ぶと外せません。',
           '- 選んでいる項目をもう一度押しても外れず、値は空になりません。矢印キーで移ると、移った項目を選びます。',
           '- 押して外せる・いくつも押せる並び（文字の太字・斜体など）には `ToggleGroup` を使います。下に中身（パネル）を切り替えて出すときは `Tabs` を使います。',
           '- 見える見出しを置かないときは、`accessibleName` で読み上げの名前を付けます。見出しは `label`、補足は `caption` です。',
@@ -410,6 +411,97 @@ export const Densities: Story = {
       <Segmented {...args} />
     </DensityPair>
   ),
+};
+
+export const Unselected: Story = {
+  name: 'まだ選んでいない',
+  tags: ['visual'],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`defaultValue={null}` で、何も選んでいない状態から始めます。選ぶまでつまみは出ません。選んだあとは、ほかの項目に選び直せますが、何も選んでいない状態には戻せません。',
+      },
+      source: {
+        code: [
+          '<SegmentedControl label="サイズ" defaultValue={null} required>',
+          '  <SegmentedControlItem value="s">S</SegmentedControlItem>',
+          '  <SegmentedControlItem value="m">M</SegmentedControlItem>',
+          '  <SegmentedControlItem value="l">L</SegmentedControlItem>',
+          '</SegmentedControl>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: (args) => (
+    <SegmentedControl<string> {...withoutName(args)} label="サイズ" defaultValue={null} required>
+      <SegmentedControlItem value="s">S</SegmentedControlItem>
+      <SegmentedControlItem value="m">M</SegmentedControlItem>
+      <SegmentedControlItem value="l">L</SegmentedControlItem>
+    </SegmentedControl>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    for (const radio of canvas.getAllByRole('radio'))
+      await expect(radio).toHaveAttribute('aria-checked', 'false');
+    // 選ぶまでつまみは出ない
+    const knob = canvasElement.querySelector<HTMLElement>('[data-slot="segmented-control-knob"]')!;
+    await expect(getComputedStyle(knob).opacity).toBe('0');
+  },
+};
+
+function UnselectedControlled({ onValueChange }: { onValueChange?: (value: string) => void }) {
+  const [size, setSize] = useState<string | null>(null);
+  return (
+    <div className="flex flex-col gap-3">
+      <SegmentedControl<string>
+        label="サイズ"
+        value={size}
+        onValueChange={(next) => {
+          setSize(next);
+          onValueChange?.(next);
+        }}
+      >
+        <SegmentedControlItem value="s">S</SegmentedControlItem>
+        <SegmentedControlItem value="m">M</SegmentedControlItem>
+        <SegmentedControlItem value="l">L</SegmentedControlItem>
+      </SegmentedControl>
+      <p>選んだサイズ: {size ?? 'まだ選んでいません'}</p>
+    </div>
+  );
+}
+
+export const UnselectedAccessibility: Story = {
+  name: '読み上げ（まだ選んでいない）',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`value={null}` で制御するときも同じです。選ぶと `onValueChange` で値を受け取ります。何も選んでいない状態に戻す通知（null）は来ません。',
+      },
+    },
+  },
+  render: (args) => <UnselectedControlled onValueChange={args.onValueChange} />,
+  play: async ({ args, canvas, canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>('[data-slot="segmented-control"]')!;
+    const knob = root.querySelector<HTMLElement>('[data-slot="segmented-control-knob"]')!;
+    const s = canvas.getByRole('radio', { name: 'S' });
+    const m = canvas.getByRole('radio', { name: 'M' });
+    await expect(getComputedStyle(knob).opacity).toBe('0');
+    // Tab で入ると最初の項目に止まり、まだ選ばない。矢印キーで移ると、移った項目を選ぶ
+    await userEvent.tab();
+    await expect(s).toHaveFocus();
+    await expect(s).toHaveAttribute('aria-checked', 'false');
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(m).toHaveAttribute('aria-checked', 'true');
+    await expect(args.onValueChange).toHaveBeenLastCalledWith('m');
+    await expect(canvas.getByText('選んだサイズ: m')).toBeVisible();
+    await waitFor(() => expect(getComputedStyle(knob).opacity).toBe('1'));
+    // もう一度押しても外れない
+    await userEvent.click(m);
+    await expect(m).toHaveAttribute('aria-checked', 'true');
+    await expect(args.onValueChange).not.toHaveBeenCalledWith(null);
+  },
 };
 
 // play: 読み上げと値の確かめ
