@@ -110,6 +110,87 @@ export const Group: Story = {
 
 const contactValues = ['mail', 'tel', 'post'];
 
+const weekdays = ['月', '火', '水', '木', '金', '土', '日'];
+
+export const Horizontal: Story = {
+  tags: ['visual'],
+  name: '横に並べる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`direction="horizontal"` で選択肢を横に並べます。数が多いときは `wrap` で折り返します。「すべて選ぶ」の箱は、横に並べても選択肢の上に置きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col gap-8">
+      <CheckboxGroup
+        label="届ける曜日"
+        direction="horizontal"
+        wrap
+        selectAll="毎日"
+        allValues={weekdays}
+        defaultValue={['月', '水']}
+      >
+        {weekdays.map((day) => (
+          <Checkbox key={day} value={day} label={day} />
+        ))}
+      </CheckboxGroup>
+      <CheckboxGroup label="連絡の方法（itemWidth=equal）" direction="horizontal" itemWidth="equal">
+        <Checkbox value="mail" label="メール" />
+        <Checkbox value="tel" label="電話" caption="平日の 10 時から 18 時" />
+      </CheckboxGroup>
+    </div>
+  ),
+};
+
+export const HorizontalSelectAll: Story = {
+  name: '横に並べたときの「すべて選ぶ」',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: '横に並べても、「すべて選ぶ」の箱が中の選択肢をまとめて切り替えます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-xs">
+      <CheckboxGroup
+        label="届ける曜日"
+        direction="horizontal"
+        wrap
+        selectAll="毎日"
+        allValues={weekdays}
+        defaultValue={['月', '水']}
+      >
+        {weekdays.map((day) => (
+          <Checkbox key={day} value={day} label={day} />
+        ))}
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 横に並べても「すべて選ぶ」の箱が子の選択肢をまとめる
+    const all = canvas.getByRole('checkbox', { name: '毎日' });
+    await expect(all).toHaveAttribute('aria-checked', 'mixed');
+    await userEvent.click(all);
+    for (const day of weekdays) {
+      await expect(canvas.getByRole('checkbox', { name: day })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+    }
+    await userEvent.click(all);
+    await expect(canvas.getByRole('checkbox', { name: '月' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    );
+  },
+};
+
 export const SelectAll: Story = {
   name: 'すべて選ぶ',
   parameters: {

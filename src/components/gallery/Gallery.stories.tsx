@@ -570,3 +570,36 @@ export const Motions: Story = {
     </SpecimenGallery>
   ),
 };
+
+export const LoadingAttributes: Story = {
+  name: '読み込みの指定',
+  decorators: [wide],
+  args: {
+    items: galleryImages
+      .slice(0, 3)
+      .map((image, i) =>
+        i === 0
+          ? { ...image, fetchPriority: 'high' as const }
+          : { ...image, loading: 'lazy' as const, decoding: 'async' as const }
+      ),
+    loadingAnimation: 'pulse',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "画像ごとの `loading`・`decoding`・`fetchPriority` は、そのまま img の属性になります。先頭の画像は `fetchPriority: 'high'`、残りは `loading: 'lazy'` にしています。",
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const images = canvasElement.querySelectorAll<HTMLImageElement>(
+      '[data-slot="gallery-list"] img'
+    );
+    await expect(images).toHaveLength(3);
+    await expect(images[0]).toHaveAttribute('fetchpriority', 'high');
+    await expect(images[0]).not.toHaveAttribute('loading');
+    await expect(images[1]).toHaveAttribute('loading', 'lazy');
+    await expect(images[2]).toHaveAttribute('decoding', 'async');
+  },
+};

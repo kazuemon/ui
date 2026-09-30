@@ -159,6 +159,34 @@ export const Horizontal: Story = {
   ),
 };
 
+export const HorizontalKeyboard: Story = {
+  name: '横に並べたときのキーボード',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: '横に並べても 1 つのグループです。矢印キーで隣の選択肢へ移って選びます。',
+      },
+    },
+  },
+  render: () => (
+    <RadioGroup label="メールで知らせる" defaultValue="yes" direction="horizontal">
+      <Radio value="yes" label="はい" />
+      <Radio value="no" label="いいえ" />
+    </RadioGroup>
+  ),
+  play: async ({ canvas }) => {
+    const group = canvas.getByRole('radiogroup', { name: 'メールで知らせる' });
+    await expect(group).toBeInTheDocument();
+    const yes = canvas.getByRole('radio', { name: 'はい' });
+    const no = canvas.getByRole('radio', { name: 'いいえ' });
+    await userEvent.click(yes);
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(no).toBeChecked();
+    await expect(no).toHaveFocus();
+  },
+};
+
 export const Messages: Story = {
   tags: ['visual'],
   name: 'エラー',
