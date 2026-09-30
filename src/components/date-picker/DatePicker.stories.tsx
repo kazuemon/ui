@@ -6,6 +6,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { CaretDownIcon } from '@phosphor-icons/react';
 
 import { DatePicker, type DatePickerProps } from './DatePicker';
+import { Fieldset } from '../fieldset/Fieldset';
 import { Icon } from '../icon/Icon';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Matrix } from '../../stories/story-parts';
@@ -379,5 +380,64 @@ export const ReadOnlyNoTrigger: Story = {
   parameters: { controls: { disable: true } },
   play: async ({ canvas }) => {
     await expect(canvas.queryByRole('button', { name: 'カレンダーを開く' })).toBeNull();
+  },
+};
+
+const stayError = 'チェックアウトは、チェックインより後の日にしてください';
+
+export const InFieldset: Story = {
+  tags: ['visual'],
+  name: 'Fieldset の中',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Fieldset の中に置くと、Fieldset の `disabled` でまとめて押せなくなり、カレンダーのボタンも押せなくなります。まとまりの `errorText` では欄がエラーの見た目になり、エラーの文は欄の説明としても読み上げます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-10">
+      <Fieldset label="宿泊の期間" errorText={stayError}>
+        <DatePicker
+          label="チェックイン"
+          today={today}
+          defaultValue={Temporal.PlainDate.from('2026-10-05')}
+        />
+        <DatePicker
+          label="チェックアウト"
+          variant="button"
+          today={today}
+          defaultValue={Temporal.PlainDate.from('2026-10-03')}
+        />
+      </Fieldset>
+      <Fieldset label="宿泊の期間（受付を締め切りました）" disabled>
+        <DatePicker label="チェックイン" today={today} defaultValue={day} />
+        <DatePicker label="チェックアウト" variant="button" today={today} defaultValue={day} />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const [invalidSet, disabledSet] = canvas.getAllByRole('group', { name: /^宿泊の期間/ });
+    if (!invalidSet || !disabledSet) throw new Error('まとまりがありません');
+
+    // まとまりのエラー: 欄はエラーになり、エラーの文が欄の説明につながる
+    const invalid = within(invalidSet);
+    for (const segment of invalid.getAllByRole('spinbutton')) {
+      await expect(segment).toHaveAttribute('aria-invalid', 'true');
+      await expect(segment).toHaveAccessibleDescription(stayError);
+    }
+    const button = invalid.getByRole('button', { name: /^チェックアウト/ });
+    await expect(button).toHaveAccessibleDescription(stayError);
+    await expect(button.closest('[data-invalid]')).not.toBeNull();
+
+    // まとまりの disabled: 打ち込む欄・カレンダーのボタン・ボタンだけの形が、どれも押せない
+    const disabled = within(disabledSet);
+    for (const segment of disabled.getAllByRole('spinbutton')) {
+      await expect(segment).toHaveAttribute('aria-disabled', 'true');
+    }
+    await expect(disabled.getByRole('button', { name: 'カレンダーを開く' })).toBeDisabled();
+    await expect(disabled.getByRole('button', { name: /^チェックアウト/ })).toBeDisabled();
   },
 };

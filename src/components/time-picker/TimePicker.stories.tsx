@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { TimePicker, type TimePickerProps } from './TimePicker';
+import { Fieldset } from '../fieldset/Fieldset';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
@@ -450,5 +451,52 @@ export const PickWithDoneButton: Story = {
     await expect(hidden?.value).toBe('14:35');
     await userEvent.click(body.getByRole('button', { name: '完了' }));
     await waitFor(() => expect(body.queryByRole('listbox')).not.toBeInTheDocument());
+  },
+};
+
+const hoursError = '終了時刻は、開始時刻より後にしてください';
+
+export const InFieldset: Story = {
+  tags: ['visual'],
+  name: 'Fieldset の中',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Fieldset の中に置くと、Fieldset の `disabled` でまとめて押せなくなり、一覧を開くボタンも押せなくなります。まとまりの `errorText` では欄がエラーの見た目になり、エラーの文は欄の説明としても読み上げます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-10">
+      <Fieldset label="営業時間" errorText={hoursError}>
+        <TimePicker label="開始時刻" defaultValue={Temporal.PlainTime.from('18:00')} />
+        <TimePicker label="終了時刻" defaultValue={Temporal.PlainTime.from('09:00')} />
+      </Fieldset>
+      <Fieldset label="営業時間（変更できません）" disabled>
+        <TimePicker label="開始時刻" defaultValue={time} />
+        <TimePicker label="終了時刻" defaultValue={Temporal.PlainTime.from('18:00')} />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const [invalidSet, disabledSet] = canvas.getAllByRole('group', { name: /^営業時間/ });
+    if (!invalidSet || !disabledSet) throw new Error('まとまりがありません');
+
+    // まとまりのエラー: 欄はエラーになり、エラーの文が欄の説明につながる
+    for (const segment of within(invalidSet).getAllByRole('spinbutton')) {
+      await expect(segment).toHaveAttribute('aria-invalid', 'true');
+      await expect(segment).toHaveAccessibleDescription(hoursError);
+    }
+
+    // まとまりの disabled: 欄と、一覧を開くボタンが押せない
+    const disabled = within(disabledSet);
+    for (const segment of disabled.getAllByRole('spinbutton')) {
+      await expect(segment).toHaveAttribute('aria-disabled', 'true');
+    }
+    for (const button of disabled.getAllByRole('button', { name: '時刻を選ぶ' })) {
+      await expect(button).toBeDisabled();
+    }
   },
 };

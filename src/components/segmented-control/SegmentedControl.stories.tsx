@@ -2,7 +2,7 @@ import { KanbanIcon, TableIcon, CalendarBlankIcon } from '@phosphor-icons/react'
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import {
   SegmentedControl,
@@ -12,6 +12,7 @@ import {
 } from './SegmentedControl';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type StateColumn, statePseudo } from '../../stories/story-states';
+import { Fieldset } from '../fieldset/Fieldset';
 import { Icon } from '../icon/Icon';
 
 const colors = ['neutral', 'primary', 'secondary'] as const;
@@ -447,5 +448,60 @@ export const Accessibility: Story = {
     await expect(calendar).toHaveFocus();
     await expect(calendar).toHaveAttribute('aria-checked', 'true');
     await expect(args.onValueChange).toHaveBeenLastCalledWith('calendar');
+  },
+};
+
+const deliveryError = 'お急ぎ便と置き配は、一緒に選べません';
+
+export const InFieldset: Story = {
+  name: 'Fieldset の中',
+  tags: ['visual'],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Fieldset の中に置くと、Fieldset の `disabled` でまとめて押せなくなります。まとまりの `errorText` では溝がエラーの淡い赤になり、エラーの文はグループの説明としても読み上げます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex w-[360px] flex-col gap-10">
+      <Fieldset label="配送" errorText={deliveryError}>
+        <SegmentedControl<string> label="配送の速さ" defaultValue="express">
+          <SegmentedControlItem value="normal">通常</SegmentedControlItem>
+          <SegmentedControlItem value="express">お急ぎ便</SegmentedControlItem>
+        </SegmentedControl>
+        <SegmentedControl<string> label="受け取り方" defaultValue="drop">
+          <SegmentedControlItem value="hand">手渡し</SegmentedControlItem>
+          <SegmentedControlItem value="drop">置き配</SegmentedControlItem>
+        </SegmentedControl>
+      </Fieldset>
+      <Fieldset label="配送（発送の準備に入りました）" disabled>
+        <SegmentedControl<string> label="配送の速さ" defaultValue="normal">
+          <SegmentedControlItem value="normal">通常</SegmentedControlItem>
+          <SegmentedControlItem value="express">お急ぎ便</SegmentedControlItem>
+        </SegmentedControl>
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const [invalidSet, disabledSet] = canvas.getAllByRole('group', { name: /^配送/ });
+    if (!invalidSet || !disabledSet) throw new Error('まとまりがありません');
+
+    // まとまりのエラー: 溝はエラーの見た目になり、エラーの文がグループの説明につながる
+    for (const group of within(invalidSet).getAllByRole('radiogroup')) {
+      await expect(group).toHaveAttribute('data-invalid');
+      await expect(group).toHaveAccessibleDescription(deliveryError);
+    }
+
+    // まとまりの disabled: 項目が押せない。押しても選び直さない
+    const disabled = within(disabledSet);
+    for (const radio of disabled.getAllByRole('radio')) {
+      await expect(radio).toHaveAttribute('aria-disabled', 'true');
+    }
+    const express = disabled.getByRole('radio', { name: 'お急ぎ便' });
+    await userEvent.click(express, { pointerEventsCheck: 0 });
+    await expect(express).not.toBeChecked();
   },
 };
