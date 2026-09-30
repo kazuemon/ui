@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, ReactNode, Ref } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { listStyles } from '../../internal/reading/list';
@@ -59,6 +59,11 @@ export interface ListProps extends Omit<ComponentProps<'ul'>, 'ref'> {
   /** 番号付き（ol）の最初の番号 */
   start?: number;
   /**
+   * 番号付き（ol）の番号を、大きい順に振ります（素の HTML の reversed と同じ）
+   * @default false
+   */
+  reversed?: boolean;
+  /**
    * チェックリストにします。項目は ListItem の checked で箱を出します
    * @default false
    */
@@ -67,6 +72,8 @@ export interface ListProps extends Omit<ComponentProps<'ul'>, 'ref'> {
   children?: ReactNode;
   /** 一覧の要素（ul・ol）に付きます */
   className?: string;
+  /** 一覧の要素（ul・ol）の ref */
+  ref?: Ref<HTMLUListElement | HTMLOListElement>;
 }
 
 /**
@@ -75,6 +82,7 @@ export interface ListProps extends Omit<ComponentProps<'ul'>, 'ref'> {
 export function List({
   as = 'ul',
   start,
+  reversed = false,
   task = false,
   markerType,
   checkedVariant,
@@ -87,8 +95,16 @@ export function List({
     checkedVariant,
     className: [task ? 'contains-task-list' : '', className ?? ''].join(' ').trim(),
   });
+  // ref は props に入れたまま流す（ul と ol で ref の型が違うので、要素ごとの型に合わせる）
   if (as === 'ol') {
-    return <ol className={classes} start={start} {...props} />;
+    return (
+      <ol
+        className={classes}
+        start={start}
+        reversed={reversed || undefined}
+        {...(props as ComponentProps<'ol'>)}
+      />
+    );
   }
   return <ul className={classes} {...props} />;
 }
