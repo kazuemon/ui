@@ -103,7 +103,16 @@ export type GalleryColumns = 1 | 2 | 3 | 4;
 /** 並べる画像 1 枚 */
 export interface GalleryItem extends Pick<
   ImageProps,
-  'src' | 'alt' | 'width' | 'height' | 'srcSet' | 'sizes' | 'render'
+  | 'src'
+  | 'alt'
+  | 'width'
+  | 'height'
+  | 'srcSet'
+  | 'sizes'
+  | 'loading'
+  | 'decoding'
+  | 'fetchPriority'
+  | 'render'
 > {
   /** 拡大したときに読み込む、大きな画像の URL。書かないときは、並べた画像をそのまま拡大します */
   zoomSrc?: string;
@@ -112,7 +121,11 @@ export interface GalleryItem extends Pick<
 }
 
 export interface GalleryProps extends Omit<ComponentProps<'div'>, 'children'> {
-  /** 並べる画像。`src`・`alt`・`width`・`height`・`render` は Image と同じです */
+  /**
+   * 並べる画像。`src`・`alt`・`width`・`height`・`render` は Image と同じです。
+   * 枚数が多いときは、画面の外の画像に `loading: 'lazy'` を渡すと、見えるところまで来てから読み込みます
+   * （`decoding`・`fetchPriority` も img の属性として渡せます）
+   */
   items: GalleryItem[];
   /**
    * 並べる列の数。入れ物が狭いとき（28rem 未満）は 2 列にまとめます

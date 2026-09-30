@@ -1039,6 +1039,20 @@
      読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
      icon-size: 失敗したときのアイコンの大きさ */
   --image-icon-size: calc(var(--spacing) * 8);
+  /* 読み込むまでの面（Gallery の並べた画像を含む）— 軸 411 で比べている途中。失敗したときの面は変えない
+     placeholder-fill: 面の塗り。placeholder-line-*: 面のふちの線（太さ 0 で引かない）
+     placeholder-sweep: 光の帯の動き（none で通さない）。sweep-attachment が fixed のときは画面を基準にした帯が並んだ面をまたぐ
+       sweep-size・sweep-band: 光の絵の大きさと、帯の半分の幅（絵の幅に対する割合）
+     placeholder-pulse: 面そのものの明滅（none で明滅しない） */
+  --image-placeholder-fill: var(--skeleton-fill);
+  --image-placeholder-line-width: 0px;
+  --image-placeholder-line-style: dashed;
+  --image-placeholder-line-color: var(--color-line);
+  --image-placeholder-sweep: var(--skeleton-sweep);
+  --image-placeholder-sweep-attachment: scroll;
+  --image-placeholder-sweep-size: 300% 100%;
+  --image-placeholder-sweep-band: 15%;
+  --image-placeholder-pulse: none;
   /* ── END image */
 
   /* ── Embed — ADR-271〜274 ── BEGIN embed */

@@ -17,7 +17,7 @@ import { toMediaSize } from '../../internal/media-size';
 import { figureImageStyles } from '../../internal/reading/blocks';
 import { tv } from '../../internal/tv';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
-import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
+import { skeletonSurface } from '../../internal/skeleton-styles';
 import { ImageBrokenIcon } from './image-icons';
 
 // 画像（軸 90）。角はカードの角、輪郭は Figure と同じ（原則5。見た目のクラス列は src/internal/reading/blocks.ts）
@@ -34,6 +34,13 @@ type ImageStatus = 'idle' | 'loading' | 'loaded' | 'error';
 // サーバーで描くときは useLayoutEffect が警告を出すので、ブラウザでだけ使う
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
+// 光の帯（Skeleton の sweep と sweep-viewport を、トークンで切り替えられる形にしたもの。src/internal/skeleton-styles.ts）
+const placeholderSweep = [
+  'after:pointer-events-none after:absolute after:inset-0 after:bg-no-repeat after:[background-position:100%_0]',
+  'after:[background-attachment:var(--image-placeholder-sweep-attachment)] after:[background-size:var(--image-placeholder-sweep-size)] after:animate-(--image-placeholder-sweep)',
+  'after:[background-image:linear-gradient(90deg,transparent_calc(50%_-_var(--image-placeholder-sweep-band)),var(--skeleton-highlight)_50%,transparent_calc(50%_+_var(--image-placeholder-sweep-band)))]',
+].join(' ');
+
 const styles = tv({
   slots: {
     frame: 'group/image relative block',
@@ -45,12 +52,16 @@ const styles = tv({
       'group-data-natural/image:relative group-data-natural/image:h-auto',
     ],
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
+    // 読み込むまでの面の塗り・ふちの線・動きは --image-placeholder-*（軸 411 で比べている途中）。既定は Skeleton と同じ面と光
     placeholder: [
       skeletonSurface,
-      skeletonMotion.sweep,
+      placeholderSweep,
+      'animate-(--image-placeholder-pulse) bg-(--image-placeholder-fill)',
+      'border-(length:--image-placeholder-line-width) [border-style:var(--image-placeholder-line-style)] border-(color:--image-placeholder-line-color)',
       'absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-(--image-radius) p-4 text-fg-subtle',
-      // 失敗した面は動かさない
+      // 失敗した面は動かさず、Skeleton と同じ面のまま（ふちの線も引かない）
       'group-data-[status=error]/image:animate-none group-data-[status=error]/image:after:hidden',
+      'group-data-[status=error]/image:border-0 group-data-[status=error]/image:bg-(--skeleton-fill)',
       'group-data-[status=loaded]/image:invisible group-data-[status=loaded]/image:animate-none group-data-[status=loaded]/image:after:hidden',
     ],
     errorIcon: 'hidden size-(--image-icon-size) shrink-0 group-data-[status=error]/image:block',
