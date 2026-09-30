@@ -176,7 +176,9 @@ export function Stack({
   children,
   ...props
 }: StackProps) {
-  const directions = { base: 'vertical' as const, ...byBreakpoint(direction) };
+  // base を渡していない（undefined を含む）ときは縦。向きのクラスと --stack-vertical を必ず 1 つ置く
+  const directions = { ...byBreakpoint(direction) };
+  directions.base ??= 'vertical';
   const responsive = breakpoints.flatMap((bp) => {
     const d = directions[bp];
     if (d == null) return [];

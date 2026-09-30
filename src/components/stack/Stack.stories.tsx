@@ -245,6 +245,10 @@ export const Props: Story = {
         <span>a</span>
         <span>b</span>
       </Stack>
+      <Stack data-testid="no-base" direction={{ base: undefined, xl: 'horizontal' }}>
+        <span>a</span>
+        <span>b</span>
+      </Stack>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -283,5 +287,11 @@ export const Props: Story = {
     const wide = window.matchMedia('(width >= 80rem)').matches;
     await expect(getComputedStyle(responsive).flexDirection).toBe(wide ? 'column' : 'row');
     await expect(getComputedStyle(responsive).flexWrap).toBe(wide ? 'nowrap' : 'wrap');
+    // base を渡していない段は縦（区切り線の向きを決める --stack-vertical も置く）
+    const noBase = canvas.getByTestId('no-base');
+    await expect(getComputedStyle(noBase).flexDirection).toBe(wide ? 'row' : 'column');
+    await expect(getComputedStyle(noBase).getPropertyValue('--stack-vertical').trim()).toBe(
+      wide ? '0' : '1'
+    );
   },
 };
