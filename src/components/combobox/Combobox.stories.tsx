@@ -951,3 +951,57 @@ export const Composition: Story = {
     await expect(input).toHaveAccessibleDescription('お届けは23区内だけです 年末は配達が遅れます');
   },
 };
+
+export const Prefix: Story = {
+  tags: ['visual'],
+  name: 'prefix',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`prefix` に文字を渡すと、本体の前にグレーのラベルが付きます（Select と同じ）。文字は欄の説明として読み上げられます。形は `addonShape` で選びます。`multiple` では使えません。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery>
+      <Specimen label="attached">
+        <Combobox label="住所" prefix="東京都" items={wards} placeholder="区を打って探す" />
+      </Specimen>
+      <Specimen label="floating">
+        <Combobox
+          label="住所"
+          prefix="東京都"
+          addonShape="floating"
+          items={wards}
+          defaultValue="ward-3"
+        />
+      </Specimen>
+      <Specimen label="エラー">
+        <Combobox label="住所" prefix="東京都" items={wards} errorText="区を選んでください" />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+export const PrefixFocus: Story = {
+  name: 'prefix を押す',
+  args: { label: '住所', prefix: '東京都', items: wards },
+  parameters: { controls: { disable: true } },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox', { name: '住所' });
+    // prefix の文字は、欄の説明につながる
+    await expect(input).toHaveAccessibleDescription('東京都');
+    // 文字を押しても、打つ欄にフォーカスが移る
+    await userEvent.click(canvas.getByText('東京都'));
+    await expect(input).toHaveFocus();
+  },
+};
