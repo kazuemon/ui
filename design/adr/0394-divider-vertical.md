@@ -44,6 +44,7 @@ B と C は縦の線が同じで、左右を空けた線の空け幅だけが違
 
 - `src/components/divider/Divider.tsx`: `orientation="vertical"` は周りの文字の高さ（1em）で中央にそろえます
 - 比べるためだけに置いた `--divider-vertical-*` のトークンは、切り替えを畳んだコミット（`a373082`）で消しました
+- 縦の線は、文の中にも置けるよう `span` で描き、`role="separator"` と `aria-orientation="vertical"` を付けます
 - 縦の線の左右の間は、置く側（並べる枠の `gap`）が決めます
 - 比較のストーリーは消しました
 

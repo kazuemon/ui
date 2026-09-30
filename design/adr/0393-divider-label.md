@@ -44,6 +44,7 @@ Divider に `label` を足し、線のあいだに文字（「または」など
 
 - `src/components/divider/Divider.tsx`: `label`（`ReactNode`）と `labelSize`（`'xs'`（既定）・`'sm'`）を持ちます
 - 比べるためだけに置いた `--divider-label-*` のトークンは、切り替えを畳んだコミット（`a373082`）で消し、`labelSize` の variant に畳みました
+- ラベルのある線は `hr` ではなく `div` で描き、`role="separator"` を付けません（separator は中の文字を読ませないため）。文字だけを読み、左右の線は読み上げから外します
 - ラベルは線のあいだの真ん中に置きます。左に寄せる形は決めていません（backlog）
 - 比較のストーリーは消しました
 

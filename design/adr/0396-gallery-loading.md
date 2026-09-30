@@ -44,7 +44,7 @@ Gallery の画像が読み込まれるまでの面の見た目を決めました
 ## 影響
 
 - `src/components/gallery/`: `loadingAnimation`（`'sweep-viewport'`（既定）・`'pulse'`）を持ちます
-- `Image` は変えません
+- `Image` の見た目は変えません（単体では面ごとの光のまま）。Gallery が中の `Image` に動きを渡すため、`Image` は `src/internal/image-placeholder-context.ts` の context を読みます。Gallery の外の `Image` には届きません
 - 比べるためだけに置いた `--image-placeholder-*` の切り替えのトークンは、切り替えを畳んだコミット（`a373082`）で消しました
 - 比較のストーリーは消しました
 
