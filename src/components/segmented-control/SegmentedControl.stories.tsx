@@ -12,6 +12,7 @@ import {
 } from './SegmentedControl';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type StateColumn, statePseudo } from '../../stories/story-states';
+import { Button } from '../button/Button';
 import { Fieldset } from '../fieldset/Fieldset';
 import { Form } from '../form/Form';
 import { Icon } from '../icon/Icon';
@@ -444,6 +445,11 @@ export const Unselected: Story = {
   play: async ({ canvas, canvasElement }) => {
     for (const radio of canvas.getAllByRole('radio'))
       await expect(radio).toHaveAttribute('aria-checked', 'false');
+    // 必須は aria-required で伝える（選んでいなくても、ブラウザの制約は付けない）
+    await expect(canvas.getByRole('radiogroup', { name: 'サイズ' })).toHaveAttribute(
+      'aria-required',
+      'true'
+    );
     // 選ぶまでつまみは出ない
     const knob = canvasElement.querySelector<HTMLElement>('[data-slot="segmented-control-knob"]')!;
     await expect(getComputedStyle(knob).opacity).toBe('0');
@@ -467,6 +473,9 @@ function UnselectedControlled({ onValueChange }: { onValueChange?: (value: strin
         <SegmentedControlItem value="l">L</SegmentedControlItem>
       </SegmentedControl>
       <p>選んだサイズ: {size ?? 'まだ選んでいません'}</p>
+      <Button variant="outline" className="self-start" onClick={() => setSize(null)}>
+        選び直す
+      </Button>
     </div>
   );
 }
@@ -477,7 +486,7 @@ export const UnselectedAccessibility: Story = {
     docs: {
       description: {
         story:
-          '`value={null}` で制御するときも同じです。選ぶと `onValueChange` で値を受け取ります。何も選んでいない状態に戻す通知（null）は来ません。',
+          '`value={null}` で制御するときも同じです。選ぶと `onValueChange` で値を受け取ります。何も選んでいない状態に戻す通知（null）は来ません。外から `value` を `null` に戻すと、つまみが消え、次に選んだ項目の上にそのまま出ます。',
       },
     },
   },
@@ -501,6 +510,23 @@ export const UnselectedAccessibility: Story = {
     await userEvent.click(m);
     await expect(m).toHaveAttribute('aria-checked', 'true');
     await expect(args.onValueChange).not.toHaveBeenCalledWith(null);
+    // 外から null に戻すと、何も選んでいない状態になり、つまみが消える
+    await userEvent.click(canvas.getByRole('button', { name: '選び直す' }));
+    for (const radio of canvas.getAllByRole('radio'))
+      await expect(radio).toHaveAttribute('aria-checked', 'false');
+    await waitFor(() => expect(getComputedStyle(knob).opacity).toBe('0'));
+    await expect(root).not.toHaveAttribute('data-knob-ready');
+    // 次に選んだ項目の上に、滑らせずに出す（出てから動きを付け直す）
+    const l = canvas.getByRole('radio', { name: 'L' });
+    await userEvent.click(l);
+    await expect(l).toHaveAttribute('aria-checked', 'true');
+    await waitFor(() => expect(root).toHaveAttribute('data-knob-ready'));
+    const x = parseFloat(root.style.getPropertyValue('--segmented-control-knob-x'));
+    const rootBox = root.getBoundingClientRect();
+    const expected =
+      (l.getBoundingClientRect().left - rootBox.left) / (rootBox.width / root.offsetWidth) -
+      root.clientLeft;
+    await expect(Math.abs(x - expected)).toBeLessThan(1);
   },
 };
 
