@@ -128,6 +128,28 @@ export const choiceStyles = tv({
   defaultVariants: { color: 'neutral', layout: 'item' },
 });
 
+/** グループの選択肢の並べる向き。Stack の direction と同じ語 */
+export type ChoiceGroupDirection = 'vertical' | 'horizontal';
+
+/**
+ * グループ（RadioGroup・CheckboxGroup）の選択肢を並べる枠（軸 408 で比べている途中）
+ * 縦は今までどおりの積み方。横は --choice-group-* で並べ方・間・折り返し・狭いときの戻し方を決める
+ *   狭いとき（入れ物が 24rem 未満）の判定は、グループの本体に置いた @container で見る
+ */
+export const choiceGroupList = tv({
+  variants: {
+    direction: {
+      vertical: 'flex flex-col',
+      horizontal: [
+        '[display:var(--choice-group-display)] [flex-wrap:var(--choice-group-wrap)] items-start gap-x-(--choice-group-gap-x)',
+        '[grid-template-columns:var(--choice-group-columns)] *:max-w-(--choice-group-item-max)',
+        '@max-sm:[grid-template-columns:var(--choice-group-narrow-columns)] @max-sm:[flex-direction:var(--choice-group-narrow-direction)]',
+      ],
+    },
+  },
+  defaultVariants: { direction: 'vertical' },
+});
+
 /**
  * 読み取り専用（軸 177）の上書き。箱の見た目は押せないときと同じままで、横の文字だけ本文の色に戻す
  * 横の文字は読むための文字なので薄くしません（原則13）。カーソルも、押せないときの禁止の形にはしません

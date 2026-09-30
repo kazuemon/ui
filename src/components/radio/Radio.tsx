@@ -8,6 +8,8 @@ import { type ComponentProps, type ReactNode, type Ref, useContext, useMemo } fr
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
+  type ChoiceGroupDirection,
+  choiceGroupList,
   choiceGroupMessagePull,
   choiceReadOnly,
   choiceRows,
@@ -145,6 +147,11 @@ export interface RadioGroupControlProps<Value> extends Omit<
    * @default 'neutral'
    */
   color?: ChoiceColor;
+  /**
+   * 選択肢を並べる向き。horizontal は横に並べ、入りきらないと折り返します（Stack の direction と同じ語）
+   * @default 'vertical'
+   */
+  direction?: ChoiceGroupDirection;
   /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
@@ -162,6 +169,7 @@ export function RadioGroupControl<Value>({
   form,
   inputRef,
   color,
+  direction = 'vertical',
   children,
   readOnly,
   'aria-describedby': ariaDescribedBy,
@@ -192,9 +200,14 @@ export function RadioGroupControl<Value>({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        className="flex flex-col"
+        // 横に並べるときは、狭いときに縦へ戻すかを入れ物の幅で決める（@container）
+        className={direction === 'horizontal' ? '@container' : 'flex flex-col'}
       >
-        {children}
+        {direction === 'horizontal' ? (
+          <div className={choiceGroupList({ direction })}>{children}</div>
+        ) : (
+          children
+        )}
       </BaseRadioGroup>
     </ChoiceGroupContext.Provider>
   );

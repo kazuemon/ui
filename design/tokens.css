@@ -786,6 +786,21 @@
   --color-choice-frame-notch-bg: var(--color-surface);
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
+  /* グループの選択肢を横に並べる（RadioGroup・CheckboxGroup の direction="horizontal"）— 軸 408 で比べている途中
+     group-display: 並べ方。flex は選択肢ごとの自然な幅、grid は同じ幅の列（--choice-group-columns）
+     group-wrap: 入りきらないときに折り返すか（flex のとき）
+     group-gap-x: 横に並んだ選択肢どうしの間。行の上下にはすでに余白があるので、折り返した行の間は足さない
+     group-column-min: 同じ幅の列（grid）の、1 列のいちばん狭い幅
+     group-item-max: 1 つの選択肢のいちばん広い幅。説明文（caption）の長い選択肢が横に伸びすぎないようにする
+     group-narrow-*: 入れ物が狭いとき（24rem 未満）の並べ方。column（flex）・1fr（grid）なら縦に戻す */
+  --choice-group-display: flex;
+  --choice-group-wrap: wrap;
+  --choice-group-gap-x: calc(var(--spacing) * 6);
+  --choice-group-column-min: calc(var(--spacing) * 40);
+  --choice-group-columns: repeat(auto-fill, minmax(min(100%, var(--choice-group-column-min)), 1fr));
+  --choice-group-item-max: none;
+  --choice-group-narrow-direction: column;
+  --choice-group-narrow-columns: 1fr;
 
   /* ── 小物（Tag・Badge・Chip）の大きさ ── sm・md・lg・inherit の 1 本の軸（ADR-0259）
      値は src/internal/small-parts-size.ts に持ち、Tag・Badge・Chip の tv の size 変化が --tag-*・--badge-*・--chip-* を差し替える。

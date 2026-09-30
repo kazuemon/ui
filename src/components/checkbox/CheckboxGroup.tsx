@@ -6,6 +6,8 @@ import { type ComponentProps, type ReactNode, useMemo } from 'react';
 import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
+  type ChoiceGroupDirection,
+  choiceGroupList,
   choiceGroupMessagePull,
   choiceSize,
   choiceStyles,
@@ -130,6 +132,12 @@ export type CheckboxGroupControlProps = Omit<
      * @default 'neutral'
      */
     color?: ChoiceColor;
+    /**
+     * 選択肢を並べる向き。horizontal は横に並べ、入りきらないと折り返します（Stack の direction と同じ語）。
+     * 「すべて選ぶ」の箱は、横に並べるときも子の選択肢の上に置きます
+     * @default 'vertical'
+     */
+    direction?: ChoiceGroupDirection;
     /** 中に置く選択肢。Checkbox を value 付きで並べます */
     children: ReactNode;
   };
@@ -151,6 +159,7 @@ export function CheckboxGroupControl({
   selectAll,
   allValues,
   selectAllFrame = 'none',
+  direction = 'vertical',
   'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupControlProps) {
@@ -160,6 +169,13 @@ export function CheckboxGroupControl({
   // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
   const context = useMemo(() => ({ color, readOnly, form }), [color, readOnly, form]);
   const withSelectAll = selectAll !== undefined && selectAll !== null;
+  // 横に並べるときは、子の選択肢を並べる枠で包む。狭いときに縦へ戻すかは入れ物の幅で決める（@container）
+  const items =
+    direction === 'horizontal' ? (
+      <div className={choiceGroupList({ direction })}>{children}</div>
+    ) : (
+      children
+    );
   return (
     <ChoiceGroupContext.Provider value={context}>
       <BaseCheckboxGroup
@@ -172,14 +188,16 @@ export function CheckboxGroupControl({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        className="flex flex-col"
+        className={['flex flex-col', direction === 'horizontal' && '@container']
+          .filter(Boolean)
+          .join(' ')}
       >
         {withSelectAll ? (
           <SelectAllItems selectAll={selectAll} frame={selectAllFrame}>
-            {children}
+            {items}
           </SelectAllItems>
         ) : (
-          children
+          items
         )}
       </BaseCheckboxGroup>
     </ChoiceGroupContext.Provider>
