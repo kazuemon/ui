@@ -349,6 +349,14 @@ export const Synced: Story = {
     await waitFor(() =>
       expect(first.getByRole('tab', { name: 'pnpm' })).toHaveAttribute('aria-selected', 'true')
     );
+    // ほかのブラウザのタブで npm を選んだとき（storage イベント）も、両方が npm になる
+    const key = `kazuemon-ui:code-group:${syncGroupId}`;
+    localStorage.setItem(key, 'npm');
+    window.dispatchEvent(new StorageEvent('storage', { key, oldValue: 'pnpm', newValue: 'npm' }));
+    await waitFor(() =>
+      expect(first.getByRole('tab', { name: 'npm' })).toHaveAttribute('aria-selected', 'true')
+    );
+    await expect(second.getByRole('tab', { name: 'npm' })).toHaveAttribute('aria-selected', 'true');
   },
 };
 
