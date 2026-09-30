@@ -27,6 +27,7 @@ const meta = {
           '- 押したときの処理は `onAction` に渡します。Promise を返すと、終わるまでボタンを送信中にして、終わってから閉じます。失敗したときは閉じずに残すので、失敗の知らせは `onAction` の中で出します。',
           '- 実行する側のボタンの色は `color` で選びます。既定の `danger` は危険の色で、消す・外すなど失うものがある操作に使います。失うものはないが取り消せない操作（送信・公開など）は `primary` にします。',
           '- 開いた直後のフォーカスは、取り消す側のボタンに置きます。うっかり Enter を押しても実行しません。中身に入力欄を置いたときは、`autoFocus` にその要素（か ref）を渡して、そこから始められます。',
+          '- 中身は form で包まれ、実行する側のボタンはその送信のボタンです。中身の入力欄で Enter を押すと実行します。',
           '- 確かめの入力が済むまで実行させないときは、`actionDisabled` で実行する側のボタンを押せなくします。',
           '- 出し方（`presentation`）は Dialog と同じです。シートで出すときも、下へはじいて閉じることはできず、つまみも出ません。',
           '- 入力を求めるとき、閉じる手段を複数残したいときは、Dialog を使います。',
@@ -333,7 +334,7 @@ export const TypeToConfirm: Story = {
     docs: {
       description: {
         story:
-          '中身に入力欄を置き、`autoFocus` でそこから始めます。入力が合うまで `actionDisabled` で実行を止めます。',
+          '中身に入力欄を置き、`autoFocus` でそこから始めます。入力が合うまで `actionDisabled` で実行を止め、合ったら入力欄で Enter を押しても実行できます。',
       },
     },
   },
@@ -348,12 +349,15 @@ export const TypeToConfirm: Story = {
     const action = within(dialog).getByRole('button', { name: '削除する' });
     // 開いた直後のフォーカスは autoFocus に渡した入力欄
     await waitFor(() => expect(input).toHaveFocus());
-    // 合うまでは押せない
+    // 合うまでは押せず、Enter でも実行しない
     await expect(action).toBeDisabled();
-    // 合ったら押せる
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onAction).not.toHaveBeenCalled();
+    await expect(body.getByRole('alertdialog')).toBeInTheDocument();
+    // 合ったら、入力欄の Enter で実行して閉じる
     await userEvent.type(input, 'kazuemon-ui');
     await expect(action).toBeEnabled();
-    await userEvent.click(action);
+    await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull());
     await expect(args.onAction).toHaveBeenCalledTimes(1);
   },

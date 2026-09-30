@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactElement, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import type { OverlayFocusTarget, PopupProps } from '../../internal/overlay/overlay-props';
@@ -87,6 +87,9 @@ export interface AlertDialogProps {
 
 /**
  * 取り消せない操作の前に、続けるかを確かめる面。閉じるのは下の 2 つのボタンだけで、後ろの画面・Esc・下へはじく操作では閉じません
+ *
+ * 中身は form で包まれ、実行する側のボタンはその送信のボタンです。中身に置いた入力欄で Enter を押すと実行します
+ * （入力欄の required などの確かめを通ったときだけ）
  */
 export function AlertDialog({
   title,
@@ -106,6 +109,7 @@ export function AlertDialog({
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   const [pending, setPending] = useState(false);
+  const formId = useId();
   const changeOpen = (next: boolean) => {
     setOpenState(next);
     onOpenChange?.(next);
@@ -125,6 +129,14 @@ export function AlertDialog({
     }
     changeOpen(false);
   };
+  // 実行は form の送信にする。中身の入力欄で Enter を押すと、実行する側のボタンが押されたのと同じになる
+  //   面は画面の外（portal）に描くが、React のイベントは部品の木を上るので、外の form に送信を伝えない
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (actionDisabled || pending) return;
+    void run();
+  };
   return (
     <OverlayRoleContext value="alertdialog">
       <Dialog
@@ -140,6 +152,8 @@ export function AlertDialog({
         autoFocus={autoFocus}
         actions={
           <>
+            {/* 中身がないときは、送信の先になる form を下の操作の中に置く（隠す。並びの隙間にもならない） */}
+            {children == null && <form id={formId} hidden onSubmit={submit} />}
             {/* 開いた直後のフォーカスは、渡されなければ取り消す側に置く（うっかり Enter で実行しないため） */}
             <Button
               variant="outline"
@@ -151,18 +165,23 @@ export function AlertDialog({
               {cancelLabel}
             </Button>
             <Button
+              type="submit"
+              form={formId}
               color={color}
               loading={pending}
               disabled={actionDisabled}
               data-slot="alert-dialog-action"
-              onClick={() => void run()}
             >
               {actionLabel}
             </Button>
           </>
         }
       >
-        {children}
+        {children == null ? null : (
+          <form id={formId} data-slot="alert-dialog-form" onSubmit={submit}>
+            {children}
+          </form>
+        )}
       </Dialog>
     </OverlayRoleContext>
   );
