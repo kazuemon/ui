@@ -13,8 +13,14 @@ import { Field } from '../../internal/field/Field';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 
-// パスワードの欄が持たない TextField の props。文字数は数えない
-type NotInPassword = 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
+// パスワードの欄が持たない TextField の props。右端は表示の切り替えのボタンで、文字数は数えない
+type NotInPassword =
+  | 'clearable'
+  | 'clearName'
+  | 'maxCount'
+  | 'overCountInvalid'
+  | 'warnRemaining'
+  | 'showCount';
 
 export interface PasswordFieldBaseProps extends Omit<
   TextFieldBaseProps,

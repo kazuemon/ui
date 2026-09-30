@@ -355,3 +355,32 @@ export const Composition: Story = {
     await expect(input).toHaveValue('');
   },
 };
+
+export const ClearName: Story = {
+  name: '消去のボタンの名前',
+  args: {
+    accessibleName: '記事を検索',
+    label: undefined,
+    defaultValue: 'かずえもん',
+    clearName: '検索語を消去',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '消去のボタンの読み上げの名前は `clearName` で変えられます。同じ画面に検索の欄が複数あるときなど、何を消すのかを名前で伝えたいときに使います。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '検索語を消去' }));
+    await expect(canvas.getByRole('searchbox', { name: '記事を検索' })).toHaveValue('');
+  },
+};

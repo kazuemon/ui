@@ -6,6 +6,7 @@ import { type ComponentProps, useState } from 'react';
 import { countGraphemes } from '../../internal/field/count-graphemes';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
+import { FieldClearButton } from '../../internal/field/FieldClearButton';
 import { FieldCount } from '../../internal/field/FieldCount';
 import {
   type FieldCountProps,
@@ -18,6 +19,7 @@ import {
   type InputFieldProps,
   splitFieldProps,
 } from '../../internal/field/input-field-props';
+import { warnOnce } from '../../internal/link-parts';
 import { cn } from '../../internal/tv';
 
 /** TextField の本体（TextFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
@@ -40,6 +42,17 @@ export interface TextFieldControlProps
   onValueChange?: (value: string) => void;
   /** 中の input に渡すもの（class・data-*・autoComplete など） */
   inputProps?: ComponentProps<'input'>;
+  /**
+   * 文字を消すボタン（×）を欄の右端に出すか。文字があるあいだだけ出し、読み取り専用の欄では出しません。
+   * 押すと onValueChange('') で知らせ、欄にフォーカスを戻します。suffix と一緒には使えません（suffix があるときは出しません）
+   * @default false
+   */
+  clearable?: boolean;
+  /**
+   * 消すボタンの読み上げの名前
+   * @default '入力内容を消去'
+   */
+  clearName?: string;
   /** 本体（灰色の欄）に付くクラス */
   className?: string;
 }
@@ -63,6 +76,8 @@ export function TextFieldControl({
   overCountInvalid = true,
   warnRemaining,
   showCount,
+  clearable = false,
+  clearName,
   className,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
@@ -77,7 +92,7 @@ export function TextFieldControl({
   // （loadingBehavior="blocking" で待っているとき、Form の送信中 — 後半の軸 38）
   const blocking = field?.blocking ?? false;
   const { className: inputClassName, ...restInputProps } = inputProps ?? {};
-  // いまの文字。文字数が読む。値を渡されたときはその値、渡されないときは打った文字
+  // いまの文字。消すボタンと文字数が読む。値を渡されたときはその値、渡されないときは打った文字
   const [innerValue, setInnerValue] = useState(defaultValue ?? '');
   const value = valueProp ?? innerValue;
   const change = (next: string) => {
@@ -96,10 +111,24 @@ export function TextFieldControl({
     warnRemaining,
     showCount,
   });
+  if (clearable && suffix != null)
+    warnOnce(
+      'TextField の clearable は suffix と一緒には使えません。suffix があるときは消すボタンを出しません'
+    );
+  const clearButton =
+    clearable && suffix == null ? (
+      <FieldClearButton
+        value={value}
+        onClear={() => change('')}
+        readOnly={readOnly}
+        disabled={Boolean(field?.loading && field.loadingBehavior === 'blocking')}
+        aria-label={clearName}
+      />
+    ) : null;
   const box = (
     <FieldBox
       prefix={prefix}
-      suffix={suffix}
+      suffix={clearButton ?? suffix}
       addonShape={addonShape}
       readOnly={readOnly}
       disabled={disabled}
@@ -131,8 +160,8 @@ export function TextFieldControl({
           aria-busy={loading || ariaBusy}
           {...restInputProps}
           {...props}
-          value={valueProp}
-          defaultValue={defaultValue}
+          // 消すボタンは値を空にするので、消せるときは値を部品が持つ
+          {...(clearable ? { value } : { value: valueProp, defaultValue })}
           // 説明のつながりは部品が決める（prefix・suffix・文字数・キャプション・下の行の順）
           aria-describedby={describedBy}
           onValueChange={(next) => change(next)}

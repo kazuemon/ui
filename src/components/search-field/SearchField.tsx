@@ -17,8 +17,8 @@ type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
   NonNullable<TextFieldBaseProps[K]>
 >[0];
 
-// 検索の欄が持たない TextField の props。文字数は数えない
-type NotInSearch = 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
+// 検索の欄が持たない TextField の props。消すボタンはいつも出し、文字数は数えない
+type NotInSearch = 'clearable' | 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
 
 export interface SearchFieldBaseProps extends Omit<
   TextFieldBaseProps,
@@ -40,6 +40,11 @@ export interface SearchFieldBaseProps extends Omit<
   hideSearchIcon?: boolean;
   /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
   prefix?: ReactNode;
+  /**
+   * 消去のボタンの読み上げの名前
+   * @default '入力内容を消去'
+   */
+  clearName?: string;
 }
 
 /** 検索の欄だけが持つ props。外枠（SearchField）と本体（SearchFieldControl）が同じものを受けます */
@@ -59,6 +64,11 @@ interface SearchOwnProps {
   hideSearchIcon?: boolean;
   /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
   prefix?: ReactNode;
+  /**
+   * 消去のボタンの読み上げの名前
+   * @default '入力内容を消去'
+   */
+  clearName?: string;
 }
 
 /** SearchField の本体（SearchFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
@@ -81,6 +91,7 @@ export function SearchFieldControl({
   onCleared,
   hideSearchIcon = false,
   prefix,
+  clearName,
   className,
   readOnly,
   onChange,
@@ -155,6 +166,7 @@ export function SearchFieldControl({
           onClear={clear}
           readOnly={readOnly}
           disabled={disabled || Boolean(field?.loading && field.loadingBehavior === 'blocking')}
+          aria-label={clearName}
         />
       }
     />
