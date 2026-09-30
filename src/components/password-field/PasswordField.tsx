@@ -13,7 +13,13 @@ import { Field } from '../../internal/field/Field';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 
-export interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' | 'suffix'> {
+// パスワードの欄が持たない TextField の props。文字数は数えない
+type NotInPassword = 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
+
+export interface PasswordFieldBaseProps extends Omit<
+  TextFieldBaseProps,
+  'type' | 'suffix' | NotInPassword
+> {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
    * @default 'current-password'
@@ -29,7 +35,7 @@ export interface PasswordFieldBaseProps extends Omit<TextFieldBaseProps, 'type' 
 /** PasswordField の本体（PasswordFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
 export interface PasswordFieldControlProps extends Omit<
   TextFieldControlProps,
-  'type' | 'suffix' | 'autoComplete'
+  'type' | 'suffix' | 'autoComplete' | NotInPassword
 > {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします

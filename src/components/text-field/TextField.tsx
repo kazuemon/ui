@@ -1,10 +1,18 @@
 'use client';
 
 import { Field as BaseField } from '@base-ui/react/field';
-import type { ComponentProps } from 'react';
+import { type ComponentProps, useState } from 'react';
 
+import { countGraphemes } from '../../internal/field/count-graphemes';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
+import { FieldCount } from '../../internal/field/FieldCount';
+import {
+  type FieldCountProps,
+  isOverCount,
+  useFieldCount,
+  useTypedCount,
+} from '../../internal/field/use-field-count';
 import {
   type FieldNamed,
   type InputFieldProps,
@@ -22,7 +30,8 @@ export interface TextFieldControlProps
     Pick<
       InputFieldProps,
       'placeholder' | 'prefix' | 'suffix' | 'addonShape' | 'loadingIndicator' | 'hideSuccessMark'
-    > {
+    >,
+    FieldCountProps {
   /** 値（制御） */
   value?: string;
   /** はじめの値（非制御） */
@@ -46,11 +55,18 @@ export function TextFieldControl({
   loadingIndicator = 'spinner',
   hideSuccessMark = false,
   readOnly,
+  value: valueProp,
+  defaultValue,
   onValueChange,
   inputProps,
+  maxCount,
+  overCountInvalid = true,
+  warnRemaining,
+  showCount,
   className,
   'aria-describedby': ariaDescribedBy,
   'aria-disabled': ariaDisabled,
+  'aria-invalid': ariaInvalid,
   'aria-busy': ariaBusy,
   ...props
 }: TextFieldControlProps) {
@@ -61,7 +77,26 @@ export function TextFieldControl({
   // （loadingBehavior="blocking" で待っているとき、Form の送信中 — 後半の軸 38）
   const blocking = field?.blocking ?? false;
   const { className: inputClassName, ...restInputProps } = inputProps ?? {};
-  return (
+  // いまの文字。文字数が読む。値を渡されたときはその値、渡されないときは打った文字
+  const [innerValue, setInnerValue] = useState(defaultValue ?? '');
+  const value = valueProp ?? innerValue;
+  const change = (next: string) => {
+    if (valueProp === undefined) setInnerValue(next);
+    onValueChange?.(next);
+  };
+  // 文字数（Textarea と同じ）。数えるのは見えている文字（書記素）
+  const {
+    over,
+    describedBy: countDescribedBy,
+    count,
+  } = useFieldCount({
+    length: countGraphemes(value),
+    maxCount,
+    maxLength: props.maxLength,
+    warnRemaining,
+    showCount,
+  });
+  const box = (
     <FieldBox
       prefix={prefix}
       suffix={suffix}
@@ -73,7 +108,7 @@ export function TextFieldControl({
       success={field?.messages.success}
       successMark={!hideSuccessMark}
       error={field?.messages.error}
-      describedBy={ariaDescribedBy}
+      describedBy={[ariaDescribedBy, countDescribedBy].filter(Boolean).join(' ') || undefined}
       messageIds={field?.describedBy}
       className={className}
     >
@@ -92,15 +127,24 @@ export function TextFieldControl({
           aria-required={field?.required || undefined}
           readOnly={blocking || readOnly}
           aria-disabled={blocking || ariaDisabled}
+          aria-invalid={(over && overCountInvalid) || ariaInvalid}
           aria-busy={loading || ariaBusy}
           {...restInputProps}
           {...props}
-          // 説明のつながりは部品が決める（prefix・suffix・キャプション・下の行の順）
+          value={valueProp}
+          defaultValue={defaultValue}
+          // 説明のつながりは部品が決める（prefix・suffix・文字数・キャプション・下の行の順）
           aria-describedby={describedBy}
-          onValueChange={onValueChange && ((value) => onValueChange(value))}
+          onValueChange={(next) => change(next)}
         />
       )}
     </FieldBox>
+  );
+  return (
+    <>
+      {box}
+      <FieldCount {...count} />
+    </>
   );
 }
 
@@ -119,5 +163,21 @@ export type TextFieldProps = FieldNamed<TextFieldBaseProps>;
  */
 export function TextField(props: TextFieldProps) {
   const [field, control] = splitFieldProps(props);
-  return <Field {...field}>{() => <TextFieldControl {...control} />}</Field>;
+  // 文字数の上限（maxCount）を超えたら、欄をエラーの状態にする（overCountInvalid。Textarea と同じ）
+  const { length, onTyped } = useTypedCount(control.value, control.defaultValue);
+  const over = isOverCount(length, control.maxCount);
+  const { onValueChange } = control;
+  return (
+    <Field {...field} invalid={over && (control.overCountInvalid ?? true)}>
+      {() => (
+        <TextFieldControl
+          {...control}
+          onValueChange={(next) => {
+            onTyped(next);
+            onValueChange?.(next);
+          }}
+        />
+      )}
+    </Field>
+  );
 }

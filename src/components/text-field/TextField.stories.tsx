@@ -93,6 +93,7 @@ const meta = {
           '- `errorText` を渡すと、欄が赤い枠線になり、本体の下に丸の「!」と文を出します。`warningText` は欄の見た目を変えず、三角と文を出します。どちらも出たときに読み上げで知らせます。',
           '- `prefix`・`suffix` に文字を渡すと、本体の端にグレーのラベルが付きます。ボタンは `FieldAddonButton` を渡します。suffix のボタンは、パスワードの表示のように入力欄そのものを操作するものに限り、検索のように値を送るボタンは欄の外に置きます。',
           '- 値を確かめているあいだは `loading` を付けます。',
+          '- 文字数の上限は `maxCount` です。`showCount` で本体の右下の下に「12 / 30」の形で文字数を出し、上限に近づくと数を警告の色に、超えると赤にします（Textarea と同じ）。',
           '- 押せない欄（`disabled`）の文字は選べません。値を読んで写せるようにするときは `readOnly` を使います。読み取り専用の欄はフォーカスでき、値を選んで写せます。',
           '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、`<input>` に required が付きます。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決め、フォーム全体は `Form`・`ThemeProvider` でそろえられます。',
           '- `placeholder` は、値と見分けられるよう「例: かずえもん」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
@@ -432,4 +433,62 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+export const Count: Story = {
+  tags: ['visual'],
+  name: '文字数',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`maxCount` と `showCount` で、本体の右下の下に文字数を出します。上限まで残りわずか（既定は上限の 10%。`warnRemaining` で変えられます）になると数を警告の色に、超えると赤にして、欄をエラーの見た目にします。超えても打つのは止めません。欄を変えたくないときは `overCountInvalid={false}` を渡します。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery>
+      <Specimen label="文字数">
+        <TextField label="表示名" defaultValue="かずえもん" maxCount={20} showCount />
+      </Specimen>
+      <Specimen label="上限に近づいた（showCount なし）">
+        <TextField label="表示名" defaultValue="かずえもん（Kazuya Miyamo" maxCount={20} />
+      </Specimen>
+      <Specimen label="上限を超えた（showCount なし）">
+        <TextField label="表示名" defaultValue="かずえもん（Kazuya Miyamoto）" maxCount={20} />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvas }) => {
+    const [, , over] = canvas.getAllByLabelText('表示名');
+    await expect(over).toHaveAttribute('aria-invalid', 'true');
+    await expect(over).toHaveAccessibleDescription('20文字を超えています。いま22文字');
+  },
+};
+
+export const CountTyping: Story = {
+  name: '文字数を数える',
+  args: { label: '表示名', maxCount: 10, showCount: true },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, canvasElement }) => {
+    const input = canvas.getByLabelText('表示名');
+    // maxCount は打つのを止めない（ブラウザの maxlength は付けない）
+    await expect(input).not.toHaveAttribute('maxlength');
+    await expect(input).toHaveAccessibleDescription('10文字まで。いま0文字');
+    await userEvent.type(input, 'かずえもんです。よろしく');
+    await expect(input).toHaveAccessibleDescription('10文字を超えています。いま12文字');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    const live = canvasElement.querySelector('[aria-live="polite"].sr-only');
+    await expect(live).toHaveTextContent('10文字を超えています');
+    await userEvent.type(input, '{backspace}{backspace}{backspace}');
+    await expect(live).toHaveTextContent('10文字以内に戻りました');
+    await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+  },
 };

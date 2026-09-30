@@ -17,9 +17,12 @@ type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
   NonNullable<TextFieldBaseProps[K]>
 >[0];
 
+// 検索の欄が持たない TextField の props。文字数は数えない
+type NotInSearch = 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
+
 export interface SearchFieldBaseProps extends Omit<
   TextFieldBaseProps,
-  'type' | 'prefix' | 'suffix'
+  'type' | 'prefix' | 'suffix' | NotInSearch
 > {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
@@ -61,7 +64,7 @@ interface SearchOwnProps {
 /** SearchField の本体（SearchFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
 export interface SearchFieldControlProps
   extends
-    Omit<TextFieldControlProps, 'type' | 'prefix' | 'suffix' | keyof SearchOwnProps>,
+    Omit<TextFieldControlProps, 'type' | 'prefix' | 'suffix' | NotInSearch | keyof SearchOwnProps>,
     SearchOwnProps {}
 
 /** SearchField の props。label か accessibleName のどちらかが要ります */
