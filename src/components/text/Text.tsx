@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import type { ComponentProps, CSSProperties } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { inlineStyles } from '../../internal/reading/inline';
@@ -9,6 +9,7 @@ import { tv } from '../../internal/tv';
 // 読む文字（段落・注記）。見た目のクラス列は src/internal/reading/text.ts（Prose も同じものを使う）
 // variant は濃さ（body・muted・subtle）と、欄と同じ見た目の組（label・caption）。label・caption は大きさ・太さ・色をまとめて決めるので、
 //   size より後ろに置いて勝たせる（weight はさらに後ろ。太さだけを上書きできる）
+// lines は LinkCard の titleLines と同じく line-clamp で切る。数は style で --text-lines に入れる
 // as に strong・em・del を選ぶと、Prose が素の HTML に当てるのと同じ飾り（src/internal/reading/inline.ts）が付く
 const inline = inlineStyles();
 
@@ -18,6 +19,7 @@ const text = tv({
     size: textStyles.size,
     variant: { ...textStyles.variant, ...textStyles.fieldVariant },
     weight: textStyles.weight,
+    clamp: { true: 'line-clamp-(--text-lines)', false: '' },
     as: {
       p: '',
       span: '',
@@ -63,6 +65,10 @@ export interface TextProps extends ComponentProps<'p'> {
    * 文字の太さ。書かないと、variant と要素の既定の太さのままです（label は太字、strong は太字）
    */
   weight?: TextWeight;
+  /**
+   * 最大の行数。超えた分は最後に三点を付けて切ります（LinkCard の titleLines と同じ）。書かないと切りません
+   */
+  lines?: number;
   /** 読む文字。文の中の一部にするときは as を span にします */
   children?: ComponentProps<'p'>['children'];
   /** 描いた要素に付きます */
@@ -72,8 +78,28 @@ export interface TextProps extends ComponentProps<'p'> {
 /**
  * 本文の文字
  */
-export function Text({ as = 'p', size, variant, weight, className, ...props }: TextProps) {
+export function Text({
+  as = 'p',
+  size,
+  variant,
+  weight,
+  lines,
+  className,
+  style,
+  ...props
+}: TextProps) {
   // props は段落（p）の型で受ける。描く要素だけが変わる
   const Tag = as as 'p';
-  return <Tag className={text({ size, variant, weight, as, className })} {...props} />;
+  return (
+    <Tag
+      className={text({ size, variant, weight, as, clamp: lines != null, className })}
+      style={
+        lines != null
+          ? ({ '--text-lines': String(lines), ...style } as CSSProperties &
+              Record<`--${string}`, string>)
+          : style
+      }
+      {...props}
+    />
+  );
 }
