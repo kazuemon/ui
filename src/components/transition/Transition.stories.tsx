@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
-import { expect, userEvent, waitFor } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from '../button/Button';
 import { Tag } from '../tag/Tag';
@@ -54,6 +54,8 @@ const meta = {
           '- 出方は `preset` で選びます。書かないときは浮かぶ面と同じ出方です。`fade` は濃さだけ、`fade-up` は下から上へ、`fade-down` は上から下へ、`scale` は少し小さい姿から、`collapse` は高さを 0 から伸ばします。',
           '- 消えたあとは DOM から外します。中の入力の値を保ちたいときは `keepMounted` を付けます（`hidden` で隠します）。',
           '- 一覧に足した項目のように、`show` を true のまま描くときに動かすには `appear` を付けます。外すときは `show` を false にし、`onExited` で一覧から消します。',
+          '- 動きの長さは `duration`（ms）で変えられます。出るときも消えるときも同じ長さです。書かないときは浮かぶ面と同じ長さです。',
+          '- 出る動きが終わったあとは `onEntered` が呼ばれます。出た中身の入力欄に焦点を移すときなどに使います。',
           '- 描く要素は `render` で変えられます（一覧の中では `<li />`）。',
           '- 動きを減らす設定では、動かさずにすぐ出す・消します。',
         ].join('\n'),
@@ -228,5 +230,47 @@ export const KeepMounted: Story = {
         canvas.getByText('保存しました。', { selector: 'p' }).closest('[data-slot="transition"]')
       ).toHaveAttribute('hidden')
     );
+  },
+};
+
+function DurationExample({ onEntered }: { onEntered: () => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="flex w-[240px] flex-col items-start gap-3">
+      <Button onClick={() => setShow((value) => !value)}>{show ? '隠す' : '出す'}</Button>
+      <Transition show={show} duration={600} onEntered={onEntered} className="w-full">
+        <Card>ゆっくり出ます。</Card>
+      </Transition>
+    </div>
+  );
+}
+
+export const Duration: Story = {
+  name: '長さと、出たあとの知らせ',
+  args: { onEntered: fn() },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`duration` で動きの長さ（ms）を変えます。出る動きが終わると `onEntered` が呼ばれます。',
+      },
+      source: sourceCode(`
+        <Transition show={show} duration={600} onEntered={() => input.current?.focus()}>
+          …
+        </Transition>
+      `),
+    },
+  },
+  render: (args) => <DurationExample onEntered={args.onEntered ?? (() => {})} />,
+  play: async ({ canvas, args }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '出す' }));
+    const wrapper = canvas
+      .getByText('ゆっくり出ます。')
+      .closest<HTMLElement>('[data-slot="transition"]')!;
+    // 長さのトークンを、出る・消えるの両方で差し替える
+    await expect(getComputedStyle(wrapper).transitionDuration.split(',')[0]?.trim()).toBe('0.6s');
+    // 動きの途中ではまだ呼ばず、終わったら 1 回だけ呼ぶ
+    await expect(args.onEntered).not.toHaveBeenCalled();
+    await waitFor(() => expect(args.onEntered).toHaveBeenCalledTimes(1), { timeout: 2000 });
   },
 };

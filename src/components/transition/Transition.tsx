@@ -62,6 +62,13 @@ export interface TransitionProps extends Omit<ComponentProps<'div'>, 'hidden'> {
    * @default false
    */
   appear?: boolean;
+  /**
+   * 出入りの動きの長さ（ms）。出るときも消えるときもこの長さにします。
+   * 書かないときは、@kazuemon/ui の浮かぶ面と同じ長さ（トークンの値）です
+   */
+  duration?: number;
+  /** 出る動きが終わったあとに呼びます。出た中身の入力欄に焦点を移すときなどに使います（描きはじめから出ていて動かなかったときは呼びません） */
+  onEntered?: () => void;
   /** 消える動きが終わったあとに呼びます。一覧から項目を外すのは、ここで行います */
   onExited?: () => void;
   /** 描く要素（Base UI の render と同じ）。既定は div です。一覧の中では li を渡します */
@@ -82,6 +89,8 @@ export function Transition({
   preset: presetProp,
   keepMounted = false,
   appear = false,
+  duration,
+  onEntered,
   onExited,
   render,
   className,
@@ -104,7 +113,10 @@ export function Transition({
           void el.offsetHeight;
         }
       : undefined,
-    onEntered: collapse ? (el) => setHeight(el, null) : undefined,
+    onEntered: (el) => {
+      if (collapse) setHeight(el, null);
+      onEntered?.();
+    },
     onExited,
   });
   const element = useRender({
@@ -113,7 +125,15 @@ export function Transition({
     ref: refProp ? [ref, refProp] : ref,
     props: {
       ...props,
-      style,
+      // 長さを渡したときは、出る・消えるの両方の長さのトークンを差し替える
+      style:
+        duration === undefined
+          ? style
+          : {
+              ...style,
+              ['--transition-duration-enter' as string]: `${duration}ms`,
+              ['--transition-duration-exit' as string]: `${duration}ms`,
+            },
       'data-slot': 'transition',
       'data-preset': preset,
       'data-open': status === 'starting' || status === 'open' ? '' : undefined,

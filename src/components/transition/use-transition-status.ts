@@ -24,7 +24,7 @@ interface Options {
   beforeExit?: (element: HTMLElement) => void;
   /** 出る動きの最初のフレームで呼ぶ。collapse は高さを測る */
   beforeEnter?: (element: HTMLElement) => void;
-  /** 出る動きが終わったとき */
+  /** 出る動きが終わったとき（描きはじめから出ていて、動かなかったときは呼ばない） */
   onEntered?: (element: HTMLElement) => void;
   /** 消える動きが終わったとき */
   onExited?: () => void;
@@ -43,6 +43,8 @@ export function useTransitionStatus(
   const statusRef = useRef(status);
   const run = useRef(0);
   const first = useRef(true);
+  // 出る動き（starting）を通ったか。描きはじめから出ているときは onEntered を呼ばない
+  const entering = useRef(false);
   // 描いたあとで最新にする（下の effect より先に走る）
   useIsomorphicLayoutEffect(() => {
     callbacks.current = { beforeEnter, beforeExit, onEntered, onExited };
@@ -69,6 +71,7 @@ export function useTransitionStatus(
     const id = ++run.current;
     const element = ref.current;
     if (status === 'starting') {
+      entering.current = true;
       if (element) callbacks.current.beforeEnter?.(element);
       let frame = requestAnimationFrame(() => {
         frame = requestAnimationFrame(() => {
@@ -77,6 +80,7 @@ export function useTransitionStatus(
       });
       return () => cancelAnimationFrame(frame);
     }
+    if (status === 'ending') entering.current = false;
     if (status === 'open' || status === 'ending') {
       let cancelled = false;
       const frame = requestAnimationFrame(() => {
@@ -84,6 +88,8 @@ export function useTransitionStatus(
           .then(() => {
             if (cancelled || run.current !== id) return;
             if (status === 'open') {
+              if (!entering.current) return;
+              entering.current = false;
               if (ref.current) callbacks.current.onEntered?.(ref.current);
             } else {
               setStatus('closed');
