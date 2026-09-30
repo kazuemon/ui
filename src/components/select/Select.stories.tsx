@@ -887,3 +887,31 @@ export const Composition: Story = {
     );
   },
 };
+
+export const AutoComplete: Story = {
+  name: 'ブラウザの自動入力',
+  args: {
+    label: '都道府県',
+    name: 'prefecture',
+    prefix: undefined,
+    autoComplete: 'address-level1',
+    items: [
+      { label: '東京都', value: '東京都' },
+      { label: '神奈川県', value: '神奈川県' },
+      { label: '大阪府', value: '大阪府' },
+    ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`autoComplete` に `<input>` の autocomplete と同じ値を渡すと、住所などの欄をブラウザが覚えた値で埋められます。値は選択肢の `value` と同じ文字で届くので、選択肢の `value` を自動入力の値（都道府県の名前など）にそろえます。',
+      },
+    },
+  },
+  decorators: [narrow],
+  play: async ({ canvasElement }) => {
+    const hidden = canvasElement.querySelector('input[name="prefecture"]');
+    await expect(hidden).toHaveAttribute('autocomplete', 'address-level1');
+  },
+};

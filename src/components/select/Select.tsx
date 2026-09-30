@@ -115,6 +115,11 @@ export interface SelectControlProps<Multiple extends boolean = false> {
   onValueChange?: (value: SelectValue<Multiple>) => void;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
+  /**
+   * ブラウザの自動入力の手がかり。<input> の autocomplete と同じ値（`country`・`address-level1`・`bday-month` など）を渡します。
+   * 住所や生年月日の欄をブラウザが覚えた値で埋められるようにします
+   */
+  autoComplete?: string;
   /** 隠れた input への ref。フォーカスや検証の API に触るときに使います */
   inputRef?: Ref<HTMLInputElement>;
   /** 選択肢を開いているか（制御） */
@@ -313,6 +318,7 @@ export function SelectControl<Multiple extends boolean = false>({
   defaultValue,
   onValueChange,
   form,
+  autoComplete,
   inputRef,
   open: openProp,
   defaultOpen = false,
@@ -440,6 +446,7 @@ export function SelectControl<Multiple extends boolean = false>({
       defaultValue={defaultValue}
       onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
       form={form}
+      autoComplete={autoComplete}
       inputRef={inputRef}
       modal={modal}
       disabled={disabled}
