@@ -2,14 +2,18 @@
 
 import { type Ref, type RefCallback, useCallback } from 'react';
 
-/** 1 つの ref に要素を渡す。関数の ref も、object の ref も受ける */
-function assign<T>(ref: Ref<T> | undefined, node: T | null) {
+/**
+ * 1 つの ref に要素を渡す。関数の ref も、object の ref も受ける
+ * 関数の ref が片づけの関数を返したら、それを返す（React 19 は外すとき null の代わりにそれを呼ぶ）
+ */
+function assign<T>(ref: Ref<T> | undefined, node: T | null): (() => void) | undefined {
   if (typeof ref === 'function') {
-    ref(node);
-    return;
+    const cleanup: unknown = ref(node);
+    return typeof cleanup === 'function' ? (cleanup as () => void) : undefined;
   }
   // object の ref（useRef）に書き込む。引数そのものを書き換えないよう Object.assign で渡す
   if (ref) Object.assign(ref, { current: node });
+  return undefined;
 }
 
 /**
@@ -21,7 +25,16 @@ function assign<T>(ref: Ref<T> | undefined, node: T | null) {
  */
 export function useMergedRefs<T>(...refs: (Ref<T> | undefined)[]): RefCallback<T> {
   return useCallback((node: T | null) => {
-    for (const ref of refs) assign(ref, node);
+    const cleanups = refs.map((ref) => assign(ref, node));
+    // 片づけの関数を返す ref が 1 つでもあれば、React は外すとき null を渡さない。ほかの ref には自分で null を渡す
+    if (!cleanups.some(Boolean)) return;
+    return () => {
+      refs.forEach((ref, index) => {
+        const cleanup = cleanups[index];
+        if (cleanup) cleanup();
+        else assign(ref, null);
+      });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 可変長なので配列リテラルにできない。中身の ref で比べる
   }, refs);
 }
