@@ -14,6 +14,8 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import {
+  type FieldValidate,
+  type FieldValidationMode,
   FieldMessageLine,
   mergeBaseFieldError,
   useFormFieldErrors,
@@ -96,6 +98,18 @@ export interface CheckboxProps
    */
   infoText?: FieldMessage;
   /**
+   * 値を確かめる関数です（design/adr/0255）。1つだけ置くとき（同意など）に使います。選んでいるか（真偽値）とフォーム全体の値を受け取り、
+   * 正しくないときはエラーの文（複数あれば配列）を返します。何も返さない・null・空文字・空配列は「正しい」とみなします。
+   * 返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します。
+   * CheckboxGroup の中では使いません（グループの validate を使います）
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この指定が勝ちます。CheckboxGroup の中では使いません
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
    * 押せない（Disabled）状態にします。箱と横の文字がグレーになり、フォームでは値が送られません
    * @default false
    */
@@ -140,6 +154,8 @@ export function Checkbox({
   errorText,
   warningText,
   infoText,
+  validate,
+  validationMode,
   className,
   disabled,
   readOnly,
@@ -228,6 +244,8 @@ export function Checkbox({
       data-slot="field"
       disabled={disabled}
       invalid={appInvalid}
+      validate={validate}
+      validationMode={validationMode}
       className={s.item({
         className: [soloRows(caption), ...choiceMessagePull, className],
       })}

@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Switch } from './Switch';
+import { Button } from '../button/Button';
+import { Form } from '../form/Form';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -382,13 +384,15 @@ export const ReadOnly: Story = {
 
 export const Messages: Story = {
   tags: ['visual'],
-  name: 'エラー・警告',
+  name: 'エラー・警告・成功・情報',
   parameters: {
-    controls: { include: ['errorText', 'warningText', 'captionPlacement'] },
+    controls: {
+      include: ['errorText', 'warningText', 'successText', 'infoText', 'captionPlacement'],
+    },
     docs: {
       description: {
         story:
-          '`errorText`・`warningText` は、行の下に入力欄と同じ行（丸の「!」と赤い文字、三角とオリーブ色の文字）で出します。両方あるときはエラーの行が上です。トラックの見た目は変えません。`captionPlacement="bottom"` では、キャプションを行の下に幅いっぱいで置きます。',
+          '`errorText`・`warningText`・`successText`・`infoText` は、行の下に入力欄と同じ行（丸の「!」と赤い文字、三角とオリーブ色の文字、丸のチェックと緑の文字、丸の「i」と青い文字）で出します。並びはエラー・警告・成功・情報の順です。トラックの見た目は変えません。`captionPlacement="bottom"` では、キャプションを行の下に幅いっぱいで置きます。',
       },
     },
   },
@@ -404,6 +408,17 @@ export const Messages: Story = {
           defaultChecked
           warningText="週に数回届きます"
         />
+      </Specimen>
+      <Specimen label="successText">
+        <Switch
+          {...args}
+          label="お知らせを受け取る"
+          defaultChecked
+          successText="設定を保存しました"
+        />
+      </Specimen>
+      <Specimen label="infoText">
+        <Switch {...args} label="お知らせを受け取る" infoText="あとから設定で変えられます" />
       </Specimen>
       <Specimen label="caption（下）">
         <Switch
@@ -435,4 +450,41 @@ export const Densities: Story = {
       </div>
     </DensityPair>
   ),
+};
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const Validation: Story = {
+  name: '値を確かめる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`validate` は、ON か（真偽値）とフォーム全体の値を受け取り、正しくないときはエラーの文を返します。文は `errorText` と同じ行に出ます。`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。「保存する」を押して確かめてください。',
+      },
+    },
+  },
+  render: () => (
+    <Form className="flex max-w-sm flex-col gap-5">
+      <Switch
+        name="terms"
+        label="利用規約に同意する"
+        validate={(checked) => (checked ? null : '利用規約に同意してください')}
+      />
+      <Button type="submit" color="primary" className="self-start">
+        保存する
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas }) => {
+    const toggle = canvas.getByRole('switch', { name: '利用規約に同意する' });
+    await userEvent.click(canvas.getByRole('button', { name: '保存する' }));
+    const line = await canvas.findByText('利用規約に同意してください');
+    // 返した文はエラーの行に出て、トグルの説明につながる
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-invalid', 'true'));
+    await expect(toggle.getAttribute('aria-describedby')).toBe(line.closest('[id]')?.id);
+    // ON にすると確かめ直し、行が閉じる
+    await userEvent.click(toggle);
+    await waitFor(() => expect(toggle).not.toHaveAttribute('aria-describedby'));
+  },
 };

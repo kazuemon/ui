@@ -407,3 +407,41 @@ export const GroupOutsideForm: Story = {
     await expect(form && new FormData(form).getAll('contact')).toEqual(['mail', 'post']);
   },
 };
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const Validation: Story = {
+  name: '値を確かめる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '1つだけ置く箱は、`validate` で確かめられます。選んでいるか（真偽値）とフォーム全体の値を受け取り、正しくないときはエラーの文を返します。文は `errorText` と同じ行に出ます。`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。CheckboxGroup の中では、グループの `validate` を使います。「登録する」を押して確かめてください。',
+      },
+    },
+  },
+  render: () => (
+    <Form className="flex max-w-sm flex-col gap-5">
+      <Checkbox
+        name="terms"
+        label="利用規約に同意する"
+        required
+        validate={(checked) => (checked ? null : '利用規約に同意してください')}
+      />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: '利用規約に同意する' });
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const line = await canvas.findByText('利用規約に同意してください');
+    // 返した文はエラーの行に出て、箱の説明につながる
+    await waitFor(() => expect(box).toHaveAttribute('aria-invalid', 'true'));
+    await expect(box.getAttribute('aria-describedby')).toBe(line.closest('[id]')?.id);
+    // 選ぶと確かめ直し、行が閉じる
+    await userEvent.click(box);
+    await waitFor(() => expect(box).not.toHaveAttribute('aria-describedby'));
+  },
+};
