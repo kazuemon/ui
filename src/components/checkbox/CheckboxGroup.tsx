@@ -140,7 +140,7 @@ export type CheckboxGroupControlProps = Omit<
      */
     direction?: ChoiceGroupDirection;
     /**
-     * 横に並べたときに、入りきらない選択肢を次の行へ折り返します。縦に並べるときは使いません
+     * 横に並べたときに、入りきらない選択肢を次の行へ折り返します。Stack と違い、既定では折り返しません。縦に並べるときは使いません
      * @default false
      */
     wrap?: boolean;

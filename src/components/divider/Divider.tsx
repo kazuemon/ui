@@ -89,13 +89,14 @@ export interface DividerProps extends Omit<ComponentProps<'hr'>, 'color'> {
    */
   label?: ReactNode;
   /**
-   * label の文字の大きさ。xs はキャプションと同じ小さくいちばん淡い文字、sm はラベルと同じ大きさの一段淡い文字です
+   * label の文字の大きさ。xs はキャプションと同じ小さくいちばん淡い文字、sm はラベルと同じ大きさで、xs より一段濃い文字です
    * （「または」を選択肢の区切りとしてはっきり読ませたいとき）
    * @default 'xs'
    */
   labelSize?: DividerLabelSize;
   /**
-   * 見た目だけの区切りにします。true のときは読み上げで区切りと伝えません（話題の切れ目ではなく、飾りとして置くとき）
+   * 見た目だけの区切りにします。true のときは読み上げで区切りと伝えません（話題の切れ目ではなく、飾りとして置くとき）。
+   * label のある線は、もともと区切りと伝えないので使いません
    * @default false
    */
   decorative?: boolean;
