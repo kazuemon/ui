@@ -39,6 +39,11 @@ const meta = {
           '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js・TanStack Router の `Link` は `render` に渡し、`link` を付けます。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
           '- カード全体がリンクになるので、中にほかのリンクやボタンは置けません。置きたいときは `href` を渡さず、題をリンクにします。',
           '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
+          '- `href` を渡さずに `onClick` を渡すと、カード全体が 1 つのボタンになります。選ぶ・開くなど、ページを移らない操作に使います。',
+          '- 選択肢として並べるときは、選んでいるカードに `selected` を付けます。ボタンのときは、読み上げに押している状態として伝えます。',
+          '- 題と操作を 1 行に並べる帯は `CardHeader` に入れ、カードのいちばん上に置きます。',
+          '- 並べたカードのうち 1 枚を目立たせるときは、`variant="emphasis"` にします。',
+          '- 狭い列やたくさん並べる一覧では、`size="sm"` で余白を詰めます。',
           '- hover で画像を少し大きくしたいときは、`imageZoom` を渡します。',
           '- 幅は置いた場所に合わせます。一覧は grid で並べます。',
           '- `Prose`（記事）の中にそのまま置けます。記事の中のリンクの見た目は、押せるカードには付きません。',
@@ -382,6 +387,33 @@ export const Accessibility: Story = {
     await expect(canvas.getByText('押せないカード').closest('[data-slot="card"]')?.tagName).toBe(
       'DIV'
     );
+  },
+};
+
+export const ButtonCard: Story = {
+  name: '押すカード（ボタン）',
+  decorators: [narrow],
+  render: () => (
+    <div className="flex flex-col gap-3">
+      <Card onClick={() => {}} selected={false}>
+        <CardBody>
+          <Content title="フリー" />
+        </CardBody>
+      </Card>
+      <Card onClick={() => {}} selected>
+        <CardBody>
+          <Content title="スタンダード" />
+        </CardBody>
+      </Card>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // onClick だけのカードは button になり、selected は押している状態で伝わる
+    const buttons = canvas.getAllByRole('button');
+    await expect(buttons).toHaveLength(2);
+    await expect(buttons[0]).toHaveAttribute('aria-pressed', 'false');
+    await expect(buttons[1]).toHaveAttribute('aria-pressed', 'true');
+    await expect(buttons[1]).toHaveAttribute('type', 'button');
   },
 };
 

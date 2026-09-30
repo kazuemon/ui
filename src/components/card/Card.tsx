@@ -3,6 +3,7 @@
 import { useRender } from '@base-ui/react/use-render';
 import {
   type ComponentProps,
+  type MouseEventHandler,
   createContext,
   type ReactElement,
   type ReactNode,
@@ -41,10 +42,21 @@ const styles = tv({
   slots: {
     root: [
       'group/card relative flex flex-col overflow-hidden rounded-card text-fg',
-      'border-(length:--border-width-thin) border-surface-line',
+      'border-(length:--card-line-width) border-(color:--card-line)',
+      '[--card-line-width:var(--border-width-thin)] [--card-line:var(--color-surface-line)]',
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
+      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない
+      "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:-inset-(--card-line-width) data-selected:after:z-1 data-selected:after:content-['']",
+      'data-selected:after:rounded-card data-selected:after:border-(length:--card-selected-line-width) data-selected:after:border-(color:--card-selected-line)',
+      'data-selected:[--card-fill:var(--card-selected-fill)]',
     ],
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
+    // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線と塗りで中身と分ける
+    header: [
+      'flex items-center justify-between gap-(--card-header-gap)',
+      'px-(--card-body-padding) py-(--card-header-padding-y)',
+      'border-b-(length:--card-header-line-width) border-(color:--card-header-line) bg-(color:--card-header-fill)',
+    ],
     image: [
       // imageZoom のとき、hover で画像を少し大きくする（--card-hover-media-scale）。枠（Image）が切り取る
       '[transition:scale_var(--duration-normal)_var(--ease-press)] motion-reduce:[transition:none]',
@@ -59,7 +71,25 @@ const styles = tv({
           'p-(--card-nested-inset)',
           '[--card-body-padding:calc(var(--card-padding)-var(--card-nested-inset))]',
         ],
+        // 内側に収めた帯の角は、画像と同じ同心の角。下の画像とは入れ子の余白だけ離す
+        header:
+          'mb-(--card-nested-inset) rounded-[calc(var(--radius-card)-var(--card-nested-inset))]',
       },
+      // 強調の形。並べたカードのうち 1 枚（おすすめなど）を目立たせる。画像の置き方は default と同じ
+      emphasis: {
+        root: [
+          '[--card-body-padding:var(--card-padding)]',
+          '[--card-line-width:var(--card-emphasis-line-width)] [--card-line:var(--card-emphasis-line)]',
+          '[--card-fill:var(--card-emphasis-fill)]',
+        ],
+      },
+    },
+    // 余白の段。sm は一覧に詰めて並べるときの、中身の余白・縦の間・入れ子の余白
+    size: {
+      sm: {
+        root: '[--card-gap:var(--card-gap-sm)] [--card-nested-inset:var(--card-nested-inset-sm)] [--card-padding:var(--card-padding-sm)]',
+      },
+      md: {},
     },
     interactive: {
       true: {
@@ -74,12 +104,27 @@ const styles = tv({
       },
       false: {},
     },
+    // button として描くとき（onClick）。ボタンの既定の寄せと幅を、カードに合わせる
+    button: {
+      true: { root: 'w-full text-left' },
+      false: {},
+    },
   },
   compoundVariants: [
     // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
-    { variant: 'default', interactive: true, class: { root: 'p-0' } },
+    { variant: ['default', 'emphasis'], interactive: true, class: { root: 'p-0' } },
+    {
+      variant: 'emphasis',
+      interactive: true,
+      class: { root: 'hover:[--card-fill:var(--card-emphasis-fill-hover)]' },
+    },
+    // 選んでいる押せるカードの hover の塗り
+    {
+      interactive: true,
+      class: { root: 'data-selected:hover:[--card-fill:var(--card-selected-fill-hover)]' },
+    },
   ],
-  defaultVariants: { variant: 'default', interactive: false },
+  defaultVariants: { variant: 'default', size: 'md', interactive: false, button: false },
 });
 
 /** 値が undefined の属性を除く */
@@ -87,16 +132,30 @@ function definedOnly(props: Record<string, string | undefined>) {
   return Object.fromEntries(Object.entries(props).filter(([, value]) => value !== undefined));
 }
 
-export type CardVariant = 'default' | 'nested';
+export type CardVariant = 'default' | 'nested' | 'emphasis';
+export type CardSize = 'sm' | 'md';
 
 const CardContext = createContext<CardVariant>('default');
 
-export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
+export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClick'> {
   /**
-   * 型。default は画像をカードの端まで届かせ、nested は画像をカードの内側に収めます
+   * 型
+   * - default: 画像をカードの端まで届かせます
+   * - nested: 画像をカードの内側に、余白を空けて収めます
+   * - emphasis: default の置き方のまま、面と輪郭で目立たせます。並べたカードのうち、おすすめの 1 枚などに使います
    * @default 'default'
    */
   variant?: CardVariant;
+  /**
+   * 余白の段。sm は中身の余白と縦の間を詰めます。狭い列や、たくさん並べる一覧に使います
+   * @default 'md'
+   */
+  size?: CardSize;
+  /**
+   * 選んでいる見た目にします。押せるカードを選択肢として並べるときに使います。
+   * onClick で button として描くときは、読み上げに押している状態（aria-pressed）として伝えます
+   */
+  selected?: boolean;
   /** 渡すと、カード全体が 1 つのリンクになります。一覧（記事・作品）のカードに使います */
   href?: string;
   /**
@@ -106,6 +165,11 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
    * false にすると、href を渡していてもリンクにせず、ただのカード（div）として描きます
    */
   link?: boolean;
+  /**
+   * リンクにしない（href も link も渡さない）カードにこれを渡すと、カード全体が 1 つのボタン（button）になります。選ぶ・開くなど、ページを移らない操作に使います。
+   * 中にほかのリンクやボタンは置けません
+   */
+  onClick?: MouseEventHandler<HTMLElement>;
   /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
   target?: string;
   /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
@@ -120,7 +184,7 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
    * Next.js の Link などを渡してカード全体をリンクにするときは、`link` も付けます（例: `<Card link render={<NextLink href="/works/1" />}>`）
    */
   render?: ReactElement;
-  /** カードの中身。CardImage と CardBody を並べます */
+  /** カードの中身。CardHeader・CardImage・CardBody を並べます */
   children?: ReactNode;
   /** いちばん外の要素（リンクのときは a）に付きます */
   className?: string;
@@ -132,10 +196,13 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
  */
 export function Card({
   variant = 'default',
+  size = 'md',
   href,
   link: linkProp,
   target,
   rel,
+  onClick,
+  selected,
   imageZoom = false,
   render,
   className,
@@ -145,23 +212,29 @@ export function Card({
   const link = resolveLink(linkProp, href);
   if (link && href == null && render == null)
     warnOnce('Card: link を付けたカードには、href か、リンクの要素（render）を渡します');
-  const interactive = link;
+  // リンクにせず onClick だけのときは、カード全体を 1 つのボタンにする
+  const button = !link && onClick != null && render == null;
+  const interactive = link || onClick != null;
   const newTab = link && (target === '_blank' || opensNewTab(render));
   const noteId = useId();
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
-  const s = styles({ variant, interactive });
+  const s = styles({ variant, size, interactive, button });
   const element = useRender({
     render,
-    defaultTagName: link ? 'a' : 'div',
+    defaultTagName: link ? 'a' : button ? 'button' : 'div',
     props: {
       // link={false} のときは、リンクだけの属性（download など）も描く要素に渡さない
       ...(link ? props : withoutLinkAttributes(props)),
       // 渡していない属性は置かない（undefined を置くと、渡した要素が自分で付ける href などを消すため）
       ...(link &&
         definedOnly({ href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel })),
+      ...(onClick != null && { onClick }),
+      ...(button && { type: 'button', 'aria-pressed': selected }),
       ...naming?.props,
       'data-slot': 'card',
       'data-variant': variant,
+      'data-size': size,
+      'data-selected': selected || undefined,
       'data-interactive': interactive || undefined,
       'data-image-zoom': (interactive && imageZoom) || undefined,
       className: s.root({ className }),
@@ -174,6 +247,23 @@ export function Card({
     },
   });
   return <CardContext value={variant}>{element}</CardContext>;
+}
+
+export interface CardHeaderProps extends ComponentProps<'div'> {
+  /** 帯に置く中身。題と、右端に寄せる操作（Button など）を並べます */
+  children?: ReactNode;
+  /** 帯の要素（div）に付きます */
+  className?: string;
+}
+
+/**
+ * カードの頭の帯。題や操作を置き、下の線と塗りで中身と分けます。カードのいちばん上に置きます
+ */
+export function CardHeader({ className, ...props }: CardHeaderProps) {
+  const variant = useContext(CardContext);
+  return (
+    <div data-slot="card-header" className={styles({ variant }).header({ className })} {...props} />
+  );
 }
 
 export interface CardBodyProps extends ComponentProps<'div'> {

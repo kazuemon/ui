@@ -672,6 +672,34 @@
   --card-gap: calc(var(--spacing) * 1);
   --card-hover-media-scale: 1.04;
   --card-fill-hover: color-mix(in oklab, var(--color-field) 50%, var(--color-surface));
+  /* 詰めた余白（size="sm"）— 軸 412 で比較中。md は上の padding・gap・nested-inset */
+  --card-padding-sm: calc(var(--spacing) * 3);
+  --card-gap-sm: calc(var(--spacing) * 0.5);
+  --card-nested-inset-sm: calc(var(--spacing) * 1.5);
+  /* 選んでいる見た目（selected）— 軸 413 で比較中
+     selected-line・selected-line-width: 輪郭の上に重ねる線。寸法は変えない
+     selected-fill・selected-fill-hover: 選んでいるときの面の塗りと、押せるときの hover の塗り */
+  --card-selected-line: var(--color-primary);
+  --card-selected-line-width: var(--border-width-thick);
+  --card-selected-fill: var(--color-primary-subtle);
+  --card-selected-fill-hover: color-mix(
+    in oklab,
+    var(--color-primary-subtle),
+    var(--color-primary) 6%
+  );
+  /* 頭の帯（CardHeader）— 軸 414 で比較中
+     header-fill: 帯の塗り。header-line・header-line-width: 帯の下の線。header-padding-y: 帯の上下の余白。header-gap: 帯の中の並びの間 */
+  --card-header-fill: var(--color-surface);
+  --card-header-line: var(--color-surface-line);
+  --card-header-line-width: var(--border-width-thin);
+  --card-header-padding-y: calc(var(--spacing) * 3);
+  --card-header-gap: calc(var(--spacing) * 3);
+  /* 強調の形（variant="emphasis"）— 軸 415 で比較中
+     emphasis-fill・emphasis-fill-hover: 面の塗りと、押せるときの hover の塗り。emphasis-line・emphasis-line-width: 輪郭 */
+  --card-emphasis-fill: var(--color-tag);
+  --card-emphasis-fill-hover: color-mix(in oklab, var(--color-tag), var(--color-fg) 4%);
+  --card-emphasis-line: var(--color-tag);
+  --card-emphasis-line-width: var(--border-width-thin);
   /* ── END card */
 
   /* ── LinkCard — ADR-115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */

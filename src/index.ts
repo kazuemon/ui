@@ -97,9 +97,12 @@ export {
   Card,
   CardBody,
   type CardBodyProps,
+  CardHeader,
+  type CardHeaderProps,
   CardImage,
   type CardImageProps,
   type CardProps,
+  type CardSize,
   type CardVariant,
 } from './components/card/Card';
 export {
