@@ -758,6 +758,8 @@ export {
   DatePicker,
   type DatePickerBaseProps,
   type DatePickerCalendarProps,
+  DatePickerControl,
+  type DatePickerControlProps,
   type DatePickerProps,
   type DatePickerVariant,
 } from './components/date-picker/DatePicker';

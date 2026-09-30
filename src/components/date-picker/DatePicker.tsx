@@ -3,19 +3,24 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import { type ComponentProps, type ReactElement, type ReactNode, useId, useState } from 'react';
 
-import { DateField, type DateFieldBaseProps, type DateFieldProps } from '../date-field/DateField';
+import type { DateFieldBaseProps } from '../date-field/DateField';
 import { type DatePickerCalendarProps, DatePickerPanel } from './DatePickerPanel';
 import { DEFAULT_DATE_FORMAT } from '../../internal/date/format-date';
 import { type PlainDate, toDate, todayIn } from '../../internal/date/plain-date';
 import { isDateOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
 import { dateSegmentColorClass } from '../../internal/date-segments/colors';
+import {
+  type DateFieldControlProps,
+  DateFieldControlInner,
+  type DateFieldControlInnerProps,
+} from '../../internal/date-segments/DateFieldControlInner';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
-import { useFormSubmittingLock } from '../../internal/form-context';
+import { useHalfWidthNotice } from '../../internal/half-width';
 import { CalendarBlankIcon, XIcon } from '../../internal/icons';
-import type { PopupProps } from '../../internal/overlay/overlay-props';
+import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import {
   PickerOverlay,
   PickerTriggerButton,
@@ -26,7 +31,8 @@ import { cn } from '../../internal/tv';
 
 export type { DatePickerCalendarProps } from './DatePickerPanel';
 
-// 日付を選ぶ欄。打ち込む欄（DateField）の右端に、カレンダーを開くボタンを置く
+// 日付を選ぶ欄。打ち込む欄（DateField の本体）の右端に、カレンダーを開くボタンを置く
+//   本体は DatePickerControl（組み立て用）。DatePicker はそれを Field で包む（TimePicker と同じ）。押せない・待っている状態は Field から読む
 //   打ち込み（和暦・全角・日本語の書き方の読み取り）は DateField のまま。カレンダーで選んだ日は欄にそのまま入る
 //   カレンダーを開くボタンは、欄の値に作用する suffix のボタン（原則8: グレー地＋アイコン＝押せる）
 //   読み取り専用では出さない（値を変える操作なので。消去のボタンと同じ — ADR-0168・0197）
@@ -64,8 +70,9 @@ interface DatePickerOwnProps {
   /** カレンダーの見た目（日の形・曜日の色・月送りの置き方・ほかの月の日・月を送る動き・読み上げの文言） */
   calendarProps?: DatePickerCalendarProps;
   /**
-   * 今日として扱う日。サーバーで描くときに、サーバーとブラウザで今日をそろえるのに使います
-   * @default timeZone での今日
+   * 今日として扱う日。サーバーで描くときに、サーバーとブラウザで今日をそろえるのに使います。
+   * 渡さないときは、timeZone での今日です
+   * @default 今日
    */
   today?: PlainDate;
   /**
@@ -97,6 +104,7 @@ interface DatePickerOwnProps {
    * カレンダーを開く印のアイコン。既定は暦のアイコンです。
    * variant="field" では `<Icon icon={…} standalone />`、variant="button" では `<Icon icon={…} />` の形で渡します。
    * variant="button" で Select と同じ ▼ にするときは、Phosphor の `<Icon icon={CaretDownIcon} />` を渡します
+   * @default 暦のアイコン（CalendarBlank）
    */
   icon?: ReactNode;
   /**
@@ -132,6 +140,8 @@ interface DatePickerOwnProps {
   portalContainer?: HTMLElement | null;
   /** カレンダーの面（Popup）に足す props（id・data-*・aria-*・ref・className など） */
   popupProps?: PopupProps;
+  /** 位置を決める要素（Positioner）に足す props。位置の基準は、書かないときは欄の外枠です */
+  positionerProps?: PositionerProps;
   /**
    * カレンダーの面を閉じるボタンの読み上げの名前（シートの × と、面の中に置く読み上げ用の閉じる手段）
    * @default '閉じる'
@@ -139,66 +149,90 @@ interface DatePickerOwnProps {
   closeName?: string;
 }
 
+/** DatePicker の本体（DatePickerControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
+export interface DatePickerControlProps
+  extends Omit<DateFieldControlProps, 'suffix'>, DatePickerOwnProps {}
+
 /** DatePicker の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type DatePickerBaseProps = Omit<DateFieldBaseProps, 'suffix'> & DatePickerOwnProps;
 
 /** DatePicker の props。label か accessibleName のどちらかが要ります */
 export type DatePickerProps = FieldNamed<DatePickerBaseProps>;
 
-/**
- * 日付を選ぶ欄。年・月・日を打ち込むことも、右端のボタンで開くカレンダーから選ぶこともできます。
- * variant="button" では、打てない表示だけのボタンにし、押すとカレンダーを開きます
- */
-export function DatePicker(props: DatePickerProps) {
-  const {
-    variant = 'field',
-    open: openProp,
-    defaultOpen = false,
-    onOpenChange,
-    isDateDisabled,
-    getHoliday,
-    calendarProps,
-    today: todayProp,
-    showTodayButton = true,
-    todayLabel = '今日',
-    clearable = false,
-    clearName = '日付を消去',
-    triggerName = 'カレンダーを開く',
-    icon: iconProp,
-    iconPlacement = 'end',
-    placeholder = '日付を選ぶ',
-    dateStyle,
-    format,
-    presentation,
-    portalContainer,
-    popupProps,
-    closeName = '閉じる',
-    ...fieldProps
-  } = props as DatePickerBaseProps;
-  const { value: valueProp, defaultValue, onValueChange, min, max, readOnly } = fieldProps;
-  const color = fieldProps.color ?? 'neutral';
-  const { locale, timeZone } = useLocale(fieldProps.locale, fieldProps.timeZone);
-  const today = todayProp ?? todayIn(timeZone);
-  // 欄の端のボタンはアイコン単体なので太い線、ボタンの中の印は文字と並ぶので細い線（ADR-0018）
-  const icon = iconProp ?? <CalendarBlankIcon standalone={variant === 'field'} />;
-  // 待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
-  const formLock = useFormSubmittingLock();
-  const blocking =
-    formLock.blocking || (!!fieldProps.loading && fieldProps.loadingBehavior === 'blocking');
-
+/** 値（制御・非制御）をまとめて持つ */
+function useDateValue(
+  value: PlainDate | null | undefined,
+  defaultValue: PlainDate | null | undefined,
+  onValueChange?: (value: PlainDate | null) => void
+) {
   const [inner, setInner] = useState<PlainDate | null>(defaultValue ?? null);
-  const value = valueProp !== undefined ? valueProp : inner;
-  const changeValue = (next: PlainDate | null) => {
+  const current = value !== undefined ? value : inner;
+  const change = (next: PlainDate | null) => {
     setInner(next);
     onValueChange?.(next);
   };
+  return [current, change] as const;
+}
 
+/**
+ * 日付を打つ欄に、カレンダーを開くボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・必須の状態と、説明のつながりは、包む Field から受け取ります。カレンダーの面の名前は Field のラベルです
+ */
+export function DatePickerControl(props: DatePickerControlProps) {
+  return <DatePickerControlInner {...props} />;
+}
+
+function DatePickerControlInner({
+  variant = 'field',
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  isDateDisabled,
+  getHoliday,
+  calendarProps,
+  today: todayProp,
+  showTodayButton = true,
+  todayLabel = '今日',
+  clearable = false,
+  clearName = '日付を消去',
+  triggerName = 'カレンダーを開く',
+  icon: iconProp,
+  iconPlacement = 'end',
+  placeholder = '日付を選ぶ',
+  dateStyle,
+  format,
+  presentation,
+  portalContainer,
+  popupProps,
+  positionerProps,
+  closeName = '閉じる',
+  value: valueProp,
+  defaultValue,
+  onValueChange,
+  min,
+  max,
+  readOnly,
+  color = 'neutral',
+  locale: localeProp,
+  timeZone: timeZoneProp,
+  ...control
+}: DatePickerControlProps & Pick<DateFieldControlInnerProps, 'onHalfWidth'>) {
+  const field = useFieldState();
+  const { locale, timeZone } = useLocale(localeProp, timeZoneProp);
+  const today = todayProp ?? todayIn(timeZone);
+  // 欄の端のボタンはアイコン単体なので太い線、ボタンの中の印は文字と並ぶので細い線（ADR-0018）
+  const icon = iconProp ?? <CalendarBlankIcon standalone={variant === 'field'} />;
+  const [value, changeValue] = useDateValue(valueProp, defaultValue, onValueChange);
+
+  // 読み取り専用・押せない（Fieldset から受けたものも含む）・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
+  //   defaultOpen・制御の open で開こうとしても、面を出さない
+  const locked = Boolean(readOnly || field?.disabled || field?.blocking);
   const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
+  const open = (openProp ?? openState) && !locked;
   // 開く口を押して開いたときだけ、カレンダーの日へフォーカスを移す（はじめから開いているときは動かさない）
   const [openedByUser, setOpenedByUser] = useState(false);
   const changeOpen = (next: boolean) => {
-    if (next && (readOnly || fieldProps.disabled || blocking)) return;
+    if (next && locked) return;
     setOpenedByUser(next);
     setOpenState(next);
     onOpenChange?.(next);
@@ -226,7 +260,6 @@ export function DatePicker(props: DatePickerProps) {
     </PickerTriggerButton>
   );
 
-  const title = props.label ?? props.accessibleName;
   const panel = (
     <DatePickerPanel
       value={value}
@@ -250,10 +283,12 @@ export function DatePicker(props: DatePickerProps) {
     <PickerOverlay
       open={open}
       onOpenChange={changeOpen}
-      title={title}
+      // 面の名前は欄のラベル
+      title={field?.label ?? field?.accessibleName ?? triggerName}
       presentation={presentation}
       portalContainer={portalContainer}
       popupProps={popupProps}
+      positionerProps={positionerProps}
       // 面の余白は浮かべる形だけ（シートは Drawer が余白を持つ）
       popoverClassName="p-(--date-picker-popup-padding)"
       panel={panel}
@@ -263,14 +298,18 @@ export function DatePicker(props: DatePickerProps) {
     >
       {(renderTrigger) =>
         variant === 'button' ? (
-          <DatePickerButtonField
-            {...fieldProps}
-            className={cn(pickerOpenLook, fieldProps.className)}
+          <DatePickerButton
             value={value}
-            locale={locale}
+            readOnly={readOnly}
+            color={color}
             placeholder={placeholder}
             icon={icon}
             iconPlacement={iconPlacement}
+            className={control.className}
+            describedBy={
+              [control['aria-describedby'], field?.describedBy].filter(Boolean).join(' ') ||
+              undefined
+            }
             text={
               value
                 ? new Intl.DateTimeFormat(
@@ -282,11 +321,16 @@ export function DatePicker(props: DatePickerProps) {
             renderTrigger={renderTrigger}
           />
         ) : (
-          <DateField
-            {...(fieldProps as DateFieldProps)}
-            className={cn(pickerOpenLook, fieldProps.className)}
+          <DateFieldControlInner
+            {...control}
             value={value}
             onValueChange={changeValue}
+            min={min}
+            max={max}
+            readOnly={readOnly}
+            color={color}
+            locale={localeProp}
+            timeZone={timeZoneProp}
             suffix={
               readOnly ? null : (
                 <>
@@ -304,27 +348,58 @@ export function DatePicker(props: DatePickerProps) {
   );
 }
 
-interface DatePickerButtonFieldProps extends Omit<DatePickerBaseProps, 'value'> {
+/**
+ * 日付を選ぶ欄。年・月・日を打ち込むことも、右端のボタンで開くカレンダーから選ぶこともできます。
+ * variant="button" では、打てない表示だけのボタンにし、押すとカレンダーを開きます
+ */
+export function DatePicker(props: DatePickerProps) {
+  const [field, { halfWidthNotice = false, ...control }] = splitFieldProps(
+    props as DatePickerBaseProps
+  );
+  // 全角を半角に直したことの知らせ（DateField と同じ。既定は知らせない）
+  const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
+  // 範囲の外のときは欄をエラーの見た目にする。いまの値を外枠でも持つ（DateField と同じ）
+  const [value, setValue] = useDateValue(
+    control.value,
+    control.defaultValue,
+    control.onValueChange
+  );
+  return (
+    <Field
+      {...field}
+      // 開いているあいだ、欄をフォーカス中と同じ見た目にする（TimePicker・Select と同じ）
+      className={cn(pickerOpenLook, field.className)}
+      info={field.info ?? notice}
+      invalid={isDateOutOfRange(value, control.min, control.max)}
+      nativeLabel={false}
+    >
+      {() => (
+        <DatePickerControlInner
+          {...control}
+          value={value}
+          onValueChange={setValue}
+          onHalfWidth={noticed}
+        />
+      )}
+    </Field>
+  );
+}
+
+interface DatePickerButtonProps {
   value: PlainDate | null;
-  locale: string;
+  readOnly: boolean | undefined;
+  color: NonNullable<DatePickerControlProps['color']>;
   placeholder: string;
   icon: ReactNode;
   iconPlacement: 'start' | 'end';
   /** 選んだ日の文字。値がないときは null */
   text: string | null;
+  className: string | undefined;
+  describedBy: string | undefined;
   renderTrigger: (element: ReactElement<ComponentProps<'button'>>) => ReactElement;
 }
 
-// variant="button": 打てない表示だけのボタン。ラベル・キャプション・状態の行は Field が並べる
-function DatePickerButtonField({ value, min, max, ...props }: DatePickerButtonFieldProps) {
-  const [field, control] = splitFieldProps(props);
-  return (
-    <Field {...field} invalid={isDateOutOfRange(value, min, max)} nativeLabel={false}>
-      {(describedBy) => <DatePickerButton {...control} value={value} describedBy={describedBy} />}
-    </Field>
-  );
-}
-
+// variant="button": 打てない表示だけのボタン。ラベル・キャプション・状態の行は、包む Field が並べる
 function DatePickerButton({
   value,
   text,
@@ -332,20 +407,11 @@ function DatePickerButton({
   icon,
   iconPlacement,
   readOnly,
-  color = 'neutral',
+  color,
+  className,
   describedBy,
   renderTrigger,
-}: Pick<
-  DatePickerButtonFieldProps,
-  | 'value'
-  | 'text'
-  | 'placeholder'
-  | 'icon'
-  | 'iconPlacement'
-  | 'readOnly'
-  | 'color'
-  | 'renderTrigger'
-> & { describedBy: string | undefined }) {
+}: DatePickerButtonProps) {
   // ラベルは <label> にしない（本体はボタンで、ラベルは aria-labelledby でつなぐ）
   useFieldControlKind({ nativeLabel: false });
   const field = useFieldState();
@@ -376,6 +442,7 @@ function DatePickerButton({
                   'text-left',
                   blocking ? 'cursor-progress' : readOnly ? 'cursor-default' : 'cursor-pointer',
                   dateSegmentColorClass[color],
+                  className,
                 ],
               })}
             >
