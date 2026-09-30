@@ -7,7 +7,9 @@ import {
   ArrowUDownLeftIcon,
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
+  CalendarBlankIcon,
   CaretDownIcon,
+  ClockIcon,
   CaretUpIcon,
   MagnifyingGlassIcon,
   MinusIcon,
@@ -56,6 +58,18 @@ const entries: Entry[] = [
     regular: <CaretDownIcon />,
     bold: <CaretDownIcon standalone />,
     use: 'Select の ▼・NumberField の減らすボタン（縦積み）',
+  },
+  {
+    name: 'CalendarBlankIcon',
+    regular: <CalendarBlankIcon />,
+    bold: <CalendarBlankIcon standalone />,
+    use: 'DatePicker のカレンダーを開くボタン・ボタンだけの形の印',
+  },
+  {
+    name: 'ClockIcon',
+    regular: <ClockIcon />,
+    bold: <ClockIcon standalone />,
+    use: 'TimePicker の時刻の一覧を開くボタン',
   },
   {
     name: 'CaretUpIcon',

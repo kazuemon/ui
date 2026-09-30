@@ -24,7 +24,7 @@
 - 色・`variant` をグループでまとめて指定する props（ToggleGroup の `color`・`variant`）は持たせていません。ButtonGroup は選択状態を持たない素の並びなので、色をそろえたいかどうかは使う側にしか分からないと考えました（原則20）が、実際に使うとそろえたいことが多いかもしれません
 - 矢印キーでの移動は持たせず、ふつうに Tab で移る並びにしました。ボタンが多く並ぶ場面（ツールバーなど）で、ロービングタブインデックスが要るかは検討していません
 - アイコンだけのボタン（`iconOnly` の `shape="circle"`）を `connected` で並べたときの見た目は確かめていません（Toggle の circle と同じく、角丸が常に pill になり、連結の角丸の上書きを無視します）
-- **表示の切り替え（ボード・表など）には使えません。** 選んでいる状態を持たないためです。タスクボードの見本では ToggleGroup で作りました。ButtonGroup に選択を持たせるか、切り替えには ToggleGroup を使うと Docs に書くかは決めていません（2026-09-28、見本のページで気づいたこと）
+- **表示の切り替え（ボード・表など）には使えません。** 選んでいる状態を持たないためです。タスクボードの見本では ToggleGroup で作りましたが、**必ずどれかを選ぶ切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ButtonGroup に選択を持たせるかは決めていません。表示の切り替えに SegmentedControl を使うことは、SegmentedControl の Docs に書きました
 
 ### Link
 
@@ -188,7 +188,7 @@
 2026-09-19 に作りました。決定は [ADR-0133](./adr/0133-calendar-foundation.md)〜[ADR-0142](./adr/0142-calendar-month-motion.md) です。
 
 - 年と月を直接選ぶ機能は決めていません。月の名前を Select 2 つに替える案や、月の一覧に切り替える案があります。数を打ち込む形にするなら、NumberField を作ったあとで検討します
-- DatePicker・DateRangePicker は作っていません。2 か月を並べて見せるか、「今日」に戻るボタンを持つか、日付を打ち込んだときのパース（決まった書式・和暦・全角・「9月20日」のような日本語の書き方）をどうするかを決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）
+- DateRangePicker（期間を選ぶ形）は作っていません。カレンダーを 2 か月並べて見せるかも、そのときに決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）。1 日を選ぶ DatePicker は 2026-09-30 に作りました（下の DatePicker の節）
 - Calendar は 7 マス分の決まった幅で、置いた列の幅に広がりません。予約の見本では、下の時刻のボタンの並び（列の幅いっぱい）と右端がそろいません。時刻のボタンを Calendar の幅に合わせると狭くなりすぎるので、見本では合わせていません。Calendar を列の幅に広げる指定（マスを広げる）を持たせるかは決めていません（2026-09-29、見本のページの点検）
 
 ### Avatar・Breadcrumb・Pager・CodeGroup・Toast・Tree
@@ -401,7 +401,7 @@
 - Embed の provider（`youtube`・`vimeo`・`x`・`codepen`・`custom`）に、Spotify・Figma など足すものはまだ検討していません
 - ImageZoom の、iOS・Android の実機での指の操作（スワイプで閉じる・ピンチでの拡大縮小）は、実機で確かめていません。いまはスワイプで閉じる動きだけ作っています（ピンチでの拡大縮小はありません）
 - Toggle・ToggleGroup・FileTree・ImageZoom は、読み上げソフト（VoiceOver・NVDA など）での確かめをまだしていません
-- ToggleGroup は、1 つだけ選ぶ形でも、選んでいるものをもう一度押すと何も選んでいない状態になります。表示の切り替えのように必ずどれかを選ぶ場面では、見本の側で空の値を無視しています。空にしない指定を持たせるかは決めていません（2026-09-28、見本のページで気づいたこと）
+- ToggleGroup は、1 つだけ選ぶ形でも、選んでいるものをもう一度押すと何も選んでいない状態になります。**必ずどれかを選ぶ表示の切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ToggleGroup 自体に空にしない指定を持たせるかは、まだ決めていません。この使い分け（切り替えは SegmentedControl、押す・外すボタンの集まりは ToggleGroup）は、SegmentedControl の Docs に書きました
 - FileTree のコメントは、デスクトップの広い幅で右端に寄りすぎ、ファイル名から約 400px 離れます（`ms-auto`。ドキュメントの見本）。コメントをファイル名のすぐ後ろに置くかは決めていません（2026-09-29、見本のページの点検）
 - ImageZoom をスマホで押しても、350px の画像が 358px にしかならず、拡大した感じがありません。拡大中も「押すと拡大します」の文言が出たままです。スマホではピンチや移動を許すか、元の解像度ではみ出させてスクロールさせるかは決めていません（上のピンチの項目とつながります）（2026-09-29、見本のページの点検）
 
@@ -500,6 +500,37 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `Pagination` を下の帯に置くとき、`min-w-0` が要るかは比べていません（[ADR-0348](./adr/0348-data-table-footer-recipe.md)）。狭い幅で `Select`（1 ページの件数）と並べたときに、`Pagination` 側が縮むかどうかです
 - 見出しのボタン（`DataTableHeader` の `onSortClick`）は、キーボードでは Tab で止まりますが、並べ替えている列だけに `aria-sort` を付ける以外の読み上げの確かめ（本物の読み上げソフト）はしていません
 
+### DatePicker
+
+2026-09-30 に作りました。決定は [ADR-0373](./adr/0373-date-picker-foundation.md)〜[ADR-0378](./adr/0378-date-picker-button-icon.md) です。
+
+- `variant`（`'field'`・`'button'`）は、見た目だけでなく打てるかどうかも変える props です。[原則 18](./principles.md#18-働きで部品を選び見た目は別に選ぶ)（働きで部品を選び、見た目は別に選ぶ）に照らすと、働きが変わるので別の名前がよいかは決めていません
+- 「今日」（[ADR-0376](./adr/0376-date-picker-today-button.md)）以外のボタンがカレンダーの下の行に増えたとき、どう並べるかは決めていません
+- DateRangePicker（2 か月を並べて期間を選ぶ形）は作っていません。[ADR-0133](./adr/0133-calendar-foundation.md) からの未決事項です
+- 面を開いたとき、フォーカスを面の中へ移します（`trapFocus`）。TimePicker（下）は移しません。意図して分けていますが、理由をまだ書き残していません
+- 面を持つ入力欄（DatePicker・TimePicker）に、重なる部品が持つ props（`sheetDetent`・`dismissible`・`onOpenChangeComplete`）を持たせるかは決めていません（[ADR-0251](./adr/0251-overlay-base-ui-props.md)）。いまはどちらも持たず、シートの高さは画面いっぱい、外を押すと閉じます（原則にない判断の候補）
+- 面の読み上げの名前を何から取るかは、原則で決めていません（原則にない判断の候補）。いまは DatePicker・TimePicker とも欄のラベル（`label`・`accessibleName`）から取り、組み立て（`DatePickerControl`・`TimePickerControl`）で Field にラベルがないときは開く口の名前（`triggerName`）にしています。TimePicker の 1 列の一覧（listbox）の名前は、面と同じ文を二度読ませないよう開く口の名前にしています
+- 組み立て（`DatePickerControl`・`TimePickerControl`）では、開いているあいだ欄をフォーカス中と同じ見た目に保つクラスが付きません。DatePicker・TimePicker は、包む Field に付けています。本体の側に持たせるかは決めていません
+
+### TimePicker
+
+2026-09-30 に作りました。決定は [ADR-0379](./adr/0379-time-picker-foundation.md)〜[ADR-0383](./adr/0383-time-picker-popup-width.md) です。
+
+- 消去のボタン（値を空にする ×、DatePicker の `clearable`）と、開く口のアイコンを差し替える口（DatePicker の `icon`）は、まだ持たせていません。兄弟の DatePicker は両方を持つので、そろえるかを決めます。消去のボタンを付けるときは、DatePicker と同じ並び（[ADR-0374](./adr/0374-date-picker-clear-button.md) の A。× を時計のボタンの左に、値があるときだけ出す）にします
+- 列の形（`variant="columns"`）の時の列（いちばん小さい単位でない列）の項目は、押しても面を閉じないのに、押したときに沈みません。押して値だけが変わる項目に押した手応えを返すかは、[原則 3](./principles.md#3-hover-は手応え押すと沈む) で決まっていません（原則にない判断の候補）
+- アナログ時計のような見た目は作っていません。需要が出たら検討します
+- 細かい `minuteStep`（1 分刻みなど）のための仮想化は作っていません。いまは開発中の警告と、列の形（`variant="columns"`）への案内だけです（[ADR-0379](./adr/0379-time-picker-foundation.md)）
+- 面を開いても、フォーカスを面の中へ移しません（DatePicker と違い `trapFocus` を持たない）。意図して分けていますが、理由をまだ書き残していません
+
+### SegmentedControl
+
+2026-09-30〜10-01 に作りました。決定は [ADR-0384](./adr/0384-segmented-control-foundation.md)〜[ADR-0389](./adr/0389-segmented-control-divider.md) です。
+
+- グレーの地に置くときは `frame="outline"` を勧める文を Docs に書きましたが、部品が自分で置かれた地を読んで知らせる仕組みはありません。「色の面（Surface）」の節にある仕組みができたら、見直すかもしれません
+- 読み上げソフト（VoiceOver・NVDA など）での確かめは、まだしていません
+- 読み取り専用のカーソルは矢印（`default`）、Form の送信中は禁止の形にしました。Radio の方針（読み取り専用はカーソルを禁止の形にしない）に合わせましたが、この部品で決めた記録はありません
+- 項目を並べ替えたとき（溝の大きさが変わらないとき）に下地を置き直すことは、play で確かめられていません。外された項目の大きさの見張りも解いていないので、項目が何度も入れ替わる使い方で溜まらないかは見ていません
+
 ## レシピの案
 
 - レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:
@@ -553,6 +584,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - チェックボックスやスイッチを切り替えたときに色がちらつく件: スイッチのトラックは直しました（[ADR-0112](./adr/0112-fill-transition-by-registered-property.md)）。Windows の GPU あり Chrome 153 の録画で、`background-color` の 100ms の移り変わりの最後の 1 フレームに動かす前の色が出ていました（コンポジタで動かした色を主スレッドへ戻すときの取りこぼし）。`background-color` を transition で動かす要素はすべて、登録した変数を動かす形にしました。チェックボックスの箱は色を動かしていないので、チェックボックスで見えたものが同じ現象かは分かっていません（見えたら録画で確かめる）
 - タッチで速く押すと、Chrome は `:active` を離したあと（切り替わったあと）に 100〜150ms 付けることがあり、トグルのノブが滑りながら縮んで戻ります。押下を `:active` ではなく pointer イベント（pointerdown〜pointerup）で持つ直しを、レンダリングの件とは別に出します。チェックボックス・ラジオ・ボタンの `:active` も同じ
 - **見た目の比較テスト（`.storybook/visual-testing.md`）のしきい値が甘いかもしれません。** Sortable の項目の面を既定でグレーの塗り（`fill`）から白い面（`card`）に変えたとき（[ADR-0337](./adr/0337-sortable-surface.md)）、密度の一覧（`Sortable/密度`）と、レシピの基準画像（`Recipes/Sortable`）が、撮り直さないまま（古い基準画像のまま）テストを通りました。設定は `allowedMismatchedPixels: 0`（1px も許さない）のはずなので、なぜ検出できなかったかを確かめます。撮影の対象から漏れていた（`tags: ['visual']` の範囲やストーリー ID の変化）か、既定値の変更が基準画像を撮ったときのストーリーの分岐に届いていなかった可能性があります
+- Button の「アイコンだけ」の基準画像が、1px だけずれて落ちることがあります（2026-09-30、DatePicker・TimePicker・SegmentedControl の PR で発生）。Button 自体は変えておらず、Button だけを撮り直すと通ります。しきい値か、撮影のタイミングの問題かは確かめていません
 
 ### サーバーで描く（Next.js）
 

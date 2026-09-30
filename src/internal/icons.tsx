@@ -86,9 +86,27 @@ export const MagnifyingGlassIcon = (props: IconProps) => (
   </Icon>
 );
 
+// 時計（Phosphor の Clock）。TimePicker の欄の右端の、時刻の一覧を開くボタン
+export const ClockIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="128" cy="128" r="96" />
+    <polyline points="128 72 128 128 184 128" />
+  </Icon>
+);
+
 export const CaretDownIcon = (props: IconProps) => (
   <Icon {...props}>
     <polyline points="208 96 128 176 48 96" />
+  </Icon>
+);
+
+// 暦（Phosphor の CalendarBlank）。DatePicker のカレンダーを開くボタン
+export const CalendarBlankIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="40" y="40" width="176" height="176" rx="8" />
+    <line x1="176" y1="24" x2="176" y2="56" />
+    <line x1="80" y1="24" x2="80" y2="56" />
+    <line x1="40" y1="88" x2="216" y2="88" />
   </Icon>
 );
 

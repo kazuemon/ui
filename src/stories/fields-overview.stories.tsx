@@ -12,7 +12,7 @@ import { TextField } from '../components/text-field/TextField';
 import { TimeField } from '../components/time-field/TimeField';
 import { Temporal } from '../internal/date/plain-date';
 import { DensityPair, Matrix } from './story-parts';
-import { type MatrixColumn, statePseudo } from './story-states';
+import { enabledControl, type MatrixColumn, statePseudo } from './story-states';
 
 // 文字を打つ欄をまとめて並べる一覧。欄どうしで、高さ・塗り・枠線・文字の大きさ・状態の見え方がそろっているかを見比べる
 // 各欄の細かい状態は、それぞれの部品のストーリーにある
@@ -141,7 +141,7 @@ export const States: Story = {
   name: '状態',
   tags: ['visual'],
   parameters: {
-    pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
+    pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
   },
   render: () => (
     <Matrix

@@ -926,6 +926,14 @@
   --popover-max-width: calc(var(--spacing) * 80);
   --popover-offset: var(--spacing);
 
+  /* TimePicker — 欄の右端のボタンで、時刻の一覧を開く。面と項目は Select の浮かぶ選択肢と同じ（ADR-0036・0053）
+     面は欄の右端にそろえ、欄より狭いときは欄の幅まで広げる。開いたときは選んでいる時刻（なければいまの時刻の近く）を一覧の中央へ送る
+     列の形（variant="columns"）の見出し・列のあいだの線・「完了」・選んだら閉じるかは props（showColumnHeading・hideColumnDivider・showDoneButton・closeOnSelect）
+     max-rows: 一覧の高さの上限（項目の数）。最後の項目を半分だけ見せ、続きがあることを示す
+     popup-padding: 一覧の内側の余白（列の見出し・「完了」の行も同じ）。Select の浮かぶ選択肢にそろえる */
+  --time-picker-max-rows: 7.5;
+  --time-picker-popup-padding: var(--select-popup-padding);
+
   /* Tooltip — ADR-0106
      面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（shadow={false} で外せる）
      文字は部品のキャプションと同じ大きさ。出るまでの時間と長押しの時間は、部品の props（delay・longPressDelay）で持つ */
@@ -1293,6 +1301,31 @@
   --toggle-off-hover-bg: var(--color-field-hover);
   --toggle-group-gap: calc(var(--spacing) * 2);
   /* ── END toggle */
+
+  /* ── SegmentedControl ── BEGIN segmented-control */
+  /* 必ずどれか 1 つを選ぶ切り替え（読み上げはラジオのグループ）。src/components/segmented-control
+     溝（track）の中に、選んだ項目の下地（つまみ）を 1 つだけ置き、選んだ項目の位置へ滑らせる（Tabs の印と同じ長さ・緩急。原則14）
+     全体の高さは部品の高さ（密度）。項目は溝の内側の余白の分だけ低く、角は溝の角から余白を引いた同心の角（原則5）
+     つまみの面（white の面・部品の色の塗り・淡い面）は variant、色は color が決め、部品の内部の CSS 変数に置く（ここには置かない）
+       溝の塗り・輪郭・角、項目の幅、仕切りの線は props（frame・shape・itemWidth・showDivider）が部品の中で決める
+       pad: 溝の内側の余白
+       neutral-subtle: 色なし（neutral）の淡い面のつまみ（variant="soft"）の塗り。hover の塗りより濃くし、押した瞬間に同じ色が滑ってこないようにする
+       knob-shadow: 白い面のつまみ（variant="surface"）の影
+       knob-duration・knob-ease: つまみが滑る長さと緩急。indicatorMotion="none" と、動きを減らす設定では動かさない
+       focus-offset: フォーカスの線と項目のあいだ。線が溝の内側の余白にちょうど収まる離れにする（濃い塗りのつまみでも線が溶けない）
+       divider-inset: 仕切りの線（showDivider）の上下の空き。項目の高さに対する割合で、線は真ん中の半分の高さになる */
+  --segmented-control-pad: var(--spacing);
+  --segmented-control-neutral-subtle: color-mix(
+    in oklab,
+    var(--color-neutral-strong) 35%,
+    var(--color-surface)
+  );
+  --segmented-control-knob-shadow: var(--shadow-switch-knob);
+  --segmented-control-knob-duration: var(--duration-normal);
+  --segmented-control-knob-ease: var(--ease-press);
+  --segmented-control-focus-offset: calc(var(--spacing) * 0.5);
+  --segmented-control-divider-inset: 25%;
+  /* ── END segmented-control */
 
   /* ── ButtonGroup — 2026-09-27 に作成。src/components/button-group ── BEGIN button-group */
   /* 複数の Button を視覚的に連結して並べる、選択状態を持たない組み合わせの部品。ToggleGroup の詰め方（frame。軸269）と
@@ -1856,6 +1889,15 @@
   --date-segment-focus-fg: var(--color-fg);
   --date-segment-focus-placeholder: var(--field-placeholder);
   /* ── END date-field */
+
+  /* ── DatePicker ── BEGIN date-picker */
+  /* カレンダーの面（浮かべる形）。面そのものは Popover と同じ（白・細い輪郭・--shadow-overlay）
+     「今日」のボタンは幅いっぱい。variant="button" の暦の印は右端（Select の ▼ と同じ）で、iconPlacement="start" で値の前
+     popup-padding   面の内側の余白。Popover の余白にそろえる
+     footer-gap      カレンダーと下の行（「今日」のボタン）のあいだ */
+  --date-picker-popup-padding: var(--popover-padding);
+  --date-picker-footer-gap: calc(var(--spacing) * 2);
+  /* ── END date-picker */
 
   /* ── HeadingAnchor — 軸 200・201 ── BEGIN heading-anchor */
   /* 見出しに付くページ内リンク。文字の仲間なので、大きさは見出しの文字に比例する（原則21）

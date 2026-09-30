@@ -5,7 +5,12 @@ import { expect, userEvent } from 'storybook/test';
 import { Field, FieldLabel, FieldMessages } from '../field/Field';
 import { PasswordField, PasswordFieldControl, type PasswordFieldProps } from './PasswordField';
 import { DensityPair, Matrix } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { props: Partial<PasswordFieldProps> };
 
@@ -90,7 +95,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
+    pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
     docs: {
       description: {
         story:

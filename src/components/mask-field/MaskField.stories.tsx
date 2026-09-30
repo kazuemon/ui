@@ -12,7 +12,12 @@ import {
   type MaskFieldValueDetails,
 } from './MaskField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  enabledControl,
+  type MatrixColumn,
+  sourceCode,
+  statePseudo,
+} from '../../stories/story-states';
 
 // 携帯電話・IP 電話（070・080・090・050）は 3-4-4、ほかは 2-4-4（市外局番の桁は地域で違うので、ここでは 2 桁の例）
 const phoneMask = (value: string) =>
@@ -112,7 +117,7 @@ export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    pseudo: statePseudo({ hover: '[data-slot="control"]', focusWithin: '[data-slot="control"]' }),
+    pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
     docs: {
       description: {
         story:
