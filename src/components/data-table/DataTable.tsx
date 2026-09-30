@@ -24,9 +24,12 @@ import { DataTableContext } from './data-table-context';
 //   セルの縦の寄せの既定は middle（選択の箱や行の操作と、文字の行をそろえる）
 //   選んだ行の面は color（選択の箱と同じ色）の淡い面。色を持たないときは Select の選んだ項目と同じグレー（原則6）
 //   並べ替えていない列の印（上下の山）は sortIndicator で出し方を選ぶ。既定の subtle は、ふだん半分の濃さで置き、載せると濃くする
+//   読み直し（refreshing）— 比較中（Design Review/425）: 行を残したまま、表に aria-busy を付ける。
+//     見せ方は --data-table-refreshing-*（本文の濃さと、表の上の端に流れる線の太さ）。線は Loading の流れる線と同じ動き
+//   開いた行（DataTableExpandRow）— 比較中（Design Review/426）: 親の行とのあいだの線・面・字下げは --data-table-expand-*
 const dataTable = tv({
   slots: {
-    root: 'flex min-w-0 flex-col gap-2',
+    root: 'relative flex min-w-0 flex-col gap-2',
     frame: '',
     table: [
       ...tableStyles.table,
@@ -40,6 +43,19 @@ const dataTable = tv({
       "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
       '[&_thead_th]:after:bg-linear-to-b [&_thead_th]:after:from-(color:--color-sheet-edge-shadow) [&_thead_th]:after:to-transparent',
       '[&_thead_th]:after:opacity-[var(--cue-top,0)]',
+      // 読み直しのあいだの本文の濃さ
+      '[&_tbody]:transition-opacity [&_tbody]:duration-(--duration-loading) motion-reduce:[&_tbody]:transition-none',
+      'data-refreshing:[&_tbody]:opacity-(--data-table-refreshing-opacity)',
+      // 開いた行: 親の行とのあいだの線と、開いているあいだの親の行の面
+      '[&_tbody_tr+tr[data-slot=data-table-expand-row]>*]:[border-top-width:var(--data-table-expand-line-width)]',
+      '[&_tbody_tr:has(+[data-slot=data-table-expand-row]:not([hidden]))]:[--data-table-row-rest:var(--data-table-expand-open-bg)]',
+    ],
+    // 読み直しの線。表の上の端に置く
+    refreshBar:
+      'pointer-events-none absolute inset-x-0 top-0 z-2 h-(--data-table-refreshing-bar-height) overflow-hidden',
+    refreshBarFill: [
+      'absolute inset-y-0 left-0 w-2/5 animate-loading-bar bg-(--data-table-refreshing-bar-color) opacity-60',
+      'motion-reduce:w-full motion-reduce:animate-loading-bar-reduced',
     ],
     caption: 'text-body-sm text-fg-subtle',
   },
@@ -134,6 +150,12 @@ export interface DataTableProps extends Omit<ComponentProps<'table'>, 'color'> {
    * @default false
    */
   loading?: boolean;
+  /**
+   * 読み直し中にします。行を残したまま、表に aria-busy を付け、読み直していることを見せます。
+   * 並べ替え・ページ送りのあと、新しい行が届くまでに使います（最初の読み込みは loading）
+   * @default false
+   */
+  refreshing?: boolean;
   /** 表の説明。表の下に小さく出し、表とスクロールの枠の名前にもします */
   caption?: ReactNode;
   /** caption を出さないときの、表の名前（読み上げ用）。スクロールの枠の名前にもなります */
@@ -156,6 +178,7 @@ export function DataTable({
   sortIndicator,
   maxHeight,
   loading,
+  refreshing,
   caption,
   accessibleName,
   className,
@@ -195,12 +218,18 @@ export function DataTable({
             className={styles.table()}
             aria-labelledby={labelledBy}
             aria-label={ariaLabel}
-            aria-busy={loading || undefined}
+            aria-busy={loading || refreshing || undefined}
+            data-refreshing={refreshing || undefined}
             {...props}
           >
             {children}
           </table>
         </ScrollFrame>
+        {refreshing && (
+          <span aria-hidden className={styles.refreshBar()} data-slot="data-table-refreshing">
+            <span className={styles.refreshBarFill()} />
+          </span>
+        )}
         {caption == null ? null : (
           <figcaption id={captionId} className={styles.caption()}>
             {caption}

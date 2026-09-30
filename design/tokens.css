@@ -2093,6 +2093,27 @@
   --status-panel-description-width: 40ch;
   /* ── END status-panel */
 
+  /* ── Table（比較中）── BEGIN table */
+  /* 表。src/components/table。罫線・余白・文字は src/internal/reading/table.ts
+     比べるための値。いまは現行版（見た目なし）にしておき、決まったら部品で決まった値に畳む
+     foot-*: 合計の行（TableFoot）の上の線・文字の太さ・面 — 軸 421
+     sm-*: 詰めた余白（size="sm"）のセルの余白と文字（マウス・指） — 軸 422
+     stripe-*: 縞（showStripes）の偶数行の面と、縞のときの行のあいだの線の太さ — 軸 423 */
+  --table-foot-line-width: 0px;
+  --table-foot-line-style: solid;
+  --table-foot-line-color: var(--color-line);
+  --table-foot-weight: 400;
+  --table-foot-bg: transparent;
+  --table-sm-cell-px: calc(var(--spacing) * 3); /* 12px */
+  --table-sm-cell-py: calc(var(--spacing) * 2); /* 8px */
+  --table-sm-text-fine: var(--text-body-fine);
+  --table-sm-text-coarse: var(--text-body-coarse);
+  --table-sm-leading-fine: var(--leading-body-fine);
+  --table-sm-leading-coarse: var(--leading-body-coarse);
+  --table-stripe-bg: transparent;
+  --table-stripe-line-width: var(--border-width-thin);
+  /* ── END table */
+
   /* ── DataTable — ADR-0343〜0349 ── BEGIN data-table */
   /* データの表。src/components/data-table。罫線・見出し・余白・文字は Table と同じ（ADR-0090）
      sort-subtle-opacity: 並べ替えていない列の印（上下の山）を、ふだん淡く置くとき（sortIndicator="subtle"。既定）の濃さ。
@@ -2104,6 +2125,30 @@
   --data-table-sort-subtle-opacity: 0.5;
   --data-table-row-hover: var(--color-field);
   --data-table-row-selected-hover-mix: 6%;
+  /* 比べるための値（比較中）。いまは現行版（見た目なし）にしておき、決まったら部品で決まった値に畳む
+     row-{muted,warning,danger}-*: 行の状態（status）の文字の色・面・左端の線の色。status-edge-width は左端の線の太さ — 軸 424
+     refreshing-*: 読み直し（refreshing）の本文の濃さと、表の上の端に流れる線の太さ・色 — 軸 425
+     expand-*: 開いた行（DataTableExpandRow）の面・親の行とのあいだの線の太さ・中身の字下げ・開いているあいだの親の行の面 — 軸 426
+     row-link-*: 行のリンク（href）の文字の色・下線（ふだん・行に載せたとき）と、行を押したときの面 — 軸 427 */
+  --data-table-row-muted-fg: var(--color-fg);
+  --data-table-row-warning-fg: var(--color-fg);
+  --data-table-row-warning-bg: transparent;
+  --data-table-row-warning-edge: var(--color-warning);
+  --data-table-row-danger-fg: var(--color-fg);
+  --data-table-row-danger-bg: transparent;
+  --data-table-row-danger-edge: var(--color-danger);
+  --data-table-row-status-edge-width: 0px;
+  --data-table-refreshing-opacity: 1;
+  --data-table-refreshing-bar-height: 0px;
+  --data-table-refreshing-bar-color: var(--color-neutral-strong);
+  --data-table-expand-bg: transparent;
+  --data-table-expand-line-width: var(--border-width-thin);
+  --data-table-expand-indent: 0px;
+  --data-table-expand-open-bg: transparent;
+  --data-table-row-link-color: currentColor;
+  --data-table-row-link-decoration: none;
+  --data-table-row-link-hover-decoration: none;
+  --data-table-row-link-press: var(--data-table-row-hover);
   /* ── END data-table */
 
   /* ── Sortable — ADR-0336〜0342 ── BEGIN sortable */
