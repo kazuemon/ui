@@ -11,10 +11,8 @@ import {
 } from 'react';
 
 import { DateField, type DateFieldBaseProps, type DateFieldProps } from '../date-field/DateField';
-import { FieldAddonButton } from '../field-addon/FieldAddon';
 import { DatePickerClearLayoutContext } from './clear-layout';
 import { type DatePickerCalendarProps, DatePickerPanel } from './DatePickerPanel';
-import { PickerOverlay } from './PickerOverlay';
 import { DEFAULT_DATE_FORMAT } from '../../internal/date/format-date';
 import { type PlainDate, Temporal, toDate, todayIn } from '../../internal/date/plain-date';
 import { useLocale } from '../../internal/date/use-locale';
@@ -25,6 +23,11 @@ import { type FieldNamed, splitFieldProps } from '../../internal/field/input-fie
 import { useFormSubmittingLock } from '../../internal/form-context';
 import { CalendarBlankIcon, XIcon } from '../../internal/icons';
 import type { PopupProps } from '../../internal/overlay/overlay-props';
+import {
+  PickerOverlay,
+  PickerTriggerButton,
+  pickerOpenLook,
+} from '../../internal/picker/PickerOverlay';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { cn } from '../../internal/tv';
 
@@ -43,16 +46,6 @@ export type { DatePickerCalendarProps } from './DatePickerPanel';
 
 /** 見た目の型。field は打ち込める欄＋カレンダーのボタン、button は打てない表示のボタン */
 export type DatePickerVariant = 'field' | 'button';
-
-// 開いているあいだ、欄をフォーカス中と同じ見た目にする（Select の開いているあいだと同じ）
-//   field: 開く口（suffix のボタン）が aria-expanded を持つ欄の外枠
-//   button: 開く口そのものが欄の外枠
-const openLook = [
-  '[&_[data-slot=control]:has([aria-expanded=true])]:border-[color:var(--control-focus-line,var(--color-focus))]',
-  '[&_[data-slot=control]:has([aria-expanded=true])]:[--control-bg:var(--color-field-focus)]',
-  '[&_[data-slot=control][aria-expanded=true]]:border-[color:var(--control-focus-line,var(--color-focus))]',
-  '[&_[data-slot=control][aria-expanded=true]]:[--control-bg:var(--color-field-focus)]',
-];
 
 interface DatePickerOwnProps {
   /**
@@ -230,7 +223,7 @@ export function DatePicker(props: DatePickerProps) {
   // 値を消すボタン。置き方は軸 392 で比べている途中（clear-layout.ts）
   const clearLayout = use(DatePickerClearLayoutContext);
   const clearButton = clearable && (value != null || clearLayout.whenEmpty === 'disabled') && (
-    <PickerAddonButton
+    <PickerTriggerButton
       aria-label={clearName}
       disabled={value == null || undefined}
       onClick={(event) => {
@@ -243,7 +236,7 @@ export function DatePicker(props: DatePickerProps) {
       }}
     >
       <XIcon standalone />
-    </PickerAddonButton>
+    </PickerTriggerButton>
   );
 
   const title = props.label ?? props.accessibleName;
@@ -279,12 +272,14 @@ export function DatePicker(props: DatePickerProps) {
       }}
       panel={panel}
       closeName={closeName}
+      // フォーカスを面の中に閉じ込める（WAI-ARIA の日付選びのダイアログと同じ）。フォーカスはカレンダーが選んだ日か今日へ移す
+      trapFocus
     >
       {(renderTrigger) =>
         variant === 'button' ? (
           <DatePickerButtonField
             {...fieldProps}
-            className={cn(openLook, fieldProps.className)}
+            className={cn(pickerOpenLook, fieldProps.className)}
             value={value}
             locale={locale}
             placeholder={placeholder}
@@ -303,7 +298,7 @@ export function DatePicker(props: DatePickerProps) {
         ) : (
           <DateField
             {...(fieldProps as DateFieldProps)}
-            className={cn(openLook, fieldProps.className)}
+            className={cn(pickerOpenLook, fieldProps.className)}
             value={value}
             onValueChange={changeValue}
             suffix={
@@ -311,7 +306,7 @@ export function DatePicker(props: DatePickerProps) {
                 <>
                   {clearLayout.position === 'before-trigger' && clearButton}
                   {renderTrigger(
-                    <PickerAddonButton aria-label={triggerName}>{icon}</PickerAddonButton>
+                    <PickerTriggerButton aria-label={triggerName}>{icon}</PickerTriggerButton>
                   )}
                   {clearLayout.position === 'end' && clearButton}
                 </>
@@ -322,12 +317,6 @@ export function DatePicker(props: DatePickerProps) {
       }
     </PickerOverlay>
   );
-}
-
-// 欄の端のボタン。欄を止めているあいだ（待っている・送信中）は、値を変えるので一緒に止める（ADR-0168）
-function PickerAddonButton({ disabled, ...props }: ComponentProps<typeof FieldAddonButton>) {
-  const field = useFieldState();
-  return <FieldAddonButton {...props} disabled={disabled || field?.blocking || undefined} />;
 }
 
 interface DatePickerButtonFieldProps extends Omit<DatePickerBaseProps, 'value'> {

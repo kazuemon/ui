@@ -1,9 +1,7 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { FieldAddonButton } from '../field-addon/FieldAddon';
-import { Popover } from '../popover/Popover';
 import {
   TimeFieldControlInner,
   type TimeFieldControlInnerProps,
@@ -14,7 +12,7 @@ import { DEFAULT_COLUMN_NAMES, isOutOfRange, type TimePickerColumnNames } from '
 import { timeLayout } from '../../internal/date-segments/segments';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
 import { useLocale } from '../../internal/date/use-locale';
-import { Field, useFieldState } from '../../internal/field/Field';
+import { Field } from '../../internal/field/Field';
 import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -25,7 +23,13 @@ import { ClockIcon } from '../../internal/icons';
 import { warnOnce } from '../../internal/link-parts';
 import { selectedTokens } from '../../internal/listbox/listbox-colors';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
+import {
+  PickerOverlay,
+  PickerTriggerButton,
+  pickerOpenLook,
+} from '../../internal/picker/PickerOverlay';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
+import { cn } from '../../internal/tv';
 
 export type { TimePickerVariant } from './TimePickerPanel';
 export type { TimePickerColumnNames } from './time-options';
@@ -109,15 +113,6 @@ export interface TimePickerControlProps extends Omit<
   positionerProps?: PositionerProps;
 }
 
-// 開いているあいだ、Base UI は開いたボタンのすぐ後ろに見えない要素（フォーカスの見張り）を置く。
-// ボタンが欄の最後の子でなくなり、FieldAddon の last: の形（右端の角と、欄の枠線の場所の線）が外れるので、同じ形をいつも付ける
-const LAST_ADDON = [
-  '[margin-inline-end:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
-  '[border-inline-end-width:var(--addon-edge)] [border-inline-end-color:inherit]',
-  '[border-start-end-radius:var(--addon-radius)] [border-end-end-radius:var(--addon-radius)]',
-  '[border-start-start-radius:var(--addon-radius-inner)] [border-end-start-radius:var(--addon-radius-inner)]',
-].join(' ');
-
 type TimePickerControlInnerProps = TimePickerControlProps &
   Pick<TimeFieldControlInnerProps, 'onHalfWidth'>;
 
@@ -172,7 +167,6 @@ function TimePickerControlInner({
   locale: localeProp,
   ...field
 }: TimePickerControlInnerProps) {
-  const state = useFieldState();
   // 1 列の形は刻みごとの時刻をすべて描く。5 分より細かいと項目が多すぎて重いので、列の形を勧める
   if (variant === 'list' && minuteStep < 5)
     warnOnce(
@@ -192,88 +186,85 @@ function TimePickerControlInner({
   );
   const listLayout = useMemo(() => timeLayout(locale, { hourCycle }), [locale, hourCycle]);
   const names = { ...DEFAULT_COLUMN_NAMES, ...columnNames };
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  // 値を変える操作なので、欄を止めているあいだ（待っているあいだの blocking・Form の送信中）は押せない（原則14）
-  // 押せない欄では FieldAddonButton が欄の disabled を受け継ぐ
-  const locked = state?.blocking ?? false;
-  const { style: popupStyle, ...restPopupProps } = popupProps ?? {};
+  const { className: popupClassName, style: popupStyle, ...restPopupProps } = popupProps ?? {};
 
-  return (
-    <TimeFieldControlInner
-      {...field}
+  const panel = (
+    <TimePickerPanel
+      variant={variant}
+      layout={layout}
+      listLayout={listLayout}
       value={value}
-      onValueChange={setValue}
-      color={color}
-      readOnly={readOnly}
-      hourCycle={hourCycle}
-      showSeconds={showSeconds}
+      now={Temporal.Now.plainTimeISO(timeZone)}
       minuteStep={minuteStep}
+      showSeconds={showSeconds}
       min={min}
       max={max}
-      locale={localeProp}
-      // 読み取り専用では、値を変える一覧を開くボタンを置かない（消去のボタンと同じ — ADR-0168・0187）
-      suffix={
-        readOnly ? undefined : (
-          <Popover
-            trigger={
-              <FieldAddonButton
-                ref={buttonRef}
-                className={LAST_ADDON}
-                aria-label={pickerName}
-                disabled={locked || undefined}
-              >
-                <ClockIcon standalone />
-              </FieldAddonButton>
-            }
-            title={pickerName}
-            hideTitle
-            open={open}
-            onOpenChange={changeOpen}
-            side="bottom"
-            // 欄の外枠を基準に、右端（開いたボタンの側）にそろえる
-            align="end"
-            presentation={presentation}
-            portalContainer={portalContainer}
-            positionerProps={{
-              anchor: () =>
-                buttonRef.current?.closest<HTMLElement>('[data-slot="control"]') ?? null,
-              ...positionerProps,
-            }}
-            popupProps={{
-              ...restPopupProps,
-              style: { ...selectedTokens(color), ...popupStyle },
-            }}
-            // 面は Popover のまま、余白は項目の一覧が持つ（Select の浮かぶ選択肢と同じ）
-            // 幅は中身の幅で、--time-picker-popup-fill が 1 のときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）
-            className="w-max min-w-[calc(var(--anchor-width)*var(--time-picker-popup-fill))] overflow-clip [--popover-max-width:100vw] [--popover-padding:0px]"
-          >
-            <TimePickerPanel
-              variant={variant}
-              layout={layout}
-              listLayout={listLayout}
-              value={value}
-              now={Temporal.Now.plainTimeISO(timeZone)}
-              minuteStep={minuteStep}
-              showSeconds={showSeconds}
-              min={min}
-              max={max}
-              columnNames={names}
-              listName={pickerName}
-              doneLabel={doneLabel}
-              closeOnSelect={closeOnSelect}
-              showDoneButton={showDoneButton}
-              hideColumnDivider={hideColumnDivider}
-              showColumnHeading={showColumnHeading}
-              onPick={(next, close) => {
-                setValue(next);
-                if (close) changeOpen(false);
-              }}
-              onDone={() => changeOpen(false)}
-            />
-          </Popover>
-        )
-      }
+      columnNames={names}
+      listName={pickerName}
+      doneLabel={doneLabel}
+      closeOnSelect={closeOnSelect}
+      showDoneButton={showDoneButton}
+      hideColumnDivider={hideColumnDivider}
+      showColumnHeading={showColumnHeading}
+      onPick={(next, close) => {
+        setValue(next);
+        if (close) changeOpen(false);
+      }}
+      onDone={() => changeOpen(false)}
     />
+  );
+
+  return (
+    <PickerOverlay
+      open={open}
+      onOpenChange={changeOpen}
+      title={pickerName}
+      presentation={presentation}
+      portalContainer={portalContainer}
+      positionerProps={positionerProps}
+      // 欄の右端（開いたボタンの側）にそろえる
+      align="end"
+      // 開いたら、選んでいる時刻（なければいまの時刻の近く）の項目へ Base UI がフォーカスを移す（その項目だけが tabIndex=0）
+      moveFocus
+      popupProps={{
+        ...restPopupProps,
+        style: { ...selectedTokens(color), ...popupStyle },
+        // 余白は項目の一覧が持つ（Select の浮かぶ選択肢と同じ）
+        // 幅は中身の幅で、--time-picker-popup-fill が 1 のときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）
+        className: cn(
+          'w-max min-w-[calc(var(--anchor-width)*var(--time-picker-popup-fill))] overflow-clip',
+          popupClassName
+        ),
+      }}
+      panel={panel}
+      closeName="閉じる"
+    >
+      {(renderTrigger) => (
+        <TimeFieldControlInner
+          {...field}
+          value={value}
+          onValueChange={setValue}
+          color={color}
+          readOnly={readOnly}
+          hourCycle={hourCycle}
+          showSeconds={showSeconds}
+          minuteStep={minuteStep}
+          min={min}
+          max={max}
+          locale={localeProp}
+          // 読み取り専用では、値を変える一覧を開くボタンを置かない（消去のボタンと同じ — ADR-0168・0187）
+          suffix={
+            readOnly
+              ? undefined
+              : renderTrigger(
+                  <PickerTriggerButton aria-label={pickerName}>
+                    <ClockIcon standalone />
+                  </PickerTriggerButton>
+                )
+          }
+        />
+      )}
+    </PickerOverlay>
   );
 }
 
@@ -309,7 +300,14 @@ export function TimePicker(props: TimePickerProps) {
   );
   const outOfRange = isOutOfRange(value, control.min, control.max);
   return (
-    <Field {...field} info={field.info ?? notice} invalid={outOfRange} nativeLabel={false}>
+    <Field
+      {...field}
+      // 開いているあいだ、欄をフォーカス中と同じ見た目にする（DatePicker・Select と同じ）
+      className={cn(pickerOpenLook, field.className)}
+      info={field.info ?? notice}
+      invalid={outOfRange}
+      nativeLabel={false}
+    >
       {() => (
         <TimePickerControlInner
           {...control}

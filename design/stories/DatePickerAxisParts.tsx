@@ -1,6 +1,6 @@
 import { DatePicker } from '../../src/components/date-picker/DatePicker';
 import { DatePickerPanel } from '../../src/components/date-picker/DatePickerPanel';
-import { pickerPopupClass } from '../../src/components/date-picker/PickerOverlay';
+import { popupSurfaceClass } from '../../src/internal/overlay/popup-styles';
 import { type PlainDate, Temporal } from '../../src/internal/date/plain-date';
 import { cn } from '../../src/internal/tv';
 
@@ -26,7 +26,9 @@ export function OpenPicker({
   return (
     <div className="flex w-[320px] flex-col gap-1">
       <DatePicker label="予約日" today={today} defaultValue={value} />
-      <div className={cn(pickerPopupClass, 'w-fit p-(--date-picker-popup-padding)')}>
+      <div
+        className={cn(popupSurfaceClass, 'shadow-overlay', 'w-fit p-(--date-picker-popup-padding)')}
+      >
         <DatePickerPanel
           value={value}
           onPick={() => {}}
