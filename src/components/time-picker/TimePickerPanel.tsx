@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react';
 import { Button } from '../button/Button';
 import { TimeListbox } from './TimeListbox';
 import {
-  isOutOfRange,
   listKeyOf,
   listOptions,
   nearestIndex,
@@ -15,6 +14,7 @@ import {
 import type { TimeLayout, TimeSegmentType } from '../../internal/date-segments/segments';
 import { fromPlainTime } from '../../internal/date-segments/segments';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
+import { isTimeOutOfRange } from '../../internal/date/range';
 import { tv } from '../../internal/tv';
 
 /** 一覧の出し方。list は step ごとの時刻を 1 列に並べ、columns は時・分（午前・午後）を別々の列にします */
@@ -124,7 +124,8 @@ export function TimePickerPanel({
   const columns = timeColumns(layout, value, minuteStep, showSeconds);
   const nowColumns = timeColumns(layout, roundTo(now, minuteStep), minuteStep, showSeconds);
   const smallest: TimeSegmentType = showSeconds ? 'second' : 'minute';
-  const outOfRange = isOutOfRange(value, min, max);
+  // 列の形は項目を止めず、選んだ結果が外なら欄をエラーの見た目にする
+  const outOfRange = isTimeOutOfRange(value, min, max);
   const s = columnsPanel({ divider: !hideColumnDivider });
   return (
     <div

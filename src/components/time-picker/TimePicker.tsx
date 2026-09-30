@@ -2,15 +2,16 @@
 
 import { useMemo, useState } from 'react';
 
+import { TimePickerPanel, type TimePickerVariant } from './TimePickerPanel';
+import { DEFAULT_COLUMN_NAMES, type TimePickerColumnNames } from './time-options';
+import { timeLayout } from '../../internal/date-segments/segments';
 import {
   TimeFieldControlInner,
   type TimeFieldControlInnerProps,
   type TimeFieldControlProps,
-} from '../time-field/TimeField';
-import { TimePickerPanel, type TimePickerVariant } from './TimePickerPanel';
-import { DEFAULT_COLUMN_NAMES, isOutOfRange, type TimePickerColumnNames } from './time-options';
-import { timeLayout } from '../../internal/date-segments/segments';
+} from '../../internal/date-segments/TimeFieldControlInner';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
+import { isTimeOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
 import { Field } from '../../internal/field/Field';
 import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
@@ -295,7 +296,7 @@ export function TimePicker(props: TimePickerProps) {
     control.defaultValue,
     control.onValueChange
   );
-  const outOfRange = isOutOfRange(value, control.min, control.max);
+  const outOfRange = isTimeOutOfRange(value, control.min, control.max);
   return (
     <Field
       {...field}

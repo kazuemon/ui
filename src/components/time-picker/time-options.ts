@@ -5,6 +5,7 @@ import {
   type TimeSegmentType,
 } from '../../internal/date-segments/segments';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
+import { isTimeInRange } from '../../internal/date/range';
 
 /** 列の形の、列ごとの読み上げの名前（と、見出しを出すときの文字） */
 export type TimePickerColumnNames = Partial<Record<TimeSegmentType, string>>;
@@ -29,13 +30,6 @@ const MINUTES_PER_DAY = 24 * 60;
 /** 刻みを 1〜1440 分の整数に収める（0 や負の数で止まらないように） */
 export function normalizeStep(step: number) {
   return Math.min(MINUTES_PER_DAY, Math.max(1, Math.round(step) || 1));
-}
-
-function inRange(time: PlainTime, min?: PlainTime, max?: PlainTime) {
-  return (
-    (min == null || Temporal.PlainTime.compare(time, min) >= 0) &&
-    (max == null || Temporal.PlainTime.compare(time, max) <= 0)
-  );
 }
 
 /** 欄と同じ並び・記号で、時刻を文字にする（ja-JP の 24 時間制で「09:30」、12 時間制で「午前9:30」） */
@@ -66,7 +60,7 @@ export function listOptions(
     options.push({
       key: time.toString({ smallestUnit: 'minute' }),
       label: formatTime(time, layout, false),
-      disabled: !inRange(time, min, max),
+      disabled: !isTimeInRange(time, min, max),
       time,
     });
   }
@@ -159,9 +153,4 @@ export function withColumn(
     hour = base + (values.dayPeriod === 1 ? 12 : 0);
   }
   return Temporal.PlainTime.from({ hour, minute: values.minute ?? 0, second: values.second ?? 0 });
-}
-
-/** 範囲の外か（列の形は項目を止めず、選んだ結果が外なら欄をエラーの見た目にする） */
-export function isOutOfRange(value: PlainTime | null, min?: PlainTime, max?: PlainTime) {
-  return value != null && !inRange(value, min, max);
 }

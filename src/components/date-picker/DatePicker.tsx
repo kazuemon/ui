@@ -6,7 +6,8 @@ import { type ComponentProps, type ReactElement, type ReactNode, useId, useState
 import { DateField, type DateFieldBaseProps, type DateFieldProps } from '../date-field/DateField';
 import { type DatePickerCalendarProps, DatePickerPanel } from './DatePickerPanel';
 import { DEFAULT_DATE_FORMAT } from '../../internal/date/format-date';
-import { type PlainDate, Temporal, toDate, todayIn } from '../../internal/date/plain-date';
+import { type PlainDate, toDate, todayIn } from '../../internal/date/plain-date';
+import { isDateOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
 import { dateSegmentColorClass } from '../../internal/date-segments/colors';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
@@ -143,14 +144,6 @@ export type DatePickerBaseProps = Omit<DateFieldBaseProps, 'suffix'> & DatePicke
 
 /** DatePicker の props。label か accessibleName のどちらかが要ります */
 export type DatePickerProps = FieldNamed<DatePickerBaseProps>;
-
-function isOutOfRange(current: PlainDate | null, min?: PlainDate, max?: PlainDate) {
-  return (
-    current != null &&
-    ((min != null && Temporal.PlainDate.compare(current, min) < 0) ||
-      (max != null && Temporal.PlainDate.compare(current, max) > 0))
-  );
-}
 
 /**
  * 日付を選ぶ欄。年・月・日を打ち込むことも、右端のボタンで開くカレンダーから選ぶこともできます。
@@ -327,7 +320,7 @@ interface DatePickerButtonFieldProps extends Omit<DatePickerBaseProps, 'value'> 
 function DatePickerButtonField({ value, min, max, ...props }: DatePickerButtonFieldProps) {
   const [field, control] = splitFieldProps(props);
   return (
-    <Field {...field} invalid={isOutOfRange(value, min, max)} nativeLabel={false}>
+    <Field {...field} invalid={isDateOutOfRange(value, min, max)} nativeLabel={false}>
       {(describedBy) => <DatePickerButton {...control} value={value} describedBy={describedBy} />}
     </Field>
   );
