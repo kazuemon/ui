@@ -37,12 +37,11 @@ const fieldAddon = tv({
     'first:[border-inline-start-width:var(--addon-edge)] first:[border-inline-start-color:inherit]',
     'first:[border-start-start-radius:var(--addon-radius)] first:[border-end-start-radius:var(--addon-radius)]',
     'first:[border-start-end-radius:var(--addon-radius-inner)] first:[border-end-end-radius:var(--addon-radius-inner)]',
-    // suffix（本体の最後の子）。重なる面を開くボタンにしたとき、Base UI が開いているあいだボタンの後ろに置く
-    // 見えない span（フォーカスの番人。data-base-ui-focus-guard）は数えない（:last-child では、開くと右端の角と線が外れる）
-    '[&:not(:has(~:not([data-base-ui-focus-guard])))]:[margin-inline-end:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
-    '[&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-inline-end-width:var(--addon-edge)] [&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-inline-end-color:inherit]',
-    '[&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-start-end-radius:var(--addon-radius)] [&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-end-end-radius:var(--addon-radius)]',
-    '[&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-start-start-radius:var(--addon-radius-inner)] [&:not(:has(~:not([data-base-ui-focus-guard])))]:[border-end-start-radius:var(--addon-radius-inner)]',
+    // suffix（本体の最後の子）。重なる面を開くボタンの後ろに Base UI が置くフォーカスの番人は数えない（field-addon-last は theme.css）
+    'field-addon-last:[margin-inline-end:calc(var(--addon-inset)-var(--field-addon-pad,0px))]',
+    'field-addon-last:[border-inline-end-width:var(--addon-edge)] field-addon-last:[border-inline-end-color:inherit]',
+    'field-addon-last:[border-start-end-radius:var(--addon-radius)] field-addon-last:[border-end-end-radius:var(--addon-radius)]',
+    'field-addon-last:[border-start-start-radius:var(--addon-radius-inner)] field-addon-last:[border-end-start-radius:var(--addon-radius-inner)]',
   ],
   variants: {
     kind: {

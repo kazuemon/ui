@@ -220,6 +220,13 @@
 }
 
 /*
+ * 入力欄の本体（controlBox）の最後の子（FieldAddon の suffix の角と線）
+ * 重なる面を開くボタンにしたとき、Base UI が開いているあいだボタンの後ろに置く見えない span（フォーカスの番人。data-base-ui-focus-guard）は数えない。
+ * :last-child では、開くと右端の角と線が外れる
+ */
+@custom-variant field-addon-last (&:not(:has(~ :not([data-base-ui-focus-guard]))));
+
+/*
  * 大きい指用（design/adr/0045）: class="coarse-large" を付けた要素の中は、指用の高さを 52px にする
  *   html に付けるとアプリ全体、ほかの要素に付けるとその中だけ。Select の選択肢は body の直下に出るが、開くときに本体の祖先のクラスを写すので、その中だけでも効く
  *   変わるのは --spacing-control を読むもの（ボタン・入力欄・Select の本体と選択肢・枠線のリンク・トグルの行）の高さと、
