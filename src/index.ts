@@ -378,6 +378,21 @@ export {
   type RadioProps,
 } from './components/radio/Radio';
 export {
+  SegmentedControl,
+  type SegmentedControlBaseProps,
+  type SegmentedControlColor,
+  SegmentedControlControl,
+  type SegmentedControlControlProps,
+  type SegmentedControlFrame,
+  type SegmentedControlIndicatorMotion,
+  SegmentedControlItem,
+  type SegmentedControlItemProps,
+  type SegmentedControlItemWidth,
+  type SegmentedControlProps,
+  type SegmentedControlShape,
+  type SegmentedControlVariant,
+} from './components/segmented-control/SegmentedControl';
+export {
   ScrollArea,
   type ScrollAreaOrientation,
   type ScrollAreaProps,
@@ -740,6 +755,13 @@ export {
   type SegmentPlaceholder,
 } from './components/date-field/DateField';
 export {
+  DatePicker,
+  type DatePickerBaseProps,
+  type DatePickerCalendarProps,
+  type DatePickerProps,
+  type DatePickerVariant,
+} from './components/date-picker/DatePicker';
+export {
   TimeField,
   type TimeFieldBaseProps,
   TimeFieldControl,
@@ -747,6 +769,15 @@ export {
   type TimeFieldProps,
 } from './components/time-field/TimeField';
 export type { DateSegmentColor } from './internal/date-segments/colors';
+export {
+  TimePicker,
+  type TimePickerBaseProps,
+  type TimePickerColumnNames,
+  TimePickerControl,
+  type TimePickerControlProps,
+  type TimePickerProps,
+  type TimePickerVariant,
+} from './components/time-picker/TimePicker';
 export {
   VisuallyHidden,
   type VisuallyHiddenProps,

@@ -89,8 +89,11 @@ export interface TimeFieldControlProps extends Pick<
   className?: string;
 }
 
-/** 本体の中だけで使う口。内蔵の形（TimeField）が、全角を直したことを Field の info に渡すために使います */
-interface TimeFieldControlInnerProps extends TimeFieldControlProps {
+/**
+ * 本体の中だけで使う口。内蔵の形（TimeField・TimePicker）が、全角を直したことを Field の info に渡すために使います。
+ * 公開の入口には並べません
+ */
+export interface TimeFieldControlInnerProps extends TimeFieldControlProps {
   onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
 }
 
@@ -112,7 +115,7 @@ export function TimeFieldControl(props: TimeFieldControlProps) {
   return <TimeFieldControlInner {...props} />;
 }
 
-function TimeFieldControlInner({
+export function TimeFieldControlInner({
   hideSuccessMark = false,
   readOnly,
   autoFocus,

@@ -8,6 +8,7 @@ import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   CaretDownIcon,
+  ClockIcon,
   CaretUpIcon,
   MagnifyingGlassIcon,
   MinusIcon,
@@ -56,6 +57,12 @@ const entries: Entry[] = [
     regular: <CaretDownIcon />,
     bold: <CaretDownIcon standalone />,
     use: 'Select の ▼・NumberField の減らすボタン（縦積み）',
+  },
+  {
+    name: 'ClockIcon',
+    regular: <ClockIcon />,
+    bold: <ClockIcon standalone />,
+    use: 'TimePicker の時刻の一覧を開くボタン',
   },
   {
     name: 'CaretUpIcon',
