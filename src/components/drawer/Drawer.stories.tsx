@@ -44,6 +44,7 @@ const meta = {
           '- 下から出すとき、中身が画面の半分より長ければ、半分の高さで開いてつまみを出します（`detent="half"`、既定）。つまみを上へ引くと高さいっぱいに広がります。`full` は中身の高さで開きます。',
           '- 中身が長いときはスクロールし、上の端に区切り線、上下の端に続きの影を出します。',
           '- 下に並べるボタンは `actions` に渡します。中身をスクロールしても動きません。押して閉じるボタンは `OverlayClose` の `render` に渡します。並べ方は `actionsLayout` で選びます。既定の `auto` は、下から出すシートでは幅いっぱいで縦に積み（最後に渡した主な操作が上）、横から出すパネルでは右に寄せます。渡した順に上から積むときは `stack`、横に並べるときは `end`（右寄せ）か `fill`（幅を等分）です。',
+          '- `title` は見出しの題で、読み上げでは開いた面の名前になります。中身の見出しで何の面か分かるときは `title` を省き、`accessibleName` に読み上げの名前を書きます（どちらか一方が要ります）。',
           '- 開いた直後は面そのものにフォーカスが移ります。中身の要素に `autoFocus` を付けると、その要素に移ります。',
           '- 開いているあいだ、後ろの画面は暗くなり、押すと閉じます（`dismissible={false}` で閉じないようにできます）。Esc で閉じないようにするときは `closeOnEscape={false}`、右上の × を置かないときは `hideCloseButton` を渡し、`actions` に閉じる手段を置きます。',
           '- 後ろを見せたまま開いたままにするときは `modal="passive"` にします。裏を止めず後ろも暗くせず、外を押しても閉じません。',
@@ -318,5 +319,39 @@ export const Accessibility: Story = {
     await userEvent.click(within(drawer).getByRole('button', { name: '閉じる' }));
     await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
     await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+export const AccessibleName: Story = {
+  name: '題を置かない',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`title` を省いたときは、`accessibleName` が読み上げの名前になります。右上の × の行は残ります。',
+      },
+    },
+  },
+  render: () => (
+    <Drawer accessibleName="メニュー" side="left" trigger={<Button>メニュー</Button>}>
+      <nav className="flex flex-col gap-2">
+        {pages.map((page) => (
+          <Link key={page} href="#">
+            {page}
+          </Link>
+        ))}
+      </nav>
+    </Drawer>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: 'メニュー' }));
+    const drawer = await body.findByRole('dialog', { name: 'メニュー' });
+    await expect(drawer).not.toHaveAttribute('aria-labelledby');
+    await expect(within(drawer).getByRole('button', { name: '閉じる' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
   },
 };
