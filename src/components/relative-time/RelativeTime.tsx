@@ -11,7 +11,7 @@ import {
 } from '../../internal/date/format-date';
 import { timeText } from '../../internal/date/time-text';
 import { useLocale } from '../../internal/date/use-locale';
-import { useNow } from '../../internal/date/use-now';
+import { DEFAULT_UPDATE_INTERVAL, useNow } from '../../internal/date/use-now';
 
 // 「3 日前」のように、今からの隔たりで書く日時。見た目は Time と同じ（大きさと濃さは指定しなければ周りの文字のまま）
 // 今の時刻はブラウザでだけ読む（src/internal/date/use-now.ts）。サーバーの HTML と hydration の最初の描画は
@@ -34,9 +34,33 @@ export interface RelativeTimeProps
    */
   withTime?: boolean;
   /**
-   * ふつうの日付の書き方。Time の format と同じです
+   * ふつうの日付の書き方。Time の dateStyle と同じです
+   */
+  dateStyle?: Intl.DateTimeFormatOptions['dateStyle'];
+  /**
+   * ふつうの日付の時刻の書き方。Time の timeStyle と同じです
+   */
+  timeStyle?: Intl.DateTimeFormatOptions['timeStyle'];
+  /**
+   * ふつうの日付の書き方。Time の format と同じで、指定すると withTime・dateStyle・timeStyle は使いません
    */
   format?: Intl.DateTimeFormatOptions;
+  /**
+   * 相対の書き方の長さ（Intl.RelativeTimeFormat の style）。long は「3 minutes ago」、short は「3 min. ago」、
+   * narrow は「3m ago」です。ja-JP では long と short は同じ「3 分前」、narrow は空白を詰めた「3分前」です
+   * @default 'long'
+   */
+  formatStyle?: Intl.RelativeTimeFormatStyle;
+  /**
+   * 相対で書く隔たりの上限（ミリ秒）。今からこれより離れた日時は、相対にせずふつうの日付で書きます。
+   * 書かなければ、どれだけ離れていても相対で書きます
+   */
+  threshold?: number;
+  /**
+   * ブラウザの今の時刻を読み直して書き直す間隔（ミリ秒）。now を渡したときは書き直しません
+   * @default 60000
+   */
+  updateInterval?: number;
   /**
    * 言語と地域。書かなければ ThemeProvider の locale、それもなければ ja-JP です
    */
@@ -64,7 +88,12 @@ export function RelativeTime({
   dateTime,
   now: nowProp,
   withTime = false,
+  dateStyle,
+  timeStyle,
   format,
+  formatStyle = 'long',
+  threshold,
+  updateInterval = DEFAULT_UPDATE_INTERVAL,
   locale: localeProp,
   timeZone: timeZoneProp,
   size,
@@ -76,7 +105,7 @@ export function RelativeTime({
 }: RelativeTimeProps) {
   const { locale, timeZone } = useLocale(localeProp, timeZoneProp);
   // サーバーと hydration の最初の描画では null（ふつうの日付を書く）にして、食い違いを避ける
-  const mountedNow = useNow(nowProp === undefined);
+  const mountedNow = useNow(nowProp === undefined, updateInterval);
   const parsed = parseDate(dateTime);
   if (!parsed) {
     return (
@@ -86,9 +115,19 @@ export function RelativeTime({
     );
   }
 
-  const absolute = formatAbsolute(parsed, dateTimeOptions({ withTime, format }), locale, timeZone);
+  const absolute = formatAbsolute(
+    parsed,
+    dateTimeOptions({ withTime, dateStyle, timeStyle, format }),
+    locale,
+    timeZone
+  );
   const now = nowProp !== undefined ? new Date(nowProp).getTime() : mountedNow;
-  const text = now === null ? absolute : formatRelative(parsed.date, now, locale, timeZone);
+  const beyond =
+    now !== null && threshold != null && Math.abs(parsed.date.getTime() - now) > threshold;
+  const text =
+    now === null || beyond
+      ? absolute
+      : formatRelative(parsed.date, now, locale, timeZone, formatStyle);
 
   return (
     <time

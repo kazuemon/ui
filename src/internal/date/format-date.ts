@@ -80,10 +80,16 @@ function calendarDiff(date: Date, now: number, timeZone: string) {
  * 「3 日前」「昨日」「今」のように、now からの隔たりを書く
  * 秒・分・時間は経った時間そのもの、日・か月・年は timeZone の暦の差（「昨日」「今月」などの境界がその暦の日付替わりになる）
  */
-export function formatRelative(date: Date, now: number, locale: string, timeZone: string): string {
+export function formatRelative(
+  date: Date,
+  now: number,
+  locale: string,
+  timeZone: string,
+  style: Intl.RelativeTimeFormatStyle = 'long'
+): string {
   const diff = (date.getTime() - now) / 1000;
   const abs = Math.abs(diff);
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style });
   const calendar = calendarDiff(date, now, timeZone);
   for (const [unit, seconds, limit] of RELATIVE_UNITS) {
     if (abs < limit) {
