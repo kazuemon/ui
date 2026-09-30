@@ -89,6 +89,10 @@ export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'childre
    * @default true
    */
   collapseOnResize?: boolean;
+  /** 置かれた面が狭いときの、列を出す Drawer が開いているか（制御）。行き先を押したあとに閉じるときなどに使います */
+  drawerOpen?: boolean;
+  /** Drawer の開閉が変わるときに、次の値を渡して呼びます。面が広がって列に戻ったときも、閉じる値で呼びます */
+  onDrawerOpenChange?: (open: boolean) => void;
   /** いちばん外の要素に付きます。高さは、置く場所で決めます（親の高さいっぱいに広がります） */
   className?: string;
 }
@@ -113,6 +117,8 @@ export function SidebarLayout({
   maxWidth = 480,
   resizeHandle = 'line',
   collapseOnResize = true,
+  drawerOpen: drawerOpenProp,
+  onDrawerOpenChange,
   className,
   ref,
   ...props
@@ -130,7 +136,19 @@ export function SidebarLayout({
     if (next !== undefined) onWidthChange?.(next);
   };
   const [narrow, setNarrow] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpenState, setDrawerOpenState] = useState(false);
+  const mobileOpen = drawerOpenProp ?? drawerOpenState;
+  const setMobileOpen = (next: boolean) => {
+    if (drawerOpenProp === undefined) setDrawerOpenState(next);
+    onDrawerOpenChange?.(next);
+  };
+  // 幅を測る処理（ResizeObserver）から、いまの開閉と通知を読むための控え
+  const closeDrawerRef = useRef(() => {});
+  useLayoutEffect(() => {
+    closeDrawerRef.current = () => {
+      if (mobileOpen) setMobileOpen(false);
+    };
+  });
   const navId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -145,7 +163,7 @@ export function SidebarLayout({
       const next = root.offsetWidth < WIDE_REM * rem;
       setNarrow(next);
       // 面が広がって列に戻ったら、開いていた Drawer を閉じる
-      if (!next) setMobileOpen(false);
+      if (!next) closeDrawerRef.current();
     };
     read();
     const observer = new ResizeObserver(read);
