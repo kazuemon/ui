@@ -10,9 +10,20 @@ import { List } from '../list/List';
 // Markdown（GFM）を変換した HTML と同じ要素・属性を出す
 //   参照: <sup><a href="#user-content-fn-1" id="user-content-fnref-1" data-footnote-ref aria-describedby="footnote-label">1</a></sup>
 //   一覧: <section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2><ol><li id="user-content-fn-1"><p>…
-//         <a href="#user-content-fnref-1" data-footnote-backref aria-label="Back to reference 1">↩</a></p></li></ol></section>
+//         <a href="#user-content-fnref-1" data-footnote-backref aria-label="…">↩</a></p></li></ol></section>
+//   戻るリンクの名前だけは既定を日本語にしている（remark は footnoteBackLabel で変える）
 // 見た目のクラス列は src/internal/reading/footnote.ts（Prose も同じものを使う）
 // 本文との区切り（線など）は付けない。置く側が Divider などで決める
+// id の接頭辞（idPrefix）は remark-rehype の clobberPrefix と同じ。見出しの id だけは、remark と同じく
+// 既定の接頭辞のときは付けない（1 ページに 2 つ置くときは、どちらかの idPrefix を変える）
+
+const DEFAULT_ID_PREFIX = 'user-content-';
+
+function labelId(idPrefix: string) {
+  return idPrefix === DEFAULT_ID_PREFIX ? 'footnote-label' : `${idPrefix}footnote-label`;
+}
+
+const defaultBackrefName = (id: string) => `参照 ${id} に戻る`;
 
 const ref = tv({
   slots: {
@@ -26,20 +37,31 @@ export interface FootnoteRefProps extends Omit<ComponentProps<'a'>, 'href' | 'id
   id: string;
   /** 見せる番号。指定しないときは id です */
   children?: ReactNode;
+  /**
+   * id の接頭辞。remark-rehype の clobberPrefix と同じ値にします。1 ページに脚注の一覧を 2 つ置くときは、組ごとに変えます
+   * @default 'user-content-'
+   */
+  idPrefix?: string;
 }
 
 /**
  * 本文の脚注の参照
  */
-export function FootnoteRef({ id, children, className, ...props }: FootnoteRefProps) {
+export function FootnoteRef({
+  id,
+  children,
+  idPrefix = DEFAULT_ID_PREFIX,
+  className,
+  ...props
+}: FootnoteRefProps) {
   const styles = ref();
   return (
     <sup className={styles.sup()}>
       <a
-        href={`#user-content-fn-${id}`}
-        id={`user-content-fnref-${id}`}
+        href={`#${idPrefix}fn-${id}`}
+        id={`${idPrefix}fnref-${id}`}
         data-footnote-ref=""
-        aria-describedby="footnote-label"
+        aria-describedby={labelId(idPrefix)}
         className={styles.link({ className })}
         {...props}
       >
@@ -63,6 +85,11 @@ export interface FootnotesProps extends Omit<ComponentProps<'section'>, 'childre
    * @default 'Footnotes'
    */
   label?: ReactNode;
+  /**
+   * id の接頭辞。FootnoteRef・FootnoteItem と同じ値にします。見出しの id は、既定では remark と同じ `footnote-label`、変えたときは `<idPrefix>footnote-label` です
+   * @default 'user-content-'
+   */
+  idPrefix?: string;
   /** FootnoteItem を並べます */
   children?: ReactNode;
 }
@@ -70,7 +97,13 @@ export interface FootnotesProps extends Omit<ComponentProps<'section'>, 'childre
 /**
  * 末尾の脚注の一覧
  */
-export function Footnotes({ label = 'Footnotes', className, children, ...props }: FootnotesProps) {
+export function Footnotes({
+  label = 'Footnotes',
+  idPrefix = DEFAULT_ID_PREFIX,
+  className,
+  children,
+  ...props
+}: FootnotesProps) {
   const styles = footnotes();
   return (
     <section
@@ -78,7 +111,7 @@ export function Footnotes({ label = 'Footnotes', className, children, ...props }
       className={styles.root({ className: ['footnotes', className].filter(Boolean).join(' ') })}
       {...props}
     >
-      <h2 id="footnote-label" className={styles.label()}>
+      <h2 id={labelId(idPrefix)} className={styles.label()}>
         {label}
       </h2>
       <List as="ol">{children}</List>
@@ -89,21 +122,39 @@ export function Footnotes({ label = 'Footnotes', className, children, ...props }
 export interface FootnoteItemProps extends Omit<ComponentProps<'li'>, 'id'> {
   /** 脚注の識別子。参照（FootnoteRef）の id と同じ値にします */
   id: string;
+  /**
+   * id の接頭辞。FootnoteRef・Footnotes と同じ値にします
+   * @default 'user-content-'
+   */
+  idPrefix?: string;
+  /**
+   * 参照へ戻るリンクの読み上げの名前。脚注の識別子を受けて文を返します
+   * @default (id) => `参照 ${id} に戻る`
+   */
+  backrefName?: (id: string) => string;
+  /** 脚注の文を入れます */
+  children?: ReactNode;
 }
 
 /**
  * 脚注の一覧の 1 項目。文の後ろに、参照へ戻るリンク（矢印のアイコン）を付けます
  */
-export function FootnoteItem({ id, children, ...props }: FootnoteItemProps) {
+export function FootnoteItem({
+  id,
+  idPrefix = DEFAULT_ID_PREFIX,
+  backrefName = defaultBackrefName,
+  children,
+  ...props
+}: FootnoteItemProps) {
   const styles = footnotes();
   return (
-    <li id={`user-content-fn-${id}`} {...props}>
+    <li id={`${idPrefix}fn-${id}`} {...props}>
       <p>
         {children}{' '}
         <a
-          href={`#user-content-fnref-${id}`}
+          href={`#${idPrefix}fnref-${id}`}
           data-footnote-backref=""
-          aria-label={`Back to reference ${id}`}
+          aria-label={backrefName(id)}
           className={styles.backref()}
         >
           {/* 大きさと位置は backref の [&_svg] で付ける */}
