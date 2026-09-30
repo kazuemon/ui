@@ -418,3 +418,34 @@ export const CopyErrorHandled: Story = {
     }
   },
 };
+
+// text の Promise が失敗したときは、写せなかったことにする（クリップボードは中身を読むときに失敗を受け取る）
+export const AsyncTextFailed: Story = {
+  name: 'あとで決まる文字列が作れなかったとき',
+  tags: ['!autodocs'],
+  args: { onCopyFailed: fn() },
+  render: (args) => (
+    <CopyButton
+      {...args}
+      label="共有のリンクをコピー"
+      text={() => Promise.reject(new Error('サーバーに届きません'))}
+    />
+  ),
+  play: async ({ args, canvas }) => {
+    const { restore } = stubClipboard(
+      undefined,
+      fn(async (items: ClipboardItem[]) => {
+        await items[0].getType('text/plain');
+      })
+    );
+    try {
+      const button = canvas.getByRole('button', { name: '共有のリンクをコピー' });
+      await userEvent.click(button);
+      await waitFor(() => expect(args.onCopyFailed).toHaveBeenCalledTimes(1));
+      await expect(args.onCopied).not.toHaveBeenCalled();
+      await expect(button).not.toHaveAttribute('data-copied');
+    } finally {
+      restore();
+    }
+  },
+};
