@@ -14,6 +14,8 @@ export interface PaginationEllipsisMenuProps {
   label: string;
   /** 項目の文字を作る関数（番号の読み上げの名前と同じ） */
   pageLabel: (page: number) => string;
+  /** 押せなくするか（Pagination の disabled） */
+  disabled?: boolean;
   href?: (page: number) => string;
   render?: (page: number) => ReactElement;
   onChange?: (page: number) => void;
@@ -28,6 +30,7 @@ export function PaginationEllipsisMenu({
   className,
   label,
   pageLabel,
+  disabled = false,
   href,
   render,
   onChange,
@@ -40,6 +43,7 @@ export function PaginationEllipsisMenu({
       trigger={
         <button
           type="button"
+          disabled={disabled}
           aria-label={label}
           data-slot="pagination-ellipsis"
           data-kind="ellipsis"
