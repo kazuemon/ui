@@ -315,6 +315,7 @@ export function NumberFieldControl({
               onChange={(event) => {
                 const raw = event.currentTarget.value;
                 noticed?.(halfWidthKind(raw), raw === '');
+                inputProps?.onChange?.(event);
               }}
               // 値の文字の幅はそろえる（桁がそろい、増減で文字が揺れない）
               className={cn(
