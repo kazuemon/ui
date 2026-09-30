@@ -474,6 +474,7 @@ export {
 } from './components/data-table/DataTableSelect';
 export {
   Sortable,
+  type SortableAs,
   type SortableDragSourceVariant,
   type SortableGrabArea,
   SortableHandle,
