@@ -18,6 +18,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { UploadIcon } from './dropzone-icons';
 import {
   type DropzoneRejection,
+  type DropzoneValidateFile,
   evaluateDragItems,
   evaluateFiles,
   formatAccept,
@@ -43,7 +44,11 @@ import {
 import { useChoiceLock } from '../../internal/form-context';
 import { cn, tv } from '../../internal/tv';
 
-export type { DropzoneRejectReason, DropzoneRejection } from './dropzone-utils';
+export type {
+  DropzoneRejectReason,
+  DropzoneRejection,
+  DropzoneValidateFile,
+} from './dropzone-utils';
 
 // ファイルを落として選ぶ場所。入力欄の仲間（原則8）だが、値は文字ではなくファイルの一覧なので、
 //   Slider・Switch と同じく読み取り専用と Form の送信中は「押せないときと同じ見た目」（useChoiceLock）にする。
@@ -143,6 +148,11 @@ export interface DropzoneControlProps {
   maxSize?: number;
   /** 選べるファイルの数の上限。すでに選んだ分を含めて超えるファイルは弾き、reason: 'maxFiles' で伝える */
   maxFiles?: number;
+  /**
+   * ファイルを独自の条件で確かめる関数。受け付けないときは理由の文を返し、そのファイルは弾いて reason: 'custom' と返した文（message）で伝える。
+   * 種類（accept）と大きさ（maxSize）を通ったファイルだけを確かめ、弾いたファイルは数の上限（maxFiles）に数えない
+   */
+  validateFile?: DropzoneValidateFile;
   /** 値（制御）。選んだファイルの一覧 */
   value?: File[];
   /** はじめの値（非制御） */
@@ -183,6 +193,7 @@ export function DropzoneControl({
   multiple = false,
   maxSize,
   maxFiles,
+  validateFile,
   value,
   defaultValue,
   onValueChange,
@@ -232,6 +243,7 @@ export function DropzoneControl({
       multiple,
       maxSize,
       maxFiles,
+      validateFile,
       currentCount: multiple ? files.length : 0,
     });
     const next = multiple ? [...files, ...accepted] : accepted.length > 0 ? accepted : files;

@@ -485,6 +485,7 @@ export {
   type DropzoneProps,
   type DropzoneRejection,
   type DropzoneRejectReason,
+  type DropzoneValidateFile,
   type DropzoneVariant,
 } from './components/dropzone/Dropzone';
 export {
