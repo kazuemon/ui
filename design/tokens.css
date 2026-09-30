@@ -700,6 +700,9 @@
   --card-emphasis-fill-hover: color-mix(in oklab, var(--color-tag), var(--color-fg) 4%);
   --card-emphasis-line: var(--color-tag);
   --card-emphasis-line-width: var(--border-width-thin);
+  /* emphasis-halo・emphasis-halo-mix: 輪郭の外の淡い輪の幅と濃さ（輪郭の色を薄める割合）。Timeline の強調の輪と同じ値 */
+  --card-emphasis-halo: 0px;
+  --card-emphasis-halo-mix: var(--timeline-emphasis-halo-mix);
   /* ── END card */
 
   /* ── LinkCard — ADR-115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */

@@ -23,7 +23,7 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['', 'current', 'A', 'B', 'C', 'D', 'E'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -47,6 +47,8 @@ const candidates: Candidate[] = [
       '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
       '--card-emphasis-line': 'var(--color-surface-line)',
       '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': '0px',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
     },
   },
   {
@@ -63,6 +65,8 @@ const candidates: Candidate[] = [
       '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
       '--card-emphasis-line': 'var(--color-primary)',
       '--card-emphasis-line-width': 'var(--border-width-thick)',
+      '--card-emphasis-halo': '0px',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
     },
   },
   {
@@ -79,6 +83,8 @@ const candidates: Candidate[] = [
       '--card-emphasis-fill-hover': mixHover('var(--color-primary-subtle)'),
       '--card-emphasis-line': 'var(--color-surface-line)',
       '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': '0px',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
     },
   },
   {
@@ -95,6 +101,8 @@ const candidates: Candidate[] = [
       '--card-emphasis-fill-hover': mixHover('var(--color-tag)'),
       '--card-emphasis-line': 'var(--color-tag)',
       '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': '0px',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
     },
   },
   {
@@ -110,6 +118,27 @@ const candidates: Candidate[] = [
       '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
       '--card-emphasis-line': 'var(--color-fg)',
       '--card-emphasis-line-width': 'var(--border-width-thick)',
+      '--card-emphasis-halo': '0px',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
+    },
+  },
+  {
+    id: 'E',
+    name: '輪郭の外に淡い輪（Timeline と同じ）',
+    intent:
+      'Timeline の強調する項目と同じ考え方。面・輪郭の色と太さは default のまま変えず、輪郭の外に、輪郭の色を薄めた淡い輪を足す。輪の幅と濃さは Timeline の強調の輪と同じ',
+    spec: [
+      ['面', '白（変えない）'],
+      ['輪郭', '細い線（輪郭の色）1px（変えない）'],
+      ['輪', '外側 4px・輪郭の色を 45% に薄めた色'],
+    ],
+    tokens: {
+      '--card-emphasis-fill': 'var(--color-surface)',
+      '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
+      '--card-emphasis-line': 'var(--color-surface-line)',
+      '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': 'var(--timeline-emphasis-halo)',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
     },
   },
 ];

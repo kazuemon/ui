@@ -81,6 +81,9 @@ const styles = tv({
           '[--card-body-padding:var(--card-padding)]',
           '[--card-line-width:var(--card-emphasis-line-width)] [--card-line:var(--card-emphasis-line)]',
           '[--card-fill:var(--card-emphasis-fill)]',
+          // 輪郭の外の淡い輪（Timeline の強調と同じ考え方）。輪の色は輪郭の色を薄めた色。影と重ねて描く
+          'ring-(length:--card-emphasis-halo) ring-(color:--card-halo-color)',
+          '[--card-halo-color:color-mix(in_oklab,var(--card-line)_var(--card-emphasis-halo-mix),transparent)]',
         ],
       },
     },
