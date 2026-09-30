@@ -50,10 +50,10 @@ const meta = {
           '',
           '- 打ち込みは DateField と同じです。「2026/09/20」「令和8年9月20日」のような文字の貼り付けや、全角の数字も読みます。',
           '- 右端のボタンでカレンダーを開きます。日を選ぶと欄に入り、カレンダーは閉じます。Esc で閉じると、フォーカスはボタンに戻ります。',
-          '- `variant="button"` は、打てない表示だけのボタンです。押すとカレンダーを開きます。選んだ日の書き方は `dateStyle`・`format`、空のときの文字は `placeholder` で決めます。印は右端の暦が既定で、`iconPlacement="start"` で値の前に置けます。Select とそろえて ▼ にするときは `icon` に渡します。',
+          "- `variant=\"button\"` は、打てない表示だけのボタンです。押すとカレンダーを開きます。選んだ日の書き方は `dateStyle`・`format`（Intl.DateTimeFormat の指定。「2026/09/20」は `{ year: 'numeric', month: '2-digit', day: '2-digit' }`）、空のときの文字は `placeholder` で決めます。印は右端の暦が既定で、`iconPlacement=\"start\"` で値の前に置けます。Select とそろえて ▼ にするときは `icon` に渡します。",
           '- `min`・`max`・`isDateDisabled` で選べる日を絞ります。カレンダーでは押せなくなり、打ち込んだ日が範囲の外なら欄をエラーの見た目にします。',
-          '- カレンダーの下には、今日を選ぶ幅いっぱいのボタンを出します。要らないときは `showTodayButton={false}` で外します。',
-          '- `clearable` で、値を消すボタンを出します。',
+          '- カレンダーの下には、既定で今日を選ぶ幅いっぱいのボタンを出します。要らないときは `showTodayButton={false}` で外します。',
+          '- `clearable` で、値を消すボタンを出します。値があるときだけ、カレンダーのボタンの左に出ます。',
           '- 読み取り専用では、カレンダーを開くボタンを出しません。',
           '- 指で操作していて画面が狭いときは、カレンダーを画面の下から出すシートにします（`presentation`）。',
           '- 値は `Temporal.PlainDate` で受け渡します。`name` を渡すと、フォームには「2026-09-20」の形で送ります。',
@@ -189,16 +189,19 @@ export const Open: Story = {
   },
 };
 
-export const TodayButton: Story = {
+export const WithoutTodayButton: Story = {
   tags: ['visual'],
-  name: '「今日」のボタン',
-  args: { defaultOpen: true },
+  name: '「今日」のボタンを外す',
+  args: { defaultOpen: true, showTodayButton: false },
   parameters: {
     docs: {
       description: {
         story:
-          'カレンダーの下に、今日を選ぶ幅いっぱいのボタンを出します。押すと今日が欄に入り、カレンダーは閉じます。今日が選べない日（`min`・`max` の外）なら、押せなくなります。`showTodayButton={false}` で外せます。',
+          'カレンダーの下には、既定で今日を選ぶ幅いっぱいのボタンが出ます。押すと今日が欄に入り、カレンダーは閉じます。今日が選べない日（`min`・`max` の外）なら、押せなくなります。誕生日のように今日を選ぶことがない欄では、`showTodayButton={false}` で外します。',
       },
+      source: sourceCode(`
+        <DatePicker label="誕生日" showTodayButton={false} />
+      `),
     },
   },
   decorators: [
@@ -208,6 +211,51 @@ export const TodayButton: Story = {
       </div>
     ),
   ],
+};
+
+// variant="button" の日の書き方。format は Intl.DateTimeFormat の指定をそのまま渡す
+const buttonFormats: { label: string; props: Partial<DatePickerProps> }[] = [
+  { label: '既定', props: {} },
+  {
+    label: 'format（年・月・日を 2 桁）',
+    props: { format: { year: 'numeric', month: '2-digit', day: '2-digit' } },
+  },
+  { label: 'dateStyle="long"', props: { dateStyle: 'long' } },
+  { label: 'dateStyle="full"', props: { dateStyle: 'full' } },
+  {
+    label: 'format（月と曜日）',
+    props: { format: { month: 'long', day: 'numeric', weekday: 'short' } },
+  },
+];
+
+export const ButtonFormats: Story = {
+  tags: ['visual'],
+  name: 'ボタンの日の書き方',
+  args: { variant: 'button', defaultValue: day },
+  parameters: {
+    controls: { exclude: ['variant', 'dateStyle'] },
+    docs: {
+      description: {
+        story:
+          "`variant=\"button\"` に出す日の書き方は、`dateStyle` か `format` で決めます。`format` には Intl.DateTimeFormat の指定をそのまま渡します。「2026/09/20」のように年・月・日を 2 桁ずつ並べるときは `{ year: 'numeric', month: '2-digit', day: '2-digit' }` です（ja-JP では、何も指定しないときもこの書き方です）。区切りの記号や並びは `locale` に従います。指定は値だけのオブジェクトなので、サーバーで描く画面からもそのまま渡せます。",
+      },
+      source: sourceCode(`
+        <DatePicker
+          label="予約日"
+          variant="button"
+          format={{ year: 'numeric', month: '2-digit', day: '2-digit' }}
+        />
+        <DatePicker label="予約日" variant="button" dateStyle="long" />
+      `),
+    },
+  },
+  render: (args) => (
+    <div className="flex w-72 flex-col gap-4">
+      {buttonFormats.map((row) => (
+        <DatePicker key={row.label} {...args} {...row.props} caption={row.label} />
+      ))}
+    </div>
+  ),
 };
 
 // variant="button" の印の置き方（右端の暦が既定。値の前・▼ も選べる）

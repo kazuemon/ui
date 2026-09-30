@@ -113,7 +113,10 @@ interface DatePickerOwnProps {
    * 指定しないときは「2026/09/20」です
    */
   dateStyle?: Intl.DateTimeFormatOptions['dateStyle'];
-  /** Intl.DateTimeFormat の指定をそのまま渡します（variant="button" のとき）。指定すると dateStyle は使いません */
+  /**
+   * Intl.DateTimeFormat の指定をそのまま渡します（variant="button" のとき）。指定すると dateStyle は使いません。
+   * 「2026/09/20」は `{ year: 'numeric', month: '2-digit', day: '2-digit' }` です
+   */
   format?: Intl.DateTimeFormatOptions;
   /**
    * 出し方。auto は指で操作していて画面が狭いときだけ、画面の下から出すシートにします。popover はいつも欄のそばに浮かべ、sheet はいつもシートにします
