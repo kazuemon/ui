@@ -1,41 +1,101 @@
-import type { ComponentProps, ReactNode } from 'react';
+import {
+  cloneElement,
+  type ComponentProps,
+  createElement,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { focusRing } from '../../internal/focus-styles';
+import { NewTabNote } from '../../internal/link-parts';
+import { leadingAvatarClass, leadingIconClass } from '../../internal/small-parts-leading';
 import { type SmallPartsSize, tagSizeClass } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
-// タグ（分類や「公開中」などの状態を表す、押せない文字のラベル）。原則5: 小物は pill
-// 数と小さな状態の点は Badge、押せる・消せる小物は Chip として分ける
+// タグ（分類や「公開中」などの状態を表す文字のラベル）。原則5: 小物は pill
+// 数と小さな状態の点は Badge、消せる小物は Chip として分ける
 // 淡い面に、同じ色相の濃い文字を載せる（design/adr/0007 の塗り方）。色は利用者が選ぶ（原則6）
 // 指定しないときはグレー（neutral）— design/adr/0028
 // 状態を表す色（info・success・warning・danger）は、利用者が選ぶ色とは別。お知らせの soft と同じ面と文字
 //   warning — design/adr/0038。info・success・danger — design/adr/0043（info は primary と同じ値）
 // 大きさ（sm・md・lg・inherit）は Tag・Badge・Chip 共通の 1 本の軸 — ADR-0259（値は src/internal/small-parts-size.ts）
+// 形（variant）— 比較中（Design Review/418）: soft（淡い面）・outline（縁と文字）・solid（濃い塗り）・dashed（破線の縁。「まだない」の印）
+//   色ごとに面・文字・濃い塗りを --tag-color-* に置き、variant がそれを --tag-bg・--tag-fg・縁へ振り分ける
+//   縁はどの形でも同じ幅で引き（塗りの形では透明）、左右の余白から縁の幅を引く。形を変えても寸法は変わらない
+// リンク（href・render・link）— 比較中（Design Review/417）: ブログのタグから一覧のページへ移る
+//   押せるときの手応えは --tag-link-*（tokens.css）。面の上に文字の色を敷く層（background-image）を重ねるので、どの形・色にも効く
+//   Tag はサーバーのまま描けるよう、フックを使わない（render は cloneElement で重ねる）
+// 先頭のアイコン・アバター（icon・avatar）— 比較中（Design Review/419・420）。値は --small-parts-icon-*・--small-parts-avatar-*（Chip と共有）
 const tag = tv({
   base: [
-    'inline-flex items-center rounded-pill font-bold whitespace-nowrap',
+    'relative inline-flex items-center rounded-pill font-bold whitespace-nowrap no-underline',
     // 大きさは size 変化が --tag-*（src/internal/small-parts-size.ts）を差し替える
     'h-[var(--tag-height)]',
-    'px-[var(--tag-pad-x)]',
+    'px-[calc(var(--tag-pad-x)_-_var(--tag-border-width))]',
     'text-[length:var(--tag-font)]',
     'leading-[var(--tag-leading)]',
+    // 面・文字・縁は variant が --tag-bg・--tag-fg・--tag-border-* を決める
+    'bg-(color:--tag-bg) text-(color:--tag-fg) [--small-parts-host-height:var(--tag-height)]',
+    '[border:var(--tag-border-width)_var(--tag-border-style)_var(--tag-border-color)]',
+    // 先頭のアバターは、左の余白をアバターの周りの余白（--small-parts-avatar-inset）にする
+    'has-data-[slot=tag-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--tag-border-width)))]',
   ],
   variants: {
+    variant: {
+      soft: '[--tag-bg:var(--tag-color-subtle)] [--tag-border-color:transparent] [--tag-border-style:solid] [--tag-fg:var(--tag-color-on-subtle)]',
+      outline:
+        '[--tag-bg:var(--tag-outline-bg)] [--tag-border-color:color-mix(in_oklab,currentColor_var(--tag-outline-border-mix),transparent)] [--tag-border-style:solid] [--tag-fg:var(--tag-color-on-subtle)]',
+      solid:
+        '[--tag-bg:var(--tag-color-strong)] [--tag-border-color:transparent] [--tag-border-style:solid] [--tag-fg:var(--tag-color-on-strong)]',
+      dashed:
+        '[--tag-bg:var(--tag-outline-bg)] [--tag-border-color:color-mix(in_oklab,currentColor_var(--tag-dashed-border-mix),transparent)] [--tag-border-style:dashed] [--tag-fg:var(--tag-color-on-subtle)]',
+    },
     color: {
-      primary: 'bg-primary-subtle text-on-primary-subtle',
-      secondary: 'bg-secondary-subtle text-on-secondary-subtle',
-      neutral: 'bg-neutral text-fg-muted',
-      info: 'bg-info-subtle text-fg-info',
-      success: 'bg-success-subtle text-fg-success',
-      warning: 'bg-warning-subtle text-fg-warning',
-      danger: 'bg-danger-subtle text-fg-danger',
+      primary:
+        '[--color-own-focus:var(--color-primary)] [--tag-color-on-strong:var(--color-on-primary)] [--tag-color-on-subtle:var(--color-on-primary-subtle)] [--tag-color-strong:var(--color-primary)] [--tag-color-subtle:var(--color-primary-subtle)]',
+      secondary:
+        '[--color-own-focus:var(--color-fg-secondary)] [--tag-color-on-strong:var(--color-on-secondary)] [--tag-color-on-subtle:var(--color-on-secondary-subtle)] [--tag-color-strong:var(--color-fg-secondary)] [--tag-color-subtle:var(--color-secondary-subtle)]',
+      neutral:
+        '[--tag-color-on-strong:var(--color-on-neutral-strong)] [--tag-color-on-subtle:var(--color-fg-muted)] [--tag-color-strong:var(--color-neutral-strong)] [--tag-color-subtle:var(--color-neutral)]',
+      info: '[--tag-color-on-strong:var(--color-on-info)] [--tag-color-on-subtle:var(--color-fg-info)] [--tag-color-strong:var(--color-info)] [--tag-color-subtle:var(--color-info-subtle)]',
+      success:
+        '[--tag-color-on-strong:var(--color-on-success)] [--tag-color-on-subtle:var(--color-fg-success)] [--tag-color-strong:var(--color-success)] [--tag-color-subtle:var(--color-success-subtle)]',
+      warning:
+        '[--tag-color-on-strong:var(--color-on-warning)] [--tag-color-on-subtle:var(--color-fg-warning)] [--tag-color-strong:var(--color-warning)] [--tag-color-subtle:var(--color-warning-subtle)]',
+      danger:
+        '[--tag-color-on-strong:var(--color-on-danger)] [--tag-color-on-subtle:var(--color-fg-danger)] [--tag-color-strong:var(--color-danger)] [--tag-color-subtle:var(--color-danger-subtle)]',
     },
     size: tagSizeClass,
+    link: {
+      true: [
+        'top-0 cursor-pointer',
+        ...focusRing,
+        // 押せるときの手応え: 面の上に文字の色を敷く層・下線・影・沈み（値は --tag-link-*）
+        '[background-image:linear-gradient(var(--tag-link-overlay),var(--tag-link-overlay))] [--tag-link-overlay:transparent]',
+        'shadow-(--tag-link-shadow)',
+        'hover:shadow-(--tag-link-shadow-hover) hover:[--tag-link-overlay:color-mix(in_oklab,currentColor_var(--tag-link-hover-mix),transparent)]',
+        'hover:[text-decoration-line:var(--tag-link-hover-decoration)] hover:[text-underline-offset:0.2em]',
+        'active:shadow-(--tag-link-shadow-press) active:[--tag-link-overlay:color-mix(in_oklab,currentColor_var(--tag-link-press-mix),transparent)]',
+        'active:top-(--tag-link-press-depth)',
+        '[transition:background-image_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+        'motion-reduce:[transition:none]',
+      ],
+      false: '',
+    },
   },
-  defaultVariants: { color: 'neutral', size: 'sm' },
+  defaultVariants: { variant: 'soft', color: 'neutral', size: 'sm', link: false },
 });
 
-export interface TagProps extends Omit<ComponentProps<'span'>, 'color'>, VariantProps<typeof tag> {
+export type TagVariant = 'soft' | 'outline' | 'solid' | 'dashed';
+
+export interface TagProps
+  extends Omit<ComponentProps<'span'>, 'color'>, Omit<VariantProps<typeof tag>, 'link'> {
+  /**
+   * 形。soft は淡い面に濃い文字、outline は縁と文字だけ、solid は濃い塗りに白い文字、dashed は破線の縁で「まだない」ものを表します
+   * @default 'soft'
+   */
+  variant?: TagVariant;
   /**
    * 色。primary・secondary・neutral は利用者が選ぶ色（原則6）で、指定しないときは既定のグレー（neutral）になります。
    * info・success・warning・danger は状態を表す色で、淡い面のお知らせ（soft）の面と題と同じ値です（design/adr/0038・0043）
@@ -48,15 +108,76 @@ export interface TagProps extends Omit<ComponentProps<'span'>, 'color'>, Variant
    * @default 'sm'
    */
   size?: SmallPartsSize;
+  /** 渡すと、タグがリンク（a）になります。記事のタグから、そのタグの一覧のページへ移るときに使います */
+  href?: string;
+  /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
+  target?: string;
+  /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
+  rel?: string;
+  /**
+   * 描く要素。Next.js の Link などを渡すと、その要素にタグの見た目を重ねます（例: `render={<NextLink href="/tags/design" />}`）。
+   * リンクの見た目にするときは `link` も渡します。className は Tag に書きます
+   */
+  render?: ReactElement;
+  /**
+   * リンクとして描くか。押せるときの手応え（hover・押下・フォーカスの線）が付きます。
+   * href を渡すと既定で true です。render にルーターのリンクを渡すときは、部品からはリンクか分からないので書きます
+   * @default href !== undefined
+   */
+  link?: boolean;
+  /** 文字の前に置くアイコン（`<Icon icon={HashIcon} />` など）。大きさと色はタグが決めます */
+  icon?: ReactNode;
+  /** 文字の前に置くアバター（`<Avatar src="…" name="…" />`）。大きさはタグの高さから決めます */
+  avatar?: ReactNode;
   /** タグの文字（分類や「公開中」などの状態） */
   children?: ReactNode;
-  /** タグ（span）に付きます */
+  /** タグ（span。リンクのときは a か render の要素）に付きます */
   className?: string;
 }
 
 /**
  * タグ
  */
-export function Tag({ color, size, className, ...props }: TagProps) {
-  return <span className={tag({ color, size, className })} {...props} />;
+export function Tag({
+  variant,
+  color,
+  size,
+  href,
+  target,
+  rel,
+  render,
+  link,
+  icon,
+  avatar,
+  className,
+  children,
+  ...props
+}: TagProps) {
+  const isLink = link ?? href !== undefined;
+  const newTab = target === '_blank';
+  const own = {
+    ...props,
+    ...(href !== undefined && { href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel }),
+    'data-slot': 'tag',
+    'data-link': isLink || undefined,
+    className: tag({ variant, color, size, link: isLink, className }),
+    children: (
+      <>
+        {avatar != null && (
+          <span data-slot="tag-avatar" className={leadingAvatarClass}>
+            {avatar}
+          </span>
+        )}
+        {icon != null && (
+          <span data-slot="tag-icon" aria-hidden className={leadingIconClass}>
+            {icon}
+          </span>
+        )}
+        {children}
+        {newTab && <NewTabNote />}
+      </>
+    ),
+  };
+  if (render) return cloneElement(render, own);
+  return createElement(href !== undefined ? 'a' : 'span', own);
 }

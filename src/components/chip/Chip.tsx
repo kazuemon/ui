@@ -6,6 +6,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
 import { warnOnce } from '../../internal/link-parts';
+import { leadingAvatarClass, leadingIconClass } from '../../internal/small-parts-leading';
 import { chipSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
@@ -24,7 +25,10 @@ const chip = tv({
     'h-[var(--chip-height)] pl-[var(--chip-pad-x)]',
     'text-[length:var(--chip-font)] leading-[var(--chip-leading)]',
     // 消すボタンがあるとき、右は ×（丸）の分だけ空ける。丸は上下左右とも 6px 内側に置く（フォーカスの線がチップの外に出ない）
-    'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5',
+    'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5 has-data-[slot=chip-remove]:[--small-parts-inner-gap:calc(var(--spacing)_*_1)]',
+    // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — 比較中 Design Review/420）
+    '[--small-parts-host-height:var(--chip-height)]',
+    'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--chip-border-width)))]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う
     'bg-(--chip-bg,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
@@ -123,6 +127,10 @@ interface ChipBaseProps
    * @default false
    */
   readOnly?: boolean;
+  /** 文字の前に置くアイコン（`<Icon icon={HashIcon} />` など）。大きさと色はチップが決めます（Tag と同じ） */
+  icon?: ReactNode;
+  /** 文字の前に置くアバター（`<Avatar src="…" name="…" />`）。大きさはチップの高さから決めます（Tag と同じ） */
+  avatar?: ReactNode;
   /** チップの中に入れる文字。長い文字は … で省略されます */
   children?: ReactNode;
   /** チップそのもの（pill の面）に付きます */
@@ -149,6 +157,8 @@ export function Chip({
   readOnly = false,
   onRemove,
   removeName,
+  icon,
+  avatar,
   className,
   children,
   ...props
@@ -165,6 +175,16 @@ export function Chip({
       className={chip({ color, size, className })}
       {...props}
     >
+      {avatar != null && (
+        <span data-slot="chip-avatar" className={leadingAvatarClass}>
+          {avatar}
+        </span>
+      )}
+      {icon != null && (
+        <span data-slot="chip-icon" aria-hidden className={leadingIconClass}>
+          {icon}
+        </span>
+      )}
       {children}
       {onRemove && !readOnly && (
         <ChipRemove aria-label={removeName ?? ''} disabled={disabled} onClick={() => onRemove()} />
