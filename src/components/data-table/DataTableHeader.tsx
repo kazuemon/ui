@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
@@ -44,19 +44,32 @@ export interface DataTableHeaderProps extends TableHeaderProps {
    * 次の向きは使う側が決めます（TanStack Table では `column.getToggleSortingHandler()` をそのまま渡します）
    */
   onSortClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  /**
+   * 列の幅。数は px、文字は CSS の長さ（`'12rem'`・`'20%'`）です。書かないときは、中身に合わせて表が決めます。
+   * 表は枠の幅いっぱいに広がるので、ほかの列の中身が長いときや枠が広いときは、この幅から伸び縮みします
+   */
+  width?: number | string;
+  /** 列の最小の幅。数は px、文字は CSS の長さです。枠が狭くても、列をこれより細くしません（枠が横にスクロールします） */
+  minWidth?: number | string;
 }
 
 /** 見出しのセル（th）。onSortClick を渡すと、押して並べ替えられる見出しになります */
 export function DataTableHeader({
   sorted = false,
   onSortClick,
+  width,
+  minWidth,
   align,
   children,
+  style: styleProp,
   ...props
 }: DataTableHeaderProps) {
+  // 列の幅は見出しのセルに書く（表は列ごとに、いちばん広いセルの幅を取る）
+  const style: CSSProperties | undefined =
+    width === undefined && minWidth === undefined ? styleProp : { width, minWidth, ...styleProp };
   if (!onSortClick) {
     return (
-      <TableHeader align={align} {...props}>
+      <TableHeader align={align} style={style} {...props}>
         {children}
       </TableHeader>
     );
@@ -71,7 +84,7 @@ export function DataTableHeader({
     );
   const ariaSort = sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined;
   return (
-    <TableHeader align={align} aria-sort={ariaSort} {...props}>
+    <TableHeader align={align} aria-sort={ariaSort} style={style} {...props}>
       <button
         type="button"
         onClick={onSortClick}

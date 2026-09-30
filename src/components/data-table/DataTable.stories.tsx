@@ -149,6 +149,7 @@ const meta = {
           '- 本文の行は `DataTableRow` です。載せると淡く塗り、`selected` の行には `color`（既定は `neutral`）の淡い面を敷きます。',
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
+          '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
           '- セルと行の見出しのない列には、`TableHead`・`TableBody`・`TableRow`・`TableCell` をそのまま使います。',
         ].join('\n'),
       },
@@ -307,6 +308,72 @@ export const StickyHeader: Story = {
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const header = canvasElement.querySelector('thead th');
     await expect(header && getComputedStyle(header).position).toBe('sticky');
+  },
+};
+
+export const ColumnWidths: Story = {
+  name: '列の幅',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`DataTableHeader` の `width` で列の幅を、`minWidth` で列の最小の幅を決めます。ここでは注文番号を 8rem にそろえ、お店の列を 12rem より細くしません。枠が狭いときは、表が横にスクロールします。',
+      },
+      source: {
+        code: [
+          '<DataTableHeader width="8rem">注文番号</DataTableHeader>',
+          '<DataTableHeader minWidth="12rem">お店</DataTableHeader>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-2xl flex-col gap-6">
+      {(['wide', 'narrow'] as const).map((size) => (
+        <div key={size} data-testid={size} className={size === 'narrow' ? 'w-80' : undefined}>
+          <DataTable accessibleName={size === 'wide' ? '注文' : '注文（狭い枠）'}>
+            <TableHead>
+              <TableRow>
+                <DataTableHeader width="8rem">注文番号</DataTableHeader>
+                <DataTableHeader minWidth="12rem">お店</DataTableHeader>
+                <DataTableHeader>状態</DataTableHeader>
+                <DataTableHeader align="end" width={120}>
+                  金額
+                </DataTableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orders.map((order) => (
+                <DataTableRow key={order.id}>
+                  <TableCell>{order.id}</TableCell>
+                  <TableCell>{order.shop}</TableCell>
+                  <TableCell>
+                    <Tag color={statusColor[order.status]}>{order.status}</Tag>
+                  </TableCell>
+                  <TableCell align="end">{yen(order.amount)}</TableCell>
+                </DataTableRow>
+              ))}
+            </TableBody>
+          </DataTable>
+        </div>
+      ))}
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const widthOf = (table: HTMLElement, name: string) =>
+      within(table).getByRole('columnheader', { name }).getBoundingClientRect().width;
+    const wide = canvas.getByRole('table', { name: '注文' });
+    // 幅を決めた列は、その幅になる（表が枠いっぱいに広がる分は、幅を決めていない列が受け持つ）
+    await expect(Math.round(widthOf(wide, '注文番号'))).toBe(8 * rem);
+    await expect(Math.round(widthOf(wide, '金額'))).toBe(120);
+    // 狭い枠でも、最小の幅より細くしない（枠が横にスクロールする）
+    const narrow = canvas.getByRole('table', { name: '注文（狭い枠）' });
+    await expect(widthOf(narrow, 'お店')).toBeGreaterThanOrEqual(12 * rem - 0.5);
+    const frame = within(canvas.getByTestId('narrow')).getByRole('region');
+    await expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth);
   },
 };
 
