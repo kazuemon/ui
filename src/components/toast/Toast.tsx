@@ -268,6 +268,11 @@ export interface ToastProviderProps {
    */
   hideOutline?: boolean;
   /**
+   * 画面の端からの離れ（px）。上や下に固定したヘッダー・タブバーを避けるときに渡します。
+   * 渡さないときは 16px です
+   */
+  offset?: number;
+  /**
    * × の読み上げの名前
    * @default '閉じる'
    */
@@ -291,6 +296,7 @@ export function ToastProvider({
   stack = 'auto',
   variant = 'soft',
   hideOutline = false,
+  offset,
   closeName = '閉じる',
   portalContainer,
 }: ToastProviderProps) {
@@ -304,6 +310,7 @@ export function ToastProvider({
           stack={stack}
           variant={variant}
           hideOutline={hideOutline}
+          offset={offset}
           closeName={closeName}
           timeout={timeout}
         />
@@ -317,6 +324,7 @@ function ToastViewport({
   stack,
   variant,
   hideOutline,
+  offset,
   closeName,
   timeout,
 }: {
@@ -324,6 +332,7 @@ function ToastViewport({
   stack: ToastStack;
   variant: ToastVariant;
   hideOutline: boolean;
+  offset: number | undefined;
   closeName: string;
   timeout: number;
 }) {
@@ -354,6 +363,8 @@ function ToastViewport({
     <BaseToast.Viewport
       data-slot="toast-viewport"
       className={s.viewport()}
+      // 端からの離れは、出入りの動き（画面の外まで動かす距離）にも使うので、変数ごと差し替える
+      style={offset === undefined ? undefined : { ['--toast-inset' as string]: `${offset}px` }}
       onPointerEnter={() => setReading(true)}
       onPointerLeave={() => setReading(false)}
       onFocusCapture={() => setReading(true)}

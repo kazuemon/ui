@@ -43,6 +43,7 @@ function Demo({
   stack?: ToastStack;
   variant?: ToastVariant;
   hideOutline?: boolean;
+  offset?: number;
 }) {
   return (
     <ToastProvider portalContainer={container} {...props}>
@@ -77,6 +78,7 @@ const meta = {
           '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレーになります。危険だけが読み上げに割り込み、ほかは静かに知らせます。',
           '- 既定では自動で消えません（`timeout` は 0）。消えるまでの時間を決めると、その時間で消え、面の下に残り時間の線が出ます。読んでいるあいだ（マウスを載せている・触れている・キーボードで入っている）は、時間も線も止まります。',
           '- 時間は、全体（`ToastProvider` の `timeout`）でも、トーストごと（`useToast().show({ timeout })`）でも決められます。',
+          '- 画面の端からの離れは `offset`（px）です。固定したヘッダーやタブバーを避けるときに渡します。',
           '- 出る場所は `position` です。`auto`（既定）は、指で操作していて画面が狭いときは下の中央、それ以外は右下に出します。',
           '- 積み方は `stack` です。`auto`（既定）は、3 枚までは縦に並べ、4 枚めからは重ねます。いちど重ねたら、全部消えるまで重ねたままです（読んでいる途中で形が変わらないように）。重ねると手前の 1 枚だけが見え、載せる・触れる・キーボードで入ると開いて全部見えます。',
           '- 面は `variant`（`soft`（既定）・`filled`）と `hideOutline`（細い輪郭。既定は出す）で決めます。',
@@ -323,6 +325,34 @@ export const Positions: Story = {
     await waitFor(async () => {
       await expect(canvas.getAllByText('保存しました').length).toBeGreaterThanOrEqual(3);
     });
+  },
+};
+
+export const Offset: Story = {
+  name: '端からの離れ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`offset` で画面の端からの離れ（px）を変えます。下に固定したタブバーの上に出すときなどに使います。',
+      },
+    },
+  },
+  render: () => (
+    <ScreenFrame height="h-[300px]">
+      {(frame) => (
+        <Demo container={frame} timeout={0} position="bottom-end" offset={64} toasts={[saved]} />
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    await waitFor(async () => {
+      await expect(canvas.getAllByText('保存しました').length).toBeGreaterThan(0);
+    });
+    const viewport = canvasElement.querySelector<HTMLElement>('[data-slot="toast-viewport"]');
+    await expect(getComputedStyle(viewport!).bottom).toBe('64px');
+    await expect(getComputedStyle(viewport!).right).toBe('64px');
   },
 };
 
