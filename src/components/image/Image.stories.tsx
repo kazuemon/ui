@@ -36,6 +36,7 @@ const meta = {
           '',
           '- 枠は読み込む前から幅いっぱいに取ります。`ratio`（`16 / 9` など）を書くと、その比の枠に収め、はみ出た分を切ります。`width`・`height` を書くと、その比の枠を取ります。',
           '- `ratio` も `width`・`height` もないときは、16:9 の画像だと仮定して、読み込み中と失敗したときは 16:9 の枠を取ります。読み込めたら、画像本来の比の高さに変わります。このとき下の内容が動くので、動かしたくないときは `width`・`height` か `ratio` を書きます。',
+          '- `fit` は枠への収め方です。`cover`（既定）ははみ出た分を切り、`contain` は切らずに収めて余白を残します。',
           '- `src` を書かずにおくと、読み込み中の面を出します。画像の URL をまだ読み込んでいるあいだに使います。',
           '- 読み込みに失敗したときは、面の上に破れた画像のアイコンと「読み込みに失敗しました」を出します。文は `errorText` で変えられます。',
           '- `radius` は角です。`card`（既定）はカードの角、`nested` は入れ子のカードの内側の角、`none` はカードの端まで届かせる画像です。',
@@ -50,6 +51,11 @@ const meta = {
     src: { control: false },
     ratio: { control: 'inline-radio', options: [undefined, '16 / 9', '4 / 3', '1'] },
     radius: { control: 'inline-radio', options: ['card', 'nested', 'none'] },
+    fit: {
+      control: 'inline-radio',
+      options: ['cover', 'contain'],
+      table: { defaultValue: { summary: "'cover'" } },
+    },
     hideOutline: { control: 'boolean' },
   },
 } satisfies Meta<typeof Image>;
@@ -206,5 +212,19 @@ export const Accessibility: Story = {
       image.compareDocumentPosition(message) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     await expect(frame?.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  },
+};
+
+export const Fit: Story = {
+  name: '収め方',
+  render: () => (
+    <div className="flex w-48 flex-col gap-4">
+      <Image ratio={1} src={portrait} alt="切り取る" />
+      <Image ratio={1} fit="contain" src={portrait} alt="収める" />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    await expect(getComputedStyle(canvas.getByAltText('切り取る')).objectFit).toBe('cover');
+    await expect(getComputedStyle(canvas.getByAltText('収める')).objectFit).toBe('contain');
   },
 };

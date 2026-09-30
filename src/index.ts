@@ -22,7 +22,11 @@ export {
   type AlertDialogColor,
   type AlertDialogProps,
 } from './components/alert-dialog/AlertDialog';
-export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
+export {
+  AspectRatio,
+  type AspectRatioProps,
+  type MediaFit,
+} from './components/aspect-ratio/AspectRatio';
 export {
   Autocomplete,
   type AutocompleteBaseProps,

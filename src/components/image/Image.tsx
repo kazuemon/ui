@@ -16,7 +16,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { toMediaSize } from '../../internal/media-size';
 import { figureImageStyles } from '../../internal/reading/blocks';
 import { tv } from '../../internal/tv';
-import { AspectRatio } from '../aspect-ratio/AspectRatio';
+import { AspectRatio, type MediaFit } from '../aspect-ratio/AspectRatio';
 import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
 import { ImageBrokenIcon } from './image-icons';
 
@@ -41,7 +41,7 @@ const styles = tv({
       figureImageStyles.base,
       'rounded-(--image-radius)',
       'group-data-[status=error]/image:opacity-0 group-data-[status=loading]/image:opacity-0',
-      // 本来の比で描くときは、枠いっぱいに重ねず、画像の高さで枠を広げる（AspectRatio の *:absolute より強く効かせる）
+      // 本来の比で描くときは、枠いっぱいに重ねず、画像の高さで枠を広げる（AspectRatio の最初の子の absolute より強く効かせる）
       'group-data-natural/image:relative group-data-natural/image:h-auto',
     ],
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
@@ -97,6 +97,12 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
    */
   ratio?: number | string;
   /**
+   * 枠に収める方法。cover ははみ出た分を切り、contain は切らずに収めて余白を残します。
+   * 枠が画像本来の比のとき（ratio・width・height のどれもないとき）は、どちらでも同じです
+   * @default 'cover'
+   */
+  fit?: MediaFit;
+  /**
    * 読み込みに失敗したときに、面の上に出す文。読み上げでは、画像の alt のあとに読まれます
    * @default '読み込みに失敗しました'
    */
@@ -124,6 +130,7 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
  */
 export function Image({
   ratio,
+  fit,
   errorText = '読み込みに失敗しました',
   hideOutline = false,
   radius,
@@ -177,6 +184,7 @@ export function Image({
   return (
     <AspectRatio
       ratio={ratio ?? (sized ? `${width} / ${height}` : natural ? 'auto' : 16 / 9)}
+      fit={fit}
       render={<span />}
       data-slot="image"
       data-status={status === 'idle' ? undefined : status}

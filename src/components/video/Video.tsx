@@ -63,10 +63,9 @@ const styles = tv({
     errorText:
       'hidden max-w-full text-center text-(length:--text-caption) leading-(--leading-caption) group-data-[status=error]/video:block',
     errorTextClamp: 'line-clamp-2',
-    // 再生前に重ねる大きな再生ボタン（軸297）。押せる範囲を見た目の円と一致させる（原則17）ので、
-    // AspectRatio が直接の子に強制する size-full（*:size-full）より、自分の大きさを勝たせる（!size-）
+    // 再生前に重ねる大きな再生ボタン（軸297）。押せる範囲を見た目の円と一致させる（原則17）
     play: [
-      'absolute inset-0 m-auto flex !size-(--video-play-size) cursor-pointer items-center justify-center rounded-pill',
+      'absolute inset-0 m-auto flex size-(--video-play-size) cursor-pointer items-center justify-center rounded-pill',
       'bg-(--video-play-fill) text-(color:--video-play-fg) shadow-(--video-play-shadow)',
       '[transition:scale_var(--duration-press)_var(--ease-press)] hover:scale-(--video-play-hover-scale) motion-reduce:[transition:none]',
       ...focusRing,
@@ -293,8 +292,7 @@ export function Video({
           playsInline={playsInline}
           aria-label={accessibleName}
           data-video-hidden={showPlaceholder || undefined}
-          // object-fit は AspectRatio の既定（object-cover。すべての img・video に当てる）より必ず勝たせたいので、
-          // クラスではなくインラインの style にする
+          // object-fit は AspectRatio の fit を通さず、インラインの style で必ず勝たせる
           style={{ ...style, objectFit: fit }}
           onLoadedData={(event: SyntheticEvent<HTMLVideoElement>) => {
             if (status !== 'error') setStatus('loaded');

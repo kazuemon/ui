@@ -85,11 +85,11 @@ const styles = tv({
       'data-[status=idle]:[--embed-outline-width:var(--embed-idle-outline-width)]',
     ],
     iframe: ['border-0 opacity-0', 'group-data-[status=loaded]/embed:opacity-100'],
-    // face は AspectRatio の直下の子として絶対配置になる（frame と同じ理由）。
-    //   after: の光の帯は、この絶対配置そのものを基準にできるので、position を上書きしない
+    // face は枠いっぱいに重ねる。AspectRatio が広げるのは最初の子だけで、読み込み中は iframe のあとに置くので、自分で置く。
+    //   after: の光の帯は、この絶対配置そのものを基準にできる
     // 面は Skeleton と同じ塗り（軸271・決定 A）。光の帯は、クリック前（idle）は止め、読み込み中（loading）は動く（軸271・274）
     face: [
-      'flex w-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
+      'absolute inset-0 flex size-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
       'bg-(--skeleton-fill)',
       'after:pointer-events-none after:absolute after:inset-0 after:[background-position:100%_0] after:bg-no-repeat',
       'after:animate-(--skeleton-sweep) after:bg-size-[300%_100%]',
