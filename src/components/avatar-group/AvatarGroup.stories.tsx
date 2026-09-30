@@ -279,3 +279,21 @@ export const ExpandOnHoverBehavior: Story = {
     await expect(names).toHaveLength(2);
   },
 };
+
+export const MoreFollowsFirstSize: Story = {
+  name: '「+N」の大きさは先頭の子に合わせる',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <AvatarGroup max={2}>
+      <Avatar name="かずえもん" size="xl" />
+      <Avatar name="宮本一也" size="xl" />
+      <Avatar name="山田太郎" size="xl" />
+    </AvatarGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const items = canvasElement.querySelectorAll('[data-avatar-group-item]');
+    const first = items[0];
+    const more = items[items.length - 1];
+    await expect(more.getBoundingClientRect().width).toBe(first.getBoundingClientRect().width);
+  },
+};
