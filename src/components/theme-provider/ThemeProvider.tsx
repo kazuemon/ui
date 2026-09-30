@@ -93,7 +93,7 @@ export function ThemeProvider({
     ]
   );
   const content = <UIConfigContext value={value}>{children}</UIConfigContext>;
-  if (density === 'auto') return content;
+  // auto も data-density を書く。外側の ThemeProvider が固定した密度を、入力方式に合わせる密度へ戻すため
   // 密度は data-density の付いた要素で決まる（src/styles/theme.css）。並べ方に影響しないよう、箱を作らない要素に付ける
   // 浮かぶ部分は、開いたときにこの祖先の密度を写す
   return (

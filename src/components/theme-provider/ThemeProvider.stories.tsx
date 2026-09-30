@@ -175,3 +175,27 @@ export const LocaleAndTimeZone: Story = {
     await expect(canvas.getByTestId('inner')).toHaveTextContent('09/17/2026, 20:30');
   },
 };
+
+export const AutoInsideFixed: Story = {
+  name: '固定した中でも auto に戻せる',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ThemeProvider density="coarse">
+      <div data-testid="fixed">
+        <TextField label="外側" />
+        <ThemeProvider density="auto">
+          <div data-testid="auto">
+            <TextField label="内側" />
+          </div>
+        </ThemeProvider>
+      </div>
+    </ThemeProvider>
+  ),
+  play: async ({ canvas }) => {
+    // --density-coarse は、いまの密度が指用なら 1、マウス用なら 0。外側は指用に固定、内側は入力方式（ここではマウス）に従う
+    const read = (id: string) =>
+      getComputedStyle(canvas.getByTestId(id)).getPropertyValue('--density-coarse').trim();
+    await expect(read('fixed')).toBe('1');
+    await expect(read('auto')).toBe('0');
+  },
+};
