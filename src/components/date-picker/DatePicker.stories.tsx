@@ -1,20 +1,21 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { CaretDownIcon } from '@phosphor-icons/react';
 
-import { DatePicker, type DatePickerProps } from './DatePicker';
+import { DatePicker, DatePickerControl, type DatePickerProps } from './DatePicker';
+import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { Fieldset } from '../fieldset/Fieldset';
 import { Icon } from '../icon/Icon';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import {
-  enabledControl,
   type MatrixColumn,
+  pickerFieldColumns,
+  pickerFieldPseudo,
   sourceCode,
-  statePseudo,
 } from '../../stories/story-states';
 
 type Sample = MatrixColumn & { name: string; props: Partial<DatePickerProps> };
@@ -34,14 +35,22 @@ const stateRows: Sample[] = [
   { label: '読み取り専用', name: '読み取り専用', props: { defaultValue: day, readOnly: true } },
 ];
 
-const stateColumns: MatrixColumn[] = [
-  { label: '通常' },
-  { label: 'hover', state: 'hover' },
-  { label: 'フォーカス', state: 'focus' },
-];
-
 const variants = ['field', 'button'] as const;
 const colors = ['neutral', 'primary', 'secondary'] as const;
+
+// 開いた面を、ページの body ではなくこの枠の中に描く。ドキュメントのページでも、ストーリーごとに収まる
+function PopoverFrame({ children }: { children: (container: HTMLElement) => ReactNode }) {
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  return (
+    <div ref={setContainer} className="relative h-[32rem] w-[22rem] max-w-full">
+      {container && children(container)}
+    </div>
+  );
+}
+
+// 開いた状態のストーリーも、ドキュメントのページでは閉じて描く
+// 開くとフォーカスが面へ移り、ページがそのストーリーの位置まで流れてしまうため
+const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/DatePicker',
@@ -129,17 +138,16 @@ export const States: Story = {
   name: '状態',
   parameters: {
     controls: { exclude: ['variant'] },
-    pseudo: {
-      ...statePseudo({
-        hover: enabledControl,
-        focusWithin: enabledControl,
-      }),
-      focus: [`[data-preview="focus"] ${enabledControl} [data-segment="year"]`],
+    // 欄とボタンの状態を 5 列に並べる分、撮る枠を広くする（既定は 1200×900）
+    viewport: {
+      defaultViewport: 'wide',
+      viewports: { wide: { name: 'wide', styles: { width: '1360px', height: '1050px' } } },
     },
+    pseudo: pickerFieldPseudo('year'),
     docs: {
       description: {
         story:
-          '上の 5 行が打ち込める欄（既定）、下の 5 行が `variant="button"` です。読み取り専用では、カレンダーを開くボタンを出しません。',
+          '上の 5 行が打ち込める欄（既定）、下の 5 行が `variant="button"` です。右端のボタンは、欄の端に付くほかのボタンと同じグレーの塊です。押せない欄では押せず、読み取り専用では出しません。',
       },
       source: sourceCode(`
         <DatePicker label="予約日" />
@@ -154,10 +162,47 @@ export const States: Story = {
         stateRows.map((row) => ({ ...row, label: `${variant}・${row.name}`, variant }))
       )}
       rowLabel={(row) => row.label}
-      columns={stateColumns}
-      columnWidth="15rem"
+      columns={pickerFieldColumns}
+      columnWidth="13.5rem"
       renderCell={(row) => <DatePicker {...args} {...row.props} variant={row.variant} />}
     />
+  ),
+};
+
+export const Colors: Story = {
+  tags: ['visual'],
+  name: '色',
+  args: { defaultValue: day },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`color` は、欄でいま打っている区切りの塗り・フォーカスの枠線と、カレンダーで選んだ日の色に効きます。neutral（既定）はグレー、primary・secondary はその色です。',
+      },
+      source: sourceCode(`
+        <DatePicker label="予約日" color="primary" />
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <div className="flex flex-wrap gap-6">
+      {colors.map((color) => (
+        <PopoverFrame key={color}>
+          {(container) => (
+            <DatePicker
+              {...args}
+              color={color}
+              caption={color}
+              presentation="popover"
+              defaultOpen={openOnLoad(viewMode)}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+            />
+          )}
+        </PopoverFrame>
+      ))}
+    </div>
   ),
 };
 
@@ -431,6 +476,90 @@ export const ReadOnlyNoTrigger: Story = {
   parameters: { controls: { disable: true } },
   play: async ({ canvas }) => {
     await expect(canvas.queryByRole('button', { name: 'カレンダーを開く' })).toBeNull();
+  },
+};
+
+export const Composition: Story = {
+  name: '組み立てる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と本体の `DatePickerControl` を置きます。ラベル・キャプション・状態の文、`disabled`・`required`、フォームの `name` は `Field` に渡し、値・`min`・`max`・`variant` などは `DatePickerControl` に渡します。カレンダーの面の名前は `Field` のラベルです。',
+      },
+      source: sourceCode(`
+        <Field label="予約日" caption="来店する日を選んでください" name="date" required>
+          <FieldLabel />
+          <DatePickerControl defaultValue={Temporal.PlainDate.from('2026-09-20')} />
+          <FieldCaption />
+          <FieldMessages />
+        </Field>
+      `),
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Field label="予約日" caption="来店する日を選んでください" name="date" required>
+        <FieldLabel />
+        <DatePickerControl defaultValue={day} today={today} />
+        <FieldCaption />
+        <FieldMessages />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const [year] = canvas.getAllByRole('spinbutton');
+    await expect(year).toHaveAttribute('aria-required', 'true');
+    await expect(year).toHaveAccessibleDescription('来店する日を選んでください');
+    // フォームの名前は Field の name
+    const hidden = canvasElement.querySelector<HTMLInputElement>('input[name="date"]');
+    await expect(hidden?.value).toBe(day.toString());
+    // カレンダーの面の名前は Field のラベル
+    await userEvent.click(canvas.getByRole('button', { name: 'カレンダーを開く' }));
+    const page = within(canvasElement.ownerDocument.body);
+    const dialog = await page.findByRole('dialog', { name: '予約日' });
+    await userEvent.click(within(dialog).getByRole('button', { name: /2026年9月18日/ }));
+    await waitFor(() => expect(hidden?.value).toBe('2026-09-18'));
+  },
+};
+
+export const LockedStaysClosed: Story = {
+  name: '開けない欄',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '押せない欄（Fieldset の `disabled` を含む）・読み取り専用の欄・待っているあいだ止める欄（`loadingBehavior="blocking"`）では、`defaultOpen` や `open` を渡してもカレンダーを開きません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-sm flex-col gap-4">
+      <DatePicker label="押せない" disabled defaultOpen today={today} />
+      <DatePicker label="読み取り専用" readOnly defaultOpen today={today} defaultValue={day} />
+      <DatePicker
+        label="待っている"
+        loading
+        loadingBehavior="blocking"
+        open
+        today={today}
+        variant="button"
+      />
+      <Fieldset label="まとめて押せない" disabled>
+        <DatePicker label="Fieldset の中" defaultOpen today={today} />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    // 開くなら描いた直後に面が出るので、数フレーム待ってから確かめる
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await expect(page.queryByRole('dialog')).toBeNull();
+    for (const button of page.queryAllByRole('button', { name: 'カレンダーを開く' })) {
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+    }
   },
 };
 

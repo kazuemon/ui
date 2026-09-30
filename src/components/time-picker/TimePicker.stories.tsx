@@ -7,7 +7,12 @@ import { TimePicker, type TimePickerProps } from './TimePicker';
 import { Fieldset } from '../fieldset/Fieldset';
 import { Temporal } from '../../internal/date/plain-date';
 import { DensityPair, Matrix } from '../../stories/story-parts';
-import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
+import {
+  type MatrixColumn,
+  pickerFieldColumns,
+  pickerFieldPseudo,
+  sourceCode,
+} from '../../stories/story-states';
 
 type Sample = MatrixColumn & { props: Partial<TimePickerProps> };
 
@@ -21,11 +26,7 @@ const stateRows: Sample[] = [
   { label: '読み取り専用', props: { defaultValue: time, readOnly: true } },
 ];
 
-const stateColumns: MatrixColumn[] = [
-  { label: '通常' },
-  { label: 'ボタンに hover', state: 'hover' },
-  { label: 'ボタンにフォーカス（キーボード）', state: 'focus' },
-];
+const colors = ['neutral', 'primary', 'secondary'] as const;
 
 // 開いた面を、ページの body ではなくこの枠の中に描く。ドキュメントのページでも、ストーリーごとに収まる
 function PopoverFrame({
@@ -270,14 +271,55 @@ export const ColumnKinds: Story = {
   ),
 };
 
+export const Colors: Story = {
+  tags: ['visual'],
+  name: '色',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`color` は、欄でいま打っている区切りの塗り・フォーカスの枠線と、一覧で選んだ時刻の色に効きます。neutral（既定）はグレー、primary・secondary はその色です。',
+      },
+      source: sourceCode(`
+        <TimePicker label="開始時刻" color="primary" />
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <div className="flex flex-wrap gap-6">
+      {colors.map((color) => (
+        <PopoverFrame key={color}>
+          {(container) => (
+            <TimePicker
+              {...args}
+              color={color}
+              caption={color}
+              defaultValue={time}
+              presentation="popover"
+              defaultOpen={openOnLoad(viewMode)}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+              // 面をいくつも同時に開くので、開いたときのフォーカスは移さない
+              popupProps={{ initialFocus: false } as never}
+            />
+          )}
+        </PopoverFrame>
+      ))}
+    </div>
+  ),
+};
+
 export const States: Story = {
   tags: ['visual'],
   name: '状態',
   parameters: {
-    pseudo: statePseudo({
-      hover: '[data-slot="field-addon-button"]:not(:disabled)',
-      focusVisible: '[data-slot="field-addon-button"]:not(:disabled)',
-    }),
+    // 欄とボタンの状態を 5 列に並べる分、撮る枠を広くする（既定は 1200×900）
+    viewport: {
+      defaultViewport: 'wide',
+      viewports: { wide: { name: 'wide', styles: { width: '1360px', height: '900px' } } },
+    },
+    pseudo: pickerFieldPseudo('hour'),
     docs: {
       description: {
         story:
@@ -296,7 +338,7 @@ export const States: Story = {
     <Matrix
       rows={stateRows}
       rowLabel={(row) => row.label}
-      columns={stateColumns}
+      columns={pickerFieldColumns}
       columnWidth="14rem"
       renderCell={(row) => <TimePicker {...args} {...row.props} />}
     />
@@ -451,6 +493,86 @@ export const PickWithDoneButton: Story = {
     await expect(hidden?.value).toBe('14:35');
     await userEvent.click(body.getByRole('button', { name: '完了' }));
     await waitFor(() => expect(body.queryByRole('listbox')).not.toBeInTheDocument());
+  },
+};
+
+export const OutOfRangeValue: Story = {
+  name: '範囲の外の値で開く',
+  args: {
+    min: Temporal.PlainTime.from('09:00'),
+    max: Temporal.PlainTime.from('18:00'),
+    defaultValue: Temporal.PlainTime.from('07:10'),
+  },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '値が `min`・`max` の外のときは、開いた一覧で選べる時刻のうちいちばん近いものにフォーカスを置きます。PageUp・PageDown は、見えている行の数ずつ動きます。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: '時刻を選ぶ' }));
+    // 面の名前は欄のラベル。一覧の名前は開く口の名前で、同じ文を二度読ませない
+    const dialog = await body.findByRole('dialog', { name: '開始時刻' });
+    const listbox = within(dialog).getByRole('listbox', { name: '時刻を選ぶ' });
+    const nearest = within(listbox).getByRole('option', { name: '09:00' });
+    await waitFor(() => expect(nearest).toHaveFocus());
+    await expect(nearest).toHaveAttribute('tabindex', '0');
+    // 範囲の外の項目には、フォーカスの止まり先を置かない
+    await expect(within(listbox).getByRole('option', { name: '07:00' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    );
+    // PageDown は、見えている行の数（7 行半の一覧で 6 行）だけ進む
+    await userEvent.keyboard('{PageDown}');
+    await waitFor(() =>
+      expect(within(listbox).getByRole('option', { name: '10:30' })).toHaveFocus()
+    );
+    await userEvent.keyboard('{PageUp}');
+    await waitFor(() => expect(nearest).toHaveFocus());
+    await userEvent.keyboard('{Escape}');
+  },
+};
+
+export const LockedStaysClosed: Story = {
+  name: '開けない欄',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '押せない欄（Fieldset の `disabled` を含む）・読み取り専用の欄・待っているあいだ止める欄（`loadingBehavior="blocking"`）では、`defaultOpen` や `open` を渡しても一覧を開きません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col gap-4">
+      <TimePicker label="押せない" disabled defaultOpen />
+      <TimePicker label="読み取り専用" readOnly defaultOpen defaultValue={time} />
+      <TimePicker label="待っている" loading loadingBehavior="blocking" open />
+      <Fieldset label="まとめて押せない" disabled>
+        <TimePicker label="Fieldset の中" defaultOpen />
+      </Fieldset>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    // 開くなら描いた直後に面が出るので、数フレーム待ってから確かめる
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await expect(body.queryByRole('listbox')).toBeNull();
+    for (const button of body.queryAllByRole('button', { name: '時刻を選ぶ' })) {
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+    }
   },
 };
 

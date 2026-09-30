@@ -22,8 +22,11 @@ function dedent(text: string) {
   return lines.map((line) => line.slice(indent)).join('\n');
 }
 
-/** 状態を固定する列。parameters.pseudo のセレクタが [data-preview="…"] で参照する */
-export type PreviewState = 'hover' | 'active' | 'focus';
+/**
+ * 状態を固定する列。parameters.pseudo のセレクタが [data-preview="…"] で参照する
+ * button-hover・button-focus は、欄の右端のボタン（開く口など）の hover・フォーカス（pickerFieldPseudo）
+ */
+export type PreviewState = 'hover' | 'active' | 'focus' | 'button-hover' | 'button-focus';
 
 export interface MatrixColumn {
   label: ReactNode;
@@ -70,5 +73,30 @@ export function statePseudo({ hover, active, focusVisible, focusWithin }: Pseudo
     ...(active && { active: [at('active', active)] }),
     ...(focusVisible && { focusVisible: [at('focus', focusVisible)] }),
     ...(focusWithin && { focusWithin: [at('focus', focusWithin)] }),
+  };
+}
+
+/** 右端にボタンを付けた欄（DatePicker・TimePicker）の状態の列。欄と、右端のボタンの hover・フォーカスを並べる */
+export const pickerFieldColumns: MatrixColumn[] = [
+  { label: '通常' },
+  { label: '欄に hover', state: 'hover' },
+  { label: '欄にフォーカス', state: 'focus' },
+  { label: 'ボタンに hover', state: 'button-hover' },
+  { label: 'ボタンにフォーカス（キーボード）', state: 'button-focus' },
+];
+
+/**
+ * pickerFieldColumns の状態を当てる指定（parameters.pseudo）。押せない欄（enabledControl で外す）には当てない
+ * 欄のフォーカスは、欄の中の区切り（segment の data-segment）に当てる。ボタンに載せたときは欄にも載っているので、欄の hover も当てる
+ */
+export function pickerFieldPseudo(segment: string) {
+  const control = (state: PreviewState) => `[data-preview="${state}"] ${enabledControl}`;
+  const button = (state: PreviewState) => `${control(state)} [data-slot="field-addon-button"]`;
+  return {
+    rootSelector: 'body',
+    hover: [control('hover'), control('button-hover'), button('button-hover')],
+    focusWithin: [control('focus'), control('button-focus')],
+    focus: [`${control('focus')} [data-segment="${segment}"]`],
+    focusVisible: [button('button-focus')],
   };
 }
