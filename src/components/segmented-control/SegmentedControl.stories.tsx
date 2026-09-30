@@ -170,7 +170,7 @@ export const Shapes: Story = {
     docs: {
       description: {
         story:
-          '既定は入力欄・ボタンと同じ角（`shape="square"`）、均等な幅（`itemWidth="equal"`）、入力欄のグレーの溝（`frame="field"`）で、仕切りの線はありません。`shape="circle"` は両端が丸い形、`itemWidth="fit"` は項目ごとに文字の幅、`frame="outline"` は塗らずに細い境界線で囲む溝です。`showDivider` は選んでいない項目どうしのあいだに線を引きます。',
+          '既定は入力欄・ボタンと同じ角（`shape="square"`）、均等な幅（`itemWidth="equal"`）、入力欄のグレーの溝（`frame="field"`）で、仕切りの線はありません。`shape="circle"` は両端が丸い形、`itemWidth="fit"` は項目ごとに文字の幅、`frame="outline"` は塗らずに細い境界線で囲む溝です。`showDivider` は選んでいない項目どうしのあいだに線を引きます。カードやサイドバーなどグレーの地に置くときは、溝が地に溶けるので `frame="outline"` を使います。',
       },
     },
   },
