@@ -75,7 +75,7 @@ const meta = {
           '- `columns={3}` のように数を渡すと、どの幅でも同じ列の数に固定します。',
           '- `columns={{ base: 1, sm: 2, lg: 4 }}` のように画面の幅の段ごとの数を渡すと、画面の幅で列の数が変わります。段は `base`（いちばん狭い画面）・`sm`（40rem）・`md`（48rem）・`lg`（64rem）・`xl`（80rem）で、Tailwind の既定の幅と同じです。渡していない段は、1 つ下の段の数を使います（`base` もないときは 1 列）。',
           '- `columns` と `minColumnWidth` を両方渡すと、`columns` を上限にし、1 列が `minColumnWidth` を割るときは列を減らします。サイドバーの横のような、画面より狭い入れ物に置くときに使います。',
-          '- `gap` は子の間隔です（`Stack` の `gap` と同じ段）。既定は `md` です。',
+          '- `gap` は子の間隔です（`Stack` の `gap` と同じ段）。既定は `md` です。縦と横で変えるときは、`rowGap`（行のあいだ）・`columnGap`（列のあいだ）を渡します。',
           '- `align` は同じ行の子の上下の揃えです。既定の `stretch` は、行でいちばん高い子に合わせて伸ばすので、カードの高さがそろいます。子の高さをそのままにするときは `align="start"` を渡します。',
           '- 一覧にするときは `render={<ul />}` を渡し、子を `li` にします。',
         ].join('\n'),
@@ -296,6 +296,12 @@ export const Props: Story = {
           <Grid data-testid="inner">{blocks(2)}</Grid>
         </Grid>
       </div>
+      <div style={{ width: 600 }}>
+        <Grid data-testid="gaps" columns={3} minColumnWidth={100} rowGap="xl" columnGap="xs">
+          <Grid data-testid="gaps-inner">{blocks(2)}</Grid>
+          {blocks(2)}
+        </Grid>
+      </div>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -332,5 +338,11 @@ export const Props: Story = {
     await expect(columnCount(canvas.getByTestId('outer'))).toBe(2);
     const inner = canvas.getByTestId('inner');
     await expect(columnCount(inner)).toBe(Math.floor((inner.clientWidth + 16) / (240 + 16)));
+    // rowGap・columnGap は縦横を別に決め、入れ子の Grid には引き継がれない
+    const gaps = canvas.getByTestId('gaps');
+    await expect(getComputedStyle(gaps).rowGap).toBe('40px');
+    await expect(getComputedStyle(gaps).columnGap).toBe('4px');
+    await expect(columnCount(gaps)).toBe(3);
+    await expect(getComputedStyle(canvas.getByTestId('gaps-inner')).rowGap).toBe('16px');
   },
 };

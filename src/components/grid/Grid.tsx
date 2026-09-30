@@ -23,13 +23,18 @@ export type { GridBreakpoint, GridColumns } from '../../internal/breakpoints';
 //   同じ行の子の高さの揃え（align）は CSS Grid の既定の stretch（ADR-0308）
 //   間隔は Stack と同じ間隔の段（ADR-0212）。押すものではないので入力方式では変えない
 const grid = tv({
-  base: ['grid gap-(--grid-gap) [--grid-min:var(--grid-column-width)]', ...columnsClasses],
+  base: [
+    // 縦横の間隔。rowGap・columnGap を渡さなければ gap の段（--grid-gap）。入れ子の Grid が外の値を受け継がないよう、自分の要素で決め直す
+    'grid gap-x-(--grid-column-gap) gap-y-(--grid-row-gap) [--grid-column-gap:var(--grid-gap)] [--grid-row-gap:var(--grid-gap)]',
+    '[--grid-min:var(--grid-column-width)]',
+    ...columnsClasses,
+  ],
   variants: {
     layout: {
       fill: '[grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--grid-min)),1fr))]',
       fixed: '[grid-template-columns:repeat(var(--columns),minmax(0,1fr))]',
       capped:
-        '[grid-template-columns:repeat(auto-fill,minmax(min(100%,max(var(--grid-min),100%_/_var(--columns)_-_max(var(--grid-gap),1px))),1fr))]',
+        '[grid-template-columns:repeat(auto-fill,minmax(min(100%,max(var(--grid-min),100%_/_var(--columns)_-_max(var(--grid-column-gap),1px))),1fr))]',
     },
     gap: {
       none: '[--grid-gap:0px]',
@@ -38,6 +43,22 @@ const grid = tv({
       md: '[--grid-gap:var(--stack-gap-md)]',
       lg: '[--grid-gap:var(--stack-gap-lg)]',
       xl: '[--grid-gap:var(--stack-gap-xl)]',
+    },
+    rowGap: {
+      none: '[--grid-row-gap:0px]',
+      xs: '[--grid-row-gap:var(--stack-gap-xs)]',
+      sm: '[--grid-row-gap:var(--stack-gap-sm)]',
+      md: '[--grid-row-gap:var(--stack-gap-md)]',
+      lg: '[--grid-row-gap:var(--stack-gap-lg)]',
+      xl: '[--grid-row-gap:var(--stack-gap-xl)]',
+    },
+    columnGap: {
+      none: '[--grid-column-gap:0px]',
+      xs: '[--grid-column-gap:var(--stack-gap-xs)]',
+      sm: '[--grid-column-gap:var(--stack-gap-sm)]',
+      md: '[--grid-column-gap:var(--stack-gap-md)]',
+      lg: '[--grid-column-gap:var(--stack-gap-lg)]',
+      xl: '[--grid-column-gap:var(--stack-gap-xl)]',
     },
     align: {
       start: 'items-start',
@@ -72,6 +93,10 @@ export interface GridProps extends ComponentProps<'div'> {
    * @default 'md'
    */
   gap?: GridGap;
+  /** 行と行のあいだ（縦）の間隔。渡すと gap より優先します。段は gap と同じです */
+  rowGap?: GridGap;
+  /** 列と列のあいだ（横）の間隔。渡すと gap より優先します。段は gap と同じです */
+  columnGap?: GridGap;
   /**
    * 同じ行の子の、上下の揃え。stretch は行でいちばん高い子に合わせて伸ばします（カードの高さがそろう）。
    * 子の高さをそのままにするときは `align="start"` を渡します
@@ -93,6 +118,8 @@ export function Grid({
   minColumnWidth,
   columns,
   gap,
+  rowGap,
+  columnGap,
   align,
   className,
   render,
@@ -106,7 +133,7 @@ export function Grid({
     props: {
       ...props,
       'data-slot': 'grid',
-      className: grid({ layout, gap, align, className }),
+      className: grid({ layout, gap, rowGap, columnGap, align, className }),
       style: {
         ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
         ...columnVars(columns),
