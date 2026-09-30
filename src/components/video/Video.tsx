@@ -13,10 +13,10 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
 import { PlayIcon } from '../../internal/icons';
-import { useMergedRefs } from '../../internal/use-merged-refs';
 import { toMediaSize } from '../../internal/media-size';
 import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
 import { figureCaptionClass, figureClass } from '../figure/Figure';
 import { VideoBrokenIcon } from './video-icons';
@@ -185,8 +185,10 @@ export interface VideoProps extends Omit<
   accessibleName?: string;
   /** 動画の中身。複数形式の `<source>` や、字幕・キャプションの `<track>` を並べます */
   children?: ReactNode;
-  /** 外側の figure 要素（枠を描く要素）に渡す props。className は動画の要素に付きます */
+  /** 動画を包む枠（AspectRatio を描く要素）に渡す props。className は動画の要素に付きます */
   frameProps?: ComponentProps<'div'>;
+  /** キャプションを付けたときの、外側の figure 要素に渡す props。キャプションがないときは figure で包みません */
+  figureProps?: ComponentProps<'figure'>;
   /** 動画の要素に付きます。枠に付けるクラスは frameProps の className に渡します */
   className?: string;
 }
@@ -218,6 +220,8 @@ export function Video({
   accessibleName,
   children,
   frameProps,
+  figureProps,
+  ref,
   className,
   onLoadedData,
   onError,
@@ -225,7 +229,6 @@ export function Video({
   width,
   height,
   style,
-  ref,
   ...props
 }: VideoProps) {
   const [status, setStatus] = useState<VideoStatus>('idle');
@@ -270,69 +273,75 @@ export function Video({
   const showPlaceholder = status === 'error' || (poster == null && status === 'loading');
   const effectiveControls = controls || autoPlaySuppressed;
 
-  return (
-    <figure className={figureClass()}>
-      <AspectRatio
-        ratio={ratio ?? (sized ? `${widthValue} / ${heightValue}` : 16 / 9)}
-        data-slot="video"
-        data-status={status}
-        {...frameProps}
-        className={s.frame({ className: frameProps?.className })}
+  const frame = (
+    <AspectRatio
+      ratio={ratio ?? (sized ? `${widthValue} / ${heightValue}` : 16 / 9)}
+      data-slot="video"
+      data-status={status}
+      {...frameProps}
+      className={s.frame({ className: frameProps?.className })}
+    >
+      <video
+        {...props}
+        ref={mergedRef}
+        width={width}
+        height={height}
+        poster={poster}
+        controls={effectiveControls}
+        autoPlay={autoPlay}
+        loop={loop}
+        muted={muted}
+        playsInline={playsInline}
+        aria-label={accessibleName}
+        data-video-hidden={showPlaceholder || undefined}
+        // object-fit は AspectRatio の fit を通さず、インラインの style で必ず勝たせる
+        style={{ ...style, objectFit: fit }}
+        onLoadedData={(event: SyntheticEvent<HTMLVideoElement>) => {
+          if (status !== 'error') setStatus('loaded');
+          onLoadedData?.(event);
+        }}
+        onError={(event: SyntheticEvent<HTMLVideoElement>) => {
+          setStatus('error');
+          onError?.(event);
+        }}
+        onPlay={(event: SyntheticEvent<HTMLVideoElement>) => {
+          setStarted(true);
+          onPlay?.(event);
+        }}
+        className={s.video({ className })}
       >
-        <video
-          {...props}
-          ref={mergedRef}
-          width={width}
-          height={height}
-          poster={poster}
-          controls={effectiveControls}
-          autoPlay={autoPlay}
-          loop={loop}
-          muted={muted}
-          playsInline={playsInline}
-          aria-label={accessibleName}
-          data-video-hidden={showPlaceholder || undefined}
-          // object-fit は AspectRatio の fit を通さず、インラインの style で必ず勝たせる
-          style={{ ...style, objectFit: fit }}
-          onLoadedData={(event: SyntheticEvent<HTMLVideoElement>) => {
-            if (status !== 'error') setStatus('loaded');
-            onLoadedData?.(event);
-          }}
-          onError={(event: SyntheticEvent<HTMLVideoElement>) => {
-            setStatus('error');
-            onError?.(event);
-          }}
-          onPlay={(event: SyntheticEvent<HTMLVideoElement>) => {
-            setStarted(true);
-            onPlay?.(event);
-          }}
-          className={s.video({ className })}
-        >
-          {children}
-        </video>
-        {showPlaceholder && (
-          <span className={s.placeholder()}>
-            <VideoBrokenIcon className={s.errorIcon()} />
-            <span className={s.errorText()}>
-              <span className={s.errorTextClamp()}>{errorText}</span>
-            </span>
+        {children}
+      </video>
+      {showPlaceholder && (
+        <span className={s.placeholder()}>
+          <VideoBrokenIcon className={s.errorIcon()} />
+          <span className={s.errorText()}>
+            <span className={s.errorTextClamp()}>{errorText}</span>
           </span>
-        )}
-        {/* controls を出しているときは、ブラウザの再生ボタンと二重になるので重ねない。出番は controls={false} のときだけ。
+        </span>
+      )}
+      {/* controls を出しているときは、ブラウザの再生ボタンと二重になるので重ねない。出番は controls={false} のときだけ。
             失敗したときは、代わりにエラーの面を出す */}
-        {!effectiveControls && !started && status !== 'error' && (
-          <button
-            type="button"
-            aria-label={playName}
-            data-slot="video-play"
-            onClick={() => videoRef.current?.play()}
-            className={s.play()}
-          >
-            <PlayIcon standalone className={s.playIcon()} />
-          </button>
-        )}
-      </AspectRatio>
-      {caption != null && <figcaption className={figureCaptionClass}>{caption}</figcaption>}
+      {!effectiveControls && !started && status !== 'error' && (
+        <button
+          type="button"
+          aria-label={playName}
+          data-slot="video-play"
+          onClick={() => videoRef.current?.play()}
+          className={s.play()}
+        >
+          <PlayIcon standalone className={s.playIcon()} />
+        </button>
+      )}
+    </AspectRatio>
+  );
+
+  // キャプションがないときは figure で包まない（Figure・ImageZoom と同じ）
+  if (caption == null) return frame;
+  return (
+    <figure {...figureProps} className={figureClass(figureProps?.className)}>
+      {frame}
+      <figcaption className={figureCaptionClass}>{caption}</figcaption>
     </figure>
   );
 }
