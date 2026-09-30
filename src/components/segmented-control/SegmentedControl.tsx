@@ -110,7 +110,7 @@ const segmented = tv({
       'bg-(color:--flat-bg) [--flat-bg:transparent]',
       'not-data-checked:not-data-disabled:hover:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),transparent)]',
       'not-data-checked:not-data-disabled:active:translate-y-(--flat-press-depth) not-data-checked:not-data-disabled:active:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-press-mix),transparent)]',
-      // 押せない項目（グループごと、または 1 つだけ）
+      // 押せない項目（グループごと、または 1 つだけ。読み取り専用・送信中も同じ見た目）
       'data-disabled:cursor-not-allowed data-disabled:text-on-field-disabled',
       'data-disabled:data-checked:text-(color:--segmented-control-knob-fg-disabled)',
       '[--focus-ring-offset:var(--segmented-control-focus-offset)]',
@@ -211,7 +211,13 @@ const segmented = tv({
   },
 });
 
-const SegmentedControlContext = createContext<{ readOnly?: boolean } | null>(null);
+const SegmentedControlContext = createContext<{
+  readOnly?: boolean;
+  /** 読み取り専用・Form の送信中に、項目にも付ける押せない印（data-disabled） */
+  lockData: { 'data-disabled'?: string };
+  /** 読み取り専用のとき true。カーソルを禁止の形にしない */
+  readOnlyLook: boolean;
+} | null>(null);
 
 /** SegmentedControl の本体（SegmentedControlControl）の props。見出し・キャプション・状態の文・押せない・必須は、包む Field に渡します */
 export interface SegmentedControlControlProps<Value> extends Omit<
@@ -305,7 +311,16 @@ export function SegmentedControlControl<Value>({
   const disabled = field?.disabled;
   // Form の送信中と読み取り専用は、選び直し（矢印キーを含む）を止め、押せないときと同じ見た目にする（原則8・原則13）
   const locked = useChoiceLock(disabled, readOnly);
-  const context = useMemo(() => ({ readOnly: locked.readOnly }), [locked.readOnly]);
+  // locked.data は描画ごとに新しいオブジェクトなので、印の有無で作り直す
+  const dimmed = 'data-disabled' in locked.data;
+  const context = useMemo(
+    () => ({
+      readOnly: locked.readOnly,
+      lockData: dimmed ? { 'data-disabled': '' } : {},
+      readOnlyLook: locked.readOnlyLook,
+    }),
+    [locked.readOnly, dimmed, locked.readOnlyLook]
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRef = useMergedRefs(rootRef, ref);
   useSegmentedKnob(rootRef);
@@ -388,8 +403,12 @@ export function SegmentedControlItem({
         value={value}
         disabled={disabled}
         readOnly={group?.readOnly}
+        // 読み取り専用・送信中は、項目にも押せない印を付け、hover・沈み・文字の薄さを押せない項目と同じにする（原則8・原則13）
+        {...group?.lockData}
         data-slot="segmented-control-item"
-        className={s.item({ className })}
+        className={s.item({
+          className: [group?.readOnlyLook && 'data-disabled:cursor-default', className],
+        })}
       >
         <span className={s.inner()}>
           <span className={s.label()}>{content}</span>

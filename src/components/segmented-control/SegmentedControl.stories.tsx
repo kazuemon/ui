@@ -13,6 +13,7 @@ import {
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import { type StateColumn, statePseudo } from '../../stories/story-states';
 import { Fieldset } from '../fieldset/Fieldset';
+import { Form } from '../form/Form';
 import { Icon } from '../icon/Icon';
 
 const colors = ['neutral', 'primary', 'secondary'] as const;
@@ -503,5 +504,60 @@ export const InFieldset: Story = {
     const express = disabled.getByRole('radio', { name: 'お急ぎ便' });
     await userEvent.click(express, { pointerEventsCheck: 0 });
     await expect(express).not.toBeChecked();
+  },
+};
+
+export const Locked: Story = {
+  name: '読み取り専用と送信中',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '読み取り専用（`readOnly`）と、Form の送信中（`submitting`）は、押せない（`disabled`）ときと同じ見た目になります。項目は hover でも押しても変わらず、選び直せません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex w-[360px] flex-col gap-8">
+      <SegmentedControl<string> label="押せない" disabled defaultValue="normal">
+        <SegmentedControlItem value="normal">通常</SegmentedControlItem>
+        <SegmentedControlItem value="express">お急ぎ便</SegmentedControlItem>
+      </SegmentedControl>
+      <SegmentedControl<string> label="読み取り専用" readOnly defaultValue="normal">
+        <SegmentedControlItem value="normal">通常</SegmentedControlItem>
+        <SegmentedControlItem value="express">お急ぎ便</SegmentedControlItem>
+      </SegmentedControl>
+      <Form submitting>
+        <SegmentedControl<string> label="送信中" defaultValue="normal">
+          <SegmentedControlItem value="normal">通常</SegmentedControlItem>
+          <SegmentedControlItem value="express">お急ぎ便</SegmentedControlItem>
+        </SegmentedControl>
+      </Form>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const unchecked = (name: string) =>
+      within(canvas.getByRole('radiogroup', { name })).getByRole('radio', { name: 'お急ぎ便' });
+    const disabled = unchecked('押せない');
+    const mutedColor = getComputedStyle(disabled).color;
+
+    for (const [name, cursor] of [
+      ['読み取り専用', 'default'],
+      ['送信中', 'not-allowed'],
+    ] as const) {
+      const item = unchecked(name);
+      // 項目にも押せない印が付き、選んでいない文字は押せないときと同じ薄さになる
+      await expect(item).toHaveAttribute('data-disabled');
+      await expect(getComputedStyle(item).color).toBe(mutedColor);
+      await expect(getComputedStyle(item).cursor).toBe(cursor);
+      // hover しても塗らない。押しても沈まず、選び直さない
+      await userEvent.hover(item);
+      await expect(getComputedStyle(item).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      await userEvent.pointer({ keys: '[MouseLeft>]', target: item });
+      await expect(getComputedStyle(item).translate).toBe('none');
+      await userEvent.pointer({ keys: '[/MouseLeft]', target: item });
+      await expect(item).toHaveAttribute('aria-checked', 'false');
+    }
   },
 };
