@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { useState } from 'react';
+import { expect, userEvent } from 'storybook/test';
 
 import { List, ListItem } from './List';
 import { Code } from '../code/Code';
@@ -125,5 +126,31 @@ export const Accessibility: Story = {
     await expect(list.tagName).toBe('OL');
     await expect(list).toHaveAttribute('start', '3');
     await expect(canvas.getAllByRole('listitem')).toHaveLength(3);
+  },
+};
+
+function CheckedToggle() {
+  const [done, setDone] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setDone(true)}>
+        済みにする
+      </button>
+      <List task>
+        <ListItem checked={done}>確かめる</ListItem>
+      </List>
+    </>
+  );
+}
+
+export const CheckedFollows: Story = {
+  name: 'checked が後から変わる',
+  parameters: { controls: { disable: true } },
+  render: () => <CheckedToggle />,
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox');
+    await expect(box).not.toBeChecked();
+    await userEvent.click(canvas.getByRole('button', { name: '済みにする' }));
+    await expect(box).toBeChecked();
   },
 };
