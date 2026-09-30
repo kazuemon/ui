@@ -20,7 +20,6 @@ import { popupMotionClass, popupSurfaceClass } from '../overlay/popup-styles';
 import { type OverlayPresentation, useSheetPresentation } from '../sheet/use-narrow-screen';
 import { cn } from '../tv';
 import { usePortalContainer } from '../ui-config';
-import { useMergedRefs } from '../use-merged-refs';
 
 // 欄の右端のボタン（開く口）から、選ぶ面を開く。DatePicker（カレンダー）と TimePicker（時刻の一覧）が使う
 //   中身（panel）と本体（children）を受け取るだけにし、欄・ボタン・面の形はここでそろえる
@@ -67,8 +66,12 @@ export interface PickerOverlayProps {
   title: ReactNode;
   presentation?: OverlayPresentation;
   portalContainer?: HTMLElement | null;
-  /** 面（浮かべる形の Popup・シートの面）に足す props。余白・幅は className で渡す */
+  /** 面（浮かべる形の Popup・シートの面）に足す props。利用者の popupProps をそのまま渡す */
   popupProps?: PopupProps;
+  /**
+   * 浮かべる形の面だけに足すクラス（余白・幅など）。シートは Drawer が余白と幅を持つので渡さない
+   */
+  popoverClassName?: string;
   /** 位置を決める要素（Positioner）に足す props。位置の基準は、書かないときは欄の外枠 */
   positionerProps?: PositionerProps;
   /**
@@ -102,6 +105,7 @@ export function PickerOverlay({
   presentation,
   portalContainer: container,
   popupProps,
+  popoverClassName,
   positionerProps,
   align = 'start',
   trapFocus = false,
@@ -117,14 +121,8 @@ export function PickerOverlay({
   // 開く口の祖先に付いた密度（data-density・coarse-large）を、開くたびに読み、面に写す（Select・Popover と同じ）
   const scope: DensityScope = open ? readDensityScope(triggerElement) : { large: false };
   const anchor = triggerElement?.closest<HTMLElement>('[data-slot="control"]') ?? triggerElement;
-  const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
-  const {
-    className: positionerClassName,
-    ref: userPositionerRef,
-    ...restPositionerProps
-  } = positionerProps ?? {};
-  const popupRef = useMergedRefs<HTMLDivElement>(userPopupRef);
-  const positionerRef = useMergedRefs<HTMLDivElement>(userPositionerRef);
+  const { className: popupClassName, ...restPopupProps } = popupProps ?? {};
+  const { className: positionerClassName, ...restPositionerProps } = positionerProps ?? {};
 
   if (sheet) {
     const renderTrigger = (element: TriggerElement) =>
@@ -174,19 +172,18 @@ export function PickerOverlay({
           collisionAvoidance={{ side: 'flip', align: 'shift' }}
           data-density={scope.density}
           {...restPositionerProps}
-          ref={positionerRef}
           className={cn('z-10 outline-none', scope.large && 'coarse-large', positionerClassName)}
         >
           <BasePopover.Popup
             data-slot="picker-popup"
             initialFocus={moveFocus ? undefined : false}
             {...restPopupProps}
-            ref={popupRef}
             className={cn(
               popupSurfaceClass,
               'shadow-overlay',
               popupMotionClass,
               'max-w-(--available-width)',
+              popoverClassName,
               popupClassName
             )}
           >

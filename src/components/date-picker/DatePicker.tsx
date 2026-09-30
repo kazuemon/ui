@@ -253,10 +253,9 @@ export function DatePicker(props: DatePickerProps) {
       title={title}
       presentation={presentation}
       portalContainer={portalContainer}
-      popupProps={{
-        ...popupProps,
-        className: cn('p-(--date-picker-popup-padding)', popupProps?.className),
-      }}
+      popupProps={popupProps}
+      // 面の余白は浮かべる形だけ（シートは Drawer が余白を持つ）
+      popoverClassName="p-(--date-picker-popup-padding)"
       panel={panel}
       closeName={closeName}
       // フォーカスを面の中に閉じ込める（WAI-ARIA の日付選びのダイアログと同じ）。フォーカスはカレンダーが選んだ日か今日へ移す

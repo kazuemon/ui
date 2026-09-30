@@ -229,11 +229,12 @@ function TimePickerControlInner({
       moveFocus
       popupProps={{
         ...restPopupProps,
+        className: popupClassName,
         style: { ...selectedTokens(color), ...popupStyle },
-        // 余白は項目の一覧が持つ（Select の浮かぶ選択肢と同じ）
-        // 幅は中身の幅で、欄より狭いときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）
-        className: cn('w-max min-w-(--anchor-width) overflow-clip', popupClassName),
       }}
+      // 余白は項目の一覧が持つ（Select の浮かぶ選択肢と同じ）
+      // 幅は中身の幅で、欄より狭いときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）。シートでは Drawer の幅
+      popoverClassName="w-max min-w-(--anchor-width) overflow-clip"
       panel={panel}
       closeName="閉じる"
     >
