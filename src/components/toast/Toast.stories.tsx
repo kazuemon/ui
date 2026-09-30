@@ -442,6 +442,8 @@ export const Update: Story = {
     await waitFor(() => expect(toastOf('送信しました')).toHaveAttribute('data-status', 'success'), {
       timeout: 3000,
     });
+    // 危険でない状態は割り込まない（alertdialog にならない）
+    await expect(toastOf('送信しました')).toHaveAttribute('role', 'dialog');
     // promise: 待ち → 失敗（2 回めは失敗する）。状態を書かない失敗は danger になる
     await userEvent.click(canvas.getByRole('button', { name: 'Promise で出す' }));
     await waitFor(() =>
@@ -452,6 +454,8 @@ export const Update: Story = {
       { timeout: 3000 }
     );
     await expect(toastOf('通信できませんでした')).toBeDefined();
+    // 失敗（danger）に変わると、読み上げに割り込む（alertdialog）
+    await expect(toastOf('公開できませんでした')).toHaveAttribute('role', 'alertdialog');
   },
 };
 

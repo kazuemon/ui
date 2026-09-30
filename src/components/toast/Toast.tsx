@@ -268,8 +268,8 @@ export interface ToastProviderProps {
    */
   hideOutline?: boolean;
   /**
-   * 画面の端からの離れ（px）。上や下に固定したヘッダー・タブバーを避けるときに渡します。
-   * 渡さないときは 16px です
+   * 画面の端からの離れ（px）。上や下に固定したヘッダー・タブバーを避けるときに渡します
+   * @default 16
    */
   offset?: number;
   /**
