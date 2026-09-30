@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
+import type { ListboxGroup } from '../../internal/listbox/listbox-items';
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import type { FieldNamed } from '../../internal/field/input-field-props';
 import { Select, type SelectBaseProps, SelectControl } from './Select';
@@ -913,5 +914,84 @@ export const AutoComplete: Story = {
   play: async ({ canvasElement }) => {
     const hidden = canvasElement.querySelector('input[name="prefecture"]');
     await expect(hidden).toHaveAttribute('autocomplete', 'address-level1');
+  },
+};
+
+const plans: ListboxGroup[] = [
+  {
+    label: '個人',
+    items: [
+      { label: 'フリー', value: 'free' },
+      { label: 'プロ', value: 'pro' },
+    ],
+  },
+  {
+    label: 'チーム',
+    items: [
+      { label: 'スタンダード', value: 'standard' },
+      { label: 'エンタープライズ', value: 'enterprise' },
+    ],
+  },
+];
+
+// Show code: 枠（PopoverFrame）の中身は出ないので、Select の使い方を source.code に手で書く
+export const Groups: Story = {
+  tags: ['visual'],
+  name: 'まとまりに分ける',
+  args: {
+    label: 'プラン',
+    prefix: undefined,
+    items: plans,
+    groupLabelStyle: 'label',
+    showGroupSeparator: false,
+  },
+  argTypes: {
+    groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
+    showGroupSeparator: { control: 'boolean' },
+  },
+  parameters: {
+    controls: { include: ['groupLabelStyle', 'showGroupSeparator'] },
+    docs: {
+      description: {
+        story:
+          '`items` に `label` と `items` を持つまとまりの並びを渡すと、見出し付きのまとまりに分かれます（Combobox と同じ形）。見出しの文字は `groupLabelStyle`、まとまりのあいだの区切り線は `showGroupSeparator` で選びます。',
+      },
+      source: sourceCode(`
+        const plans: ListboxGroup[] = [
+          { label: '個人', items: [{ label: 'フリー', value: 'free' }, { label: 'プロ', value: 'pro' }] },
+          { label: 'チーム', items: [{ label: 'スタンダード', value: 'standard' }, { label: 'エンタープライズ', value: 'enterprise' }] },
+        ];
+
+        <Select label="プラン" items={plans} defaultValue="pro" />
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PopoverFrame>
+      {(container) => (
+        <Select
+          key={`${args.groupLabelStyle}-${String(args.showGroupSeparator)}`}
+          {...args}
+          presentation="popover"
+          defaultValue="pro"
+          defaultOpen={openOnLoad(viewMode)}
+          modal={false}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+        />
+      )}
+    </PopoverFrame>
+  ),
+  play: async ({ canvas, canvasElement, viewMode }) => {
+    if (viewMode === 'docs') return;
+    // 選んだ値の文字は、まとまりの中の選択肢から引く
+    await expect(canvas.getByRole('combobox', { name: /プラン/ })).toHaveTextContent('プロ');
+    const page = within(canvasElement.ownerDocument.body);
+    const groups = await page.findAllByRole('group');
+    await expect(groups.map((group) => group.getAttribute('aria-labelledby') != null)).toEqual([
+      true,
+      true,
+    ]);
+    await expect(within(groups[1]).getAllByRole('option')).toHaveLength(2);
   },
 };

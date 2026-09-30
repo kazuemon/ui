@@ -260,7 +260,6 @@
 ### Select
 
 - 読み取り専用の Select は、押しても開きません。破線の輪郭と淡い ▼ から、開かないことを使う人が予想できるかは分かっていません。書き方（Docs）で補うかを決めます（[ADR-0196](./adr/0196-choice-readonly.md)）
-- 選択肢の群（Base UI の `Select.Group`）の形は、Combobox の [ADR-0214](./adr/0214-combobox-scope.md) で決まりました。`items` に、`label` と `items` を持つまとまりの配列を渡す形です（children で組み立てて context でつなぐ形は採りません）。Select にはまだ足していません。同じ形で足します（[ADR-0037](./adr/0037-select-sheet.md)）
 - Select の浮かぶ面と項目は、Combobox と同じ `src/internal/listbox` に乗せ替えました（見た目は変えていません）。`--select-popup-*` のトークン名を `--listbox-popup-*` に寄せるかは決めていません
 
 ### Combobox・Chip

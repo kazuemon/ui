@@ -1,7 +1,15 @@
 'use client';
 
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { type ComponentProps, type ReactNode, type Ref, useEffect, useId, useState } from 'react';
+import {
+  type ComponentProps,
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import {
@@ -25,10 +33,15 @@ import {
 } from '../../internal/listbox/listbox-colors';
 import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import { type ListboxSlotProps, mergeSlotClass } from '../../internal/listbox/listbox-slot-props';
-import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import {
+  flattenItems,
+  isGroupedItems,
+  type ListboxItems,
+} from '../../internal/listbox/listbox-items';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
+  type GroupLabelStyle,
   listboxList,
   type ListboxPresentation,
   listboxPopup,
@@ -41,7 +54,7 @@ import {
   type OverlayPresentation,
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
-import { SelectOption } from './SelectOption';
+import { SelectGroupSection, SelectOption } from './SelectOption';
 import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
@@ -86,10 +99,21 @@ export interface SelectControlProps<Multiple extends boolean = false> {
    */
   color?: ListboxColor;
   /**
-   * 選択肢。各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
+   * 選択肢。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
    * 選べない理由や警告の文は、呼び出し側が組み立てて渡す（書き方は実装ガイドラインで決める）。部品は渡された文をそのまま出す
    */
-  items: ListboxItem[];
+  items: ListboxItems;
+  /**
+   * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
+   * @default 'label'
+   */
+  groupLabelStyle?: GroupLabelStyle;
+  /**
+   * まとまりのあいだに区切り線を引くか
+   * @default false
+   */
+  showGroupSeparator?: boolean;
   /**
    * 何も選んでいないときに出す文字。選んだ値と見分けられるよう、「選んでください」のように、まだ選んでいないと分かる書き方にします。
    * 選択肢の名前（「東京都」など）をそのまま書くと、選んだ値に見えます
@@ -310,6 +334,8 @@ export function SelectControl<Multiple extends boolean = false>({
   readOnly,
   color = 'neutral',
   items,
+  groupLabelStyle = 'label',
+  showGroupSeparator = false,
   placeholder,
   prefix,
   addonShape = 'attached',
@@ -412,13 +438,15 @@ export function SelectControl<Multiple extends boolean = false>({
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
   };
 
+  // まとまりで渡されたときも、選んだ値の文字と選択肢の数は、まとまりをほどいた並びから読む
+  const flatItems = useMemo(() => flattenItems(items), [items]);
   // 読み込みの知らせ（design/adr/0042）。閉じていても消えない見えない status の箱の中身を入れ替える
   const announcement = useLoadingAnnouncement({
     open,
     loadingRow,
     loadingText,
     loadedText,
-    count: items.length,
+    count: flatItems.length,
   });
 
   // 本体の祖先に付いた data-density・coarse-large を、開くたびに読み、浮かぶ部分（Positioner）に写す
@@ -440,7 +468,7 @@ export function SelectControl<Multiple extends boolean = false>({
 
   return (
     <BaseSelect.Root<string, boolean>
-      items={items}
+      items={flatItems}
       multiple={multiple}
       value={value}
       defaultValue={defaultValue}
@@ -629,9 +657,17 @@ export function SelectControl<Multiple extends boolean = false>({
               onScroll={sheet || popoverCue ? updateCues : undefined}
               className={listboxList({ presentation: listPresentation, loadingRow })}
             >
-              {items.map((item) => (
-                <SelectOption key={item.value} item={item} />
-              ))}
+              {isGroupedItems(items)
+                ? items.map((group, index) => (
+                    <SelectGroupSection
+                      // 見出しは文字とは限らないので、並びの番号を key にする
+                      key={index}
+                      group={group}
+                      separator={showGroupSeparator && index > 0}
+                      labelStyle={groupLabelStyle}
+                    />
+                  ))
+                : items.map((item) => <SelectOption key={item.value} item={item} />)}
             </BaseSelect.List>
             {(long || popoverCue) && (
               <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
