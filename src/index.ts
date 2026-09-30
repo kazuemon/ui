@@ -535,7 +535,13 @@ export {
   SidebarTrigger,
   type SidebarTriggerProps,
 } from './components/sidebar/SidebarLayout';
-export { Skeleton, type SkeletonProps, type SkeletonVariant } from './components/skeleton/Skeleton';
+export {
+  Skeleton,
+  type SkeletonAnimation,
+  type SkeletonProps,
+  type SkeletonRadius,
+  type SkeletonVariant,
+} from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerProps, type SpoilerVariant } from './components/spoiler/Spoiler';
 export {
