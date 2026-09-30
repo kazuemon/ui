@@ -27,6 +27,7 @@ const meta = {
           '- `termWidth` で用語の列の幅を変えられます（`horizontal` のときだけ効きます）。用語が長いときに広げます。`termAlign="end"` にすると、用語を列の右へ寄せます。',
           '- `termStyle="label"` にすると、用語が入力欄のラベルと同じ見た目（14px・太字）になります。用語より説明を読ませたいときに使います。',
           '- `divider` で組の区切りを選びます。`none` は余白だけ、`line` は行のあいだの細い線、`framed` は外枠と行のあいだの線、`leader-dotted` は用語の右から説明までをつなぐ薄い点線、`leader-solid` は同じ位置の細い実線です（どちらも `horizontal` のときだけ引きます）。',
+          '- `columns` で組を複数の列に並べます。数（`columns={2}`）か、画面の幅の段ごとの数（`columns={{ base: 1, md: 2 }}`）を渡します（`Grid` の `columns` と同じ段）。',
           '- 説明には、文字のほかに Tag や Link のような部品も置けます。',
         ].join('\n'),
       },
@@ -55,6 +56,7 @@ const meta = {
       table: { defaultValue: { summary: "'default'" } },
     },
     termWidth: { control: 'text' },
+    columns: { control: 'number' },
   },
   render: (args) => (
     <DescriptionList {...args}>
@@ -127,6 +129,42 @@ export const Dividers: Story = {
       ))}
     </Gallery>
   ),
+};
+
+export const Columns: Story = {
+  tags: ['visual'],
+  name: '列',
+  decorators: [
+    (Story) => (
+      <div className="w-[640px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <div className="flex flex-col gap-8">
+      {(['none', 'line', 'framed', 'leader-dotted'] as const).map((divider) => (
+        <Specimen key={divider} label={divider}>
+          <DescriptionList divider={divider} columns={2} data-testid={`columns-${divider}`}>
+            <DescriptionItem term="所属">フリーランス</DescriptionItem>
+            <DescriptionItem term="職種">フロントエンドエンジニア</DescriptionItem>
+            <DescriptionItem term="拠点">東京</DescriptionItem>
+            <DescriptionItem term="言語">日本語・英語</DescriptionItem>
+            <DescriptionItem term="経験">8 年</DescriptionItem>
+          </DescriptionList>
+        </Specimen>
+      ))}
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const list = canvas.getByTestId('columns-line');
+    await expect(getComputedStyle(list).display).toBe('grid');
+    const [left, right] = getComputedStyle(list).gridTemplateColumns.split(' ');
+    await expect(left).toBe(right);
+    // 1 行目の 2 つの組は同じ高さに並ぶ
+    const items = list.querySelectorAll('[data-slot="description-item"]');
+    await expect(items[0].getBoundingClientRect().top).toBe(items[1].getBoundingClientRect().top);
+  },
 };
 
 export const Terms: Story = {

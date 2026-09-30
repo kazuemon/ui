@@ -1,6 +1,7 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { columnsClasses, columnVars, type GridColumns } from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
 // 用語と説明の組（dl・dt・dd）。経歴・技術・メタ情報のような「名前と値」の並び
@@ -11,6 +12,9 @@ import { tv } from '../../internal/tv';
 //   --description-divider-width: 行のあいだの線。--description-frame-width: 外枠
 //   --description-leader-*: 用語の右から説明までをつなぐ薄い線（divider="leader-dotted"・"leader-solid"）
 //   props は既定と違うときだけ、根の要素でトークンを上書きする（中の要素へは継承で届く）
+//   columns: 組を Grid と同じ段ごとの列に並べる（src/internal/breakpoints.ts）。列のあいだは Grid の既定と同じ間隔
+//     行のあいだの線は、1 列のときは 2 つ目からの組の上に引く。列に並べると 1 行目の組がどれかを CSS で選べないので、
+//     すべての組の上に線を引いて線の太さだけ上へずらし、1 行目の線は外枠に重ねる（framed）か、根で切り落とす（line）
 
 const leaderRoot = [
   '[--description-column-gap:var(--description-leader-gap)]',
@@ -23,13 +27,16 @@ const descriptionList = tv({
     root: [
       'flex min-w-0 flex-col gap-(--description-item-gap) rounded-control',
       '[border-width:var(--description-frame-width)] [border-color:var(--color-description-line)]',
+      // 列に並べるときだけ使う値。入れ子の DescriptionList が外の値を受け継がないよう、自分の要素で決め直す
+      '[--description-divider-shift:0px] [--description-first-divider-width:0px]',
     ],
     item: [
       'flex min-w-0 gap-x-(--description-column-gap) gap-y-(--description-row-gap)',
       '[flex-direction:var(--description-direction)] [align-items:var(--description-item-align)]',
       'px-(--description-pad-x) py-(--description-pad-y)',
       '[border-top-width:var(--description-divider-width)] [border-top-color:var(--color-description-line)]',
-      'first:[border-top-width:0px]',
+      'first:[border-top-width:var(--description-first-divider-width)]',
+      'mt-[calc(var(--description-divider-shift)*-1)]',
     ],
     term: [
       '[display:var(--description-term-display)] w-(--description-term-width) shrink-0',
@@ -46,6 +53,16 @@ const descriptionList = tv({
     details: 'min-w-0 [flex:var(--description-details-flex)] text-body text-fg',
   },
   variants: {
+    columns: {
+      false: {},
+      true: {
+        root: [
+          'grid [grid-template-columns:repeat(var(--columns),minmax(0,1fr))] gap-x-(--stack-gap-md)',
+          ...columnsClasses,
+          '[--description-divider-shift:var(--description-divider-width)] [--description-first-divider-width:var(--description-divider-width)]',
+        ],
+      },
+    },
     layout: {
       horizontal: {},
       stacked: {
@@ -91,6 +108,12 @@ const descriptionList = tv({
     },
   },
   compoundVariants: [
+    // 列に並べて行のあいだに線を引くとき、1 行目の組の上の線を根で切り落とす（左右と下は切らない）
+    {
+      columns: true,
+      divider: 'line',
+      class: { root: '[clip-path:inset(0_-100vmax_-100vmax_-100vmax)]' },
+    },
     // 縦に並べたときは、用語と説明が上下なので線でつなげない
     {
       layout: 'stacked',
@@ -104,6 +127,7 @@ const descriptionList = tv({
     },
   ],
   defaultVariants: {
+    columns: false,
     layout: 'horizontal',
     divider: 'none',
     termAlign: 'start',
@@ -155,6 +179,11 @@ export interface DescriptionListProps extends ComponentProps<'dl'> {
    * 用語の列の幅（`'8rem'`・`'160px'` など）。horizontal で leader-* 以外のときだけ効きます。書かないときは 128px です
    */
   termWidth?: string;
+  /**
+   * 組を並べる列の数。渡さないときは 1 列です。数を渡すとどの画面の幅でも同じ（`columns={2}`）、
+   * 画面の幅の段ごとの数を渡すと画面の幅で変わります（`columns={{ base: 1, md: 2 }}`）。段は Grid の columns と同じです
+   */
+  columns?: GridColumns;
 }
 
 /**
@@ -166,17 +195,27 @@ export function DescriptionList({
   termAlign,
   termStyle,
   termWidth,
+  columns,
   className,
   style,
   ...props
 }: DescriptionListProps) {
-  const styles = descriptionList({ layout, divider, termAlign, termStyle });
-  const termStyleToken: TokenStyle = { '--description-term-width': termWidth ?? '' };
+  const styles = descriptionList({
+    layout,
+    divider,
+    termAlign,
+    termStyle,
+    columns: columns != null,
+  });
+  const tokens: TokenStyle = {
+    ...(termWidth && { '--description-term-width': termWidth }),
+    ...columnVars(columns),
+  };
   return (
     <dl
       data-slot="description-list"
       className={styles.root({ className })}
-      style={termWidth ? { ...termStyleToken, ...style } : style}
+      style={Object.keys(tokens).length > 0 ? { ...tokens, ...style } : style}
       {...props}
     />
   );
