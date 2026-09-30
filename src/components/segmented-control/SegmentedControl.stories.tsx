@@ -561,3 +561,64 @@ export const Locked: Story = {
     }
   },
 };
+
+function Revealed() {
+  const [shown, setShown] = useState(false);
+  const [withDay, setWithDay] = useState(false);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setShown(true)}>
+          見せる
+        </button>
+        <button type="button" onClick={() => setWithDay(true)}>
+          日を足す
+        </button>
+      </div>
+      <div hidden={!shown}>
+        <SegmentedControl<string> accessibleName="期間" defaultValue="month" indicatorMotion="none">
+          {withDay && <SegmentedControlItem value="day">日</SegmentedControlItem>}
+          <SegmentedControlItem value="week">週</SegmentedControlItem>
+          <SegmentedControlItem value="month">月</SegmentedControlItem>
+        </SegmentedControl>
+      </div>
+    </div>
+  );
+}
+
+// play: 隠れた場所に置いたときと、項目が増えたときの、つまみの位置の確かめ
+export const KnobPlacement: Story = {
+  name: 'つまみの位置（隠れた場所・項目の増減）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'タブのパネルや閉じたメニューなど、見えていない場所に置いても、見えたときにつまみは選んだ項目の上にあります。項目を足したり外したりしても、つまみは選んだ項目へ移ります。',
+      },
+    },
+  },
+  render: () => <Revealed />,
+  play: async ({ canvas, canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>('[data-slot="segmented-control"]')!;
+    const knobX = () => parseFloat(root.style.getPropertyValue('--segmented-control-knob-x'));
+    const month = () => canvasElement.querySelector<HTMLElement>('[data-checked]')!;
+    const itemX = () =>
+      month().getBoundingClientRect().left - root.getBoundingClientRect().left - root.clientLeft;
+
+    // 見えていないあいだは測れないので、動きを付ける印を立てない
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await expect(root).not.toHaveAttribute('data-knob-ready');
+
+    // 見えたら、選んだ項目の位置に置いてから印を立てる
+    await userEvent.click(canvas.getByRole('button', { name: '見せる' }));
+    await waitFor(() => expect(root).toHaveAttribute('data-knob-ready'));
+    await expect(knobX()).toBeCloseTo(itemX(), 0);
+
+    // 前に項目が増えると、選んだ項目の新しい位置へ移る
+    const before = knobX();
+    await userEvent.click(canvas.getByRole('button', { name: '日を足す' }));
+    await waitFor(() => expect(knobX()).toBeGreaterThan(before));
+    await expect(knobX()).toBeCloseTo(itemX(), 0);
+  },
+};
