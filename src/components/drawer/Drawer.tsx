@@ -9,6 +9,7 @@ import { OverlayCloseContext } from '../../internal/overlay/overlay-close-contex
 import type {
   OverlayFocusTarget,
   OverlayModal,
+  OverlayNameProps,
   PopupProps,
 } from '../../internal/overlay/overlay-props';
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
@@ -23,9 +24,8 @@ export type { OverlayActionsLayout, SheetSide } from '../../internal/sheet/Sheet
 /** 下から出すときの、開いたときの高さ。half は中身が長いときに画面の半分で開き、つまみを出す。full は中身の高さ（上限まで）で開く */
 export type DrawerDetent = 'half' | 'full';
 
-export interface DrawerProps {
-  /** 見出しの題。読み上げでは、開いた面の名前になる */
-  title: ReactNode;
+/** Drawer の props から、title・accessibleName の組み合わせの決まりを外したもの */
+export interface DrawerBaseProps {
   /** 題の下の説明。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
   /** 面の中身。長いときはスクロールし、上下の端に続きの印を出す */
@@ -111,6 +111,9 @@ export interface DrawerProps {
   className?: string;
 }
 
+/** Drawer の props。題（title）か読み上げだけの名前（accessibleName）のどちらかが要ります */
+export type DrawerProps = DrawerBaseProps & OverlayNameProps;
+
 // 中身が画面の半分より長いときの、開いたときの高さ（画面の高さに対する割合）
 const HALF = 0.5;
 const SNAP_POINTS = [HALF, 1];
@@ -120,6 +123,7 @@ const SNAP_POINTS = [HALF, 1];
  */
 export function Drawer({
   title,
+  accessibleName,
   description,
   children,
   actions,
@@ -238,6 +242,7 @@ export function Drawer({
           side={side}
           role={role}
           title={title}
+          accessibleName={accessibleName}
           description={description}
           footer={actions}
           footerLayout={actionsLayout}

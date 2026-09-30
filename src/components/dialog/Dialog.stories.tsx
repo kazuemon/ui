@@ -29,7 +29,7 @@ const meta = {
         component: [
           'ページの上に重ねて、ほかの操作を止めて答えや入力を求める面です。開いているあいだ、後ろの画面は暗くなり、押せません。',
           '',
-          '- `title` は必ず渡します。読み上げでは、開いた面の名前になります。補足は `description` に書きます。',
+          '- `title` は見出しの題で、読み上げでは開いた面の名前になります。補足は `description` に書きます。中身の見出しや画像で何の面か分かるときは `title` を省けます。そのときは `accessibleName` に読み上げの名前を書きます（どちらか一方が要ります）。',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。開閉を外から決めるときは `open`・`onOpenChange` を使います。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。最も進めたい操作を右端に置き、色を付けます。',
           '- 閉じる手段は、右上の ×、Esc、後ろの画面を押す、の3つです。入力の途中で閉じると困るときは `dismissible={false}` で後ろの画面を押しても閉じないようにし、答えるまで閉じたくないときは `closeOnEscape={false}` と `hideCloseButton` も付けて、`actions` のボタンだけで閉じるようにします。',
@@ -285,6 +285,99 @@ export const NarrowCentered: Story = {
       void expect(box.left).toBeGreaterThanOrEqual(bounds.left);
       void expect(box.right).toBeLessThanOrEqual(bounds.right);
     });
+  },
+};
+
+export const WithoutTitle: Story = {
+  tags: ['visual'],
+  name: '題を置かない',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '中身の見出しや画像で何の面か分かるときは、`title` を省き、`accessibleName` に読み上げの名前を書きます。右上の × の行は残り、中身はその下から始まります。',
+      },
+      source: sourceCode(`
+        <Dialog
+          accessibleName="新しい機能のお知らせ"
+          trigger={<Button>お知らせ</Button>}
+          actions={<OverlayClose render={<Button color="primary">わかった</Button>} />}
+        >
+          <img src="/images/whats-new.png" alt="" />
+          <p>下書きを予約して公開できるようになりました。</p>
+        </Dialog>
+      `),
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <ScreenFrame height="h-[440px]">
+      {(frame) => (
+        <Dialog
+          accessibleName="新しい機能のお知らせ"
+          presentation="popover"
+          trigger={<Button>お知らせ</Button>}
+          actions={<OverlayClose render={<Button color="primary">わかった</Button>} />}
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <div className="flex flex-col gap-3">
+            <div aria-hidden className="aspect-[2/1] rounded-control bg-primary-subtle" />
+            <p>下書きを予約して公開できるようになりました。</p>
+          </div>
+        </Dialog>
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: '新しい機能のお知らせ' });
+    await expect(dialog).not.toHaveAttribute('aria-labelledby');
+    await expect(within(dialog).getByRole('button', { name: '閉じる' })).toBeInTheDocument();
+  },
+};
+
+export const AccessibleName: Story = {
+  name: '読み上げの名前',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`title` と `accessibleName` を両方渡すと、読み上げでは `accessibleName` が面の名前になります。シートで出すときも同じです。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex gap-2">
+      <Dialog
+        title="編集"
+        accessibleName="プロフィールを編集"
+        presentation="popover"
+        trigger={<Button>中央に浮かべる</Button>}
+      />
+      <Dialog
+        accessibleName="新しい機能のお知らせ"
+        presentation="sheet"
+        trigger={<Button>シート</Button>}
+      >
+        <p>下書きを予約して公開できるようになりました。</p>
+      </Dialog>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: '中央に浮かべる' }));
+    const centered = await body.findByRole('dialog', { name: 'プロフィールを編集' });
+    await waitFor(() => expect(within(centered).getByText('編集')).toBeVisible());
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
+    await userEvent.click(canvas.getByRole('button', { name: 'シート' }));
+    const sheet = await body.findByRole('dialog', { name: '新しい機能のお知らせ' });
+    await expect(sheet).not.toHaveAttribute('aria-labelledby');
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
   },
 };
 

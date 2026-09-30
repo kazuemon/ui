@@ -166,9 +166,11 @@ export {
 } from './components/description-list/DescriptionList';
 export {
   Dialog,
+  type DialogBaseProps,
   type DialogProps,
   type OverlayFocusTarget,
   type OverlayModal,
+  type OverlayNameProps,
   type PopupProps,
 } from './components/dialog/Dialog';
 export {
@@ -180,6 +182,7 @@ export {
 export {
   Drawer,
   type OverlayActionsLayout,
+  type DrawerBaseProps,
   type DrawerDetent,
   type DrawerProps,
   type SheetSide,
