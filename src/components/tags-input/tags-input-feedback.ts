@@ -7,7 +7,7 @@ import { type TagsFlash, useTagsFlash } from './use-tags-flash';
 
 /**
  * 弾いた・通らなかったことの合図と文。本体（TagsInputControl）が立て、外枠（Field）の下の行にも出す
- * validate を通らなかったときの文は、次に足せたときと、打ち直したときに消す
+ * validateTag を通らなかったときの文は、次に足せたときと、打ち直したときに消す
  */
 export function useTagsFeedback() {
   const [invalidMessage, setInvalidMessage] = useState<ReactNode>(null);
