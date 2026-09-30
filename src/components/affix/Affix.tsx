@@ -1,7 +1,7 @@
 'use client';
 
 import { useRender } from '@base-ui/react/use-render';
-import { type ComponentProps, type ReactElement, type ReactNode, useRef } from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useEffect, useRef } from 'react';
 
 import type { AffixPosition } from './stuck';
 import { useStuck } from './use-stuck';
@@ -95,6 +95,11 @@ export interface AffixProps extends ComponentProps<'div'> {
    * @default 'line'
    */
   surfaceEdge?: AffixSurfaceEdge;
+  /**
+   * 留まり始めたとき・流れ始めたときに、留まっているか（true）を渡して呼びます。
+   * 留まっているあいだだけ中身を変えるとき（帯に題を出すなど）に使います
+   */
+  onStuckChange?: (stuck: boolean) => void;
   /** 留める中身（目次・帯・「上へ戻る」など） */
   children?: ReactNode;
   /** いちばん外の要素（render を渡したときはその要素）に付きます */
@@ -113,12 +118,20 @@ export function Affix({
   belowNavbar,
   surface,
   surfaceEdge = 'line',
+  onStuckChange,
   className,
   render,
   ...props
 }: AffixProps) {
   const ref = useRef<HTMLDivElement>(null);
   const stuck = useStuck(ref, position);
+  // 留まっているかが変わったときだけ知らせる（はじめから留まっていたときも、一度知らせる）
+  const reported = useRef(false);
+  useEffect(() => {
+    if (stuck === reported.current) return;
+    reported.current = stuck;
+    onStuckChange?.(stuck);
+  }, [stuck, onStuckChange]);
   return useRender({
     render,
     defaultTagName: 'div',

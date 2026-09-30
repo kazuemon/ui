@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Fragment } from 'react';
-import { expect, waitFor } from 'storybook/test';
+import { Fragment, useState } from 'react';
+import { expect, fn, waitFor } from 'storybook/test';
 
 import { Affix } from './Affix';
 import { ArticleScene, BarScene } from './story-scenes';
@@ -24,6 +24,7 @@ const meta = {
           '- `surface` を付けると、内容が下を通る帯になります。白い面を敷いて端から離さずに留め、下の内容との境目を付けます。',
           '- 帯の境目は `surfaceEdge` で選びます。`line`（既定）は留まっているあいだだけ細い線、`shadow` は留まっているあいだだけ淡い影、`always-line` は留まる前からいつも細い線です。貼り付けた Navbar の `stickyEdge` とそろえると、上の帯どうしがなじみます。',
           '- 面を持たないとき、端からは 24px 離れて留まります。ページのレイアウトに合わせて変えるときは、`className="[--affix-gap:--spacing(4)]"` のように `--affix-gap` を上書きします。ページ全体で変えるなら、CSS の `:root` で `--affix-gap` を定めます。',
+          '- 留まり始めたとき・流れ始めたときは `onStuckChange` に留まっているか（`true`・`false`）が届きます。留まっているあいだだけ中身を変えるときに使います。',
           '- 留まっているあいだは `data-stuck` が付きます。中身の見た目を変えるときに使えます。上からの離れは `--affix-inset` で読めます（目次の高さを画面に収めるときなど）。',
           '- スクロールする枠の中に置くと、画面ではなくその枠の端に留まります。',
         ].join('\n'),
@@ -204,5 +205,64 @@ export const Behavior: Story = {
     // 記事の終わりでは「上へ戻る」は本来の位置に収まる
     frame.scrollTop = frame.scrollHeight;
     await waitFor(() => expect(backToTop).not.toHaveAttribute('data-stuck'), settled);
+  },
+};
+
+// 留まっているあいだだけ、帯に記事の題を出す見本
+function StuckTitleScene({ onStuckChange }: { onStuckChange: (stuck: boolean) => void }) {
+  const [stuck, setStuck] = useState(false);
+  return (
+    <div data-slot="stuck-scene" className="h-[240px] w-[420px] overflow-y-auto border border-line">
+      <p className="p-4 text-fg-muted">
+        記事の冒頭です。下へスクロールすると、帯が上に留まります。
+      </p>
+      <Affix
+        surface
+        onStuckChange={(next) => {
+          setStuck(next);
+          onStuckChange(next);
+        }}
+      >
+        <div className="px-4 py-2 font-bold">{stuck ? 'デザインの決め方' : '目次'}</div>
+      </Affix>
+      <div className="flex flex-col gap-4 p-4">
+        {Array.from({ length: 12 }, (_, index) => (
+          <p key={index}>本文の段落 {index + 1}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export const StuckChange: Story = {
+  name: '留まったことを知らせる',
+  args: { onStuckChange: fn() },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`onStuckChange` は、留まり始めたとき・流れ始めたときに呼ばれます。ここでは、留まっているあいだだけ帯に記事の題を出しています。',
+      },
+      source: sourceCode(`
+        const [stuck, setStuck] = useState(false);
+
+        <Affix surface onStuckChange={setStuck}>
+          {stuck ? 'デザインの決め方' : '目次'}
+        </Affix>
+      `),
+    },
+  },
+  render: (args) => <StuckTitleScene onStuckChange={args.onStuckChange ?? (() => {})} />,
+  play: async ({ canvasElement, args }) => {
+    const frame = canvasElement.querySelector<HTMLElement>('[data-slot="stuck-scene"]')!;
+    const bar = canvasElement.querySelector<HTMLElement>('[data-slot="affix"]')!;
+    await expect(bar).toHaveTextContent('目次');
+    frame.scrollTop = 200;
+    await waitFor(() => expect(args.onStuckChange).toHaveBeenLastCalledWith(true));
+    await expect(bar).toHaveTextContent('デザインの決め方');
+    frame.scrollTop = 0;
+    await waitFor(() => expect(args.onStuckChange).toHaveBeenLastCalledWith(false));
+    await expect(bar).toHaveTextContent('目次');
   },
 };
