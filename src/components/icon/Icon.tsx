@@ -35,6 +35,16 @@ const icon = tv({
       true: '[--icon-weight:var(--icon-weight-standalone)]',
       false: '[--icon-weight:var(--icon-weight-inline)]',
     },
+    // 色。書かないときは周りの文字の色（currentColor）。値は前景用の役割の色（原則12）
+    color: {
+      primary: 'text-primary',
+      secondary: 'text-fg-secondary',
+      brand: 'text-fg-brand',
+      info: 'text-fg-info',
+      success: 'text-fg-success',
+      warning: 'text-fg-warning',
+      danger: 'text-fg-danger',
+    },
     weighted: {
       true: [
         "[&[viewBox='0_0_256_256']:not([fill=none])]:[stroke:currentColor] [&[viewBox='0_0_256_256']:not([fill=none])]:[stroke-width:calc(var(--icon-weight)-16)]",
@@ -49,6 +59,15 @@ const icon = tv({
 });
 
 export type IconSize = 'text' | 'control' | 'sm' | 'md' | 'lg';
+/** アイコンの色。パレットの色（primary・secondary・brand）と、意味を持った色（info・success・warning・danger） */
+export type IconColor =
+  | 'primary'
+  | 'secondary'
+  | 'brand'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 interface IconOwnProps<C extends ElementType> {
   /**
@@ -75,7 +94,11 @@ interface IconOwnProps<C extends ElementType> {
    * @default false
    */
   standalone?: boolean;
-  /** アイコン（svg）に付きます。色は className（text-fg-danger など）で付けます */
+  /**
+   * 色。書かないときは周りの文字の色に従います。意味を持った色（info・success・warning・danger）は、状態を伝えるときにだけ使います
+   */
+  color?: IconColor;
+  /** アイコン（svg）に付きます */
   className?: string;
 }
 
@@ -86,7 +109,7 @@ export type IconProps<C extends ElementType = 'svg'> = IconOwnProps<C> &
  * アイコンを、部品の中の文字とそろえた大きさ・色・線の太さで描く
  *
  * `icon` に部品を渡すか（`<Icon icon={MagnifyingGlassIcon} />`）、子に <svg> を置きます（`<Icon><svg viewBox="0 0 24 24">…</svg></Icon>`）。
- * 色は周りの文字の色（currentColor）に従います。状態の色は className（`text-fg-danger` など）で付けます。
+ * 色は周りの文字の色（currentColor）に従います。状態の色は `color`（`danger` など）で付けます。
  */
 export function Icon<C extends ElementType = 'svg'>({
   icon: IconComponent,
@@ -94,6 +117,7 @@ export function Icon<C extends ElementType = 'svg'>({
   accessibleName,
   size,
   standalone,
+  color,
   className,
   ...props
 }: IconProps<C>) {
@@ -111,7 +135,7 @@ export function Icon<C extends ElementType = 'svg'>({
       ...props,
       ...a11y,
       'data-slot': 'icon',
-      className: icon({ size, standalone, weighted, className }),
+      className: icon({ size, standalone, color, weighted, className }),
     },
   });
 }

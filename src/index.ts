@@ -255,7 +255,7 @@ export {
   type HeadingAnchorProps,
   type HeadingAnchorReveal,
 } from './components/heading-anchor/HeadingAnchor';
-export { Icon, type IconProps, type IconSize } from './components/icon/Icon';
+export { Icon, type IconColor, type IconProps, type IconSize } from './components/icon/Icon';
 export { Image, type ImageProps, type ImageRadius } from './components/image/Image';
 export {
   ImageZoom,

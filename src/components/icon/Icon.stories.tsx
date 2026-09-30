@@ -45,7 +45,7 @@ const meta = {
           '- 部品ではなく SVG をそのまま使うときは、子に `<svg>` を 1 つ置きます。',
           '- 大きさの既定は `text` で、周りの文字の大きさに比例します（文字の 1.25 倍）。ボタン・リンク・見出し・文のどこに置いても文字に合います。周りの部品と同じ大きさ（入力方式で切り替わる）にそろえたいときは `control`、決まった大きさで置くときは `sm`・`md`・`lg` を使います。',
           '- 文字と並ぶときは細い線、アイコンだけで置くとき（アイコンだけのボタンなど）は `standalone` で太い線にします。Phosphor の形（viewBox が 256）は、Regular の形から Icon が太さをそろえるので、`weight` は渡しません。ほかのライブラリの太さは、そのライブラリの props（`strokeWidth` など）で渡します。',
-          '- 色は周りの文字の色に従います。状態の色は `className`（`text-fg-danger` など）で付けます。',
+          '- 色は周りの文字の色に従います。色を付けるときは `color` を渡します（`primary`・`secondary`・`brand` と、状態の色の `info`・`success`・`warning`・`danger`）。',
           '- 既定では飾りとして読み上げから外します。アイコンだけで意味を伝えるときは `accessibleName` で名前を付けます。アイコンだけのボタンやリンクでは、`accessibleName` ではなく、ボタンやリンクに `aria-label` を付けます。',
         ].join('\n'),
       },
@@ -198,7 +198,7 @@ export const Sources: Story = {
         </Icon>
       </Specimen>
       <Specimen label="状態の色">
-        <Icon icon={TrashIcon} className="text-fg-danger" />
+        <Icon icon={TrashIcon} color="danger" />
       </Specimen>
     </Gallery>
   ),
@@ -245,5 +245,26 @@ export const Accessibility: Story = {
     await expect(raw.tagName.toLowerCase()).toBe('svg');
     await expect(raw).toHaveAttribute('aria-hidden', 'true');
     await expect(raw).toHaveAttribute('data-slot', 'icon');
+  },
+};
+
+export const Colors: Story = {
+  name: '色',
+  render: () => (
+    <div className="flex gap-2">
+      <Icon icon={TrashIcon} data-testid="inherit" />
+      <Icon icon={TrashIcon} color="danger" data-testid="danger" />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const inherit = getComputedStyle(canvas.getByTestId('inherit')).color;
+    const danger = getComputedStyle(canvas.getByTestId('danger')).color;
+    await expect(danger).not.toBe(inherit);
+    // 前景用の危険の色（text-fg-danger と同じ）
+    const probe = document.createElement('span');
+    probe.className = 'text-fg-danger';
+    document.body.append(probe);
+    await expect(danger).toBe(getComputedStyle(probe).color);
+    probe.remove();
   },
 };
