@@ -45,7 +45,8 @@ export function AspectRatio({
     props: {
       ...props,
       // 最初の子を枠いっぱいに広げる。2 つ目からの子（重ねる印・読み込み中の面）は、自分で置き方を決める
-      // 詳細度は子の 1 クラスと同じにする（:where）。子の側のクラスで上書きできるように
+      // 詳細度は子の 1 クラスと同じ（:where）。ただし同じ詳細度では variant 付きのこのクラスが後に出て勝つので、
+      // 子の側で変えるときは variant 付きのクラス（Image の group-data-natural のような）か style で上書きする
       className: [
         'relative w-full overflow-hidden [&>:where(:first-child)]:absolute [&>:where(:first-child)]:inset-0 [&>:where(:first-child)]:size-full',
         fit === 'contain'
