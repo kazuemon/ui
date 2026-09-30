@@ -557,6 +557,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
   - 多言語: next-intl・react-i18next（機能の多言語ができたら）
   - データ取得: TanStack Query（読み込み中に Skeleton・Progress・Spinner、失敗したら Notice・Toast）
   - 日付: date-fns・Temporal（Calendar・Time・RelativeTime）
+  - 表の列の操作: TanStack Table の列のフィルタ・列のメニュー・表示する列の切り替えを、DataTableHeader と Menu・Popover でつなぐ（2026-10-01、部品には持たせずレシピにする）。セル間を矢印キーで移る grid としての読み上げは、このレシピで要るかを確かめる
 
 - 使う人がよく組むものも、レシピの案に置きます（2026-09-20）。src/samples の見本ページ（記事・ドキュメント・サインイン・設定・一覧・SNS）と重ならない、小さな組み合わせにします:
   - ページの見出し帯: 題・Breadcrumb・操作のボタンを 1 行に並べる
