@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Tooltip } from './Tooltip';
+import { Tooltip, TooltipProvider } from './Tooltip';
 import { ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
@@ -25,6 +25,7 @@ const meta = {
           '- 長押しで出したときは、指を離しても本体を実行しません。ほかの場所に触れると閉じます。指と手で隠れないよう、上に出します（`longPressSide`。`false` で `side` のままにできます）。',
           '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。その辺に沿った寄せは `align` です。',
           '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
+          '- ツールバーのように Tooltip が並ぶところは `TooltipProvider` で包みます。出るまでの待ち（`delay`）と消えるまでの待ち（`closeDelay`）をそろえ、1 つが出たあとは隣へマウスを移すと待たずに出します。',
         ].join('\n'),
       },
     },
@@ -195,5 +196,50 @@ export const Accessibility: Story = {
     // ほかの場所に触れると閉じる
     touch(canvasElement.ownerDocument.body, 'pointerdown');
     await waitFor(() => expect(body.queryByText('リンクをコピー')).toBeNull());
+  },
+};
+
+export const Provider: Story = {
+  name: '待ち時間をそろえる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`TooltipProvider` で包むと、中の Tooltip の待ち時間がそろいます。1 つが出たあとは、隣へマウスを移すと待たずに出ます。',
+      },
+      source: sourceCode(`
+        <TooltipProvider delay={800}>
+          <Tooltip content="太字"><Button iconOnly aria-label="太字">…</Button></Tooltip>
+          <Tooltip content="斜体"><Button iconOnly aria-label="斜体">…</Button></Tooltip>
+        </TooltipProvider>
+      `),
+    },
+  },
+  render: () => (
+    <TooltipProvider delay={800}>
+      <div className="flex gap-2">
+        <Tooltip content="太字にする">
+          <Button variant="outline">太字</Button>
+        </Tooltip>
+        <Tooltip content="斜体にする">
+          <Button variant="outline">斜体</Button>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // Provider の delay（800ms）が、Tooltip の既定（400ms）の代わりに効く
+    await userEvent.hover(canvas.getByRole('button', { name: '太字' }));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await expect(body.queryByText('太字にする')).toBeNull();
+    await waitFor(() => expect(body.getByText('太字にする')).toBeVisible(), { timeout: 2000 });
+    // 1 つが出たあとは、隣は待たずに出る
+    await userEvent.unhover(canvas.getByRole('button', { name: '太字' }));
+    await userEvent.hover(canvas.getByRole('button', { name: '斜体' }));
+    await waitFor(() => expect(body.getByText('斜体にする')).toBeVisible(), { timeout: 300 });
+    await userEvent.unhover(canvas.getByRole('button', { name: '斜体' }));
   },
 };

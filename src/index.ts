@@ -645,6 +645,8 @@ export {
   type TooltipAlign,
   Tooltip,
   type TooltipProps,
+  TooltipProvider,
+  type TooltipProviderProps,
   type TooltipSide,
 } from './components/tooltip/Tooltip';
 export {
