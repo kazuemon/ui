@@ -64,7 +64,7 @@ DatePicker（[ADR-0373](./0373-date-picker-foundation.md)）の、打ち込め�
 ## 影響
 
 - `src/components/date-picker/DatePicker.tsx`: `clearable`（既定 `false`）・`clearName`（既定「日付を消去」）・`triggerName`（既定「カレンダーを開く」）を持ちます。× は DOM の順で暦のボタンより前に置きます（CSS の `order` で入れ替えると Tab の順と見た目の順がずれるため）
-- 比べるためだけに置いた `design/stories/DatePickerAxisParts.tsx` の `clear-layout.ts`（`DatePickerClearLayout`）は、記録のコミットで消しました。部品は A の並びだけを持ちます
+- 比べるためだけに置いた `src/components/date-picker/clear-layout.ts`（`DatePickerClearLayout`）は、切り替えを畳んだコミット（`13a5dd9`）で消しました。部品は A の並びだけを持ちます
 
 ## 原則への反映
 

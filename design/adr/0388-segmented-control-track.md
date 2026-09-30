@@ -42,7 +42,7 @@ SegmentedControl の、つまみを載せる溝の塗りと輪郭を決めまし
 ## 影響
 
 - `src/components/segmented-control/SegmentedControl.tsx`: `frame`（`'field'`（既定）・`'outline'`）を持ちます
-- 比べるためだけに置いた `--segmented-control-track-bg`・`--segmented-control-track-border-width` は、記録のコミットで消し、`frame` の variant に畳みました
+- 比べるためだけに置いた `--segmented-control-track-bg`・`--segmented-control-track-border-width` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`frame` の variant に畳みました
 - SegmentedControl の Docs に、グレーの地では `frame="outline"` を勧める文を書きました（[ADR-0385](./0385-segmented-control-knob.md)）
 
 ## 原則への反映

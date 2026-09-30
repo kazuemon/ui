@@ -42,7 +42,7 @@ TimePicker の `variant="columns"`（[ADR-0379](./0379-time-picker-foundation.md
 ## 影響
 
 - `src/components/time-picker/TimePickerPanel.tsx`: `hideColumnDivider`（既定 `false`）・`showColumnHeading`（既定 `false`）を持ちます
-- 比べるためだけに置いた `--time-picker-column-heading-display`・`--time-picker-column-divider` は、記録のコミットで消し、`tv` の variant（表示するかしないか）に畳みました
+- 比べるためだけに置いた `--time-picker-column-heading-display`・`--time-picker-column-divider` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`tv` の variant（表示するかしないか）に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

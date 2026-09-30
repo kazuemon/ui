@@ -40,7 +40,7 @@ TimePicker の `variant="columns"`（[ADR-0379](./0379-time-picker-foundation.md
 ## 影響
 
 - `src/components/time-picker/TimePicker.tsx`: `closeOnSelect`（既定 `true`）・`showDoneButton`（既定 `false`）・`doneLabel`（既定「完了」）を持ちます
-- 比べるためだけに置いた `--time-picker-done-display`・`--time-picker-close-on-last` は、記録のコミットで消し、props に応じて出し分ける形に畳みました
+- 比べるためだけに置いた `--time-picker-done-display`・`--time-picker-close-on-last` は、切り替えを畳んだコミット（`13a5dd9`）で消し、props に応じて出し分ける形に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

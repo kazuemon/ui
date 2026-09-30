@@ -33,8 +33,8 @@ TimePicker の欄の右端のボタンで開く面の幅を決めました。面
 
 ## 影響
 
-- `src/internal/picker/PickerOverlay.tsx`: 面は `min-w-(--anchor-width)`（欄の幅を最小値にする）です
-- 比べるためだけに置いた `--time-picker-popup-fill` は、記録のコミットで消しました
+- `src/components/time-picker/TimePicker.tsx`: 面に `min-w-(--anchor-width)`（欄の幅を最小値にする）を渡します（`PickerOverlay` の `popoverClassName`）
+- 比べるためだけに置いた `--time-picker-popup-fill` は、切り替えを畳んだコミット（`13a5dd9`）で消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映

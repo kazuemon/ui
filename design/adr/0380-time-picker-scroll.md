@@ -40,7 +40,7 @@ TimePicker（[ADR-0379](./0379-time-picker-foundation.md)）の 1 列の形は�
 ## 影響
 
 - `src/components/time-picker/TimeListbox.tsx`: 開いたときに選んでいる項目（値がなければいまの時刻に近い項目）を一覧の中央へスクロールします
-- 比べるためだけに置いた `--time-picker-scroll-align`・`--time-picker-empty-target` は、記録のコミットで消し、部品の中の決まった計算に畳みました
+- 比べるためだけに置いた `--time-picker-scroll-align`・`--time-picker-empty-target` は、切り替えを畳んだコミット（`13a5dd9`）で消し、部品の中の決まった計算に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

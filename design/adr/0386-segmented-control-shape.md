@@ -47,7 +47,7 @@ props 名は **`radius` ではなく `shape`** にしました。`shape` は輪�
 ## 影響
 
 - `src/components/segmented-control/SegmentedControl.tsx`: `shape`（`SegmentedControlShape`。`'square'`（既定）・`'circle'`）を持ちます
-- `design/tokens.css`: 比べるためだけに置いた `--segmented-control-radius` は、記録のコミットで消し、`shape` の variant に畳みました
+- `design/tokens.css`: 比べるためだけに置いた `--segmented-control-radius` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`shape` の variant に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

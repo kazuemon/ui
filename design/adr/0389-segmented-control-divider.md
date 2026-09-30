@@ -37,7 +37,7 @@ SegmentedControl で、選んでいない項目どうしのあいだに仕切り
 ## 影響
 
 - `src/components/segmented-control/SegmentedControl.tsx`: `showDivider`（既定 `false`）を持ちます
-- 比べるためだけに置いた `--segmented-control-divider-width` は、記録のコミットで消し、`showDivider` の variant に畳みました
+- 比べるためだけに置いた `--segmented-control-divider-width` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`showDivider` の variant に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

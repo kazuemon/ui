@@ -37,7 +37,7 @@ SegmentedControl の項目の幅（溝のグリッドの列の幅）を決めま
 ## 影響
 
 - `src/components/segmented-control/SegmentedControl.tsx`: `itemWidth`（`'equal'`（既定）・`'fit'`）を持ちます
-- 比べるためだけに置いた `--segmented-control-columns` は、記録のコミットで消し、`auto-cols-fr`・`auto-cols-auto` を `itemWidth` の variant に畳みました
+- 比べるためだけに置いた `--segmented-control-columns` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`auto-cols-fr`・`auto-cols-auto` を `itemWidth` の variant に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映

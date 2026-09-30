@@ -42,7 +42,7 @@ DatePicker のカレンダーの下に、今日を選ぶボタンを置くかど
 ## 影響
 
 - `src/components/date-picker/DatePicker.tsx`: `showTodayButton`（既定 `true`）・`todayLabel`（既定「今日」）を持ちます。ボタンはカレンダーと同じ幅いっぱいで、既定でオンです
-- 比べるためだけに置いた `--date-picker-footer-justify` は、記録のコミットで消し、幅いっぱいの並びに畳みました
+- 比べるためだけに置いた `--date-picker-footer-justify` は、切り替えを畳んだコミット（`13a5dd9`）で消し、幅いっぱいの並びに畳みました
 - 比較のストーリーは消しました
 - backlog に、「今日」以外のボタンが下の行に増えたときの並べ方（複数の操作をどう並べるか）を、まだ決めていないこととして足します
 

@@ -39,7 +39,7 @@
 ## 影響
 
 - `src/components/date-picker/DatePicker.tsx`: `icon`（既定は暦。`ReactNode` で差し替え可能）・`iconPlacement`（`'start' | 'end'`。既定 `'end'`）を持ちます
-- 比べるためだけに置いた `--date-picker-icon-order` は、記録のコミットで消し、`iconPlacement="start"` を `-order-1` に畳みました
+- 比べるためだけに置いた `--date-picker-icon-order` は、切り替えを畳んだコミット（`13a5dd9`）で消し、`iconPlacement="start"` を `-order-1` に畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映
