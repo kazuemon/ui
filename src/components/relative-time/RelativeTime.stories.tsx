@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { useState } from 'react';
+import { expect, waitFor } from 'storybook/test';
 
 import { RelativeTime } from './RelativeTime';
 import { Text } from '../text/Text';
@@ -205,5 +206,27 @@ export const AfterMount: Story = {
     const el = await canvas.findByText(/年前/);
     await expect(el).toHaveAttribute('datetime', '2020-01-01');
     await expect(el).toHaveAttribute('title', '2020/01/01');
+  },
+};
+
+// 書き直す間隔。1 秒ごとに読み直すので、44 秒前の「今」が、数秒のうちに「1 分前」へ変わる
+function UpdateIntervalSample() {
+  const [dateTime] = useState(() => new Date(Date.now() - 44_000).toISOString());
+  return (
+    <Text>
+      <RelativeTime dateTime={dateTime} updateInterval={1000} data-testid="ticking" />
+    </Text>
+  );
+}
+
+export const UpdateInterval: Story = {
+  name: '書き直す間隔',
+  args: { dateTime: '2020-01-01' },
+  parameters: { controls: { disable: true } },
+  render: () => <UpdateIntervalSample />,
+  play: async ({ canvas }) => {
+    const el = canvas.getByTestId('ticking');
+    await waitFor(() => expect(el).toHaveTextContent('今'));
+    await waitFor(() => expect(el).toHaveTextContent('1 分前'), { timeout: 5000 });
   },
 };
