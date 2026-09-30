@@ -633,9 +633,11 @@ export {
   type ToastManager,
   type ToastOptions,
   type ToastPosition,
+  type ToastPromiseOptions,
   ToastProvider,
   type ToastProviderProps,
   type ToastStack,
+  type ToastUpdateOptions,
   type ToastVariant,
   useToast,
 } from './components/toast/Toast';
