@@ -97,7 +97,7 @@ const segmented = tv({
     // 項目の升（Field.Item）。仕切りの線を描く。選んだ項目と、その隣では線を消す
     cell: [
       'relative flex min-w-0',
-      "before:pointer-events-none before:absolute before:inset-y-[25%] before:-left-[calc(var(--segmented-control-divider-width)/2)] before:w-(--segmented-control-divider-width) before:bg-line before:content-['']",
+      "before:pointer-events-none before:absolute before:inset-y-(--segmented-control-divider-inset) before:-left-[calc(var(--segmented-control-divider-width)/2)] before:w-(--segmented-control-divider-width) before:bg-line before:content-['']",
       'first-of-type:before:hidden has-[[data-checked]]:before:opacity-0 [[data-slot=segmented-control-cell]:has([data-checked])+&]:before:opacity-0',
     ],
     item: [

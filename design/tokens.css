@@ -1312,7 +1312,8 @@
        neutral-subtle: 色なし（neutral）の淡い面のつまみ（variant="soft"）の塗り。hover の塗りより濃くし、押した瞬間に同じ色が滑ってこないようにする
        knob-shadow: 白い面のつまみ（variant="surface"）の影
        knob-duration・knob-ease: つまみが滑る長さと緩急。indicatorMotion="none" と、動きを減らす設定では動かさない
-       focus-offset: フォーカスの線と項目のあいだ。線が溝の内側の余白にちょうど収まる離れにする（濃い塗りのつまみでも線が溶けない） */
+       focus-offset: フォーカスの線と項目のあいだ。線が溝の内側の余白にちょうど収まる離れにする（濃い塗りのつまみでも線が溶けない）
+       divider-inset: 仕切りの線（showDivider）の上下の空き。項目の高さに対する割合で、線は真ん中の半分の高さになる */
   --segmented-control-pad: var(--spacing);
   --segmented-control-neutral-subtle: color-mix(
     in oklab,
@@ -1323,6 +1324,7 @@
   --segmented-control-knob-duration: var(--duration-normal);
   --segmented-control-knob-ease: var(--ease-press);
   --segmented-control-focus-offset: calc(var(--spacing) * 0.5);
+  --segmented-control-divider-inset: 25%;
   /* ── END segmented-control */
 
   /* ── ButtonGroup — 2026-09-27 に作成。src/components/button-group ── BEGIN button-group */
