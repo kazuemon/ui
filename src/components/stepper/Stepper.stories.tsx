@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import {
   Stepper,
@@ -67,6 +67,7 @@ const meta = {
           '- `color` はいまの段・完了した段のマーカーの色です。指定しないときはグレー（`neutral`）です。',
           '- `variant` は完了した段のマーカーです。既定は `check`（チェックの印に差し替える）で、`number`（数字のまま色だけ変える）を選べます。',
           '- `StepperStep` の `description` にラベルの下へ添える説明を、`invalid` でその段をエラーの見た目にできます。',
+          '- 順番どおりに進まないウィザードでは、`StepperStep` の `status`（`upcoming`・`current`・`completed`）で段ごとの状態を上書きできます。先の段を済ませたときは `completed` を渡します。',
         ].join('\n'),
       },
     },
@@ -158,6 +159,44 @@ export const Invalid: Story = {
     },
   },
   render: (args) => <Sample color={args.color} invalidIndex={1} />,
+};
+
+export const StepStatus: Story = {
+  name: '段ごとの状態',
+  args: { onStepClick: fn() },
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '`StepperStep` の `status` で、`value` と並び順で決まる状態を段ごとに上書きします。ここでは 1 段めにいながら、3 段めを先に済ませています。',
+      },
+      source: sourceCode(`
+        <Stepper value={0} onStepClick={setStep}>
+          <StepperStep label="アカウント" />
+          <StepperStep label="プロフィール" />
+          <StepperStep label="通知" status="completed" />
+          <StepperStep label="確認" />
+        </Stepper>
+      `),
+    },
+  },
+  render: (args) => (
+    <Stepper {...args} value={0}>
+      <StepperStep label="アカウント" />
+      <StepperStep label="プロフィール" />
+      <StepperStep label="通知" status="completed" />
+      <StepperStep label="確認" />
+    </Stepper>
+  ),
+  play: async ({ canvas, args }) => {
+    // 上書きした段は「完了」と読まれ、押して戻れる
+    const done = canvas.getByRole('button', { name: '通知 完了' });
+    await userEvent.click(done);
+    await expect(args.onStepClick).toHaveBeenCalledWith(2);
+    // 上書きしていない段は value のまま（2 段めはこれから）
+    await expect(canvas.queryByRole('button', { name: /プロフィール/ })).toBeNull();
+  },
 };
 
 export const Variants: Story = {
