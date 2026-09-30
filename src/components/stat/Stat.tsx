@@ -3,6 +3,7 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { CaretDownIcon, CaretUpIcon, MinusIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
+import { Skeleton } from '../skeleton/Skeleton';
 
 // 数字とラベル。実績・指標（公開記事の数、稼働率、売上）を 1 つだけ大きく見せる
 // 押さないので hover も影もない。ページと同じレイヤー（原則1）。カードに載せたいときは Card と組み合わせる（原則9・原則20）
@@ -12,6 +13,9 @@ import { tv } from '../../internal/tv';
 //   増えたことが良いのか悪いのかは部品には分からないので、良し悪し（trend）は使う側が選ぶ（原則20）。書かなければ矢印の向き（deltaIndicator）から決める
 // 数字の大きさは、文字の尺度の段をトークンで差し替える（size。既定は見出し1 — 密度で一緒に変わる）
 // 増減は、矢印の有無（hideDeltaIcon）と淡い面の有無（deltaFill）を選べる。色は trend
+// 読み込み中（loading）: 数字の場所に Skeleton の文字の行を置き、dl に aria-busy を付ける。帯の長さ・太さ・角は --stat-loading-*（軸 431）
+//   ラベル・単位・キャプションは読み込む前から分かっているので、そのまま出す。増減は数字と一緒に届くので、読み込むまで出さない（原則にない判断）
+//   読み込み中であることは、数字の場所に読み上げだけの文（loadingText）を置いて知らせる
 
 const stat = tv({
   slots: {
@@ -22,6 +26,11 @@ const stat = tv({
     value: [
       'text-(length:--stat-value-text) leading-(--stat-value-leading) [letter-spacing:var(--stat-value-tracking,normal)]',
       '[font-weight:var(--stat-value-weight)] text-fg tabular-nums',
+    ],
+    // 読み込み中の帯。文字の大きさと行の高さを数字から受け継ぐ（Skeleton の文字の行）
+    loading: [
+      'inline-block w-(--stat-loading-width) max-w-full align-bottom',
+      '[--skeleton-text-bar:var(--stat-loading-bar)] [--skeleton-text-radius:var(--stat-loading-radius)]',
     ],
     unit: 'text-body text-fg-muted',
     delta: [
@@ -107,7 +116,7 @@ const trendFromIndicator: Record<StatDeltaIndicator, StatTrend> = {
 export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
   /** 数字の名前。太字で数字の上に置きます */
   label: ReactNode;
-  /** 数字そのもの。桁区切りや通貨は NumberFormat を渡します */
+  /** 数字そのもの。桁区切りや通貨は NumberFormat を渡します。読み込み中（loading）は出しません */
   value: ReactNode;
   /** 数字の後ろに小さく添える単位（「件」「%」「GB」など） */
   unit?: ReactNode;
@@ -151,6 +160,17 @@ export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
    * @default false
    */
   deltaFill?: boolean;
+  /**
+   * 読み込み中にします。数字の場所に読み込み中の帯（Skeleton）を置き、増減は出しません。
+   * ラベル・単位・キャプションはそのまま出します
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込み中に、数字の代わりに読み上げる文
+   * @default '読み込んでいます'
+   */
+  loadingText?: string;
   /** 根の要素（dl）に付きます */
   className?: string;
 }
@@ -171,6 +191,8 @@ export function Stat({
   size,
   hideDeltaIcon = false,
   deltaFill,
+  loading = false,
+  loadingText = '読み込んでいます',
   className,
   ...props
 }: StatProps) {
@@ -182,15 +204,27 @@ export function Stat({
   });
   const DeltaIcon = indicatorIcons[deltaIndicator];
   return (
-    <dl data-slot="stat" className={styles.root({ className })} {...props}>
+    <dl
+      data-slot="stat"
+      aria-busy={loading || undefined}
+      className={styles.root({ className })}
+      {...props}
+    >
       <dt className={styles.label()}>{label}</dt>
       <dd className={styles.body()}>
         <div className={styles.valueRow()}>
           <span className={styles.value()} data-slot="stat-value">
-            {value}
+            {loading ? (
+              <>
+                <Skeleton variant="text" className={styles.loading()} />
+                <span className="sr-only">{loadingText}</span>
+              </>
+            ) : (
+              value
+            )}
           </span>
           {unit == null ? null : <span className={styles.unit()}>{unit}</span>}
-          {delta == null ? null : (
+          {delta == null || loading ? null : (
             <span className={styles.delta()} data-slot="stat-delta">
               {hideDeltaIcon ? null : <DeltaIcon className={styles.icon()} />}
               {deltaText == null ? (

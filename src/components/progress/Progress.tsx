@@ -117,7 +117,8 @@ export interface ProgressProps extends Omit<
   /** 値を整えるときのロケール。既定はブラウザのロケールです */
   locale?: Intl.LocalesArgument;
   /**
-   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです
+   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです。
+   * success（うまくいった）・danger（失敗した・上限を超えた）は状態の色で、色だけでなく文（キャプションや値の文字）でも伝えます
    * @default 'neutral'
    */
   color?: BarColor;

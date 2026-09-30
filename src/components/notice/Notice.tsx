@@ -18,6 +18,9 @@ import { NoticeRegionContext } from './notice-region-context';
 export type { NoticeStatus, NoticeVariant };
 
 // お知らせ（design/adr/0043）。見た目は internal/notice-surface（Callout と共有）。ここは読み上げ（role・領域）と、閉じる・操作を持つ
+// 操作の置き場所（actionsPlacement）: bottom は本文の下（既定）、end は文の右（軸 435）
+//   end では、文と操作を折り返せる横の並びにする。文が --notice-actions-text-min より狭くなると、操作は文の下（左寄せ）へ落ちる
+//   縦のそろえ方は --notice-actions-align、文と操作のあいだは --notice-actions-gap
 
 // 読み上げ: 題・本文・操作を role の箱に入れる。危険は alert（割り込む）、ほかは status（区切りを待つ）
 // あとから出すときは、箱を先に置いておき中身だけを入れると、多くの読み上げソフトで知らせる。
@@ -57,6 +60,12 @@ export interface NoticeProps extends Omit<
   /** 本文の下に置く操作。白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）。リンクはお知らせの文字の色の太字になる */
   actions?: ReactNode;
   /**
+   * 操作の置き場所。bottom は本文の下、end は文の右です。end は 1 行で済むお知らせに向きます。
+   * end でも、お知らせの幅が狭いときは操作が本文の下に回ります
+   * @default 'bottom'
+   */
+  actionsPlacement?: 'bottom' | 'end';
+  /**
    * 渡すと右上に × を出し、押して閉じたあとに呼びます。読み上げの名前は `closeName`。× は role の箱の外に置く
    * （お知らせの領域 `NoticeRegion` の中では、お知らせ全体が領域の箱の中に入るので、× も箱の中になります）
    *
@@ -93,6 +102,7 @@ export function Notice({
   title,
   children,
   actions,
+  actionsPlacement = 'bottom',
   onClosed,
   closeName = '閉じる',
   live = true,
@@ -121,6 +131,23 @@ export function Notice({
     if (moveFocus) requestAnimationFrame(moveFocus);
   };
   const setRefs = useMergedRefs<HTMLDivElement>(rootRef, ref);
+  const end = actionsPlacement === 'end' && Boolean(actions);
+  const text = (
+    <>
+      {title ? (
+        <p
+          id={titleId}
+          data-slot="notice-title"
+          className="font-bold text-(color:--notice-title-color)"
+        >
+          {title}
+        </p>
+      ) : null}
+      {children ? <div>{children}</div> : null}
+    </>
+  );
+  // end では、題と本文を 1 つの列にまとめ、操作と横に並べる。列が狭くなると操作が下へ落ちる
+  const textClass = 'flex min-w-0 flex-[1_1_var(--notice-actions-text-min)] flex-col gap-0.5';
   const element = (
     <div
       ref={setRefs}
@@ -133,22 +160,23 @@ export function Notice({
       <NoticeIcon status={surfaceStatus} variant={variant} icon={icon} />
       <div
         role={live && !inRegion ? roleOf[surfaceStatus] : undefined}
-        className="flex min-w-0 flex-1 flex-col gap-0.5"
+        className={
+          end
+            ? 'flex min-w-0 flex-1 flex-wrap [align-items:var(--notice-actions-align)] gap-x-(--notice-actions-gap) gap-y-[calc(var(--spacing)-var(--notice-actions-margin-y))]'
+            : 'flex min-w-0 flex-1 flex-col gap-0.5'
+        }
       >
-        {title ? (
-          <p
-            id={titleId}
-            data-slot="notice-title"
-            className="font-bold text-(color:--notice-title-color)"
-          >
-            {title}
-          </p>
-        ) : null}
-        {children ? <div>{children}</div> : null}
+        {end ? <div className={textClass}>{text}</div> : text}
         {/* 文字のリンクの上下の余白（フォーカスの線を離す 2px）は、文の中のリンクと同じく行の高さに数えない
             枠線のリンクとボタンの見た目のリンク（どちらも inline-flex で高さを持つ）には当てない。当てると本文との間が 2px 詰まる */}
         {actions ? (
-          <div className="mt-1 flex flex-wrap items-center gap-2 [&_a]:font-bold [&>a:not(.inline-flex)]:-my-0.5">
+          <div
+            data-slot="notice-actions"
+            className={[
+              'flex flex-wrap items-center gap-2 [&_a]:font-bold [&>a:not(.inline-flex)]:-my-0.5',
+              end ? 'flex-none my-(--notice-actions-margin-y)' : 'mt-1',
+            ].join(' ')}
+          >
             {actions}
           </div>
         ) : null}

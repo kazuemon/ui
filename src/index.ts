@@ -333,6 +333,11 @@ export {
   type MeterSize,
 } from './components/meter/Meter';
 export {
+  MeterGroup,
+  type MeterGroupItem,
+  type MeterGroupProps,
+} from './components/meter/MeterGroup';
+export {
   Progress,
   type ProgressAnimation,
   type ProgressProps,
@@ -357,7 +362,13 @@ export {
   MenuSubmenu,
   type MenuSubmenuProps,
 } from './components/menu/MenuItem';
-export { LoadingBar, type LoadingIndicator, Spinner } from './components/loading/Loading';
+export {
+  LoadingBar,
+  type LoadingIndicator,
+  Spinner,
+  type SpinnerProps,
+  type SpinnerSize,
+} from './components/loading/Loading';
 export type { BarColor, BarSize } from './internal/bar/bar-styles';
 export {
   Notice,
