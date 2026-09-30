@@ -461,3 +461,25 @@ export const Composition: Story = {
     await expect(hidden?.value).toBe(day.toString());
   },
 };
+
+const groupOnFocus = fn();
+const groupOnBlur = fn();
+export const InputPropsFocusBlur: Story = {
+  name: 'inputProps の onFocus・onBlur も呼ぶ',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <DateField label="生年月日" inputProps={{ onFocus: groupOnFocus, onBlur: groupOnBlur }} />
+  ),
+  play: async ({ canvas }) => {
+    const [year, month] = canvas.getAllByRole('spinbutton');
+    await userEvent.click(year);
+    await expect(groupOnFocus).toHaveBeenCalled();
+    // 区切りのあいだの移動では、離れたことにしない
+    await userEvent.click(month);
+    await expect(groupOnBlur).not.toHaveBeenCalled();
+    await userEvent.tab({ shift: true });
+    await userEvent.tab({ shift: true });
+    await userEvent.tab({ shift: true });
+    await expect(groupOnBlur).toHaveBeenCalled();
+  },
+};
