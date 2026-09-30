@@ -362,3 +362,43 @@ export const TypeToConfirm: Story = {
     await expect(args.onAction).toHaveBeenCalledTimes(1);
   },
 };
+
+// 外の form の中に置いても、実行（面の中の form の送信）が外の form に伝わらないこと。中身あり・なしの両方で確かめる
+const outerSubmit = fn();
+
+export const InsideOuterForm: Story = {
+  name: '外の form に送信を伝えない',
+  tags: ['!autodocs'],
+  args: { onAction: fn() },
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        outerSubmit();
+      }}
+      className="flex gap-2"
+    >
+      <AlertDialog {...args} presentation="popover" trigger={<Button>下書きを削除</Button>} />
+      <AlertDialog {...args} presentation="popover" trigger={<Button>名前で削除</Button>}>
+        <TextField label="名前" />
+      </AlertDialog>
+    </form>
+  ),
+  play: async ({ args, canvasElement }) => {
+    outerSubmit.mockClear();
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // 中身なし: 実行のボタンを押す
+    await userEvent.click(canvas.getByRole('button', { name: '下書きを削除' }));
+    await userEvent.click(await body.findByRole('button', { name: '削除する' }));
+    await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull());
+    // 中身あり: 入力欄で Enter を押す
+    await userEvent.click(canvas.getByRole('button', { name: '名前で削除' }));
+    const dialog = await body.findByRole('alertdialog');
+    await userEvent.type(within(dialog).getByRole('textbox', { name: '名前' }), 'a{Enter}');
+    await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull());
+    await expect(args.onAction).toHaveBeenCalledTimes(2);
+    await expect(outerSubmit).not.toHaveBeenCalled();
+  },
+};
