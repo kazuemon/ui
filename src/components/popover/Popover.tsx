@@ -37,8 +37,11 @@ export type PopoverSide = 'top' | 'bottom' | 'left' | 'right';
 export type PopoverAlign = 'start' | 'center' | 'end';
 
 export interface PopoverProps {
-  /** 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる */
-  trigger: ReactElement;
+  /**
+   * 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる。
+   * 省くときは、open で開閉を外から決め、positionerProps の anchor に位置の基準にする要素を渡します
+   */
+  trigger?: ReactElement;
   /**
    * 題。読み上げでは、開いた面の名前になる。シートでは見出しに出す
    * 名前のない面は、読み上げで何の面か分からないので必ず渡す。画面に出したくないときは `hideTitle` を付ける
@@ -241,7 +244,7 @@ function FloatingPopover({
       onOpenChangeComplete={onOpenChangeComplete}
       modal={passive ? false : modal}
     >
-      <BasePopover.Trigger ref={anchorRef} render={trigger} />
+      {trigger && <BasePopover.Trigger ref={anchorRef} render={trigger} />}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <BasePopover.Portal container={portalContainer}>
           <BasePopover.Positioner

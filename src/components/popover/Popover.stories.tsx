@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
+import { useRef, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Popover } from './Popover';
@@ -21,7 +22,7 @@ const meta = {
         component: [
           '押して開く、本体のそばに浮かぶ面です。補足の説明や、小さな設定をその場で見せます。ほかの操作は止めず、外を押すか Esc で閉じます。',
           '',
-          '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
+          '- 開くボタンは `trigger` に要素（`Button` など）で渡します。開くボタンのない場所（選んだ文字・地図の印など）に出すときは、`trigger` を省き、`open` で開閉を決めて、`positionerProps` の `anchor` に位置の基準を渡します。',
           '- `title` は必ず渡します。開いた面の読み上げの名前になります。題を画面に出したくないときは `hideTitle` を付けます（読み上げの名前は残ります）。`description` は省けます。',
           '- `side`・`align` で出す場所を選びます。画面の端に当たるときは反対側に出します。どこから開いたかをはっきりさせたいときは `showArrow` で本体を指す矢印を出します。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。',
@@ -221,5 +222,75 @@ export const Accessibility: Story = {
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
     await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+// 開くボタンを持たず、別の要素のそばに出す見本
+function AnchoredDemo() {
+  const [open, setOpen] = useState(false);
+  const word = useRef<HTMLSpanElement>(null);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <p>
+        この部品は{' '}
+        <span ref={word} className="font-bold">
+          Base UI
+        </span>{' '}
+        を土台にしています。
+      </p>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        用語の説明を出す
+      </Button>
+      <Popover
+        title="Base UI"
+        description="キーボード・読み上げ・開閉の振る舞いを持つ、見た目のない部品の集まりです。"
+        open={open}
+        onOpenChange={setOpen}
+        positionerProps={{ anchor: word }}
+      />
+    </div>
+  );
+}
+
+export const Anchored: Story = {
+  name: '開くボタンなしで出す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`trigger` を省き、`open` で開閉を決めて、`positionerProps` の `anchor` に渡した要素のそばに出します。',
+      },
+      source: sourceCode(`
+        const [open, setOpen] = useState(false);
+        const word = useRef<HTMLSpanElement>(null);
+
+        <span ref={word}>Base UI</span>
+        <Popover
+          title="Base UI"
+          description="…"
+          open={open}
+          onOpenChange={setOpen}
+          positionerProps={{ anchor: word }}
+        />
+      `),
+    },
+  },
+  render: () => <AnchoredDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: '用語の説明を出す' }));
+    const popup = await body.findByRole('dialog', { name: 'Base UI' });
+    // 基準にした文字の下に出る
+    const word = canvas.getByText('Base UI');
+    await waitFor(() =>
+      expect(popup.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        word.getBoundingClientRect().bottom
+      )
+    );
+    // Esc で閉じる
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
   },
 };
