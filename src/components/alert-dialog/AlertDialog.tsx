@@ -32,6 +32,11 @@ export interface AlertDialogProps {
    */
   onAction?: () => unknown;
   /**
+   * 実行する側のボタンを押せなくするか。確かめの入力（消すものの名前を打つなど）が済むまで止めるときに使います
+   * @default false
+   */
+  actionDisabled?: boolean;
+  /**
    * 実行する側のボタンの色。消す・外すなど失うものがある操作は danger、
    * 失うものはないが取り消せない操作（送信・公開など）は primary にします
    * @default 'danger'
@@ -62,6 +67,11 @@ export interface AlertDialogProps {
    * @default 'auto'
    */
   actionsLayout?: OverlayActionsLayout;
+  /**
+   * 開いた直後に焦点を当てる要素。要素そのものか、要素の ref を渡します（中身に置いた入力欄など）。
+   * 書かないときは取り消す側のボタンです（うっかり Enter で実行しないため）
+   */
+  autoFocus?: OverlayFocusTarget;
   /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
   returnFocus?: OverlayFocusTarget;
   /**
@@ -86,6 +96,8 @@ export function AlertDialog({
   cancelLabel = 'キャンセル',
   onAction,
   color = 'danger',
+  actionDisabled = false,
+  autoFocus,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -125,12 +137,13 @@ export function AlertDialog({
         dismissible={false}
         closeOnEscape={false}
         hideCloseButton
+        autoFocus={autoFocus}
         actions={
           <>
-            {/* 開いた直後のフォーカスは取り消す側に置く（うっかり Enter で実行しないため） */}
+            {/* 開いた直後のフォーカスは、渡されなければ取り消す側に置く（うっかり Enter で実行しないため） */}
             <Button
               variant="outline"
-              autoFocus
+              autoFocus={autoFocus === undefined}
               disabled={pending}
               data-slot="alert-dialog-cancel"
               onClick={() => changeOpen(false)}
@@ -140,6 +153,7 @@ export function AlertDialog({
             <Button
               color={color}
               loading={pending}
+              disabled={actionDisabled}
               data-slot="alert-dialog-action"
               onClick={() => void run()}
             >

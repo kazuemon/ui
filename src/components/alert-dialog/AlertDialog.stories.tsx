@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
@@ -6,6 +7,7 @@ import { AlertDialog } from './AlertDialog';
 import { PhoneFrame, ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { TextField } from '../text-field/TextField';
 
 // 開いた状態のストーリーも、ドキュメントのページでは閉じて描く（開くとフォーカスが移り、ページが流れるため）
 const openOnLoad = (viewMode: string) => viewMode !== 'docs';
@@ -24,7 +26,8 @@ const meta = {
           '- 実行する側のボタンの文言は `actionLabel` に、何が起きるかを動詞で書きます（「削除する」）。「OK」「はい」は使いません。取り消す側は `cancelLabel`（既定は「キャンセル」）です。',
           '- 押したときの処理は `onAction` に渡します。Promise を返すと、終わるまでボタンを送信中にして、終わってから閉じます。失敗したときは閉じずに残すので、失敗の知らせは `onAction` の中で出します。',
           '- 実行する側のボタンの色は `color` で選びます。既定の `danger` は危険の色で、消す・外すなど失うものがある操作に使います。失うものはないが取り消せない操作（送信・公開など）は `primary` にします。',
-          '- 開いた直後のフォーカスは、取り消す側のボタンに置きます。うっかり Enter を押しても実行しません。',
+          '- 開いた直後のフォーカスは、取り消す側のボタンに置きます。うっかり Enter を押しても実行しません。中身に入力欄を置いたときは、`autoFocus` にその要素（か ref）を渡して、そこから始められます。',
+          '- 確かめの入力が済むまで実行させないときは、`actionDisabled` で実行する側のボタンを押せなくします。',
           '- 出し方（`presentation`）は Dialog と同じです。シートで出すときも、下へはじいて閉じることはできず、つまみも出ません。',
           '- 入力を求めるとき、閉じる手段を複数残したいときは、Dialog を使います。',
         ].join('\n'),
@@ -37,6 +40,7 @@ const meta = {
     actionLabel: '削除する',
     cancelLabel: 'キャンセル',
     color: 'danger',
+    actionDisabled: false,
     presentation: 'auto',
   },
   argTypes: {
@@ -49,6 +53,7 @@ const meta = {
       options: ['danger', 'primary'],
       table: { defaultValue: { summary: "'danger'" } },
     },
+    actionDisabled: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     presentation: {
       control: 'inline-radio',
       options: ['auto', 'popover', 'sheet'],
@@ -58,6 +63,8 @@ const meta = {
     children: { control: false },
     portalContainer: { control: false },
     onAction: { control: false },
+    autoFocus: { control: false },
+    returnFocus: { control: false },
   },
 } satisfies Meta<typeof AlertDialog>;
 
@@ -287,5 +294,67 @@ export const Pending: Story = {
     await waitFor(() => expect(action).toHaveAttribute('aria-busy', 'true'));
     await expect(within(dialog).getByRole('button', { name: 'キャンセル' })).toBeDisabled();
     await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull(), { timeout: 3000 });
+  },
+};
+
+function ConfirmByName(props: { onAction: () => unknown }) {
+  const [name, setName] = useState('');
+  const input = useRef<HTMLInputElement>(null);
+  return (
+    <AlertDialog
+      title="プロジェクトを削除しますか？"
+      description="削除したプロジェクトは元に戻せません。続けるには、プロジェクトの名前を入力してください。"
+      actionLabel="削除する"
+      actionDisabled={name !== 'kazuemon-ui'}
+      autoFocus={input}
+      onAction={props.onAction}
+      onOpenChange={(open) => {
+        if (!open) setName('');
+      }}
+      presentation="popover"
+      trigger={<Button>プロジェクトを削除</Button>}
+    >
+      <TextField
+        label="プロジェクトの名前"
+        caption="kazuemon-ui と入力します"
+        value={name}
+        onValueChange={setName}
+        inputProps={{ ref: input, autoComplete: 'off' }}
+      />
+    </AlertDialog>
+  );
+}
+
+export const TypeToConfirm: Story = {
+  name: '打って確かめる',
+  args: { onAction: fn() },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '中身に入力欄を置き、`autoFocus` でそこから始めます。入力が合うまで `actionDisabled` で実行を止めます。',
+      },
+    },
+  },
+  render: (args) => <ConfirmByName onAction={args.onAction!} />,
+  play: async ({ args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(
+      within(canvasElement).getByRole('button', { name: 'プロジェクトを削除' })
+    );
+    const dialog = await body.findByRole('alertdialog', { name: 'プロジェクトを削除しますか？' });
+    const input = within(dialog).getByRole('textbox', { name: 'プロジェクトの名前' });
+    const action = within(dialog).getByRole('button', { name: '削除する' });
+    // 開いた直後のフォーカスは autoFocus に渡した入力欄
+    await waitFor(() => expect(input).toHaveFocus());
+    // 合うまでは押せない
+    await expect(action).toBeDisabled();
+    // 合ったら押せる
+    await userEvent.type(input, 'kazuemon-ui');
+    await expect(action).toBeEnabled();
+    await userEvent.click(action);
+    await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull());
+    await expect(args.onAction).toHaveBeenCalledTimes(1);
   },
 };
