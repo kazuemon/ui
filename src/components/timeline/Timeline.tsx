@@ -213,7 +213,7 @@ export type TimelineCollapse = 'stack' | 'none';
 export type TimelineAlign = 'start' | 'alternate';
 
 const TimelineContext = createContext<{
-  level: TimelineHeadingLevel;
+  level: TimelineHeadingLevel | false;
   markerSize: TimelineMarkerSize;
   markerType: TimelineMarkerType;
   line: TimelineLine;
@@ -234,10 +234,11 @@ const TimelineContext = createContext<{
 
 export interface TimelineProps extends ComponentProps<'ol'> {
   /**
-   * 各項目の題を描く見出しの段。年表を置く節の見出しより 1 段下にします。大きさは段に従います（5・6 段は 4 と同じ）
+   * 各項目の題を描く見出しの段。年表を置く節の見出しより 1 段下にします。大きさは段に従います（5・6 段は 4 と同じ）。
+   * false にすると題を見出しにせず、3 段と同じ大きさの文字で描きます（項目を見出しの一覧に並べたくないとき）
    * @default 3
    */
-  headingLevel?: TimelineHeadingLevel;
+  headingLevel?: TimelineHeadingLevel | false;
   /**
    * 点の大きさ。日付と題が主役の年表では md、点を骨組みとして見せたいときは lg にします
    * @default 'md'
@@ -357,8 +358,8 @@ export function TimelineItem({
   } = useContext(TimelineContext);
   // 点の種類は、項目に渡されていればそれを使い、渡されていなければ Timeline の指定に従う
   const markerType = itemMarkerType ?? groupMarkerType;
-  const Tag = `h${level}` as const;
-  const titleSize = sizeOfLevel[level];
+  const Tag = level === false ? 'div' : (`h${level}` as const);
+  const titleSize = sizeOfLevel[level === false ? 3 : level];
   const titled = title != null && title !== false;
   const dated = date != null && date !== false;
   // 1 行目は、点をそろえる行。stack では日付、inline では題と日付が並ぶ行、aside では題の行になる

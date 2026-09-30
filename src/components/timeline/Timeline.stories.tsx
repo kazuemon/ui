@@ -22,7 +22,7 @@ const meta = {
           '',
           '- `Timeline` の中に `TimelineItem` を並べます。`date` が日付、`title` が題、children が説明です。並べる順は渡した順そのままなので、古い順にするか新しい順にするかは使う側が決めます。',
           '- `date` には `Time` を渡せます。「2021年4月 – 2023年3月」のような期間の文字列も渡せます。',
-          '- `headingLevel` は題を描く見出しの段です。既定は 3（`h3`）で、年表を置く節の見出しより 1 段下にします。',
+          '- `headingLevel` は題を描く見出しの段です。既定は 3（`h3`）で、年表を置く節の見出しより 1 段下にします。`false` にすると題を見出しにせず、同じ大きさの文字で描きます。',
           '- `datePlacement` は日付の置き場所です。既定は点の右・題の上（`stack`）です。題と同じ行に置く（`inline`）と縦に詰まり、点の左の列にそろえる（`aside`）と日付が読み取りやすくなります。',
           '- `aside` は狭い入れ物では列を置けないので、`collapse` で畳むかを選びます。既定は題の上へ畳む（`stack`）で、列を保つ（`none`）も選べます。',
           '- `markerType` は点の見せ方、`line` は項目をつなぐ縦の線で、どちらも Steps の点と線に合わせた種類と色です。既定はグレーの丸（`neutral`）と細い実線（`solid`）です。輪郭の丸（`outline`）・Primary の青の丸（`primary`）、点線（`dotted`）・線なし（`none`）も選べます。',
@@ -47,7 +47,7 @@ const meta = {
     align: 'start',
   },
   argTypes: {
-    headingLevel: { control: 'inline-radio', options: [2, 3, 4, 5, 6] },
+    headingLevel: { control: 'inline-radio', options: [2, 3, 4, 5, 6, false] },
     markerSize: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
     markerType: { control: 'inline-radio', options: ['neutral', 'outline', 'primary'] },
     line: { control: 'inline-radio', options: ['solid', 'dotted', 'none'] },
@@ -496,5 +496,32 @@ export const Accessibility: Story = {
     await expect(items[0]).not.toHaveAttribute('data-emphasis');
     await expect(items[1]).toHaveAttribute('data-emphasis');
     await expect(items[1]).not.toHaveAttribute('aria-current');
+  },
+};
+
+export const WithoutHeadings: Story = {
+  name: '題を見出しにしない',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-6">
+      <Timeline headingLevel={false}>
+        <TimelineItem date={<Time dateTime="2021-04-01" />} title="入社">
+          フロントエンドを担当しました。
+        </TimelineItem>
+      </Timeline>
+      <Timeline>
+        <TimelineItem date={<Time dateTime="2026-04-01" />} title="いまの仕事">
+          部品を作っています。
+        </TimelineItem>
+      </Timeline>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // headingLevel={false} の題は見出しにしない。大きさは既定の 3 段と同じ
+    const plain = canvas.getByText('入社');
+    await expect(plain.tagName).toBe('DIV');
+    const heading = canvas.getByRole('heading', { level: 3, name: 'いまの仕事' });
+    await expect(canvas.getAllByRole('heading')).toHaveLength(1);
+    await expect(getComputedStyle(plain).fontSize).toBe(getComputedStyle(heading).fontSize);
   },
 };
