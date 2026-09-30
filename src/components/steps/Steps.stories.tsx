@@ -25,6 +25,7 @@ const meta = {
           '- `markerType` は番号の印です。既定は淡いグレーの丸（`neutral`）で、題が主役になります。もっと軽くしたいときは輪郭だけの丸（`outline`）か、丸を置かない大きな数字（`number`）にします。手順をページの中で目立たせたいときは、Primary の青の丸（`primary`）にします。どの印も押せる見た目にはなりません。',
           '- `line` は段をつなぐ縦の線です。既定は細い実線（`solid`）です。軽くしたいときは点線（`dotted`）、普通の番号付きリストのように静かにしたいときは線なし（`none`）にします。本文が長い段が続くときは、次の番号を目で追えるよう線を残します。',
           '- `start` で最初の番号を決めます。',
+          '- 題の見出しに `id` を付けるときは、`titleProps` に渡します（`HeadingAnchor` で段を指すときなど）。',
           '- `title` を省くと、番号を本文の 1 行目にそろえます。短い手順を文だけで並べるときに使います。',
           '- Prose の中に置けます。MDX では `<Steps>` と `<Step title="…">` を書き、その中に Markdown で本文を書きます。',
         ].join('\n'),
@@ -250,11 +251,18 @@ export const Accessibility: Story = {
       <Heading level={2}>はじめかた</Heading>
       <Steps start={2}>
         <Step title="インストールする">パッケージを追加します。</Step>
-        <Step title="設定する">設定のファイルを置きます。</Step>
+        <Step title="設定する" titleProps={{ id: 'configure' }}>
+          設定のファイルを置きます。
+        </Step>
       </Steps>
     </div>
   ),
   play: async ({ canvas }) => {
+    // titleProps は題の見出しに付く
+    await expect(canvas.getByRole('heading', { name: '設定する' })).toHaveAttribute(
+      'id',
+      'configure'
+    );
     // 番号付きの一覧として読み、段ごとの題は見出し（既定は h3）になる
     const list = canvas.getByRole('list');
     await expect(list.tagName).toBe('OL');

@@ -184,6 +184,8 @@ export function Steps({
 export interface StepProps extends Omit<ComponentProps<'li'>, 'title'> {
   /** 段の題。Steps の headingLevel の見出しで描きます。省略すると、本文の 1 行目に番号をそろえます */
   title?: ReactNode;
+  /** 題の見出しの要素に渡す props。HeadingAnchor で指す `id` などを渡します。className は li に付きます */
+  titleProps?: Omit<ComponentProps<'h2'>, 'children' | 'className'>;
   /** この段の本文。段落・リスト・コードなどを入れます */
   children?: ReactNode;
 }
@@ -191,7 +193,7 @@ export interface StepProps extends Omit<ComponentProps<'li'>, 'title'> {
 /**
  * 手順の 1 段。番号は並びの順に付きます
  */
-export function Step({ title: titleText, className, children, ...props }: StepProps) {
+export function Step({ title: titleText, titleProps, className, children, ...props }: StepProps) {
   const { level, line, markerType } = useContext(StepsContext);
   const Tag = `h${level}` as const;
   const size = sizeOfLevel[level];
@@ -203,7 +205,7 @@ export function Step({ title: titleText, className, children, ...props }: StepPr
         className={inner({ markerType, line, firstLine: titled ? size : 'body' })}
       >
         {titled ? (
-          <Tag data-slot="step-title" className={title({ size })}>
+          <Tag {...titleProps} data-slot="step-title" className={title({ size })}>
             {titleText}
           </Tag>
         ) : null}
