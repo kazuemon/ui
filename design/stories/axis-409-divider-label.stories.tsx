@@ -12,12 +12,12 @@ const meta = {
   title: 'Design Review/409 ラベル付きの区切り線',
   id: 'design-review-409-divider-label',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,B', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -168,6 +168,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0391 予定）:
+        A（キャプションの大きさ・淡い色・12px）を既定にし、B（ラベルの大きさ・一段淡い色・16px）も
+        labelSize="sm" で選べる。 候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Divider に label を足し、細い線のあいだに文字（「または」など）を置きます。文字は ReactNode
         なので要素も渡せます。文字は読み上げでもそのまま読まれ、線は読み上げから外れます。

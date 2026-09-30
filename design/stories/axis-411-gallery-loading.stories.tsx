@@ -10,12 +10,12 @@ const meta = {
   title: 'Design Review/411 画像を読み込むまでの見た目',
   id: 'design-review-411-gallery-loading',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,B', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -178,6 +178,12 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0393 予定）: Gallery の読み込み中は A（並びをまたぐ光）を既定にし、B（明滅）も
+        loadingAnimation="pulse" で選べる。単体の Image
+        は現行版（面ごとの光）のまま。点線の枠（C・D）は採らない。
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Gallery の画像に loading・decoding・fetchPriority を渡せるようにしました（枚数が多いときは
         loading: &apos;lazy&apos;

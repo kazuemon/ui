@@ -12,7 +12,7 @@ const meta = {
   title: 'Design Review/410 縦の区切り線と、左右を空けた線',
   id: 'design-review-410-divider-vertical-inset',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -184,6 +184,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0392 予定）:
+        縦の線は周りの文字の高さ（B）。左右を空けた線（variant="inset"）は作らず、線は今の横線と同じく親の余白の中で幅いっぱいに伸ばす。左右を空けたいときは、置く側の余白か
+        className で空ける。 候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Divider に orientation="vertical"
         を足し、横に並べたもの（ツールバー、リンクの並び、メタ情報の行）のあいだに縦の線を置けるようにします。また、左右の端を空けた線（variant="inset"）を足し、パネルの中の区切りに使えるようにします。

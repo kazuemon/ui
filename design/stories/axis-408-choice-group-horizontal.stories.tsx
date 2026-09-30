@@ -10,12 +10,12 @@ const meta = {
   title: 'Design Review/408 選択肢を横に並べる',
   id: 'design-review-408-choice-group-horizontal',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,C', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -210,6 +210,13 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0390 予定）: direction="horizontal"
+        の既定は、自然な幅で折り返さない形（どの候補とも違う）。A の自然な幅の折り返しを wrap で、C
+        の同じ幅の列を itemWidth="equal"
+        で、それぞれオン・オフできる。狭い入れ物で縦に戻す形は採らない。間は 24px（A・C と同じ）。
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         RadioGroup・CheckboxGroup に direction="horizontal"（Stack
         と同じ語）を足し、選択肢を横に並べます。選ぶのは、横に並べたときの並べ方（自然な幅か同じ幅の列か）・選択肢どうしの間・説明文を持つ選択肢の幅・狭い入れ物で縦に戻すか、です。
