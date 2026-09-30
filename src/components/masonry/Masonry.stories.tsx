@@ -54,7 +54,8 @@ const meta = {
           '縦横の比率が違う画像やカードを、隙間なく列に積んで並べる部品です。作品の一覧やブログの見出し画像のように、高さがそろわないカードを並べるときに使います。',
           '',
           '- 中身は問いません。`Card`・`Image`・`ImageZoom` など、好きな部品を子に置けます。',
-          '- `minColumnWidth` は列の最小の幅（px）です。入れ物の幅をこの値で割った数だけ列になります（既定 240）。`columns` を渡すと、入れ物の幅によらず列の数を固定します。',
+          '- `minColumnWidth` は列の最小の幅（px）です。入れ物の幅をこの値で割った数だけ列になります（既定 240）。`columns` を渡すと、入れ物の幅によらず列の数を固定します。画面の幅の段ごとの数（`columns={{ base: 1, md: 3 }}`）も渡せます（`Grid` の `columns` と同じ段）。',
+          '- 一覧にするときは `render={<ul />}` を渡します。子は `li` で包まれます。',
           '- `gap` は子の間隔です（`Stack` の `gap` と同じ段）。既定は `md` です。',
           '- 並びは、渡した順のまま「1 行目を左から右へ、埋まったら次の行へ」詰まります。タブで送る順・読み上げの順も、この見た目の順と同じです。',
           '- 子の高さを測ってから積むので、スクリプトが動く前（サーバーで描いた直後）は、ふつうのグリッドとして並びます。動いたあとに、隙間なく積み直します。',
@@ -243,6 +244,12 @@ export const Props: Story = {
       <div className="w-64">
         <Masonry data-testid="default-gap">{blocks(2)}</Masonry>
       </div>
+      <div className="w-64">
+        <Masonry data-testid="breakpoints" columns={{ base: 2 }} render={<ul />}>
+          <span>https://example.com/a-very-long-url-that-does-not-wrap-at-all-in-the-column</span>
+          <span>短い</span>
+        </Masonry>
+      </div>
     </div>
   ),
   play: async ({ canvasElement, canvas }) => {
@@ -253,5 +260,13 @@ export const Props: Story = {
     const defaultGap = canvas.getByTestId('default-gap');
     // 既定の gap は Stack と同じ md（16px）。測ったあとは行の間隔を 0 にして子の下に含めるので、列の間隔で確かめる
     await expect(getComputedStyle(defaultGap).columnGap).toBe('16px');
+    // 段ごとの数も渡せる。長い URL があっても列の幅は等しい（minmax(0, 1fr)）
+    const breakpoints = canvas.getByTestId('breakpoints');
+    const widths = getComputedStyle(breakpoints).gridTemplateColumns.split(' ');
+    await expect(widths).toHaveLength(2);
+    await expect(widths[0]).toBe(widths[1]);
+    // ul で描くと、子を li で包む（ul の直下に div を置かない）
+    await expect(breakpoints.tagName).toBe('UL');
+    for (const child of breakpoints.children) await expect(child.tagName).toBe('LI');
   },
 };
