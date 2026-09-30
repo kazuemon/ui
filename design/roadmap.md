@@ -134,11 +134,11 @@
 - [x] Radio
 - [x] Fieldset
 - [x] Combobox
-- [ ] Segmented Control
+- [x] Segmented Control
 - [x] Slider
 - [x] NumberField
 - [x] DateField
-- [ ] DatePicker
+- [x] DatePicker
 - [x] Dropzone
 - [x] SearchField
 - [x] PasswordField
@@ -146,7 +146,7 @@
 - [x] PinField
 - [x] TagsInput
 - [x] TimeField
-- [ ] TimePicker
+- [x] TimePicker
 - [ ] ColorPicker
 - [ ] Rating
 - [x] Calendar
