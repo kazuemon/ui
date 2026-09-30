@@ -1014,6 +1014,26 @@
   --skeleton-last-line: 60%;
   /* ── END skeleton */
 
+  /* ── Divider ── BEGIN divider */
+  /* 区切り線。src/components/divider（線の見た目は src/internal/reading/blocks.ts と Divider.tsx の variant）
+     ラベル付きの線（label。「または」）— 軸 409 で比べている途中。線は左右とも細い境界線で、文字を真ん中に置く
+       label-size・label-leading: 文字の大きさと行の高さ。label-color: 文字の色。label-weight: 文字の太さ
+       label-gap: 文字と左右の線のあいだ
+     縦の線（orientation="vertical"）— 軸 410 で比べている途中。線は細い境界線
+       vertical-length: 線の長さ。auto は並んだ行の高さいっぱい（vertical-align が stretch のとき）、1em は周りの文字の高さ
+       vertical-align: 並んだ行の中での置き方（align-self）。stretch は行の高さいっぱい、center は真ん中
+     左右を空けた線（variant="inset"）— 軸 410 で比べている途中
+       inset: 左右の端から空ける幅 */
+  --divider-label-size: var(--text-caption);
+  --divider-label-leading: var(--leading-caption);
+  --divider-label-color: var(--color-fg-subtle);
+  --divider-label-weight: normal;
+  --divider-label-gap: calc(var(--spacing) * 3);
+  --divider-vertical-length: auto;
+  --divider-vertical-align: stretch;
+  --divider-inset: var(--spacing-control-x);
+  /* ── END divider */
+
   /* ── Image — 軸 90 ── BEGIN image */
   /* 画像。角はカードの角、輪郭は Figure と同じ（原則5）。読み込むまでは Skeleton と同じ面（--skeleton-*）を置き、
      読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す

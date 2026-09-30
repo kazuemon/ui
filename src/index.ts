@@ -180,6 +180,7 @@ export {
 export {
   Divider,
   type DividerColor,
+  type DividerOrientation,
   type DividerProps,
   type DividerVariant,
 } from './components/divider/Divider';
