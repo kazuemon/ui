@@ -1,17 +1,9 @@
 'use client';
 
 import { Field as BaseField } from '@base-ui/react/field';
-import {
-  type ComponentProps,
-  type ReactElement,
-  type ReactNode,
-  use,
-  useId,
-  useState,
-} from 'react';
+import { type ComponentProps, type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { DateField, type DateFieldBaseProps, type DateFieldProps } from '../date-field/DateField';
-import { DatePickerClearLayoutContext } from './clear-layout';
 import { type DatePickerCalendarProps, DatePickerPanel } from './DatePickerPanel';
 import { DEFAULT_DATE_FORMAT } from '../../internal/date/format-date';
 import { type PlainDate, Temporal, toDate, todayIn } from '../../internal/date/plain-date';
@@ -37,12 +29,13 @@ export type { DatePickerCalendarProps } from './DatePickerPanel';
 //   打ち込み（和暦・全角・日本語の書き方の読み取り）は DateField のまま。カレンダーで選んだ日は欄にそのまま入る
 //   カレンダーを開くボタンは、欄の値に作用する suffix のボタン（原則8: グレー地＋アイコン＝押せる）
 //   読み取り専用では出さない（値を変える操作なので。消去のボタンと同じ — ADR-0168・0197）
-//   値を消すボタン（clearable）の置き方は、軸 392 で比べている途中（clear-layout.ts）。既定は、値があるときだけ右端に出て、カレンダーのボタンが内側へずれる（ADR-0216 と同じ並び）
-// 「今日」のボタンは既定で出す（幅いっぱい — 軸 394）
+//   値を消すボタン（clearable）は、値があるときだけ暦のボタンの左に出す。暦のボタンは右端から動かない
+//     並びは DOM の順で決める（CSS の order で入れ替えると、Tab の順と見た目の順がずれる）
+// 「今日」のボタンは既定で出す（カレンダーの下に幅いっぱい）
 // variant="button" は、打てない表示だけのボタン。押すとカレンダーを開く（Select のボタンと同じ見た目の欄）
-//   印は既定で右端の暦（Select の ▼ と同じ場所）。iconPlacement="start" で値の前、icon で ▼ にもできる（軸 396）
+//   印は既定で右端の暦（Select の ▼ と同じ場所）。iconPlacement="start" で値の前、icon で ▼ にもできる
 // 面は欄の左端にそろえて下に出す（Select・Combobox と同じ）。開いているあいだ、欄はフォーカス中と同じ見た目を保つ
-// 面の中の余白・下の行は design/tokens.css の --date-picker-*
+// 面の中の余白と、カレンダーと下の行のあいだは design/tokens.css の --date-picker-*
 
 /** 見た目の型。field は打ち込める欄＋カレンダーのボタン、button は打てない表示のボタン */
 export type DatePickerVariant = 'field' | 'button';
@@ -220,14 +213,12 @@ export function DatePicker(props: DatePickerProps) {
     changeOpen(false);
   };
 
-  // 値を消すボタン。置き方は軸 392 で比べている途中（clear-layout.ts）
-  const clearLayout = use(DatePickerClearLayoutContext);
-  const clearButton = clearable && (value != null || clearLayout.whenEmpty === 'disabled') && (
+  // 値を消すボタン。値があるときだけ、暦のボタンの左に出す
+  const clearButton = clearable && value != null && (
     <PickerTriggerButton
       aria-label={clearName}
-      disabled={value == null || undefined}
       onClick={(event) => {
-        // 消したあとは、欄の最初の区切りへ戻す（ボタンは値が空になると消えるか、押せなくなるため）
+        // 消したあとは、欄の最初の区切りへ戻す（ボタンは値が空になると消えるため）
         const segment = event.currentTarget
           .closest('[data-slot="control"]')
           ?.querySelector<HTMLElement>('[role="spinbutton"]');
@@ -304,11 +295,10 @@ export function DatePicker(props: DatePickerProps) {
             suffix={
               readOnly ? null : (
                 <>
-                  {clearLayout.position === 'before-trigger' && clearButton}
+                  {clearButton}
                   {renderTrigger(
                     <PickerTriggerButton aria-label={triggerName}>{icon}</PickerTriggerButton>
                   )}
-                  {clearLayout.position === 'end' && clearButton}
                 </>
               )
             }
@@ -407,9 +397,9 @@ function DatePickerButton({
               <span
                 aria-hidden
                 className={cn(
-                  'flex [order:var(--date-picker-icon-order)] group-data-disabled/field:text-fg-subtle',
+                  'flex group-data-disabled/field:text-fg-subtle',
                   // start は値の前へ（読み上げから外した印なので、並びは見た目だけで変える）
-                  iconPlacement === 'start' && '[--date-picker-icon-order:-1]',
+                  iconPlacement === 'start' && '-order-1',
                   readOnly ? 'text-fg-subtle' : 'text-fg-muted'
                 )}
               >

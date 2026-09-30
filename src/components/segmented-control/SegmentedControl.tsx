@@ -44,9 +44,9 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //   選んだ項目の文字は太くする。太くしても幅が変わらないよう、太字の写しを見えないまま重ねて幅を取っておく（Tabs と同じ）
 //   押せない・読み取り専用・Form の送信中は、溝を押せない欄のグレーにし、つまみの影を消して色を薄くする（原則13・原則8）。位置で見分ける
 //   エラーは溝を入力欄のエラーの淡い赤にする
-//   形の props は、既定の値では何も足さず tokens.css の値のまま描き、ほかの値のときだけ部品の中で CSS 変数を差し替える
+//   形の props は、部品の中の CSS 変数（--segmented-control-radius・track-*・divider-width）を variant ごとに置く
 //     shape（溝の形。square（部品の角）が既定、circle（両端が丸い形）も選べる）・itemWidth（項目の幅。equal が既定、fit も選べる）
-//     frame（溝の見せ方。field が既定、outline も選べる）・showDivider（選んでいない項目のあいだの仕切りの線）
+//     frame（溝の見せ方。field が既定、outline も選べる）・showDivider（選んでいない項目のあいだの仕切りの線。既定は線なし）
 
 export type SegmentedControlColor = 'neutral' | 'primary' | 'secondary';
 
@@ -70,10 +70,10 @@ export type SegmentedControlIndicatorMotion = 'slide' | 'none';
 const segmented = tv({
   slots: {
     root: [
-      'relative isolate inline-grid w-fit max-w-full auto-cols-(--segmented-control-columns) grid-flow-col items-stretch',
+      'relative isolate inline-grid w-fit max-w-full grid-flow-col items-stretch',
       'h-(--spacing-control) rounded-(--segmented-control-radius) p-(--segmented-control-pad)',
       'bg-(color:--segmented-control-bg) [--segmented-control-bg:var(--segmented-control-track-bg)]',
-      'border-(length:--segmented-control-track-border-width) border-(color:--segmented-control-track-border-color)',
+      'border-(length:--segmented-control-track-border-width) border-line',
       // 項目とつまみの角は、溝の角から内側の余白を引いた同心の角（原則5）
       '[--segmented-control-item-radius:max(0px,calc(var(--segmented-control-radius)-var(--segmented-control-pad)-var(--segmented-control-track-border-width)))]',
       // エラー: 入力欄のエラーと同じ淡い赤
@@ -170,23 +170,28 @@ const segmented = tv({
         ],
       },
     },
-    // 形。既定の値（square・equal・field・線なし）は tokens.css の値のまま描く
+    // 溝の形。square は入力欄・ボタンと同じ角、circle は両端が丸い形
     shape: {
-      square: {},
+      square: { root: '[--segmented-control-radius:var(--radius-control)]' },
       circle: { root: '[--segmented-control-radius:var(--radius-pill)]' },
     },
+    // 項目の幅。equal はいちばん長い項目にそろえた均等、fit は文字に合わせる
     itemWidth: {
-      equal: {},
-      fit: { root: '[--segmented-control-columns:auto]' },
+      equal: { root: 'auto-cols-fr' },
+      fit: { root: 'auto-cols-auto' },
     },
+    // 溝の見せ方。field は入力欄と同じグレーで塗り、outline は塗らずに細い境界線で囲む
     frame: {
-      field: {},
+      field: {
+        root: '[--segmented-control-track-bg:var(--color-field)] [--segmented-control-track-border-width:0px]',
+      },
       outline: {
         root: '[--segmented-control-track-bg:transparent] [--segmented-control-track-border-width:var(--border-width-thin)]',
       },
     },
+    // 選んでいない項目どうしのあいだの仕切りの線
     showDivider: {
-      false: {},
+      false: { root: '[--segmented-control-divider-width:0px]' },
       true: { root: '[--segmented-control-divider-width:var(--border-width-thin)]' },
     },
     // つまみの動き。none はすぐ切り替える。動きを減らす設定では、値によらず動かさない

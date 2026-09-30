@@ -230,11 +230,8 @@ function TimePickerControlInner({
         ...restPopupProps,
         style: { ...selectedTokens(color), ...popupStyle },
         // 余白は項目の一覧が持つ（Select の浮かぶ選択肢と同じ）
-        // 幅は中身の幅で、--time-picker-popup-fill が 1 のときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）
-        className: cn(
-          'w-max min-w-[calc(var(--anchor-width)*var(--time-picker-popup-fill))] overflow-clip',
-          popupClassName
-        ),
+        // 幅は中身の幅で、欄より狭いときは欄の幅まで広げる（--anchor-width は Base UI が面の外側に置く）
+        className: cn('w-max min-w-(--anchor-width) overflow-clip', popupClassName),
       }}
       panel={panel}
       closeName="閉じる"

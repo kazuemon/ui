@@ -926,23 +926,11 @@
   --popover-max-width: calc(var(--spacing) * 80);
   --popover-offset: var(--spacing);
 
-  /* TimePicker — 欄の右端のボタンで、時刻の一覧を Popover で開く。面と項目は Select の浮かぶ選択肢と同じ（ADR-0036・0053）
-     popup-fill: 浮かぶ面の幅。1 は欄と同じ幅まで広げ、0 は中身の幅（欄の右端にそろえる）
-     max-rows: 一覧の高さの上限（項目の数）。最後の項目を半分だけ見せ、続きがあることを示す
-     scroll-align: 開いたときに、選んでいる時刻を送る位置（0 は一覧の上端、0.5 は中央）
-     empty-target: 値がないときに開く位置（1 はいまの時刻の近く、0 は先頭）
-     column-heading-display: 列の形（variant="columns"）の列の上の見出し（none・block）
-     column-divider: 列の形の、列のあいだの線の太さ
-     done-display: 列の形の下の「完了」（flex・none）
-     close-on-last: 列の形で、いちばん小さい単位（分、秒を出すときは秒）を選んだら閉じる（0・1） */
-  --time-picker-popup-fill: 1;
+  /* TimePicker — 欄の右端のボタンで、時刻の一覧を開く。面と項目は Select の浮かぶ選択肢と同じ（ADR-0036・0053）
+     面は欄の右端にそろえ、欄より狭いときは欄の幅まで広げる。開いたときは選んでいる時刻（なければいまの時刻の近く）を一覧の中央へ送る
+     列の形（variant="columns"）の見出し・列のあいだの線・「完了」・選んだら閉じるかは props（showColumnHeading・hideColumnDivider・showDoneButton・closeOnSelect）
+     max-rows: 一覧の高さの上限（項目の数）。最後の項目を半分だけ見せ、続きがあることを示す */
   --time-picker-max-rows: 7.5;
-  --time-picker-scroll-align: 0.5;
-  --time-picker-empty-target: 1;
-  --time-picker-column-heading-display: none;
-  --time-picker-column-divider: var(--border-width-thin);
-  --time-picker-done-display: none;
-  --time-picker-close-on-last: 1;
 
   /* Tooltip — ADR-0106
      面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（shadow={false} で外せる）
@@ -1317,22 +1305,13 @@
      溝（track）の中に、選んだ項目の下地（つまみ）を 1 つだけ置き、選んだ項目の位置へ滑らせる（Tabs の印と同じ長さ・緩急。原則14）
      全体の高さは部品の高さ（密度）。項目は溝の内側の余白の分だけ低く、角は溝の角から余白を引いた同心の角（原則5）
      つまみの面（white の面・部品の色の塗り・淡い面）は variant、色は color が決め、部品の内部の CSS 変数に置く（ここには置かない）
-       track-bg・track-border-*: 溝の塗りと輪郭
-       pad: 溝の内側の余白。radius: 溝の角
-       columns: 項目の幅。1fr はいちばん長い項目にそろえた均等、auto は文字に合わせる
-       divider-width: 選んでいない項目どうしのあいだの仕切りの線の太さ（0px は線なし）
-       既定の値は、props の既定（shape="square"・itemWidth="equal"・frame="field"・showDivider なし）の見た目。ほかの値は props が部品の中で差し替える
-       neutral-subtle: 色なし（neutral）の淡い面のつまみ（variant="soft"）の塗り（軸 403 の 2 ラウンド目で比べている）
+       溝の塗り・輪郭・角、項目の幅、仕切りの線は props（frame・shape・itemWidth・showDivider）が部品の中で決める
+       pad: 溝の内側の余白
+       neutral-subtle: 色なし（neutral）の淡い面のつまみ（variant="soft"）の塗り。hover の塗りより濃くし、押した瞬間に同じ色が滑ってこないようにする
        knob-shadow: 白い面のつまみ（variant="surface"）の影
        knob-duration・knob-ease: つまみが滑る長さと緩急。indicatorMotion="none" と、動きを減らす設定では動かさない
        focus-offset: フォーカスの線と項目のあいだ。線が溝の内側の余白にちょうど収まる離れにする（濃い塗りのつまみでも線が溶けない） */
-  --segmented-control-track-bg: var(--color-field);
-  --segmented-control-track-border-width: 0px;
-  --segmented-control-track-border-color: var(--color-line);
   --segmented-control-pad: var(--spacing);
-  --segmented-control-radius: var(--radius-control);
-  --segmented-control-columns: 1fr;
-  --segmented-control-divider-width: 0px;
   --segmented-control-neutral-subtle: color-mix(
     in oklab,
     var(--color-neutral-strong) 35%,
@@ -1907,17 +1886,13 @@
   --date-segment-focus-placeholder: var(--field-placeholder);
   /* ── END date-field */
 
-  /* ── DatePicker（軸 393〜396 は決定・記録待ち。392 は比較中） ── BEGIN date-picker */
+  /* ── DatePicker ── BEGIN date-picker */
   /* カレンダーの面（浮かべる形）。面そのものは Popover と同じ（白・細い輪郭・--shadow-overlay）
-     popup-padding   面の内側の余白（軸 393）。Popover の余白にそろえる
-     footer-gap      カレンダーと下の行（「今日」のボタン）のあいだ
-     footer-justify  下の行のボタンの寄せ（軸 394）。幅いっぱい。比べるための切り替え（記録のときに畳む）
-     icon-order      variant="button" の暦の印の場所（軸 396）。0 は右端（Select の ▼ と同じ）、-1 は左端。
-                     既定は右端。左端は iconPlacement="start" で選ぶ。比べるための切り替え（記録のときに畳む） */
+     「今日」のボタンは幅いっぱい。variant="button" の暦の印は右端（Select の ▼ と同じ）で、iconPlacement="start" で値の前
+     popup-padding   面の内側の余白。Popover の余白にそろえる
+     footer-gap      カレンダーと下の行（「今日」のボタン）のあいだ */
   --date-picker-popup-padding: var(--popover-padding);
   --date-picker-footer-gap: calc(var(--spacing) * 2);
-  --date-picker-footer-justify: stretch;
-  --date-picker-icon-order: 0;
   /* ── END date-picker */
 
   /* ── HeadingAnchor — 軸 200・201 ── BEGIN heading-anchor */

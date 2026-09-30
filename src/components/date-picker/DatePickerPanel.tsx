@@ -30,7 +30,7 @@ interface DatePickerPanelProps {
 }
 
 // 選ぶ面の中身。Calendar と、下の行（「今日」のボタン）
-// 下の行の寄せと、カレンダーとのあいだはトークン（--date-picker-footer-*）で決める
+// 「今日」のボタンは幅いっぱい。カレンダーとのあいだは --date-picker-footer-gap
 export function DatePickerPanel({
   value,
   onPick,
@@ -74,7 +74,7 @@ export function DatePickerPanel({
         autoFocus={autoFocus}
       />
       {showTodayButton && (
-        <div className="grid [justify-items:var(--date-picker-footer-justify)]">
+        <div className="grid">
           <Button variant="outline" disabled={todayDisabled} onClick={() => onPick(today)}>
             {todayLabel}
           </Button>

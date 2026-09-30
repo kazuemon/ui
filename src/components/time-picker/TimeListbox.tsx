@@ -11,15 +11,9 @@ import { ScrollFrame } from '../../internal/ScrollFrame';
 //   項目の見た目は Select の選択肢と同じ（listboxOption — 原則3・6、ADR-0053）。指している項目はグレーの塗り、選んだ項目は部品の色の淡い面と太字
 //   フォーカスは項目そのものへ移す（roving tabindex）。指していることは線ではなく、Select と同じ手応えの塗りで見せる（原則2）
 //   スクロールの枠は ScrollArea と同じ（続きがある端の内側の影と、載せたときのつまみ — 原則1）
-//   開いたときに送る位置は --time-picker-scroll-align（0 は上端、0.5 は中央）
+//   開いたときは、選んでいる時刻（なければいまの時刻の近く）を一覧の中央へ送る。前後の時刻がはじめから見え、刻みが分かる
 
 const option = listboxOption();
-
-/** トークンの数を読む（calc() のままの値は読めないので、数だけを書くトークンに使う） */
-function readNumber(element: Element, name: string, fallback: number) {
-  const value = Number.parseFloat(getComputedStyle(element).getPropertyValue(name));
-  return Number.isFinite(value) ? value : fallback;
-}
 
 export interface TimeListboxProps {
   options: TimeOption[];
@@ -27,12 +21,10 @@ export interface TimeListboxProps {
   selectedKey: string | null;
   /** 開いたときに送り、フォーカスを置く項目の key（値がないときは、いまの時刻に近い項目） */
   initialKey: string | null;
-  /** 値がないときに、先頭へ送る形（--time-picker-empty-target: 0）の行き先。値があるときは null */
-  emptyFallbackKey?: string | null;
   onSelect: (key: string) => void;
   /** 読み上げの名前 */
   label: string;
-  /** 列の上に出す見出し（列の形）。読み上げには label が届くので、見出しは読み上げから外す */
+  /** 列の上に出す見出し（列の形の showColumnHeading）。読み上げには label が届くので、見出しは読み上げから外す */
   heading?: string;
   /** 選んだ項目にチェックを出す（1 列の形） */
   showCheck?: boolean;
@@ -44,7 +36,6 @@ export function TimeListbox({
   options,
   selectedKey,
   initialKey,
-  emptyFallbackKey = null,
   onSelect,
   label,
   heading,
@@ -59,28 +50,21 @@ export function TimeListbox({
   const highlighted = hovered ?? focused;
   const rescrollRef = useRef<(() => void) | null>(null);
 
-  // 開いたときに、選んでいる項目（なければ近い項目）を見える位置へ送る
-  //   値がないときの行き先は --time-picker-empty-target（1: initialKey（いまの時刻の近く）、0: emptyFallbackKey（先頭））
+  // 開いたときに、選んでいる項目（なければ近い項目）を一覧の中央へ送る
   //   面の位置と高さの上限（--available-height）が決まってから測り直すので、次の描画でもう一度送る
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return undefined;
-    let key = initialKey;
-    if (emptyFallbackKey != null && readNumber(viewport, '--time-picker-empty-target', 1) === 0) {
-      key = emptyFallbackKey;
-      setActive(key);
-    }
     const scroll = () => {
-      const target = viewport.querySelector<HTMLElement>(`[data-key="${key}"]`);
+      const target = viewport.querySelector<HTMLElement>(`[data-key="${initialKey}"]`);
       if (!target) return;
-      const align = readNumber(viewport, '--time-picker-scroll-align', 0.5);
       const padding = Number.parseFloat(getComputedStyle(viewport).paddingTop) || 0;
       const top =
         target.getBoundingClientRect().top -
         viewport.getBoundingClientRect().top +
         viewport.scrollTop;
       const room = viewport.clientHeight - padding * 2 - target.offsetHeight;
-      viewport.scrollTop = Math.max(0, top - padding - room * align);
+      viewport.scrollTop = Math.max(0, top - padding - room / 2);
       // 面が開いてフォーカスが別の項目に置かれていたら、行き先の項目へ移す
       const current = document.activeElement;
       if (current !== target && current?.closest('[role="listbox"]') === target.parentElement) {
@@ -135,7 +119,7 @@ export function TimeListbox({
         <div
           aria-hidden
           data-slot="time-picker-column-heading"
-          className="[display:var(--time-picker-column-heading-display)] border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] py-(--select-popup-padding) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
+          className="border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] py-(--select-popup-padding) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
         >
           {heading}
         </div>
