@@ -25,7 +25,7 @@ const columnsPanel = tv({
   slots: {
     column: 'flex min-w-0 flex-1 flex-col',
     footer:
-      'flex justify-end border-t-(length:--border-width-thin) border-surface-line p-(--select-popup-padding)',
+      'flex justify-end border-t-(length:--border-width-thin) border-surface-line p-(--time-picker-popup-padding)',
   },
   variants: {
     divider: {

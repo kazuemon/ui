@@ -119,7 +119,7 @@ export function TimeListbox({
         <div
           aria-hidden
           data-slot="time-picker-column-heading"
-          className="border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] py-(--select-popup-padding) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
+          className="border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--time-picker-popup-padding))] py-(--time-picker-popup-padding) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
         >
           {heading}
         </div>
@@ -128,11 +128,11 @@ export function TimeListbox({
         slot="time-picker-scroll"
         className="min-h-0 flex-1"
         focusable={false}
-        viewportClassName="max-h-[min(var(--available-height,100dvh),calc(var(--spacing-control)*var(--time-picker-max-rows)+var(--select-popup-padding)*2))] p-(--select-popup-padding)"
+        viewportClassName="max-h-[min(var(--available-height,100dvh),calc(var(--spacing-control)*var(--time-picker-max-rows)+var(--time-picker-popup-padding)*2))] p-(--time-picker-popup-padding)"
         contentStyle={{ minWidth: 0 }}
         inlineEdges={false}
         orientation="vertical"
-        scrollbarClassName="my-(--select-popup-padding)"
+        scrollbarClassName="my-(--time-picker-popup-padding)"
         onViewport={(element) => {
           viewportRef.current = element;
         }}
