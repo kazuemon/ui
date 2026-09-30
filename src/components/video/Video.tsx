@@ -13,6 +13,7 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
 import { PlayIcon } from '../../internal/icons';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { toMediaSize } from '../../internal/media-size';
 import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
 import { tv } from '../../internal/tv';
@@ -225,6 +226,7 @@ export function Video({
   width,
   height,
   style,
+  ref,
   ...props
 }: VideoProps) {
   const [status, setStatus] = useState<VideoStatus>('idle');
@@ -233,6 +235,7 @@ export function Video({
   // 再生を一度でも始めたか。始めるまでは、大きな再生ボタンを重ねる
   const [started, setStarted] = useState(autoPlay);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mergedRef = useMergedRefs(videoRef, ref);
 
   useIsomorphicLayoutEffect(() => {
     const video = videoRef.current;
@@ -279,7 +282,7 @@ export function Video({
       >
         <video
           {...props}
-          ref={videoRef}
+          ref={mergedRef}
           width={width}
           height={height}
           poster={poster}
