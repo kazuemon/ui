@@ -24,7 +24,7 @@
 - 色・`variant` をグループでまとめて指定する props（ToggleGroup の `color`・`variant`）は持たせていません。ButtonGroup は選択状態を持たない素の並びなので、色をそろえたいかどうかは使う側にしか分からないと考えました（原則20）が、実際に使うとそろえたいことが多いかもしれません
 - 矢印キーでの移動は持たせず、ふつうに Tab で移る並びにしました。ボタンが多く並ぶ場面（ツールバーなど）で、ロービングタブインデックスが要るかは検討していません
 - アイコンだけのボタン（`iconOnly` の `shape="circle"`）を `connected` で並べたときの見た目は確かめていません（Toggle の circle と同じく、角丸が常に pill になり、連結の角丸の上書きを無視します）
-- **表示の切り替え（ボード・表など）には使えません。** 選んでいる状態を持たないためです。タスクボードの見本では ToggleGroup で作りましたが、**必ずどれかを選ぶ切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ButtonGroup に選択を持たせるかは決めていません。Docs にこの使い分けを書くかは決めていません
+- **表示の切り替え（ボード・表など）には使えません。** 選んでいる状態を持たないためです。タスクボードの見本では ToggleGroup で作りましたが、**必ずどれかを選ぶ切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ButtonGroup に選択を持たせるかは決めていません。表示の切り替えに SegmentedControl を使うことは、SegmentedControl の Docs に書きました
 
 ### Link
 
@@ -188,7 +188,7 @@
 2026-09-19 に作りました。決定は [ADR-0133](./adr/0133-calendar-foundation.md)〜[ADR-0142](./adr/0142-calendar-month-motion.md) です。
 
 - 年と月を直接選ぶ機能は決めていません。月の名前を Select 2 つに替える案や、月の一覧に切り替える案があります。数を打ち込む形にするなら、NumberField を作ったあとで検討します
-- DatePicker・DateRangePicker は作っていません。2 か月を並べて見せるか、「今日」に戻るボタンを持つか、日付を打ち込んだときのパース（決まった書式・和暦・全角・「9月20日」のような日本語の書き方）をどうするかを決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）
+- DateRangePicker（期間を選ぶ形）は作っていません。カレンダーを 2 か月並べて見せるかも、そのときに決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）。1 日を選ぶ DatePicker は 2026-09-30 に作りました（下の DatePicker の節）
 - Calendar は 7 マス分の決まった幅で、置いた列の幅に広がりません。予約の見本では、下の時刻のボタンの並び（列の幅いっぱい）と右端がそろいません。時刻のボタンを Calendar の幅に合わせると狭くなりすぎるので、見本では合わせていません。Calendar を列の幅に広げる指定（マスを広げる）を持たせるかは決めていません（2026-09-29、見本のページの点検）
 
 ### Avatar・Breadcrumb・Pager・CodeGroup・Toast・Tree
@@ -401,7 +401,7 @@
 - Embed の provider（`youtube`・`vimeo`・`x`・`codepen`・`custom`）に、Spotify・Figma など足すものはまだ検討していません
 - ImageZoom の、iOS・Android の実機での指の操作（スワイプで閉じる・ピンチでの拡大縮小）は、実機で確かめていません。いまはスワイプで閉じる動きだけ作っています（ピンチでの拡大縮小はありません）
 - Toggle・ToggleGroup・FileTree・ImageZoom は、読み上げソフト（VoiceOver・NVDA など）での確かめをまだしていません
-- ToggleGroup は、1 つだけ選ぶ形でも、選んでいるものをもう一度押すと何も選んでいない状態になります。**必ずどれかを選ぶ表示の切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ToggleGroup 自体に空にしない指定を持たせるかは、まだ決めていません。Docs でこの使い分け（切り替えは SegmentedControl、押す・外すボタンの集まりは ToggleGroup）を案内するかは決めていません
+- ToggleGroup は、1 つだけ選ぶ形でも、選んでいるものをもう一度押すと何も選んでいない状態になります。**必ずどれかを選ぶ表示の切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ToggleGroup 自体に空にしない指定を持たせるかは、まだ決めていません。この使い分け（切り替えは SegmentedControl、押す・外すボタンの集まりは ToggleGroup）は、SegmentedControl の Docs に書きました
 - FileTree のコメントは、デスクトップの広い幅で右端に寄りすぎ、ファイル名から約 400px 離れます（`ms-auto`。ドキュメントの見本）。コメントをファイル名のすぐ後ろに置くかは決めていません（2026-09-29、見本のページの点検）
 - ImageZoom をスマホで押しても、350px の画像が 358px にしかならず、拡大した感じがありません。拡大中も「押すと拡大します」の文言が出たままです。スマホではピンチや移動を許すか、元の解像度ではみ出させてスクロールさせるかは決めていません（上のピンチの項目とつながります）（2026-09-29、見本のページの点検）
 
@@ -508,13 +508,16 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - 「今日」（[ADR-0376](./adr/0376-date-picker-today-button.md)）以外のボタンがカレンダーの下の行に増えたとき、どう並べるかは決めていません
 - DateRangePicker（2 か月を並べて期間を選ぶ形）は作っていません。[ADR-0133](./adr/0133-calendar-foundation.md) からの未決事項です
 - 面を開いたとき、フォーカスを面の中へ移します（`trapFocus`）。TimePicker（下）は移しません。意図して分けていますが、理由をまだ書き残していません
+- 面を持つ入力欄（DatePicker・TimePicker）に、重なる部品が持つ props（`sheetDetent`・`dismissible`・`onOpenChangeComplete`）を持たせるかは決めていません（[ADR-0251](./adr/0251-overlay-base-ui-props.md)）。いまはどちらも持たず、シートの高さは画面いっぱい、外を押すと閉じます（原則にない判断の候補）
+- 面の読み上げの名前を何から取るかは、原則で決めていません（原則にない判断の候補）。いまは DatePicker・TimePicker とも欄のラベル（`label`・`accessibleName`）から取り、組み立て（`DatePickerControl`・`TimePickerControl`）で Field にラベルがないときは開く口の名前（`triggerName`）にしています。TimePicker の 1 列の一覧（listbox）の名前は、面と同じ文を二度読ませないよう開く口の名前にしています
+- 組み立て（`DatePickerControl`・`TimePickerControl`）では、開いているあいだ欄をフォーカス中と同じ見た目に保つクラスが付きません。DatePicker・TimePicker は、包む Field に付けています。本体の側に持たせるかは決めていません
 
 ### TimePicker
 
 2026-09-30 に作りました。決定は [ADR-0379](./adr/0379-time-picker-foundation.md)〜[ADR-0383](./adr/0383-time-picker-popup-width.md) です。
 
-- 消去のボタン（値を空にする ×）は、まだ持たせていません。付けるときは、DatePicker と同じ並び（[ADR-0374](./adr/0374-date-picker-clear-button.md) の A。× を時計のボタンの左に、値があるときだけ出す）にします
-- 閉じるボタンの名前を渡す口（`closeName` のようなもの）がありません。シートの × の名前は「閉じる」で固定です
+- 消去のボタン（値を空にする ×、DatePicker の `clearable`）と、開く口のアイコンを差し替える口（DatePicker の `icon`）は、まだ持たせていません。兄弟の DatePicker は両方を持つので、そろえるかを決めます。消去のボタンを付けるときは、DatePicker と同じ並び（[ADR-0374](./adr/0374-date-picker-clear-button.md) の A。× を時計のボタンの左に、値があるときだけ出す）にします
+- 列の形（`variant="columns"`）の時の列（いちばん小さい単位でない列）の項目は、押しても面を閉じないのに、押したときに沈みません。押して値だけが変わる項目に押した手応えを返すかは、[原則 3](./principles.md#3-hover-は手応え押すと沈む) で決まっていません（原則にない判断の候補）
 - アナログ時計のような見た目は作っていません。需要が出たら検討します
 - 細かい `minuteStep`（1 分刻みなど）のための仮想化は作っていません。いまは開発中の警告と、列の形（`variant="columns"`）への案内だけです（[ADR-0379](./adr/0379-time-picker-foundation.md)）
 - 面を開いても、フォーカスを面の中へ移しません（DatePicker と違い `trapFocus` を持たない）。意図して分けていますが、理由をまだ書き残していません
