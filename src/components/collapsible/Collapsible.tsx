@@ -6,8 +6,10 @@ import type { ComponentProps, ReactElement, ReactNode } from 'react';
 import { CaretDownIcon } from '../../internal/icons';
 import { collapsibleStyles } from '../../internal/collapsible-styles';
 
-export type CollapsibleVariant = 'plain' | 'open-filled' | 'filled' | 'divided';
+export type CollapsibleVariant = 'plain' | 'open-filled' | 'filled' | 'divided' | 'card';
 export type CollapsibleIndicator = 'end' | 'start';
+export type CollapsibleTriggerPlacement = 'top' | 'bottom';
+export type CollapsibleHeadingLevel = 2 | 3 | 4 | 5 | 6;
 
 export interface CollapsibleProps extends Omit<
   ComponentProps<'div'>,
@@ -26,8 +28,9 @@ export interface CollapsibleProps extends Omit<
    * - open-filled: 開いている行をグレーで塗ります。いくつも並べて、どれが開いているかを見せたいときに使います
    * - filled: いつもグレーで塗り、押せる範囲を塗りで見せます。周りに線や囲みが少なく、行が押せると気づきにくい場所で使います
    * - divided: 行と中身の上下に区切り線を引きます。FAQ のように続けて並べる一覧で使います。続けて置くと、あいだの線は 1 本になります
+   * - card: 行と中身を細い輪郭の面で囲みます。ページの地の上に、ひとまとまりの項目として置くときに使います。続けて置くと少し離します
    *
-   * filled と divided は、行を間をあけずに続けて（兄弟として）置いてください。trigger を渡すときは使いません
+   * filled・divided・card は、行を間をあけずに続けて（兄弟として）置いてください。trigger を渡すときは使いません
    * @default 'plain'
    */
   variant?: CollapsibleVariant;
@@ -38,6 +41,18 @@ export interface CollapsibleProps extends Omit<
    * @default 'end'
    */
   indicator?: CollapsibleIndicator;
+  /**
+   * 開閉の行（または trigger）を置く場所
+   * - top: 中身の上。題を押して下に開きます
+   * - bottom: 中身の下。「続きを読む」のように、開いた中身が行の上に出ます
+   * @default 'top'
+   */
+  triggerPlacement?: CollapsibleTriggerPlacement;
+  /**
+   * 渡すと、行をこの段の見出し（h2〜h6）で包みます。ページの見出しの並びに入れたいときに使います。見た目は変わりません
+   * trigger を渡すときは使いません
+   */
+  headingLevel?: CollapsibleHeadingLevel;
   /** 開いたときに出す中身。文章でも、入力欄や一覧でも置けます */
   children?: ReactNode;
   /** 開いているか（制御） */
@@ -88,6 +103,8 @@ export function Collapsible({
   disabled,
   variant = 'plain',
   indicator = 'end',
+  triggerPlacement = 'top',
+  headingLevel,
   hiddenUntilFound = false,
   keepMounted = false,
   className,
@@ -96,6 +113,22 @@ export function Collapsible({
 }: CollapsibleProps) {
   const { className: panelClassName, ...panelRest } = panelProps ?? {};
   const styles = collapsibleStyles({ variant, indicator });
+  const Heading = headingLevel ? (`h${headingLevel}` as const) : null;
+  const row = (
+    <BaseCollapsible.Trigger data-slot="collapsible-trigger" className={styles.trigger()}>
+      <span className={styles.title()}>{title}</span>
+      <span data-slot="collapsible-indicator" className={styles.indicator()}>
+        <CaretDownIcon />
+      </span>
+    </BaseCollapsible.Trigger>
+  );
+  const triggerElement = trigger ? (
+    <BaseCollapsible.Trigger render={trigger} />
+  ) : Heading ? (
+    <Heading className="m-0">{row}</Heading>
+  ) : (
+    row
+  );
   return (
     <BaseCollapsible.Root
       {...props}
@@ -104,18 +137,10 @@ export function Collapsible({
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange ? (next) => onOpenChange(next) : undefined}
       disabled={disabled}
+      data-trigger-placement={triggerPlacement}
       className={trigger ? className : styles.root({ className })}
     >
-      {trigger ? (
-        <BaseCollapsible.Trigger render={trigger} />
-      ) : (
-        <BaseCollapsible.Trigger data-slot="collapsible-trigger" className={styles.trigger()}>
-          <span className={styles.title()}>{title}</span>
-          <span data-slot="collapsible-indicator" className={styles.indicator()}>
-            <CaretDownIcon />
-          </span>
-        </BaseCollapsible.Trigger>
-      )}
+      {triggerPlacement === 'top' && triggerElement}
       <BaseCollapsible.Panel
         data-slot="collapsible-panel"
         hiddenUntilFound={hiddenUntilFound}
@@ -129,6 +154,7 @@ export function Collapsible({
           {children}
         </div>
       </BaseCollapsible.Panel>
+      {triggerPlacement === 'bottom' && triggerElement}
     </BaseCollapsible.Root>
   );
 }

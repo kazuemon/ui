@@ -122,8 +122,10 @@ export {
 } from './components/checkbox/CheckboxGroup';
 export {
   Collapsible,
+  type CollapsibleHeadingLevel,
   type CollapsibleIndicator,
   type CollapsibleProps,
+  type CollapsibleTriggerPlacement,
   type CollapsibleVariant,
 } from './components/collapsible/Collapsible';
 export {

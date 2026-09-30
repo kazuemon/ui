@@ -24,6 +24,8 @@ const meta = {
           '- 行全体を押せます。マウスを載せると行が淡く塗られ、開閉の印は開くと向きが変わります。',
           '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided` です。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。見た目とは別に選べます。',
+          '- 「続きを読む」のように行を中身の下に置くときは、`triggerPlacement="bottom"` にします。',
+          '- 行をページの見出しの並びに入れたいときは、`headingLevel`（2〜6）を渡します。見た目は変わりません。',
           '- 開閉は `defaultOpen`（はじめの状態）か、`open` と `onOpenChange`（使う側で持つ）で決めます。',
           '- 行の代わりに自分のボタンを置くときは、`trigger` に Button などを渡します。見た目はその要素のままで、開いているあいだ `aria-expanded` が付きます。',
           '- 閉じた中身もページ内検索で見つけてほしいときは `hiddenUntilFound` を付けます。見つかると開きます。',
@@ -39,7 +41,7 @@ const meta = {
     children: { control: 'text' },
     variant: {
       control: 'inline-radio',
-      options: ['plain', 'open-filled', 'filled', 'divided'],
+      options: ['plain', 'open-filled', 'filled', 'divided', 'card'],
       table: { defaultValue: { summary: 'plain' } },
     },
     indicator: {
@@ -47,6 +49,12 @@ const meta = {
       options: ['end', 'start'],
       table: { defaultValue: { summary: 'end' } },
     },
+    triggerPlacement: {
+      control: 'inline-radio',
+      options: ['top', 'bottom'],
+      table: { defaultValue: { summary: 'top' } },
+    },
+    headingLevel: { control: 'select', options: [undefined, 2, 3, 4, 5, 6] },
     defaultOpen: { table: { defaultValue: { summary: 'false' } } },
     disabled: { table: { defaultValue: { summary: 'false' } } },
     hiddenUntilFound: { table: { defaultValue: { summary: 'false' } } },
@@ -321,6 +329,35 @@ export const Accessibility: Story = {
     await userEvent.keyboard('{Enter}');
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await waitFor(() => expect(canvas.queryByText(answer)).toBeNull());
+  },
+};
+
+export const TriggerBottom: Story = {
+  name: '行を中身の下に置く',
+  args: {
+    title: '続きを読む',
+    triggerPlacement: 'bottom',
+    headingLevel: 3,
+    children: answer,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`triggerPlacement="bottom"` で、行を中身の下に置きます。開くと、中身が行の上に出ます。`headingLevel` を渡すと、行を見出しで包みます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: '続きを読む' });
+    // 行は見出し（h3）に包まれる
+    await expect(canvas.getByRole('heading', { level: 3 })).toContainElement(trigger);
+    await userEvent.click(trigger);
+    // 開いた中身は行の前に置かれる
+    const panel = canvas.getByText(answer).closest('[data-slot="collapsible-panel"]');
+    await expect(panel?.compareDocumentPosition(trigger) === Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      true
+    );
   },
 };
 

@@ -1211,6 +1211,15 @@
   --collapsible-duration: var(--duration-normal);
   --collapsible-ease: var(--ease-sheet);
   --collapsible-start-opacity: 0;
+  /* 枠付きのカードの形（variant="card"）— 軸 416 で比較中
+     card-radius: 角。card-line・card-line-width: 輪郭。card-fill: 閉じているときの面
+     card-open-fill: 開いているときの行（題）の塗り。card-gap: 続けて置いたときの間 */
+  --collapsible-card-radius: var(--radius-card);
+  --collapsible-card-line: var(--color-surface-line);
+  --collapsible-card-line-width: var(--border-width-thin);
+  --collapsible-card-fill: var(--color-surface);
+  --collapsible-card-open-fill: transparent;
+  --collapsible-card-gap: calc(var(--spacing) * 2);
   /* ── END collapsible */
 
   /* ── Transition — 軸 92 ── BEGIN transition */

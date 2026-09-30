@@ -24,6 +24,7 @@ const accordionStyles = tv({
       plain: {},
       'open-filled': {},
       filled: { root: 'gap-(--collapsible-row-gap)' },
+      card: { root: 'gap-(--collapsible-card-gap)' },
       divided: {
         item: [
           '[[data-slot=accordion-item]+&]:-mt-(--border-width-thin)',
@@ -56,11 +57,12 @@ export interface AccordionProps extends Omit<
   /** 並べる項目。AccordionItem を間をあけずに続けて置きます */
   children?: ReactNode;
   /**
-   * 項目の見た目。Collapsible と同じ 4 つです。どれも行全体を押せます
+   * 項目の見た目。Collapsible と同じ 5 つです。どれも行全体を押せます
    * - divided: 項目のあいだと一覧の上下に区切り線を引きます。FAQ のように、問いを続けて並べる一覧の形です
    * - plain: 塗りも線もなし。マウスを載せたときだけ淡いグレーを敷きます。項目が 2〜3 個で、周りに見出しや余白があるときに使います
    * - open-filled: 開いている項目をグレーで塗ります。どれが開いているかを見せたいときに使います
    * - filled: いつもグレーで塗り、項目のあいだを少し離します。周りに線や囲みが少なく、押せると気づきにくい場所で使います
+   * - card: 項目を 1 つずつ細い輪郭の面で囲み、あいだを少し離します。ページの地の上に、項目をまとまりとして並べるときに使います
    * @default 'divided'
    */
   variant?: AccordionVariant;
