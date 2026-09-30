@@ -64,7 +64,10 @@ export function useNow(
   enabled: boolean,
   interval: number = DEFAULT_UPDATE_INTERVAL
 ): number | null {
-  const clock = enabled ? clockFor(interval) : null;
+  // 0 以下や数でない間隔は、タイマーが詰まって回るので既定に戻す
+  const safeInterval =
+    Number.isFinite(interval) && interval > 0 ? interval : DEFAULT_UPDATE_INTERVAL;
+  const clock = enabled ? clockFor(safeInterval) : null;
   return useSyncExternalStore(
     clock ? clock.subscribe : subscribeNone,
     clock ? clock.getSnapshot : getNone,
