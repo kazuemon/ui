@@ -108,7 +108,13 @@ export {
   type CarouselIndicator,
   type CarouselProps,
 } from './components/carousel/Carousel';
-export { Checkbox, type CheckboxProps, type ChoiceColor } from './components/checkbox/Checkbox';
+export {
+  Checkbox,
+  type CheckboxProps,
+  type ChoiceColor,
+  type ChoiceGroupDirection,
+  type ChoiceGroupItemWidth,
+} from './components/checkbox/Checkbox';
 export {
   CheckboxGroup,
   type CheckboxGroupBaseProps,
@@ -180,6 +186,7 @@ export {
 export {
   Divider,
   type DividerColor,
+  type DividerLabelSize,
   type DividerOrientation,
   type DividerProps,
   type DividerVariant,
@@ -226,6 +233,7 @@ export {
   type GalleryColumns,
   type GalleryControlsPosition,
   type GalleryIndicator,
+  type GalleryLoadingAnimation,
   type GalleryItem,
   type GalleryProps,
   type GallerySlideMotion,

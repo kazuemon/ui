@@ -155,18 +155,24 @@ export const Axis: Story = {
       pick={pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(column) => {
+      renderCell={(column, candidate) => {
         switch (column.label) {
           case '読み込み中':
             return (
               <div className="w-[480px]">
-                <Gallery items={loading} />
+                <Gallery
+                  items={loading}
+                  loadingAnimation={candidate.id === 'B' ? 'pulse' : 'sweep-viewport'}
+                />
               </div>
             );
           case '一部が読み込めた':
             return (
               <div className="w-[480px]">
-                <Gallery items={mixed} />
+                <Gallery
+                  items={mixed}
+                  loadingAnimation={candidate.id === 'B' ? 'pulse' : 'sweep-viewport'}
+                />
               </div>
             );
           default:
@@ -182,7 +188,8 @@ export const Axis: Story = {
         決定（ADR-0393 予定）: Gallery の読み込み中は A（並びをまたぐ光）を既定にし、B（明滅）も
         loadingAnimation="pulse" で選べる。単体の Image
         は現行版（面ごとの光）のまま。点線の枠（C・D）は採らない。
-        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+        候補の見た目はトークンで作っていたので、決めた時点のコミット 3148cf6
+        で比べられます（いまは決めた props で近い形を描いています）。
       </p>
       <p>
         Gallery の画像に loading・decoding・fetchPriority を渡せるようにしました（枚数が多いときは

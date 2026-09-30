@@ -145,11 +145,17 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => {
         const direction = candidate.id === '現行版' ? 'vertical' : 'horizontal';
+        // 決めた props で近い形にする（C は同じ幅の列、ほかは自然な幅で折り返す）
+        const layout = {
+          direction,
+          wrap: true,
+          itemWidth: candidate.id === 'C' ? ('equal' as const) : ('fit' as const),
+        } as const;
         switch (column.label) {
           case '2 択':
             return (
               <div className="w-[400px]">
-                <RadioGroup label="メールで知らせる" defaultValue="yes" direction={direction}>
+                <RadioGroup label="メールで知らせる" defaultValue="yes" {...layout}>
                   <Radio value="yes" label="はい" />
                   <Radio value="no" label="いいえ" />
                 </RadioGroup>
@@ -158,7 +164,7 @@ export const Axis: Story = {
           case '3 択':
             return (
               <div className="w-[400px]">
-                <RadioGroup label="性別" direction={direction}>
+                <RadioGroup label="性別" {...layout}>
                   <Radio value="female" label="女性" />
                   <Radio value="male" label="男性" />
                   <Radio value="none" label="回答しない" />
@@ -168,7 +174,7 @@ export const Axis: Story = {
           case '説明文つき':
             return (
               <div className="w-[480px]">
-                <RadioGroup label="プラン" defaultValue="free" direction={direction}>
+                <RadioGroup label="プラン" defaultValue="free" {...layout}>
                   <Radio value="free" label="無料" caption="月 3 件まで" />
                   <Radio
                     value="pro"
@@ -182,11 +188,7 @@ export const Axis: Story = {
           case '多い':
             return (
               <div className="w-[400px]">
-                <CheckboxGroup
-                  label="来られる曜日"
-                  defaultValue={['mon', 'wed']}
-                  direction={direction}
-                >
+                <CheckboxGroup label="来られる曜日" defaultValue={['mon', 'wed']} {...layout}>
                   {['月', '火', '水', '木', '金', '土', '日'].map((day, i) => (
                     <Checkbox
                       key={day}
@@ -200,7 +202,7 @@ export const Axis: Story = {
           default:
             return (
               <div className="w-[18rem] rounded-card border border-dashed border-line p-2">
-                <RadioGroup label="性別" direction={direction}>
+                <RadioGroup label="性別" {...layout}>
                   <Radio value="female" label="女性" />
                   <Radio value="male" label="男性" />
                   <Radio value="none" label="回答しない" />
@@ -215,7 +217,8 @@ export const Axis: Story = {
         の既定は、自然な幅で折り返さない形（どの候補とも違う）。A の自然な幅の折り返しを wrap で、C
         の同じ幅の列を itemWidth="equal"
         で、それぞれオン・オフできる。狭い入れ物で縦に戻す形は採らない。間は 24px（A・C と同じ）。
-        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+        候補の見た目はトークンで作っていたので、決めた時点のコミット 3148cf6
+        で比べられます（いまは決めた props で近い形を描いています）。
       </p>
       <p>
         RadioGroup・CheckboxGroup に direction="horizontal"（Stack

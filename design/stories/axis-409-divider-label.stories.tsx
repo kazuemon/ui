@@ -118,7 +118,11 @@ const columns: Column[] = [
 ];
 
 const DividerFor = ({ candidate, label }: { candidate: Candidate; label: ReactNode }) =>
-  candidate.id === '現行版' ? <Divider /> : <Divider label={label} />;
+  candidate.id === '現行版' ? (
+    <Divider />
+  ) : (
+    <Divider label={label} labelSize={candidate.id === 'B' ? 'sm' : 'xs'} />
+  );
 
 export const Axis: Story = {
   render: ({ pick }) => (
@@ -171,7 +175,8 @@ export const Axis: Story = {
       <p>
         決定（ADR-0391 予定）:
         A（キャプションの大きさ・淡い色・12px）を既定にし、B（ラベルの大きさ・一段淡い色・16px）も
-        labelSize="sm" で選べる。 候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+        labelSize="sm" で選べる。 候補の見た目はトークンで作っていたので、決めた時点のコミット
+        3148cf6 で比べられます（いまは決めた props で近い形を描いています）。
       </p>
       <p>
         Divider に label を足し、細い線のあいだに文字（「または」など）を置きます。文字は ReactNode

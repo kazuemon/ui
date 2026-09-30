@@ -173,7 +173,7 @@ export const Axis: Story = {
               <div className="w-[280px] rounded-card border border-line py-2">
                 {['下書き', '公開済み', 'ゴミ箱'].map((item, i) => (
                   <Fragment key={item}>
-                    {i > 0 && <Divider variant={candidate.id === '現行版' ? 'full' : 'inset'} />}
+                    {i > 0 && <Divider />}
                     <div className="px-(--spacing-control-x) py-2">
                       <Text>{item}</Text>
                     </div>
@@ -187,7 +187,8 @@ export const Axis: Story = {
       <p>
         決定（ADR-0392 予定）:
         縦の線は周りの文字の高さ（B）。左右を空けた線（variant="inset"）は作らず、線は今の横線と同じく親の余白の中で幅いっぱいに伸ばす。左右を空けたいときは、置く側の余白か
-        className で空ける。 候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+        className で空ける。 候補の見た目はトークンで作っていたので、決めた時点のコミット 3148cf6
+        で比べられます（いまは決めた props で近い形を描いています）。
       </p>
       <p>
         Divider に orientation="vertical"

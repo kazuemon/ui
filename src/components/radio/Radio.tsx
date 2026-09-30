@@ -9,6 +9,7 @@ import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
   type ChoiceGroupDirection,
+  type ChoiceGroupItemWidth,
   choiceGroupList,
   choiceGroupMessagePull,
   choiceReadOnly,
@@ -148,10 +149,23 @@ export interface RadioGroupControlProps<Value> extends Omit<
    */
   color?: ChoiceColor;
   /**
-   * 選択肢を並べる向き。horizontal は横に並べ、入りきらないと折り返します（Stack の direction と同じ語）
+   * 選択肢を並べる向き。horizontal は横に 1 行で並べます（Stack の direction と同じ語）。
+   * 「はい／いいえ」のような短い選択肢に使います。狭い入れ物でも縦には戻さないので、入りきらないときは wrap を渡すか、置く側で向きを切り替えます
    * @default 'vertical'
    */
   direction?: ChoiceGroupDirection;
+  /**
+   * 横に並べたときに、入りきらない選択肢を次の行へ折り返します。縦に並べるときは使いません
+   * @default false
+   */
+  wrap?: boolean;
+  /**
+   * 横に並べたときの選択肢の幅。fit は選択肢ごとの文字の幅、equal は同じ幅の列にそろえます。
+   * equal は、説明文（caption）の長い選択肢があっても並びが偏りません。折り返さないときは入れ物の幅を等分し、
+   * wrap と一緒に使うと、いちばん狭くて 160px の列を入るだけ並べます。縦に並べるときは使いません
+   * @default 'fit'
+   */
+  itemWidth?: ChoiceGroupItemWidth;
   /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
@@ -170,6 +184,8 @@ export function RadioGroupControl<Value>({
   inputRef,
   color,
   direction = 'vertical',
+  wrap = false,
+  itemWidth = 'fit',
   children,
   readOnly,
   'aria-describedby': ariaDescribedBy,
@@ -200,11 +216,10 @@ export function RadioGroupControl<Value>({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        // 横に並べるときは、狭いときに縦へ戻すかを入れ物の幅で決める（@container）
-        className={direction === 'horizontal' ? '@container' : 'flex flex-col'}
+        className="flex flex-col"
       >
         {direction === 'horizontal' ? (
-          <div className={choiceGroupList({ direction })}>{children}</div>
+          <div className={choiceGroupList({ direction, wrap, itemWidth })}>{children}</div>
         ) : (
           children
         )}

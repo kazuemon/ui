@@ -786,21 +786,12 @@
   --color-choice-frame-notch-bg: var(--color-surface);
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
-  /* グループの選択肢を横に並べる（RadioGroup・CheckboxGroup の direction="horizontal"）— 軸 408 で比べている途中
-     group-display: 並べ方。flex は選択肢ごとの自然な幅、grid は同じ幅の列（--choice-group-columns）
-     group-wrap: 入りきらないときに折り返すか（flex のとき）
+  /* グループの選択肢を横に並べる（RadioGroup・CheckboxGroup の direction="horizontal"）— 軸 408
+     既定は選択肢ごとの文字の幅のまま、折り返さずに並べる。折り返し（wrap）と同じ幅の列（itemWidth="equal"）を選べる
      group-gap-x: 横に並んだ選択肢どうしの間。行の上下にはすでに余白があるので、折り返した行の間は足さない
-     group-column-min: 同じ幅の列（grid）の、1 列のいちばん狭い幅
-     group-item-max: 1 つの選択肢のいちばん広い幅。説明文（caption）の長い選択肢が横に伸びすぎないようにする
-     group-narrow-*: 入れ物が狭いとき（24rem 未満）の並べ方。column（flex）・1fr（grid）なら縦に戻す */
-  --choice-group-display: flex;
-  --choice-group-wrap: wrap;
+     group-column-min: 同じ幅の列で折り返すときの、1 列のいちばん狭い幅 */
   --choice-group-gap-x: calc(var(--spacing) * 6);
   --choice-group-column-min: calc(var(--spacing) * 40);
-  --choice-group-columns: repeat(auto-fill, minmax(min(100%, var(--choice-group-column-min)), 1fr));
-  --choice-group-item-max: none;
-  --choice-group-narrow-direction: column;
-  --choice-group-narrow-columns: 1fr;
 
   /* ── 小物（Tag・Badge・Chip）の大きさ ── sm・md・lg・inherit の 1 本の軸（ADR-0259）
      値は src/internal/small-parts-size.ts に持ち、Tag・Badge・Chip の tv の size 変化が --tag-*・--badge-*・--chip-* を差し替える。
@@ -1014,45 +1005,11 @@
   --skeleton-last-line: 60%;
   /* ── END skeleton */
 
-  /* ── Divider ── BEGIN divider */
-  /* 区切り線。src/components/divider（線の見た目は src/internal/reading/blocks.ts と Divider.tsx の variant）
-     ラベル付きの線（label。「または」）— 軸 409 で比べている途中。線は左右とも細い境界線で、文字を真ん中に置く
-       label-size・label-leading: 文字の大きさと行の高さ。label-color: 文字の色。label-weight: 文字の太さ
-       label-gap: 文字と左右の線のあいだ
-     縦の線（orientation="vertical"）— 軸 410 で比べている途中。線は細い境界線
-       vertical-length: 線の長さ。auto は並んだ行の高さいっぱい（vertical-align が stretch のとき）、1em は周りの文字の高さ
-       vertical-align: 並んだ行の中での置き方（align-self）。stretch は行の高さいっぱい、center は真ん中
-     左右を空けた線（variant="inset"）— 軸 410 で比べている途中
-       inset: 左右の端から空ける幅 */
-  --divider-label-size: var(--text-caption);
-  --divider-label-leading: var(--leading-caption);
-  --divider-label-color: var(--color-fg-subtle);
-  --divider-label-weight: normal;
-  --divider-label-gap: calc(var(--spacing) * 3);
-  --divider-vertical-length: auto;
-  --divider-vertical-align: stretch;
-  --divider-inset: var(--spacing-control-x);
-  /* ── END divider */
-
   /* ── Image — 軸 90 ── BEGIN image */
   /* 画像。角はカードの角、輪郭は Figure と同じ（原則5）。読み込むまでは Skeleton と同じ面（--skeleton-*）を置き、
      読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
      icon-size: 失敗したときのアイコンの大きさ */
   --image-icon-size: calc(var(--spacing) * 8);
-  /* 読み込むまでの面（Gallery の並べた画像を含む）— 軸 411 で比べている途中。失敗したときの面は変えない
-     placeholder-fill: 面の塗り。placeholder-line-*: 面のふちの線（太さ 0 で引かない）
-     placeholder-sweep: 光の帯の動き（none で通さない）。sweep-attachment が fixed のときは画面を基準にした帯が並んだ面をまたぐ
-       sweep-size・sweep-band: 光の絵の大きさと、帯の半分の幅（絵の幅に対する割合）
-     placeholder-pulse: 面そのものの明滅（none で明滅しない） */
-  --image-placeholder-fill: var(--skeleton-fill);
-  --image-placeholder-line-width: 0px;
-  --image-placeholder-line-style: dashed;
-  --image-placeholder-line-color: var(--color-line);
-  --image-placeholder-sweep: var(--skeleton-sweep);
-  --image-placeholder-sweep-attachment: scroll;
-  --image-placeholder-sweep-size: 300% 100%;
-  --image-placeholder-sweep-band: 15%;
-  --image-placeholder-pulse: none;
   /* ── END image */
 
   /* ── Embed — ADR-271〜274 ── BEGIN embed */

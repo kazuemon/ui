@@ -131,23 +131,45 @@ export const choiceStyles = tv({
 /** グループの選択肢の並べる向き。Stack の direction と同じ語 */
 export type ChoiceGroupDirection = 'vertical' | 'horizontal';
 
+/** 横に並べた選択肢の幅。fit は選択肢ごとの文字の幅、equal は同じ幅の列（SegmentedControl の itemWidth と同じ語） */
+export type ChoiceGroupItemWidth = 'fit' | 'equal';
+
 /**
- * グループ（RadioGroup・CheckboxGroup）の選択肢を並べる枠（軸 408 で比べている途中）
- * 縦は今までどおりの積み方。横は --choice-group-* で並べ方・間・折り返し・狭いときの戻し方を決める
- *   狭いとき（入れ物が 24rem 未満）の判定は、グループの本体に置いた @container で見る
+ * グループ（RadioGroup・CheckboxGroup）の選択肢を並べる枠（軸 408）
+ * 縦は今までどおりの積み方。横は、既定では選択肢ごとの文字の幅のまま、折り返さずに 1 行に並べる
+ *   wrap: 入りきらないときに次の行へ折り返す
+ *   itemWidth="equal": 同じ幅の列にそろえる。説明文（caption）の長い選択肢があっても、並びが偏らない
+ *     折り返さないときは、入れ物の幅を選択肢の数で等分する。折り返すときは、いちばん狭くて --choice-group-column-min の列を入るだけ並べる
+ *   選択肢どうしの間は --choice-group-gap-x。行の上下にはすでに余白があるので、折り返した行の間は足さない
+ *   狭い入れ物でも、縦には戻さない（戻したいときは、置く側が direction を切り替える）
  */
 export const choiceGroupList = tv({
   variants: {
     direction: {
       vertical: 'flex flex-col',
-      horizontal: [
-        '[display:var(--choice-group-display)] [flex-wrap:var(--choice-group-wrap)] items-start gap-x-(--choice-group-gap-x)',
-        '[grid-template-columns:var(--choice-group-columns)] *:max-w-(--choice-group-item-max)',
-        '@max-sm:[grid-template-columns:var(--choice-group-narrow-columns)] @max-sm:[flex-direction:var(--choice-group-narrow-direction)]',
-      ],
+      horizontal: 'items-start gap-x-(--choice-group-gap-x)',
     },
+    itemWidth: { fit: '', equal: '' },
+    wrap: { true: '', false: '' },
   },
-  defaultVariants: { direction: 'vertical' },
+  compoundVariants: [
+    { direction: 'horizontal', itemWidth: 'fit', class: 'flex flex-row' },
+    { direction: 'horizontal', itemWidth: 'fit', wrap: true, class: 'flex-wrap' },
+    {
+      direction: 'horizontal',
+      itemWidth: 'equal',
+      wrap: false,
+      class: 'grid auto-cols-[minmax(0,1fr)] grid-flow-col',
+    },
+    {
+      direction: 'horizontal',
+      itemWidth: 'equal',
+      wrap: true,
+      class:
+        'grid grid-cols-[repeat(auto-fill,minmax(min(100%,var(--choice-group-column-min)),1fr))]',
+    },
+  ],
+  defaultVariants: { direction: 'vertical', itemWidth: 'fit', wrap: false },
 });
 
 /**

@@ -28,7 +28,7 @@ const meta = {
           '- 「すべて選ぶ」の箱は、`CheckboxGroup` の `selectAll` と `allValues` で付けます。選んだ数に合わせて、箱が自分で選んだ状態・中間の状態に切り替わります。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。選んでいない箱は、色にかかわらず入力欄と同じグレーです。',
           '- グループの必須は、`caption` の文で書きます。',
-          '- `CheckboxGroup` の `direction="horizontal"` で選択肢を横に並べます。入りきらないときは折り返します。',
+          '- `CheckboxGroup` の `direction="horizontal"` で選択肢を横に 1 行で並べます。`wrap` で入りきらない選択肢を折り返し、`itemWidth="equal"` で同じ幅の列にそろえます（RadioGroup と同じ）。',
           '- `readOnly` にすると、箱が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
           '- グループを `required` にすると見出しに印は出ますが、`role="group"` には aria-required を付けられません。必須であることは `caption` の文でも書きます。',
         ].join('\n'),

@@ -7,6 +7,7 @@ import { ChoiceGroupContext } from '../../internal/choice/choice-group-context';
 import {
   type ChoiceColor,
   type ChoiceGroupDirection,
+  type ChoiceGroupItemWidth,
   choiceGroupList,
   choiceGroupMessagePull,
   choiceSize,
@@ -133,11 +134,23 @@ export type CheckboxGroupControlProps = Omit<
      */
     color?: ChoiceColor;
     /**
-     * 選択肢を並べる向き。horizontal は横に並べ、入りきらないと折り返します（Stack の direction と同じ語）。
-     * 「すべて選ぶ」の箱は、横に並べるときも子の選択肢の上に置きます
+     * 選択肢を並べる向き。horizontal は横に 1 行で並べます（Stack の direction と同じ語）。
+     * 「はい／いいえ」のような短い選択肢に使います。狭い入れ物でも縦には戻さないので、入りきらないときは wrap を渡すか、置く側で向きを切り替えます。「すべて選ぶ」の箱は、横に並べるときも子の選択肢の上に置きます
      * @default 'vertical'
      */
     direction?: ChoiceGroupDirection;
+    /**
+     * 横に並べたときに、入りきらない選択肢を次の行へ折り返します。縦に並べるときは使いません
+     * @default false
+     */
+    wrap?: boolean;
+    /**
+     * 横に並べたときの選択肢の幅。fit は選択肢ごとの文字の幅、equal は同じ幅の列にそろえます。
+     * equal は、説明文（caption）の長い選択肢があっても並びが偏りません。折り返さないときは入れ物の幅を等分し、
+     * wrap と一緒に使うと、いちばん狭くて 160px の列を入るだけ並べます。縦に並べるときは使いません
+     * @default 'fit'
+     */
+    itemWidth?: ChoiceGroupItemWidth;
     /** 中に置く選択肢。Checkbox を value 付きで並べます */
     children: ReactNode;
   };
@@ -160,6 +173,8 @@ export function CheckboxGroupControl({
   allValues,
   selectAllFrame = 'none',
   direction = 'vertical',
+  wrap = false,
+  itemWidth = 'fit',
   'aria-describedby': ariaDescribedBy,
   ...props
 }: CheckboxGroupControlProps) {
@@ -169,10 +184,10 @@ export function CheckboxGroupControl({
   // 読み取り専用（軸 177）は中の箱に渡す。role="group" は aria-readonly を持てないので、箱が1つずつ伝える
   const context = useMemo(() => ({ color, readOnly, form }), [color, readOnly, form]);
   const withSelectAll = selectAll !== undefined && selectAll !== null;
-  // 横に並べるときは、子の選択肢を並べる枠で包む。狭いときに縦へ戻すかは入れ物の幅で決める（@container）
+  // 横に並べるときは、子の選択肢を並べる枠で包む
   const items =
     direction === 'horizontal' ? (
-      <div className={choiceGroupList({ direction })}>{children}</div>
+      <div className={choiceGroupList({ direction, wrap, itemWidth })}>{children}</div>
     ) : (
       children
     );
@@ -188,9 +203,7 @@ export function CheckboxGroupControl({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        className={['flex flex-col', direction === 'horizontal' && '@container']
-          .filter(Boolean)
-          .join(' ')}
+        className="flex flex-col"
       >
         {withSelectAll ? (
           <SelectAllItems selectAll={selectAll} frame={selectAllFrame}>
