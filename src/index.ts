@@ -210,6 +210,7 @@ export {
   type FileTreeLine,
   FileTreeItem,
   type FileTreeItemProps,
+  type FileTreeItemType,
   type FileTreeProps,
 } from './components/file-tree/FileTree';
 export { Figure, type FigureProps } from './components/figure/Figure';

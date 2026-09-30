@@ -30,7 +30,7 @@ const meta = {
         component: [
           '記事の中で、フォルダとファイルの構成を見せます。行き先や開閉は持たない静的な図版です（フォルダを実際に操作させたいときは Tree を使います）。',
           '',
-          '- `FileTree` の中に `FileTreeItem` を並べます。`FileTreeItem` の中に `FileTreeItem` を入れると、フォルダになります。',
+          '- `FileTree` の中に `FileTreeItem` を並べます。`FileTreeItem` の中に `FileTreeItem` を入れると、フォルダになります。空のフォルダは、子を入れずに `type="folder"` を渡します。',
           '- `title` でルートの題（プロジェクト名など）を出せます。',
           '- 行のアイコンは、渡さないときはフォルダ・ファイルの既定のアイコンが自動で出ます。`icon` で差し替えられ、`hideIcons` で既定のアイコンだけを消せます（渡したアイコンは残ります）。',
           '- `comment` で、名前の後ろ（行の右端）に短い説明を添えられます。',
@@ -204,15 +204,19 @@ export const Accessibility: Story = {
         <FileTreeItem label="index.ts" comment="公開の入口" />
       </FileTreeItem>
       <FileTreeItem label="README.md" />
+      <FileTreeItem label="dist" type="folder" />
     </FileTree>
   ),
   play: async ({ canvas }) => {
+    // 子のない行でも type="folder" ならフォルダ（中の一覧は持たない）
+    await expect(canvas.getByText('dist').closest('li')).toHaveAttribute('data-type', 'folder');
+    await expect(canvas.getByText('README.md').closest('li')).toHaveAttribute('data-type', 'file');
     // 開閉や行き先を持たない、ふつうの入れ子のリストとして読む（根と、フォルダの中で 1 つずつ role="list"）
     const lists = canvas.getAllByRole('list');
     await expect(lists.length).toBe(2);
     for (const list of lists) await expect(list).toBeVisible();
     const items = canvas.getAllByRole('listitem');
-    await expect(items).toHaveLength(3);
+    await expect(items).toHaveLength(4);
     // アイコンは画面だけの飾り（aria-hidden）で、名前は文字だけから読まれる
     await expect(canvas.getByText('src')).toBeVisible();
     await expect(canvas.getByText('index.ts')).toBeVisible();
