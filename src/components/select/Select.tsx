@@ -264,9 +264,14 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
   clearName?: string;
   /**
    * 本体に出す、選んだ値の見せ方。値があるときだけ呼びます（空のときは placeholder）。
-   * 書かないときは、選んだ選択肢のラベルです。選択肢に icon があれば、その前に同じアイコンを出します
+   * 書かないときは、選んだ選択肢のラベルです。選択肢に icon があれば、その前に同じアイコンを出します（hideValueIcon で出さない）
    */
   renderValue?: (value: SelectValue<Value, Multiple>) => ReactNode;
+  /**
+   * 本体に、選んだ選択肢のアイコン（items の icon）を出しません。アイコンは開いた一覧の中だけになり、本体はラベルだけのほかの入力欄とそろいます
+   * @default false
+   */
+  hideValueIcon?: boolean;
   /** 本体（選択肢を開くボタン）に付くクラス */
   className?: string;
 }
@@ -366,9 +371,8 @@ const selectClearButton = [
   '[border-start-end-radius:var(--addon-radius)]! [border-end-end-radius:var(--addon-radius)]!',
 ].join(' ');
 
-// 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ。出すかは --select-value-icon-display
-const selectValueIcon =
-  'shrink-0 text-(color:--listbox-item-icon-color) group-data-disabled/field:text-current [display:var(--select-value-icon-display)] [&>svg]:size-(--listbox-item-icon-size)';
+// 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ（文字の 1.25 倍・文字の色）
+const selectValueIcon = 'flex shrink-0 [&>svg]:size-[1.25em]';
 
 function emitValue<Value, Multiple extends boolean>(
   onValueChange: (value: SelectValue<Value, Multiple>) => void,
@@ -421,6 +425,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   clearable = false,
   clearName,
   renderValue,
+  hideValueIcon = false,
   className,
 }: SelectControlProps<Value, Multiple> & ListboxValueCheck<Value>) {
   const field = useFieldState();
@@ -531,9 +536,10 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   const showClear = clearable && !readOnly && hasValue;
   // 本体に出す値（軸 523）。renderValue か、選んだ選択肢にアイコンがあるときだけ、Base UI の既定の文字を差し替える
   //   差し替えると Base UI は placeholder を出さないので、空のときの文もここで出す
-  const selectedIcon = Array.isArray(currentValue)
-    ? undefined
-    : flatItems.find((item) => item.value === currentValue)?.icon;
+  const selectedIcon =
+    hideValueIcon || Array.isArray(currentValue)
+      ? undefined
+      : flatItems.find((item) => item.value === currentValue)?.icon;
   const placeholderText = loadingBlocking ? loadingText : placeholder;
   const valueChildren =
     renderValue || selectedIcon != null
@@ -546,7 +552,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
             );
           const item = flatItems.find((option) => option.value === shown);
           return (
-            <span className="inline-flex max-w-full items-center gap-(--listbox-item-icon-gap) align-top">
+            <span className="inline-flex max-w-full items-center gap-2 align-top">
               <span aria-hidden data-slot="select-value-icon" className={selectValueIcon}>
                 {item?.icon}
               </span>

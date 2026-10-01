@@ -182,7 +182,7 @@ export type RadioGroupFrame = 'none' | 'card';
  * カード（Card）と同じ白い面・細い輪郭・角。選択肢 1 つが 1 枚で、カード全体が押せる範囲（原則17）
  *   押せる範囲: 横の文字の ::after をカードいっぱいに広げる（文字を押すと選ばれるので、カードのどこを押しても選ばれる）
  *   hover: 押せるカードと同じ淡い塗り（--card-fill-hover）
- *   選んでいる: 色（color）の淡い面を --radio-card-selected-fill-mix で混ぜ、輪郭の上に --radio-card-selected-line-width の線を重ねる（寸法は変えない）
+ *   選んでいる: 輪郭の上に Card の選んでいる線（--card-selected-line-width）を重ねる（寸法は変えない）。selectedIndicator="fill" では面も色（color）の淡い面にする
  *   フォーカス: キーボードのとき、丸ではなくカードの外に線を引く（押せる範囲の外形に出す）
  *   押せない: 面は白のまま、hover しない。横の文字は丸と一緒にグレー
  *   横の文字の右に labelAside（値段など）を置ける
@@ -190,14 +190,16 @@ export type RadioGroupFrame = 'none' | 'card';
 export const radioCard = tv({
   slots: {
     item: [
-      'relative grid-cols-[auto_minmax(0,1fr)_auto] rounded-card p-(--radio-card-padding)!',
+      // 横に並べて高さを行でそろえたときも、中身は上に詰める（行の間を広げない）
+      'relative grid-cols-[auto_minmax(0,1fr)_auto] content-start rounded-card p-(--card-padding)!',
       'border-(length:--border-width-thin) border-(color:--color-surface-line)',
       'bg-(color:--radio-card-fill) [--radio-card-fill:var(--color-surface)]',
       'hover:not-has-data-disabled:[--radio-card-fill:var(--card-fill-hover)]',
-      'has-data-checked:[--radio-card-fill:color-mix(in_srgb,var(--radio-card-tint)_calc(var(--radio-card-selected-fill-mix)*100%),var(--color-surface))]',
-      'has-data-checked:hover:not-has-data-disabled:[--radio-card-fill:color-mix(in_oklab,color-mix(in_srgb,var(--radio-card-tint)_calc(var(--radio-card-selected-fill-mix)*100%),var(--color-surface)),var(--radio-card-line)_var(--card-selected-hover-mix))]',
+      // 選んでいる面（--radio-card-selected-fill）の上に、hover では線の色を少し混ぜる
+      'has-data-checked:[--radio-card-fill:var(--radio-card-selected-fill)]',
+      'has-data-checked:hover:not-has-data-disabled:[--radio-card-fill:color-mix(in_oklab,var(--radio-card-selected-fill),var(--radio-card-line)_var(--card-selected-hover-mix))]',
       "after:pointer-events-none after:absolute after:-inset-(--border-width-thin) after:z-1 after:rounded-card after:border-(color:--radio-card-line) after:content-['']",
-      'after:border-0 has-data-checked:after:border-(length:--radio-card-selected-line-width)',
+      'after:border-0 has-data-checked:after:border-(length:--card-selected-line-width)',
       'has-data-disabled:has-data-checked:after:opacity-(--disabled-opacity)',
       '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
       'has-[[role=radio]:focus-visible]:[outline-width:var(--focus-ring-width)] has-[[role=radio]:focus-visible]:[outline-style:solid]',
@@ -220,9 +222,17 @@ export const radioCard = tv({
         item: '[--radio-card-line:var(--color-neutral-strong)] [--radio-card-tint:var(--color-select-neutral-selected)]',
       },
     },
+    // 選んでいる見た目の形（Card の selectedIndicator と同じ語）。line は面を白のまま線だけ、fill は面も色の淡い面にする
+    selectedIndicator: {
+      line: { item: '[--radio-card-selected-fill:var(--color-surface)]' },
+      fill: { item: '[--radio-card-selected-fill:var(--radio-card-tint)]' },
+    },
   },
-  defaultVariants: { color: 'neutral' },
+  defaultVariants: { color: 'neutral', selectedIndicator: 'line' },
 });
+
+/** カードの形の選択肢の、選んでいる見た目の形。Card の selectedIndicator と同じ値 */
+export type RadioGroupSelectedIndicator = 'fill' | 'line';
 
 /**
  * 読み取り専用（軸 177）の上書き。箱の見た目は押せないときと同じままで、横の文字だけ本文の色に戻す

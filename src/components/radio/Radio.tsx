@@ -17,6 +17,7 @@ import {
   choiceStyles,
   radioCard,
   type RadioGroupFrame,
+  type RadioGroupSelectedIndicator,
 } from '../../internal/choice/choice-styles';
 import {
   type CaptionPlacement,
@@ -94,7 +95,10 @@ export function Radio({
 }: RadioProps) {
   const group = useContext(ChoiceGroupContext);
   const s = choiceStyles({ color: group?.color });
-  const card = group?.frame === 'card' ? radioCard({ color: group?.color }) : undefined;
+  const card =
+    group?.frame === 'card'
+      ? radioCard({ color: group?.color, selectedIndicator: group?.selectedIndicator })
+      : undefined;
   // Form の送信中と読み取り専用（軸 177）は、押せない丸と同じ見た目にして選び直しを止める
   // 読み取り専用はグループ（RadioGroup の readOnly）からも来る
   const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
@@ -189,6 +193,13 @@ export interface RadioGroupControlProps<Value> extends Omit<
    * @default 'none'
    */
   frame?: RadioGroupFrame;
+  /**
+   * frame="card" の選んでいるカードの見た目。Card の selectedIndicator と同じ語です
+   * - line: 面は白のまま、輪郭の上に色の線を重ねます
+   * - fill: 面を色の淡い面にし、輪郭の上に色の線を重ねます。選んでいることをより強く見せたいときに使います
+   * @default 'line'
+   */
+  selectedIndicator?: RadioGroupSelectedIndicator;
   /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
@@ -210,6 +221,7 @@ export function RadioGroupControl<Value>({
   wrap = false,
   itemWidth = 'fit',
   frame = 'none',
+  selectedIndicator = 'line',
   children,
   readOnly,
   'aria-describedby': ariaDescribedBy,
@@ -219,9 +231,12 @@ export function RadioGroupControl<Value>({
   useFieldControlKind({ nativeLabel: false, registerCaption: false });
   const field = useFieldState();
   const disabled = field?.disabled;
-  const context = useMemo(() => ({ color, readOnly, frame }), [color, readOnly, frame]);
-  // カードの形は、カードどうしの間（--radio-card-gap）を空けて並べる。横に並べるときも同じ間で、カードの高さを行でそろえる
-  const cardGap = frame === 'card' ? 'items-stretch gap-(--radio-card-gap)!' : undefined;
+  const context = useMemo(
+    () => ({ color, readOnly, frame, selectedIndicator }),
+    [color, readOnly, frame, selectedIndicator]
+  );
+  // カードの形は、カードどうしの間（8px）を空けて並べる。横に並べるときも同じ間で、カードの高さを行でそろえる
+  const cardGap = frame === 'card' ? 'items-stretch gap-2!' : undefined;
   // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
   const locked = useChoiceLock(disabled, readOnly);
   return (
