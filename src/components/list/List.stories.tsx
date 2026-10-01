@@ -1,9 +1,11 @@
+import { CheckIcon, RocketLaunchIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { createRef, useState } from 'react';
 import { expect, userEvent } from 'storybook/test';
 
 import { List, ListItem } from './List';
 import { Code } from '../code/Code';
+import { Tag } from '../tag/Tag';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 const meta = {
@@ -22,7 +24,8 @@ const meta = {
           '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
           '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
           '- `ListItem` の `status`（`success`・`warning`・`danger`）で、印を状態の色と形のアイコンにします。`icon` で好きなアイコンを印にできます。印は読み上げないので、状態は文でも伝えます。',
-          '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグなどを置きます。',
+          '- 印のアイコンは文字の 1.25 倍の大きさで、色は文字の色です。アイコンの色はアイコンに、文の色は `ListItem` の `className` に付けます。',
+          '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグ・ボタンなどを置きます。右端に寄せ、1 行目の高さの中で縦の中央にそろえます。文字の大きさや色は、置くものに付けます。',
         ].join('\n'),
       },
     },
@@ -100,6 +103,44 @@ export const Kinds: Story = {
         </Specimen>
       </Gallery>
     </div>
+  ),
+};
+
+export const StatusAndTrailing: Story = {
+  tags: ['visual'],
+  name: '状態・アイコン・末尾',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="status">
+        <List>
+          <ListItem status="success">型を確かめる: 通った</ListItem>
+          <ListItem status="warning">書式: 2 件の警告</ListItem>
+          <ListItem status="danger">テスト: 3 件の失敗</ListItem>
+          <ListItem>配布物を作る: まだ</ListItem>
+        </List>
+      </Specimen>
+      <Specimen label="icon（色はアイコンに付ける）">
+        <List>
+          <ListItem icon={<CheckIcon className="text-fg-success" />}>部品をすべて使える</ListItem>
+          <ListItem icon={<CheckIcon className="text-fg-success" />}>ドキュメントの見本</ListItem>
+          <ListItem icon={<RocketLaunchIcon />}>はじめの設定を手伝う</ListItem>
+        </List>
+      </Specimen>
+      <Specimen label="trailing（折り返す文・タグ）">
+        <List>
+          <ListItem trailing={<span className="text-fg-subtle">9/30</span>}>
+            カレンダーに日ごとの印を足した
+          </ListItem>
+          <ListItem trailing={<span className="text-fg-subtle">10/1</span>}>
+            フォームのどの欄にも結び付かないエラーを出せるようにした
+          </ListItem>
+          <ListItem status="success" trailing={<Tag color="success">公開</Tag>}>
+            はじめての記事
+          </ListItem>
+        </List>
+      </Specimen>
+    </Gallery>
   ),
 };
 

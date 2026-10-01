@@ -571,18 +571,6 @@
   /* ✓ の形と色（#6e787d = --color-fg-subtle）。色は画像の中に書く */
   --list-task-mark-checked: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236e787d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 8.5 6.75 11.25 12 5.5'/%3E%3C/svg%3E");
   --color-list-task-done: var(--color-fg-subtle); /* 済んだ項目の文 */
-  /* 印をアイコンにした項目（ListItem の icon・status。比較中 — 軸 474）
-     大きさ、icon の色（status は状態の色）、status の文を状態の色に寄せる割合（0 は本文の色、1 は状態の色） */
-  --list-icon-size: var(--list-task-size);
-  --list-icon-color: var(--color-fg-subtle);
-  --list-status-text-k: 0;
-  /* 項目の末尾の枠（ListItem の trailing。比較中 — 軸 475）
-     columns は文の列と末尾の列（1fr auto で右端、auto 1fr で文のすぐ後ろ）、align は縦のそろえ方（baseline で 1 行目） */
-  --list-trailing-columns: minmax(0, 1fr) auto;
-  --list-trailing-gap: calc(var(--spacing) * 4);
-  --list-trailing-align: baseline;
-  --list-trailing-text: inherit;
-  --color-list-trailing: var(--color-fg-subtle);
 
   /* ── 脚注（軸 61）。src/internal/reading/footnote.ts ─────────────
      戻るリンクの矢印（ArrowUDownLeftIcon と同じ形・同じ線の太さ --icon-stroke）。Prose が、GFM の HTML の文字 ↩ を隠して mask で描く
@@ -1435,14 +1423,6 @@
   --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
   /* ── END bleed */
 
-  /* ── Form のどの欄にも結び付かないエラー（formErrorText。比較中）。src/components/form/Form.tsx
-     エラーの一覧と両方あるときの並べ方。separate は別のお知らせを一覧の上に置くか（flex・none）、
-     in-summary は一覧の本文の先頭に置くか（block・none）。どちらか一方だけを出す */
-  --form-error-separate: flex;
-  --form-error-in-summary: none;
-  --form-error-gap: var(--spacing-field-gap); /* 2 つのお知らせの間 */
-  /* ── END form-error */
-
   /* ── Calendar — ADR-0133〜0142 ── BEGIN calendar
      日は部品の高さの正方形（原則7・11）。平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む
      選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯、選んでいる途中は半分の濃さの帯（ADR-0141）
@@ -1453,10 +1433,6 @@
   --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
-  /* 期間の始まりを選んだあと、長さの制約（minRangeDays・maxRangeDays・excludeDisabled）で選べない日（比較中）
-     いまは押せない日と同じ薄い文字で、線を引かない */
-  --color-calendar-constrained: var(--color-on-field-disabled);
-  --calendar-constrained-decoration: none;
   /* 日ごとの印（renderDayContent。比較中）。日のボタンいっぱいの箱の中で、どこに寄せるか
      inset は日のボタンの内側からの位置。数字は印があるときだけ、縦に shift だけずらす */
   --calendar-day-content-inset: auto 0 calc(var(--spacing) * 2) 0;

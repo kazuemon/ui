@@ -326,26 +326,21 @@ export function Form({
             // フォームの上のお知らせ。どの欄にも結び付かないエラー（formErrorText）と、エラーの一覧（GOV.UK の error summary の形）
             // どちらも危険のお知らせ（design/adr/0043）で描く。フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない
             // 移ると「題、グループ」と中身が読まれる
-            // 両方あるときの並べ方（比較中）: 2 つのお知らせを縦に並べるか（--form-error-separate）、一覧の本文の先頭に置くか（--form-error-in-summary）
+            // 両方あるときは、どの欄にも結び付かないエラーを別のお知らせにして一覧の上に置く。間は欄の中の行の間と同じ
             <div
               ref={summaryRef}
               tabIndex={-1}
               role="group"
               aria-labelledby={summary ? titleId : formErrorId}
               data-slot="form-error-summary"
-              data-with-summary={summary && hasFormError ? '' : undefined}
               className={[
-                'flex flex-col gap-(--form-error-gap) rounded-control',
+                'flex flex-col gap-(--spacing-field-gap) rounded-control',
                 ...focusRing,
                 '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
               ].join(' ')}
             >
               {hasFormError && (
-                <Notice
-                  status="danger"
-                  live={false}
-                  className="in-data-with-summary:[display:var(--form-error-separate)]"
-                >
+                <Notice status="danger" live={false}>
                   <span id={formErrorId}>{formErrorText}</span>
                 </Notice>
               )}
@@ -355,11 +350,6 @@ export function Form({
                   live={false}
                   title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
                 >
-                  {hasFormError && (
-                    <p className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] [display:var(--form-error-in-summary)]">
-                      {formErrorText}
-                    </p>
-                  )}
                   {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
                   題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
                   <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">

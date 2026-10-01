@@ -112,21 +112,20 @@ export function List({
 
 // 項目の印をアイコンにした形（icon・status）と、末尾の枠（trailing）
 // 印のアイコンは、箇条書きの印（li::before）を消して、同じ位置（li の左の外、1 行目の中央）に置く。飾りなので読まない
-// 状態（status）は、状態の色と形のアイコン（成功は丸のチェック、警告は三角、危険は丸の「!」— 原則6）。文の色も状態の色に寄せられる
-// 末尾の枠は、文の列の後ろに置く 2 つ目の列。置き場・縦のそろえ方・色・大きさはトークン（--list-trailing-*）
+// 印のアイコンは文字の 1.25 倍（部品の中のアイコンと同じ比）。色は文字の色で、使う側がアイコンに色を付ければその色になる
+// 状態（status）は、状態の色と形のアイコン（成功は丸のチェック、警告は三角、危険は丸の「!」— 原則6）。文は文字の色のまま
+// 末尾の枠は、文の列の後ろに置く 2 つ目の列で、右端に寄せる。1 行目の行の高さの中で縦の中央にそろえる
+// 中身は使う側が置く JSX なので、文字の大きさや色は決めない
 const listItem = tv({
   slots: {
     root: '',
     icon: [
       'pointer-events-none absolute flex items-center justify-center',
-      '[top:calc((var(--list-leading,var(--leading-body))-var(--list-icon-size))/2)] [right:calc(100%+var(--list-marker-gap))]',
-      'size-(--list-icon-size) text-(color:--list-icon-color) [&_svg]:size-full',
+      '[top:calc((var(--list-leading,var(--leading-body))-1.25em)/2)] [right:calc(100%+var(--list-marker-gap))]',
+      'size-[1.25em] [&_svg]:size-full',
     ],
-    body: ['grid [grid-template-columns:var(--list-trailing-columns)] gap-x-(--list-trailing-gap)'],
-    trailing: [
-      '[align-self:var(--list-trailing-align)]',
-      'text-(length:--list-trailing-text) text-(color:--color-list-trailing)',
-    ],
+    body: 'grid grid-cols-[minmax(0,1fr)_auto] gap-x-4',
+    trailing: 'flex h-[var(--list-leading,var(--leading-body))] items-center',
   },
   variants: {
     marker: {
@@ -150,7 +149,7 @@ const listItem = tv({
     {
       status: ['success', 'warning', 'danger'],
       class: {
-        root: 'text-[color-mix(in_oklab,var(--list-status-color)_calc(var(--list-status-text-k)*100%),currentColor)] [--list-icon-color:var(--list-status-color)]',
+        icon: 'text-(color:--list-status-color)',
       },
     },
   ],
@@ -172,14 +171,18 @@ export interface ListItemProps extends ComponentProps<'li'> {
   checked?: boolean;
   /**
    * 項目の状態。印を状態の色と形のアイコン（success は丸のチェック、warning は三角、danger は丸の「!」）にします。
-   * 印は読み上げないので、状態は文でも伝えてください
+   * 文は文字の色のままです。文に色を付けるときは className で指定します。印は読み上げないので、状態は文でも伝えてください
    */
   status?: ListItemStatus;
   /**
-   * 印の代わりに出すアイコン。status のアイコンより優先します。飾りとして扱い、読み上げません
+   * 印の代わりに出すアイコン。status のアイコンより優先します。大きさは文字の 1.25 倍です。
+   * 色は文字の色で、アイコンに色を付けるとその色になります（`<CheckIcon className="text-fg-success" />`）。飾りとして扱い、読み上げません
    */
   icon?: ReactNode;
-  /** 項目の末尾に置くもの（数・日付・タグなど）。文の後ろの列に出します */
+  /**
+   * 項目の末尾に置くもの（数・日付・タグ・ボタンなど）。右端に寄せ、1 行目の行の高さの中で縦の中央にそろえます。
+   * 文字の大きさや色は付けないので、薄くするときなどは置くものに指定してください
+   */
   trailing?: ReactNode;
   /** 項目の文。入れ子のリストは、この中に List を置きます */
   children?: ReactNode;

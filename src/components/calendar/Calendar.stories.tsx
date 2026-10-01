@@ -37,7 +37,7 @@ const meta = {
           '- 前後の月の日は灰色で見せます。`hideOutsideDays` で隠します。表はいつも 6 週で、月を送っても高さが変わりません。',
           '- 月を送ると、すぐに切り替わります。`monthTransition="fade"` で、その場でふわっと入れ替わります。',
           '- `min`・`max` で選べる期間を区切ります。区切りの外の月へは送れません。日ごとに押せなくするときは `isDateDisabled` を使います。',
-          '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなります。',
+          '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなり、取り消し線が付きます（もとから押せない日には付きません）。',
           '- `renderDayContent` で、日ごとの印（空きの点、値段など）を日の数字に添えます。印は読み上げられないので、意味は文でも伝えます。',
           '- 週の始まりの曜日を `locale` と別に決めるときは `weekStartsOn`（0 が日曜）を使います。',
           '- 曜日と月の名前、週の始まりの曜日は `locale` に従います。今日は `timeZone` での今日です。どちらも ThemeProvider で決められます。',
@@ -147,6 +147,35 @@ export const Limits: Story = {
     // 日曜は選べない
     isDateDisabled: (date) => date.dayOfWeek === 7,
   },
+};
+
+// 期間の長さの制約。始まりを選んだあと、選べない日は押せない日と同じ色に取り消し線を引く。もとから押せない日（満室）は線を引かない
+const fullDays = new Set(['2026-09-14', '2026-09-15', '2026-09-24']);
+export const RangeConstraints: Story = {
+  tags: ['visual'],
+  name: '期間の長さの制約',
+  render: () => (
+    <Gallery>
+      <Specimen label="3〜7 日（10 日を始まりに選んだところ）">
+        <Calendar
+          mode="range"
+          today={today}
+          minRangeDays={3}
+          maxRangeDays={7}
+          defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+        />
+      </Specimen>
+      <Specimen label="満室の日をまたがない（14・15・24 日は満室）">
+        <Calendar
+          mode="range"
+          today={today}
+          isDateDisabled={(date) => fullDays.has(date.toString())}
+          excludeDisabled
+          defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+        />
+      </Specimen>
+    </Gallery>
+  ),
 };
 
 export const Options: Story = {

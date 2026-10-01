@@ -94,7 +94,8 @@ const calendar = tv({
       'data-[look=outside]:[--day-base:transparent] data-[look=outside]:[--day-ink:var(--color-fg-subtle)]',
       'data-[look=disabled]:[--day-base:transparent] data-[look=disabled]:[--day-ink:var(--color-on-field-disabled)]',
       // 期間の始まりを選んだあと、長さの制約（minRangeDays・maxRangeDays・excludeDisabled）で選べない日
-      'data-[look=constrained]:[--day-base:transparent] data-[look=constrained]:[--day-ink:var(--color-calendar-constrained)] data-[look=constrained]:[--day-strike:var(--calendar-constrained-decoration)]',
+      // 押せない日と同じ色に取り消し線を足し、もとから押せない日（isDateDisabled など）と見分ける
+      'data-[look=constrained]:[--day-base:transparent] data-[look=constrained]:[--day-ink:var(--color-on-field-disabled)] data-[look=constrained]:[--day-strike:line-through]',
       // 日曜・祝日と土曜（ADR-0137・0140）。祝日の土曜は日曜の色。weekendColor={false} のときは色を混ぜない
       'data-[tone=sun]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sun]:[--day-weekend:var(--color-calendar-sunday)]',
       'data-[tone=sat]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sat]:[--day-weekend:var(--color-calendar-saturday)]',
