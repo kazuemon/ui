@@ -571,6 +571,18 @@
   /* ✓ の形と色（#6e787d = --color-fg-subtle）。色は画像の中に書く */
   --list-task-mark-checked: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236e787d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 8.5 6.75 11.25 12 5.5'/%3E%3C/svg%3E");
   --color-list-task-done: var(--color-fg-subtle); /* 済んだ項目の文 */
+  /* 印をアイコンにした項目（ListItem の icon・status。比較中 — 軸 474）
+     大きさ、icon の色（status は状態の色）、status の文を状態の色に寄せる割合（0 は本文の色、1 は状態の色） */
+  --list-icon-size: var(--list-task-size);
+  --list-icon-color: var(--color-fg-subtle);
+  --list-status-text-k: 0;
+  /* 項目の末尾の枠（ListItem の trailing。比較中 — 軸 475）
+     columns は文の列と末尾の列（1fr auto で右端、auto 1fr で文のすぐ後ろ）、align は縦のそろえ方（baseline で 1 行目） */
+  --list-trailing-columns: minmax(0, 1fr) auto;
+  --list-trailing-gap: calc(var(--spacing) * 4);
+  --list-trailing-align: baseline;
+  --list-trailing-text: inherit;
+  --color-list-trailing: var(--color-fg-subtle);
 
   /* ── 脚注（軸 61）。src/internal/reading/footnote.ts ─────────────
      戻るリンクの矢印（ArrowUDownLeftIcon と同じ形・同じ線の太さ --icon-stroke）。Prose が、GFM の HTML の文字 ↩ を隠して mask で描く

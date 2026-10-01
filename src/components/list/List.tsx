@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode, Ref } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { CheckCircleIcon, WarningCircleIcon, WarningIcon } from '../../internal/icons';
 import { listStyles } from '../../internal/reading/list';
 import { tv } from '../../internal/tv';
 
@@ -109,11 +110,79 @@ export function List({
   return <ul className={classes} {...props} />;
 }
 
+// 項目の印をアイコンにした形（icon・status）と、末尾の枠（trailing）
+// 印のアイコンは、箇条書きの印（li::before）を消して、同じ位置（li の左の外、1 行目の中央）に置く。飾りなので読まない
+// 状態（status）は、状態の色と形のアイコン（成功は丸のチェック、警告は三角、危険は丸の「!」— 原則6）。文の色も状態の色に寄せられる
+// 末尾の枠は、文の列の後ろに置く 2 つ目の列。置き場・縦のそろえ方・色・大きさはトークン（--list-trailing-*）
+const listItem = tv({
+  slots: {
+    root: '',
+    icon: [
+      'pointer-events-none absolute flex items-center justify-center',
+      '[right:calc(100%+var(--list-marker-gap))] [top:calc((var(--list-leading,var(--leading-body))-var(--list-icon-size))/2)]',
+      'size-(--list-icon-size) text-(color:--list-icon-color) [&_svg]:size-full',
+    ],
+    body: [
+      'grid [grid-template-columns:var(--list-trailing-columns)] gap-x-(--list-trailing-gap)',
+    ],
+    trailing: [
+      '[align-self:var(--list-trailing-align)]',
+      'text-(length:--list-trailing-text) text-(color:--color-list-trailing)',
+    ],
+  },
+  variants: {
+    marker: {
+      true: {
+        root: 'before:[content:none]',
+      },
+    },
+    status: {
+      success: {
+        root: '[--list-status-color:var(--color-fg-success)]',
+      },
+      warning: {
+        root: '[--list-status-color:var(--color-fg-warning)]',
+      },
+      danger: {
+        root: '[--list-status-color:var(--color-fg-danger)]',
+      },
+    },
+  },
+  compoundVariants: [
+    {
+      status: ['success', 'warning', 'danger'],
+      class: {
+        root: '[--list-icon-color:var(--list-status-color)] text-[color-mix(in_oklab,var(--list-status-color)_calc(var(--list-status-text-k)*100%),currentColor)]',
+      },
+    },
+  ],
+});
+
+/** 項目の状態 */
+export type ListItemStatus = 'success' | 'warning' | 'danger';
+
+const statusIcons = {
+  success: CheckCircleIcon,
+  warning: WarningIcon,
+  danger: WarningCircleIcon,
+} as const;
+
 export interface ListItemProps extends ComponentProps<'li'> {
   /**
    * チェックリストの項目にします。true は済み、false はまだです。箱は押せません（記事の中の表示です）
    */
   checked?: boolean;
+  /**
+   * 項目の状態。印を状態の色と形のアイコン（success は丸のチェック、warning は三角、danger は丸の「!」）にします。
+   * 印は読み上げないので、状態は文でも伝えてください
+   */
+  status?: ListItemStatus;
+  /**
+   * 印の代わりに出すアイコン。status のアイコンより優先します。飾りとして扱い、読み上げません
+   */
+  icon?: ReactNode;
+  /** 項目の末尾に置くもの（数・日付・タグなど）。文の後ろの列に出します */
+  trailing?: ReactNode;
   /** 項目の文。入れ子のリストは、この中に List を置きます */
   children?: ReactNode;
   /** 項目の要素（li）に付きます */
@@ -123,7 +192,39 @@ export interface ListItemProps extends ComponentProps<'li'> {
 /**
  * リストの項目
  */
-export function ListItem({ checked, className, children, ...props }: ListItemProps) {
+export function ListItem({
+  checked,
+  status,
+  icon,
+  trailing,
+  className,
+  children,
+  ...props
+}: ListItemProps) {
+  const StatusIcon = status ? statusIcons[status] : undefined;
+  const marker = icon ?? (StatusIcon ? <StatusIcon /> : null);
+  if (checked == null && (marker != null || trailing != null)) {
+    const s = listItem({ marker: marker != null, status });
+    return (
+      <li className={s.root({ className })} data-status={status} {...props}>
+        {marker != null && (
+          <span aria-hidden="true" data-slot="list-item-icon" className={s.icon()}>
+            {marker}
+          </span>
+        )}
+        {trailing != null ? (
+          <div className={s.body()}>
+            <div className="min-w-0">{children}</div>
+            <div data-slot="list-item-trailing" className={s.trailing()}>
+              {trailing}
+            </div>
+          </div>
+        ) : (
+          children
+        )}
+      </li>
+    );
+  }
   if (checked == null) {
     return (
       <li className={className} {...props}>
