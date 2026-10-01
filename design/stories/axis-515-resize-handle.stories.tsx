@@ -20,7 +20,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: statePseudo({ hover: handle, active: handle, focusVisible: handle }),
   },
-  args: { pick: '' },
+  args: { pick: 'current,A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -157,6 +157,13 @@ export const Compare: Story = {
       columns={columns}
       renderCell={() => <Cell />}
     >
+      <p>
+        決定:
+        幅を変えるつまみの既定は現行版（ふだんは見えず、載せると濃いグレーの線）。表の列（DataTableHeader
+        の resizable）では
+        A（ふだんから淡い線）を使う。ユーザーの返事「現行版が良さそうですが、表の場合は A
+        のパターンも必要そうですね」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Sidebar の幅を変えるつまみを部品の外（internal）へ移し、Inspector の resizable と DataTable
         の列（DataTableHeader の resizable）でも同じつまみを使うようにしました。どの行も 3

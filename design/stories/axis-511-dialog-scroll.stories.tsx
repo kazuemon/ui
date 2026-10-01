@@ -18,7 +18,7 @@ const meta = {
   title: 'Design Review/511 Dialog のスクロールのしかた',
   id: 'design-review-511-dialog-scroll',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -147,6 +147,11 @@ export const Compare: Story = {
       columns={columns}
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
+      <p>
+        決定: 中央に浮かべる Dialog の scrollBehavior の既定を
+        content（題と下の操作を残して中身だけをスクロールする）にする（A）。viewport（面ごとスクロール）も選べる。ユーザーの返事「A
+        をデフォルトでお願いします」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         中央に浮かべる Dialog
         の中身が画面より高いとき、面ごとスクロールするか（現行版）、題と下の操作を残して中身だけをスクロールするか（A）。どちらも

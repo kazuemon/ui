@@ -21,7 +21,7 @@ const meta = {
   title: 'Design Review/512 Dialog の幅の段',
   id: 'design-review-512-dialog-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -201,6 +201,10 @@ export const Compare: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: size の幅は sm 360px・md 480px（既定）・lg 800px にする（C）。ユーザーの返事「C
+        でお願いします」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         中央に浮かべる Dialog の幅を、size（sm・md・lg）の 3 段で選べるようにします。既定は
         md。決めるのは各段の幅です。画面が狭いときは、どの段も左右に余白を残して縮みます。シートで出すときは幅いっぱいです。

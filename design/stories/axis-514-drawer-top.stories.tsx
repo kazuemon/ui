@@ -13,7 +13,7 @@ const meta = {
   title: 'Design Review/514 Drawer を上から出すときのつまみ',
   id: 'design-review-514-drawer-top',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -125,6 +125,10 @@ export const Compare: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 上から出す Drawer
+        のつまみは、はじく側（下の端）に置く（現行版）。ユーザーの返事「現行版で良さそうです。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Drawer の side に top
         を足しました。下から出すシートを上下に返した形で、下の角を丸め、影は下へ向けます（原則1）。上へはじくと閉じ、半分の段は持ちません（中身の高さで開きます）。下の操作は、下から出すシートと同じく縦に積みます。

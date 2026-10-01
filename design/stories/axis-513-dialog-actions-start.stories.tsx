@@ -15,7 +15,7 @@ const meta = {
   title: 'Design Review/513 Dialog の操作の左に置く文',
   id: 'design-review-513-dialog-actions-start',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -165,6 +165,14 @@ export const Compare: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: actionsStart（と DialogActions・DrawerActions の start）は JSX
+        を置く場所にし、部品は文字の大きさや色を付けない（使う人が Text などで決める。List の
+        trailing
+        と同じ考え）。文字列だけを渡されたときは、現行版（キャプションの大きさ・淡い色）で描く。ユーザーの返事「どこかの軸で回答した、ユーザーに
+        Text
+        コンポーネントを自分で入れてもらう、という形がよさそうです。文字だけ渡されたときは現行版ですかね。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Dialog
         の下の操作（actions）の左に、保存の状態や注記、「次から表示しない」のチェックボックスを置けるようにします。props
