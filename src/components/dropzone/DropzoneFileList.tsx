@@ -74,7 +74,7 @@ export interface DropzoneFileEntry {
   size?: number;
   /** 保存済みのファイルの URL。名前のリンクの行き先になり、thumbnail では画像として出す */
   url?: string;
-  /** ファイルの種類（MIME タイプ）。thumbnail で画像として出すかを決める。書かないときは file の種類、なければ url の拡張子で決める */
+  /** ファイルの種類（MIME タイプ）。thumbnail で画像として出すかを決める。書かないときは file の種類、なければ url の拡張子（data URL なら種類）で決める */
   type?: string;
   /**
    * 名前に小さく添える文（「保存済み」、保存した日時など）。list では大きさの後ろに、thumbnail では左上の札に出す。
@@ -109,7 +109,9 @@ const IMAGE_EXTENSION = /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#]|$)/i;
 const entryIsImage = (entry: DropzoneFileEntry) => {
   const type = entry.type ?? entry.file?.type;
   if (type) return type.startsWith('image/');
-  return entry.url != null && IMAGE_EXTENSION.test(entry.url);
+  return (
+    entry.url != null && (entry.url.startsWith('data:image/') || IMAGE_EXTENSION.test(entry.url))
+  );
 };
 
 function defaultRemoveName(entry: DropzoneFileEntry) {
