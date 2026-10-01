@@ -80,7 +80,7 @@ import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { AddonShape } from '../field-addon/field-addon-context';
-import { FieldAddon, FieldAddonButton } from '../field-addon/FieldAddon';
+import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import { AutocompleteScroll } from './AutocompleteScroll';
 
@@ -714,6 +714,8 @@ export function AutocompleteControl({
   };
 
   // シートの中に打つ欄を移したとき（sheetInput="inside"）の本体。押すと開くボタンで、いまの文字を出す
+  // 開くボタンの前の文字も、打つ欄と同じく説明につなぎ、文字は読み上げから外す
+  const triggerPrefix = renderFieldAddon(icon ? null : prefix, `${sheetId}trigger-prefix`);
   const renderTrigger = (messageIds: string | undefined) => (
     <>
       <BaseAutocomplete.Trigger
@@ -721,7 +723,9 @@ export function AutocompleteControl({
         onClick={
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
-        aria-describedby={messageIds}
+        aria-describedby={
+          [triggerPrefix.describedBy, messageIds].filter(Boolean).join(' ') || undefined
+        }
         aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
@@ -744,7 +748,7 @@ export function AutocompleteControl({
             {icon}
           </span>
         )}
-        {!icon && prefix != null && <FieldAddon>{prefix}</FieldAddon>}
+        {triggerPrefix.addon}
         {text ? (
           <span className="min-w-0 flex-1 truncate">{text}</span>
         ) : (

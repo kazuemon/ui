@@ -85,7 +85,7 @@ import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { AddonShape } from '../field-addon/field-addon-context';
-import { FieldAddon, FieldAddonButton } from '../field-addon/FieldAddon';
+import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 
 /**
@@ -784,6 +784,8 @@ export function ComboboxControl<Multiple extends boolean = false>({
 
   // シートの中に打つ欄を移したとき（sheetInput="inside"）の本体。押すと開くボタンで、形は Select の本体と同じ
   // 選んだ値は文字（単数）かチップ（multiple）で出す。チップの × はボタンの中に置けないので、外す操作はシートの中で行う
+  // 開くボタンの前の文字も、打つ欄と同じく説明につなぎ、文字は読み上げから外す
+  const triggerPrefix = renderFieldAddon(multiple ? null : prefix, `${sheetId}trigger-prefix`);
   const renderTrigger = (messageIds: string | undefined) => (
     <>
       <BaseCombobox.Trigger
@@ -791,7 +793,9 @@ export function ComboboxControl<Multiple extends boolean = false>({
         onClick={
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
-        aria-describedby={messageIds}
+        aria-describedby={
+          [triggerPrefix.describedBy, messageIds].filter(Boolean).join(' ') || undefined
+        }
         aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
@@ -810,7 +814,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
           ],
         })}
       >
-        {prefix != null && !multiple && <FieldAddon>{prefix}</FieldAddon>}
+        {triggerPrefix.addon}
         <BaseCombobox.Value>
           {(selectedValue: string | string[] | null) => {
             const values = Array.isArray(selectedValue) ? selectedValue : [];
