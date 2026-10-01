@@ -1,38 +1,30 @@
 'use client';
 
-import {
-  type ComponentProps,
-  cloneElement,
-  type ReactElement,
-  type ReactNode,
-  useContext,
-} from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
-import { focusRing } from '../../internal/focus-styles';
-import { tv } from '../../internal/tv';
-import { DataTableRowContext } from './data-table-context';
+import { textLinkSizeReset } from '../../internal/reading/text-link';
+import { Link, type LinkProps } from '../link/Link';
 
-// 行のリンク。行（DataTableRow の href・link）の中の、行を代表するセル（注文番号・名前）に置く本物のリンク
-// キーボードと読み上げはこのリンクで移る。行のほかの場所を押したときは、行がこのリンクを押したことにする
-// 見た目 — 比較中（Design Review/427）: 文字の色・下線はふだんと、行に載せたときとで --data-table-row-link-* から取る
+// 行のリンク。行（DataTableRow）の中の、行を代表するセル（注文番号・名前）に置く、見た目も文字のリンク（Link の variant="text"）
+// これを置いた行だけ、行のどこを押してもこのリンクを押したのと同じになる。キーボードと読み上げはこのリンクで移る
+// 色は使う側が選び、既定はグレー（Link と同じ）。行に載せると、リンクに載せたときと同じく下線を濃くする
+// 文字の大きさは表の文字のまま（表の textSize に従う）
 //   フォーカスの線はリンクの文字に付け、行には載せたときと同じ面を敷く（DataTableRow）
-const rowLink = tv({
-  base: [
-    'rounded-control text-(--data-table-row-link-color) underline-offset-4',
-    '[text-decoration-line:var(--data-table-row-link-decoration)] [text-decoration-color:var(--color-link-underline)]',
-    'in-[tr:hover]:[text-decoration-color:var(--color-link-underline-hover)] in-data-link:in-[tr:hover]:[text-decoration-line:var(--data-table-row-link-hover-decoration)]',
-    ...focusRing,
-    '[transition:text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
-    'motion-reduce:[transition:none]',
-  ],
-});
+const rowHover = 'in-[tr:hover]:[text-decoration-color:var(--color-link-underline-hover)]';
 
-export interface DataTableRowLinkProps extends ComponentProps<'a'> {
-  /** 行き先。渡さないときは、行（DataTableRow）の href を使います */
+export interface DataTableRowLinkProps extends Omit<
+  LinkProps,
+  'variant' | 'caption' | 'disabled' | 'contentAlign' | 'leadIconPlacement' | 'shape'
+> {
+  /**
+   * リンクの色。primary は進めたい移動、secondary は用途を限定しない選べる色です。指定しないときはグレー（neutral）です
+   * @default 'neutral'
+   */
+  color?: LinkProps['color'];
+  /** 行き先 */
   href?: string;
   /**
-   * 描く要素。Next.js の Link などを渡すと、その要素に行のリンクの見た目を重ねます（例: `render={<NextLink href="/orders/1" />}`）。
-   * このとき行には `link` を渡します
+   * 描く要素。Next.js の Link などを渡すと、その要素に行のリンクの見た目を重ねます（例: `render={<NextLink href="/orders/1" />}`）
    */
   render?: ReactElement;
   /** リンクの文字（注文番号・名前など、行を代表するもの） */
@@ -41,14 +33,14 @@ export interface DataTableRowLinkProps extends ComponentProps<'a'> {
   className?: string;
 }
 
-/** 行のリンク（a）。行のどこを押しても、このリンクを押したのと同じになります */
-export function DataTableRowLink({ href, render, className, ...props }: DataTableRowLinkProps) {
-  const row = useContext(DataTableRowContext);
-  const own = {
-    ...props,
-    'data-slot': 'data-table-row-link',
-    className: rowLink({ className }),
-  };
-  if (render) return cloneElement(render, own);
-  return <a href={href ?? row.href} {...own} />;
+/** 行のリンク（a）。これを置いた行は、行のどこを押してもこのリンクを押したのと同じになります */
+export function DataTableRowLink({ className, ...props }: DataTableRowLinkProps) {
+  return (
+    <Link
+      data-slot="data-table-row-link"
+      className={[textLinkSizeReset, rowHover, className].filter(Boolean).join(' ')}
+      {...props}
+      variant="text"
+    />
+  );
 }

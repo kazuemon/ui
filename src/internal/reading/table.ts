@@ -26,11 +26,13 @@ export const tableStyles = {
     '[&_thead_th]:font-bold [&_thead_th]:whitespace-nowrap',
     // 行のあいだの横線（本文の 2 行目から上に引く）
     '[&_tbody_tr+tr>*]:border-t',
-    // 合計の行（tfoot）— 比較中（Design Review/421）。上の線・太さ・面は --table-foot-*（tokens.css）
-    //   線は最初の行の上に引く。2 行目からは本文と同じ横線
-    '[&_tfoot_:is(th,td)]:[font-weight:var(--table-foot-weight)] [&_tfoot_:is(th,td)]:bg-(--table-foot-bg)',
-    '[&_tfoot_tr:first-child>*]:[border-top:var(--table-foot-line-width)_var(--table-foot-line-style)_var(--table-foot-line-color)]',
+    // 合計の行（tfoot）。最初の行の上に、本文の行のあいだより濃く太い線を引き、文字を太くする。2 行目からは本文と同じ横線
+    //   TableFoot の variant で、グレーの面（filled）・二重線（double）にもできる。素の HTML の tfoot（Prose）は既定の線
+    '[&_tfoot_:is(th,td)]:font-bold',
+    '[&_tfoot_tr:first-child>*]:border-t-(length:--border-width-medium) [&_tfoot_tr:first-child>*]:border-t-line-strong',
     '[&_tfoot_tr+tr>*]:border-t',
+    '[&_tfoot[data-variant=filled]_:is(th,td)]:bg-field [&_tfoot[data-variant=filled]_tr:first-child>*]:border-t-0',
+    '[&_tfoot[data-variant=double]_tr:first-child>*]:border-t-(length:--table-foot-double-width) [&_tfoot[data-variant=double]_tr:first-child>*]:border-double',
   ],
   // 見た目 lines: 見出しの下の線
   lines: '[&_thead_th]:border-b',
@@ -45,13 +47,15 @@ export const tableStyles = {
   ],
   // 列のあいだの縦線（2 列目から左に引く）
   columnDivider: '[&_tr>*+*]:border-l',
-  // 縞（showStripes）— 比較中（Design Review/423）。本文の偶数行に面を敷く。面の色と、縞のときの行のあいだの線の太さは --table-stripe-*
-  stripes:
-    '[&_tbody_tr:nth-child(even)]:bg-(--table-stripe-bg) [&_tbody_tr+tr>*]:[border-top-width:var(--table-stripe-line-width)]',
-  // 詰めた余白（size="sm"）— 比較中（Design Review/422）。セルの余白と文字は --table-sm-*。文字はマウスか指かで切り替える（表の文字と同じ計算）
-  sm: [
-    '[&_:is(th,td)]:px-(--table-sm-cell-px) [&_:is(th,td)]:py-(--table-sm-cell-py)',
-    '[font-size:calc(var(--table-sm-text-fine)+var(--density-coarse)*(var(--table-sm-text-coarse)-var(--table-sm-text-fine)))]',
-    '[line-height:calc(var(--table-sm-leading-fine)+var(--density-coarse)*(var(--table-sm-leading-coarse)-var(--table-sm-leading-fine)))]',
+  // 縞（showStripes）。本文の偶数行に、見出しの面と同じグレーを敷く。行のあいだの線は残す
+  stripes: '[&_tbody_tr:nth-child(even)]:bg-field',
+  // 行のあいだの線を消す（hideRowDivider）。縞と合わせると、面だけで行を分ける
+  hideRowDivider: '[&_tbody_tr+tr>*]:border-t-0',
+  // 詰めた余白（size="sm"）。上下の余白だけを詰め、左右の余白と文字はそのまま
+  sm: '[&_:is(th,td)]:px-3 [&_:is(th,td)]:py-1',
+  // 小さい文字（textSize="sm"）。本文の小さい文字。マウスか指かで切り替える（表の文字と同じ計算）
+  textSm: [
+    '[font-size:calc(var(--text-body-sm-fine)+var(--density-coarse)*(var(--text-body-sm-coarse)-var(--text-body-sm-fine)))]',
+    '[line-height:calc(var(--leading-body-sm-fine)+var(--density-coarse)*(var(--leading-body-sm-coarse)-var(--leading-body-sm-fine)))]',
   ],
 } as const;

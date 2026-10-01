@@ -24,9 +24,10 @@ import { DataTableContext } from './data-table-context';
 //   セルの縦の寄せの既定は middle（選択の箱や行の操作と、文字の行をそろえる）
 //   選んだ行の面は color（選択の箱と同じ色）の淡い面。色を持たないときは Select の選んだ項目と同じグレー（原則6）
 //   並べ替えていない列の印（上下の山）は sortIndicator で出し方を選ぶ。既定の subtle は、ふだん半分の濃さで置き、載せると濃くする
-//   読み直し（refreshing）— 比較中（Design Review/425）: 行を残したまま、表に aria-busy を付ける。
-//     見せ方は --data-table-refreshing-*（本文の濃さと、表の上の端に流れる線の太さ）。線は Loading の流れる線と同じ動き
-//   開いた行（DataTableExpandRow）— 比較中（Design Review/426）: 親の行とのあいだの線・面・字下げは --data-table-expand-*
+//   読み直し（refreshing）: 行を残したまま、表に aria-busy を付け、本文を薄くする（--data-table-refreshing-opacity）。
+//     showRefreshingBar で、表の上の端に流れる線も足せる。線は Loading の流れる線と同じ動き
+//   行の状態（DataTableRow の status）の見せ方は statusIndicator で選ぶ。既定は状態の淡い面（fill）。左端の帯（edge）と両方（fill-edge）も選べる
+//   開いた行（DataTableExpandRow）: 親の行とのあいだに線を引かない。面と字下げは開いた行の variant で選ぶ
 const dataTable = tv({
   slots: {
     root: 'relative flex min-w-0 flex-col gap-2',
@@ -46,15 +47,15 @@ const dataTable = tv({
       // 読み直しのあいだの本文の濃さ
       '[&_tbody]:transition-opacity [&_tbody]:duration-(--duration-loading) motion-reduce:[&_tbody]:transition-none',
       'data-refreshing:[&_tbody]:opacity-(--data-table-refreshing-opacity)',
-      // 開いた行: 親の行とのあいだの線と、開いているあいだの親の行の面
-      '[&_tbody_tr+tr[data-slot=data-table-expand-row]>*]:[border-top-width:var(--data-table-expand-line-width)]',
-      '[&_tbody_tr:has(+[data-slot=data-table-expand-row]:not([hidden]))]:[--data-table-row-rest:var(--data-table-expand-open-bg)]',
+      // 開いた行: 親の行とのあいだに線を引かない。面でつなぐ（variant="filled"）ときは、開いているあいだの親の行にも同じ面を敷く
+      '[&_tbody_tr+tr[data-slot=data-table-expand-row]>*]:border-t-0',
+      '[&_tbody_tr:has(+[data-slot=data-table-expand-row][data-variant=filled]:not([hidden]))]:[--data-table-row-rest:var(--color-field)]',
     ],
     // 読み直しの線。表の上の端に置く
     refreshBar:
       'pointer-events-none absolute inset-x-0 top-0 z-2 h-(--data-table-refreshing-bar-height) overflow-hidden',
     refreshBarFill: [
-      'absolute inset-y-0 left-0 w-2/5 animate-loading-bar bg-(--data-table-refreshing-bar-color) opacity-60',
+      'absolute inset-y-0 left-0 w-2/5 animate-loading-bar bg-neutral-strong opacity-60',
       'motion-reduce:w-full motion-reduce:animate-loading-bar-reduced',
     ],
     caption: 'text-body-sm text-fg-subtle',
@@ -112,6 +113,8 @@ const dataTable = tv({
 
 /** 並べ替えていない列の印（上下の山）の出し方 */
 export type DataTableSortIndicator = 'subtle' | 'always' | 'hover';
+/** 行の状態の見せ方 */
+export type DataTableStatusIndicator = 'fill' | 'edge' | 'fill-edge';
 
 export interface DataTableProps extends Omit<ComponentProps<'table'>, 'color'> {
   /**
@@ -151,11 +154,22 @@ export interface DataTableProps extends Omit<ComponentProps<'table'>, 'color'> {
    */
   loading?: boolean;
   /**
-   * 読み直し中にします。行を残したまま、表に aria-busy を付け、読み直していることを見せます。
+   * 読み直し中にします。行を残したまま、表に aria-busy を付け、本文を薄くします。
    * 並べ替え・ページ送りのあと、新しい行が届くまでに使います（最初の読み込みは loading）
    * @default false
    */
   refreshing?: boolean;
+  /**
+   * 読み直しのあいだ、表の上の端に流れる線も出します。読み直しが長くかかるときに、動いていることを見せます
+   * @default false
+   */
+  showRefreshingBar?: boolean;
+  /**
+   * 行の状態（DataTableRow の status）の見せ方。fill は状態の淡い面、edge は左端の帯、fill-edge は面と帯の両方です。
+   * muted の行は、どれでも文字を淡くします
+   * @default 'fill'
+   */
+  statusIndicator?: DataTableStatusIndicator;
   /** 表の説明。表の下に小さく出し、表とスクロールの枠の名前にもします */
   caption?: ReactNode;
   /** caption を出さないときの、表の名前（読み上げ用）。スクロールの枠の名前にもなります */
@@ -179,6 +193,8 @@ export function DataTable({
   maxHeight,
   loading,
   refreshing,
+  showRefreshingBar,
+  statusIndicator = 'fill',
   caption,
   accessibleName,
   className,
@@ -202,7 +218,7 @@ export function DataTable({
     style['--data-table-max-height'] = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
   }
   return (
-    <DataTableContext.Provider value={{ color }}>
+    <DataTableContext.Provider value={{ color, statusIndicator }}>
       <figure className={styles.root({ className })} style={style} data-slot="data-table">
         <ScrollFrame
           slot="data-table-scroll"
@@ -225,7 +241,7 @@ export function DataTable({
             {children}
           </table>
         </ScrollFrame>
-        {refreshing && (
+        {refreshing && showRefreshingBar && (
           <span aria-hidden className={styles.refreshBar()} data-slot="data-table-refreshing">
             <span className={styles.refreshBarFill()} />
           </span>

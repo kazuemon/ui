@@ -148,11 +148,7 @@ function Orders() {
         </TableHead>
         <TableBody>
           {orders.map((order) => (
-            <DataTableRow
-              key={order.id}
-              href={`#/orders/${order.id}`}
-              selected={selected.includes(order.id)}
-            >
+            <DataTableRow key={order.id} selected={selected.includes(order.id)}>
               <DataTableSelectCell
                 checked={selected.includes(order.id)}
                 onCheckedChange={(next) =>
@@ -163,7 +159,9 @@ function Orders() {
                 accessibleName={`${order.id} を選ぶ`}
               />
               <TableCell>
-                <DataTableRowLink onClick={go}>{order.id}</DataTableRowLink>
+                <DataTableRowLink href={`#/orders/${order.id}`} onClick={go}>
+                  {order.id}
+                </DataTableRowLink>
               </TableCell>
               <TableCell>{order.shop}</TableCell>
               <TableCell align="end">{yen(order.amount)}</TableCell>

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table';
+import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from './Table';
 import { Code } from '../code/Code';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
@@ -46,6 +46,9 @@ const meta = {
           '',
           '- `variant` は見た目です。`lines`（既定）は行のあいだの横線、`framed` は外枠と見出しのグレーの面、`banded` は見出しの行を丸い帯にした形です。',
           '- `showColumnDivider` で列のあいだに縦線を引きます（既定はなし）。',
+          '- `size="sm"` はセルの上下の余白を詰め、一度に多くの行を見せます。文字の大きさは変えません。文字を小さくするときは `textSize="sm"` を別に渡します。',
+          '- `showStripes` で本文の行を 1 行おきに塗ります。`hideRowDivider` を合わせると、行のあいだの線を消して面だけで行を分けます。',
+          '- 合計の行は `TableFoot` に入れます。上に濃い線を引いて太字にします。`variant` で `filled`（グレーの面）・`double`（二重線）にもできます。行の頭の「合計」は `TableHeader`（`scope="row"`）にします。',
           '- 列の寄せは `align`（`start`・`center`・`end`）です。数字の列は `end` にし、見出しのセルと本文のセルで同じ値をそろえて渡します。',
           '- セルの縦の寄せは `verticalAlign`（`top`（既定）・`middle`・`bottom`）です。`Table`・`TableRow`・`TableCell` のどこにでも書け、内側の指定が勝ちます。',
           '- 文字はパソコンで 16px、スマホで 14px です。記事の中でも、スマホでは 14px になります。',
@@ -58,6 +61,10 @@ const meta = {
   argTypes: {
     variant: { control: 'inline-radio', options: ['lines', 'framed', 'banded'] },
     showColumnDivider: { control: 'boolean' },
+    size: { control: 'inline-radio', options: ['md', 'sm'] },
+    textSize: { control: 'inline-radio', options: ['md', 'sm'] },
+    showStripes: { control: 'boolean' },
+    hideRowDivider: { control: 'boolean' },
     caption: { control: 'text' },
   },
   render: (args) => (
@@ -88,6 +95,120 @@ export const Variants: Story = {
           </div>
         </Specimen>
       ))}
+    </Gallery>
+  ),
+};
+
+const items = [
+  { name: 'ノート A5', count: 3, price: 480 },
+  { name: 'ボールペン 0.5', count: 5, price: 150 },
+  { name: 'マスキングテープ', count: 2, price: 320 },
+];
+const yen = (value: number) => `${value.toLocaleString('ja-JP')} 円`;
+const subtotal = items.reduce((sum, item) => sum + item.count * item.price, 0);
+const tax = Math.round(subtotal * 0.1);
+
+const Estimate = ({
+  footVariant,
+  full = false,
+  ...props
+}: Parameters<typeof Table>[0] & {
+  footVariant?: Parameters<typeof TableFoot>[0]['variant'];
+  full?: boolean;
+}) => (
+  <Table accessibleName="見積もり" {...props}>
+    <TableHead>
+      <TableRow>
+        <TableHeader>品目</TableHeader>
+        <TableHeader align="end">数</TableHeader>
+        <TableHeader align="end">金額</TableHeader>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {items.map((item) => (
+        <TableRow key={item.name}>
+          <TableCell>{item.name}</TableCell>
+          <TableCell align="end">{item.count}</TableCell>
+          <TableCell align="end">{yen(item.count * item.price)}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+    <TableFoot variant={footVariant}>
+      {full && (
+        <>
+          <TableRow>
+            <TableHeader scope="row">小計</TableHeader>
+            <TableCell />
+            <TableCell align="end">{yen(subtotal)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableHeader scope="row">消費税</TableHeader>
+            <TableCell />
+            <TableCell align="end">{yen(tax)}</TableCell>
+          </TableRow>
+        </>
+      )}
+      <TableRow>
+        <TableHeader scope="row">合計</TableHeader>
+        <TableCell align="end">{items.reduce((sum, item) => sum + item.count, 0)}</TableCell>
+        <TableCell align="end">{yen(full ? subtotal + tax : subtotal)}</TableCell>
+      </TableRow>
+    </TableFoot>
+  </Table>
+);
+
+export const Foot: Story = {
+  tags: ['visual'],
+  name: '合計の行',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`TableFoot` の `variant` は `line`（既定。上に濃い線）・`filled`（グレーの面）・`double`（上に二重線）です。合計が複数の行のとき、2 行目からは本文と同じ細い線です。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="22rem">
+      {(['line', 'filled', 'double'] as const).map((variant) => (
+        <Specimen key={variant} label={variant}>
+          <div className="flex flex-col gap-4">
+            <Estimate footVariant={variant} />
+            <Estimate footVariant={variant} variant="framed" full />
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+export const SizesAndStripes: Story = {
+  tags: ['visual'],
+  name: '詰めた余白・小さい文字・縞',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は上下の余白だけを詰めます。文字の大きさは `textSize` で別に選びます。縞（`showStripes`）は行のあいだの線を残し、`hideRowDivider` を合わせると面だけで行を分けます。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="22rem">
+      <Specimen label='size="sm"'>
+        <Sample size="sm" />
+      </Specimen>
+      <Specimen label='size="sm"・textSize="sm"'>
+        <Sample size="sm" textSize="sm" />
+      </Specimen>
+      <Specimen label="showStripes">
+        <Sample showStripes />
+      </Specimen>
+      <Specimen label="showStripes・hideRowDivider">
+        <Sample showStripes hideRowDivider />
+      </Specimen>
     </Gallery>
   ),
 };

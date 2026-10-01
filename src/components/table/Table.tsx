@@ -16,7 +16,9 @@ import { useScrollable } from '../../internal/use-scrollable';
 // 見た目（variant）: lines（既定）は行のあいだの横線と、見出しの下の線。framed は外枠（部品の角）と見出しのグレーの面（軸 62 の A）。
 //   banded は見出しの行を丸い帯のグレーの面にし、セルの余白を広げる（D）。縦線は showColumnDivider でどれにも足せる
 // 縦の寄せ（verticalAlign）は --table-valign で配る。表・行・セルのどこにでも書け、いちばん内側の指定が効く（ADR-0246）
-// 詰めた余白（size="sm"）・縞（showStripes）は比較中（Design Review/422・423）。値は tokens.css の --table-sm-*・--table-stripe-*
+// 詰めた余白（size="sm"）は上下の余白だけを詰め、文字は変えない。文字を小さくするのは textSize で、別に選ぶ
+// 縞（showStripes）は偶数行にグレーを敷き、行のあいだの線は残す。線を消すのは hideRowDivider で、別に選ぶ
+// 合計の行（TableFoot）は上に濃く太い線を引いて太字にする。variant でグレーの面・二重線にもできる
 // maxHeight を渡すと、包みが縦にもスクロールし、見出しの行が上に貼り付く。見出しには地と同じ面を置き、下を通る本文を隠す
 //   Table は端の影の出る枠（ScrollFrame）を持たないので、貼り付いた見出しの下に影は落とさない（DataTable は落とす）
 const table = tv({
@@ -49,8 +51,16 @@ const table = tv({
       md: {},
       sm: { table: tableStyles.sm },
     },
+    textSize: {
+      md: {},
+      sm: { table: tableStyles.textSm },
+    },
     showStripes: {
       true: { table: tableStyles.stripes },
+      false: {},
+    },
+    hideRowDivider: {
+      true: { table: tableStyles.hideRowDivider },
       false: {},
     },
     scrollY: {
@@ -69,7 +79,9 @@ const table = tv({
     variant: 'lines',
     showColumnDivider: false,
     size: 'md',
+    textSize: 'md',
     showStripes: false,
+    hideRowDivider: false,
     scrollY: false,
   },
 });
@@ -93,6 +105,10 @@ export type TableVerticalAlign = 'top' | 'middle' | 'bottom';
 export type TableCellAlign = 'start' | 'center' | 'end';
 /** セルの余白の大きさ */
 export type TableSize = 'sm' | 'md';
+/** 表の文字の大きさ */
+export type TableTextSize = 'sm' | 'md';
+/** 合計の行の見た目 */
+export type TableFootVariant = 'line' | 'filled' | 'double';
 
 // 列の寄せは、GFM を変換した HTML と同じ align 属性で出す（start は left、end は right）
 const alignAttr = { start: 'left', center: 'center', end: 'right' } as const;
@@ -114,15 +130,25 @@ export interface TableProps extends ComponentProps<'table'> {
    */
   verticalAlign?: TableVerticalAlign;
   /**
-   * セルの余白の大きさ。sm は余白を詰め、一度に多くの行を見せます
+   * セルの余白の大きさ。sm は上下の余白を詰め、一度に多くの行を見せます。文字の大きさは変えません（textSize で選びます）
    * @default 'md'
    */
   size?: TableSize;
+  /**
+   * 表の文字の大きさ。sm は本文の小さい文字にします。余白の大きさ（size）とは別に選べます
+   * @default 'md'
+   */
+  textSize?: TableTextSize;
   /**
    * 本文の行を 1 行おきに塗ります。列の多い横に長い表で、行を目で追いやすくします
    * @default false
    */
   showStripes?: boolean;
+  /**
+   * 本文の行のあいだの線を消します。縞（showStripes）と合わせると、面だけで行を分けます
+   * @default false
+   */
+  hideRowDivider?: boolean;
   /**
    * 表の高さの上限（数は px、文字は CSS の長さ）。渡すと、はみ出した行は表の中で縦にスクロールし、見出しの行が上に貼り付きます
    */
@@ -148,7 +174,9 @@ export function Table({
   showColumnDivider,
   verticalAlign,
   size,
+  textSize,
   showStripes,
+  hideRowDivider,
   maxHeight,
   caption,
   accessibleName,
@@ -157,7 +185,16 @@ export function Table({
   ...props
 }: TableProps) {
   const scrollY = maxHeight != null;
-  const styles = table({ variant, showColumnDivider, verticalAlign, size, showStripes, scrollY });
+  const styles = table({
+    variant,
+    showColumnDivider,
+    verticalAlign,
+    size,
+    textSize,
+    showStripes,
+    hideRowDivider,
+    scrollY,
+  });
   const style: CSSProperties & Record<`--${string}`, string> = {};
   if (scrollY) {
     style['--table-max-height'] = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
@@ -206,9 +243,21 @@ export function TableBody(props: ComponentProps<'tbody'>) {
   return <tbody {...props} />;
 }
 
+export interface TableFootProps extends ComponentProps<'tfoot'> {
+  /**
+   * 見た目。line は上に本文の行のあいだより濃く太い線、filled はグレーの面、double は上に二重線を引きます。文字はどれも太字です
+   * @default 'line'
+   */
+  variant?: TableFootVariant;
+  /** 合計などの行（TableRow）を入れます */
+  children?: ReactNode;
+  /** 行をまとめる要素（tfoot）に付きます */
+  className?: string;
+}
+
 /** 合計などの行をまとめる（tfoot）。本文の下に置き、上に線を引いて太字にします */
-export function TableFoot(props: ComponentProps<'tfoot'>) {
-  return <tfoot {...props} />;
+export function TableFoot({ variant = 'line', ...props }: TableFootProps) {
+  return <tfoot data-variant={variant} {...props} />;
 }
 
 export interface TableRowProps extends ComponentProps<'tr'> {

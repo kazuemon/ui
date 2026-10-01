@@ -466,6 +466,8 @@ export {
   type TableCellAlign,
   type TableCellProps,
   TableFoot,
+  type TableFootProps,
+  type TableFootVariant,
   TableHead,
   TableHeader,
   type TableHeaderProps,
@@ -473,6 +475,7 @@ export {
   TableRow,
   type TableRowProps,
   type TableSize,
+  type TableTextSize,
   type TableVariant,
   type TableVerticalAlign,
 } from './components/table/Table';
@@ -480,6 +483,7 @@ export {
   DataTable,
   type DataTableProps,
   type DataTableSortIndicator,
+  type DataTableStatusIndicator,
 } from './components/data-table/DataTable';
 export { DataTableEmpty, type DataTableEmptyProps } from './components/data-table/DataTableEmpty';
 export {
@@ -496,6 +500,7 @@ export {
   type DataTableExpandCellProps,
   DataTableExpandRow,
   type DataTableExpandRowProps,
+  type DataTableExpandRowVariant,
 } from './components/data-table/DataTableExpand';
 export {
   DataTableRow,
