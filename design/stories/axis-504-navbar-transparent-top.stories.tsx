@@ -18,7 +18,7 @@ const meta = {
       hover: ['[data-preview="hover"] [data-slot="navbar-link"][href="#Works"]'],
     },
   },
-  args: { pick: '' },
+  args: { pick: 'A,C,D,E' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -214,6 +214,12 @@ export const Axis: Story = {
         />
       )}
     >
+      <p>
+        決定:
+        いちばん上で透かすあいだの文字の読みやすさの守り方は、A（透かすだけ・本文の色）・C（暗い幕と白い文字）・D（淡いすりガラス）・E（白い文字と影）を
+        props で選べるようにし、既定は A
+        にする。B（白い幕）は使う場面が少ないので作らない。ユーザーの返事「どのパターンも欲しいなと思いつつ、ACDEかなと。Bはユースケースが少なさそうなので、一旦作らないことにします。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Navbar の stickyBackdrop に transparent-until-scroll
         を足しました。いちばん上では面と境目を消して、見出しの画像を帯の後ろまで見せます。少しでもスクロールすると、solid

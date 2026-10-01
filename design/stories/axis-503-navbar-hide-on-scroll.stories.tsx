@@ -11,7 +11,7 @@ const meta = {
   title: 'Design Review/503 スクロールで隠す帯',
   id: 'design-review-503-navbar-hide-on-scroll',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -178,6 +178,13 @@ export const Axis: Story = {
         <Live hide={candidate.id !== '現行版'} width={column.label === '広い帯' ? 800 : 360} />
       )}
     >
+      <p>
+        決定: stickyBehavior="hide-on-scroll"
+        の隠れ方と戻り方は、スクロールの量に合わせて帯を動かし、止まって 150ms 後に近いほうへ 200ms
+        で寄せる（D）。A〜C
+        の一度に動かす形は採らない。追いかけているあいだ帯の影が見えていても、収まったときに見えなくなれば今のままでよい。ユーザーの返事「D
+        が一番自然だなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Navbar に stickyBehavior を足しました。hide-on-scroll
         は、下へスクロールすると帯を隠し、上へ戻すと出します。いちばん上の近く（帯の高さまで）では隠しません。帯の中にフォーカスがあるときと、メニューを開いているときも隠しません。影まで見えなくなるよう、帯の高さより少し余分に上げます。
