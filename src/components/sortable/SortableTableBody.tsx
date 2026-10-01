@@ -1,8 +1,16 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useId, useRef, useSyncExternalStore } from 'react';
+import {
+  type ComponentProps,
+  type ReactNode,
+  useContext,
+  useId,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import { createPortal } from 'react-dom';
 
+import { TableVariantContext } from '../../internal/table-variant-context';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
@@ -14,6 +22,8 @@ import { defaultMovedText, useSortableList } from './use-sortable-list';
 //   行は SortableItem に render（DataTableRow・tr）を渡して描く。つまみと移動の操作は、行の中のセルに置く
 //   つまみの説明と読み上げの箱は、表の中に置けない（tbody の外の要素は表を壊す）ので、ページの末尾（body）に描く
 //     サーバーでは描かず、画面に出たあとに足す
+//   引いている行は、リストの持ち上げた項目と同じく少しだけ大きくする。外枠のある表（framed）の中では大きくしない（枠の線と行がずれない）
+//     表の見た目は Table・DataTable が渡す context から読む
 
 const body = tv({
   base: 'motion-reduce:[--sortable-move-duration:0ms]',
@@ -21,6 +31,10 @@ const body = tv({
     motion: {
       slide: '',
       none: '[--sortable-move-duration:0ms]',
+    },
+    framed: {
+      true: '[--sortable-lifted-scale:1]',
+      false: '',
     },
   },
 });
@@ -104,9 +118,10 @@ export function SortableTableBody({
   });
   // サーバーと、画面に出る前の 1 回目の描画では false（ページの末尾に描くものは、出たあとに足す）
   const mounted = useSyncExternalStore(subscribeNothing, onClient, onServer);
+  const framed = useContext(TableVariantContext) === 'framed';
   return (
     <ListContext value={context}>
-      <tbody ref={mergedRef} className={body({ motion, className })} {...props}>
+      <tbody ref={mergedRef} className={body({ motion, framed, className })} {...props}>
         {children}
       </tbody>
       {mounted &&

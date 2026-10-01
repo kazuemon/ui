@@ -613,12 +613,19 @@ const tasks = [
   { id: 't3', title: '本文を書く', owner: '高橋' },
 ];
 
-function TableSample({ moveActions }: Pick<SortableProps, 'moveActions'>) {
+function TableSample({
+  moveActions,
+  variant,
+  draggingId,
+}: Pick<SortableProps, 'moveActions'> & {
+  variant?: 'lines' | 'framed' | 'banded';
+  draggingId?: string;
+}) {
   const [order, setOrder] = useState(() => tasks.map((task) => task.id));
   const taskOf = (id: string) => tasks.find((task) => task.id === id);
   return (
     <div className="w-[420px]">
-      <DataTable accessibleName="作業の順番">
+      <DataTable variant={variant} accessibleName="作業の順番">
         <TableHead>
           <TableRow>
             <DataTableHeader className="w-px">
@@ -640,6 +647,7 @@ function TableSample({ moveActions }: Pick<SortableProps, 'moveActions'>) {
               value={id}
               render={<DataTableRow />}
               accessibleName={taskOf(id)?.title}
+              dragging={id === draggingId}
             >
               <TableCell>
                 <SortableHandle />
@@ -667,7 +675,7 @@ export const TableRows: Story = {
     docs: {
       description: {
         story:
-          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみの列は部品が足さないので、つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）を、置きたいセルの中に入れます。ふつうは先頭に取っ手の列、末尾に操作の列を足し、見出しのセルは読み上げだけの文字（`VisuallyHidden`）にします。それだけを入れたセルは、中身の幅に詰まります。行のどこを掴んでも引けるようにするときは `grabArea="item"` を付けます（つまみを置くかは使う側が決めます。キーボードで動かすにはつまみか ︙ が要ります）。引いている行は、表の枠の中なので大きくせず、面と影だけで浮かせます。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
+          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみの列は部品が足さないので、つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）を、置きたいセルの中に入れます。ふつうは先頭に取っ手の列、末尾に操作の列を足し、見出しのセルは読み上げだけの文字（`VisuallyHidden`）にします。それだけを入れたセルは、中身の幅に詰まります。行のどこを掴んでも引けるようにするときは `grabArea="item"` を付けます（つまみを置くかは使う側が決めます。キーボードで動かすにはつまみか ︙ が要ります）。引いている行は、リストと同じ面と影で浮かせ、少しだけ大きくします。外枠のある表（`variant="framed"`）の中では、枠の線とずれないよう大きくしません。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
       },
     },
   },
@@ -702,5 +710,35 @@ export const TableRows: Story = {
     await userEvent.keyboard('{ArrowUp}');
     await waitFor(() => expect(titles()[0]).toBe('見出しを決める'));
     handle.blur();
+  },
+};
+
+export const TableRowLifted: Story = {
+  name: '表の行を引いているとき',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '引いている行（`dragging`）は、リストと同じ面と影で浮かせ、少しだけ大きくします。外枠のある表（`variant="framed"`）の中では、枠の線とずれないよう大きくしません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      {(['lines', 'framed', 'banded'] as const).map((variant) => (
+        <TableSample key={variant} variant={variant} draggingId="t2" />
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const [lines, framed, banded] = within(canvasElement).getAllByRole('table');
+    const scaleOf = (table: HTMLElement) => {
+      const row = within(table).getByRole('button', { name: '図を描くを並べ替え' }).closest('tr');
+      return row == null ? null : getComputedStyle(row).scale;
+    };
+    await waitFor(() => expect(scaleOf(lines)).toBe('1.03'));
+    await waitFor(() => expect(scaleOf(banded)).toBe('1.03'));
+    await waitFor(() => expect(scaleOf(framed)).toBe('1'));
   },
 };
