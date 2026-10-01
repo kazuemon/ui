@@ -246,7 +246,7 @@ function CenteredDialog({
           {/* 裏を止めないときは、面を置く枠を素通しにし、面だけが触れるようにする */}
           <BaseDialog.Viewport
             className={[
-              'fixed inset-0 z-10 grid place-items-center overflow-y-auto p-(--dialog-margin)',
+              'fixed inset-0 z-10 grid grid-cols-[minmax(0,1fr)] place-items-center overflow-y-auto p-(--dialog-margin)',
               modal !== true && 'pointer-events-none',
             ]
               .filter(Boolean)
