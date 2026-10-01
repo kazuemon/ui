@@ -1,14 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { useRef } from 'react';
-import { expect, userEvent, waitFor } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Inspector, type InspectorProps } from './Inspector';
+import { Inspector, InspectorActions, type InspectorProps } from './Inspector';
 import { InspectorLayout, InspectorTrigger } from './InspectorLayout';
 import { OverlayClose } from '../../internal/overlay/overlay-close';
 import { DensityPair } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { Form } from '../form/Form';
+import { Stack } from '../stack/Stack';
 import { Switch } from '../switch/Switch';
 import { TextField } from '../text-field/TextField';
 
@@ -90,6 +92,7 @@ const meta = {
           '- `side` で出す辺を選びます。既定は `right` です。Sidebar を左に置くときは、反対の右に置きます。',
           '- 見出しには題（`title`）と説明（`description`）、右上に閉じる × を置きます。題はパネルの読み上げの名前になります。× を置かないときは `hideCloseButton` を渡し、`InspectorTrigger` か `actions` に閉じる手段を置きます。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。',
+          '- 中身の `Form` の送信のボタンを下に並べるときは、`actions` の代わりに、`Form` の中の最後に `InspectorActions` を置きます。見た目と並べ方は `actions` と同じ下の帯のままで（中身が長いときも下に残ります）、送信のボタンが `Form` の送信・Enter・送信中にそのまま加わります。`actions` と `InspectorActions` は、どちらか一方にします。',
           '- パネルの中にフォーカスがあるときは、Esc で閉じます（`closeOnEscape={false}` で止められます）。閉じると、フォーカスは開いたボタンへ戻ります。',
           '- 開いても、フォーカスは動きません。開いてすぐ触る要素があるときは、`autoFocus` にその要素を渡します。',
         ].join('\n'),
@@ -375,6 +378,76 @@ export const LongContent: Story = {
       }
     />
   ),
+};
+
+const detailsSubmit = fn();
+
+export const WithForm: Story = {
+  tags: ['visual'],
+  name: 'Form と組む',
+  parameters: {
+    controls: { include: ['variant', 'side', 'actionsLayout'] },
+    docs: {
+      description: {
+        story:
+          '`Form` の中の最後に `InspectorActions` を置くと、下のボタンが `Form` の中に入ります。中身が長いときも、帯はパネルの下の端に残ります。入力欄で Enter を押すと送信します。',
+      },
+      source: sourceCode(`
+        <Inspector title="詳細">
+          <Form onFormSubmit={save}>
+            <Stack>
+              <TextField name="name" label="名前" />
+              …
+            </Stack>
+            <InspectorActions>
+              <OverlayClose render={<Button variant="outline">閉じる</Button>} />
+              <Button type="submit" color="primary">保存する</Button>
+            </InspectorActions>
+          </Form>
+        </Inspector>
+      `),
+    },
+  },
+  render: (args) => (
+    <Area
+      inspector={
+        <Inspector {...args} description={undefined}>
+          <Form onFormSubmit={detailsSubmit}>
+            <Stack>
+              <TextField name="name" label="名前" defaultValue="企画書.pdf" />
+              <TextField name="owner" label="持ち主" defaultValue="かずえもん" />
+              <TextField name="tags" label="タグ" />
+              <Switch name="shared" label="リンクを知っている人に公開" defaultChecked />
+            </Stack>
+            <InspectorActions>
+              <OverlayClose render={<Button variant="outline">閉じる</Button>} />
+              <Button type="submit" color="primary">
+                保存する
+              </Button>
+            </InspectorActions>
+          </Form>
+        </Inspector>
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    detailsSubmit.mockClear();
+    const panel = canvasElement.querySelector<HTMLElement>('[data-slot="inspector"]')!;
+    const footer = panel.querySelector<HTMLElement>('[data-slot="inspector-footer"]')!;
+    const content = panel.querySelector<HTMLElement>('[data-slot="inspector-content"]')!;
+    await expect(footer.closest('form')).not.toBeNull();
+    await expect(footer).toHaveAttribute('data-layout', 'end');
+    // 中身はスクロールし、帯はパネルの下の端にある
+    await waitFor(() => expect(content.scrollHeight).toBeGreaterThan(content.clientHeight));
+    await waitFor(() =>
+      expect(
+        Math.abs(footer.getBoundingClientRect().bottom - panel.getBoundingClientRect().bottom)
+      ).toBeLessThan(1)
+    );
+    await userEvent.type(within(panel).getByRole('textbox', { name: '名前' }), '{Enter}');
+    await waitFor(() => expect(detailsSubmit).toHaveBeenCalledTimes(1));
+    await expect(detailsSubmit.mock.calls[0]?.[0]).toMatchObject({ name: '企画書.pdf' });
+  },
 };
 
 export const Densities: Story = {
