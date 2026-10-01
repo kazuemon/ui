@@ -62,7 +62,8 @@ const row = tv({
 export type DataTableRowStatus = 'muted' | 'warning' | 'danger';
 
 // 押しても行を押したことにしないもの（行の中の操作）
-const interactive = 'a, button, input, select, textarea, label, [role="checkbox"], [role="button"]';
+const interactive =
+  'a, button, input, select, textarea, label, summary, [contenteditable], [role="checkbox"], [role="button"], [role="switch"], [role="radio"], [role="combobox"], [role="menuitem"], [role="option"]';
 
 export interface DataTableRowProps extends TableRowProps {
   /**
@@ -89,6 +90,8 @@ export function DataTableRow({
   const handleClick = (event: MouseEvent<HTMLTableRowElement>) => {
     onClick?.(event);
     if (event.defaultPrevented) return;
+    // 行の外の DOM（行の中のメニュー・ポップオーバーが portal で開いた面）からの押下は、React の木を伝って届くので除く
+    if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return;
     if (event.target instanceof Element && event.target.closest(interactive)) return;
     const anchor = event.currentTarget.querySelector<HTMLElement>(
       '[data-slot="data-table-row-link"]'
