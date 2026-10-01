@@ -442,7 +442,12 @@ export const LinksInBar: Story = {
 // 自分の部品で包んだ行き先（サイトの共通の部品にまとめるときなど）
 // 自分の部品が、まとまりを要素で包んで返す形
 function SiteLinks() {
-  return <div className="flex">{links('Blog')}</div>;
+  return (
+    <div className="flex items-center gap-2">
+      {links('Blog')}
+      <span className="text-xs text-fg-subtle">β</span>
+    </div>
+  );
 }
 
 export const WrappedLinks: Story = {
@@ -453,7 +458,7 @@ export const WrappedLinks: Story = {
     docs: {
       description: {
         story:
-          '`NavbarLinks`・`NavbarGroup` は、自分の部品で包んで置いても、狭い帯ではメニューに畳みます。まとまりに入れずに置いたもの（ここでは「β」の印）は、狭い帯でも帯に残り、メニューには出しません。',
+          '`NavbarLinks`・`NavbarGroup` は、自分の部品で包んで置いても、狭い帯ではメニューに畳みます。まとまりに入れずに置いたもの（ここでは部品の中でまとまりと並べた「β」の印）は、狭い帯でも帯に残り、メニューには出しません。',
       },
     },
   },
@@ -461,7 +466,6 @@ export const WrappedLinks: Story = {
     <div className="w-[375px] border border-line">
       <Navbar brand={brand} menuSide="right">
         <SiteLinks />
-        <span className="text-xs text-fg-subtle">β</span>
       </Navbar>
     </div>
   ),
