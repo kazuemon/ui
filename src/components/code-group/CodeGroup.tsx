@@ -16,12 +16,14 @@ import {
 import { CopiedStatus, CopyErrorTooltip, CopyGlyph } from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { focusRing } from '../../internal/focus-styles';
+import { warnOnce } from '../../internal/link-parts';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { codeTextOf } from '../../internal/reading/code-text';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { tv } from '../../internal/tv';
 import { useInlineCues } from '../../internal/use-inline-cues';
 import type { CodeBlockProps } from '../code-block/CodeBlock';
+import { useCodeGroupSync } from './use-code-group-sync';
 
 // 同じことを別のやり方で書いたコードを、タブで切り替える（pnpm / npm / yarn、TypeScript / JavaScript など）
 //   外枠・面・角・色は CodeBlock と同じ（src/internal/reading/code-block.ts）。ページと同じレイヤーなので影はない（原則1）
@@ -132,7 +134,8 @@ export type CodeGroupVariant = 'surface' | 'dark';
 
 export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' | 'onChange'> {
   /**
-   * 切り替えるコード。`CodeBlock` を並べます。タブの名前は、それぞれの `title`（言語名やファイル名）です
+   * 切り替えるコード。`CodeBlock` を並べます。タブの名前は、それぞれの `title`（言語名やファイル名）で、
+   * 1 つの CodeGroup の中では名前を重ねません
    */
   children?: ReactNode;
   /**
@@ -145,12 +148,23 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
    * @default 'line'
    */
   indicator?: CodeGroupIndicator;
-  /** はじめに開いておくタブ（0 から数えた番号）。 @default 0 */
-  defaultValue?: number;
-  /** 開いているタブ（0 から数えた番号）。自分で持つときに渡します */
-  value?: number;
-  /** タブが変わったときに呼ばれます */
-  onValueChange?: (value: number) => void;
+  /**
+   * 開いているタブの名前（制御）。値は CodeBlock の `title` の文字です。
+   * title が文字でないタブは「コード 1」のように、1 から数えた番号の名前になります
+   */
+  value?: string;
+  /**
+   * はじめに開いておくタブの名前（非制御）
+   * @default 最初のタブの名前
+   */
+  defaultValue?: string;
+  /** 開くタブが変わるときに、次のタブの名前を渡して呼びます */
+  onValueChange?: (value: string) => void;
+  /**
+   * 同じ groupId の CodeGroup どうしで、同じ名前のタブをそろえます。選んだ名前は端末に覚え、次に開いたページでも同じタブから始めます。
+   * その名前のタブを持たない CodeGroup は、そのままです。value を渡したときは value が優先します
+   */
+  groupId?: string;
   /**
    * コピーのボタンを出さないようにします
    * @default false
@@ -180,6 +194,12 @@ export interface CodeGroupProps extends Omit<ComponentProps<'div'>, 'children' |
   className?: string;
 }
 
+// タブの名前。title が文字ならそれ、そうでなければ 1 から数えた番号の名前
+function tabNameOf(block: CodeChild, index: number) {
+  const { title } = block.props;
+  return typeof title === 'string' ? title : `コード ${index + 1}`;
+}
+
 /**
  * 同じことを別のやり方で書いたコードを、タブで切り替えて見せます。`CodeBlock` を並べて入れ、タブの名前はそれぞれの `title` です
  */
@@ -187,9 +207,10 @@ export function CodeGroup({
   children,
   variant = 'surface',
   indicator = 'line',
-  defaultValue = 0,
+  defaultValue,
   value,
   onValueChange,
+  groupId,
   hideCopyButton = false,
   copyName = 'コードをコピー',
   copiedText = 'コピーしました',
@@ -201,23 +222,42 @@ export function CodeGroup({
   const s = codeGroup({ variant, indicatorKind: indicator });
   const frameRef = useRef<HTMLDivElement>(null);
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
-  const current = value ?? uncontrolled;
+  const [shared, setShared] = useCodeGroupSync(groupId);
   const { copied, failed, copy } = useCopy(2000);
   const inlineCues = useInlineCues();
 
   const blocks = Children.toArray(children).filter((child): child is CodeChild =>
     isValidElement<CodeBlockProps>(child)
   );
-  const currentBlock = blocks[current];
+  const names = blocks.map((block, index) => tabNameOf(block, index));
+  // 同じ名前のタブは value で区別できず、あとのほうを開けない
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index);
+  if (duplicate !== undefined) {
+    warnOnce(
+      `CodeGroup に、同じ名前（${duplicate}）のタブが 2 つ以上あります。CodeBlock の title を、タブごとに別の名前にしてください。`
+    );
+  }
+  // 開くタブ: value（制御）、なければ groupId でそろえた名前、なければ自分で選んだ名前。持っていない名前は飛ばす
+  const known = (name: string | null | undefined) =>
+    name != null && names.includes(name) ? name : undefined;
+  // そろえた名前を持っているときは、自分で選んだ名前にも写す。あとでほかの CodeGroup が、ここにない名前を選んでも、いまのタブのままにする
+  const sharedName = known(shared);
+  if (sharedName !== undefined && sharedName !== uncontrolled) setUncontrolled(sharedName);
+  const current =
+    value !== undefined
+      ? (known(value) ?? names[0])
+      : (sharedName ?? known(uncontrolled) ?? names[0]);
+  const currentBlock = current === undefined ? undefined : blocks[names.indexOf(current)];
   const currentTitle = currentBlock?.props.title;
 
   return (
     <BaseTabs.Root
-      value={current}
+      value={current ?? null}
       onValueChange={(next) => {
-        const index = typeof next === 'number' ? next : 0;
-        if (value === undefined) setUncontrolled(index);
-        onValueChange?.(index);
+        if (typeof next !== 'string') return;
+        setUncontrolled(next);
+        setShared(next);
+        onValueChange?.(next);
       }}
       data-slot="code-group"
       data-variant={variant}
@@ -244,11 +284,11 @@ export function CodeGroup({
               >
                 <BaseTabs.Indicator data-slot="code-group-indicator" className={s.indicator()} />
                 {blocks.map((block, index) => {
-                  const title = block.props.title ?? `コード ${index + 1}`;
+                  const title = block.props.title ?? names[index];
                   return (
                     <BaseTabs.Tab
                       key={index}
-                      value={index}
+                      value={names[index]}
                       data-slot="code-group-tab"
                       className={s.tab()}
                     >
@@ -285,7 +325,7 @@ export function CodeGroup({
         </BaseScrollArea.Root>
       </div>
       {blocks.map((block, index) => (
-        <BaseTabs.Panel key={index} value={index} className={s.panel()}>
+        <BaseTabs.Panel key={index} value={names[index]} className={s.panel()}>
           {cloneElement(block, { title: false, hideCopyButton: true, variant })}
         </BaseTabs.Panel>
       ))}

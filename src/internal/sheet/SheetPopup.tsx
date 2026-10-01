@@ -4,7 +4,12 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 
 import { initialFocusOf } from '../overlay/initial-focus';
-import { focusTargetRef, type OverlayFocusTarget, type PopupProps } from '../overlay/overlay-props';
+import {
+  focusTargetRef,
+  overlayNameAttributes,
+  type OverlayFocusTarget,
+  type PopupProps,
+} from '../overlay/overlay-props';
 import type { OverlayRole } from '../overlay/overlay-role-context';
 
 import type { DensityScope } from '../density-scope';
@@ -32,6 +37,8 @@ interface SheetPopupProps {
   /** 読み上げの役割。alertdialog は、取り消せない操作の確かめ（AlertDialog が包んだとき） */
   role?: OverlayRole;
   title?: ReactNode;
+  /** 読み上げだけの名前。渡すと、題の代わりに面の名前になる */
+  accessibleName?: string;
   description?: ReactNode;
   children?: ReactNode;
   /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない */
@@ -89,6 +96,7 @@ export function SheetPopup({
   side,
   role,
   title,
+  accessibleName,
   description,
   children,
   footer,
@@ -157,6 +165,7 @@ export function SheetPopup({
             data-side={side}
             data-density={densityScope.density}
             data-base-ui-swipe-ignore={swipeLocked ? '' : undefined}
+            {...overlayNameAttributes(accessibleName)}
             {...restPopupProps}
             ref={mergedPopupRef}
             className={[

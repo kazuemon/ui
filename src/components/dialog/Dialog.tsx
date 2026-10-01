@@ -9,8 +9,10 @@ import { initialFocusOf } from '../../internal/overlay/initial-focus';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import {
   focusTargetRef,
+  overlayNameAttributes,
   type OverlayFocusTarget,
   type OverlayModal,
+  type OverlayNameProps,
   type PopupProps,
 } from '../../internal/overlay/overlay-props';
 import { type OverlayRole, OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
@@ -32,12 +34,12 @@ import { usePortalContainer } from '../../internal/ui-config';
 export type {
   OverlayFocusTarget,
   OverlayModal,
+  OverlayNameProps,
   PopupProps,
 } from '../../internal/overlay/overlay-props';
 
-export interface DialogProps {
-  /** 見出しの題。読み上げでは、開いた面の名前になる */
-  title: ReactNode;
+/** Dialog の props から、title・accessibleName の組み合わせの決まりを外したもの */
+export interface DialogBaseProps {
   /** 題の下の説明。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
   /** 面の中身（読ませる文や、答えてもらう欄） */
@@ -119,6 +121,12 @@ export interface DialogProps {
 }
 
 /**
+ * Dialog の props。題（title）か読み上げだけの名前（accessibleName）のどちらかが要ります。
+ * 題を置かないのは、中身の見出しや画像で何の面か分かるときだけです
+ */
+export type DialogProps = DialogBaseProps & OverlayNameProps;
+
+/**
  * ページの上に重ねて、ほかの操作を止めて答えや入力を求める面
  */
 export function Dialog({
@@ -192,6 +200,7 @@ export function Dialog({
 function CenteredDialog({
   role,
   title,
+  accessibleName,
   description,
   children,
   actions,
@@ -209,7 +218,12 @@ function CenteredDialog({
   portalContainer: container,
   popupProps,
   className,
-}: Omit<DialogProps, 'presentation' | 'defaultOpen' | 'open' | 'onOpenChange' | 'closeOnSwipe'> & {
+}: Omit<
+  DialogBaseProps,
+  'presentation' | 'defaultOpen' | 'open' | 'onOpenChange' | 'closeOnSwipe'
+> & {
+  title?: ReactNode;
+  accessibleName?: string;
   role: OverlayRole;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -260,6 +274,7 @@ function CenteredDialog({
               role={role}
               data-slot="dialog"
               data-density={scope.density}
+              {...overlayNameAttributes(accessibleName)}
               {...restPopupProps}
               ref={popupRef}
               className={[
@@ -291,7 +306,9 @@ function CenteredDialog({
                   )
                 }
               >
-                <BaseDialog.Title className={sheetTitleClass}>{title}</BaseDialog.Title>
+                {title != null && (
+                  <BaseDialog.Title className={sheetTitleClass}>{title}</BaseDialog.Title>
+                )}
                 {description != null && (
                   <BaseDialog.Description className={sheetDescriptionClass}>
                     {description}
