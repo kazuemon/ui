@@ -1055,6 +1055,13 @@
      読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
      icon-size: 失敗したときのアイコンの大きさ */
   --image-icon-size: calc(var(--spacing) * 8);
+  /* 仮画像（placeholder）— 軸 492・493（比較中）
+       placeholder-blur: 仮画像のぼかしの強さ（軸 493）
+       reveal-duration: 読み込めた本物を重ねて出す長さ。0s ですぐ替える（軸 492）
+       reveal-from-blur: 本物を出し始めるときのぼかし。0px なら重ねるだけ、仮画像と同じならぼかしが晴れるように出る（軸 492） */
+  --image-placeholder-blur: calc(var(--spacing) * 4);
+  --image-reveal-duration: var(--duration-slow);
+  --image-reveal-from-blur: 0px;
   /* ── END image */
 
   /* ── Embed — ADR-271〜274 ── BEGIN embed */
@@ -2175,6 +2182,14 @@
   --dropzone-icon-size: calc(var(--spacing) * 8); /* 32px */
   --dropzone-padding: calc(var(--spacing) * 8); /* 32px */
   --dropzone-min-height: calc(var(--spacing) * 40); /* 160px */
+  /* 一覧（DropzoneFileList）の、保存済みのファイルの見分け方 — 軸 491（比較中）
+       saved-mark-display: 「保存済み」の印を出すか（none・inline）
+       link-decoration: 保存済みの名前のリンクの下線（none・underline）
+       saved-bg・saved-border-color: 保存済みの行の面と枠。いま選んだものは bg-field のまま */
+  --dropzone-file-saved-mark-display: inline;
+  --dropzone-file-link-decoration: underline;
+  --dropzone-file-saved-bg: var(--color-field);
+  --dropzone-file-saved-border-color: transparent;
   /* ── END dropzone */
 }
 

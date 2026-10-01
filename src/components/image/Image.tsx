@@ -28,6 +28,9 @@ import { ImageBrokenIcon } from './image-icons';
 //   どれもなければ、16:9 の画像だと仮定して読み込み中（と失敗したとき）は 16:9 の枠を取り、読み込めたら画像本来の比の高さに変える
 //   （スクリプトが動かない描き方でも、画像本来の比で描く）
 //   このとき高さが変わり、下の内容が跳ぶ。寸法を書かない以上しかたがないので、跳ばせたくないときは width・height か ratio を書く
+// 仮画像（placeholder。小さな画像の URL か要素）を渡すと、読み込み中は面の代わりに、それをぼかして敷く（軸 492・493）
+//   読み込めたら本物を上に重ねて出し（--image-reveal-*）、仮画像は出し終えてから隠す。失敗したときは、仮画像の上に失敗の面を出す
+// 代わりの画像（fallbackSrc）を渡すと、src が読み込めなかったときに一度だけそれに替える。それも失敗したら失敗の面を出す
 // 面を出すのは、描いたあとに読み込みが終わっていないと分かったときだけ。スクリプトが動かない描き方（Astro の静的な出力など）では、
 //   素の画像のまま出す（面を置かないだけで、画像は隠さない）
 
@@ -45,7 +48,19 @@ const styles = tv({
       'group-data-[status=error]/image:opacity-0 group-data-[status=loading]/image:opacity-0',
       // 本来の比で描くときは、枠いっぱいに重ねず、画像の高さで枠を広げる（AspectRatio の最初の子の absolute より強く効かせる）
       'group-data-natural/image:relative group-data-natural/image:h-auto',
+      // 仮画像があるときだけ、本物を重ねて出す動きを付ける（ないときは今まで通りすぐ出す）
+      'group-data-placeholder/image:transition-[opacity,filter] group-data-placeholder/image:duration-(--image-reveal-duration) group-data-placeholder/image:ease-out',
+      'group-data-placeholder/image:group-data-[status=loading]/image:[filter:blur(var(--image-reveal-from-blur))]',
+      'motion-reduce:group-data-placeholder/image:[filter:none]',
     ],
+    // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、少し大きくして枠で切る
+    blur: [
+      'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius)',
+      // 本物を出し終えてから隠す（透ける画像の下に残らないように）
+      'transition-[visibility] delay-(--image-reveal-duration) group-data-[status=loaded]/image:invisible',
+    ],
+    blurInner:
+      'block size-full scale-110 [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
     // 動きは、単体では面ごとの光（sweep）。Gallery に並べたときは、Gallery が決める（軸 411）
     placeholder: [
@@ -54,6 +69,8 @@ const styles = tv({
       // 失敗した面は動かさない
       'group-data-[status=error]/image:animate-none group-data-[status=error]/image:after:hidden',
       'group-data-[status=loaded]/image:invisible group-data-[status=loaded]/image:animate-none group-data-[status=loaded]/image:after:hidden',
+      // 仮画像があるときは、読み込み中の面を出さない（失敗したときだけ出す）
+      'group-data-placeholder/image:group-data-[status=loading]/image:invisible',
     ],
     errorIcon: 'hidden size-(--image-icon-size) shrink-0 group-data-[status=error]/image:block',
     // 長い文は 2 行で切る（line-clamp は display を持つので、出し分けの要素の内側に置く）
@@ -124,6 +141,13 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
    * @default 'card'
    */
   radius?: ImageRadius;
+  /**
+   * 読み込むまで敷く仮画像。小さな画像の URL（数十 px の縮小版や data URL）か、要素（BlurHash を描いた canvas など）を渡します。
+   * ぼかして枠いっぱいに広げ、読み込めたら本物に替えます。渡さないときは、読み込み中の面を出します
+   */
+  placeholder?: string | ReactElement;
+  /** src が読み込めなかったときに替える画像の URL。それも読み込めなかったときは、失敗の面を出します。render を渡すときは使いません */
+  fallbackSrc?: string;
   /** 画像を包む枠（枠の要素）に渡す props。className は画像の要素に付きます */
   frameProps?: ComponentProps<'span'>;
   /** 画像の要素に付きます。枠に付けるクラスは frameProps の className に渡します */
@@ -146,9 +170,16 @@ export function Image({
   render,
   onLoad,
   onError,
-  ...props
+  placeholder,
+  fallbackSrc,
+  ...imageProps
 }: ImageProps) {
   const renderProps = (render?.props ?? {}) as { src?: unknown; width?: unknown; height?: unknown };
+  // 読み込めなかった src。今の src と同じなら代わりの画像に替える（src が変われば、また src から読む）
+  const [failedSrc, setFailedSrc] = useState<string>();
+  const useFallback =
+    !render && fallbackSrc != null && imageProps.src != null && failedSrc === imageProps.src;
+  const props = useFallback ? { ...imageProps, src: fallbackSrc } : imageProps;
   const src = renderProps.src ?? props.src;
   const width = toMediaSize(renderProps.width ?? props.width);
   const height = toMediaSize(renderProps.height ?? props.height);
@@ -165,6 +196,12 @@ export function Image({
     if (image.complete) setStatus(image.naturalWidth > 0 ? 'loaded' : 'error');
     else setStatus('loading');
   }, [src]);
+
+  // 失敗したら、描く前に代わりの画像に替える（失敗の面を一瞬も出さない）
+  useIsomorphicLayoutEffect(() => {
+    if (status !== 'error' || render || fallbackSrc == null || useFallback) return;
+    if (imageProps.src != null) setFailedSrc(imageProps.src);
+  }, [status]);
 
   const sized = ratio == null && width != null && height != null;
   // 寸法がなく、読み込み中でも失敗でもないとき（読み込めた・スクリプトが動かない）は、画像本来の比の高さで描く
@@ -197,10 +234,18 @@ export function Image({
       data-slot="image"
       data-status={status === 'idle' ? undefined : status}
       data-natural={natural || undefined}
+      data-placeholder={placeholder != null ? '' : undefined}
       // 枠は AspectRatio を span で描く（AspectRatio の型は div のままなので、span の props として受けて渡す）
       {...(frameProps as ComponentProps<'div'>)}
       className={s.frame({ className: frameProps?.className })}
     >
+      {placeholder != null && (
+        <span className={s.blur()} aria-hidden>
+          <span className={s.blurInner()}>
+            {typeof placeholder === 'string' ? <img src={placeholder} alt="" /> : placeholder}
+          </span>
+        </span>
+      )}
       {image}
       {status !== 'idle' && (
         <span className={s.placeholder()}>
