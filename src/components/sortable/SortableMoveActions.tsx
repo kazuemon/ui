@@ -102,7 +102,7 @@ export function useSortableItemActions(): SortableItemActionsValue {
 }
 
 /** ︙ のメニューの中身。既定の移動の操作と、項目ごとに足す項目（SortableItem の menu）。メニューを開いたボタンの名前に項目の名前が入っているので、文字は短いまま */
-export function MoveMenuItems({
+function MoveMenuItems({
   list,
   item,
   menu,
