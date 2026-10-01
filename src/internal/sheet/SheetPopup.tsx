@@ -128,8 +128,7 @@ export function SheetPopup({
   const bottom = side === 'bottom';
   const top = side === 'top';
   // 上から出すシートも、下から出すシートと同じく指で押す面なので縦に積む
-  const layout =
-    footerLayout === 'auto' ? (bottom || top ? 'stack-reverse' : 'end') : footerLayout;
+  const layout = footerLayout === 'auto' ? (bottom || top ? 'stack-reverse' : 'end') : footerLayout;
   const overlayId = useId();
   // 中身に置いた下の操作の帯（DrawerActions など）。置かれたら、中身の下の余白と続きの印を帯に譲る
   const actions = useOverlayActionsSlot('sheet', layout, footer != null);

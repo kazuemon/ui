@@ -4,7 +4,14 @@ import { type Candidate, type Column, Comparison } from './Comparison';
 import { OverlayFrame } from './overlay-frame';
 import { Button } from '../../src/components/button/Button';
 import { Dialog, type DialogSize } from '../../src/components/dialog/Dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../src/components/table/Table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../src/components/table/Table';
 import { Text } from '../../src/components/text/Text';
 import { TextField } from '../../src/components/text-field/TextField';
 import { OverlayClose } from '../../src/internal/overlay/overlay-close';
@@ -32,13 +39,18 @@ const candidates: Candidate[] = [
   {
     id: '現行版',
     name: '段なし（いつも 480px）',
-    intent: 'いまは幅の段がなく、どの面も 480px。変えるときは className に w-* を渡す。比べるための基準',
+    intent:
+      'いまは幅の段がなく、どの面も 480px。変えるときは className に w-* を渡す。比べるための基準',
     spec: [
       ['sm', '480px'],
       ['md（既定）', '480px'],
       ['lg', '480px'],
     ],
-    tokens: { '--dialog-width-sm': sp(120), '--dialog-width': sp(120), '--dialog-width-lg': sp(120) },
+    tokens: {
+      '--dialog-width-sm': sp(120),
+      '--dialog-width': sp(120),
+      '--dialog-width-lg': sp(120),
+    },
   },
   {
     id: 'A',
@@ -50,7 +62,11 @@ const candidates: Candidate[] = [
       ['md（既定）', '480px'],
       ['lg', '640px'],
     ],
-    tokens: { '--dialog-width-sm': sp(96), '--dialog-width': sp(120), '--dialog-width-lg': sp(160) },
+    tokens: {
+      '--dialog-width-sm': sp(96),
+      '--dialog-width': sp(120),
+      '--dialog-width-lg': sp(160),
+    },
   },
   {
     id: 'B',
@@ -62,7 +78,11 @@ const candidates: Candidate[] = [
       ['md（既定）', '520px'],
       ['lg', '720px'],
     ],
-    tokens: { '--dialog-width-sm': sp(100), '--dialog-width': sp(130), '--dialog-width-lg': sp(180) },
+    tokens: {
+      '--dialog-width-sm': sp(100),
+      '--dialog-width': sp(130),
+      '--dialog-width-lg': sp(180),
+    },
   },
   {
     id: 'C',
@@ -73,7 +93,11 @@ const candidates: Candidate[] = [
       ['md（既定）', '480px'],
       ['lg', '800px'],
     ],
-    tokens: { '--dialog-width-sm': sp(90), '--dialog-width': sp(120), '--dialog-width-lg': sp(200) },
+    tokens: {
+      '--dialog-width-sm': sp(90),
+      '--dialog-width': sp(120),
+      '--dialog-width-lg': sp(200),
+    },
   },
 ];
 
@@ -178,10 +202,12 @@ export const Compare: Story = {
       renderCell={(column) => <Cell column={column} />}
     >
       <p>
-        中央に浮かべる Dialog の幅を、size（sm・md・lg）の 3 段で選べるようにします。既定は md。決めるのは各段の幅です。画面が狭いときは、どの段も左右に余白を残して縮みます。シートで出すときは幅いっぱいです。
+        中央に浮かべる Dialog の幅を、size（sm・md・lg）の 3 段で選べるようにします。既定は
+        md。決めるのは各段の幅です。画面が狭いときは、どの段も左右に余白を残して縮みます。シートで出すときは幅いっぱいです。
       </p>
       <p>
-        全画面（size="full"）は、あとで同じ size に足せる形にしてあります（今回は作っていません）。枠は段ごとに幅を変えた画面の代わりです。
+        全画面（size="full"）は、あとで同じ size
+        に足せる形にしてあります（今回は作っていません）。枠は段ごとに幅を変えた画面の代わりです。
       </p>
     </Comparison>
   ),

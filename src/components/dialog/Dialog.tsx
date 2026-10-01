@@ -437,7 +437,9 @@ function CenteredDialog({
                     .filter(Boolean)
                     .join(' ')}
                 >
-                  {actionsStart != null && <OverlayActionsStart>{actionsStart}</OverlayActionsStart>}
+                  {actionsStart != null && (
+                    <OverlayActionsStart>{actionsStart}</OverlayActionsStart>
+                  )}
                   {actions}
                 </div>
               )}

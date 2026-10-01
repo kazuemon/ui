@@ -102,7 +102,9 @@ function Cell({ column, candidate }: { column: Column; candidate: Candidate }) {
   const inForm = column.label.startsWith('DialogActions');
   const short = column.label === '中身が短いとき';
   return (
-    <OverlayFrame scroll={scrolled ? { selector: scrollSelector(behavior), ratio: 0.5 } : undefined}>
+    <OverlayFrame
+      scroll={scrolled ? { selector: scrollSelector(behavior), ratio: 0.5 } : undefined}
+    >
       {(frame) => (
         <Dialog
           title="参加の申し込み"
@@ -146,7 +148,8 @@ export const Compare: Story = {
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
       <p>
-        中央に浮かべる Dialog の中身が画面より高いとき、面ごとスクロールするか（現行版）、題と下の操作を残して中身だけをスクロールするか（A）。どちらも
+        中央に浮かべる Dialog
+        の中身が画面より高いとき、面ごとスクロールするか（現行版）、題と下の操作を残して中身だけをスクロールするか（A）。どちらも
         props（scrollBehavior）で選べるようにしてあり、ここで決めるのは既定です。
       </p>
       <p>
@@ -154,8 +157,8 @@ export const Compare: Story = {
         はシートとそろう形です。枠は 440×360 の画面の代わりで、幅は size="sm"。
       </p>
       <p>
-        DialogActions（中身の Form の中に置く帯）は、現行版では中身の最後に流れ、A では中身の下の端に貼り付きます（シートの
-        DrawerActions と同じ）。
+        DialogActions（中身の Form の中に置く帯）は、現行版では中身の最後に流れ、A
+        では中身の下の端に貼り付きます（シートの DrawerActions と同じ）。
       </p>
     </Comparison>
   ),

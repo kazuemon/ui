@@ -142,13 +142,7 @@ export function DataTableHeader({
     : className;
   if (!onSortClick) {
     return (
-      <TableHeader
-        align={align}
-        style={style}
-        className={cellClassName}
-        ref={mergedRef}
-        {...props}
-      >
+      <TableHeader align={align} style={style} className={cellClassName} ref={mergedRef} {...props}>
         {children}
         {handle}
       </TableHeader>

@@ -166,8 +166,10 @@ export const Compare: Story = {
       renderCell={(column) => <Cell column={column} />}
     >
       <p>
-        Dialog の下の操作（actions）の左に、保存の状態や注記、「次から表示しない」のチェックボックスを置けるようにします。props は
-        actionsStart（中身に置く DialogActions・DrawerActions では start）です。決めるのは文字の大きさと色です。
+        Dialog
+        の下の操作（actions）の左に、保存の状態や注記、「次から表示しない」のチェックボックスを置けるようにします。props
+        は actionsStart（中身に置く DialogActions・DrawerActions では
+        start）です。決めるのは文字の大きさと色です。
       </p>
       <p>
         置き方は全案で同じです。中央に浮かべるときは左の端に寄せて、操作と縦の中央をそろえます。幅が足りないときは折り返して操作の上に回ります。シートで操作を縦に積むとき（stack・stack-reverse）と幅を等分するとき（fill）は、操作の上に

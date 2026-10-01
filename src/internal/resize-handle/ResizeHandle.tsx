@@ -33,7 +33,8 @@ const styles = tv({
       'before:[transition:background-color_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
       'hover:before:bg-(color:--resize-handle-hover)',
       'focus-visible:before:bg-(color:--resize-handle-focus)',
-      'data-resizing:before:bg-(color:--resize-handle-active)',
+      // 押したとき（動かす前）から、動かしているあいだの色にする
+      'active:before:bg-(color:--resize-handle-active) data-resizing:before:bg-(color:--resize-handle-active)',
     ],
     grip: 'pointer-events-none absolute start-1/2 top-1/2 h-(--resize-handle-grip-height) w-(--resize-handle-grip-width) -translate-1/2 rounded-pill bg-(color:--resize-handle-grip)',
   },
