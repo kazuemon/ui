@@ -6,7 +6,7 @@ import { type RefObject, useEffect, useState } from 'react';
 //   scrolled: いちばん上から動いたか（transparent-until-scroll で、面を不透明にする）
 //   hidden: 隠しているか（hide-on-scroll）
 //   followOffset: スクロールの量だけ帯を押し上げ（--navbar-follow-offset）、止めたら近い方へ寄せて hidden を決める
-//   帯の中にフォーカスがあるとき・メニューを開いているときは隠さない
+//   帯の中にフォーカスがあるとき・メニューを開いているときは隠さない（止まったあとに寄せるときも確かめる）
 
 /** 止まったとみなすまで（ms）。ここで近い方へ寄せる */
 const SETTLE_MS = 150;
@@ -53,16 +53,27 @@ export function useNavbarScroll(
     let last = scrollTop(target);
     let offset = 0;
     let settle: ReturnType<typeof setTimeout> | undefined;
+
     const height = () => root.offsetHeight;
+    // 帯の中にフォーカスがあるとき・メニューを開いているときは隠さない
+    const pinned = () => !hideOnScroll || keepShown || root.contains(document.activeElement);
+    const show = (scrolled: boolean) => {
+      offset = 0;
+      clearTimeout(settle);
+      setState((prev) =>
+        prev.scrolled === scrolled && !prev.hidden && prev.followOffset === null
+          ? prev
+          : { scrolled, hidden: false, followOffset: null }
+      );
+    };
 
     const update = () => {
       const top = scrollTop(target);
       const delta = top - last;
       last = top;
       const scrolled = top > 0;
-      if (!hideOnScroll || keepShown || root.contains(document.activeElement)) {
-        offset = 0;
-        setState({ scrolled, hidden: false, followOffset: null });
+      if (pinned()) {
+        show(scrolled);
         return;
       }
       if (delta === 0) {
@@ -72,10 +83,23 @@ export function useNavbarScroll(
       // スクロールの量だけ押し上げる（帯の高さまで）。いちばん上では出したまま
       offset = Math.min(Math.max(offset + delta, 0), height());
       if (top <= 0) offset = 0;
-      setState({ scrolled, hidden: false, followOffset: offset });
       clearTimeout(settle);
+      // 隠れきったら、隠した形（影まで押し上げる）にする。下へ送り続けても影が戻らないように
+      const full = offset >= height() && top > height();
+      setState((prev) =>
+        full
+          ? prev.hidden && prev.scrolled === scrolled && prev.followOffset === null
+            ? prev
+            : { scrolled, hidden: true, followOffset: null }
+          : { scrolled, hidden: false, followOffset: offset }
+      );
+      if (full) return;
       // 止まったら、半分より隠れていれば隠し、そうでなければ出す（いちばん上の近くでは隠さない）
       settle = setTimeout(() => {
+        if (pinned()) {
+          show(scrollTop(target) > 0);
+          return;
+        }
         const hide = offset > height() / 2 && scrollTop(target) > height();
         offset = hide ? height() : 0;
         setState({ scrolled: scrollTop(target) > 0, hidden: hide, followOffset: null });
@@ -84,7 +108,7 @@ export function useNavbarScroll(
     update();
     target.addEventListener('scroll', update, { passive: true });
     // 帯の中にフォーカスが入ったら出す
-    const onFocus = () => setState((prev) => ({ ...prev, hidden: false, followOffset: null }));
+    const onFocus = () => show(scrollTop(target) > 0);
     root.addEventListener('focusin', onFocus);
     return () => {
       target.removeEventListener('scroll', update);
