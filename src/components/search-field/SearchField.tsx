@@ -112,7 +112,7 @@ export function SearchFieldControl({
     onValueChange?.(next);
   };
   // 値を渡されないときは、form を戻したらはじめの値に戻す（消すボタンが出たまま残らないように）
-  const resetRef = useFormReset(() => setInnerValue(defaultValue), valueProp === undefined);
+  const resetRef = useFormReset(() => change(defaultValue ?? ''), valueProp === undefined);
   const inputRef = useMergedRefs(props.ref, resetRef);
   const clear = () => {
     change('');

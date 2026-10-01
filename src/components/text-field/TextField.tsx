@@ -101,11 +101,9 @@ export function TextFieldControl({
     if (valueProp === undefined) setInnerValue(next);
     onValueChange?.(next);
   };
-  // 値を部品が持つとき（消すボタンを出し、値を渡されないとき）は、form を戻したらはじめの値に戻す
-  const resetRef = useFormReset(
-    () => setInnerValue(defaultValue ?? ''),
-    clearable && valueProp === undefined
-  );
+  // 値を渡されないときは、form を戻したらはじめの値に戻す。消すボタン・文字数と、包む TextField の数え方も戻すよう、
+  // onValueChange でも知らせる（ブラウザの reset は input の change を起こさない）
+  const resetRef = useFormReset(() => change(defaultValue ?? ''), valueProp === undefined);
   const inputRef = useMergedRefs(restInputProps.ref, props.ref, resetRef);
   // 文字数（Textarea と同じ）。数えるのは見えている文字（書記素）
   const {

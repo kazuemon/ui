@@ -529,13 +529,15 @@ export const ClearableReset: Story = {
     controls: { disable: true },
     docs: {
       description: {
-        story: '`clearable` の欄も、フォームを戻す（reset）と、はじめの値に戻ります。',
+        story:
+          '`clearable` の欄も、フォームを戻す（reset）と、はじめの値に戻ります。文字数も数え直します。',
       },
     },
   },
   render: () => (
     <form className="flex max-w-sm flex-col items-start gap-3">
       <TextField label="表示名" defaultValue="かずえもん" clearable clearName="表示名を消去" />
+      <TextField label="ひとこと" maxCount={5} showCount />
       <Button type="reset" variant="outline">
         元に戻す
       </Button>
@@ -549,5 +551,12 @@ export const ClearableReset: Story = {
     await expect(input).toHaveValue('かずえもん');
     // 部品が持つ値も戻るので、消すボタンがまた出る
     await expect(canvas.getByRole('button', { name: '表示名を消去' })).toBeInTheDocument();
+    // 文字数も戻る（上限を超えたエラーの見た目が残らない）
+    const note = canvas.getByLabelText('ひとこと');
+    await userEvent.type(note, 'あいうえおか');
+    await expect(note).toHaveAttribute('aria-invalid', 'true');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await expect(note).toHaveValue('');
+    await expect(note).not.toHaveAttribute('aria-invalid', 'true');
   },
 };
