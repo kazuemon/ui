@@ -460,4 +460,5 @@
 | [0405](./0405-card-header.md)                            | CardHeader は、カードの面のままで下に細い線が既定。グレーの帯と線なしも選べる                                                                                    | Accepted                                     |
 | [0406](./0406-card-header-nested.md)                     | nested の Card では、頭の帯の下の線を角に沿わせず、まっすぐ端まで引く                                                                                            | Accepted                                     |
 | [0407](./0407-collapsible-card.md)                       | Collapsible・Accordion の variant="card" は、カードの角・開いた行は塗らない・項目の間 8px が既定。開いた行を塗る指定も選べる                                     | Accepted                                     |
+| [0470](./0470-card-emphasis.md)                          | Card の強調の形（variant="emphasis"）は、面と輪郭を変えず輪郭の外に primary の淡い輪（Timeline の強調と同じ幅・濃さ）                                            | Accepted                                     |
 | [0471](./0471-link-prop-new-tab-icon.md)                 | リンクにするかは link で決め（Card）、Link はいつもリンク。↗ はどの見た目でも新しいタブで開くときだけ付け、newTabIcon で上書きできる                             | Accepted                                     |
