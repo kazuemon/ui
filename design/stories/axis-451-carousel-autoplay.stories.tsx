@@ -18,7 +18,7 @@ const meta = {
       focusVisible: '[data-slot="carousel-autoplay"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -144,6 +144,11 @@ export const Axis: Story = {
         return column.label === '止めたとき' ? <Paused>{carousel}</Paused> : carousel;
       }}
     >
+      <p>
+        決定: 自動の送りを止めるボタンは
+        B（下の行の位置の印の左に置く、線のないいちばん軽いボタン）。ユーザーの返事「B
+        でいいかなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Carousel に、自動で送る autoPlay（間は autoPlayInterval、既定 5 秒）と、端でつなぐ loop
         を足しました。自動の送りは、マウスを載せたとき・キーボードで中に入ったとき・別のタブにいるあいだは止まり、

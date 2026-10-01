@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/452 カルーセルの複数枚の並べ方',
   id: 'design-review-452-carousel-per-view',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -129,6 +129,10 @@ export const Axis: Story = {
         );
       }}
     >
+      <p>
+        決定: 複数枚は B（ちょうど収める・あいだ 12px。次の 1 枚をのぞかせない）。ユーザーの返事「B
+        でいいかなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Carousel に、1 画面に並べる枚数 slidesPerView を足しました。数（slidesPerView={'{3}'}
         ）か、画面の幅の段ごとの数（{'{ base: 1, md: 3 }'}。Grid の columns

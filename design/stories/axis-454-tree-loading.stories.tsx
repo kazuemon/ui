@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/454 ツリーの子の読み込み中',
   id: 'design-review-454-tree-loading',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B,A,C,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -139,6 +139,14 @@ export const Axis: Story = {
         </Tree>
       )}
     >
+      <p>
+        決定: 読み込み中に閉じられる（ノンブロッキング）なら
+        B（行の右端に回る円）を既定にし、閉じられない（ブロッキング）なら
+        A（開閉の印が回る円に変わる）。C（「読み込んでいます」の行）と
+        D（場所取りの行）は、使う側が足したいときに出せる程度にする。ユーザーの返事「読み込んでいる間も閉じることができる（ノンブロッキング）なら、デフォルトをBとして、一度読み込み始めたら閉じれない（ブロッキング）なら
+        A
+        になるかなと思いました。CとDは欲しかったら追加で表示できる、位でいいかなと。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         TreeItem に、子をあとから読み込む hasChildren と、読み込み中の loading
         を足しました。hasChildren を付けると、children

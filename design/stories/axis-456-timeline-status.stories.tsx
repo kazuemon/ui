@@ -14,7 +14,7 @@ const meta = {
   title: 'Design Review/456 年表の状態の色の点',
   id: 'design-review-456-timeline-status',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -146,6 +146,12 @@ export const Axis: Story = {
         </Timeline>
       )}
     >
+      <p>
+        決定: 状態の色は
+        A（警告はオリーブ色の塗り）を既定にし、B（警告は黄色の塗り）も選べる。ユーザーの返事「A
+        推奨ですが、B
+        も選べると良さそうです。アイコンについて警告色であることはBの方が分かりやすいからですね。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Timeline の markerType に、状態の色 success・warning・danger
         を足しました。起きたことの結果を点の色で示します。

@@ -20,7 +20,7 @@ const meta = {
   title: 'Design Review/455 年表の点のアイコン',
   id: 'design-review-455-timeline-icon',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B,C,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -183,6 +183,10 @@ export const Axis: Story = {
         );
       }}
     >
+      <p>
+        決定: アイコンの点は A（点の色の塗りに白抜きのアイコン）を既定にし、B・C・D
+        も選べる。ユーザーの返事「どのバリエーションでも選べると良さそうですが、デフォルトは塗り点なのでAかなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         TimelineItem に、点の代わりに置くアイコン icon
         を足しました。丸の色は点の種類（markerType）に従います。 アイコンを持つ項目が 1
