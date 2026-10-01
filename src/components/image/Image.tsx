@@ -54,14 +54,14 @@ const styles = tv({
       // 動きを減らす設定では、ふわっと出さずにすぐ出す（原則14）
       'motion-reduce:transition-none',
     ],
-    // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、少し大きくして枠で切る
+    // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、ぼかしの 2 倍だけ枠の外へ広げて、枠で切る
     blur: [
       'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius)',
       // 本物を出し終えてから隠す（透ける画像の下に残らないように）
       'transition-[visibility] delay-(--image-reveal-duration) group-data-[status=loaded]/image:invisible motion-reduce:delay-0',
     ],
     blurInner:
-      'block size-full scale-110 [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
+      'absolute inset-[calc(var(--image-placeholder-blur)*-2)] [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
     // 動きは、単体では面ごとの光（sweep）。Gallery に並べたときは、Gallery が決める（軸 411）
     placeholder: [

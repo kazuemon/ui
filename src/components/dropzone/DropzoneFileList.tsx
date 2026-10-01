@@ -33,7 +33,8 @@ const row = tv({
     ],
     icon: 'size-(--spacing-icon) shrink-0 text-fg-muted',
     body: 'flex min-w-0 flex-1 flex-col gap-0.5',
-    name: 'truncate text-(length:--text-input) leading-(--leading-input) text-fg',
+    // リンクのフォーカスの線が切れないよう、線の分だけ内側に余白を取り、外側の余白で打ち消す
+    name: '-m-1 truncate p-1 text-(length:--text-input) leading-(--leading-input) text-fg',
     meta: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     remove: 'shrink-0',

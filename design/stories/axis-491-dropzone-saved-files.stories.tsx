@@ -158,8 +158,10 @@ export const Axis: Story = {
     >
       <p>
         DropzoneFileList
-        に、保存済みのファイル（サーバーに置いてあるもの）を並べられるようにしました。 `file`
-        を書かずに `name`・`size`・`url` を渡すと保存済みとして扱い、名前は `url`
+        に、保存済みのファイル（サーバーに置いてあるもの）を並べられるようにしました。{' '}
+        <code>file</code>
+        を書かずに <code>name</code>・<code>size</code>・<code>url</code>{' '}
+        を渡すと保存済みとして扱い、名前は <code>url</code>
         を新しいタブで開くリンクになります。編集の画面で、前に上げたファイルと、いま足したファイルを
         1 つの一覧に並べる使い方です。
       </p>
