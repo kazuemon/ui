@@ -27,8 +27,8 @@ const meta = {
           '- `datePlacement` は日付の置き場所です。既定は点の右・題の上（`stack`）です。題と同じ行に置く（`inline`）と縦に詰まり、点の左の列にそろえる（`aside`）と日付が読み取りやすくなります。',
           '- `aside` は狭い入れ物では列を置けないので、`collapse` で畳むかを選びます。既定は題の上へ畳む（`stack`）で、列を保つ（`none`）も選べます。',
           '- `markerType` は点の見せ方、`line` は項目をつなぐ縦の線で、どちらも Steps の点と線に合わせた種類と色です。既定はグレーの丸（`neutral`）と細い実線（`solid`）です。輪郭の丸（`outline`）・Primary の青の丸（`primary`）、点線（`dotted`）・線なし（`none`）も選べます。',
-          '- 起きたことの結果を色で示すときは、状態の色の点（`success`・`warning`・`danger`）を使います。色だけに頼らず、題やアイコンでも伝えます。',
-          '- `TimelineItem` の `icon` にアイコンを渡すと、点の代わりにアイコンを入れた丸を置きます。丸の色は点の種類に従います。',
+          '- 起きたことの結果を色で示すときは、状態の色の点（`success`・`warning`・`danger`）を使います。色だけに頼らず、題やアイコンでも伝えます。警告の点は、白地でも読めるオリーブ色が既定です。警告と一目で分かる黄色にしたいときは `warningColor="yellow"` にします。',
+          '- `TimelineItem` の `icon` にアイコンを渡すと、点の代わりにアイコンを入れた丸を置きます。丸の色は点の種類に従います。丸の見せ方は `iconVariant` で選び、既定は点の色の塗りに白抜きのアイコン（`filled`）です。淡い面（`soft`）・細い輪郭（`outline`）・丸なしのアイコンだけ（`plain`）も選べます。',
           '- 点の種類は項目ごとに変えられます。`TimelineItem` にも `markerType` を渡せて、渡した項目だけ `Timeline` の指定を上書きします。',
           '- `markerSize` は点の大きさです。既定は `md` で、点を骨組みとして見せたいときは `lg`、さらに静かにしたいときは `sm` にします。',
           '- `tail="dotted"` にすると、最後の項目のあとに線が少しだけ点線で伸びて、年表がまだ続くことを見せます。',
@@ -56,6 +56,8 @@ const meta = {
       control: 'inline-radio',
       options: ['neutral', 'outline', 'primary', 'success', 'warning', 'danger'],
     },
+    warningColor: { control: 'inline-radio', options: ['olive', 'yellow'] },
+    iconVariant: { control: 'inline-radio', options: ['filled', 'soft', 'outline', 'plain'] },
     line: { control: 'inline-radio', options: ['solid', 'dotted', 'none'] },
     tail: { control: 'inline-radio', options: ['none', 'dotted'] },
     datePlacement: { control: 'inline-radio', options: ['stack', 'inline', 'aside'] },
@@ -359,6 +361,66 @@ export const StatusAndIcons: Story = {
     await expect(icons).toHaveLength(3);
     for (const icon of icons) await expect(icon).toHaveAttribute('aria-hidden', 'true');
   },
+};
+
+export const IconVariants: Story = {
+  tags: ['visual'],
+  name: 'アイコンの丸の見せ方',
+  render: () => (
+    <div className="grid grid-cols-2 gap-8">
+      {(['filled', 'soft', 'outline', 'plain'] as const).map((variant) => (
+        <div key={variant} className="flex flex-col gap-3">
+          <p className="text-sm text-fg-muted">{variant}</p>
+          <Timeline iconVariant={variant}>
+            <TimelineItem
+              date="2026年8月"
+              title="審査を通過"
+              markerType="success"
+              icon={<CheckIcon />}
+            />
+            <TimelineItem
+              date="2026年7月"
+              title="公開を延期"
+              markerType="warning"
+              icon={<WarningIcon />}
+            />
+            <TimelineItem date="2026年6月" title="v0.9 を取り下げ" markerType="danger" />
+            <TimelineItem date="2024年4月" title="入社" icon={<BriefcaseIcon />} />
+          </Timeline>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const WarningColor: Story = {
+  tags: ['visual'],
+  name: '警告の点の色',
+  render: () => (
+    <div className="grid grid-cols-2 gap-8">
+      {(['olive', 'yellow'] as const).map((color) => (
+        <div key={color} className="flex flex-col gap-3">
+          <p className="text-sm text-fg-muted">{color}</p>
+          <Timeline warningColor={color}>
+            <TimelineItem date="2026年7月" title="公開を延期" markerType="warning" />
+            <TimelineItem
+              date="2026年6月"
+              title="審査で差し戻し"
+              markerType="warning"
+              icon={<WarningIcon />}
+            />
+            <TimelineItem
+              date="2026年5月"
+              title="下書き"
+              markerType="warning"
+              iconVariant="soft"
+              icon={<WarningIcon />}
+            />
+          </Timeline>
+        </div>
+      ))}
+    </div>
+  ),
 };
 
 export const Alternate: Story = {

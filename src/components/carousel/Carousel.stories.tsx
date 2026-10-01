@@ -196,6 +196,13 @@ export const AutoPlay: Story = {
   },
 };
 
+export const AutoPlayButton: Story = {
+  tags: ['visual'],
+  name: '自動で送る（止めるボタン）',
+  decorators: [narrow],
+  args: { autoPlay: true, loop: true, autoPlayInterval: 1_000_000 },
+};
+
 export const Loop: Story = {
   name: '端でつなぐ',
   decorators: [narrow],
@@ -216,6 +223,7 @@ export const Loop: Story = {
 };
 
 export const SlidesPerView: Story = {
+  tags: ['visual'],
   name: '複数枚を並べる',
   args: { slidesPerView: { base: 1, sm: 2, md: 3 } },
   parameters: {

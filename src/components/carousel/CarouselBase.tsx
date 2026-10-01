@@ -43,12 +43,12 @@ import type { CarouselState } from './use-carousel-state';
 //   peek（軸 287・決定）: 1 枚を少し狭くして中央に止め、両隣の端をのぞかせる。既定は 1 枚を幅いっぱい
 //   続きがあることは、位置の印と次へのボタンで見せる。枠の端に影は落とさない（画像そのものに影がかかるため）
 //   slidesPerView: 1 画面に並べる枚数。数か、画面の幅の段ごとの数（Grid の columns と同じ形）。1 つずつ送り、止まる位置は「枚数 − 並べる数 + 1」
-//     1 枚の幅は「(枠の幅 − 間 ×（並べる数 − 1）) ÷ 並べる数」。--carousel-per-view-peek が 0 より大きいと、右端に次の 1 枚の端をのぞかせる
+//     1 枚の幅は「(枠の幅 − 間 ×（並べる数 − 1）) ÷ 並べる数」。ちょうど収め、次の 1 枚の端はのぞかせない（軸 452・決定）
 //     いま何枚並んでいるかは、送る仕組み（engine）が測って visibleCount で返す（画面の幅の段は CSS が決めるため）
 //   loop: 端でつながる。最後の次は最初へ、最初の前は最後へ戻る（並びを巻き戻して送る。複製は置かない）
 //   autoPlay（use-auto-play.ts）: 間（autoPlayInterval）ごとに次へ送り、最後のあとは最初へ戻る。止めるボタンを必ず出す（WCAG 2.2.2）
 //     送っているあいだは、読み上げの「3 / 5」を黙らせる（WAI-ARIA の Carousel パターン）
-//     止めるボタンの置き場所と形は軸 451 で比べている（--carousel-autoplay-*）
+//     止めるボタンは、下の行の位置の印の左に置く、線のないいちばん軽いボタン（前へ・次へより一段控えめ。画像に重ねない — 軸 451・決定）
 //   thumbnailsPlacement: Thumbnails の置き場所。bottom は枠の下、start・end は枠の横に縦に並べる（Thumbnails は縦向きになる）
 
 const styles = tv({
@@ -56,15 +56,9 @@ const styles = tv({
     root: 'flex min-w-0 flex-col gap-(--carousel-controls-gap)',
     // Thumbnails を包む。横に置くときは枠の高さに合わせ（自分の高さで行を伸ばさない）、はみ出す分は帯の中でスクロールする
     thumbnails: 'min-w-0',
-    // 自動の送りを止めるボタン（軸 451 の比較のため、置き場所ごとに描き、--carousel-autoplay-* で出し分ける）
+    // 自動の送りを止めるボタンと位置の印を、下の行の 1 つの欄にまとめる
     autoplayInline:
       'flex items-center gap-(--carousel-autoplay-inline-gap) [justify-self:var(--carousel-indicator-justify)] [grid-area:indicator]',
-    autoplayInlineOutline: '[display:var(--carousel-autoplay-inline-outline-display)]',
-    autoplayInlinePlain: '[display:var(--carousel-autoplay-inline-plain-display)]',
-    autoplayOverlay: [
-      'pointer-events-none absolute inset-x-(--carousel-overlay-inset) bottom-(--carousel-overlay-inset) *:pointer-events-auto',
-      '[display:var(--carousel-autoplay-overlay-display)] [justify-content:var(--carousel-autoplay-overlay-justify)]',
-    ],
     stage: 'relative min-w-0',
     // 1 枚の幅（--carousel-slide-size）は、枠の幅に対する割合（cqi）で書く
     viewport: [
@@ -126,8 +120,7 @@ const styles = tv({
           'lg:[--carousel-per-view:var(--carousel-per-view-lg,var(--carousel-per-view-md,var(--carousel-per-view-sm,var(--carousel-per-view-base,1))))]',
           'xl:[--carousel-per-view:var(--carousel-per-view-xl,var(--carousel-per-view-lg,var(--carousel-per-view-md,var(--carousel-per-view-sm,var(--carousel-per-view-base,1)))))]',
           '[--carousel-gap:var(--carousel-per-view-gap)]',
-          // のぞかせる端（peek）があるときは、その手前の間も 1 つ数える
-          '[--carousel-slide-size:calc((100cqi-var(--carousel-gap)*(var(--carousel-per-view)-1+clamp(0,var(--carousel-per-view-peek)*1000,1)))/(var(--carousel-per-view)+var(--carousel-per-view-peek)))]',
+          '[--carousel-slide-size:calc((100cqi-var(--carousel-gap)*(var(--carousel-per-view)-1))/var(--carousel-per-view))]',
         ],
       },
       false: {},
@@ -326,7 +319,6 @@ interface AutoPlayButtonProps {
   playName: string;
   viewportId: string;
   onClick: () => void;
-  variant: 'outline' | 'underline' | 'filled';
 }
 
 /** 自動の送りを止める・始めるボタン。送っているあいだは一時停止の印、止めたら再生の印 */
@@ -336,14 +328,12 @@ function AutoPlayButton({
   playName,
   viewportId,
   onClick,
-  variant,
 }: AutoPlayButtonProps) {
   return (
     <Button
       iconOnly
-      variant={variant}
-      color={variant === 'filled' ? 'white' : 'neutral'}
-      shape={variant === 'filled' ? 'circle' : 'square'}
+      variant="underline"
+      color="neutral"
       aria-label={playing ? pauseName : playName}
       aria-controls={viewportId}
       onClick={onClick}
@@ -477,14 +467,13 @@ export function CarouselView({
   );
 
   const showAutoPlay = autoPlay && stops > 1;
-  const autoPlayButton = (variant: AutoPlayButtonProps['variant']) => (
+  const autoPlayButton = (
     <AutoPlayButton
       playing={auto.playing}
       pauseName={pauseName}
       playName={playName}
       viewportId={viewportId}
       onClick={auto.toggle}
-      variant={variant}
     />
   );
 
@@ -504,11 +493,10 @@ export function CarouselView({
         className={showAutoPlay ? s.count() : s.indicator({ className: s.count() })}
       />
     ) : null;
-  // 止めるボタンは、位置の印と一緒に行の中に置く（置き場所は軸 451 で比べている）
+  // 止めるボタンは、位置の印の左に置く
   const indicatorCell = showAutoPlay ? (
     <div className={s.autoplayInline()}>
-      <span className={s.autoplayInlineOutline()}>{autoPlayButton('outline')}</span>
-      <span className={s.autoplayInlinePlain()}>{autoPlayButton('underline')}</span>
+      {autoPlayButton}
       {indicatorElement}
     </div>
   ) : (
@@ -558,7 +546,6 @@ export function CarouselView({
             <div className={s.overlayNext()}>{nextButton}</div>
           </>
         )}
-        {showAutoPlay && <div className={s.autoplayOverlay()}>{autoPlayButton('filled')}</div>}
       </div>
       {showControls && (
         <div data-slot="carousel-controls" className={s.controls()}>

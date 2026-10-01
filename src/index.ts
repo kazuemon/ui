@@ -683,12 +683,14 @@ export {
   type TimelineDatePlacement,
   type TimelineHeadingLevel,
   TimelineItem,
+  type TimelineIconVariant,
   type TimelineItemProps,
   type TimelineLine,
   type TimelineMarkerSize,
   type TimelineMarkerType,
   type TimelineProps,
   type TimelineTail,
+  type TimelineWarningColor,
 } from './components/timeline/Timeline';
 export {
   Transition,
@@ -722,6 +724,7 @@ export {
   type TreeCurrentIndicator,
   TreeItem,
   type TreeItemProps,
+  type TreeLoadingPlaceholder,
   type TreePanelMotion,
   type TreeProps,
   type TreeRowWidth,
