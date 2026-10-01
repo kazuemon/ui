@@ -18,8 +18,10 @@ const styles = tv({
       'dialog-scroll':
         'sticky bottom-0 z-1 -mx-(--dialog-padding) bg-surface px-(--dialog-padding) py-(--dialog-padding)',
       // シート: 中身の下の端に貼り付ける。中身の左右の余白の外まで広げ、下は端末の安全領域の分を空ける
+      //   上から出すシートは画面の下の端に着かないので、安全領域の分は空けない
       sheet: [
         'sticky bottom-0 z-1 -mx-(--sheet-padding-x) bg-surface px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
+        '[[data-slot=sheet][data-side=top]_&]:pb-(--sheet-padding-x)',
         "data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col",
       ],
       inspector: [
