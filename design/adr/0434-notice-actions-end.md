@@ -40,6 +40,7 @@ A は、ボタンの分だけお知らせが高くなるため採りませんで
 
 - `src/components/notice/Notice.tsx`: `actionsPlacement`（`bottom`・`end`。既定 `bottom`）、`narrowActionsPlacement`（`bottom`・`end`）
 - `src/components/notice/use-actions-wrapped.ts`: 文の列の幅から、操作が下に回るかを測ります
+- 比べるためだけに置いた縦のそろえ方とはみ出しのトークン（`--notice-actions-align`・`--notice-actions-margin-y`）は、実装のコミット（`56a248f`）で部品に畳んで消しました。残したのは `--notice-actions-gap` と `--notice-actions-text-min` です
 - 比較のストーリーは消しました
 
 ## 原則への反映
