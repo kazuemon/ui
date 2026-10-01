@@ -6,7 +6,7 @@ import type { VariantProps } from 'tailwind-variants';
 import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
 import { warnOnce } from '../../internal/link-parts';
-import { leadingAvatarClass, leadingIconClass } from '../../internal/small-parts-leading';
+import { leadingAvatarClass, leadingIcon } from '../../internal/small-parts-leading';
 import { chipSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
@@ -26,7 +26,7 @@ const chip = tv({
     'text-[length:var(--chip-font)] leading-[var(--chip-leading)]',
     // 消すボタンがあるとき、右は ×（丸）の分だけ空ける。丸は上下左右とも 6px 内側に置く（フォーカスの線がチップの外に出ない）
     'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5 has-data-[slot=chip-remove]:[--small-parts-inner-gap:calc(var(--spacing)_*_1)]',
-    // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — 比較中 Design Review/420）
+    // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — 軸 420）
     '[--small-parts-host-height:var(--chip-height)]',
     'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--chip-border-width)))]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
@@ -127,8 +127,10 @@ interface ChipBaseProps
    * @default false
    */
   readOnly?: boolean;
-  /** 文字の前に置くアイコン（`<Icon icon={HashIcon} />` など）。大きさと色はチップが決めます（Tag と同じ） */
+  /** 文字の前に置くアイコン（`<Icon icon={HashIcon} />` など）。大きさは文字と同じで、チップが決めます（Tag と同じ） */
   icon?: ReactNode;
+  /** 先頭のアイコンの色。color と同じ色から選びます（その色のチップの文字と同じ色）。書かないと、チップの文字と同じ色です */
+  iconColor?: ChipColor;
   /** 文字の前に置くアバター（`<Avatar src="…" name="…" />`）。大きさはチップの高さから決めます（Tag と同じ） */
   avatar?: ReactNode;
   /** チップの中に入れる文字。長い文字は … で省略されます */
@@ -158,6 +160,7 @@ export function Chip({
   onRemove,
   removeName,
   icon,
+  iconColor,
   avatar,
   className,
   children,
@@ -181,7 +184,7 @@ export function Chip({
         </span>
       )}
       {icon != null && (
-        <span data-slot="chip-icon" aria-hidden className={leadingIconClass}>
+        <span data-slot="chip-icon" aria-hidden className={leadingIcon({ color: iconColor })}>
           {icon}
         </span>
       )}

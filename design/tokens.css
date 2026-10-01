@@ -797,30 +797,19 @@
   /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */
   --badge-overlay-inset: var(--spacing);
 
-  /* Tag の形（variant）— 比較中（Design Review/418）。src/components/tag/
+  /* Tag の形（variant）— 軸 418。src/components/tag/
      縁はどの形でも同じ幅で引き（soft・solid は透明）、左右の余白から縁の幅を引く。形を変えても寸法は変わらない
-     outline・dashed の縁は、文字の色を薄めた色（Chip の縁と同じ作り） */
+     outline・dashed は面を塗らず、縁は文字の色を薄めた色（Chip の縁と同じ作り）。dashed は実線と見分けられるよう少し濃い
+     surface は白い面に、文字の色そのままの縁 */
   --tag-border-width: var(--border-width-thin);
-  --tag-outline-bg: transparent;
   --tag-outline-border-mix: 45%;
   --tag-dashed-border-mix: 60%;
-  /* Tag のリンク（href・render・link）— 比較中（Design Review/417）
-     hover・押下で面の上に文字の色を敷く濃さ、hover の下線、影、押して沈む深さ */
-  --tag-link-hover-mix: var(--flat-hover-mix);
-  --tag-link-press-mix: var(--flat-press-mix);
-  --tag-link-hover-decoration: none;
-  --tag-link-shadow: none;
-  --tag-link-shadow-hover: none;
-  --tag-link-shadow-press: none;
-  --tag-link-press-depth: var(--flat-press-depth);
-  /* Tag・Chip の先頭のアイコン・アバター — 比較中（Design Review/419・420）。src/internal/small-parts-leading.ts
-     icon-scale: 文字の大きさに対するアイコンの大きさ。icon-mix: アイコンの色（文字の色を何 % で敷くか）
-     avatar-inset: アバターの上下と左の余白（部品の外の縁から）。アバターは高さからこの 2 つ分を引いた大きさ */
-  --small-parts-icon-scale: 1.25;
-  --small-parts-icon-mix: 100%;
+  /* Tag・Chip の先頭のアイコン・アバター — 軸 419・420。src/internal/small-parts-leading.ts
+     icon-gap: アイコンと文字の間。avatar-inset: アバターの上下と左の余白（部品の外の縁から）。
+     アバターは高さから上下の余白を引いた大きさ。avatar-gap: アバターと文字の間（顔と文字が詰まって見えないよう、アイコンより広い） */
   --small-parts-icon-gap: calc(var(--spacing) * 1);
-  --small-parts-avatar-inset: calc(var(--spacing) * 0.5);
-  --small-parts-avatar-gap: calc(var(--spacing) * 1);
+  --small-parts-avatar-inset: calc(var(--spacing) * 1);
+  --small-parts-avatar-gap: calc(var(--spacing) * 1.5);
 
   /* 入力欄のエラー・警告の行（本体の下）— adr/0041
      アイコン＋文。エラーは丸の「!」と --color-fg-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
