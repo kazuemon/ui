@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  DayButton as BaseDayButton,
+  type DayButtonProps,
   type DateRange,
   type DayProps,
   DayPicker,
@@ -9,7 +11,7 @@ import {
   type RootProps,
   type WeekdayProps,
 } from '@daypicker/react';
-import { createContext, type Ref, use, useMemo, useState } from 'react';
+import { createContext, type ReactNode, type Ref, use, useMemo, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { Button } from '../button/Button';
@@ -42,6 +44,9 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //   --day-weekend(-k)           日曜・祝日と土曜の色と、その色を混ぜる割合（data-tone）
 //   --day-mark・--day-weight-*  今日の下線と、数字の太さ（data-today・data-look）
 //   --day-hover・--day-press    ボタンが置く、文字の色を敷く濃さ。濃いほうを使う
+//   --day-strike                選べない日（期間の長さの制約で選べない日）の取り消し線
+//
+// 日ごとの印（renderDayContent）は、日のボタンの中に重ねる。置き場・大きさ・数字のずらし方はトークン（--calendar-day-content-*）
 const calendar = tv({
   slots: {
     root: [
@@ -49,7 +54,7 @@ const calendar = tv({
       'inline-block w-[calc(var(--spacing-control)*7)] max-w-full text-fg',
       // セルが置かないときの値（セルの変数はここから継ぐ）
       '[--day-mark:0] [--day-weekend-k:0] [--day-weekend:var(--color-fg)] [--day-weight-look:400] [--day-weight-today:400]',
-      '[--day-hover:0%] [--day-press:0%]',
+      '[--day-hover:0%] [--day-press:0%] [--day-strike:none]',
       // 動きを減らす設定では、月を送っても動かさない（ADR-0142）
       'motion-reduce:[--calendar-month-fade-duration:1ms]',
     ],
@@ -84,6 +89,8 @@ const calendar = tv({
       'data-[look=band]:[--day-base:transparent] data-[look=band]:[--day-ink:var(--cal-on-subtle)]',
       'data-[look=outside]:[--day-base:transparent] data-[look=outside]:[--day-ink:var(--color-fg-subtle)]',
       'data-[look=disabled]:[--day-base:transparent] data-[look=disabled]:[--day-ink:var(--color-on-field-disabled)]',
+      // 期間の始まりを選んだあと、長さの制約（minRangeDays・maxRangeDays・excludeDisabled）で選べない日
+      'data-[look=constrained]:[--day-base:transparent] data-[look=constrained]:[--day-ink:var(--color-calendar-constrained)] data-[look=constrained]:[--day-strike:var(--calendar-constrained-decoration)]',
       // 日曜・祝日と土曜（ADR-0137・0140）。祝日の土曜は日曜の色。weekendColor={false} のときは色を混ぜない
       'data-[tone=sun]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sun]:[--day-weekend:var(--color-calendar-sunday)]',
       'data-[tone=sat]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sat]:[--day-weekend:var(--color-calendar-saturday)]',
@@ -110,6 +117,15 @@ const calendar = tv({
       // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため
       ...focusRing,
       'disabled:cursor-not-allowed',
+      '[text-decoration-line:var(--day-strike)] [text-decoration-thickness:var(--border-width-thin)]',
+    ],
+    // 日の数字。印（renderDayContent）があるときは、印の分だけずらす
+    dayNumber: '[[data-has-content]>&]:[translate:0_var(--calendar-day-number-shift)]',
+    // 日ごとの印。日のボタンいっぱいの箱の中で、トークンの置き場に寄せる。押すのは日のボタン
+    dayContent: [
+      'pointer-events-none absolute flex [inset:var(--calendar-day-content-inset)]',
+      '[justify-content:var(--calendar-day-content-justify)] [align-items:var(--calendar-day-content-align)]',
+      'text-(length:--calendar-day-content-text) leading-none font-normal',
     ],
   },
   variants: {
@@ -225,6 +241,11 @@ interface CalendarBaseProps {
   /** 日ごとに押せなくする。true を返した日は押せません */
   isDateDisabled?: (date: PlainDate) => boolean;
   /**
+   * 日ごとの印（空きの有無の点、値段など）を返す。返したものを日の数字に添えて出します。
+   * 印は読み上げられないので、意味を伝えるときは getHoliday の名前や、カレンダーの外の文でも伝えてください
+   */
+  renderDayContent?: (date: PlainDate) => ReactNode;
+  /**
    * 祝日の名前を返す。名前を返した日は日曜と同じ色になり、名前が読み上げに入ります。祝日のデータは部品に含みません
    */
   getHoliday?: (date: PlainDate) => string | undefined;
@@ -239,6 +260,11 @@ interface CalendarBaseProps {
    * @default ThemeProvider の locale、なければ 'ja-JP'
    */
   locale?: string;
+  /**
+   * 週の始まりの曜日。0 が日曜、1 が月曜です
+   * @default locale の週の始まり（読めない環境では日曜）
+   */
+  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /**
    * 今日を決めるタイムゾーン
    * @default ThemeProvider の timeZone、なければ 'Asia/Tokyo'
@@ -291,6 +317,22 @@ export interface CalendarRangeProps extends CalendarBaseProps {
   onValueChange?: (value: CalendarRange | null) => void;
   /** 選んだ日を押しても外れないようにする */
   required?: boolean;
+  /**
+   * 期間のいちばん短い日数。始まりと終わりの日を両方数えます（1 泊 2 日なら 2）。
+   * 始まりを選んだあと、これより短くなる日は選べません
+   */
+  minRangeDays?: number;
+  /**
+   * 期間のいちばん長い日数。始まりと終わりの日を両方数えます。
+   * 始まりを選んだあと、これより長くなる日は選べません
+   */
+  maxRangeDays?: number;
+  /**
+   * 期間の中に押せない日（min・max の外、isDateDisabled）を含めない。
+   * 始まりを選んだあと、押せない日をまたぐ日は選べません
+   * @default false
+   */
+  excludeDisabled?: boolean;
 }
 
 export type CalendarProps = CalendarSingleProps | CalendarRangeProps;
@@ -306,6 +348,10 @@ interface CalendarContextValue {
   /** 期間の始まりだけを選び、別の日を指しているときの仮の期間（YYYY-MM-DD。from が前）。pointed は指している側 */
   tentative: { from: string; to: string; pointed: 'from' | 'to' } | null;
   navPlacement: CalendarNavPlacement;
+  /** 日ごとの印 */
+  renderDayContent?: (date: PlainDate) => ReactNode;
+  /** 期間の長さの制約で選べない日か（始まりだけを選んだあいだ） */
+  isConstrained: (iso: string) => boolean;
   /** 利用者が渡した、いちばん外の要素の ref */
   rootRef?: Ref<HTMLDivElement>;
 }
@@ -316,15 +362,18 @@ const CalendarContext = createContext<CalendarContextValue>({
   holidayOf: () => undefined,
   tentative: null,
   navPlacement: 'sides',
+  isConstrained: () => false,
 });
 
 // 日のセル。状態を 1 つの data-look にまとめ、範囲の帯（data-band）と色（data-tone）を足す
 // 押せないことは、選んでいることより先に見せる（原則1）
 function CalendarDay({ day, modifiers, className, ...props }: DayProps) {
-  const { rangeComplete, holidayOf, tentative } = use(CalendarContext);
+  const { rangeComplete, holidayOf, tentative, isConstrained } = use(CalendarContext);
   const iso = day.isoDate;
   const look = modifiers.disabled
-    ? 'disabled'
+    ? isConstrained(iso)
+      ? 'constrained'
+      : 'disabled'
     : modifiers.range_middle
       ? 'band'
       : modifiers.selected
@@ -368,6 +417,19 @@ function CalendarDay({ day, modifiers, className, ...props }: DayProps) {
       data-tentative={tentativeBand ? '' : undefined}
       data-tone={tone}
     />
+  );
+}
+
+// 日のボタン。react-day-picker のボタン（フォーカスを移す仕組み）に、数字と日ごとの印を入れる
+function CalendarDayButton({ children, ...props }: DayButtonProps) {
+  const { renderDayContent } = use(CalendarContext);
+  const content = renderDayContent?.(fromDate(props.day.date));
+  const hasContent = content != null && content !== false;
+  return (
+    <BaseDayButton {...props} data-has-content={hasContent ? '' : undefined}>
+      <span className={styles.dayNumber()}>{children}</span>
+      {hasContent && <span className={styles.dayContent()}>{content}</span>}
+    </BaseDayButton>
   );
 }
 
@@ -415,12 +477,47 @@ function CalendarRoot({ rootRef, ...props }: RootProps) {
 const components = {
   Root: CalendarRoot,
   Day: CalendarDay,
+  DayButton: CalendarDayButton,
   Weekday: CalendarWeekday,
   PreviousMonthButton: (props: PreviousMonthButtonProps) => (
     <MonthButton direction="previous" {...props} />
   ),
   NextMonthButton: (props: PreviousMonthButtonProps) => <MonthButton direction="next" {...props} />,
 };
+
+// 期間の始まりから数えて、長さの制約（minRangeDays・maxRangeDays・excludeDisabled）で選べない日か。YYYY-MM-DD で受ける
+// 始まりの日そのものと、もとから押せない日は含めない（押せない日の見た目のまま）
+function constrainedDays(
+  start: PlainDate | null,
+  {
+    minRangeDays,
+    maxRangeDays,
+    excludeDisabled,
+  }: Pick<CalendarRangeProps, 'minRangeDays' | 'maxRangeDays' | 'excludeDisabled'>,
+  baseDisabled: (date: PlainDate) => boolean
+): (iso: string) => boolean {
+  if (!start || (!minRangeDays && !maxRangeDays && !excludeDisabled)) return () => false;
+  // 押せない日をまたがない: 始まりから前後に、最初の押せない日までの日数を数える（見る範囲は最長の期間か 2 年）
+  const reach = maxRangeDays ?? 731;
+  const firstDisabled = (step: 1 | -1) => {
+    if (!excludeDisabled) return null;
+    for (let k = 1; k < reach; k++) if (baseDisabled(start.add({ days: k * step }))) return k;
+    return null;
+  };
+  const after = firstDisabled(1);
+  const before = firstDisabled(-1);
+  return (iso) => {
+    const date = Temporal.PlainDate.from(iso);
+    const offset = start.until(date).days;
+    if (offset === 0 || baseDisabled(date)) return false;
+    const length = Math.abs(offset) + 1;
+    if (minRangeDays && length < minRangeDays) return true;
+    if (maxRangeDays && length > maxRangeDays) return true;
+    if (offset > 0 && after !== null && offset >= after) return true;
+    if (offset < 0 && before !== null && -offset >= before) return true;
+    return false;
+  };
+}
 
 function useControlled<T>(value: T | undefined, defaultValue: T) {
   const [inner, setInner] = useState(defaultValue);
@@ -442,6 +539,8 @@ export function Calendar(props: CalendarProps) {
     max,
     isDateDisabled,
     getHoliday,
+    renderDayContent,
+    weekStartsOn,
     month,
     defaultMonth,
     onMonthChange,
@@ -489,12 +588,24 @@ export function Calendar(props: CalendarProps) {
   if (max) disabled.push({ after: toDate(max) });
   if (isDateDisabled) disabled.push((date: Date) => isDateDisabled(fromDate(date)));
 
+  // 期間の始まりだけを選んだあいだ、長さの制約で選べない日を足す
+  const rangeStartDate = props.mode === 'range' && range && !range.end ? range.start : null;
+  const isConstrained = constrainedDays(
+    rangeStartDate,
+    props.mode === 'range' ? props : {},
+    (date) =>
+      (min != null && Temporal.PlainDate.compare(date, min) < 0) ||
+      (max != null && Temporal.PlainDate.compare(date, max) > 0) ||
+      (isDateDisabled?.(date) ?? false)
+  );
+  if (rangeStartDate) disabled.push((date: Date) => isConstrained(fromDate(date).toString()));
+
   // 月を送るときの動き（ADR-0142）。動かさないときは react-day-picker の動きを使わない
   const fade = monthTransition === 'fade';
 
   const shared = {
     lang: locale,
-    weekStartsOn: weekStartOf(locale),
+    weekStartsOn: weekStartsOn ?? weekStartOf(locale),
     today: toDate(today),
     navLayout: 'around' as const,
     fixedWeeks: true,
@@ -551,7 +662,7 @@ export function Calendar(props: CalendarProps) {
     },
   };
 
-  const rangeStart = props.mode === 'range' && range && !range.end ? range.start.toString() : null;
+  const rangeStart = rangeStartDate ? rangeStartDate.toString() : null;
   const context: CalendarContextValue = {
     rangeComplete: Boolean(range?.start && range.end),
     weekdayOf: intl.weekdayOf,
@@ -563,12 +674,16 @@ export function Calendar(props: CalendarProps) {
           : { from: rangeStart, to: pointed, pointed: 'to' }
         : null,
     navPlacement,
+    renderDayContent,
+    isConstrained,
     rootRef: ref,
   };
   // 仮の帯を出すのは、期間の始まりだけを選んだあとだけ
   const pointing = rangeStart
     ? {
-        onDayMouseEnter: (date: Date) => setPointed(fromDate(date).toString()),
+        // 選べない日は指さない（仮の帯を、選べない日まで伸ばさない）
+        onDayMouseEnter: (date: Date, modifiers: Record<string, boolean>) =>
+          setPointed(modifiers.disabled ? null : fromDate(date).toString()),
         onDayMouseLeave: () => setPointed(null),
         onDayFocus: (date: Date) => setPointed(fromDate(date).toString()),
         onDayBlur: () => setPointed(null),
@@ -584,6 +699,14 @@ export function Calendar(props: CalendarProps) {
     //   始まりだけのとき: 押した日を終わりにする（前の日なら入れ替える。同じ日なら 1 日の期間）
     const onSelect = (_next: DateRange | undefined, triggerDate: Date) => {
       const date = fromDate(triggerDate);
+      // 始まりの日をもう一度押すと 1 日の期間になる。それより長い期間が要るときは、始まりのまま待つ
+      if (
+        range &&
+        !range.end &&
+        date.equals(range.start) &&
+        (props.minRangeDays ?? 1) > 1
+      )
+        return;
       const value: CalendarRange =
         range && !range.end
           ? Temporal.PlainDate.compare(date, range.start) < 0

@@ -1433,6 +1433,17 @@
   --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
+  /* 期間の始まりを選んだあと、長さの制約（minRangeDays・maxRangeDays・excludeDisabled）で選べない日（比較中）
+     いまは押せない日と同じ薄い文字で、線を引かない */
+  --color-calendar-constrained: var(--color-on-field-disabled);
+  --calendar-constrained-decoration: none;
+  /* 日ごとの印（renderDayContent。比較中）。日のボタンいっぱいの箱の中で、どこに寄せるか
+     inset は日のボタンの内側からの位置。数字は印があるときだけ、縦に shift だけずらす */
+  --calendar-day-content-inset: auto 0 calc(var(--spacing) * 2) 0;
+  --calendar-day-content-justify: center;
+  --calendar-day-content-align: flex-end;
+  --calendar-day-content-text: 10px;
+  --calendar-day-number-shift: calc(var(--spacing) * -1.5);
   /* ── END calendar */
 
   /* ── Avatar — 軸 140・141 ── BEGIN avatar */
