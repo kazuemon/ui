@@ -1,13 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { useState } from 'react';
+import { expect, spyOn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Dialog } from './Dialog';
+import { Dialog, DialogActions } from './Dialog';
 import { OverlayClose } from '../../internal/overlay/overlay-close';
 import { PhoneFrame, ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { Form } from '../form/Form';
+import { Stack } from '../stack/Stack';
 import { TextField } from '../text-field/TextField';
+import { Textarea } from '../textarea/Textarea';
 
 // 開いた状態のストーリーも、ドキュメントのページでは閉じて描く（開くとフォーカスが移り、ページが流れるため）
 const openOnLoad = (viewMode: string) => viewMode !== 'docs';
@@ -32,6 +36,7 @@ const meta = {
           '- `title` は見出しの題で、読み上げでは開いた面の名前になります。補足は `description` に書きます。中身の見出しや画像で何の面か分かるときは `title` を省けます。そのときは `accessibleName` に読み上げの名前を書きます（どちらか一方が要ります）。',
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。開閉を外から決めるときは `open`・`onOpenChange` を使います。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。最も進めたい操作を右端に置き、色を付けます。',
+          '- 中身の `Form` の送信のボタンを下に並べるときは、`actions` の代わりに、`Form` の中の最後に `DialogActions` を置きます。見た目は `actions` と同じ下の帯のままで、送信のボタンが `Form` の送信・Enter・送信中にそのまま加わります。`actions` と `DialogActions` は、どちらか一方にします。',
           '- 閉じる手段は、右上の ×、Esc、後ろの画面を押す、の3つです。入力の途中で閉じると困るときは `dismissible={false}` で後ろの画面を押しても閉じないようにし、答えるまで閉じたくないときは `closeOnEscape={false}` と `hideCloseButton` も付けて、`actions` のボタンだけで閉じるようにします。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。シートのときは、下のボタンを幅いっぱいで縦に積み、最後に渡した主な操作を上にします。並べ方は `actionsLayout` で変えられます（`stack` 渡した順に上から・`end` 右寄せ・`fill` 幅を等分）。中央に浮かべるときは、いつも右寄せです。',
           '- 裏を止めたくないときは `modal={false}`、後ろを見せたまま外を押しても閉じないようにするときは `modal="passive"` にします。シートで出すときに、はじいて閉じるかだけを変えるときは `closeOnSwipe` です。',
@@ -197,6 +202,232 @@ export const Sheet: Story = {
       )}
     </PhoneFrame>
   ),
+};
+
+// 送ると少しのあいだ送信中にし、終わったら閉じる。送った値は面の外に書き出す
+function ProfileFormDialog({
+  presentation,
+  frame,
+  defaultOpen,
+  long = false,
+}: {
+  presentation: 'popover' | 'sheet';
+  frame: HTMLElement;
+  defaultOpen: boolean;
+  long?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [submitting, setSubmitting] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+  return (
+    <>
+      <Dialog
+        title="プロフィールを編集"
+        description="公開するプロフィールに表示されます。"
+        presentation={presentation}
+        trigger={<Button>プロフィールを編集</Button>}
+        open={open}
+        onOpenChange={setOpen}
+        portalContainer={frame}
+      >
+        <Form
+          submitting={submitting}
+          onFormSubmit={(values) => {
+            setSubmitting(true);
+            setTimeout(() => {
+              setSubmitting(false);
+              setSaved(String(values.displayName));
+              setOpen(false);
+            }, 300);
+          }}
+        >
+          <Stack>
+            <TextField
+              name="displayName"
+              label="表示名"
+              defaultValue="かずえもん"
+              required
+              validate={(value) => (value ? null : '表示名を入力してください')}
+            />
+            <Textarea name="bio" label="自己紹介" />
+            {long && (
+              <>
+                <TextField name="location" label="場所" />
+                <TextField name="website" label="ウェブサイト" />
+                <Textarea name="note" label="メモ" />
+              </>
+            )}
+          </Stack>
+          <DialogActions>
+            <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
+            <Button type="submit" color="primary">
+              保存する
+            </Button>
+          </DialogActions>
+        </Form>
+      </Dialog>
+      {saved != null && <output>保存しました: {saved}</output>}
+    </>
+  );
+}
+
+const formSource = sourceCode(`
+  <Dialog title="プロフィールを編集" trigger={<Button>プロフィールを編集</Button>} open={open} onOpenChange={setOpen}>
+    <Form submitting={submitting} onFormSubmit={save}>
+      <Stack>
+        <TextField name="displayName" label="表示名" required />
+        <Textarea name="bio" label="自己紹介" />
+      </Stack>
+      <DialogActions>
+        <OverlayClose render={<Button variant="outline">キャンセル</Button>} />
+        <Button type="submit" color="primary">保存する</Button>
+      </DialogActions>
+    </Form>
+  </Dialog>
+`);
+
+export const WithForm: Story = {
+  tags: ['visual'],
+  name: 'Form と組む',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`Form` の中の最後に `DialogActions` を置くと、下のボタンが `Form` の中に入ります。入力欄で Enter を押すと送信し、送っているあいだ（`submitting`）は送信のボタンが送信中になります。値は欄の `name` で `onFormSubmit` に届きます。',
+      },
+      source: formSource,
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <ScreenFrame>
+      {(frame) => (
+        <ProfileFormDialog
+          presentation="popover"
+          frame={frame}
+          defaultOpen={openOnLoad(viewMode)}
+        />
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: 'プロフィールを編集' });
+    const save = within(dialog).getByRole('button', { name: '保存する' });
+    const input = within(dialog).getByRole('textbox', { name: '表示名' });
+    // 下の帯は Form の中にあり、送信のボタンは Form の送信のボタン
+    const form = input.closest('form');
+    await expect(form).not.toBeNull();
+    await expect(save.closest('[data-slot="dialog-footer"]')?.closest('form')).toBe(form);
+    await expect(save).toHaveProperty('form', form);
+    await expect(new FormData(form!).get('displayName')).toBe('かずえもん');
+  },
+};
+
+// 入力欄の Enter で送信し、送っているあいだは送信のボタンが送信中になり、送り終えたら閉じる
+export const FormSubmit: Story = {
+  name: 'Form と組む（送信）',
+  tags: ['!autodocs'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ScreenFrame>
+      {(frame) => <ProfileFormDialog presentation="popover" frame={frame} defaultOpen />}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: 'プロフィールを編集' });
+    const save = within(dialog).getByRole('button', { name: '保存する' });
+    const input = within(dialog).getByRole('textbox', { name: '表示名' });
+    // 欄の確かめを通らないときは送らない
+    await userEvent.clear(input);
+    await userEvent.keyboard('{Enter}');
+    await expect(await within(dialog).findByText('表示名を入力してください')).toBeVisible();
+    await expect(save).not.toHaveAttribute('data-loading');
+    await expect(body.getByRole('dialog')).toBeInTheDocument();
+    await userEvent.type(input, 'かずえもんさん{Enter}');
+    await waitFor(() => expect(save).toHaveAttribute('data-loading'));
+    await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
+    await expect(within(canvasElement).getByText('保存しました: かずえもんさん')).toBeVisible();
+  },
+};
+
+export const WithFormSheet: Story = {
+  tags: ['visual'],
+  name: 'Form と組む（シート）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'シートで出すときも、`DialogActions` は `actions` と同じ下の帯になります。中身が長いときは中身だけがスクロールし、帯は下の端に残ります。',
+      },
+      source: formSource,
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <ProfileFormDialog
+          presentation="sheet"
+          frame={frame}
+          defaultOpen={openOnLoad(viewMode)}
+          long
+        />
+      )}
+    </PhoneFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: 'プロフィールを編集' });
+    const footer = dialog.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    const content = dialog.querySelector<HTMLElement>('[data-slot="sheet-content"]')!;
+    await expect(footer.closest('form')).not.toBeNull();
+    // 帯は下から出すシートの並べ方（縦に積む）のまま
+    await expect(footer).toHaveAttribute('data-layout', 'stack-reverse');
+    // 中身はスクロールし、上の端にいても下の端にいても、帯は面の下の端にある
+    await waitFor(() => expect(content.scrollHeight).toBeGreaterThan(content.clientHeight));
+    const atBottom = () =>
+      Math.abs(footer.getBoundingClientRect().bottom - content.getBoundingClientRect().bottom);
+    await waitFor(() => expect(atBottom()).toBeLessThan(1));
+    content.scrollTop = content.scrollHeight;
+    await waitFor(() => expect(atBottom()).toBeLessThan(1));
+    content.scrollTop = 0;
+  },
+};
+
+// actions と DialogActions を両方渡したときは、開発時に警告する
+export const BothActions: Story = {
+  name: 'actions と両方渡したとき',
+  tags: ['!autodocs'],
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <Dialog
+      {...args}
+      presentation="popover"
+      trigger={<Button>プロフィールを編集</Button>}
+      actions={actions}
+    >
+      <TextField label="表示名" defaultValue="かずえもん" />
+      <DialogActions>
+        <Button color="primary">保存する</Button>
+      </DialogActions>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const warn = spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await userEvent.click(
+        within(canvasElement).getByRole('button', { name: 'プロフィールを編集' })
+      );
+      await within(canvasElement.ownerDocument.body).findByRole('dialog');
+      await waitFor(() =>
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('DialogActions: 面の actions'))
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  },
 };
 
 export const Required: Story = {
