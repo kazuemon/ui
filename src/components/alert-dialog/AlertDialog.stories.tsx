@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, spyOn, userEvent, waitFor, within } from 'storybook/test';
 
 import { AlertDialog, AlertDialogActions } from './AlertDialog';
 import { PhoneFrame, ScreenFrame } from '../../stories/story-parts';
@@ -307,8 +307,12 @@ export const WithActionsRun: Story = {
   ),
   play: async ({ args, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);
+    const warn = spyOn(console, 'warn');
     await userEvent.click(within(canvasElement).getByRole('button', { name: '名前で削除' }));
     const dialog = await body.findByRole('alertdialog');
+    // 正しく置いたときは、開発時の警告を出さない
+    await expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('AlertDialogActions'));
+    warn.mockRestore();
     await expect(
       dialog.querySelector('[data-slot="dialog-footer"]')?.closest('form')
     ).not.toBeNull();

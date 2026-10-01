@@ -39,7 +39,7 @@ export interface OverlayActionsProps extends ComponentProps<'div'> {
 }
 
 /** 面の下の操作の帯。置いた場所（中身の中）に描き、見た目は面の actions の帯と同じにする */
-export function OverlayActions({ name, className, ...props }: OverlayActionsProps) {
+export function OverlayActions({ name, className, children, ...props }: OverlayActionsProps) {
   const slot = use(OverlayActionsContext);
   const register = slot?.register;
   useLayoutEffect(() => register?.(), [register]);
@@ -53,7 +53,13 @@ export function OverlayActions({ name, className, ...props }: OverlayActionsProp
       );
     }
   }, [slot, actionsGiven, name]);
-  if (!slot) return <div {...props} className={styles({ className })} />;
+  if (!slot) {
+    return (
+      <div {...props} className={styles({ className })}>
+        {children}
+      </div>
+    );
+  }
   const sticky = slot.kind !== 'dialog';
   return (
     <div
@@ -72,7 +78,7 @@ export function OverlayActions({ name, className, ...props }: OverlayActionsProp
           attached
         />
       )}
-      {props.children}
+      {children}
     </div>
   );
 }
