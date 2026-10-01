@@ -1433,19 +1433,12 @@
   --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
-  /* 日ごとの印（renderDayContent。比較中）。日のボタンいっぱいの箱の中で、どこに寄せるか
-     inset は日のボタンの内側からの位置。数字は印があるときだけ、縦に shift だけずらす */
-  --calendar-day-content-inset: auto 0 calc(var(--spacing) * 2) 0;
-  --calendar-day-content-justify: center;
-  --calendar-day-content-align: flex-end;
+  /* 日ごとの印（renderDayContent）。日のボタンの下の中央に置き、印を持つ日がある月はすべての日の数字を上へずらす */
+  --calendar-day-content-bottom: calc(var(--spacing) * 1.75);
   --calendar-day-content-text: 10px;
-  --calendar-day-number-shift: calc(var(--spacing) * -1.5);
-  /* 印を持つ日がある月で、印のない日の数字も同じだけずらすか（0・1。比較中）。1 ならすべての日の数字の高さがそろう */
-  --calendar-day-content-reserve: 0;
-  /* 今日の下線を、日のボタンの下ではなく数字のすぐ下に引くか（0・1。比較中）。1 なら下線はいつも数字と印のあいだ */
-  --calendar-today-mark-on-number: 0;
-  /* 数字のすぐ下に引くときの、数字の行の下からの位置（比較中） */
-  --calendar-today-mark-offset: calc(var(--spacing) * 0.75);
+  --calendar-day-number-shift: calc(var(--spacing) * -2.25);
+  /* 印を持つ日がある月で、今日の下線を引く、数字の行の下からの位置（数字と印のあいだ） */
+  --calendar-today-mark-offset: calc(var(--spacing) * -0.75);
   /* ── END calendar */
 
   /* ── Avatar — 軸 140・141 ── BEGIN avatar */

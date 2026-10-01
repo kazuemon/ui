@@ -46,7 +46,8 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //   --day-hover・--day-press    ボタンが置く、文字の色を敷く濃さ。濃いほうを使う
 //   --day-strike                選べない日（期間の長さの制約で選べない日）の取り消し線
 //
-// 日ごとの印（renderDayContent）は、日のボタンの中に重ねる。置き場・大きさ・数字のずらし方はトークン（--calendar-day-content-*）
+// 日ごとの印（renderDayContent）は、日のボタンの下の中央に重ねる。印を持つ日がある月は、すべての日の数字を印の分だけ上へずらし、
+// 数字の高さを横でそろえる。今日の下線は数字のすぐ下（数字と印のあいだ）に引く
 const calendar = tv({
   slots: {
     root: [
@@ -69,7 +70,7 @@ const calendar = tv({
     next: 'order-2',
     grid: [
       'order-3 col-span-full w-full table-fixed border-separate border-spacing-0',
-      // 日ごとの印を持つ日がある月（--calendar-day-content-reserve が 1 なら、すべての日の数字を印の分ずらす）
+      // 日ごとの印を持つ日がある月。印のない日も含め、すべての日の数字を印の分ずらす
       'has-[[data-has-content]]:[--cal-month-content:1]',
     ],
     // 月を送るとき、その場でふわっと入れ替える（monthTransition="fade" — ADR-0142）
@@ -116,9 +117,8 @@ const calendar = tv({
       '[font-weight:max(var(--day-weight-look),var(--day-weight-today))]',
       'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press)))]',
       // 今日の下線（ADR-0135）。文字の色なので、選んだ日の上では白くなる
-      // --calendar-today-mark-on-number が 1 なら、下線は数字のすぐ下（数字の印のあいだ）に引く（dayNumber）
-      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--calendar-today-mark-on-number)))]',
-      '[--day-own-content:0] data-has-content:[--day-own-content:1]',
+      // 印を持つ日がある月では、下線は数字のすぐ下（数字と印のあいだ）に引く（dayNumber）
+      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--cal-month-content)))]',
       'enabled:hover:[--day-hover:var(--flat-hover-mix)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--day-press:var(--flat-press-mix)]',
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため
@@ -126,16 +126,14 @@ const calendar = tv({
       'disabled:cursor-not-allowed',
       '[text-decoration-line:var(--day-strike)] [text-decoration-thickness:var(--border-width-thin)]',
     ],
-    // 日の数字。印（renderDayContent）があるときは、印の分だけずらす
-    // --calendar-day-content-reserve が 1 なら、印を持つ日がある月では、印のない日も同じだけずらす
+    // 日の数字。印（renderDayContent）を持つ日がある月は、印のない日も含めて印の分だけ上へずらす
     dayNumber: [
-      'relative [translate:0_calc(var(--calendar-day-number-shift)*max(var(--day-own-content),var(--cal-month-content)*var(--calendar-day-content-reserve)))]',
-      'after:absolute after:top-[calc(100%+var(--calendar-today-mark-offset))] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*var(--calendar-today-mark-on-number))]',
+      'relative [translate:0_calc(var(--calendar-day-number-shift)*var(--cal-month-content))]',
+      'after:absolute after:top-[calc(100%+var(--calendar-today-mark-offset))] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*var(--cal-month-content))]',
     ],
-    // 日ごとの印。日のボタンいっぱいの箱の中で、トークンの置き場に寄せる。押すのは日のボタン
+    // 日ごとの印。日のボタンの下の中央に置く。押すのは日のボタン
     dayContent: [
-      'pointer-events-none absolute [inset:var(--calendar-day-content-inset)] flex',
-      '[align-items:var(--calendar-day-content-align)] [justify-content:var(--calendar-day-content-justify)]',
+      'pointer-events-none absolute inset-x-0 bottom-(--calendar-day-content-bottom) flex items-end justify-center',
       'text-(length:--calendar-day-content-text) leading-none font-normal',
     ],
   },

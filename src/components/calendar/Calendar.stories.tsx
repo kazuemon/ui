@@ -251,6 +251,35 @@ export const MonthTransition: Story = {
   args: { monthTransition: 'fade', defaultValue: Temporal.PlainDate.from('2026-09-24') },
 };
 
+// 見本の日ごとの印: 空きのある日に点、残りわずかな日に「残 n」
+const openDays = new Set([3, 4, 8, 10, 11, 12, 15, 17, 22, 24, 25, 29]);
+const fewLeft: Record<number, number> = { 5: 2, 9: 1, 16: 3, 19: 2, 23: 1, 26: 2 };
+const dotContent = (date: Temporal.PlainDate) =>
+  date.month === 9 && openDays.has(date.day) ? (
+    <span className="size-1.5 rounded-full bg-current" />
+  ) : null;
+const textContent = (date: Temporal.PlainDate) =>
+  date.month === 9 && fewLeft[date.day] ? `残${fewLeft[date.day]}` : null;
+
+export const DayContent: Story = {
+  tags: ['visual'],
+  name: '日ごとの印',
+  render: (args) => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="点の印">
+        <Calendar {...(args as CalendarSingleProps)} renderDayContent={dotContent} />
+      </Specimen>
+      <Specimen label="文字の印・選んだ日">
+        <Calendar
+          {...(args as CalendarSingleProps)}
+          defaultValue={Temporal.PlainDate.from('2026-09-16')}
+          renderDayContent={textContent}
+        />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
 export const Densities: Story = {
   tags: ['visual'],
   name: '密度',
