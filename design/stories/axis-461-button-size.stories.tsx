@@ -134,7 +134,7 @@ const columns: Column[] = [
 
 function SizeRow({ size }: { size: 'sm' | 'md' | undefined }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2">
       <Button size={size} color="primary">
         保存
       </Button>

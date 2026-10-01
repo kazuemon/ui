@@ -100,7 +100,7 @@ const candidates: Candidate[] = [
     id: 'D',
     name: '点だけ（10px）',
     intent:
-      'マーカーを数字も印も持たない 10px の点にする。いちばん小さく収まるが、完了といまの段は点の色では分からず、ラベルの太さと線の色で見分ける',
+      'マーカーを数字も印も持たない 10px の点にする。いちばん小さく収まるが、完了といまの段は点の色では分からず、ラベルの太さと線の色で見分ける。エラーの段の点は淡い赤だけで、ほとんど見えない',
     spec: [
       ['マーカー', '10px・数字と印なし'],
       ['ラベル', '14px（行 20px）'],
@@ -120,7 +120,7 @@ const candidates: Candidate[] = [
 ];
 
 const columns: Column[] = [
-  { label: '横並び（マウス）', note: '3 段目がいまの段。ダイアログの幅（360px）' },
+  { label: '横並び（マウス）', note: '3 段目がいまの段。ダイアログの幅（420px）' },
   { label: '横並び（指）', note: 'data-density="coarse"' },
   { label: '縦並び', note: '説明つき・エラーの段' },
 ];
@@ -151,13 +151,13 @@ export const Axis: Story = {
         switch (column.label) {
           case '横並び（マウス）':
             return (
-              <div data-density="fine" className="w-[360px]">
+              <div data-density="fine" className="w-[420px]">
                 <Steps candidate={candidate} />
               </div>
             );
           case '横並び（指）':
             return (
-              <div data-density="coarse" className="w-[360px]">
+              <div data-density="coarse" className="w-[420px]">
                 <Steps candidate={candidate} />
               </div>
             );
