@@ -18,12 +18,12 @@ const meta = {
       focusVisible: '[data-slot="card"]',
     }),
   },
-  args: { pick: 'A' },
+  args: { pick: '' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D', 'E', 'F'],
+      options: ['', 'current', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'G2'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -167,6 +167,46 @@ const candidates: Candidate[] = [
       '--card-emphasis-halo-base': 'var(--color-line-strong)',
     },
   },
+  {
+    id: 'G',
+    name: '青い淡い輪（E の輪を primary から）',
+    intent:
+      'E の派生。面と輪郭は default のまま、輪の色を青（primary）から作る。幅と濃さは E・Timeline の強調の輪と同じ。選んでいる見た目（輪郭の上に重ねる線）とは、線ではなく外側のにじみで分ける',
+    spec: [
+      ['面', '白（変えない）'],
+      ['輪郭', '細い線（輪郭の色）1px（変えない）'],
+      ['輪', '外側 4px・青（primary）を 45% に薄めた色'],
+    ],
+    tokens: {
+      '--card-emphasis-fill': 'var(--color-surface)',
+      '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
+      '--card-emphasis-line': 'var(--color-surface-line)',
+      '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': 'var(--timeline-emphasis-halo)',
+      '--card-emphasis-halo-mix': 'var(--timeline-emphasis-halo-mix)',
+      '--card-emphasis-halo-base': 'var(--color-primary)',
+    },
+  },
+  {
+    id: 'G2',
+    name: '青い輪（G を濃く）',
+    intent:
+      'G の輪を濃くした案。幅は同じ 4px で、青（primary）を 70% の濃さで混ぜた色にする（G は 45%）。輪だけで遠目にも分かる強さ',
+    spec: [
+      ['面', '白（変えない）'],
+      ['輪郭', '細い線（輪郭の色）1px（変えない）'],
+      ['輪', '外側 4px・青（primary）を 70% の濃さ'],
+    ],
+    tokens: {
+      '--card-emphasis-fill': 'var(--color-surface)',
+      '--card-emphasis-fill-hover': 'var(--card-fill-hover)',
+      '--card-emphasis-line': 'var(--color-surface-line)',
+      '--card-emphasis-line-width': 'var(--border-width-thin)',
+      '--card-emphasis-halo': 'var(--timeline-emphasis-halo)',
+      '--card-emphasis-halo-mix': '70%',
+      '--card-emphasis-halo-base': 'var(--color-primary)',
+    },
+  },
 ];
 
 const columns: Column[] = [
@@ -174,10 +214,43 @@ const columns: Column[] = [
   { label: '押せる・通常', note: 'href あり・画像つき' },
   { label: '押せる・hover', preview: 'hover' },
   { label: '押せる・フォーカス', note: 'キーボード', preview: 'focus' },
+  {
+    label: '選んでいる（line）と並べる',
+    note: '押せる 3 枚。左が emphasis、真ん中が selected（selectedIndicator="line"）',
+  },
+  {
+    label: '選んでいる（fill）と並べる',
+    note: '押せる 3 枚。左が emphasis、真ん中が selected（selectedIndicator="fill"）',
+  },
+  {
+    label: '強調と選んでいるを同時に',
+    note: '押せる 3 枚。左が default、真ん中が emphasis＋selected（line）、右が emphasis＋selected（fill）',
+  },
 ];
 
-const Plan = ({ name, price, emphasis }: { name: string; price: string; emphasis?: boolean }) => (
-  <Card variant={emphasis ? 'emphasis' : 'default'}>
+const noop = () => {};
+
+const Plan = ({
+  name,
+  price,
+  emphasis,
+  selected,
+  indicator,
+  pressable,
+}: {
+  name: string;
+  price: string;
+  emphasis?: boolean;
+  selected?: boolean;
+  indicator?: 'line' | 'fill';
+  pressable?: boolean;
+}) => (
+  <Card
+    variant={emphasis ? 'emphasis' : 'default'}
+    selected={selected}
+    selectedIndicator={indicator}
+    onClick={pressable ? noop : undefined}
+  >
     <CardBody>
       <Text size="sm" variant="subtle">
         {emphasis ? 'おすすめ' : 'プラン'}
@@ -201,7 +274,40 @@ export const Axis: Story = {
       candidates={candidates}
       columns={columns}
       renderCell={(column) =>
-        column.label === '並べたとき' ? (
+        column.label === '選んでいる（line）と並べる' ||
+        column.label === '選んでいる（fill）と並べる' ? (
+          <div className="grid w-[480px] grid-cols-3 gap-3">
+            <Plan name="スタンダード" price="月 500 円" emphasis pressable />
+            <Plan
+              name="チーム"
+              price="月 1,500 円"
+              selected
+              indicator={column.label.includes('line') ? 'line' : 'fill'}
+              pressable
+            />
+            <Plan name="フリー" price="0 円" pressable />
+          </div>
+        ) : column.label === '強調と選んでいるを同時に' ? (
+          <div className="grid w-[480px] grid-cols-3 gap-3">
+            <Plan name="フリー" price="0 円" pressable />
+            <Plan
+              name="スタンダード"
+              price="月 500 円"
+              emphasis
+              selected
+              indicator="line"
+              pressable
+            />
+            <Plan
+              name="スタンダード"
+              price="月 500 円"
+              emphasis
+              selected
+              indicator="fill"
+              pressable
+            />
+          </div>
+        ) : column.label === '並べたとき' ? (
           <div className="grid w-[480px] grid-cols-3 gap-3">
             <Plan name="フリー" price="0 円" />
             <Plan name="スタンダード" price="月 500 円" emphasis />
@@ -225,9 +331,12 @@ export const Axis: Story = {
       }
     >
       <p>
-        決定: variant="emphasis" は A（面は白のまま、輪郭を青（primary）の 2px）。ユーザーの返事「Step?
-        と同じ emphasis の案を足せますか?」（E・F を足した）、「悩んでいます。一旦後回しにします。」、「415
-        は悩みましたが A でお願いします」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+        比べ直し中: 一度 A（青い輪郭
+        2px）に決めたが、選んでいる見た目の線だけの形（line）と紛れるため、E
+        の輪を青（primary）から作る G・G2 を足した。ユーザーの返事「Step? と同じ emphasis
+        の案を足せますか?」（E・F を足した）、「悩んでいます。一旦後回しにします。」、「415
+        は悩みましたが A でお願いします」、「その場合、E で影が primary
+        とかだといいのかもですね。」。
       </p>
       <p>
         Card の variant に、強調の形 emphasis を足します。画像の置き方は default
@@ -236,7 +345,8 @@ export const Axis: Story = {
       </p>
       <p>
         選ぶのは面の塗りと輪郭の色・太さです。押せるときの hover の塗りも、面に合わせて決めます。軸
-        413（選んでいる見た目）と並んだときに紛れないかも見てください。
+        413（選んでいる見た目）と並んだときに紛れないかは、右の 3
+        列（選んでいるカードと並べる・同時に付ける）で見てください。
       </p>
     </Comparison>
   ),
