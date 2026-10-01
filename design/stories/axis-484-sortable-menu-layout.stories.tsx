@@ -4,15 +4,8 @@ import { useState } from 'react';
 import { type Candidate, type Column, Comparison } from './Comparison';
 import { Menu } from '../../src/components/menu/Menu';
 import { MenuItem } from '../../src/components/menu/MenuItem';
-import type {
-  ListContextValue,
-  SortableMenuLayout,
-} from '../../src/components/sortable/sortable-context';
+import type { ListContextValue } from '../../src/components/sortable/sortable-context';
 import { MoveMenuItems } from '../../src/components/sortable/SortableMoveActions';
-import {
-  defaultMoveToTargetLabel,
-  defaultSwapLabel,
-} from '../../src/components/sortable/use-sortable-list';
 
 // 軸 484: ︙ のメニューに足す「〜へ移動」（ほかのリストへ）・「〜と入れ替え」の並べ方
 const meta = {
@@ -78,12 +71,8 @@ const candidates: Candidate[] = [
   },
 ];
 
-const layoutOf: Record<string, SortableMenuLayout | undefined> = {
-  現行版: undefined,
-  A: 'flat',
-  B: 'submenu',
-  C: 'group',
-};
+// 決めたあと、部品は移す先・入れ替えを組み立てなくなった。どの行も決めた形（既定の移動の項目＋menu）で描く。
+//   候補の見た目は、決定を書いた design: のコミットで比べられる
 
 const columns: Column[] = [
   { label: '︙ を開いたところ', note: '「下書きを書く」の ︙。移す先 2 つ、入れ替える相手 3 つ' },
@@ -91,51 +80,29 @@ const columns: Column[] = [
 ];
 
 const order = ['draft', 'review', 'image', 'publish'];
-const names = new Map([
-  ['draft', '下書きを書く'],
-  ['review', '見直しを頼む'],
-  ['image', '見出しの画像を作る'],
-  ['publish', '公開する'],
-]);
 const noop = () => {};
 
-function listValue(layout: SortableMenuLayout | undefined): ListContextValue {
-  return {
-    variant: 'card',
-    dragSourceVariant: 'outline',
-    grabArea: 'handle',
-    disabled: false,
-    instructionId: '',
-    moveActions: 'item-menu',
-    labels: {
-      up: '上へ移動',
-      down: '下へ移動',
-      first: '先頭へ移動',
-      last: '末尾へ移動',
-      menu: '移動',
-      swap: defaultSwapLabel,
-      moveTo: defaultMoveToTargetLabel,
-      moveToTitle: '別のリストへ移動',
-      swapTitle: '入れ替え',
-    },
-    order,
-    moveTargets: layout
-      ? [
-          { value: 'later', label: 'あとで' },
-          { value: 'done', label: '済み' },
-        ]
-      : undefined,
-    showSwapActions: layout != null,
-    menuLayout: layout ?? 'flat',
-    names,
-    moveTo: noop,
-    swap: noop,
-    moveToTarget: noop,
-    claimFocus: () => false,
-  };
-}
+const list: ListContextValue = {
+  variant: 'card',
+  dragSourceVariant: 'outline',
+  grabArea: 'handle',
+  disabled: false,
+  instructionId: '',
+  moveActions: 'item-menu',
+  labels: {
+    up: '上へ移動',
+    down: '下へ移動',
+    first: '先頭へ移動',
+    last: '末尾へ移動',
+    menu: '移動',
+  },
+  order,
+  hideMoveItems: false,
+  moveTo: noop,
+  claimFocus: () => false,
+};
 
-function OpenMenu({ layout, extra }: { layout?: SortableMenuLayout; extra: boolean }) {
+function OpenMenu({ extra }: { extra: boolean }) {
   const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   return (
     <div ref={setFrame} className="relative h-[640px] w-[440px] [transform:translateZ(0)]">
@@ -152,9 +119,8 @@ function OpenMenu({ layout, extra }: { layout?: SortableMenuLayout; extra: boole
           portalContainer={frame}
         >
           <MoveMenuItems
-            list={listValue(layout)}
+            list={list}
             item="draft"
-            defaultSubmenuOpen={layout === 'submenu' && !extra}
             menu={
               extra ? (
                 <>
@@ -178,9 +144,7 @@ export const Axis: Story = {
       pick={pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(column, candidate) => (
-        <OpenMenu layout={layoutOf[candidate.id]} extra={column.label.startsWith('項目')} />
-      )}
+      renderCell={(column) => <OpenMenu extra={column.label.startsWith('項目')} />}
     >
       <p>
         決定: どの案も採らない。部品が「〜へ移動」「〜と入れ替え」を組み立てる口は消し、︙

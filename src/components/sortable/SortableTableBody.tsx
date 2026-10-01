@@ -8,12 +8,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 import type { SortableProps } from './Sortable';
 import { ListContext } from './sortable-context';
-import {
-  defaultMovedText,
-  defaultMoveToTargetLabel,
-  defaultSwapLabel,
-  useSortableList,
-} from './use-sortable-list';
+import { defaultMovedText, useSortableList } from './use-sortable-list';
 
 // 並べ替えられる表の本文（tbody）。Sortable と同じ並びの状態・キーボード・移動の操作を、表の行に使う
 //   行は SortableItem に render（DataTableRow・tr）を渡して描く。つまみと移動の操作は、行の中のセルに置く
@@ -52,14 +47,7 @@ export interface SortableTableBodyProps
       | 'moveFirstLabel'
       | 'moveLastLabel'
       | 'moveMenuName'
-      | 'moveTargets'
-      | 'onMoveToTarget'
-      | 'moveToTargetLabel'
-      | 'moveTargetsTitle'
-      | 'showSwapActions'
-      | 'swapLabel'
-      | 'swapTitle'
-      | 'menuLayout'
+      | 'hideMoveItems'
     > {
   /** 行（render に DataTableRow か tr を渡した SortableItem）を value の順に並べます */
   children?: ReactNode;
@@ -69,7 +57,8 @@ export interface SortableTableBodyProps
 
 /**
  * 並べ替えられる表の本文。DataTable（や Table）の TableBody の代わりに置き、行を SortableItem（render に DataTableRow）で描きます。
- * props は Sortable と同じです。ポインタで引く動きは持たないので、dnd-kit などとつなぎます（Recipes/Sortable の「表の行」）
+ * props は Sortable と同じです。つまみの列は足さないので、置きたいセルに SortableHandle を置きます。
+ * ポインタで引く動きは持たないので、dnd-kit などとつなぎます（Recipes/Sortable の「表の行」）
  */
 export function SortableTableBody({
   value,
@@ -85,14 +74,7 @@ export function SortableTableBody({
   moveFirstLabel = '先頭へ移動',
   moveLastLabel = '末尾へ移動',
   moveMenuName = '移動',
-  moveTargets,
-  onMoveToTarget,
-  moveToTargetLabel = defaultMoveToTargetLabel,
-  moveTargetsTitle = '別のリストへ移動',
-  showSwapActions = false,
-  swapLabel = defaultSwapLabel,
-  swapTitle = '入れ替え',
-  menuLayout = 'flat',
+  hideMoveItems = false,
   className,
   children,
   ref,
@@ -117,15 +99,8 @@ export function SortableTableBody({
       first: moveFirstLabel,
       last: moveLastLabel,
       menu: moveMenuName,
-      swap: swapLabel,
-      moveTo: moveToTargetLabel,
-      moveToTitle: moveTargetsTitle,
-      swapTitle,
     },
-    moveTargets,
-    onMoveToTarget,
-    showSwapActions,
-    menuLayout,
+    hideMoveItems,
   });
   // サーバーと、画面に出る前の 1 回目の描画では false（ページの末尾に描くものは、出たあとに足す）
   const mounted = useSyncExternalStore(subscribeNothing, onClient, onServer);

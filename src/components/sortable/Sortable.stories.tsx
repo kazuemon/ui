@@ -12,12 +12,12 @@ import {
   type SortableProps,
   type SortableVariant,
 } from './Sortable';
-import { SortableItemActions, SortableSeparator } from './Sortable';
+import { SortableItemActions, SortableSeparator, useSortableItemActions } from './Sortable';
 import { SortableTableBody } from './SortableTableBody';
 import { DataTableHeader } from '../data-table/DataTableHeader';
 import { DataTableRow } from '../data-table/DataTableRow';
 import { DataTable } from '../data-table/DataTable';
-import { MenuItem } from '../menu/MenuItem';
+import { MenuItem, MenuSeparator } from '../menu/MenuItem';
 import { TableCell, TableHead, TableRow } from '../table/Table';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 
@@ -102,7 +102,7 @@ const meta = {
           '- `motion` は並べ替えたときの動きです。既定は `slide`（元の位置から滑らせる）で、`none`（動かさない）を選べます。動きを減らす設定では、`slide` でも動かしません。',
           '- つまみを置く端は `SortableHandle` の `placement` です。既定は `start`（先頭）で、`end`（末尾）を選べます。つまみは項目の端に接した塊で、項目の高さいっぱいに押せます。',
           '- `grabArea` はどこをつかんで引くかです。既定は `handle`（つまみだけ）で、`item`（項目のどこでも）を選べます。エンジンにも同じ指定をします。`item` では、指でリストの上をスクロールしようとしたときにも引き始めることがあるので、指で使う画面では `handle` を選びます。',
-          '- ドラッグだけでしか並べ替えられないと、WCAG 2.2 の 2.5.7（ドラッグの動き）を満たしません。ポインタで使う人がいるなら、`moveActions` に `item-menu`（末尾の ︙ から上へ・下へ・先頭へ・末尾へ）か `buttons`（末尾の上へ・下へのボタン）を選びます。既定は `none` です。文字は `moveUpLabel`・`moveDownLabel`・`moveFirstLabel`・`moveLastLabel`・`moveMenuName` で差し替えます。',
+          '- ドラッグだけでしか並べ替えられないと、WCAG 2.2 の 2.5.7（ドラッグの動き）を満たしません。ポインタで使う人がいるなら、`moveActions` に `item-menu`（末尾の ︙ から上へ・下へ・先頭へ・末尾へ）か `buttons`（末尾の上へ・下へのボタン）を選びます。既定は `none` です。文字は `moveUpLabel`・`moveDownLabel`・`moveFirstLabel`・`moveLastLabel`・`moveMenuName` で差し替えます。︙ のメニューに項目を足すときは `SortableItem` の `menu`、既定の項目を消して組み直すときは `hideMoveItems` と `useSortableItemActions` です。',
           '- `disabled` で並べ替えられなくすると、つまみを隠します。項目ごとに止めるときは `SortableItem` の `disabled` です。',
         ].join('\n'),
       },
@@ -381,20 +381,28 @@ export const Disabled: Story = {
 };
 
 // 動かさない行（区切り・見出し）を挟んだ見本。value は項目だけで、区切りは「上から 2 件のあと」に描く
-function SeparatorSample({ variant }: { variant?: SortableVariant }) {
+function SeparatorSample({
+  variant,
+  showDivider,
+}: {
+  variant?: SortableVariant;
+  showDivider?: boolean;
+}) {
   const [order, setOrder] = useState(() => items.map((item) => item.id));
   return (
     <div className="w-64">
       <Sortable
         value={order}
         onValueChange={setOrder}
-        aria-label={`今週やること（${variant ?? 'card'}）`}
+        aria-label={`今週やること（${variant ?? 'card'}${showDivider ? '・線' : ''}）`}
         variant={variant}
       >
-        <SortableSeparator>今日</SortableSeparator>
+        <SortableSeparator showDivider={showDivider}>今日</SortableSeparator>
         {order.map((id, index) => (
           <Fragment key={id}>
-            {index === 2 && <SortableSeparator>明日以降</SortableSeparator>}
+            {index === 2 && (
+              <SortableSeparator showDivider={showDivider}>明日以降</SortableSeparator>
+            )}
             <SortableItem value={id} accessibleName={labelOf(id)}>
               <SortableHandle />
               {labelOf(id)}
@@ -414,15 +422,21 @@ export const Separators: Story = {
     docs: {
       description: {
         story:
-          '`SortableSeparator` は、並びの途中に挟む動かさない行です。`value` には入れず、項目のあいだに描きます。項目は区切りをまたいで動き、区切りの位置は使う側がどこに描くかで決めます（ここでは上から 2 件のあと）。文字を書かないと線だけの区切りになります。済んだ項目のように、項目そのものを止めるときは `SortableItem` の `disabled` です。',
+          '`SortableSeparator` は、並びの途中に挟む動かさない行です。`value` には入れず、項目のあいだに描きます。項目は区切りをまたいで動き、区切りの位置は使う側がどこに描くかで決めます（ここでは上から 2 件のあと）。見出しの文字だけで、上の空きで分けます。`showDivider` を付けると、文字のあとの残りの幅に細い線を引きます（下の段）。文字を書かずに `showDivider` を付けると、線だけの区切りになります。`divided` では、項目と同じ区切りの線で分けるので `showDivider` は使いません。済んだ項目のように、項目そのものを止めるときは `SortableItem` の `disabled` です。',
       },
     },
   },
   render: () => (
-    <div className="flex flex-wrap gap-8">
-      {variants.map((variant) => (
-        <SeparatorSample key={variant} variant={variant} />
-      ))}
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-wrap gap-8">
+        {variants.map((variant) => (
+          <SeparatorSample key={variant} variant={variant} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-8">
+        <SeparatorSample variant="card" showDivider />
+        <SeparatorSample variant="fill" showDivider />
+      </div>
     </div>
   ),
   play: async ({ canvasElement }) => {
@@ -453,27 +467,16 @@ export const Separators: Story = {
   },
 };
 
-const otherLists = [
-  { value: 'later', label: 'あとで' },
-  { value: 'done', label: '済み' },
-];
-
 function MenuSample() {
   const [order, setOrder] = useState(() => items.map((item) => item.id));
-  const [moved, setMoved] = useState<string[]>([]);
+  const remove = (id: string) => setOrder((current) => current.filter((other) => other !== id));
   return (
-    <div className="flex w-72 flex-col gap-3">
+    <div className="w-72">
       <Sortable
         value={order}
         onValueChange={setOrder}
         aria-label="今日やること"
         moveActions="item-menu"
-        moveTargets={otherLists}
-        onMoveToTarget={(item, target) => {
-          setOrder((current) => current.filter((id) => id !== item));
-          setMoved((current) => [...current, `${labelOf(item)} → ${target}`]);
-        }}
-        showSwapActions
       >
         {order.map((id) => (
           <SortableItem
@@ -481,7 +484,9 @@ function MenuSample() {
             value={id}
             accessibleName={labelOf(id)}
             menu={
-              <MenuItem onClick={() => setOrder((c) => c.filter((x) => x !== id))}>削除</MenuItem>
+              <MenuItem status="danger" onClick={() => remove(id)}>
+                削除
+              </MenuItem>
             }
           >
             <SortableHandle />
@@ -489,51 +494,116 @@ function MenuSample() {
           </SortableItem>
         ))}
       </Sortable>
-      <p className="text-sm text-fg-muted" data-testid="moved">
-        {moved.join('、')}
-      </p>
+    </div>
+  );
+}
+
+// 既定の項目を消して、︙ のメニューを組み直す。動かす関数は useSortableItemActions から読む
+function OwnMenuItems({ onRemove }: { onRemove: () => void }) {
+  const { index, total, moveFirst, moveLast } = useSortableItemActions();
+  return (
+    <>
+      <MenuItem disabled={index <= 0} onClick={moveFirst}>
+        いちばん上へ
+      </MenuItem>
+      <MenuItem disabled={index >= total - 1} onClick={moveLast}>
+        いちばん下へ
+      </MenuItem>
+      <MenuSeparator />
+      <MenuItem status="danger" onClick={onRemove}>
+        削除
+      </MenuItem>
+    </>
+  );
+}
+
+function OwnMenuSample() {
+  const [order, setOrder] = useState(() => items.map((item) => item.id));
+  const remove = (id: string) => setOrder((current) => current.filter((other) => other !== id));
+  return (
+    <div className="w-72">
+      <Sortable
+        value={order}
+        onValueChange={setOrder}
+        aria-label="あとでやること"
+        moveActions="item-menu"
+        hideMoveItems
+      >
+        {order.map((id) => (
+          <SortableItem
+            key={id}
+            value={id}
+            accessibleName={labelOf(id)}
+            menu={<OwnMenuItems onRemove={() => remove(id)} />}
+          >
+            <SortableHandle />
+            {labelOf(id)}
+          </SortableItem>
+        ))}
+      </Sortable>
     </div>
   );
 }
 
 export const MenuExtras: Story = {
-  name: 'メニューに足す項目と、ほかのリストへの移動',
+  name: 'メニューに足す項目と、組み直したメニュー',
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
-        story:
-          '`moveActions="item-menu"` の ︙ のメニューに、項目を足せます。`moveTargets` と `onMoveToTarget` を渡すと「〜へ移動」を足し、リストをまたぐ移動を引かずにできます（両方の並びは使う側が更新します）。`showSwapActions` は、ほかの項目と入れ替える「〜と入れ替え」を足します。`SortableItem` の `menu` には、その項目だけの操作（MenuItem）を渡します。移動の操作のあとに、区切り線を挟んで並びます。',
+        story: [
+          '`moveActions="item-menu"` の ︙ のメニューは、何もしなければ上へ・下へ・先頭へ・末尾へを出します。',
+          '',
+          '- `SortableItem` の `menu` に `MenuItem` を渡すと、既定の項目のあとに区切り線を挟んで並べます（左）。複製・削除のような、その項目だけの操作を入れます。ほかのリストへ移す操作も、ここに足して、両方の並びを使う側が更新します（Recipes/Sortable の「ほかのリストへ移す」）。',
+          '- `Sortable` の `hideMoveItems` は既定の項目を出さず、`menu` がメニューの中身のすべてになります（右）。`menu` の中で `useSortableItemActions` を呼ぶと、その項目を動かす関数（`moveUp`・`moveDown`・`moveFirst`・`moveLast`・`moveTo`）といまの位置（`index`・`total`）を受け取れます。動かしたあとの読み上げとフォーカスの戻し方は、既定の項目と同じです。',
+        ].join('\n'),
       },
     },
   },
-  render: () => <MenuSample />,
+  render: () => (
+    <div className="flex flex-wrap gap-8">
+      <MenuSample />
+      <OwnMenuSample />
+    </div>
+  ),
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
-    const labels = () => canvas.getAllByRole('listitem').map((item) => item.textContent);
+    const [extraList, ownList] = within(canvasElement).getAllByRole('list');
+    const labelsOf = (list: HTMLElement) => () =>
+      within(list)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent);
 
-    // 入れ替え: 先頭と末尾を入れ替える
-    await userEvent.click(canvas.getByRole('button', { name: '下書きを書くを移動' }));
+    // 足した項目: 既定の移動の項目のあとに「削除」が並ぶ
+    await userEvent.click(within(extraList).getByRole('button', { name: '下書きを書くを移動' }));
     let menu = await body.findByRole('menu');
-    await expect(within(menu).getByRole('menuitem', { name: '済みへ移動' })).toBeInTheDocument();
-    await expect(within(menu).getByRole('menuitem', { name: '削除' })).toBeInTheDocument();
-    await userEvent.click(within(menu).getByRole('menuitem', { name: '公開すると入れ替え' }));
-    await waitFor(() =>
-      expect(labels()).toEqual(['公開する', '見直しを頼む', '見出しの画像を作る', '下書きを書く'])
-    );
-    await waitFor(() =>
-      expect(canvas.getByRole('button', { name: '下書きを書くを並べ替え' })).toHaveFocus()
-    );
+    await expect(within(menu).getByRole('menuitem', { name: '末尾へ移動' })).toBeInTheDocument();
+    await userEvent.click(within(menu).getByRole('menuitem', { name: '削除' }));
+    await waitFor(() => expect(labelsOf(extraList)()).toHaveLength(3));
 
-    // ほかのリストへ移す: onMoveToTarget に項目と移す先を渡す
-    await userEvent.click(canvas.getByRole('button', { name: '見直しを頼むを移動' }));
+    // 組み直したメニュー: 既定の項目は出ず、useSortableItemActions の関数で動かす
+    await userEvent.click(within(ownList).getByRole('button', { name: '下書きを書くを移動' }));
     menu = await body.findByRole('menu');
-    await userEvent.click(within(menu).getByRole('menuitem', { name: '済みへ移動' }));
-    await waitFor(() =>
-      expect(canvas.getByTestId('moved')).toHaveTextContent('見直しを頼む → done')
+    await expect(within(menu).queryByRole('menuitem', { name: '上へ移動' })).toBeNull();
+    await expect(within(menu).getByRole('menuitem', { name: 'いちばん上へ' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
     );
-    await expect(labels()).toHaveLength(3);
+    await userEvent.click(within(menu).getByRole('menuitem', { name: 'いちばん下へ' }));
+    await waitFor(() =>
+      expect(labelsOf(ownList)()).toEqual([
+        '見直しを頼む',
+        '見出しの画像を作る',
+        '公開する',
+        '下書きを書く',
+      ])
+    );
+    await waitFor(() =>
+      expect(within(ownList).getByRole('button', { name: '下書きを書くを並べ替え' })).toHaveFocus()
+    );
+    await expect(within(ownList.parentElement ?? ownList).getByRole('status')).toHaveTextContent(
+      '4 番目に移しました（4 件中）'
+    );
   },
 };
 
@@ -597,7 +667,7 @@ export const TableRows: Story = {
     docs: {
       description: {
         story:
-          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）は、置きたいセルの中に入れます。それだけを入れたセルは、中身の幅に詰まります。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
+          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみの列は部品が足さないので、つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）を、置きたいセルの中に入れます。ふつうは先頭に取っ手の列、末尾に操作の列を足し、見出しのセルは読み上げだけの文字（`VisuallyHidden`）にします。それだけを入れたセルは、中身の幅に詰まります。行のどこを掴んでも引けるようにするときは `grabArea="item"` を付けます（つまみを置くかは使う側が決めます。キーボードで動かすにはつまみか ︙ が要ります）。引いている行は、表の枠の中なので大きくせず、面と影だけで浮かせます。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
       },
     },
   },

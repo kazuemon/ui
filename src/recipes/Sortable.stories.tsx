@@ -6,6 +6,8 @@ import { type Task, SortableTaskTable } from './sortable-data-table';
 import tableRecipe from './sortable-data-table.tsx?raw';
 import { SortableList } from './sortable-dnd-kit';
 import recipe from './sortable-dnd-kit.tsx?raw';
+import { SortableTwoLists } from './sortable-move-between-lists';
+import listsRecipe from './sortable-move-between-lists.tsx?raw';
 
 // レシピ: 部品にせず、既存の部品を組み合わせて作るもの。ここに置くのは組み方の見本で、公開の入口（src/index.ts）には足さない
 // 見せるコードは、動かしているファイルそのもの（?raw）。部品の import だけ、利用者が書く形に直す
@@ -130,5 +132,42 @@ export const TableRows: Story = {
     await userEvent.keyboard('{ArrowUp}');
     await waitFor(() => expect(titles()[0]).toBe('見出しを決める'));
     handle.blur();
+  },
+};
+
+const listsCode = listsRecipe.replace(
+  /import \{([^}]*)\} from '\.\.\/components\/[^']+';\n/g,
+  (_, list: string) => `import {${list}} from '@kazuemon/ui';\n`
+);
+
+export const MoveBetweenLists: Story = {
+  name: 'ほかのリストへ移す',
+  parameters: {
+    docs: {
+      source: sourceCode(listsCode),
+      description: {
+        story: [
+          '2 つのリストのあいだで、引かずに項目を移す見本です。`Sortable` は 1 つのリストの中の並べ替えだけを持つので、リストをまたぐ移動は使う側が組みます。',
+          '',
+          '- 両方のリストの並びを親で持ちます。',
+          '- `SortableItem` の `menu` に「〜へ移動」の `MenuItem` を渡すと、︙ のメニューの既定の項目（上へ・下へ・先頭へ・末尾へ）のあとに並びます。押したら、元のリストから消し、移す先の末尾に足します。',
+          '- ポインタで引いてリストをまたぐときは、dnd-kit の `DragDropProvider` で両方のリストを包み、`onDragOver` で同じように両方の並びを更新します。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => <SortableTwoLists defaultItems={items} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const labelsOf = (name: string) =>
+      within(canvas.getByRole('list', { name }))
+        .queryAllByRole('listitem')
+        .map((item) => item.textContent);
+    await userEvent.click(canvas.getByRole('button', { name: '下書きを書くを移動' }));
+    const menu = await body.findByRole('menu');
+    await userEvent.click(within(menu).getByRole('menuitem', { name: 'あとでへ移動' }));
+    await waitFor(() => expect(labelsOf('今日')).toEqual(['見直しを頼む']));
+    await expect(labelsOf('あとで')).toEqual(['見出しの画像を作る', '公開する', '下書きを書く']);
   },
 };

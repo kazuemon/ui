@@ -3,12 +3,7 @@
 import { type RefObject, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { SortableDragSourceVariant, SortableGrabArea, SortableVariant } from './Sortable';
-import type {
-  ListContextValue,
-  SortableMenuLayout,
-  SortableMoveActions,
-  SortableMoveTarget,
-} from './sortable-context';
+import type { ListContextValue, SortableMoveActions } from './sortable-context';
 import { useMoveAnimation } from './use-move-animation';
 
 // Sortable（ul）と SortableTableBody（tbody）が共有する、並びの状態とキーボード・移動の操作
@@ -16,8 +11,6 @@ import { useMoveAnimation } from './use-move-animation';
 
 export const defaultMovedText = (position: number, total: number) =>
   `${position} 番目に移しました（${total} 件中）`;
-export const defaultMoveToTargetLabel = (label: string) => `${label}へ移動`;
-export const defaultSwapLabel = (name: string) => `${name}と入れ替え`;
 
 export interface SortableListOptions {
   value: string[];
@@ -30,10 +23,7 @@ export interface SortableListOptions {
   movedText: (position: number, total: number) => string;
   moveActions: SortableMoveActions;
   labels: ListContextValue['labels'];
-  moveTargets?: SortableMoveTarget[];
-  onMoveToTarget?: (item: string, target: string) => void;
-  showSwapActions: boolean;
-  menuLayout: SortableMenuLayout;
+  hideMoveItems: boolean;
 }
 
 export function useSortableList(
@@ -49,10 +39,7 @@ export function useSortableList(
     movedText,
     moveActions,
     labels,
-    moveTargets,
-    onMoveToTarget,
-    showSwapActions,
-    menuLayout,
+    hideMoveItems,
   }: SortableListOptions
 ) {
   const focusAfterMove = useRef<string | null>(null);
@@ -60,15 +47,12 @@ export function useSortableList(
   const { capture } = useMoveAnimation(listRef);
 
   // 描き直すたびに最新の value を読む（move を context に載せても、context を毎回作り直さない）
-  const latest = useRef({ value, onValueChange, movedText, onMoveToTarget });
+  const latest = useRef({ value, onValueChange, movedText });
   useLayoutEffect(() => {
-    latest.current = { value, onValueChange, movedText, onMoveToTarget };
+    latest.current = { value, onValueChange, movedText };
   });
-  // 項目の読み上げの名前（入れ替える相手の一覧に出す）。項目が描くたびに書き込む
-  const [names] = useState(() => new Map<string, string>());
 
-  const { up, down, first, last, menu, swap, moveTo: moveToLabel, moveToTitle, swapTitle } = labels;
-  const canMoveToTarget = onMoveToTarget != null;
+  const { up, down, first, last, menu } = labels;
   const context = useMemo<ListContextValue>(
     () => ({
       variant,
@@ -77,12 +61,9 @@ export function useSortableList(
       disabled,
       instructionId,
       moveActions,
-      labels: { up, down, first, last, menu, swap, moveTo: moveToLabel, moveToTitle, swapTitle },
+      labels: { up, down, first, last, menu },
       order: value,
-      moveTargets: canMoveToTarget ? moveTargets : undefined,
-      showSwapActions,
-      menuLayout,
-      names,
+      hideMoveItems,
       claimFocus: (item) => {
         if (item === undefined || focusAfterMove.current !== item) return false;
         focusAfterMove.current = null;
@@ -100,22 +81,6 @@ export function useSortableList(
         notify(next);
         setAnnouncement(text(to + 1, order.length));
       },
-      swap: (item, other) => {
-        const { value: order, onValueChange: notify, movedText: text } = latest.current;
-        const from = order.indexOf(item);
-        const to = order.indexOf(other);
-        if (!notify || from < 0 || to < 0 || from === to) return;
-        const next = [...order];
-        next[from] = other;
-        next[to] = item;
-        capture();
-        focusAfterMove.current = item;
-        notify(next);
-        setAnnouncement(text(to + 1, order.length));
-      },
-      moveToTarget: (item, target) => {
-        latest.current.onMoveToTarget?.(item, target);
-      },
     }),
     [
       variant,
@@ -129,16 +94,8 @@ export function useSortableList(
       first,
       last,
       menu,
-      swap,
-      moveToLabel,
-      moveToTitle,
-      swapTitle,
       value,
-      moveTargets,
-      canMoveToTarget,
-      showSwapActions,
-      menuLayout,
-      names,
+      hideMoveItems,
       capture,
     ]
   );

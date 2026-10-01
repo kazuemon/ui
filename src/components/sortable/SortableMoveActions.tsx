@@ -6,7 +6,7 @@ import { focusRing } from '../../internal/focus-styles';
 import { CaretDownIcon, CaretUpIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 import { Menu } from '../menu/Menu';
-import { MenuGroup, MenuItem, MenuSeparator, MenuSubmenu } from '../menu/MenuItem';
+import { MenuItem, MenuSeparator } from '../menu/MenuItem';
 import { ItemContext, ListContext, type ListContextValue } from './sortable-context';
 
 // 引かずに並べ替える操作（WCAG 2.2 の 2.5.7）。移動は部品が onValueChange で知らせるので、エンジンに頼らない
@@ -45,78 +45,89 @@ const actions = tv({
   },
 });
 
-/** ︙ のメニューの中の移動の操作。メニューを開いたボタンの名前に項目の名前が入っているので、文字は短いまま */
+/** 項目を動かす関数と、いまの位置（useSortableItemActions が返す） */
+export interface SortableItemActionsValue {
+  /** 項目の value */
+  value: string;
+  /** いまの位置（0 から数える） */
+  index: number;
+  /** 項目の数 */
+  total: number;
+  /** 動かせない（項目の disabled・リストの disabled）。動かす関数を呼んでも動きません */
+  disabled: boolean;
+  /** 1 つ上へ動かします */
+  moveUp: () => void;
+  /** 1 つ下へ動かします */
+  moveDown: () => void;
+  /** 先頭へ動かします */
+  moveFirst: () => void;
+  /** 末尾へ動かします */
+  moveLast: () => void;
+  /** index（0 から数える）へ動かします */
+  moveTo: (index: number) => void;
+}
+
+function itemActions(list: ListContextValue, value: string, locked: boolean) {
+  const index = list.order.indexOf(value);
+  const total = list.order.length;
+  const disabled = locked || list.disabled;
+  const moveTo = (to: number) => {
+    if (!disabled) list.moveTo(value, to);
+  };
+  return {
+    value,
+    index,
+    total,
+    disabled,
+    moveUp: () => moveTo(index - 1),
+    moveDown: () => moveTo(index + 1),
+    moveFirst: () => moveTo(0),
+    moveLast: () => moveTo(total - 1),
+    moveTo,
+  } satisfies SortableItemActionsValue;
+}
+
+/**
+ * いまの項目（SortableItem）を動かす関数を返します。︙ のメニューを組み直すときや、自分で置いたボタンから動かすときに使います。
+ * 動かすと、Sortable の onValueChange に新しい並びを渡し、何番目に移ったかを読み上げ、つまみにフォーカスを戻します。
+ * SortableItem の中（menu に渡した要素の中も含む）で呼びます
+ */
+export function useSortableItemActions(): SortableItemActionsValue {
+  const list = use(ListContext);
+  const item = use(ItemContext);
+  if (!list || !item) {
+    throw new Error('useSortableItemActions は SortableItem の中で呼びます');
+  }
+  return itemActions(list, item.value, item.locked);
+}
+
+/** ︙ のメニューの中身。既定の移動の操作と、項目ごとに足す項目（SortableItem の menu）。メニューを開いたボタンの名前に項目の名前が入っているので、文字は短いまま */
 export function MoveMenuItems({
   list,
   item,
   menu,
-  defaultSubmenuOpen,
 }: {
   list: ListContextValue;
   item: string;
-  menu?: ReactNode;
-  /** 入れ子（menuLayout="submenu"）の最初の 1 つをはじめから開く（比べるストーリーで、開いた形を見せる） */
-  defaultSubmenuOpen?: boolean;
+  menu: ReactNode;
 }) {
-  const index = list.order.indexOf(item);
-  const last = list.order.length - 1;
-  // 移す先（ほかのリスト）と、入れ替える相手（同じリストのほかの項目）
-  const targets = (list.moveTargets ?? []).map((target) => (
-    <MenuItem key={target.value} onClick={() => list.moveToTarget(item, target.value)}>
-      {list.labels.moveTo(target.label)}
-    </MenuItem>
-  ));
-  const others = list.showSwapActions
-    ? list.order
-        .filter((other) => other !== item)
-        .map((other) => (
-          <MenuItem key={other} onClick={() => list.swap(item, other)}>
-            {list.labels.swap(list.names.get(other) ?? other)}
-          </MenuItem>
-        ))
-    : [];
-  const section = (title: string, entries: ReactNode[], open = false) => {
-    if (entries.length === 0) return null;
-    if (list.menuLayout === 'submenu') {
-      return (
-        <MenuSubmenu items={entries} defaultOpen={open}>
-          {title}
-        </MenuSubmenu>
-      );
-    }
-    if (list.menuLayout === 'group') {
-      return (
-        <>
-          <MenuSeparator />
-          <MenuGroup label={title}>{entries}</MenuGroup>
-        </>
-      );
-    }
-    return (
-      <>
-        <MenuSeparator />
-        {entries}
-      </>
-    );
-  };
-  const nested = list.menuLayout === 'submenu' && (targets.length > 0 || others.length > 0);
+  const { index, total, moveUp, moveDown, moveFirst, moveLast } = itemActions(list, item, false);
+  const last = total - 1;
+  if (list.hideMoveItems) return menu;
   return (
     <>
-      <MenuItem disabled={index <= 0} onClick={() => list.moveTo(item, index - 1)}>
+      <MenuItem disabled={index <= 0} onClick={moveUp}>
         {list.labels.up}
       </MenuItem>
-      <MenuItem disabled={index >= last} onClick={() => list.moveTo(item, index + 1)}>
+      <MenuItem disabled={index >= last} onClick={moveDown}>
         {list.labels.down}
       </MenuItem>
-      <MenuItem disabled={index <= 0} onClick={() => list.moveTo(item, 0)}>
+      <MenuItem disabled={index <= 0} onClick={moveFirst}>
         {list.labels.first}
       </MenuItem>
-      <MenuItem disabled={index >= last} onClick={() => list.moveTo(item, last)}>
+      <MenuItem disabled={index >= last} onClick={moveLast}>
         {list.labels.last}
       </MenuItem>
-      {nested && <MenuSeparator />}
-      {section(list.labels.moveToTitle, targets, defaultSubmenuOpen)}
-      {section(list.labels.swapTitle, others)}
       {menu != null && (
         <>
           <MenuSeparator />
@@ -139,6 +150,8 @@ export function ItemMoveActions({ className }: { className?: string }) {
   const hidden = [item.locked ? 'invisible' : '', className].filter(Boolean).join(' ');
   const named = (label: string) => (item.name ? `${item.name}を${label}` : label);
   if (list.moveActions === 'item-menu') {
+    // 既定の項目を出さず、足す項目もないときは、空のメニューを開くボタンを置かない
+    if (list.hideMoveItems && item.menu == null) return null;
     return (
       <div className={root({ className: hidden })} data-slot="sortable-actions">
         <Menu

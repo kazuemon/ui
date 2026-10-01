@@ -17,26 +17,12 @@ import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
-import {
-  ItemContext,
-  ListContext,
-  type SortableMenuLayout,
-  type SortableMoveActions,
-  type SortableMoveTarget,
-} from './sortable-context';
+import { ItemContext, ListContext, type SortableMoveActions } from './sortable-context';
 import { ItemMoveActions } from './SortableMoveActions';
-import {
-  defaultMovedText,
-  defaultMoveToTargetLabel,
-  defaultSwapLabel,
-  useSortableList,
-} from './use-sortable-list';
+import { defaultMovedText, useSortableList } from './use-sortable-list';
 
-export type {
-  SortableMenuLayout,
-  SortableMoveActions,
-  SortableMoveTarget,
-} from './sortable-context';
+export type { SortableMoveActions } from './sortable-context';
+export { type SortableItemActionsValue, useSortableItemActions } from './SortableMoveActions';
 
 // 並べ替えられるリスト。見た目と、キーボードでの並べ替えだけを持つ
 //   ポインタで引く動き（ドラッグ）は持たない。dnd-kit などの外のエンジンに任せ、状態は props（dragging・dragSource）で受ける
@@ -51,6 +37,9 @@ export type {
 // 並べ替えられないとき（disabled）は、つまみを出さない（原則16: できないことの印は出さない）。文は薄くしない（原則13）
 // 引かずに並べ替える操作（moveActions — ADR-0342）: 既定は none。item-menu（︙）・buttons（上へ・下へ）で、
 //   ポインタだけでも引かずに並べ替えを終えられるようにする（WCAG 2.2 の 2.5.7）。SortableMoveActions.tsx
+//   ︙ のメニューは、既定の移動の項目（上へ・下へ・先頭へ・末尾へ）だけを出す。ほかのリストへの移動などは使う側が menu で足し、
+//   hideMoveItems で既定の項目を消して、useSortableItemActions の関数で組み直せる（部品は「〜へ移動」を組み立てない）
+// 表の行（render に tr）: つまみの列は部品が足さない。使う側が置きたいセルに SortableHandle を置く（取っ手の列を先頭に置く形が既定の見本）
 
 const sortable = tv({
   slots: {
@@ -110,27 +99,23 @@ const sortable = tv({
       // つまみだけのセルでは、つまみの高さで行を支える（文字の行の高さからはみ出させない。はみ出すと表の枠がスクロールする）
       '[&>td>[data-slot=sortable-handle]:only-child]:my-0',
       '[&>td:has(>[data-slot=sortable-actions]:only-child)]:w-px [&>td:has(>[data-slot=sortable-actions]:only-child)]:px-0 [&>td:has(>[data-slot=sortable-actions]:only-child)]:py-0',
-      // 持ち上げた行: セルに面を敷き、行に影を落として、少しだけ大きく（リストの持ち上げた項目と同じ考え方）
+      // 持ち上げた行: セルに面を敷き、行に影を落とす（リストの持ち上げた項目と同じ面と影）。表の枠の中なので大きくはしない（列の線がずれない）
       //   面はセルに置く（dnd-kit が引いている行の背景を消すため）
       'data-dragging:relative data-dragging:z-1 data-dragging:cursor-grabbing',
-      'data-dragging:*:bg-(color:--sortable-row-lifted-bg)',
-      'data-dragging:scale-(--sortable-row-lifted-scale) data-dragging:[box-shadow:var(--sortable-row-lifted-shadow)]',
-      'data-dragging:[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press)]',
-      'data-dragging:starting:scale-100 data-dragging:starting:[box-shadow:none]',
+      'data-dragging:[box-shadow:var(--sortable-lifted-shadow)] data-dragging:*:bg-(color:--sortable-lifted-bg)',
+      'data-dragging:[transition:box-shadow_var(--duration-press)_var(--ease-press)]',
+      'data-dragging:starting:[box-shadow:none]',
       'motion-reduce:[transition:none]',
       // 入る場所（DragOverlay で写しを描くとき）: セルの中身を消し、点線の枠を残す
       'data-drag-source:[outline-style:dashed] data-drag-source:*:text-transparent data-drag-source:*:*:opacity-0',
       'data-drag-source:[outline-width:var(--sortable-source-line-width)] data-drag-source:[outline-color:var(--sortable-source-line-color)]',
       'data-drag-source:[outline-offset:calc(var(--sortable-source-line-width)*-1)]',
     ],
-    // 動かさない行（SortableSeparator）。見出しの文字と、残りの幅に引く線
+    // 動かさない行（SortableSeparator）。見出しの文字だけで、上の空きで分ける（Menu のまとまりの見出しと同じ考え方）
     separator: [
       'flex items-center gap-(--sortable-separator-gap)',
-      'px-(--sortable-separator-px) pt-(--sortable-separator-pt) pb-(--sortable-separator-pb)',
-      'rounded-(--sortable-item-radius) bg-(color:--sortable-separator-bg)',
-      'text-(length:--text-label) leading-(--leading-label) font-bold text-(color:--sortable-separator-fg)',
-      // 見出しのあとに、残りの幅に線を引く（太さ 0 で線なし）。文字のない区切りは線だけになる
-      "after:h-(--sortable-separator-line-width) after:flex-1 after:bg-line after:content-['']",
+      'pt-(--sortable-separator-pt) pb-(--sortable-separator-pb)',
+      'text-(length:--text-label) leading-(--leading-label) font-bold text-fg-muted',
     ],
   },
   variants: {
@@ -151,7 +136,7 @@ const sortable = tv({
         list: 'rounded-(--sortable-item-radius) border-(length:--border-width-thin) border-line',
         // 枠の中では、見出しの頭を項目の文字の端にそろえ、線は項目と同じ区切りの線（下の辺）だけにする
         separator: [
-          'rounded-none px-(--spacing-control-x) pb-(--sortable-separator-pt) after:hidden',
+          'px-(--spacing-control-x) pb-(--sortable-separator-pt) after:hidden',
           'not-last:border-b-(length:--border-width-thin) not-last:border-line',
         ],
         item: [
@@ -173,6 +158,16 @@ const sortable = tv({
       true: {
         handle:
           'static my-[calc((1lh-var(--spacing-control))/2)] inline-flex h-(--spacing-control) shrink-0 align-middle',
+      },
+      false: {},
+    },
+    // 動かさない行の線（showDivider）。見出しのあとの残りの幅に細い線を引く。文字のない区切りは線だけになる
+    showDivider: {
+      true: {
+        separator: [
+          'pt-(--sortable-separator-divider-pt)',
+          "after:h-(--border-width-thin) after:flex-1 after:bg-line after:content-['']",
+        ],
       },
       false: {},
     },
@@ -200,6 +195,7 @@ const sortable = tv({
     grabArea: 'handle',
     dragSourceVariant: 'outline',
     motion: 'slide',
+    showDivider: false,
   },
 });
 
@@ -291,42 +287,11 @@ export interface SortableProps extends Omit<
    */
   moveMenuName?: string;
   /**
-   * ほかのリストへ移す先。item-menu の ︙ のメニューに「〜へ移動」を足します（onMoveToTarget も渡します）。
-   * ドラッグでしかできなかった、リストをまたぐ移動を、引かずにできるようにします
-   */
-  moveTargets?: SortableMoveTarget[];
-  /** 「〜へ移動」を押したときに、動かす項目の value と、移す先の value を渡して呼びます。使う側が、両方のリストの並びを更新します */
-  onMoveToTarget?: (item: string, target: string) => void;
-  /**
-   * 「〜へ移動」の文字。移す先の label を受けます
-   * @default (label) => `${label}へ移動`
-   */
-  moveToTargetLabel?: (label: string) => string;
-  /**
-   * 移す先をまとめる見出し（menuLayout が submenu・group のとき）
-   * @default '別のリストへ移動'
-   */
-  moveTargetsTitle?: string;
-  /**
-   * item-menu の ︙ のメニューに、ほかの項目と入れ替える操作（「〜と入れ替え」）を足します
+   * item-menu の ︙ のメニューに、既定の移動の項目（上へ・下へ・先頭へ・末尾へ）を出しません。
+   * SortableItem の menu に、自分で組んだ項目を渡します。動かす関数は useSortableItemActions から読みます
    * @default false
    */
-  showSwapActions?: boolean;
-  /**
-   * 「〜と入れ替え」の文字。相手の項目の名前（SortableItem の accessibleName）を受けます
-   * @default (name) => `${name}と入れ替え`
-   */
-  swapLabel?: (name: string) => string;
-  /**
-   * 入れ替える相手をまとめる見出し（menuLayout が submenu・group のとき）
-   * @default '入れ替え'
-   */
-  swapTitle?: string;
-  /**
-   * 移す先・入れ替える相手の並べ方。flat は区切り線のあとに 1 つずつ、submenu は入れ子に、group は見出しを付けたまとまりにします
-   * @default 'flat'
-   */
-  menuLayout?: SortableMenuLayout;
+  hideMoveItems?: boolean;
   /** 項目（SortableItem）を value の順に並べます */
   children?: ReactNode;
   /** 一覧の要素（ul）に付きます */
@@ -354,14 +319,7 @@ export function Sortable({
   moveFirstLabel = '先頭へ移動',
   moveLastLabel = '末尾へ移動',
   moveMenuName = '移動',
-  moveTargets,
-  onMoveToTarget,
-  moveToTargetLabel = defaultMoveToTargetLabel,
-  moveTargetsTitle = '別のリストへ移動',
-  showSwapActions = false,
-  swapLabel = defaultSwapLabel,
-  swapTitle = '入れ替え',
-  menuLayout = 'flat',
+  hideMoveItems = false,
   className,
   children,
   ref,
@@ -386,15 +344,8 @@ export function Sortable({
       first: moveFirstLabel,
       last: moveLastLabel,
       menu: moveMenuName,
-      swap: swapLabel,
-      moveTo: moveToTargetLabel,
-      moveToTitle: moveTargetsTitle,
-      swapTitle,
     },
-    moveTargets,
-    onMoveToTarget,
-    showSwapActions,
-    menuLayout,
+    hideMoveItems,
   });
   const { list } = sortable({ variant, motion });
   return (
@@ -435,7 +386,8 @@ export interface SortableItemProps extends Omit<ComponentProps<'li'>, 'value'> {
    */
   accessibleName?: string;
   /**
-   * ︙ のメニュー（Sortable の moveActions="item-menu"）に足す項目（MenuItem を並べる）。移動の操作のあとに、区切り線を挟んで並べます
+   * ︙ のメニュー（Sortable の moveActions="item-menu"）に足す項目（MenuItem を並べる）。既定の移動の操作のあとに、区切り線を挟んで並べます。
+   * ほかのリストへの移動・複製・削除のような、その項目だけの操作を入れます。Sortable の hideMoveItems では、これがメニューの中身のすべてになります
    */
   menu?: ReactNode;
   /**
@@ -477,8 +429,6 @@ export function SortableItem({
     () => ({ value, locked: disabled, name: accessibleName, menu, row }),
     [value, disabled, accessibleName, menu, row]
   );
-  // 入れ替える相手の一覧に、この項目の名前を出す
-  if (listContext && accessibleName) listContext.names.set(value, accessibleName);
   const element = useRender({
     render,
     defaultTagName: 'li',
@@ -517,7 +467,12 @@ export function SortableItemActions({ className }: SortableItemActionsProps) {
 }
 
 export interface SortableSeparatorProps extends ComponentProps<'li'> {
-  /** 見出しの文字（「明日」「ここから下は公開しない」）。書かないときは、線だけの区切りになります */
+  /**
+   * 見出しのあとの残りの幅に、細い線を引きます。variant="divided" では、項目と同じ区切りの線で分けるので使いません
+   * @default false
+   */
+  showDivider?: boolean;
+  /** 見出しの文字（「明日」「ここから下は公開しない」）。書かないときは showDivider を付け、線だけの区切りにします */
   children?: ReactNode;
   /** 区切りの要素（li）に付きます */
   className?: string;
@@ -527,9 +482,14 @@ export interface SortableSeparatorProps extends ComponentProps<'li'> {
  * 並びの途中に挟む、動かさない行（区切りや見出し）。Sortable の value には入れず、項目のあいだに置きます。
  * 項目はキーボードや移動の操作で、区切りをまたいで動きます。区切りの位置は、使う側が並びのどこに描くかで決めます
  */
-export function SortableSeparator({ children, className, ...props }: SortableSeparatorProps) {
+export function SortableSeparator({
+  showDivider = false,
+  children,
+  className,
+  ...props
+}: SortableSeparatorProps) {
   const listContext = use(ListContext);
-  const { separator } = sortable({ variant: listContext?.variant });
+  const { separator } = sortable({ variant: listContext?.variant, showDivider });
   const hasLabel = children != null && children !== false;
   return (
     <li
