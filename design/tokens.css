@@ -449,6 +449,13 @@
   --field-sm-leading: var(--leading-control-sm);
   --field-sm-x: var(--spacing-control-x-sm);
   --field-sm-icon: var(--spacing-icon-sm);
+  /* Select の消すボタン（clearable）— 軸 522
+     --select-clear-at-caret: × の場所。0 は右端（▼ が × の左へずれる。Combobox と同じ）、1 は ▼ の左（▼ は右端から動かない。DatePicker と同じ）
+     --select-clear-caret-gap: × を ▼ の左に置くときの、× と ▼ のあいだ
+     --select-clear-hover-joined: × に hover しているあいだも、欄を hover の塗りにするか（1 か 0） */
+  --select-clear-at-caret: 0;
+  --select-clear-caret-gap: var(--spacing);
+  --select-clear-hover-joined: 1;
   /* 読む文字の大きさと行の高さ — 軸 51 の E
      マウスでは本文 16px。指では、機能の画面（設定・SNS など）の本文を 14px にし、部品の文字と同じ大きさにする
      読みもの（Prose の中。data-reading を付けた要素）では、指でもマウスと同じ大きさ（本文 16px）を保つ（src/styles/theme.css）
