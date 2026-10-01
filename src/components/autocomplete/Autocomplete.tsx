@@ -45,17 +45,22 @@ import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import {
-  type ListboxGroup,
   type ListboxItems,
+  type NormalizedListboxGroup,
   flattenItems,
   isGroupedItems,
+  normalizeItems,
 } from '../../internal/listbox/listbox-items';
 import {
   type ListboxInputProps,
   type ListboxSlotProps,
   mergeSlotClass,
 } from '../../internal/listbox/listbox-slot-props';
-import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import type {
+  ListboxItem,
+  ListboxValue,
+  ListboxValueCheck,
+} from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -112,15 +117,19 @@ export interface AutocompleteSelectEvent {
 /**
  * 打った文字と候補を突き合わせる関数。true を返した候補を出す
  * 3 つ目の引数 `itemToString` は候補の文字（`label`）を返す。`Autocomplete.useFilter`（Base UI）の `contains` なども渡せる
+ * 文字だけで渡した候補も、`{ label, value }`（ラベルは値の文字）にそろえて渡す
  */
-export type AutocompleteFilter = (
-  item: ListboxItem,
+export type AutocompleteFilter<Value = string> = (
+  item: ListboxItem<Value>,
   query: string,
-  itemToString?: (item: ListboxItem) => string
+  itemToString?: (item: ListboxItem<Value>) => string
 ) => boolean;
 
-/** Autocomplete の本体（AutocompleteControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
-export interface AutocompleteControlProps {
+/**
+ * Autocomplete の本体（AutocompleteControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します
+ * `Value` は候補の値の型（文字か数）で、`items` から決まります。欄の値（打った文字）はいつも文字です
+ */
+export interface AutocompleteControlProps<Value = string> {
   /**
    * 成功のとき、欄の端に置くチェックを隠すか。true では下の行だけを出します
    * @default false
@@ -156,18 +165,19 @@ export interface AutocompleteControlProps {
    */
   addonShape?: AddonShape;
   /**
-   * 候補。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
-   * 各候補に disabled（選べない）と note（ラベルの下の2行目）を付けられます。
+   * 候補。そのまま並べる配列か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 1 つの候補は、値だけ（文字か数。ラベルは値の文字）か `{ label, value }` で、混ぜて渡せます。
+   * `{ label, value }` の候補には disabled（選べない）と note（ラベルの下の2行目）を付けられます。
    * 候補は提案です。候補にない文字も、そのまま打てます
    */
-  items: ListboxItems;
+  items: ListboxItems<Value>;
   /**
    * 欄が空のときに出す候補（最近の検索など）。`items` と同じ形で、見出し付きのまとまりで渡すのが向きます。
    * 渡すと、欄が空のあいだは `items` の代わりにこれを出し、文字を打つと `items` の絞り込みに切り替わります。
    * 空でも開けるよう、`openOn` が `'input'` のときは `'focus'` として扱います（`'click'` はそのまま）。
    * 書かないときは、空のあいだは何も出しません
    */
-  emptyItems?: ListboxItems;
+  emptyItems?: ListboxItems<Value>;
   /**
    * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
    * @default 'label'
@@ -193,11 +203,11 @@ export interface AutocompleteControlProps {
    */
   onValueChange?: (value: string) => void;
   /**
-   * 候補を選んだとき（押す・Enter）。選んだ候補を受け取ります。
+   * 候補を選んだとき（押す・Enter）。選んだ候補を `{ label, value }` で受け取ります（値だけで渡した候補も、この形にそろえます）。
    * 既定では、候補の文字を欄に入れて候補を閉じます。`event.preventDefault()` を呼ぶと、欄も候補もそのままにします
    * `onValueChange` は preventDefault を呼んだときは呼びません
    */
-  onSelect?: (item: ListboxItem, event: AutocompleteSelectEvent) => void;
+  onSelect?: (item: ListboxItem<Value>, event: AutocompleteSelectEvent) => void;
   /**
    * 候補を選んだあとに候補を閉じるか。false では、選んだ文字を欄に入れたまま候補を開いておきます
    * @default true
@@ -216,7 +226,7 @@ export interface AutocompleteControlProps {
    * false は部品の中では絞り込まず、`items` をそのまま出します。検索の API に問い合わせて `items` を差し替えるときに使います
    * @default true
    */
-  filter?: boolean | AutocompleteFilter;
+  filter?: boolean | AutocompleteFilter<Value>;
   /**
    * 矢印キーで印を移した候補の文字を、欄に仮に入れる（入力を候補に補正する）か。
    * 印を移すと欄の文字がその候補に変わり、Esc で打った文字に戻ります。Enter で確定します
@@ -421,10 +431,11 @@ interface AutocompleteFieldProps extends Pick<
 }
 
 /** Autocomplete の props から、label・accessibleName の組み合わせの決まりを外したもの。Autocomplete を包む部品が継ぎます */
-export type AutocompleteBaseProps = AutocompleteControlProps & AutocompleteFieldProps;
+export type AutocompleteBaseProps<Value = string> = AutocompleteControlProps<Value> &
+  AutocompleteFieldProps;
 
 /** Autocomplete の props。label か accessibleName のどちらかが要ります */
-export type AutocompleteProps = FieldNamed<AutocompleteBaseProps>;
+export type AutocompleteProps<Value = string> = FieldNamed<AutocompleteBaseProps<Value>>;
 
 const defaultLoadedText = (count: number) => `${count} 件の候補`;
 
@@ -433,7 +444,7 @@ const defaultLoadedText = (count: number) => `${count} 件の候補`;
  * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
  * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function AutocompleteControl({
+export function AutocompleteControl<Value = string>({
   hideSuccessMark = false,
   readOnly,
   color = 'neutral',
@@ -481,7 +492,7 @@ export function AutocompleteControl({
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   form,
-}: AutocompleteControlProps) {
+}: AutocompleteControlProps<Value> & ListboxValueCheck<Value>) {
   const field = useFieldState();
   const disabled = field?.disabled ?? false;
   const loading = field?.loading ?? false;
@@ -536,17 +547,28 @@ export function AutocompleteControl({
   const text = value ?? innerValue;
 
   // 候補から選ぶとき、どの候補かを onSelect に渡す。押した候補（onPress）を覚えておき、Base UI の値の変更で使う
+  //   値だけで渡された候補は { label, value } にそろえる（ラベルは値の文字）
+  //   中では値を文字か数（ListboxValue）として扱い、onSelect に渡すときに Value に戻す
+  const normalItems = useMemo(() => normalizeItems(items as ListboxItems<ListboxValue>), [items]);
+  const normalEmptyItems = useMemo(
+    () => (emptyItems ? normalizeItems(emptyItems as ListboxItems<ListboxValue>) : undefined),
+    [emptyItems]
+  );
   const flat = useMemo(
-    () => [...flattenItems(items), ...(emptyItems ? flattenItems(emptyItems) : [])],
-    [items, emptyItems]
+    () => [
+      ...flattenItems(normalItems),
+      ...(normalEmptyItems ? flattenItems(normalEmptyItems) : []),
+    ],
+    [normalItems, normalEmptyItems]
   );
   // 欄が空のあいだは emptyItems を出す。空でも開けるよう、開く契機の input は focus として扱う
-  const shownItems = emptyItems && text === '' ? emptyItems : items;
-  const effectiveOpenOn: AutocompleteOpenOn = emptyItems && openOn === 'input' ? 'focus' : openOn;
+  const shownItems = normalEmptyItems && text === '' ? normalEmptyItems : normalItems;
+  const effectiveOpenOn: AutocompleteOpenOn =
+    normalEmptyItems && openOn === 'input' ? 'focus' : openOn;
   // 絞り込み・補正の組み合わせを Base UI の mode に写す
   const filtering = filter !== false;
   const mode = completeInput ? (filtering ? 'both' : 'inline') : filtering ? 'list' : 'none';
-  const pressedRef = useRef<ListboxItem | null>(null);
+  const pressedRef = useRef<ListboxItem<ListboxValue> | null>(null);
   // 選んだ操作が preventDefault された（欄も開閉も動かさない）ことを、続く開閉の通知に伝える
   const preventedRef = useRef(false);
 
@@ -770,7 +792,7 @@ export function AutocompleteControl({
 
   // 候補の1項目。選んだ状態を持たないので、選んだ印（チェック）は置かない
   // Base UI に渡す値は候補そのもので、押した候補を覚えて onSelect に渡す
-  const renderOption = (item: ListboxItem) => (
+  const renderOption = (item: ListboxItem<ListboxValue>) => (
     <ComboboxOption
       key={item.value}
       item={item}
@@ -801,7 +823,7 @@ export function AutocompleteControl({
       }
     >
       {grouped
-        ? (group: ListboxGroup, index: number) => (
+        ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
             <ComboboxGroupSection
               key={index}
               group={group}
@@ -811,14 +833,14 @@ export function AutocompleteControl({
               {(item) => renderOption(item)}
             </ComboboxGroupSection>
           )
-        : (item: ListboxItem) => renderOption(item)}
+        : (item: ListboxItem<ListboxValue>) => renderOption(item)}
     </BaseAutocomplete.List>
   );
 
   return (
-    <BaseAutocomplete.Root<ListboxItem>
+    <BaseAutocomplete.Root<ListboxItem<ListboxValue>>
       // 候補の形（並べるか・まとまりか）は、渡された配列から Base UI が見分ける
-      items={shownItems as readonly ListboxItem[]}
+      items={shownItems as readonly ListboxItem<ListboxValue>[]}
       // 文字は部品が持ち、Base UI には制御して渡す。選んだ操作を preventDefault したときに、欄の文字を動かさないため
       value={text}
       onValueChange={(next, details) => {
@@ -829,7 +851,7 @@ export function AutocompleteControl({
           preventedRef.current = false;
           if (item && onSelect) {
             let prevented = false;
-            onSelect(item, {
+            (onSelect as NonNullable<AutocompleteControlProps<ListboxValue>['onSelect']>)(item, {
               preventDefault: () => {
                 prevented = true;
               },
@@ -847,7 +869,11 @@ export function AutocompleteControl({
         change(next);
       }}
       mode={mode}
-      filter={typeof filter === 'function' ? filter : undefined}
+      filter={
+        typeof filter === 'function'
+          ? (filter as unknown as AutocompleteFilter<ListboxValue>)
+          : undefined
+      }
       autoHighlight={autoHighlight}
       openOnInputClick={effectiveOpenOn === 'click' || effectiveOpenOn === 'focus'}
       disabled={disabled}
@@ -1011,9 +1037,19 @@ export function AutocompleteControl({
  * 文字を打つと、候補を提案してくれる入力欄
  * 値は打った文字そのもので、候補にない文字も打てます。候補を選ぶと、その文字が欄に入ります
  */
-export function Autocomplete(props: AutocompleteProps) {
+export function Autocomplete<Value = string>(
+  props: AutocompleteProps<Value> & ListboxValueCheck<Value>
+) {
   const [field, control] = splitFieldProps(props);
   // ラベルを <label> にするかは、打つ欄をシートの中に置くか（本体の中で決まる）で変わるので、外枠には渡さず本体が useFieldControlKind で知らせる
   //   最初の描画だけ <label> で描かれ、layout effect のあと本体に合う
-  return <Field {...field}>{() => <AutocompleteControl {...control} />}</Field>;
+  return (
+    <Field {...field}>
+      {() => (
+        <AutocompleteControl<Value>
+          {...(control as AutocompleteControlProps<Value> & ListboxValueCheck<Value>)}
+        />
+      )}
+    </Field>
+  );
 }

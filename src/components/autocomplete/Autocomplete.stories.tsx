@@ -110,7 +110,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/Autocomplete',
-  component: Autocomplete,
+  component: Autocomplete<string>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -219,7 +219,7 @@ const meta = {
     popupProps: { control: false },
     inputProps: { control: false },
   },
-} satisfies Meta<typeof Autocomplete>;
+} satisfies Meta<typeof Autocomplete<string>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

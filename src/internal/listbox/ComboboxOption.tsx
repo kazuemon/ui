@@ -5,15 +5,15 @@ import type { MouseEventHandler } from 'react';
 
 import { CheckIcon } from '../icons';
 import { ListboxOptionContent } from './ListboxOption';
-import { type ListboxItem, useListboxOption } from './use-listbox-option';
+import { type ListboxItem, type ListboxValue, useListboxOption } from './use-listbox-option';
 
 // 打って選ぶ部品（Combobox・Autocomplete・TagsInput）の選択肢 1 項目
 //   行は Base UI の Combobox の Item（Autocomplete の Item は同じ部品）
 //   ラベルは素の span（Base UI の Combobox には Select のような ItemText がない）
 //   見た目は選択肢の一覧で共有する（src/internal/listbox）
 
-interface ComboboxOptionProps {
-  item: ListboxItem;
+interface ComboboxOptionProps<Value extends ListboxValue> {
+  item: ListboxItem<Value>;
   /** Base UI に渡す値。書かないときは item.value（Autocomplete は候補そのものを渡す） */
   value?: unknown;
   /**
@@ -22,10 +22,15 @@ interface ComboboxOptionProps {
    */
   indicator?: boolean;
   /** 押した・Enter で選んだとき。どの候補かを部品に伝える */
-  onPress?: (item: ListboxItem) => void;
+  onPress?: (item: ListboxItem<Value>) => void;
 }
 
-export function ComboboxOption({ item, value, indicator = true, onPress }: ComboboxOptionProps) {
+export function ComboboxOption<Value extends ListboxValue>({
+  item,
+  value,
+  indicator = true,
+  onPress,
+}: ComboboxOptionProps<Value>) {
   const { itemProps, labelProps, indicatorProps, noteId } = useListboxOption(item);
   const handleClick: MouseEventHandler | undefined = onPress ? () => onPress(item) : undefined;
   return (

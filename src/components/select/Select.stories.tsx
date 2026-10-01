@@ -95,7 +95,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/Select',
-  component: Select,
+  component: Select<string, boolean>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -187,7 +187,7 @@ const meta = {
     positionerProps: { control: false },
     popupProps: { control: false },
   },
-} satisfies Meta<typeof Select>;
+} satisfies Meta<typeof Select<string, boolean>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -504,7 +504,7 @@ export const Loading: Story = {
 function LoadOnOpenSelect({
   onOpenChange,
   ...props
-}: FieldNamed<Omit<SelectBaseProps<boolean>, 'items' | 'loading'>>) {
+}: FieldNamed<Omit<SelectBaseProps<string, boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -995,3 +995,4 @@ export const Groups: Story = {
     await expect(within(groups[1]).getAllByRole('option')).toHaveLength(2);
   },
 };
+

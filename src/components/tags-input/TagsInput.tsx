@@ -50,11 +50,12 @@ import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import {
-  type ListboxGroup,
   type ListboxItems,
+  type NormalizedListboxGroup,
   flattenItems,
   isGroupedItems,
   labelMap,
+  normalizeItems,
 } from '../../internal/listbox/listbox-items';
 import {
   type ListboxInputProps,
@@ -193,7 +194,7 @@ export interface TagsInputControlProps {
   placeholder?: string;
   /**
    * 打っているあいだに出す候補。渡さないときは候補を出しません（打った文字だけがタグになります）。
-   * 候補にない文字も、そのままタグになります
+   * 1 つの候補は、文字だけ（ラベルも同じ文字）か `{ label, value }` で渡します。候補にない文字も、そのままタグになります
    */
   items?: ListboxItems;
   /**
@@ -599,18 +600,24 @@ export function TagsInputControl({
     onOpenChange?.(next);
   };
 
+  // 文字だけで渡された候補は { label, value } にそろえる（ラベルも同じ文字）
+  const shownItems = useMemo(() => (items ? normalizeItems(items) : undefined), [items]);
+  const shownFilteredItems = useMemo(
+    () => (filteredItems ? normalizeItems(filteredItems) : undefined),
+    [filteredItems]
+  );
   // Base UI には、候補から値とラベルを引く collection を渡す
   const collection = useMemo(
     () =>
-      items
-        ? BaseCombobox.createItems<ListboxItem, string>(items, {
+      shownItems
+        ? BaseCombobox.createItems<ListboxItem, string>(shownItems, {
             getValue: (item) => item.value,
             getLabel: (item) => item.label,
           })
         : undefined,
-    [items]
+    [shownItems]
   );
-  const flat = useMemo(() => (items ? flattenItems(items) : []), [items]);
+  const flat = useMemo(() => (shownItems ? flattenItems(shownItems) : []), [shownItems]);
   const labelOf = useMemo(() => labelMap(flat), [flat]);
 
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ
@@ -684,7 +691,7 @@ export function TagsInputControl({
     } as CSSProperties;
   }, [maxRows, chipSize]);
   const selected = selectedTokens(color);
-  const grouped = isGroupedItems(filteredItems ?? items ?? []);
+  const grouped = isGroupedItems(shownFilteredItems ?? shownItems ?? []);
   const inputClass = comboboxInputClass({ blocking, readOnly });
 
   // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
@@ -715,7 +722,7 @@ export function TagsInputControl({
         highlighted.current = item;
       }}
       filter={filter}
-      filteredItems={filteredItems}
+      filteredItems={shownFilteredItems}
       autoHighlight={autoHighlight}
       openOnInputClick={openOnInputClick && hasItems}
       disabled={disabled}
@@ -963,7 +970,7 @@ export function TagsInputControl({
                   })}
                 >
                   {grouped
-                    ? (group: ListboxGroup, index: number) => (
+                    ? (group: NormalizedListboxGroup, index: number) => (
                         <ComboboxGroupSection
                           key={index}
                           group={group}

@@ -838,6 +838,8 @@ export type {
   ListboxItem,
   ListboxItemNote,
   ListboxItemNoteKind,
+  ListboxValue,
+  ListboxValueCheck,
 } from './internal/listbox/use-listbox-option';
 export type { ComboboxChipSize } from './internal/combobox-base/combobox-control-styles';
 export type { ComboboxSheetCloseIcon } from './internal/combobox-base/ComboboxParts';

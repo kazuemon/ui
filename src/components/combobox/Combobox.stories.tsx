@@ -125,7 +125,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/Combobox',
-  component: Combobox,
+  component: Combobox<string, boolean>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -225,7 +225,7 @@ const meta = {
     popupProps: { control: false },
     inputProps: { control: false },
   },
-} satisfies Meta<typeof Combobox>;
+} satisfies Meta<typeof Combobox<string, boolean>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -565,7 +565,7 @@ export const Disabled: Story = {
         <Combobox {...args} disabled />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox<boolean>
+        <Combobox<string, boolean>
           {...args}
           items={skills}
           multiple
@@ -595,7 +595,7 @@ export const ReadOnly: Story = {
         <Combobox {...args} readOnly defaultValue="ward-3" />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox<boolean>
+        <Combobox<string, boolean>
           {...args}
           items={skills}
           multiple
@@ -678,7 +678,7 @@ export const Loading: Story = {
 function LoadOnOpenCombobox({
   onOpenChange,
   ...props
-}: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading'>>) {
+}: FieldNamed<Omit<ComboboxBaseProps<string, boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -777,7 +777,7 @@ export const LoadOnOpen: Story = {
 
 // 打った文字を外に渡し、返ってきた結果を filteredItems で出す（絞り込みを外でする）
 function AsyncCombobox(
-  props: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading' | 'filteredItems'>>
+  props: FieldNamed<Omit<ComboboxBaseProps<string, boolean>, 'items' | 'loading' | 'filteredItems'>>
 ) {
   const [results, setResults] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -891,7 +891,12 @@ export const Densities: Story = {
       <div className="w-64">
         <Combobox {...args} />
         <div className="h-4" />
-        <Combobox<boolean> {...args} items={skills} multiple defaultValue={['design', 'a11y']} />
+        <Combobox<string, boolean>
+          {...args}
+          items={skills}
+          multiple
+          defaultValue={['design', 'a11y']}
+        />
       </div>
     </DensityPair>
   ),
@@ -1005,3 +1010,4 @@ export const PrefixFocus: Story = {
     await expect(input).toHaveFocus();
   },
 };
+

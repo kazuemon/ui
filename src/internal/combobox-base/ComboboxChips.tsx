@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { Chip, ChipRemove } from '../../components/chip/Chip';
 import type { ListboxColor } from '../listbox/listbox-colors';
+import type { ListboxValue } from '../listbox/use-listbox-option';
 import {
   type ComboboxChipSize,
   comboboxChipClass,
@@ -30,9 +31,9 @@ interface ChipLookProps {
   chipStyle?: CSSProperties;
 }
 
-interface ComboboxChipsProps extends ChipLookProps {
-  /** 値からラベルを引く表。外で絞り込んで項目が消えても、items に残っていれば引ける */
-  labelOf: Map<string, string>;
+interface ComboboxChipsProps<Value extends ListboxValue> extends ChipLookProps {
+  /** 値からラベルを引く表。外で絞り込んで項目が消えても、items に残っていれば引ける。ないときは値の文字を出す */
+  labelOf: Map<Value, string>;
   /** チップのまとまりの読み上げの名前 */
   chipsName: string;
   /** チップの × の読み上げの名前を作る関数 */
@@ -45,15 +46,15 @@ interface ComboboxChipsProps extends ChipLookProps {
   /** チップ1つずつに足すクラス */
   chipClassName?: string;
   /** チップ1つずつに足す属性（どのチップかを示す印など）。タグの文字を受け取る */
-  chipProps?: (value: string) => Record<`data-${string}`, string | undefined>;
+  chipProps?: (value: Value) => Record<`data-${string}`, string | undefined>;
   /** 箱ごと包む（TagsInput は、はみ出した分をスクロールさせる枠に入れる） */
   wrap?: (chips: ReactNode) => ReactNode;
   /** チップの後ろに置く打つ欄。選んだ値の並びを受け取る（プレースホルダの出し分けに使う） */
-  children: (values: string[]) => ReactNode;
+  children: (values: Value[]) => ReactNode;
 }
 
 /** 欄の中のチップと打つ欄（Base UI の Chips）。選んだ値は Base UI の Value から受け取る */
-export function ComboboxChips({
+export function ComboboxChips<Value extends ListboxValue>({
   labelOf,
   chipsName,
   chipRemoveName,
@@ -67,18 +68,18 @@ export function ComboboxChips({
   chipProps,
   wrap,
   children,
-}: ComboboxChipsProps) {
+}: ComboboxChipsProps<Value>) {
   const chipClass = chipClassName ? `${comboboxChipClass} ${chipClassName}` : comboboxChipClass;
   return (
     <BaseCombobox.Value>
-      {(values: string[]) => {
+      {(values: Value[]) => {
         const chips = (
           <BaseCombobox.Chips
             aria-label={values.length > 0 ? chipsName : undefined}
             className={`${comboboxChipsClass} ${className}`}
           >
             {values.map((item) => {
-              const text = labelOf.get(item) ?? item;
+              const text = labelOf.get(item) ?? String(item);
               return (
                 <BaseCombobox.Chip
                   key={item}
@@ -113,23 +114,26 @@ export function ComboboxChips({
   );
 }
 
-interface ComboboxTriggerChipsProps extends Omit<ChipLookProps, 'readOnly'> {
-  values: string[];
-  labelOf: Map<string, string>;
+interface ComboboxTriggerChipsProps<Value extends ListboxValue> extends Omit<
+  ChipLookProps,
+  'readOnly'
+> {
+  values: Value[];
+  labelOf: Map<Value, string>;
 }
 
 /**
  * 押すボタンの本体（シートに打つ欄を移したとき）に並ぶチップ
  * × はボタンの中に置けないので、外す操作はシートの中で行う
  */
-export function ComboboxTriggerChips({
+export function ComboboxTriggerChips<Value extends ListboxValue>({
   values,
   labelOf,
   color,
   chipSize,
   disabled,
   chipStyle,
-}: ComboboxTriggerChipsProps) {
+}: ComboboxTriggerChipsProps<Value>) {
   return (
     <span className={comboboxTriggerChipsClass}>
       {values.map((item) => (
@@ -141,7 +145,7 @@ export function ComboboxTriggerChips({
           style={chipStyle}
           className={comboboxChipClass}
         >
-          <span className="min-w-0 truncate">{labelOf.get(item) ?? item}</span>
+          <span className="min-w-0 truncate">{labelOf.get(item) ?? String(item)}</span>
         </Chip>
       ))}
     </span>
