@@ -3,7 +3,7 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { CheckCircleIcon, WarningCircleIcon, WarningIcon } from '../../internal/icons';
 import { listStyles } from '../../internal/reading/list';
-import { tv } from '../../internal/tv';
+import { cn, tv } from '../../internal/tv';
 
 // 記事の中のリスト（箇条書き・番号付き・チェックリスト）— 軸 60 の B（印は短い線、番号は右揃え）
 // Markdown（GFM）を変換した HTML と同じ要素を出す: <ul>・<ol start>・<li>、チェックリストは
@@ -140,6 +140,8 @@ const listItem = tv({
       'size-[1.25em] [&_svg]:size-full',
     ],
     body: 'grid grid-cols-[minmax(0,1fr)_auto] gap-x-4',
+    // 文の列。入れ子のリストは li の直下でなくなるので、親の項目の文との間をここで足す（li の直下と同じ間）
+    text: 'min-w-0 [&>:is(ul,ol)]:mt-(--list-item-gap)',
     trailing: 'flex h-[var(--list-leading,var(--leading-body))] items-center',
   },
   variants: {
@@ -233,8 +235,8 @@ export function ListItem({
   children,
   ...props
 }: ListItemProps) {
-  const className =
-    [color && listItemColors[color], classNameProp].filter(Boolean).join(' ') || undefined;
+  // 文の色は、利用者の className で上書きできるよう tailwind-merge でまとめる
+  const className = cn(color && listItemColors[color], classNameProp) || undefined;
   const StatusIcon = status ? statusIcons[status] : undefined;
   const marker = icon ?? (StatusIcon ? <StatusIcon /> : null);
   if (checked == null && (marker != null || trailing != null)) {
@@ -248,7 +250,7 @@ export function ListItem({
         )}
         {trailing != null ? (
           <div className={s.body()}>
-            <div className="min-w-0">{children}</div>
+            <div className={s.text()}>{children}</div>
             <div data-slot="list-item-trailing" className={s.trailing()}>
               {trailing}
             </div>

@@ -259,3 +259,31 @@ export const IconAndTextColor: Story = {
     await expect(iconColor(items[2])).toBe(fg('fg-info'));
   },
 };
+
+export const NestedWithTrailing: Story = {
+  name: '末尾のある項目の入れ子',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List>
+      <ListItem trailing="3 件">
+        親の項目
+        <List>
+          <ListItem>子の項目</ListItem>
+        </List>
+      </ListItem>
+      <ListItem>
+        末尾のない親
+        <List>
+          <ListItem>子の項目</ListItem>
+        </List>
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvasElement }) => {
+    // 末尾があってもなくても、入れ子のリストと親の項目の文の間は同じ
+    const nested = canvasElement.querySelectorAll('li ul');
+    await expect(nested).toHaveLength(2);
+    await expect(getComputedStyle(nested[0]).marginTop).toBe(getComputedStyle(nested[1]).marginTop);
+    await expect(getComputedStyle(nested[0]).marginTop).not.toBe('0px');
+  },
+};
