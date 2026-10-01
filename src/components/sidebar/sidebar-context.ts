@@ -106,17 +106,3 @@ export interface SidebarNavContextValue {
 }
 
 export const SidebarNavContext = createContext<SidebarNavContextValue | null>(null);
-
-/**
- * 比べるためだけの切り替え（軸 502。公開しない）。畳んだ列で、入れ子を持つリンクの行をどう扱うか
- *   flyout: アイコンは今どおり面を開き、面の先頭に行のリンクを置く。icon: アイコンそのものをリンクにし、載せると面を開く
- *   flyoutDefaultOpen: 比較の画面で、はじめから面を開いておく
- */
-export interface SidebarRailLinkCompare {
-  railParentLink: 'flyout' | 'icon';
-  flyoutDefaultOpen?: boolean;
-}
-
-export const SidebarRailLinkCompareContext = createContext<SidebarRailLinkCompare>({
-  railParentLink: 'flyout',
-});

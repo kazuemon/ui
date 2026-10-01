@@ -1680,18 +1680,6 @@
   /* 列の幅を変えるつまみ（ADR-0362）。hit: つかめる幅。line-width: 載せたとき・動かしているときに出す線の太さ */
   --sidebar-handle-hit: calc(var(--spacing) * 2);
   --sidebar-handle-line-width: var(--border-width-thick);
-  /* 入れ子を持つリンクの行（軸 501。比べている途中）。行はリンクにし、開け閉めは行の右端の山形のボタンに分ける
-     toggle-size: 山形のボタンの大きさ。toggle-inside: 1 で行の文字の右端にそろえて内側に置き、0 で行の右端に着ける
-     toggle-reserve: 行の文字の右に空ける幅（山形のぶん）。toggle-inset: 行の面を右から縮める幅（0 で行の面がボタンの下まで通る）
-     toggle-divider: リンクと山形のあいだの縦の線の色。toggle-hover-depth: 山形に載せたときの面（1 で押下と同じ濃さ、0 で hover と同じ）
-     toggle-row-hover: 山形に載せたとき、行（リンク）の面も載せたときの色にするか（1・0） */
-  --sidebar-toggle-size: calc(var(--spacing) * 6);
-  --sidebar-toggle-inside: 1;
-  --sidebar-toggle-reserve: calc(var(--spacing-icon) + var(--spacing) * 2);
-  --sidebar-toggle-inset: 0px;
-  --sidebar-toggle-divider: transparent;
-  --sidebar-toggle-hover-depth: 1;
-  --sidebar-toggle-row-hover: 1;
   /* ── END sidebar */
 
   /* ── FileTree — ADR-275〜278 ── BEGIN file-tree */
