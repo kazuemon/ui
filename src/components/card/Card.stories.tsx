@@ -36,7 +36,7 @@ const meta = {
           '',
           '- 画像は `CardImage`、文は `CardBody` に入れます。画像は 16:9 の枠に収め、はみ出た分を切ります。',
           '- `variant` は型です。`default`（既定）は画像をカードの端まで届かせ、`nested` は画像をカードの内側に余白を空けて収めます。',
-          '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js の `Link` は `render` に渡します。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
+          '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js・TanStack Router の `Link` は `render` に渡し、`link` を付けます。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
           '- カード全体がリンクになるので、中にほかのリンクやボタンは置けません。置きたいときは `href` を渡さず、題をリンクにします。',
           '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
           '- hover で画像を少し大きくしたいときは、`imageZoom` を渡します。',
@@ -54,6 +54,7 @@ const meta = {
       table: { defaultValue: { summary: "'default'" } },
     },
     href: { control: 'text' },
+    link: { control: 'boolean' },
     imageZoom: { control: 'boolean' },
     render: { control: false },
     children: { control: false },
@@ -229,12 +230,12 @@ export const FrameworkLinkStory: Story = {
     docs: {
       description: {
         story:
-          'Next.js の `Link` などは `render` に渡します。`href` は渡した要素に書きます。カードの見た目と、カード全体が押せることはそのままです。',
+          'Next.js・TanStack Router の `Link` などは `render` に渡し、`link` を付けます。行き先（`href`・`to`）は渡した要素に書きます。カードの見た目と、カード全体が押せることはそのままです。',
       },
       source: sourceCode(`
         import NextLink from 'next/link';
 
-        <Card render={<NextLink href="/works/1" />}>
+        <Card link render={<NextLink href="/works/1" />}>
           <CardImage src="/works/1.png" alt="" />
           <CardBody>…</CardBody>
         </Card>
@@ -242,7 +243,7 @@ export const FrameworkLinkStory: Story = {
     },
   },
   render: (args) => (
-    <Card {...args} render={<FrameworkLink href="/works/1" />}>
+    <Card {...args} link render={<FrameworkLink href="/works/1" />}>
       <CardImage src={landscape} alt="" />
       <CardBody>
         <Content />
@@ -254,6 +255,93 @@ export const FrameworkLinkStory: Story = {
     await expect(link).toHaveAttribute('href', '/works/1');
     await expect(link).toHaveAttribute('data-framework-link');
     await expect(link).toHaveAttribute('data-interactive');
+  },
+};
+
+// TanStack Router の Link の代わり。href の代わりに to を受け取る
+function RouterLink({ to, ...props }: ComponentProps<'a'> & { to: string }) {
+  return <a href={to} {...props} />;
+}
+
+export const LinkOrNot: Story = {
+  name: 'リンクとして描くか',
+  decorators: [narrow],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '`link` は、カード全体をリンクとして描くかです。渡さないときは、`href` があればリンクにします。',
+          '',
+          '- `render` にルーターのリンクを渡すときは、`link` を付けます。`render` に渡した要素の `href` は見ません。',
+          '- `render` だけを渡したとき（`article`・`li` など）は、リンクにしません。',
+          '- `link={false}` にすると、`href` を渡していてもリンクにせず、ただのカードとして描きます。',
+        ].join('\n'),
+      },
+      source: sourceCode(`
+        import { Link as RouterLink } from '@tanstack/react-router';
+
+        <Card link render={<RouterLink to="/works/1" />}>
+          <CardBody>…</CardBody>
+        </Card>
+      `),
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      <Card {...args} href="/works/1">
+        <CardBody>
+          <Content title="href だけ" />
+        </CardBody>
+      </Card>
+      <Card {...args} render={<article />}>
+        <CardBody>
+          <Content title="render だけ" />
+        </CardBody>
+      </Card>
+      <Card {...args} link render={<RouterLink to="/works/3" />}>
+        <CardBody>
+          <Content title="render と link" />
+        </CardBody>
+      </Card>
+      <Card {...args} href="/works/4" target="_blank" link={false}>
+        <CardBody>
+          <Content title="href と link=false" />
+        </CardBody>
+      </Card>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const card = (title: string) =>
+      canvas.getByText(title).closest<HTMLElement>('[data-slot="card"]');
+
+    // href だけ: a で描き、浮いた押すもの（影）になる
+    const hrefOnly = card('href だけ');
+    await expect(hrefOnly?.tagName).toBe('A');
+    await expect(hrefOnly).toHaveAttribute('data-interactive');
+    await expect(getComputedStyle(hrefOnly!).boxShadow).not.toBe('none');
+
+    // render だけ: 渡した要素のまま、リンクにしない（影なし）
+    const renderOnly = card('render だけ');
+    await expect(renderOnly?.tagName).toBe('ARTICLE');
+    await expect(renderOnly).not.toHaveAttribute('data-interactive');
+    await expect(getComputedStyle(renderOnly!).boxShadow).toBe('none');
+
+    // render と link: href を持たないルーターのリンク（to）でも、押せるカードになる
+    const router = canvas.getByRole('link', { name: /render と link/ });
+    await expect(router).toHaveAttribute('href', '/works/3');
+    await expect(router).toHaveAttribute('data-interactive');
+
+    // href と link={false}: div で描き、href・target・rel を付けず、読み上げの文も足さない
+    const off = card('href と link=false');
+    await expect(off?.tagName).toBe('DIV');
+    await expect(off).not.toHaveAttribute('href');
+    await expect(off).not.toHaveAttribute('target');
+    await expect(off).not.toHaveAttribute('rel');
+    await expect(off).not.toHaveAttribute('data-interactive');
+    await expect(off?.textContent).not.toContain('新しいタブで開きます');
+
+    await expect(canvas.getAllByRole('link')).toHaveLength(2);
   },
 };
 

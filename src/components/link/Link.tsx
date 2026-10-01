@@ -16,6 +16,7 @@ import { ArrowUpRightIcon } from '../../internal/icons';
 import {
   disabledAnchor,
   disabledLinkProps,
+  disabledNonLinkProps,
   disabledTextLinkProps,
   endsWithElement,
   flattenChildren,
@@ -23,6 +24,7 @@ import {
   opensNewTab,
   splitLeading,
   splitTrailing,
+  withoutLinkAttributes,
   withoutNavigation,
   withRenderOverrides,
 } from '../../internal/link-parts';
@@ -53,6 +55,9 @@ import { tv } from '../../internal/tv';
 //     center-end: 既定は文字と一緒に中央へ動く。leadIconPlacement="start" で左端に残す（--link-lead-icon-follow の 1 と 0 — 後半の軸 35）
 //   最初・最後のアイコンを見分けるときは、Fragment（<>…</>）を開いて中の子を見る
 // render（design/adr/0046）: Base UI の部品と同じ。Next.js の Link などを渡すと、その要素に Link の見た目を重ねる
+// リンクとして描くか（link）: 既定は true。Link は移動の部品なので、href がなく render だけでもリンクとして扱う
+//   false のときは見た目だけを重ね、リンクのための扱い（href・target・rel、↗、新しいタブの読み上げ、押せないときの role="link"）をしない
+//   渡した要素がないときは <span> を描く
 // 新しいタブで開く（target="_blank"）とき（design/adr/0046）: 読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
 //   名前を付けていないリンクは、中の読み上げだけの文（NewTabNote）が名前に入る
 //   名前を aria-label・aria-labelledby で付けたリンクは、中の文が名前に入らないので、名前そのものに足す（link-parts の newTabNaming）
@@ -188,6 +193,13 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
    */
   render?: ReactElement;
   /**
+   * リンクとして描くか。href がなく render にルーターのリンク（`to` を受ける TanStack Router の Link など）を渡したときも、リンクとして扱います。
+   * false にすると見た目だけを重ね、href・target・rel を描く要素に渡さず、↗ と「新しいタブで開きます」も付けません。
+   * render に渡した要素がリンクでないとき（button など）に使います。render がないときは span を描きます
+   * @default true
+   */
+  link?: boolean;
+  /**
    * アイコンだけのリンク（読み上げの名前を aria-label か aria-labelledby で付け、子がアイコン 1 つだけのリンク）の形。
    * square は部品の角の正方形、circle は丸です。どちらも部品の高さの正方形になり、左右の余白は文字のリンクの分だけ広がりません。
    * 枠線のリンク（outline）の既定は circle、ボタンの見た目のリンク（button・underline）の既定は square です。
@@ -269,11 +281,14 @@ function ButtonLookLink(props: LinkProps) {
     disabled,
     caption,
     shape = 'square',
+    link: isLink = true,
     ref,
     children,
     type: _type,
-    ...anchor
+    ...rest
   } = props;
+  // リンクとして描かないときは、href・target・rel を渡さない
+  const anchor = isLink ? rest : withoutLinkAttributes(rest);
   return (
     <ButtonLink
       variant={variant === 'underline' ? 'underline' : 'filled'}
@@ -283,7 +298,8 @@ function ButtonLookLink(props: LinkProps) {
       disabled={disabled}
       iconOnly={isIconOnly(props)}
       shape={shape}
-      render={render ?? <a />}
+      render={render ?? (isLink ? <a /> : <span />)}
+      link={isLink}
       ref={ref}
       {...anchor}
     >
@@ -304,14 +320,17 @@ function PlainLink(all: LinkProps) {
     disabled,
     caption: _caption,
     shape = 'circle',
+    link: isLink = true,
     ref,
     children,
-    ...props
+    ...rest
   } = all;
+  // リンクとして描かないときは、href・target・rel を渡さない
+  const props = isLink ? rest : withoutLinkAttributes(rest);
   const noteId = useId();
   const outline = variant === 'outline';
   const align = outline ? (contentAlign ?? 'center') : undefined;
-  const blank = props.target === '_blank' || opensNewTab(render);
+  const blank = isLink && (rest.target === '_blank' || opensNewTab(render));
   const newTab = blank && !disabled;
   // 新しいタブで開くときの ↗。読み上げの文は、押せないときは足さない（開かないため）
   //   文字のリンク: 利用者が最後に ArrowUpRightIcon を置いたとき以外は、部品が文字より少し小さく付ける
@@ -381,23 +400,27 @@ function PlainLink(all: LinkProps) {
     );
   }
   // 押せないとき: 文字のリンクはただの文字（role・aria-disabled なし）、枠線のリンクは「リンク、利用不可」
-  const own = disabled
-    ? {
-        ...withoutNavigation(props),
-        ...(outline ? disabledLinkProps : disabledTextLinkProps),
-      }
-    : props;
+  //   リンクとして描かないときは、渡した要素のまま押せなくする（role は付けない。文字のリンクは見た目だけ）
+  const disabledProps = outline
+    ? isLink
+      ? disabledLinkProps
+      : disabledNonLinkProps
+    : disabledTextLinkProps;
+  const own = disabled ? { ...withoutNavigation(props), ...disabledProps } : props;
   // 新しいタブで開くときの名前と、読み上げだけの文。名前を aria-label・aria-labelledby で付けたときは、名前そのものに足す
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   return useRender({
     // 渡した要素に名前（aria-label・aria-labelledby）があるときは、要素の側を書き換える（要素の props が勝つため）
-    render: withRenderOverrides(disabled ? disabledAnchor(render) : render, naming?.props ?? {}),
-    defaultTagName: 'a',
+    render: withRenderOverrides(
+      disabled && isLink ? disabledAnchor(render) : render,
+      naming?.props ?? {}
+    ),
+    defaultTagName: isLink ? 'a' : 'span',
     ref,
     props: {
       ...own,
       ...naming?.props,
-      ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
+      ...(newTab ? { rel: rest.rel ?? 'noopener noreferrer' } : {}),
       className: link({
         variant,
         color,

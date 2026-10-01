@@ -32,6 +32,7 @@ const meta = {
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
           '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
+          '- Next.js・TanStack Router の `Link` は `render` に渡します。`href` がなく `to` だけのリンクも、そのままリンクとして扱います。',
           '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`circle`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
           '- `underline` は塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目です。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
@@ -51,6 +52,7 @@ const meta = {
     contentAlign: 'center',
     target: '_self',
     disabled: false,
+    link: true,
   },
   argTypes: {
     children: { control: 'text' },
@@ -73,6 +75,7 @@ const meta = {
     },
     target: { control: 'inline-radio', options: ['_self', '_blank'] },
     disabled: { control: 'boolean' },
+    link: { control: 'boolean' },
     render: { control: false },
   },
 } satisfies Meta<typeof Link>;
@@ -490,9 +493,28 @@ export const RenderElement: Story = {
     controls: { disable: true },
     docs: {
       description: {
-        story:
-          '`render` に Next.js の `Link` などを渡すと、その要素に Link の見た目を重ねます。`href` などは渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは `children` に書きます。',
+        story: [
+          '`render` にルーターのリンク（Next.js・TanStack Router の `Link` など）を渡すと、その要素に Link の見た目を重ねます。行き先（`href`・`to`）は渡す要素に書き、ラベルは `children` に書きます。',
+          '',
+          '- `href` を持たないリンク（TanStack Router の `to` など）も、そのままリンクとして扱います。',
+          '- `target="_blank"` は渡す要素に書きます。↗ と「新しいタブで開きます」が付きます。',
+          '- 渡す要素がリンクでないとき（`button` など）は `link={false}` を付けます。見た目だけを重ね、↗ や「新しいタブで開きます」を付けません。',
+        ].join('\n'),
       },
+      source: sourceCode(`
+        import { Link as RouterLink } from '@tanstack/react-router';
+
+        <Link color="primary" render={<RouterLink to="/works" />}>
+          作品の一覧
+        </Link>
+        <Link variant="button" render={<RouterLink to="/works" />}>
+          作品を見る
+        </Link>
+        <Link variant="outline" render={<RouterLink to="/works" />}>
+          More
+          <CaretRightIcon />
+        </Link>
+      `),
     },
   },
   render: () => (
@@ -500,10 +522,76 @@ export const RenderElement: Story = {
       <Link color="primary" render={<RouterLink to="#works" />}>
         作品の一覧
       </Link>
+      <Link variant="button" render={<RouterLink to="#works" />}>
+        作品を見る
+      </Link>
       <Link variant="outline" render={<RouterLink to="#works" />}>
         More
         <CaretRightIcon />
       </Link>
+      <Link variant="outline" render={<RouterLink to="https://example.com" target="_blank" />}>
+        外部のサイト
+      </Link>
     </div>
   ),
+  play: async ({ canvas }) => {
+    // to だけのルーターのリンクも、リンクとして描く
+    const text = canvas.getByRole('link', { name: '作品の一覧' });
+    await expect(text).toHaveAttribute('href', '#works');
+    await expect(canvas.getByRole('link', { name: '作品を見る' })).toHaveAttribute(
+      'href',
+      '#works'
+    );
+    // 渡した要素の target="_blank" で、↗ と読み上げの文と rel が付く
+    const external = canvas.getByRole('link', { name: /外部のサイト.*新しいタブで開きます/ });
+    await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(external.querySelectorAll('svg')).toHaveLength(1);
+  },
+};
+
+export const LinkOrNot: Story = {
+  name: 'リンクとして描くか',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`link` は、リンクとして描くかです。既定は `true` です。`link={false}` にすると見た目だけを重ね、`href`・`target`・`rel` を描く要素に渡さず、↗ と「新しいタブで開きます」も付けません。`render` がないときは `span` を描きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap items-center gap-4">
+      <Link href="#guide">href だけ</Link>
+      <Link render={<RouterLink to="#guide" />}>render だけ</Link>
+      <Link href="https://example.com" target="_blank" link={false}>
+        href と link=false
+      </Link>
+      <Link variant="button" href="https://example.com" target="_blank" link={false}>
+        ボタンの見た目で link=false
+      </Link>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('link', { name: 'href だけ' })).toHaveAttribute('href', '#guide');
+    await expect(canvas.getByRole('link', { name: 'render だけ' })).toHaveAttribute(
+      'href',
+      '#guide'
+    );
+    // link={false}: span で描き、href・target・rel・↗・読み上げの文を付けない
+    for (const name of ['href と link=false', 'ボタンの見た目で link=false']) {
+      const host = canvas.getByText(name);
+      await expect(host.tagName).toBe('SPAN');
+      await expect(host).not.toHaveAttribute('href');
+      await expect(host).not.toHaveAttribute('target');
+      await expect(host).not.toHaveAttribute('rel');
+      await expect(host.querySelectorAll('svg')).toHaveLength(0);
+      await expect(host.textContent).not.toContain('新しいタブで開きます');
+    }
+    // 見た目は文字のリンクのまま（下線）
+    await expect(getComputedStyle(canvas.getByText('href と link=false')).textDecorationLine).toBe(
+      'underline'
+    );
+    await expect(canvas.getAllByRole('link')).toHaveLength(2);
+  },
 };
