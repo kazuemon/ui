@@ -70,13 +70,16 @@ export function SamplePage({
         menuSide="right"
         brand={<Text as="span">{site?.name}</Text>}
       >
-        <NavbarLinks>
-          {site?.nav.map(({ label, href }) => (
-            <NavbarLink key={href} href={href} current={label === current}>
-              {label}
-            </NavbarLink>
-          ))}
-        </NavbarLinks>
+        {/* 行き先がないときは置かない（置くと、狭い帯で空のメニューのボタンが出る） */}
+        {site && site.nav.length > 0 && (
+          <NavbarLinks>
+            {site.nav.map(({ label, href }) => (
+              <NavbarLink key={href} href={href} current={label === current}>
+                {label}
+              </NavbarLink>
+            ))}
+          </NavbarLinks>
+        )}
       </Navbar>
       {full ? (
         <Container size="full" render={<main className="py-10" />}>
