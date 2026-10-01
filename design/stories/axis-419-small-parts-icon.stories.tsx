@@ -11,7 +11,7 @@ const meta = {
   title: 'Design Review/419 タグとチップの先頭のアイコン',
   id: 'design-review-419-small-parts-icon',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -174,6 +174,13 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
+      <p>
+        決定: A（文字と同じ大きさ・文字の色）。アイコンの色は既定でタグの文字の色、Text の color
+        と同じ色を選べるようにする。65% に薄める案は採らない。「A
+        でいいかなと思いますが、そもそもアイコン色は Text と同じものが選べる（したがってデフォルトは
+        Text
+        の色）と良さそうです。サイズについては同じ大きさが一番バランスがいいかなと思っています。」
+      </p>
       <p>
         Tag と Chip に icon
         を足し、文字の前にアイコンを置けるようにします。大きさと色はタグ（チップ）が決め、Icon

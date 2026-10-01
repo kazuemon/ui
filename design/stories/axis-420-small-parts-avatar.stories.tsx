@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/420 タグとチップの先頭のアバター',
   id: 'design-review-420-small-parts-avatar',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -190,6 +190,10 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
+      <p>
+        決定: 周りの余白は B（上下・左 4px）、文字との間は D（6px）。「周りに4px、文字との間を広く
+        かなと思いました。」
+      </p>
       <p>
         Tag と Chip に avatar
         を足し、文字の前に人の顔（Avatar）を置けるようにします。アバターの大きさはタグ（チップ）の高さから決め、Avatar

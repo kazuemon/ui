@@ -8,7 +8,7 @@ const meta = {
   title: 'Design Review/418 タグの形',
   id: 'design-review-418-tag-variant',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -184,6 +184,13 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
+      <p>
+        決定: A・B・破線をすべて持たせる。塗りなし・文字の色 45%
+        の縁（A）と、白い面・文字の色の縁（B）を別の形として選べるようにし、破線は C
+        の見た目（透明の面・文字の色 60%）。既定は soft
+        のまま。「A・B・破線全部欲しいなと思いました。outline
+        という名前を上手く区別する方法が欲しいですね」
+      </p>
       <p>
         Tag に形（variant）を足します。soft は今の淡い面、outline は縁と文字だけ、solid
         は濃い塗りに白い文字（Badge

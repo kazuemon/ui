@@ -21,7 +21,7 @@ const meta = {
       focusVisible: '[data-slot="tag"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -220,6 +220,10 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: D（淡く敷く＋下線）。影の候補は採らない。「D
+        でいいかなと思いました。影による区別ですが、このサイズ感ではそもそも影があっても押せると認知できなさそう…と思いました。」
+      </p>
       <p>
         Tag に href を渡すと a で描き、render にルーターのリンク（Next.js の Link
         など）を渡すとその要素に重ねます。記事のタグから、そのタグの一覧のページへ移る使い方です。render
