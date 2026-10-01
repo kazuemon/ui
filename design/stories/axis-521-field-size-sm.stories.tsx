@@ -16,7 +16,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: statePseudo({ hover: enabledControl, focusWithin: enabledControl }),
   },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -181,6 +181,12 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 入力欄の size="sm" の文字・余白・アイコンは、Button の sm にそろえる（A。高さ
+        36px・文字 14px・左右の余白 12px・アイコン 16px）。iPhone の Safari で 16px
+        未満の欄にフォーカスすると画面が拡大されるのは、小さい欄では許容する。ユーザーの返事「A
+        でお願いします。スマホの場合に拡大されるのは、実際この入力欄は小さくて操作しづらいので、妥当かなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         入力欄（TextField・Select・Combobox・NumberField・DateField など）に、Button
         と同じ大きさの段 size="sm" を足します。高さは Button の sm と同じ 36px

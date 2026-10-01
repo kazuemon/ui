@@ -24,7 +24,7 @@ const meta = {
       focusVisible: [clearButton('button-focus')],
     },
   },
-  args: { pick: '' },
+  args: { pick: 'C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -142,6 +142,11 @@ export const Axis: Story = {
         );
       }}
     >
+      <p>
+        決定: Select の clearable の × は右端に置き、▼ が × の左へずれる（Combobox と同じ並び）。×
+        に hover しているあいだは欄の塗りを変えず、× だけを濃くする（C）。ユーザーの返事「C
+        でよさそうです。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Select に clearable を足し、選んだ値を空に戻せるようにします。Select
         の本体はボタンなので、中に × のボタンを置けません。本体と × を包み、×
