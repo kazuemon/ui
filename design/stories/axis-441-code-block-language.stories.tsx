@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/441 コードの言語のラベル',
   id: 'design-review-441-code-block-language',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -145,6 +145,13 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 言語のラベルの既定は
+        D（題の前・淡い丸い面）。置き場（題の前・後ろ）と、面を敷くか（面あり・文字だけ）は props
+        で選べる。ユーザーの返事:「デフォルト
+        D（言語を指定した場合）で、前後・面を敷くかを選べるようにしたいです。」
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         CodeBlock に言語の名前（language）を足しました。渡した文字（ts・sh
         など）をそのまま上の帯に出します。 題がなくても、言語を渡すと帯を出します。

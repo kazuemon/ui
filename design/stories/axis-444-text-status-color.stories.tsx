@@ -8,7 +8,7 @@ const meta = {
   title: 'Design Review/444 文字の意味の色',
   id: 'design-review-444-text-status-color',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -119,6 +119,15 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: A（文字に色だけ。形は添えない）。Text の color
+        は色の軸のままにし、読み上げに状態を足したりアイコンを組にしたりするなら、別の部品（文字だけのお知らせ）にする。
+        ユーザーの返事:「A でいいかなと思っています。ここにおいては意味を若干持ちつつも、あくまでも
+        color であるからです。読み上げに status を反映したり、アイコンをセットにするならば、単なる
+        Text の役割を超えていると思うので、別途適切なコンポーネント（文字だけの Notice
+        のようなイメージ）を構成すべきだと思います。」
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Text に意味の色を足しました。props の名前は <code>color</code>（値は
         info・success・warning・danger）にしました。 variant

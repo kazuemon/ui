@@ -13,7 +13,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: statePseudo({ hover: 'a', focusVisible: 'a' }),
   },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -111,6 +111,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: A（underline="hover" は、載せたときに always の hover と同じ濃い下線を引く）。
+        ユーザーの返事:「A が統一されていていいなと思いました。」
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Link（文字のリンク）に下線の出し方（underline）を足しました。always（既定・いまのまま）はいつも淡い下線、hover
         は載せたときだけ下線を引きます。ナビゲーションやフッターのように、並びそのものでリンクだと分かる場所に使い、文章の中は
