@@ -149,7 +149,7 @@ export function Drawer({
   const passive = modal === 'passive';
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
-  const { anchorRef, scope } = useDensityScope(open);
+  const { setAnchor, scope } = useDensityScope<HTMLElement>(open);
 
   // 下から出すとき: 中身が画面の半分より長ければ、半分の高さで開いてつまみを出す（Select のシートと同じ決まり — adr/0037）
   // 高さは Base UI の snap points で変える。中身の高さは、開いたときと大きさが変わったときに測る
@@ -232,7 +232,12 @@ export function Drawer({
         if (snap) setSnapPoint(point);
       }}
     >
-      {trigger && <BaseDrawer.Trigger ref={anchorRef} render={trigger} />}
+      {/* 開いた面に写す密度は、開くボタンの祖先から読む。ボタンがないときは、部品を置いた場所に描く空の印から読む */}
+      {trigger ? (
+        <BaseDrawer.Trigger ref={setAnchor} render={trigger} />
+      ) : (
+        <span ref={setAnchor} hidden />
+      )}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <SheetPopup
           side={side}

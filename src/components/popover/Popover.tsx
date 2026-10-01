@@ -213,7 +213,7 @@ function FloatingPopover({
   onOpenChange: (open: boolean) => void;
 }) {
   const portalContainer = usePortalContainer(container);
-  const { anchorRef, scope } = useDensityScope(open);
+  const { setAnchor, scope } = useDensityScope<HTMLElement>(open);
   // 見出しの分の間は、見えている題か説明があるときだけ空ける（見えない題は場所を取らない）
   const heading = (title != null && !hideTitle) || description != null;
   // passive は、裏を止めないが外を押しても（フォーカスが外れても）閉じない
@@ -244,7 +244,12 @@ function FloatingPopover({
       onOpenChangeComplete={onOpenChangeComplete}
       modal={passive ? false : modal}
     >
-      {trigger && <BasePopover.Trigger ref={anchorRef} render={trigger} />}
+      {/* 開いた面に写す密度は、開くボタンの祖先から読む。ボタンがないときは、部品を置いた場所に描く空の印から読む */}
+      {trigger ? (
+        <BasePopover.Trigger ref={setAnchor} render={trigger} />
+      ) : (
+        <span ref={setAnchor} hidden />
+      )}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <BasePopover.Portal container={portalContainer}>
           <BasePopover.Positioner

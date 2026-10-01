@@ -215,7 +215,7 @@ function CenteredDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const portalContainer = usePortalContainer(container);
-  const { anchorRef, scope } = useDensityScope(open);
+  const { setAnchor, scope } = useDensityScope<HTMLElement>(open);
   const overlayId = useId();
   const popupRef = useMergedRefs<HTMLDivElement>(popupProps?.ref);
   // passive は、裏を止めず後ろも暗くしないが、外を押しても（フォーカスが外れても）閉じない
@@ -236,7 +236,12 @@ function CenteredDialog({
       modal={passive ? false : modal}
       disablePointerDismissal={!dismissible || passive}
     >
-      {trigger && <BaseDialog.Trigger ref={anchorRef} render={trigger} />}
+      {/* 開いた面に写す密度は、開くボタンの祖先から読む。ボタンがないときは、部品を置いた場所に描く空の印から読む */}
+      {trigger ? (
+        <BaseDialog.Trigger ref={setAnchor} render={trigger} />
+      ) : (
+        <span ref={setAnchor} hidden />
+      )}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <BaseDialog.Portal container={portalContainer}>
           {/* 裏を止めるときだけ、後ろを暗くする */}

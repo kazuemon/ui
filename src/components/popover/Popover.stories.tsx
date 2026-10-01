@@ -230,7 +230,8 @@ function AnchoredDemo() {
   const [open, setOpen] = useState(false);
   const word = useRef<HTMLSpanElement>(null);
   return (
-    <div className="flex flex-col items-start gap-4">
+    // 詰めた密度の中に置き、開くボタンがなくても面がその密度で出ることを確かめる
+    <div data-density="fine" className="flex flex-col items-start gap-4">
       <p>
         この部品は{' '}
         <span ref={word} className="font-bold">
@@ -289,6 +290,8 @@ export const Anchored: Story = {
         word.getBoundingClientRect().bottom
       )
     );
+    // 置いた場所の密度を引き継ぐ（面は body の直下に出る）
+    await expect(popup.closest('[data-density]')).toHaveAttribute('data-density', 'fine');
     // Esc で閉じる
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(body.queryByRole('dialog')).toBeNull());
