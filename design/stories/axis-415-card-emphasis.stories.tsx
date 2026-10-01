@@ -18,7 +18,7 @@ const meta = {
       focusVisible: '[data-slot="card"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'G' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -331,12 +331,13 @@ export const Axis: Story = {
       }
     >
       <p>
-        比べ直し中: 一度 A（青い輪郭
-        2px）に決めたが、選んでいる見た目の線だけの形（line）と紛れるため、E
-        の輪を青（primary）から作る G・G2 を足した。ユーザーの返事「Step? と同じ emphasis
-        の案を足せますか?」（E・F を足した）、「悩んでいます。一旦後回しにします。」、「415
-        は悩みましたが A でお願いします」、「その場合、E で影が primary
-        とかだといいのかもですね。」。
+        決定: variant="emphasis" は G（面と輪郭は default のまま、輪郭の外に、青（primary）を 45%
+        に薄めた幅 4px の淡い輪。幅と濃さは Timeline の強調の輪と同じ）。ユーザーの返事「Step?
+        と同じ emphasis の案を足せますか?」（E・F
+        を足した）、「悩んでいます。一旦後回しにします。」、「415 は悩みましたが A
+        でお願いします」（A は選んでいる見た目の線だけの形と重なると伝えた）、「その場合、E で影が
+        primary とかだといいのかもですね。」（G・G2 を足した）、「G
+        でお願いします」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
       </p>
       <p>
         Card の variant に、強調の形 emphasis を足します。画像の置き方は default
