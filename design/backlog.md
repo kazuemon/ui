@@ -352,6 +352,7 @@
 
 ### Switch・Tag・Badge・Chip
 
+- surface の意味が、Tag（白い面）と Blockquote・CodeBlock・SwitchCaption（グレーの面）で割れています（2026-10-01、軸 418）。props.md の variant の節にそろえ方を書くかは決めていません
 - Chip は 2026-09-21 に Combobox と一緒に作りました（[ADR-0217](./adr/0217-combobox-chips.md)・[ADR-0219](./adr/0219-chip-look.md)）。残りは「Combobox・Chip」にあります
 - Badge の数がその場で変わっても、読み上げでは知らせません。数がその場で増える通知のボタンを作るときに決めます
 - 「99+」のような横長の Badge は、角を中心に左右へ伸びます。右寄せにして左へ伸ばすかは比べていません
