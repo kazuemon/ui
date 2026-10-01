@@ -17,6 +17,8 @@ export {
 } from './components/affix/Affix';
 export {
   AlertDialog,
+  AlertDialogActions,
+  type AlertDialogActionsProps,
   type AlertDialogColor,
   type AlertDialogProps,
 } from './components/alert-dialog/AlertDialog';
@@ -166,6 +168,8 @@ export {
 } from './components/description-list/DescriptionList';
 export {
   Dialog,
+  DialogActions,
+  type DialogActionsProps,
   type DialogBaseProps,
   type DialogProps,
   type OverlayFocusTarget,
@@ -181,6 +185,8 @@ export {
 } from './components/divider/Divider';
 export {
   Drawer,
+  DrawerActions,
+  type DrawerActionsProps,
   type OverlayActionsLayout,
   type DrawerBaseProps,
   type DrawerDetent,
@@ -256,6 +262,8 @@ export {
 } from './components/image-zoom/ImageZoom';
 export {
   Inspector,
+  InspectorActions,
+  type InspectorActionsProps,
   type InspectorMotion,
   type InspectorOverlayEdge,
   type InspectorProps,
