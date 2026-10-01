@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, use, useEffect, useLayoutEffect } from 'react';
+import { type ComponentProps, type ReactNode, use, useEffect, useLayoutEffect } from 'react';
 
 import { type OverlayActionsKind, OverlayActionsContext } from './overlay-actions-context';
 import { warnOnce } from '../link-parts';
@@ -14,6 +14,9 @@ const styles = tv({
     kind: {
       // 中央の Dialog: 面の actions の帯と同じ余白（左右は中身の側、下は面の側が持つ）
       dialog: 'pt-(--dialog-padding)',
+      // 中身だけをスクロールさせる Dialog: 中身の下の端に貼り付ける。中身の左右の余白の外まで広げ、下の余白も帯が持つ
+      'dialog-scroll':
+        'sticky bottom-0 z-1 -mx-(--dialog-padding) bg-surface px-(--dialog-padding) py-(--dialog-padding)',
       // シート: 中身の下の端に貼り付ける。中身の左右の余白の外まで広げ、下は端末の安全領域の分を空ける
       sheet: [
         'sticky bottom-0 z-1 -mx-(--sheet-padding-x) bg-surface px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
@@ -29,6 +32,7 @@ const styles = tv({
 
 const SLOTS: Record<OverlayActionsKind, string> = {
   dialog: 'dialog-footer',
+  'dialog-scroll': 'dialog-footer',
   sheet: 'sheet-footer',
   inspector: 'inspector-footer',
 };
@@ -36,10 +40,39 @@ const SLOTS: Record<OverlayActionsKind, string> = {
 export interface OverlayActionsProps extends ComponentProps<'div'> {
   /** 警告に出す部品の名前 */
   name: string;
+  /** 操作の左（縦に積むときは上）に置く文やチェックボックス */
+  start?: ReactNode;
+}
+
+/**
+ * 下の操作の帯の、操作の左に置くもの（actionsStart・*Actions の start）。
+ * 横に並べるときは左の端に寄せ、縦に積むとき（stack・stack-reverse）と幅を等分するとき（fill）は、操作の上に 1 行で置く。
+ * 文字の大きさと色は --overlay-actions-start-*（中に置いた部品は、その部品の大きさのまま）
+ */
+export function OverlayActionsStart({ children }: { children: ReactNode }) {
+  return (
+    <div
+      data-slot="overlay-actions-start"
+      className={[
+        'me-auto min-w-0 self-center text-(length:--overlay-actions-start-size) leading-(--overlay-actions-start-leading) text-(color:--overlay-actions-start-color)',
+        // 縦に積むときは操作の上に置く（stack-reverse は逆順に並ぶので、いちばん後ろに回すと上に来る）
+        'in-data-[layout=stack]:self-start in-data-[layout=stack-reverse]:order-last in-data-[layout=stack-reverse]:self-start',
+        'in-data-[layout=fill]:basis-full!',
+      ].join(' ')}
+    >
+      {children}
+    </div>
+  );
 }
 
 /** 面の下の操作の帯。置いた場所（中身の中）に描き、見た目は面の actions の帯と同じにする */
-export function OverlayActions({ name, className, children, ...props }: OverlayActionsProps) {
+export function OverlayActions({
+  name,
+  start,
+  className,
+  children,
+  ...props
+}: OverlayActionsProps) {
   const slot = use(OverlayActionsContext);
   const register = slot?.register;
   useLayoutEffect(() => register?.(), [register]);
@@ -56,6 +89,7 @@ export function OverlayActions({ name, className, children, ...props }: OverlayA
   if (!slot) {
     return (
       <div {...props} className={styles({ className })}>
+        {start != null && <OverlayActionsStart>{start}</OverlayActionsStart>}
         {children}
       </div>
     );
@@ -78,6 +112,7 @@ export function OverlayActions({ name, className, children, ...props }: OverlayA
           attached
         />
       )}
+      {start != null && <OverlayActionsStart>{start}</OverlayActionsStart>}
       {children}
     </div>
   );

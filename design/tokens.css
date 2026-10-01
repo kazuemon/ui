@@ -958,6 +958,12 @@
      left は左から出すパネル、right は右から出すパネル */
   --shadow-sheet-left: 8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
   --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* 上から出すシート（Drawer の side="top"）の影。下から出すシートの影を下へ向けたもの */
+  --shadow-sheet-top: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* 上から出すシートのつまみの場所（軸 514。比べている途中・比べるための切り替え）
+     handle-head: 見出しの上のつまみ（visible・hidden）。handle-foot: 下の端（はじく向きの側）のつまみ（flex・none） */
+  --drawer-top-handle-head: hidden;
+  --drawer-top-handle-foot: flex;
 
   /* Dialog・Drawer・Popover の題と説明の大きさ
      題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。ADR-0103。Select のシートの見出しは欄のラベルのまま
@@ -994,10 +1000,17 @@
 
   /* Dialog — ADR-0104
      中央に浮かべる。部品（ボタン）を包むので、角はカードの角（原則5）。面・輪郭・影は浮かぶ面と同じ
-     width: 既定の幅。画面が狭いときは左右に margin を残して縮む */
-  --dialog-width: calc(var(--spacing) * 120);
+     width: 既定の幅（size="md"）。width-sm・width-lg は size="sm"・"lg"（軸 512。比べている途中）。画面が狭いときは左右に margin を残して縮む */
+  --dialog-width-sm: calc(var(--spacing) * 96); /* 384px */
+  --dialog-width: calc(var(--spacing) * 120); /* 480px */
+  --dialog-width-lg: calc(var(--spacing) * 160); /* 640px */
   --dialog-padding: calc(var(--spacing) * 6);
   --dialog-margin: calc(var(--spacing) * 4);
+  /* 下の操作の左に置く文（Dialog・Drawer の actionsStart、*Actions の start — 軸 513。比べている途中）
+     size・leading: 文字の大きさと行の高さ。color: 文字の色。中に置いた部品（Checkbox など）は、その部品の大きさのまま */
+  --overlay-actions-start-size: var(--text-caption);
+  --overlay-actions-start-leading: var(--leading-caption);
+  --overlay-actions-start-color: var(--color-fg-muted);
 
   /* セクションラベル（原則10）— design/adr/0010。字間は空けすぎない */
   --label-transform: uppercase;

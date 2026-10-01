@@ -8,10 +8,11 @@ import type { OverlayActionsLayout } from '../sheet/SheetPopup';
  * 面の下の操作を、中身のどこに置いても同じ帯に見せる仕組み（DialogActions・DrawerActions・InspectorActions・AlertDialogActions）
  * 面（中央の Dialog・シート・Inspector）が context で形と並べ方を配り、置かれた帯は面に知らせる（面は中身の下の余白と続きの印を帯に譲る）
  *   dialog: 中央に浮かべる Dialog。中身の流れの最後に置き、右に寄せる（中身の左右の余白は中身の側が持つ）
+ *   dialog-scroll: 中身だけをスクロールさせる Dialog（scrollBehavior="content"）。中身の下の端に貼り付け、右に寄せる
  *   sheet・inspector: 中身はスクロールする。帯を中身の下の端に貼り付け（sticky）、中身の左右の余白の外まで面を広げる
  *     続きの印（下の端の影と区切り線）は帯の上の端に付ける
  */
-export type OverlayActionsKind = 'dialog' | 'sheet' | 'inspector';
+export type OverlayActionsKind = 'dialog' | 'dialog-scroll' | 'sheet' | 'inspector';
 
 interface OverlayActionsContextValue {
   kind: OverlayActionsKind;
