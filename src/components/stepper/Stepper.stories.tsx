@@ -6,6 +6,7 @@ import {
   Stepper,
   type StepperColor,
   type StepperOrientation,
+  type StepperSize,
   type StepperVariant,
   StepperStep,
 } from './Stepper';
@@ -21,6 +22,7 @@ function Sample({
   color,
   variant,
   orientation,
+  size,
   defaultIndex = 2,
   invalidIndex,
   clickable = true,
@@ -28,6 +30,7 @@ function Sample({
   color?: StepperColor;
   variant?: StepperVariant;
   orientation?: StepperOrientation;
+  size?: StepperSize;
   defaultIndex?: number;
   invalidIndex?: number;
   clickable?: boolean;
@@ -38,6 +41,7 @@ function Sample({
       color={color}
       variant={variant}
       orientation={orientation}
+      size={size}
       value={value}
       onStepClick={clickable ? setValue : undefined}
       accessibleName="購入手続き"
@@ -65,7 +69,8 @@ const meta = {
           '- `onStepClick` を渡すと、完了した段（いまの段より前、既定）が押せるようになります。押すとその段の index を渡して呼びます。値そのものは書き換えないので、呼ばれた側で `value` を更新します。渡さなければ、すべての段が表示専用になります。',
           '- `orientation` は並べる向きです。既定は `horizontal`（横に並べてラベルを下に）で、`vertical`（縦に積んでラベルを右に）を選べます。',
           '- `color` はいまの段・完了した段のマーカーの色です。指定しないときはグレー（`neutral`）です。',
-          '- `variant` は完了した段のマーカーです。既定は `check`（チェックの印に差し替える）で、`number`（数字のまま色だけ変える）を選べます。',
+          '- `variant` はマーカーの形です。既定は `check`（完了した段をチェックの印に差し替える）で、`number`（数字のまま色だけ変える）と `dot`（数字も印も持たない小さな点）を選べます。`dot` では、完了といまの段をラベルの太さと線の色で見分けます。',
+          '- `size` は大きさです。既定は `md` で、`sm` はマーカーとラベルを一段小さくし、段のあいだも詰めます。ダイアログやサイドバーの中など、狭い場所に置くときに使います。',
           '- `StepperStep` の `description` にラベルの下へ添える説明を、`invalid` でその段をエラーの見た目にできます。',
           '- 順番どおりに進まないウィザードでは、`StepperStep` の `status`（`upcoming`・`current`・`completed`）で段ごとの状態を上書きできます。先の段を済ませたときは `completed` を渡します。',
         ].join('\n'),
@@ -73,7 +78,7 @@ const meta = {
     },
   },
   // value は各ストーリーが Sample（内部で state を持つ見本）や直接の value 指定で渡すので、Controls には出さない
-  args: { color: 'neutral', variant: 'check', orientation: 'horizontal', value: 2 },
+  args: { color: 'neutral', variant: 'check', size: 'md', orientation: 'horizontal', value: 2 },
   argTypes: {
     value: { control: false },
     color: {
@@ -83,8 +88,13 @@ const meta = {
     },
     variant: {
       control: 'inline-radio',
-      options: ['number', 'check'],
+      options: ['number', 'check', 'dot'],
       table: { defaultValue: { summary: "'check'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md'],
+      table: { defaultValue: { summary: "'md'" } },
     },
     orientation: {
       control: 'inline-radio',
@@ -115,7 +125,12 @@ export const Playground: Story = {
     },
   },
   render: (args) => (
-    <Sample color={args.color} variant={args.variant} orientation={args.orientation} />
+    <Sample
+      color={args.color}
+      variant={args.variant}
+      size={args.size}
+      orientation={args.orientation}
+    />
   ),
 };
 
@@ -201,18 +216,19 @@ export const StepStatus: Story = {
 
 export const Variants: Story = {
   tags: ['visual'],
-  name: '完了した段のマーカー',
+  name: 'マーカーの形',
   parameters: {
     controls: { include: ['color'] },
     docs: {
       description: {
-        story: '`variant` で選びます。既定は `check`（チェックの印に差し替える）です。',
+        story:
+          '`variant` で選びます。既定は `check`（完了した段をチェックの印に差し替える）です。`dot` は数字も印も持たない小さな点です。',
       },
     },
   },
   render: (args) => (
     <div className="grid gap-8">
-      {(['number', 'check'] as const).map((variant) => (
+      {(['number', 'check', 'dot'] as const).map((variant) => (
         <div key={variant} className="grid gap-2">
           <span className="text-xs text-fg-subtle">variant=&quot;{variant}&quot;</span>
           <Sample color={args.color} variant={variant} />
@@ -255,6 +271,72 @@ export const Vertical: Story = {
         <StepperStep label="お支払い" />
         <StepperStep label="確認" />
       </Stepper>
+    </div>
+  ),
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` はマーカーとラベルを一段小さくし、段のあいだも詰めます。ラベルはマウスで少し大きく、指で少し小さくなります。',
+      },
+      source: sourceCode(`
+        <Stepper size="sm" value={2} accessibleName="購入手続き">
+          <StepperStep label="アカウント" />
+          <StepperStep label="お届け先" />
+          <StepperStep label="お支払い" />
+          <StepperStep label="確認" />
+        </Stepper>
+      `),
+    },
+  },
+  render: (args) => (
+    <DensityPair>
+      <div className="grid w-[420px] max-w-full gap-8">
+        <Sample color={args.color} />
+        <Sample color={args.color} size="sm" />
+        <Sample color={args.color} size="sm" variant="dot" />
+      </div>
+    </DensityPair>
+  ),
+};
+
+export const DotVertical: Story = {
+  tags: ['visual'],
+  name: '点・縦向き',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '縦に積んだ `variant="dot"` では、点をラベルの 1 行目の真ん中にそろえます。左が `md`、右が `sm` です。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-wrap gap-12">
+      {(['md', 'sm'] as const).map((size) => (
+        <div key={size} className="w-[240px] max-w-full">
+          <Stepper
+            color={args.color}
+            variant="dot"
+            size={size}
+            orientation="vertical"
+            value={2}
+            accessibleName="購入手続き"
+          >
+            <StepperStep label="アカウント" description="メールアドレスとパスワード" />
+            <StepperStep label="お届け先" />
+            <StepperStep label="お支払い" />
+            <StepperStep label="確認" invalid />
+          </Stepper>
+        </div>
+      ))}
     </div>
   ),
 };

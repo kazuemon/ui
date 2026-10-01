@@ -35,6 +35,8 @@ const meta = {
           '- 画面の中で最も進めたい操作を `variant="filled"`（塗り）にし、それ以外は `outline`（枠線）にします。いちばん軽く見せたい操作には `underline`（文字に下線だけ）を使います。',
           '- 色は `color` で選びます。`primary` は進めたい操作、`secondary` は用途を限らない色、`danger` は削除などの危険な操作に使います。`white` は白いボタンで、お知らせの操作のように色の付いた面の上にも置けます。指定しないときはグレー（`neutral`）です。',
           '- アイコンだけのボタンは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="circle"` で丸にできます。',
+          '- `size="sm"` は、表の行や小さな面の中に置く一段小さいボタンです。指で操作するときも同じ大きさなので、指で押すことが多い画面の主な操作には既定の `md` を使います。',
+          '- 押せないボタンは `disabled` です。`focusableWhenDisabled` を付けると、押せないままフォーカスできます。Tooltip の本体にしたボタンは、付けなくてもこの形になり、押せない理由を Tooltip で読めます。',
           '- 送信中は `loading` を付けます。押せないボタンと同じ見た目になり、押しても `onClick` を呼びません。`disabled` と違い、フォーカスは外れません。',
           '- 別の場所へ移るものは、ボタンではなくリンクで作ります。ボタンと同じ見た目が要るときは `<Link variant="button">`、下線の見た目が要るときは `<Link variant="underline">` を使います（Components/Link）。',
         ].join('\n'),
@@ -48,6 +50,7 @@ const meta = {
     children: '保存する',
     variant: 'filled',
     color: 'neutral',
+    size: 'md',
     disabled: false,
     loading: false,
     loadingIndicator: 'spinner',
@@ -67,6 +70,11 @@ const meta = {
       control: 'inline-radio',
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md'],
+      table: { defaultValue: { summary: "'md'" } },
     },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
@@ -242,7 +250,7 @@ export const FocusableWhenDisabled: Story = {
     docs: {
       description: {
         story:
-          '`focusableWhenDisabled` を `disabled` と一緒に渡すと、押せないボタンが Tab で止まります。押せないことは読み上げで伝わり、押しても `onClick` を呼びません。押せない理由を Tooltip やキャプションで添えるときに使います。',
+          '`focusableWhenDisabled` を `disabled` と一緒に渡すと、押せないボタンが Tab で止まります。押せないことは読み上げで伝わり、押しても `onClick` を呼びません。押せない理由を Tooltip やキャプションで添えるときに使います。Tooltip の本体にしたボタンは、渡さなくてもこの形になります（`focusableWhenDisabled={false}` で外せます）。',
       },
     },
   },
@@ -441,6 +449,42 @@ export const IconOnly: Story = {
       getComputedStyle(button).borderTopLeftRadius
     );
   },
+};
+
+export const Sizes: Story = {
+  name: '大きさ',
+  tags: ['visual'],
+  parameters: {
+    controls: { include: ['children'] },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は高さ・文字・左右の余白・アイコンを一段小さくします。入力方式では変わらず、指で操作するときも同じ大きさです。',
+      },
+      source: sourceCode(`
+        <Button size="sm" variant="outline">編集</Button>
+      `),
+    },
+  },
+  render: (args) => (
+    <DensityPair>
+      <div className="flex flex-col gap-3">
+        {(['md', 'sm'] as const).map((size) => (
+          <div key={size} className="flex flex-wrap items-center gap-3">
+            <Button {...args} size={size} color="primary" />
+            <Button {...args} size={size} variant="outline">
+              <CopyIcon />
+              コピー
+            </Button>
+            <Button {...args} size={size} variant="underline" />
+            <Button {...args} size={size} iconOnly aria-label="閉じる" variant="outline">
+              <XIcon standalone />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </DensityPair>
+  ),
 };
 
 export const Densities: Story = {

@@ -27,6 +27,7 @@ import {
   withRenderOverrides,
 } from '../../internal/link-parts';
 import { type LoadingIndicator, LoadingBar, Spinner } from '../loading/Loading';
+import { TooltipTriggerContext } from '../../internal/tooltip-trigger-context';
 import { tv } from '../../internal/tv';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
@@ -123,12 +124,12 @@ const button = tv({
       white: '',
     },
     // 大きさの段（軸 461）。sm は密度の寸法（高さ・左右の余白・文字・アイコン）を、自分の中だけ小さい段に差し替える
-    //   高さは密度で変わる（--density-coarse: 指用 1・マウス用 0 で、-fine と -coarse のあいだを選ぶ。.coarse-large と同じ式）
+    //   密度では変えない（指でも同じ高さ。見た目の釣り合いのため、指で押せる高さを割る）
     //   中の回る円・アイコンも --spacing-icon を読むので、一緒に小さくなる。値は design/tokens.css の *-sm
     size: {
       md: '',
       sm: [
-        '[--spacing-control:calc(var(--spacing-control-sm-fine)_+_var(--density-coarse)_*_(var(--spacing-control-sm-coarse)_-_var(--spacing-control-sm-fine)))]',
+        '[--spacing-control:var(--spacing-control-sm)]',
         '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
         '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
       ],
@@ -351,15 +352,16 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
   color?: VariantProps<typeof button>['color'];
   /**
    * 大きさ。sm は表の行や小さな面の中に置く、一段小さいボタンです。
-   * マウスでは低くなり、指で操作するときは押せる高さ（44px）を保って、文字と左右の余白だけが小さくなります
+   * 指で操作するときも同じ大きさで、押せる高さ（44px）より低くなります。指で押すことが多い画面の主な操作には md を使います
    * @default 'md'
    */
   size?: VariantProps<typeof button>['size'];
   /**
    * 押せないとき（disabled）も、Tab で止まるようにします。ボタンは aria-disabled で押せないことを伝え、
    * 押しても onClick を呼びません（フォームも送信しません）。見た目は押せないボタンと同じです。
-   * 押せない理由を Tooltip で出すときや、押せなくなってもフォーカスを外したくないときに使います
-   * @default false
+   * 押せない理由を Tooltip で出すときや、押せなくなってもフォーカスを外したくないときに使います。
+   * Tooltip の本体にしたボタンは、渡さなくてもこの形になります（false を渡すと、ふつうの押せないボタンに戻ります）
+   * @default Tooltip の本体なら true、それ以外は false
    */
   focusableWhenDisabled?: boolean;
 }
@@ -559,7 +561,7 @@ function NativeButton({
   caption,
   iconOnly = false,
   shape = 'square',
-  focusableWhenDisabled = false,
+  focusableWhenDisabled: focusableWhenDisabledProp,
   disabled,
   onClick,
   children,
@@ -587,6 +589,9 @@ function NativeButton({
   const busy = loading ?? formBusy;
   // フォーカスできる押せないボタン（focusableWhenDisabled）: disabled 属性を付けず、aria-disabled と data-disabled で描く
   //   見た目は押せないボタンと同じ（data-disabled: は disabled: と同じ指定）。押しても何もしない
+  //   Tooltip の本体のときは既定でこの形にする（押せない理由を Tooltip で出せるように）。明示した値はそちらを優先する
+  const inTooltip = use(TooltipTriggerContext);
+  const focusableWhenDisabled = focusableWhenDisabledProp ?? inTooltip;
   const softDisabled = disabled === true && focusableWhenDisabled;
   const marked = loading ?? (formBusy && self !== null && form.submitter === self);
   // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない

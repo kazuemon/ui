@@ -26,6 +26,8 @@ const meta = {
           '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。その辺に沿った寄せは `align` です。',
           '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
           '- ツールバーのように Tooltip が並ぶところは `TooltipProvider` で包みます。出るまでの待ち（`delay`）と消えるまでの待ち（`closeDelay`）をそろえ、1 つが出たあとは隣へマウスを移すと待たずに出します。',
+          '- 並んだボタンのどれの補足かをはっきりさせたいときは、`showArrow` で本体を指す小さな矢印を出します。',
+          '- 押せないボタン（`disabled`）を本体にすると、ボタンは押せないままフォーカスできる形になり、押せない理由を Tooltip で読めます。外したいときは、ボタンに `focusableWhenDisabled={false}` を渡します。',
         ].join('\n'),
       },
     },
@@ -38,6 +40,7 @@ const meta = {
     longPressSide: 'top',
     disabled: false,
     hideShadow: false,
+    showArrow: false,
     children: <Button>共有</Button>,
   },
   argTypes: {
@@ -142,6 +145,94 @@ export const NoShadow: Story = {
       )}
     </ScreenFrame>
   ),
+};
+
+export const Arrow: Story = {
+  tags: ['visual'],
+  name: '矢印',
+  args: { showArrow: true },
+  parameters: {
+    controls: { include: ['content', 'showArrow'] },
+    docs: {
+      description: { story: '`showArrow` で、本体を指す小さな矢印を出した形です。' },
+      source: sourceCode(`
+        <Tooltip content="リンクをコピー" showArrow>
+          <Button>共有</Button>
+        </Tooltip>
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <ScreenFrame height="h-[300px]">
+      {(frame) => (
+        <div className="grid w-full grid-cols-2 gap-x-8 gap-y-24 px-24 pt-12">
+          {sides.map((side) => (
+            <div key={side} className="flex justify-center">
+              <Tooltip {...args} side={side} open={openOnLoad(viewMode)} portalContainer={frame}>
+                <Button>{side}</Button>
+              </Tooltip>
+            </div>
+          ))}
+        </div>
+      )}
+    </ScreenFrame>
+  ),
+};
+
+const onPublish = fn();
+
+export const DisabledTrigger: Story = {
+  name: '押せないボタンに理由を出す',
+  args: { content: '下書きを保存すると公開できます', showArrow: true },
+  parameters: {
+    controls: { include: ['content', 'showArrow'] },
+    docs: {
+      description: {
+        story:
+          '押せないボタンを本体にすると、Tab で止まり、Tooltip で押せない理由を読めます。押しても `onClick` は呼びません。右は `focusableWhenDisabled={false}` を渡して外した形で、Tab では止まりません。',
+      },
+      source: sourceCode(`
+        <Tooltip content="下書きを保存すると公開できます" showArrow>
+          <Button color="primary" disabled>公開する</Button>
+        </Tooltip>
+      `),
+    },
+  },
+  render: (args) => (
+    <div className="flex gap-3 p-12">
+      <Tooltip {...args}>
+        <Button color="primary" disabled onClick={onPublish}>
+          公開する
+        </Button>
+      </Tooltip>
+      <Tooltip {...args} content="フォーカスしない">
+        <Button disabled focusableWhenDisabled={false}>
+          外した形
+        </Button>
+      </Tooltip>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const publish = canvas.getByRole('button', { name: '公開する' });
+    const optedOut = canvas.getByRole('button', { name: '外した形' });
+    // Tooltip の本体の押せないボタンは、disabled 属性を付けず aria-disabled で伝える
+    await expect(publish).not.toBeDisabled();
+    await expect(publish).toHaveAttribute('aria-disabled', 'true');
+    await expect(optedOut).toBeDisabled();
+    // Tab で止まり、押せない理由が出る。押しても onClick を呼ばない
+    onPublish.mockClear();
+    await userEvent.tab();
+    await expect(publish).toHaveFocus();
+    await waitFor(() => expect(body.getByText('下書きを保存すると公開できます')).toBeVisible());
+    await userEvent.keyboard('{Enter}');
+    await expect(onPublish).not.toHaveBeenCalled();
+    // 外した形には止まらない
+    await userEvent.tab();
+    await expect(optedOut).not.toHaveFocus();
+    publish.blur();
+  },
 };
 
 // 指で長押しする。pointerdown を出し、長押しの時間より長く待つ

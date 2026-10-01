@@ -15,6 +15,7 @@ import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
+import { TooltipTriggerContext } from '../../internal/tooltip-trigger-context';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
@@ -244,39 +245,42 @@ export function Tooltip({
       }}
       onOpenChangeComplete={onOpenChangeComplete}
     >
-      <BaseTooltip.Trigger
-        ref={anchorRef}
-        render={children}
-        delay={delay}
-        style={{ WebkitTouchCallout: 'none' }}
-        onPointerDown={(event) => {
-          if (event.pointerType !== 'touch' || disabled) return;
-          cancelPress();
-          const timer = window.setTimeout(() => {
-            press.current = null;
-            setLongPressed(true);
-            changeOpen(true);
-          }, longPressDelay);
-          press.current = { x: event.clientX, y: event.clientY, timer };
-        }}
-        onPointerMove={(event) => {
-          const start = press.current;
-          if (!start) return;
-          if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > LONG_PRESS_SLOP) {
+      {/* 本体の中の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように） */}
+      <TooltipTriggerContext value>
+        <BaseTooltip.Trigger
+          ref={anchorRef}
+          render={children}
+          delay={delay}
+          style={{ WebkitTouchCallout: 'none' }}
+          onPointerDown={(event) => {
+            if (event.pointerType !== 'touch' || disabled) return;
             cancelPress();
-          }
-        }}
-        onPointerUp={cancelPress}
-        onPointerCancel={cancelPress}
-        onContextMenu={(event) => {
-          if (longPressed || press.current) event.preventDefault();
-        }}
-        onClickCapture={(event) => {
-          if (!longPressed) return;
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-      />
+            const timer = window.setTimeout(() => {
+              press.current = null;
+              setLongPressed(true);
+              changeOpen(true);
+            }, longPressDelay);
+            press.current = { x: event.clientX, y: event.clientY, timer };
+          }}
+          onPointerMove={(event) => {
+            const start = press.current;
+            if (!start) return;
+            if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > LONG_PRESS_SLOP) {
+              cancelPress();
+            }
+          }}
+          onPointerUp={cancelPress}
+          onPointerCancel={cancelPress}
+          onContextMenu={(event) => {
+            if (longPressed || press.current) event.preventDefault();
+          }}
+          onClickCapture={(event) => {
+            if (!longPressed) return;
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+        />
+      </TooltipTriggerContext>
       <BaseTooltip.Portal container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
