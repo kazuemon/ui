@@ -17,7 +17,7 @@ const meta = {
       focusVisible: '[data-radio-card] [role="radio"][data-checked]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'B,A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -105,7 +105,7 @@ const plans = (on: boolean, disabledTeam = false) => [
     key="standard"
     value="standard"
     label="スタンダード"
-    caption="記事 100 本まで・独自ドメイン"
+    caption="記事 100 本まで"
     labelAside={on ? '月 500 円' : undefined}
     data-value="standard"
   />,
@@ -179,6 +179,14 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: frame="card" の選んでいるカードは、面を白のまま 2px
+        の線だけを重ねる（B）を既定にし、淡い面＋線（A）も選べるようにする。名前と値は Card の
+        selectedIndicator にそろえる（既定は Card と逆で線だけ）。ユーザーの返事「B
+        デフォルトで、選んでいるときに淡い塗りのAも選べるようにしたいです。」（はじめ 523 と 524
+        を逆に書いており、「523 と 524
+        が逆でしたmm」と直したあとの対応）。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         RadioGroup に frame="card" を足し、選択肢 1
         つずつをカードの形にします。題（label）・説明（caption）に加え、Radio の labelAside

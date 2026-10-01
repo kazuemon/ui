@@ -15,7 +15,7 @@ const meta = {
   title: 'Design Review/523 選択肢のアイコン',
   id: 'design-review-523-listbox-item-icon',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -235,6 +235,15 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 選択肢のアイコンは List と同じ、文字の 1.25
+        倍の大きさで文字の色にする（C）。一段淡い色（A）は採らない。Select
+        の本体（選んだ値の欄）にアイコンを出さない形（D の性質）も props
+        で選べるようにする。ユーザーの返事「C
+        デフォルトで、アイコンを選択表示に出さないオプションも欲しいですね。」（はじめ 523 と 524
+        を逆に書いており、「523 と 524
+        が逆でしたmm」と直したあとの対応）。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Select・Combobox・Autocomplete・TagsInput の選択肢（items の 1 項目）に icon
         を足し、ラベルの前にアイコンを置けるようにします。アイコンは飾りで、読み上げません。2
