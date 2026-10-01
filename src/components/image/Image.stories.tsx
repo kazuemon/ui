@@ -247,6 +247,15 @@ export const PlaceholderAndFallback: Story = {
       <Specimen label="読み込めない src と、代わりの画像">
         <Image src={broken} fallbackSrc={landscape} alt="空と山の絵" ratio="16 / 9" />
       </Specimen>
+      <Specimen label="読み込めない srcSet と、代わりの画像">
+        <Image
+          src={broken}
+          srcSet={`${broken} 1x`}
+          fallbackSrc={landscape}
+          alt="空と山の絵"
+          ratio="16 / 9"
+        />
+      </Specimen>
       <Specimen label="代わりの画像も読み込めない">
         <Image src={broken} fallbackSrc={broken} alt="壊れた絵" ratio="16 / 9" />
       </Specimen>
@@ -258,7 +267,10 @@ export const PlaceholderAndFallback: Story = {
     await expect(frames[0]).toHaveAttribute('data-placeholder');
     await waitFor(() => expect(frames[1]).toHaveAttribute('data-status', 'loaded'));
     await expect(frames[1].querySelector('img')).toHaveAttribute('src', landscape);
-    await waitFor(() => expect(frames[2]).toHaveAttribute('data-status', 'error'));
+    // srcSet があっても、代わりの画像に替わる
+    await waitFor(() => expect(frames[2]).toHaveAttribute('data-status', 'loaded'));
+    await expect(frames[2].querySelector('img')).not.toHaveAttribute('srcset');
+    await waitFor(() => expect(frames[3]).toHaveAttribute('data-status', 'error'));
   },
 };
 

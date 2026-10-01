@@ -154,7 +154,10 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
    * @default 'sm'
    */
   placeholderBlur?: ImagePlaceholderBlur;
-  /** src が読み込めなかったときに替える画像の URL。それも読み込めなかったときは、失敗の面を出します。render を渡すときは使いません */
+  /**
+   * src（srcSet）が読み込めなかったときに一度だけ替える画像の URL。替えるときは srcSet・sizes を外します。
+   * それも読み込めなかったときは、失敗の面を出します。render を渡すときは使いません
+   */
   fallbackSrc?: string;
   /** 画像を包む枠（枠の要素）に渡す props。className は画像の要素に付きます */
   frameProps?: ComponentProps<'span'>;
@@ -188,7 +191,10 @@ export function Image({
   const [failedSrc, setFailedSrc] = useState<string>();
   const useFallback =
     !render && fallbackSrc != null && imageProps.src != null && failedSrc === imageProps.src;
-  const props = useFallback ? { ...imageProps, src: fallbackSrc } : imageProps;
+  // srcSet・sizes があると src より先に使われ、代わりの画像に替わらないので外す
+  const props = useFallback
+    ? { ...imageProps, src: fallbackSrc, srcSet: undefined, sizes: undefined }
+    : imageProps;
   const src = renderProps.src ?? props.src;
   const width = toMediaSize(renderProps.width ?? props.width);
   const height = toMediaSize(renderProps.height ?? props.height);
