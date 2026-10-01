@@ -40,7 +40,7 @@ A（あいだ 16px）と、C・D（次の 1 枚の端をのぞかせる形）は
 
 ## 影響
 
-- `src/components/carousel/CarouselBase.tsx`: 複数枚のあいだを 12px にし、のぞかせる端のトークン（`--carousel-per-view-peek`・`--carousel-per-view-gap`）は畳んで消しました
+- `src/components/carousel/CarouselBase.tsx`・`design/tokens.css`: 複数枚のあいだ（`--carousel-per-view-gap`）を 12px にしました。比べるためだけに置いたのぞかせる端のトークン（`--carousel-per-view-peek`）は、実装のコミットで畳んで消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映

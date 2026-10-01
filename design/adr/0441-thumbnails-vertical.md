@@ -10,7 +10,7 @@ Carousel の横に Thumbnails を縦に並べると、選んでいる棒と、�
 
 ## 候補
 
-比較は、決めた時点のコミット `cbb19c8` の比較のストーリー（`design/stories/axis-453-thumbnails-vertical.stories.tsx`）です。列は「通常」「帯に載せたとき」「3 枚目の画像に hover」の 3 つ。帯は枠の左（`thumbnailsPlacement="start"`）で比べていますです。
+比較は、決めた時点のコミット `cbb19c8` の比較のストーリー（`design/stories/axis-453-thumbnails-vertical.stories.tsx`）です。列は「通常」「帯に載せたとき」「3 枚目の画像に hover」の 3 つ。帯は枠の左（`thumbnailsPlacement="start"`）で比べています。
 
 | 案              | 内容                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------- |
