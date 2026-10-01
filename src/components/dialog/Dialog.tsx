@@ -327,6 +327,7 @@ function CenteredDialog({
           )}
           {/* 裏を止めないときは、面を置く枠を素通しにし、面だけが触れるようにする */}
           <BaseDialog.Viewport
+            data-slot="dialog-viewport"
             className={[
               'fixed inset-0 z-10 p-(--dialog-margin)',
               // content: 面の高さを枠に収める（max-h-full が効くよう、高さの決まった flex の中に置く）
@@ -406,7 +407,9 @@ function CenteredDialog({
                   data-slot="dialog-content"
                   className={[
                     'px-(--dialog-padding) pt-2',
-                    scrollContent && 'min-h-0 flex-1 overflow-y-auto overscroll-contain',
+                    // 角は面の角に合わせて丸める（貼り付けた DialogActions の面が、面の下の角からはみ出さないように）
+                    scrollContent &&
+                      'min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]',
                     // content: 下の余白は、下の操作の帯（actions・DialogActions）か、なければ中身が持つ
                     scrollContent && actions == null && !slot.placed && 'pb-(--dialog-padding)',
                   ]
