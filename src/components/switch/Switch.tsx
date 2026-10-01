@@ -280,6 +280,11 @@ export interface SwitchProps
    * @default 'onSubmit'
    */
   validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** ON か（制御） */
   checked?: boolean;
   /** はじめに ON か（非制御） */
@@ -372,6 +377,7 @@ export function Switch({
   infoText,
   validate,
   validationMode,
+  validationDebounceTime,
   checked,
   defaultChecked,
   onCheckedChange,
@@ -435,6 +441,7 @@ export function Switch({
       invalid={appInvalid}
       validate={validate}
       validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
       data-switch-frame={frame === 'none' ? undefined : frame}
       className={s.root({

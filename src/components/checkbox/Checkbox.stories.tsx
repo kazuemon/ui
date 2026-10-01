@@ -445,3 +445,37 @@ export const Validation: Story = {
     await waitFor(() => expect(box).not.toHaveAttribute('aria-describedby'));
   },
 };
+
+export const SuccessText: Story = {
+  name: '成功の文',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '1つだけ置く箱は、`successText` で成功の文を箱の行の下に出せます。エラー・警告の行の下、情報の行の上に出ます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Checkbox
+        label="通知を受け取る"
+        defaultChecked
+        successText="通知の設定を保存しました"
+        infoText="あとから設定で変えられます"
+      />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: '通知を受け取る' });
+    const success = canvas.getByText('通知の設定を保存しました').closest('[id]');
+    const info = canvas.getByText('あとから設定で変えられます').closest('[id]');
+    // 説明は見た目の順（成功 → 情報）でつなぐ
+    await expect(box.getAttribute('aria-describedby')).toBe(`${success?.id} ${info?.id}`);
+    // 成功の行は情報の行の上に出る
+    await expect(success!.getBoundingClientRect().top).toBeLessThan(
+      info!.getBoundingClientRect().top
+    );
+  },
+};
