@@ -306,6 +306,7 @@ function DatePickerControlInner({
             icon={icon}
             iconPlacement={iconPlacement}
             className={control.className}
+            form={control.form}
             describedBy={
               [control['aria-describedby'], field?.describedBy].filter(Boolean).join(' ') ||
               undefined
@@ -396,6 +397,8 @@ interface DatePickerButtonProps {
   text: string | null;
   className: string | undefined;
   describedBy: string | undefined;
+  /** 隠れた input が属するフォームの id */
+  form: string | undefined;
   renderTrigger: (element: ReactElement<ComponentProps<'button'>>) => ReactElement;
 }
 
@@ -410,6 +413,7 @@ function DatePickerButton({
   color,
   className,
   describedBy,
+  form,
   renderTrigger,
 }: DatePickerButtonProps) {
   // ラベルは <label> にしない（本体はボタンで、ラベルは aria-labelledby でつなぐ）
@@ -474,6 +478,7 @@ function DatePickerButton({
             type="hidden"
             // Base UI の Field.Control は、Field.Root の name を render の props に入れる（型の HTMLProps には無い）
             name={(controlProps as { name?: string }).name}
+            form={form}
             value={value?.toString() ?? ''}
             disabled={field?.disabled}
           />
