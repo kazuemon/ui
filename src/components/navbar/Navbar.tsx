@@ -458,6 +458,9 @@ export interface NavbarGroupProps extends ComponentProps<'div'> {
 
 /**
  * Navbar の中身のまとまり。行き先のほかに置くもの（検索の欄など）を入れ、帯が狭いときの行き先を選びます
+ *
+ * narrowPlacement が menu のまとまりは、帯と、狭いときに開くメニューの 2 か所に描かれ、それぞれが別の部品になります。
+ * 入力欄など状態を持つものを入れるときは、value と onValueChange で外から状態を渡し、2 か所で同じ値を見るようにします
  */
 export function NavbarGroup({
   narrowPlacement = 'menu',
