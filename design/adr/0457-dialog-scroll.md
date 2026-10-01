@@ -36,7 +36,7 @@
 ## 影響
 
 - `src/components/dialog/Dialog.tsx`: `scrollBehavior` の既定が content になります。高い Dialog の見え方が変わります（AlertDialog も同じ）。既定が変わることは破壊的変更にあたるかもしれませんが、0.x なので `feat:` のままにしました
-- `src/internal/sheet/SheetPopup.tsx`: シートと中央の面で、中身だけスクロールする作りを共有します
+- `src/internal/sheet/SheetMoreCue.tsx`・`use-more-cues.ts`・`src/internal/overlay/overlay-actions.tsx`: 続きの印と、中身に貼り付ける下の帯（`dialog-scroll`）を、シートと共有します
 - Dialog の Docs に、中身が長いときの例を足しました
 
 ## 原則への反映
