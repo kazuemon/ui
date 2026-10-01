@@ -239,7 +239,7 @@ export function Inspector({
   const [widthState, setWidthState] = useState(defaultWidth);
   const [resizing, setResizing] = useState(false);
   const controlledWidth = resizable && typeof width === 'number';
-  const resizedWidth = resizable ? (controlledWidth ? (width as number) : widthState) : undefined;
+  const resizedWidth = resizable ? (controlledWidth ? width : widthState) : undefined;
   const setWidth = (next: number) => {
     if (!controlledWidth) setWidthState(next);
     onWidthChange?.(next);

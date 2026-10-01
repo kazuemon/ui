@@ -99,7 +99,7 @@ export function DataTableHeader({
   // 幅を変えられるとき: 数の width は制御、なければ部品の中で持つ（はじめは defaultWidth）
   const [widthState, setWidthState] = useState(defaultWidth);
   const controlledWidth = resizable && typeof width === 'number';
-  const resizedWidth = resizable ? (controlledWidth ? (width as number) : widthState) : undefined;
+  const resizedWidth = resizable ? (controlledWidth ? width : widthState) : undefined;
   const shownWidth = resizedWidth ?? width;
   const setWidth = (next: number) => {
     if (!controlledWidth) setWidthState(next);
