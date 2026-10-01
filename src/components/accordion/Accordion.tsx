@@ -40,12 +40,14 @@ export type AccordionIndicator = CollapsibleIndicator;
 
 interface AccordionContextValue {
   variant: AccordionVariant;
+  openFilled: boolean;
   indicator: AccordionIndicator;
   headingLevel: 2 | 3 | 4 | 5 | 6;
 }
 
 const AccordionContext = createContext<AccordionContextValue>({
   variant: 'divided',
+  openFilled: false,
   indicator: 'end',
   headingLevel: 3,
 });
@@ -66,6 +68,11 @@ export interface AccordionProps extends Omit<
    * @default 'divided'
    */
   variant?: AccordionVariant;
+  /**
+   * variant="card" のとき、開いている項目の行を open-filled と同じグレーで塗ります。どれが開いているかを遠目にも見せたいときに使います
+   * @default false
+   */
+  openFilled?: boolean;
   /**
    * 開閉の印の位置。見た目（variant）とは別に選べます
    * - end: 題の右。閉じているときは下向きで、開くと上を向きます
@@ -116,6 +123,7 @@ export interface AccordionProps extends Omit<
 export function Accordion({
   children,
   variant = 'divided',
+  openFilled = false,
   indicator = 'end',
   multiple = false,
   value,
@@ -130,7 +138,7 @@ export function Accordion({
 }: AccordionProps) {
   const styles = accordionStyles({ variant });
   return (
-    <AccordionContext.Provider value={{ variant, indicator, headingLevel }}>
+    <AccordionContext.Provider value={{ variant, openFilled, indicator, headingLevel }}>
       <BaseAccordion.Root
         {...props}
         data-slot="accordion"
@@ -189,8 +197,8 @@ export function AccordionItem({
   ...props
 }: AccordionItemProps) {
   const { className: panelClassName, ...panelRest } = panelProps ?? {};
-  const { variant, indicator, headingLevel } = useContext(AccordionContext);
-  const styles = collapsibleStyles({ variant, indicator });
+  const { variant, openFilled, indicator, headingLevel } = useContext(AccordionContext);
+  const styles = collapsibleStyles({ variant, indicator, openFilled });
   const own = accordionStyles({ variant });
   const Heading = `h${headingLevel}` as const;
   return (

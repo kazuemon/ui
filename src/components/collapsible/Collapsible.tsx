@@ -35,6 +35,11 @@ export interface CollapsibleProps extends Omit<
    */
   variant?: CollapsibleVariant;
   /**
+   * variant="card" のとき、開いている行を open-filled と同じグレーで塗ります。どれが開いているかを遠目にも見せたいときに使います
+   * @default false
+   */
+  openFilled?: boolean;
+  /**
    * 開閉の印の位置。見た目（variant）とは別に選べます
    * - end: 題の右。閉じているときは下向きで、開くと上を向きます
    * - start: 題の左。閉じているときは右向きで、開くと下を向きます。中身は題の頭にそろえて字下げします。ファイルの木のように、入れ子で並べるときに向きます
@@ -102,6 +107,7 @@ export function Collapsible({
   onOpenChange,
   disabled,
   variant = 'plain',
+  openFilled = false,
   indicator = 'end',
   triggerPlacement = 'top',
   headingLevel,
@@ -112,7 +118,7 @@ export function Collapsible({
   ...props
 }: CollapsibleProps) {
   const { className: panelClassName, ...panelRest } = panelProps ?? {};
-  const styles = collapsibleStyles({ variant, indicator });
+  const styles = collapsibleStyles({ variant, indicator, openFilled });
   const Heading = headingLevel ? (`h${headingLevel}` as const) : null;
   const row = (
     <BaseCollapsible.Trigger data-slot="collapsible-trigger" className={styles.trigger()}>

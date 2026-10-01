@@ -45,17 +45,16 @@ const styles = tv({
       'border-(length:--card-line-width) border-(color:--card-line)',
       '[--card-line-width:var(--border-width-thin)] [--card-line:var(--color-surface-line)]',
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
-      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない
+      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない。線の色は color から作る（--card-selected-line）
       "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:-inset-(--card-line-width) data-selected:after:z-1 data-selected:after:content-['']",
       'data-selected:after:rounded-card data-selected:after:border-(length:--card-selected-line-width) data-selected:after:border-(color:--card-selected-line)',
-      'data-selected:[--card-fill:var(--card-selected-fill)]',
     ],
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
-    // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線と塗りで中身と分ける
+    // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線（輪郭と同じ細い線）で中身と分ける
     header: [
       'flex items-center justify-between gap-(--card-header-gap)',
       'px-(--card-body-padding) py-(--card-header-padding-y)',
-      'border-b-(length:--card-header-line-width) border-(color:--card-header-line) bg-(color:--card-header-fill)',
+      'border-b-(length:--border-width-thin) border-(color:--color-surface-line)',
     ],
     image: [
       // imageZoom のとき、hover で画像を少し大きくする（--card-hover-media-scale）。枠（Image）が切り取る
@@ -71,9 +70,8 @@ const styles = tv({
           'p-(--card-nested-inset)',
           '[--card-body-padding:calc(var(--card-padding)-var(--card-nested-inset))]',
         ],
-        // 内側に収めた帯の角は、画像と同じ同心の角。下の画像とは入れ子の余白だけ離す
-        header:
-          'mb-(--card-nested-inset) rounded-[calc(var(--radius-card)-var(--card-nested-inset))]',
+        // 内側に収めた帯は、下の画像と入れ子の余白だけ離す。角は下の compoundVariants で決める
+        header: 'mb-(--card-nested-inset)',
       },
       // 強調の形。並べたカードのうち 1 枚（おすすめなど）を目立たせる。画像の置き方は default と同じ
       emphasis: {
@@ -90,9 +88,36 @@ const styles = tv({
     // 余白の段。sm は一覧に詰めて並べるときの、中身の余白・縦の間・入れ子の余白
     size: {
       sm: {
-        root: '[--card-gap:var(--card-gap-sm)] [--card-nested-inset:var(--card-nested-inset-sm)] [--card-padding:var(--card-padding-sm)]',
+        root: '[--card-nested-inset:var(--card-nested-inset-sm)] [--card-padding:var(--card-padding-sm)]',
       },
       md: {},
+    },
+    // 選んでいる見た目の色。線は前景の色、淡い面はその色の淡い面。neutral は色を持たないグレーと濃紺（原則6）
+    color: {
+      primary: {
+        root: '[--card-selected-line:var(--color-primary)] [--card-selected-tint:var(--color-primary-subtle)]',
+      },
+      secondary: {
+        root: '[--card-selected-line:var(--color-fg-secondary)] [--card-selected-tint:var(--color-secondary-subtle)]',
+      },
+      neutral: {
+        root: '[--card-selected-line:var(--color-neutral-strong)] [--card-selected-tint:var(--color-select-neutral-selected)]',
+      },
+    },
+    // 選んでいる見た目の形。fill は面を淡く塗って線を重ね、line は面を変えずに線だけを重ねる
+    selectedIndicator: {
+      fill: { root: 'data-selected:[--card-fill:var(--card-selected-tint)]' },
+      line: {},
+    },
+    // 帯の塗り。default はカードの面のまま、filled は入力欄と同じ淡いグレー
+    headerVariant: {
+      default: {},
+      filled: { header: 'bg-(color:--color-field)' },
+    },
+    // 帯の下の線を引かない
+    hideDivider: {
+      true: { header: 'border-b-0' },
+      false: {},
     },
     interactive: {
       true: {
@@ -121,13 +146,36 @@ const styles = tv({
       interactive: true,
       class: { root: 'hover:[--card-fill:var(--card-emphasis-fill-hover)]' },
     },
-    // 選んでいる押せるカードの hover の塗り
+    // 塗って選んでいる押せるカードの hover。淡い面に線の色を少し混ぜる
     {
       interactive: true,
-      class: { root: 'data-selected:hover:[--card-fill:var(--card-selected-fill-hover)]' },
+      selectedIndicator: 'fill',
+      class: {
+        root: 'data-selected:hover:[--card-fill:color-mix(in_oklab,var(--card-selected-tint),var(--card-selected-line)_var(--card-selected-hover-mix))]',
+      },
+    },
+    // 入れ子の帯の角。上の角は画像と同じ同心の角。下の線があるときは下の角を丸めず、線をまっすぐ端まで引く
+    {
+      variant: 'nested',
+      hideDivider: false,
+      class: { header: 'rounded-t-[calc(var(--radius-card)-var(--card-nested-inset))]' },
+    },
+    {
+      variant: 'nested',
+      hideDivider: true,
+      class: { header: 'rounded-[calc(var(--radius-card)-var(--card-nested-inset))]' },
     },
   ],
-  defaultVariants: { variant: 'default', size: 'md', interactive: false, button: false },
+  defaultVariants: {
+    variant: 'default',
+    size: 'md',
+    color: 'primary',
+    selectedIndicator: 'fill',
+    headerVariant: 'default',
+    hideDivider: false,
+    interactive: false,
+    button: false,
+  },
 });
 
 /** 値が undefined の属性を除く */
@@ -137,6 +185,9 @@ function definedOnly(props: Record<string, string | undefined>) {
 
 export type CardVariant = 'default' | 'nested' | 'emphasis';
 export type CardSize = 'sm' | 'md';
+export type CardColor = 'primary' | 'secondary' | 'neutral';
+export type CardSelectedIndicator = 'fill' | 'line';
+export type CardHeaderVariant = 'default' | 'filled';
 
 const CardContext = createContext<CardVariant>('default');
 
@@ -159,6 +210,18 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClic
    * onClick で button として描くときは、読み上げに押している状態（aria-pressed）として伝えます
    */
   selected?: boolean;
+  /**
+   * 選んでいる見た目の形（selected のとき）
+   * - fill: 面を淡く塗り、輪郭の上に線を重ねます
+   * - line: 面は変えず、輪郭の上に線だけを重ねます。画像のあるカードや、面の色を変えたくないときに使います
+   * @default 'fill'
+   */
+  selectedIndicator?: CardSelectedIndicator;
+  /**
+   * 選んでいる見た目の色（selected のとき）。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーと濃紺です
+   * @default 'primary'
+   */
+  color?: CardColor;
   /** 渡すと、カード全体が 1 つのリンクになります。一覧（記事・作品）のカードに使います */
   href?: string;
   /**
@@ -206,6 +269,8 @@ export function Card({
   rel,
   onClick,
   selected,
+  selectedIndicator = 'fill',
+  color = 'primary',
   imageZoom = false,
   render,
   className,
@@ -221,7 +286,7 @@ export function Card({
   const newTab = link && (target === '_blank' || opensNewTab(render));
   const noteId = useId();
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
-  const s = styles({ variant, size, interactive, button });
+  const s = styles({ variant, size, color, selectedIndicator, interactive, button });
   const element = useRender({
     render,
     defaultTagName: link ? 'a' : button ? 'button' : 'div',
@@ -253,6 +318,18 @@ export function Card({
 }
 
 export interface CardHeaderProps extends ComponentProps<'div'> {
+  /**
+   * 帯の塗り
+   * - default: カードの面のまま塗りません
+   * - filled: 淡いグレーで塗り、帯であることをはっきり見せます
+   * @default 'default'
+   */
+  variant?: CardHeaderVariant;
+  /**
+   * 帯の下の線を引きません。塗りの境目や、すぐ下の画像で中身と分かれるときに使います
+   * @default false
+   */
+  hideDivider?: boolean;
   /** 帯に置く中身。題と、右端に寄せる操作（Button など）を並べます */
   children?: ReactNode;
   /** 帯の要素（div）に付きます */
@@ -260,12 +337,23 @@ export interface CardHeaderProps extends ComponentProps<'div'> {
 }
 
 /**
- * カードの頭の帯。題や操作を置き、下の線と塗りで中身と分けます。カードのいちばん上に置きます
+ * カードの頭の帯。題や操作を置き、下の線で中身と分けます。カードのいちばん上に置きます
  */
-export function CardHeader({ className, ...props }: CardHeaderProps) {
-  const variant = useContext(CardContext);
+export function CardHeader({
+  variant = 'default',
+  hideDivider = false,
+  className,
+  ...props
+}: CardHeaderProps) {
+  const cardVariant = useContext(CardContext);
+  const s = styles({ variant: cardVariant, headerVariant: variant, hideDivider });
   return (
-    <div data-slot="card-header" className={styles({ variant }).header({ className })} {...props} />
+    <div
+      data-slot="card-header"
+      data-variant={variant}
+      className={s.header({ className })}
+      {...props}
+    />
   );
 }
 

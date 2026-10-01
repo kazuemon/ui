@@ -672,26 +672,17 @@
   --card-gap: calc(var(--spacing) * 1);
   --card-hover-media-scale: 1.04;
   --card-fill-hover: color-mix(in oklab, var(--color-field) 50%, var(--color-surface));
-  /* 詰めた余白（size="sm"）— 軸 412 で比較中。md は上の padding・gap・nested-inset */
+  /* 詰めた余白（size="sm"）— 軸 412。md は上の padding・nested-inset。縦の間（gap）は md と同じ
+     padding-sm: 中身の余白。nested-inset-sm: 入れ子の型の、画像の周りの余白 */
   --card-padding-sm: calc(var(--spacing) * 3);
-  --card-gap-sm: calc(var(--spacing) * 0.5);
   --card-nested-inset-sm: calc(var(--spacing) * 1.5);
-  /* 選んでいる見た目（selected）— 軸 413 で比較中
-     selected-line・selected-line-width: 輪郭の上に重ねる線。寸法は変えない
-     selected-fill・selected-fill-hover: 選んでいるときの面の塗りと、押せるときの hover の塗り */
-  --card-selected-line: var(--color-primary);
+  /* 選んでいる見た目（selected）— 軸 413。線と面の色は color（primary・secondary・neutral）から部品が作る
+     selected-line-width: 輪郭の上に重ねる線の太さ。寸法は変えない
+     selected-hover-mix: 塗った面（selectedIndicator="fill"）の hover で、線の色を面に混ぜる割合 */
   --card-selected-line-width: var(--border-width-thick);
-  --card-selected-fill: var(--color-primary-subtle);
-  --card-selected-fill-hover: color-mix(
-    in oklab,
-    var(--color-primary-subtle),
-    var(--color-primary) 6%
-  );
-  /* 頭の帯（CardHeader）— 軸 414 で比較中
-     header-fill: 帯の塗り。header-line・header-line-width: 帯の下の線。header-padding-y: 帯の上下の余白。header-gap: 帯の中の並びの間 */
-  --card-header-fill: var(--color-surface);
-  --card-header-line: var(--color-surface-line);
-  --card-header-line-width: var(--border-width-thin);
+  --card-selected-hover-mix: 6%;
+  /* 頭の帯（CardHeader）— 軸 414。塗り（variant）と下の線（hideDivider）は部品が決める
+     header-padding-y: 帯の上下の余白。header-gap: 帯の中の並びの間 */
   --card-header-padding-y: calc(var(--spacing) * 3);
   --card-header-gap: calc(var(--spacing) * 3);
   /* 強調の形（variant="emphasis"）— 軸 415 で比較中
@@ -1216,14 +1207,9 @@
   --collapsible-duration: var(--duration-normal);
   --collapsible-ease: var(--ease-sheet);
   --collapsible-start-opacity: 0;
-  /* 枠付きのカードの形（variant="card"）— 軸 416 で比較中
-     card-radius: 角。card-line・card-line-width: 輪郭。card-fill: 閉じているときの面
-     card-open-fill: 開いているときの行（題）の塗り。card-gap: 続けて置いたときの間 */
-  --collapsible-card-radius: var(--radius-card);
-  --collapsible-card-line: var(--color-surface-line);
-  --collapsible-card-line-width: var(--border-width-thin);
-  --collapsible-card-fill: var(--color-surface);
-  --collapsible-card-open-fill: transparent;
+  /* 枠付きのカードの形（variant="card"）— 軸 416。角・輪郭・面はカードと同じで、部品が決める
+     開いた行は塗らない（openFilled で open-filled と同じグレーを敷ける）
+     card-gap: 続けて置いたときの間 */
   --collapsible-card-gap: calc(var(--spacing) * 2);
   /* ── END collapsible */
 

@@ -22,7 +22,8 @@ const meta = {
           '押して中身を開閉する行です。詳しい設定、FAQ の答え、「もっと見る」の続きのように、ふだんは隠しておける中身に使います。',
           '',
           '- 行全体を押せます。マウスを載せると行が淡く塗られ、開閉の印は開くと向きが変わります。',
-          '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided` です。',
+          '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided`、細い輪郭の面で囲む `card` です。',
+          '- `card` は開いた行を塗りません。どれが開いているかを遠目にも見せたいときは、`openFilled` で開いた行を淡いグレーで塗ります。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。見た目とは別に選べます。',
           '- 「続きを読む」のように行を中身の下に置くときは、`triggerPlacement="bottom"` にします。',
           '- 行をページの見出しの並びに入れたいときは、`headingLevel`（2〜6）を渡します。見た目は変わりません。',
@@ -44,6 +45,7 @@ const meta = {
       options: ['plain', 'open-filled', 'filled', 'divided', 'card'],
       table: { defaultValue: { summary: 'plain' } },
     },
+    openFilled: { table: { defaultValue: { summary: 'false' } } },
     indicator: {
       control: 'inline-radio',
       options: ['end', 'start'],
@@ -182,6 +184,43 @@ export const VariantsStart: Story = {
     pseudo: appearancePseudo,
   },
   render: () => <VariantMatrix indicator="start" />,
+};
+
+export const CardVariant: Story = {
+  tags: ['visual'],
+  name: 'カードの形',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`variant="card"` は、行と中身をカードと同じ角・白い面・細い輪郭で囲みます。開いた行は塗らず、`openFilled` を付けると淡いグレーで塗ります。続けて置くと少し離します。',
+      },
+    },
+    pseudo: appearancePseudo,
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      <Matrix
+        rows={[false, true]}
+        columns={appearanceColumns}
+        columnWidth="12rem"
+        rowLabel={(openFilled) => (openFilled ? 'openFilled' : '既定')}
+        renderCell={(openFilled, column) => (
+          <Collapsible
+            title="詳しい設定"
+            variant="card"
+            openFilled={openFilled}
+            defaultOpen={column.open}
+          >
+            リンクは 24 時間で切れます。
+          </Collapsible>
+        )}
+      />
+      <div className="w-[360px] max-w-full">
+        <FaqList variant="card" />
+      </div>
+    </div>
+  ),
 };
 
 function FaqList({ variant, indicator }: Partial<Variant>) {

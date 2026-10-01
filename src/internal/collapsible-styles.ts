@@ -85,22 +85,28 @@ export const collapsibleStyles = tv({
         ],
         trigger: ['rounded-none', focusInside],
       },
-      // 1 つずつ細い輪郭で囲んだ面。行の hover は plain と同じ淡いグレーで、面の角で切る
+      // 1 つずつカードと同じ角・白い面・細い輪郭で囲む。行の hover は plain と同じ淡いグレーで、面の角で切る
+      //   開いた行は塗らない（openFilled で open-filled と同じグレーを敷く）
       //   フォーカスの線は、面の角で切れないよう線の内側に描く。続けて置いた面は --collapsible-card-gap だけ離す
       card: {
         root: [
-          '[--collapsible-fill-hover:var(--color-field)] [--collapsible-fill-open-hover:var(--color-field)] [--collapsible-fill-open:var(--collapsible-card-open-fill)] [--collapsible-fill:transparent]',
-          'overflow-hidden rounded-(--collapsible-card-radius) bg-(color:--collapsible-card-fill)',
-          'border-(length:--collapsible-card-line-width) border-(color:--collapsible-card-line)',
+          '[--collapsible-fill-hover:var(--color-field)] [--collapsible-fill-open-hover:var(--color-field)] [--collapsible-fill-open:transparent] [--collapsible-fill:transparent]',
+          'overflow-hidden rounded-card bg-surface',
+          'border-(length:--border-width-thin) border-(color:--color-surface-line)',
           '[[data-slot=collapsible]+&]:mt-(--collapsible-card-gap)',
         ],
         // 行の角は囲みの内側の同心の角。開いているあいだは、下の中身とつながるよう下の角を丸めない
         trigger: [
-          'rounded-[calc(var(--collapsible-card-radius)-var(--collapsible-card-line-width))]',
+          'rounded-[calc(var(--radius-card)-var(--border-width-thin))]',
           'data-panel-open:rounded-b-none',
           focusInside,
         ],
       },
+    },
+    // 開いている行を、open-filled と同じ入力欄のグレーで塗る（card のときだけ効く）
+    openFilled: {
+      true: {},
+      false: {},
     },
     indicator: {
       // 題の右。閉じているとき ▼、開くと 180° 回って ▲（Select の ▼ と同じ位置と向き）
@@ -114,5 +120,14 @@ export const collapsibleStyles = tv({
       },
     },
   },
-  defaultVariants: { variant: 'plain', indicator: 'end' },
+  compoundVariants: [
+    {
+      variant: 'card',
+      openFilled: true,
+      class: {
+        root: '[--collapsible-fill-open-hover:var(--color-field-hover)] [--collapsible-fill-open:var(--color-field)]',
+      },
+    },
+  ],
+  defaultVariants: { variant: 'plain', indicator: 'end', openFilled: false },
 });
