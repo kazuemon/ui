@@ -14,10 +14,10 @@ import { tv } from '../../internal/tv';
 // Dropzone で選んだファイルの一覧。Dropzone 自身は選ぶ場所だけを持つので、見せ方はこちらに分ける（アップロードは行わない）
 // variant（ADR-0333）: list は名前・大きさを1行ずつ、thumbnail は画像をタイルに並べる。どちらも外すボタンと、
 //   渡せば進み具合（Progress）・失敗の文を持てる
-// 保存済みのファイル（file を持たず、name・size・url で書いた項目）は、いま選んだものと並べる。見分け方（印・リンク・面）は
-//   --dropzone-file-* のトークンで持つ（軸 491）
+// 保存済みのファイル（file を持たず、name・size・url で書いた項目）は、いま選んだものと同じ行で並べる（軸 491）
+//   url があれば名前を下線のリンクにする。それが見分けになる。「保存済み」などの文は部品が付けず、項目の caption で使う側が添える
 const savedLink = [
-  'rounded-xs text-inherit underline-offset-[0.2em] [text-decoration-line:var(--dropzone-file-link-decoration)]',
+  'rounded-xs text-inherit underline underline-offset-[0.2em]',
   'decoration-(--color-link-underline) hover:decoration-(--color-link-underline-hover)',
   'transition-[outline-color,outline-offset] duration-(--focus-ring-duration)',
   ...focusRing,
@@ -26,11 +26,7 @@ const savedLink = [
 const row = tv({
   slots: {
     root: 'flex flex-col gap-2',
-    list: [
-      'flex items-center gap-3 rounded-control bg-field px-(--spacing-control-x) py-2',
-      // 保存済みの枠は内側の影で描き、寸法を変えない
-      'data-saved:bg-(--dropzone-file-saved-bg) data-saved:shadow-[inset_0_0_0_var(--border-width-thin)_var(--dropzone-file-saved-border-color)]',
-    ],
+    list: 'flex items-center gap-3 rounded-control bg-field px-(--spacing-control-x) py-2',
     icon: 'size-(--spacing-icon) shrink-0 text-fg-muted',
     body: 'flex min-w-0 flex-1 flex-col gap-0.5',
     // リンクのフォーカスの線が切れないよう、線の分だけ内側に余白を取り、外側の余白で打ち消す
@@ -39,7 +35,6 @@ const row = tv({
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     remove: 'shrink-0',
     link: savedLink,
-    mark: '[display:var(--dropzone-file-saved-mark-display)]',
   },
   variants: {
     variant: {
@@ -55,17 +50,13 @@ const tile = tv({
   slots: {
     base: [
       'group relative flex aspect-square flex-col overflow-hidden rounded-control bg-field',
-      // 保存済みの枠は内側の影で描き、寸法を変えない
-      'data-saved:bg-(--dropzone-file-saved-bg) data-saved:shadow-[inset_0_0_0_var(--border-width-thin)_var(--dropzone-file-saved-border-color)]',
       'data-invalid:outline data-invalid:outline-(length:--border-width-thick) data-invalid:outline-(color:--color-fg-danger)',
     ],
     caption:
       'truncate bg-surface px-2 py-1 text-(length:--text-caption) leading-(--leading-caption) text-fg',
     link: savedLink,
-    mark: [
-      'absolute top-1 left-1 rounded-pill bg-surface px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
-      '[display:var(--dropzone-file-saved-mark-display)]',
-    ],
+    // 項目の caption。左上に小さな札で置き、長ければ切る
+    mark: 'absolute top-1 left-1 max-w-[calc(100%-var(--spacing)*2)] truncate rounded-pill bg-surface px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
   },
 });
 
@@ -75,7 +66,7 @@ export type DropzoneFileListVariant = NonNullable<VariantProps<typeof row>['vari
  * DropzoneFileList の1項目。いま選んだファイルは file を、保存済みのファイル（サーバーにあるもの）は file を書かずに name・size・url を渡す
  */
 export interface DropzoneFileEntry {
-  /** いま選んだファイル。書かない項目は保存済みのファイルとして、名前に印を添え、url があれば名前をリンクにする */
+  /** いま選んだファイル。書かない項目は保存済みのファイルとして、url があれば名前を下線のリンクにする */
   file?: File;
   /** 名前。書かないときは file の名前 */
   name?: string;
@@ -85,6 +76,11 @@ export interface DropzoneFileEntry {
   url?: string;
   /** ファイルの種類（MIME タイプ）。thumbnail で画像として出すかを決める。書かないときは file の種類、なければ url の拡張子で決める */
   type?: string;
+  /**
+   * 名前に小さく添える文（「保存済み」、保存した日時など）。list では大きさの後ろに、thumbnail では左上の札に出す。
+   * 渡さないときは何も添えない
+   */
+  caption?: ReactNode;
   /** アップロードの進み具合（0〜100）。渡さないときは進み具合の行を出さない */
   progress?: number;
   /** そのファイルだけの失敗（アップロードの失敗など）。渡すと名前の下に赤い文字で出す */
@@ -103,11 +99,6 @@ export interface DropzoneFileListProps extends Omit<ComponentProps<'ul'>, 'child
   onRemove?: (entry: DropzoneFileEntry, index: number) => void;
   /** 外すボタンの読み上げの名前を作る関数。既定は、いま選んだものが「外す: {ファイル名}」、保存済みのものが「削除: {ファイル名}」 */
   removeName?: (entry: DropzoneFileEntry) => string;
-  /**
-   * 保存済みのファイルに添える印の文字
-   * @default '保存済み'
-   */
-  savedLabel?: ReactNode;
   /** いちばん外の要素（ul）に付く */
   className?: string;
 }
@@ -178,7 +169,6 @@ export function DropzoneFileList({
   variant = 'list',
   onRemove,
   removeName = defaultRemoveName,
-  savedLabel = '保存済み',
   className,
   ...props
 }: DropzoneFileListProps) {
@@ -188,7 +178,7 @@ export function DropzoneFileList({
   return (
     <ul data-slot="dropzone-file-list" className={s.root({ className })} {...props}>
       {files.map((entry, index) => {
-        const { file, progress, errorText } = entry;
+        const { file, progress, errorText, caption } = entry;
         const name = entryName(entry);
         const size = entrySize(entry);
         const saved = file ? undefined : '';
@@ -208,10 +198,10 @@ export function DropzoneFileList({
                     </span>
                     <span className={s.meta()}>
                       {size != null && formatFileSize(size)}
-                      {saved != null && (
-                        <span className={s.mark()}>
+                      {caption != null && (
+                        <span>
                           {size != null && ' ・ '}
-                          {savedLabel}
+                          {caption}
                         </span>
                       )}
                       {errorText && <span className={s.error()}> ・ {errorText}</span>}
@@ -246,7 +236,7 @@ export function DropzoneFileList({
                 data-saved={saved}
               >
                 <Thumbnail entry={entry} />
-                {saved != null && <span className={t.mark()}>{savedLabel}</span>}
+                {caption != null && <span className={t.mark()}>{caption}</span>}
                 {onRemove && (
                   <Button
                     iconOnly

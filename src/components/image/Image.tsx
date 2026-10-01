@@ -29,7 +29,7 @@ import { ImageBrokenIcon } from './image-icons';
 //   （スクリプトが動かない描き方でも、画像本来の比で描く）
 //   このとき高さが変わり、下の内容が跳ぶ。寸法を書かない以上しかたがないので、跳ばせたくないときは width・height か ratio を書く
 // 仮画像（placeholder。小さな画像の URL か要素）を渡すと、読み込み中は面の代わりに、それをぼかして敷く（軸 492・493）
-//   読み込めたら本物を上に重ねて出し（--image-reveal-*）、仮画像は出し終えてから隠す。失敗したときは、仮画像の上に失敗の面を出す
+//   読み込めたら本物にすぐ替える（動きは付けない）。ぼかしの強さは placeholderBlur の段。失敗したときは、仮画像の上に失敗の面を出す
 // 代わりの画像（fallbackSrc）を渡すと、src が読み込めなかったときに一度だけそれに替える。それも失敗したら失敗の面を出す
 // 面を出すのは、描いたあとに読み込みが終わっていないと分かったときだけ。スクリプトが動かない描き方（Astro の静的な出力など）では、
 //   素の画像のまま出す（面を置かないだけで、画像は隠さない）
@@ -48,18 +48,10 @@ const styles = tv({
       'group-data-[status=error]/image:opacity-0 group-data-[status=loading]/image:opacity-0',
       // 本来の比で描くときは、枠いっぱいに重ねず、画像の高さで枠を広げる（AspectRatio の最初の子の absolute より強く効かせる）
       'group-data-natural/image:relative group-data-natural/image:h-auto',
-      // 仮画像があるときだけ、本物を重ねて出す動きを付ける（ないときは今まで通りすぐ出す）
-      'group-data-placeholder/image:transition-[opacity,filter] group-data-placeholder/image:duration-(--image-reveal-duration) group-data-placeholder/image:ease-out',
-      'group-data-placeholder/image:group-data-[status=loading]/image:[filter:blur(var(--image-reveal-from-blur))]',
-      // 動きを減らす設定では、ふわっと出さずにすぐ出す（原則14）
-      'motion-reduce:transition-none',
     ],
     // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、ぼかしの 2 倍だけ枠の外へ広げて、枠で切る
-    blur: [
-      'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius)',
-      // 本物を出し終えてから隠す（透ける画像の下に残らないように）
-      'transition-[visibility] delay-(--image-reveal-duration) group-data-[status=loaded]/image:invisible motion-reduce:delay-0',
-    ],
+    // 読み込めたら隠す（透ける画像の下に残らないように）
+    blur: 'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius) group-data-[status=loaded]/image:invisible',
     blurInner:
       'absolute inset-[calc(var(--image-placeholder-blur)*-2)] [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
@@ -97,12 +89,21 @@ const styles = tv({
       },
       none: { frame: '[--image-radius:0px]' },
     },
+    // 仮画像のぼかしの強さ。none はぼかさない
+    placeholderBlur: {
+      none: { frame: '[--image-placeholder-blur:0px]' },
+      sm: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-sm)]' },
+      md: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-md)]' },
+      lg: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-lg)]' },
+    },
   },
-  defaultVariants: { animation: 'sweep', outline: true, radius: 'card' },
+  defaultVariants: { animation: 'sweep', outline: true, radius: 'card', placeholderBlur: 'sm' },
 });
 
 /** 画像の角 */
 export type ImageRadius = NonNullable<VariantProps<typeof styles>['radius']>;
+/** 仮画像のぼかしの強さ */
+export type ImagePlaceholderBlur = NonNullable<VariantProps<typeof styles>['placeholderBlur']>;
 
 export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
   /** 画像の URL。まだ決まっていない（データを読み込んでいる）あいだは書かずにおくと、読み込み中の面を出します。render を渡すときは、渡す要素に書きます */
@@ -144,9 +145,15 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
   radius?: ImageRadius;
   /**
    * 読み込むまで敷く仮画像。小さな画像の URL（数十 px の縮小版や data URL）か、要素（BlurHash を描いた canvas など）を渡します。
-   * ぼかして枠いっぱいに広げ、読み込めたら本物に替えます。渡さないときは、読み込み中の面を出します
+   * ぼかして枠いっぱいに広げ、読み込めたら本物にすぐ替えます。渡さないときは、読み込み中の面を出します
    */
   placeholder?: string | ReactElement;
+  /**
+   * 仮画像のぼかしの強さ。none はぼかさず、sm・md・lg の順に強くなります。
+   * ぼかしは画像の大きさによらず同じ強さなので、小さい画像ほど強く効きます。BlurHash のようにはじめからぼやけた仮画像は none にします
+   * @default 'sm'
+   */
+  placeholderBlur?: ImagePlaceholderBlur;
   /** src が読み込めなかったときに替える画像の URL。それも読み込めなかったときは、失敗の面を出します。render を渡すときは使いません */
   fallbackSrc?: string;
   /** 画像を包む枠（枠の要素）に渡す props。className は画像の要素に付きます */
@@ -172,6 +179,7 @@ export function Image({
   onLoad,
   onError,
   placeholder,
+  placeholderBlur,
   fallbackSrc,
   ...imageProps
 }: ImageProps) {
@@ -208,7 +216,7 @@ export function Image({
   // 寸法がなく、読み込み中でも失敗でもないとき（読み込めた・スクリプトが動かない）は、画像本来の比の高さで描く
   const natural = ratio == null && !sized && status !== 'loading' && status !== 'error';
   const animation = useContext(ImagePlaceholderAnimationContext) ?? 'sweep';
-  const s = styles({ animation, outline: !hideOutline, radius });
+  const s = styles({ animation, outline: !hideOutline, radius, placeholderBlur });
   const image = useRender({
     render,
     defaultTagName: 'img',

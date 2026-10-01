@@ -44,7 +44,8 @@ const meta = {
           '- 読み込みに失敗したときは、面の上に破れた画像のアイコンと「読み込みに失敗しました」を出します。文は `errorText` で変えられます。',
           '- `radius` は角です。`card`（既定）はカードの角、`nested` は入れ子のカードの内側の角、`none` はカードの端まで届かせる画像です。',
           '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。外すときは `hideOutline` を渡します。',
-          '- `placeholder` に小さな画像の URL（数十 px の縮小版や data URL）か要素を渡すと、読み込み中の面の代わりに、それをぼかして敷きます。読み込めたら本物に替わります。',
+          '- `placeholder` に小さな画像の URL（数十 px の縮小版や data URL）か要素を渡すと、読み込み中の面の代わりに、それをぼかして敷きます。読み込めたら本物にすぐ替わります。',
+          '- `placeholderBlur` は仮画像のぼかしの強さです。`sm`（既定）・`md`・`lg` の順に強くなり、`none` はぼかしません。BlurHash のように、はじめからぼやけた仮画像は `none` にします。',
           '- `fallbackSrc` を渡すと、`src` が読み込めなかったときに一度だけその画像に替えます。それも読み込めなかったときは、失敗の面を出します。',
           '- Next.js の `Image` は `render` に渡します。',
         ].join('\n'),
@@ -259,4 +260,24 @@ export const PlaceholderAndFallback: Story = {
     await expect(frames[1].querySelector('img')).toHaveAttribute('src', landscape);
     await waitFor(() => expect(frames[2]).toHaveAttribute('data-status', 'error'));
   },
+};
+
+export const PlaceholderBlur: Story = {
+  name: '仮画像のぼかしの強さ',
+  tags: ['visual'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Gallery columnWidth="16rem">
+      {(['none', 'sm', 'md', 'lg'] as const).map((blur) => (
+        <Specimen key={blur} label={blur === 'sm' ? 'sm（既定）' : blur}>
+          <Image
+            alt="読み込み中の絵"
+            ratio="16 / 9"
+            placeholder={landscapeTiny}
+            placeholderBlur={blur}
+          />
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
 };

@@ -43,8 +43,8 @@ const withError: DropzoneFileEntry[] = [
 // 保存済みのファイル（サーバーにあるもの）と、いま選んだものを並べる
 const savedPhoto = `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#cfeafc"/><circle cx="84" cy="36" r="14" fill="#fff4cc"/><path d="M0 90 L40 56 L70 84 L120 60 L120 120 L0 120Z" fill="#2f6b58"/></svg>')}`;
 const withSaved: DropzoneFileEntry[] = [
-  { name: 'cover.svg', size: 38_000, url: savedPhoto, type: 'image/svg+xml' },
-  { name: 'resume.pdf', size: 820_000, url: '#resume.pdf' },
+  { name: 'cover.svg', size: 38_000, url: savedPhoto, type: 'image/svg+xml', caption: '保存済み' },
+  { name: 'resume.pdf', size: 820_000, url: '#resume.pdf', caption: '9月30日に保存' },
   { file: makeFile('kazuemon-icon.png', 42_000), progress: 60 },
 ];
 
@@ -62,7 +62,8 @@ const meta = {
           '- `files` の各項目に `progress`（0〜100）を渡すと、既存の `Progress` で進み具合を出します。アップロードの実行と値の更新は使う側が行います。',
           '- `errorText` を渡すと、その項目だけ赤い枠・赤い文字になります。',
           '- `onRemove` を渡さないと、外すボタンは出ません。押した項目とその位置を受け取ります。',
-          '- 保存済みのファイル（サーバーにあるもの）は、`file` を書かずに `name`・`size`・`url` で渡します。名前に「保存済み」の印が付き、`url` があれば名前が新しいタブで開くリンクになります。`thumbnail` では `url` を画像として出します（画像かどうかは `type` か、`url` の拡張子で決めます）。外すボタンの読み上げは「削除: {ファイル名}」です。',
+          '- 保存済みのファイル（サーバーにあるもの）は、`file` を書かずに `name`・`size`・`url` で渡します。`url` があれば、名前が新しいタブで開く下線のリンクになります。`thumbnail` では `url` を画像として出します（画像かどうかは `type` か、`url` の拡張子で決めます）。外すボタンの読み上げは「削除: {ファイル名}」です。',
+          '- 項目の `caption` に、名前に添える文（「保存済み」、保存した日時など）を渡せます。`list` では大きさの後ろに、`thumbnail` では左上の札に出ます。部品は文を自動では付けません。',
         ].join('\n'),
       },
     },
@@ -140,6 +141,7 @@ export const Remove: Story = {
 
 export const Saved: Story = {
   name: '保存済みのファイル',
+  tags: ['visual'],
   parameters: { controls: { disable: true } },
   render: () => (
     <Gallery columnWidth="20rem">
@@ -159,6 +161,7 @@ export const Saved: Story = {
     await expect(canvas.getAllByRole('button', { name: '外す: kazuemon-icon.png' })).toHaveLength(
       2
     );
+    await expect(canvas.getAllByText('9月30日に保存', { exact: false })).toHaveLength(2);
     // いま選んだものはリンクにしない
     await expect(
       canvas.queryByRole('link', { name: /kazuemon-icon\.png/ })
