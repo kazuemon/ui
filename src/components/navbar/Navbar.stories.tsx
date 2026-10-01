@@ -663,3 +663,63 @@ export const ControlledMenu: Story = {
     await expect(canvas.getByTestId('menu-state')).toHaveTextContent('閉じている');
   },
 };
+
+
+export const HideOnScroll: Story = {
+  name: 'スクロールで隠す',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`stickyBehavior="hide-on-scroll"` で、下へスクロールすると帯を隠し、上へ戻すと出します。`stickyBackdrop="transparent-until-scroll"` と合わせると、いちばん上では透けます。',
+      },
+    },
+  },
+  render: () => (
+    <div data-testid="scroller" className="h-60 w-[800px] overflow-y-auto border border-line bg-bg">
+      <Navbar
+        sticky
+        stickyBehavior="hide-on-scroll"
+        stickyBackdrop="transparent-until-scroll"
+        brand={brand}
+      >
+        {links()}
+      </Navbar>
+      <div className="h-[1600px]" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller = canvas.getByTestId('scroller');
+    const header = canvasElement.querySelector('header')!;
+    const scrollTo = (top: number) => {
+      scroller.scrollTop = top;
+      scroller.dispatchEvent(new Event('scroll'));
+    };
+
+    // いちばん上では透かし、隠さない
+    await expect(header).not.toHaveAttribute('data-scrolled');
+    await expect(header).not.toHaveAttribute('data-hidden');
+
+    // 帯の高さより下へ送ると隠れ、面は不透明になる
+    scrollTo(400);
+    await waitFor(() => expect(header).toHaveAttribute('data-hidden'));
+    await expect(header).toHaveAttribute('data-scrolled');
+
+    // 上へ戻すと、止まったあとに出る
+    scrollTo(300);
+    await waitFor(() => expect(header).not.toHaveAttribute('data-hidden'));
+    await waitFor(() => expect(header).not.toHaveAttribute('data-following'));
+
+    // 隠したあとでも、帯の中にフォーカスが入ったら出し、フォーカスがあるあいだは隠さない
+    scrollTo(800);
+    await waitFor(() => expect(header).toHaveAttribute('data-hidden'));
+    canvas.getAllByRole('link')[0].focus();
+    await waitFor(() => expect(header).not.toHaveAttribute('data-hidden'));
+    scrollTo(1200);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect(header).not.toHaveAttribute('data-hidden');
+  },
+};
