@@ -13,6 +13,7 @@ import {
 //   止める手段を持つ（WCAG 2.2.2）: 止めるボタン（playing を切り替える）と、載せたとき・中にキーボードのフォーカスがあるあいだの一時停止
 //     マウスで押したボタンに残るフォーカス（:focus-visible でないもの）では止めない。再生を押したのに、離れるまで動かないことがないように
 //     ボタンで止めたら、載せ終わっても・フォーカスが外れても、もう一度押すまで動かない
+//     始めるボタンを押したら、載せたまま・フォーカスがあるままでも送りはじめる
 //   動きを減らす設定では、止めた状態で始める（Video の autoPlay と同じ — ADR-0307）。押せば送りはじめる（滑らせずに送る）
 //   ページが隠れているあいだ（別のタブ）も止める
 //   送ったら（手で送ったときも）、間を数え直す
@@ -82,7 +83,15 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
   return {
     playing: enabled && playing,
     running,
-    toggle: () => setPlaying((value) => !value),
+    // 始めるボタンを押したら、載せたまま・中にフォーカスがあるままでもすぐ送りはじめる（押したのに動かない、を避ける）
+    //   次に載せ直す・フォーカスし直すと、また止まる
+    toggle: () => {
+      if (!playing) {
+        setHovered(false);
+        setFocused(false);
+      }
+      setPlaying(!playing);
+    },
     rootProps: {
       // 指で触れたときは載せたことにしない（離したあとも止まったままになるため）
       onPointerEnter: (event) => {

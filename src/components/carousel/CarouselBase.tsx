@@ -310,6 +310,14 @@ function StepButton({
   );
 }
 
+/** 使う側のハンドラのあとに、部品のハンドラを呼ぶ */
+function chain<E>(own: ((event: E) => void) | undefined, ours: (event: E) => void) {
+  return (event: E) => {
+    own?.(event);
+    ours(event);
+  };
+}
+
 interface AutoPlayButtonProps {
   playing: boolean;
   pauseName: string;
@@ -507,7 +515,13 @@ export function CarouselView({
       aria-label={accessibleName}
       data-slot="carousel"
       {...props}
-      {...(showAutoPlay ? auto.rootProps : {})}
+      {...(showAutoPlay && {
+        // 使う側が渡したハンドラも呼ぶ
+        onPointerEnter: chain(props.onPointerEnter, auto.rootProps.onPointerEnter),
+        onPointerLeave: chain(props.onPointerLeave, auto.rootProps.onPointerLeave),
+        onFocus: chain(props.onFocus, auto.rootProps.onFocus),
+        onBlur: chain(props.onBlur, auto.rootProps.onBlur),
+      })}
       style={{ ...breakpointVars('carousel-per-view', slidesPerView), ...style }}
       className={s.root({ className })}
     >

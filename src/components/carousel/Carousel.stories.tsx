@@ -183,15 +183,17 @@ export const AutoPlay: Story = {
   play: async ({ canvas, canvasElement }) => {
     // 止めるボタンで止め、もう一度押すと送りはじめる。止めているあいだは位置を読み上げる（送っているあいだは黙る）
     //   動きを減らす設定（テストはこの設定で流す）では、止めた状態で始まる
+    //   始めるボタンを押したら、マウスを載せたままでもすぐ送りはじめる
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const live = canvasElement.querySelector('[aria-live]')!;
-    const [first, second] = reduced
-      ? ['自動の送りを始める', '自動の送りを止める']
-      : ['自動の送りを止める', '自動の送りを始める'];
-    const button = canvas.getByRole('button', { name: first });
+    if (!reduced) await userEvent.click(canvas.getByRole('button', { name: '自動の送りを止める' }));
+    const button = canvas.getByRole('button', { name: '自動の送りを始める' });
+    await expect(live).toHaveAttribute('aria-live', 'polite');
     await userEvent.click(button);
-    await expect(canvas.getByRole('button', { name: second })).toBe(button);
-    if (reduced) await userEvent.click(button);
+    await expect(button).toHaveAccessibleName('自動の送りを止める');
+    await expect(live).toHaveAttribute('aria-live', 'off');
+    await userEvent.click(button);
+    await expect(button).toHaveAccessibleName('自動の送りを始める');
     await expect(live).toHaveAttribute('aria-live', 'polite');
   },
 };
