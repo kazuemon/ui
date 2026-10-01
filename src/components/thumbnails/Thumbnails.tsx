@@ -30,7 +30,11 @@ import { tv } from '../../internal/tv';
 //   並びが入り切らないときは横にスクロールする。続きは左右の端の内側の影で見せる（原則1。ScrollArea と同じ）
 //     選んでいるものが見えている範囲の外に出たら、見える位置まで送る（動きを減らす設定では滑らせない）
 //   orientation="vertical" は縦に並べる（Carousel の横に置く帯）。入れ物の高さに収め、はみ出す分は縦にスクロールする
-//     ↑↓ で選び、棒は画像の横に縦に引く。左右どちらに引くかは --thumbnails-vertical-bar-end（軸 453 で比べている）
+//     ↑↓ で選ぶ。選んでいる印とスクロールのつまみが重ならないよう、印とつまみの置き場所を軸 453 で比べている
+//       --thumbnails-vertical-bar-end: 棒を画像の左（0）か右（1）に縦に引く
+//       --thumbnails-vertical-bar-under: 1 なら、横に並べたときと同じく棒を画像の下に横に引く（間をその分広げる）
+//       --thumbnails-vertical-scrollbar-start: つまみを帯の右（0）か左（1）に置く
+//       --thumbnails-vertical-scrollbar-room: 1 なら、つまみの分の溝を帯の端に取り、画像と棒に重ねない
 //     Carousel の thumbnailsPlacement が start・end のときは、書かなくても縦になる
 
 const styles = tv({
@@ -38,6 +42,7 @@ const styles = tv({
     // フォーカスの線（外に 4px）が枠で切れないよう、枠を広げて内側に余白を取る（Tabs と同じ）
     root: 'min-w-0 [--thumbnails-room:calc(var(--focus-ring-offset)+var(--focus-ring-width))]',
     viewport: '',
+    scrollbar: '',
     list: 'flex gap-(--thumbnails-gap)',
     item: [
       'relative block shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0',
@@ -77,16 +82,27 @@ const styles = tv({
           // 外へ広げるのはフォーカスの線の分だけ。棒の側は、棒の分だけ内側に余白を取る（横向きの下の棒と同じ）
           '-m-(--thumbnails-room) flex h-full max-h-full flex-col',
           '[--thumbnails-bar-room:max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+          // 棒を横に引くときだけ、横の余白に棒の分を数える
+          '[--thumbnails-side-bar-room:calc((1-var(--thumbnails-vertical-bar-under))*var(--thumbnails-bar-room))]',
+          // つまみの溝（帯の幅と、帯を端から離す分）
+          '[--thumbnails-scrollbar-gutter:calc(var(--thumbnails-vertical-scrollbar-room)*(var(--scroll-area-thumb-size-hover)+var(--scroll-area-thumb-inset)*2))]',
         ],
         viewport: [
-          'py-(--thumbnails-room)',
-          'ps-[max(var(--thumbnails-room),calc((1-var(--thumbnails-vertical-bar-end))*var(--thumbnails-bar-room)))]',
-          'pe-[max(var(--thumbnails-room),calc(var(--thumbnails-vertical-bar-end)*var(--thumbnails-bar-room)))]',
+          'pt-(--thumbnails-room)',
+          'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-vertical-bar-under)*var(--thumbnails-bar-room)))]',
+          'ps-[calc(max(var(--thumbnails-room),calc((1-var(--thumbnails-vertical-bar-end))*var(--thumbnails-side-bar-room)))+var(--thumbnails-vertical-scrollbar-start)*var(--thumbnails-scrollbar-gutter))]',
+          'pe-[calc(max(var(--thumbnails-room),calc(var(--thumbnails-vertical-bar-end)*var(--thumbnails-side-bar-room)))+(1-var(--thumbnails-vertical-scrollbar-start))*var(--thumbnails-scrollbar-gutter))]',
         ],
-        list: 'h-max flex-col',
+        // つまみを左に置くときは、Base UI が右に寄せる位置を左へ移す
+        scrollbar:
+          '[inset-inline-end:calc(var(--thumbnails-vertical-scrollbar-start)*(100%-var(--scroll-area-thumb-size-hover)-var(--scroll-area-thumb-inset)*2))]!',
+        list: 'h-max flex-col gap-[calc(var(--thumbnails-gap)+var(--thumbnails-vertical-bar-under)*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
         item: [
-          'after:inset-y-0 after:w-(--thumbnails-bar-height)',
-          'after:start-[calc((1-var(--thumbnails-vertical-bar-end))*(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))+var(--thumbnails-vertical-bar-end)*(100%+var(--thumbnails-bar-gap)))]',
+          // 横に引く棒: 画像の高さいっぱいの縦の棒。下に引く棒: 画像の幅いっぱいの横の棒
+          'after:top-[calc(var(--thumbnails-vertical-bar-under)*(100%+var(--thumbnails-bar-gap)))]',
+          'after:h-[calc((1-var(--thumbnails-vertical-bar-under))*100%+var(--thumbnails-vertical-bar-under)*var(--thumbnails-bar-height))]',
+          'after:w-[calc((1-var(--thumbnails-vertical-bar-under))*var(--thumbnails-bar-height)+var(--thumbnails-vertical-bar-under)*100%)]',
+          'after:start-[calc((1-var(--thumbnails-vertical-bar-under))*((1-var(--thumbnails-vertical-bar-end))*(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))+var(--thumbnails-vertical-bar-end)*(100%+var(--thumbnails-bar-gap))))]',
         ],
       },
     },
@@ -249,6 +265,7 @@ export function Thumbnails({
         focusable={false}
         className={vertical ? 'min-h-0 flex-1' : undefined}
         viewportClassName={s.viewport()}
+        scrollbarClassName={s.scrollbar()}
         onViewport={setViewport}
       >
         <div

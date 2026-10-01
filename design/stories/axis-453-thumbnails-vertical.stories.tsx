@@ -1,22 +1,29 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { Carousel, type CarouselThumbnailsPlacement } from '../../src/components/carousel/Carousel';
+import { Carousel } from '../../src/components/carousel/Carousel';
 import { screens } from '../../src/components/carousel/story-images';
 import { Image } from '../../src/components/image/Image';
 import { Thumbnails } from '../../src/components/thumbnails/Thumbnails';
-import { statePseudo } from '../../src/stories/story-states';
 
-// 軸 453: Thumbnails を縦に並べるとき（Carousel の横に置く帯）の、帯の側と選んでいる棒の側
+// 軸 453: Thumbnails を縦に並べるとき（Carousel の横に置く帯）の、選んでいる印とスクロールのつまみの置き場所
+const frame = '[data-slot="thumbnails-frame"]';
+const item = '[data-slot="thumbnails-item"]';
 const meta = {
   title: 'Design Review/453 縦に並べた小さな画像の帯',
   id: 'design-review-453-thumbnails-vertical',
   parameters: {
     layout: 'fullscreen',
-    pseudo: statePseudo({
-      hover: '[data-slot="thumbnails-item"]:nth-child(3)',
-      focusVisible: '[data-slot="thumbnails-item"][aria-selected="true"]',
-    }),
+    // 帯に載せたとき（つまみが出る）と、そのまま 3 枚目の画像に載せたとき、選んでいる画像へのフォーカス
+    pseudo: {
+      rootSelector: 'body',
+      hover: [
+        `[data-preview="hover"] ${frame}`,
+        `[data-preview="item-hover"] ${frame}`,
+        `[data-preview="item-hover"] ${item}:nth-child(3)`,
+      ],
+      focusVisible: [`[data-preview="focus"] ${item}[aria-selected="true"]`],
+    },
   },
   args: { pick: '' },
   argTypes: {
@@ -30,74 +37,83 @@ const meta = {
 export default meta;
 type Story = StoryObj<{ pick: string }>;
 
-const placementOf: Record<string, CarouselThumbnailsPlacement> = {
-  現行版: 'bottom',
-  A: 'start',
-  B: 'start',
-  C: 'end',
-  D: 'end',
+const base = {
+  '--carousel-thumbnails-bar-toward-slide': '1',
+  '--thumbnails-vertical-bar-under': '0',
+  '--thumbnails-vertical-scrollbar-start': '0',
+  '--thumbnails-vertical-scrollbar-room': '0',
 };
 
 const candidates: Candidate[] = [
   {
     id: '現行版',
-    name: '帯は枠の下（横）',
+    name: '棒は右・つまみも右に重ねる',
     intent:
-      'いまの Carousel。Thumbnails は枠の下に横に並べるだけ。縦長の画面や、枠の横が空いているレイアウトでは高さを取る。比べるための基準',
+      'いまの形。選んでいる棒を画像の右（スライドの側）に縦に引き、スクロールのつまみも帯の右端に重ねる。帯に載せてつまみが出ると、棒とつまみが同じ場所に重なる。比べるための基準',
     spec: [
-      ['帯', '枠の下・横'],
-      ['棒', '画像の下'],
+      ['選んでいる印', '画像の右に縦の棒'],
+      ['つまみ', '帯の右端・中身に重ねる'],
     ],
-    tokens: { '--carousel-thumbnails-bar-toward-slide': '1' },
+    tokens: base,
   },
   {
     id: 'A',
-    name: '帯は左・棒はスライドの側（右）',
+    name: '棒を左（外の側）へ・つまみは右',
     intent:
-      '帯を枠の左に縦に並べ、選んでいる棒を画像の右（スライドの側）に立てる。Tabs の縦向きの印（並びの右端、中身の側）と同じ向き',
+      '棒を画像の左（ページの端の側）に移し、つまみとは反対の側に置く。帯の幅は今と同じ。棒はスライドから遠くなる',
     spec: [
-      ['帯', '枠の左・縦（thumbnailsPlacement="start"）'],
-      ['棒', '画像の右（スライドの側）'],
+      ['選んでいる印', '画像の左に縦の棒'],
+      ['つまみ', '帯の右端・中身に重ねる（棒とは反対の側）'],
     ],
-    tokens: { '--carousel-thumbnails-bar-toward-slide': '1' },
+    tokens: { ...base, '--carousel-thumbnails-bar-toward-slide': '0' },
   },
   {
     id: 'B',
-    name: '帯は左・棒は外の側（左）',
+    name: '棒は右・つまみの溝を棒の外に取る',
     intent:
-      'A の棒を画像の左（外の側）に立てる。帯とスライドのあいだに線が挟まらず、画像どうしが近く見える。棒はページの端に寄る',
+      '棒は画像の右（スライドの側）のまま。帯の右端につまみの分の溝を取り、つまみを棒のさらに外に置く。重ならないが、帯とスライドのあいだが少し広がる',
     spec: [
-      ['帯', '枠の左・縦'],
-      ['棒', '画像の左（外の側）'],
+      ['選んでいる印', '画像の右に縦の棒'],
+      ['つまみ', '棒の外の溝（中身に重ねない）'],
     ],
-    tokens: { '--carousel-thumbnails-bar-toward-slide': '0' },
+    tokens: { ...base, '--thumbnails-vertical-scrollbar-room': '1' },
   },
   {
     id: 'C',
-    name: '帯は右・棒はスライドの側（左）',
+    name: '棒は右・つまみを帯の左へ',
     intent:
-      '帯を枠の右に置く（thumbnailsPlacement="end"）。スライドが読みはじめの左に来る。棒はスライドの側（画像の左）',
+      '棒は画像の右（スライドの側）のまま。つまみを帯の左端（ページの端の側）に移し、溝を取る。棒とつまみが帯の両側に分かれる',
     spec: [
-      ['帯', '枠の右・縦（thumbnailsPlacement="end"）'],
-      ['棒', '画像の左（スライドの側）'],
+      ['選んでいる印', '画像の右に縦の棒'],
+      ['つまみ', '帯の左端の溝（中身に重ねない）'],
     ],
-    tokens: { '--carousel-thumbnails-bar-toward-slide': '1' },
+    tokens: {
+      ...base,
+      '--thumbnails-vertical-scrollbar-start': '1',
+      '--thumbnails-vertical-scrollbar-room': '1',
+    },
   },
   {
     id: 'D',
-    name: '帯は右・棒は外の側（右）',
-    intent: 'C の棒を画像の右（外の側）に立てる',
+    name: '棒を画像の下に横に引く',
+    intent:
+      '縦に並べても、横に並べたときと同じく棒を画像の下に引く。棒が帯の横の端に来ないので、つまみと重ならない。画像の間がその分広がる。つまみは右端の溝に置く',
     spec: [
-      ['帯', '枠の右・縦'],
-      ['棒', '画像の右（外の側）'],
+      ['選んでいる印', '画像の下に横の棒（横向きと同じ）'],
+      ['つまみ', '帯の右端の溝（中身に重ねない）'],
     ],
-    tokens: { '--carousel-thumbnails-bar-toward-slide': '0' },
+    tokens: {
+      ...base,
+      '--thumbnails-vertical-bar-under': '1',
+      '--thumbnails-vertical-scrollbar-room': '1',
+    },
   },
 ];
 
 const columns: Column[] = [
-  { label: '通常', note: '2 枚目を選んでいる' },
-  { label: '画像に hover', note: '3 枚目', preview: 'hover' },
+  { label: '通常', note: '2 枚目を選んでいる。つまみは隠れている' },
+  { label: '帯に載せたとき', note: 'つまみが出る', preview: 'hover' },
+  { label: '3 枚目の画像に hover', note: 'つまみも出ている', preview: 'item-hover' },
   { label: 'フォーカス（キーボード）', note: '選んでいる画像', preview: 'focus' },
 ];
 
@@ -114,28 +130,28 @@ export const Axis: Story = {
       pick={pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(_column, candidate) => (
+      renderCell={() => (
         <Carousel
           accessibleName="作品の画面"
           defaultValue={1}
           controlsPosition="overlay"
-          thumbnailsPlacement={placementOf[candidate.id]}
+          thumbnailsPlacement="start"
           thumbnails={<Thumbnails>{thumbs}</Thumbnails>}
-          className="w-[480px]"
+          className="w-[380px]"
         >
           {slides}
         </Carousel>
       )}
     >
       <p>
-        Thumbnails に縦に並べる orientation="vertical" を、Carousel に Thumbnails の置き場所
-        thumbnailsPlacement（bottom・start・end）を足しました。start・end
-        では帯を枠の横に縦に並べ、枠の高さに収めます。
-        入りきらない分は帯の中で縦にスクロールし、続きは上下の端の影で見せます。↑↓ で選びます。
+        前の比較で「帯だとスクロールバーとの被りが気になりますね…見た目をもう一度練り直したいかもです。」とあったので、作り直しました。
+        縦に並べた帯は枠の高さに収め、入りきらない分を帯の中でスクロールします。帯に載せるとスクロールのつまみが帯の端に出ます。
+        いまの形では、選んでいる棒とつまみが同じ右端に重なります。
       </p>
       <p>
-        選ぶのは、既定にする帯の側（左か右か）と、選んでいる棒を画像のどちら側に立てるかです。横に並べたときの棒は画像の下で、変わりません。
-        Thumbnails を単独で縦に並べたときの棒の側も、ここで決めた向きにそろえます。
+        選ぶのは、選んでいる印とつまみを重ねない置き方です。どの案も帯は枠の左（thumbnailsPlacement="start"）で比べています。
+        帯を右に置く（end）ときは左右を入れ替えた形になります。Thumbnails
+        を単独で縦に並べたときも、ここで決めた形にそろえます。
       </p>
     </Comparison>
   ),

@@ -1176,8 +1176,15 @@
   --thumbnails-hover-opacity: 1;
   --thumbnails-dim-rest-opacity: 0.6;
   --thumbnails-dim-hover-opacity: 0.85;
-  /* vertical-bar-end: 縦に並べたとき（orientation="vertical"）の棒の側。0 は画像の左、1 は右（Tabs の縦向きの印と同じく中身の側。軸 453 で比べている） */
+  /* 縦に並べたとき（orientation="vertical"）の、選んでいる印とスクロールのつまみ（軸 453 で比べている。比べるための出し分けを含む）
+       vertical-bar-end: 棒の側。0 は画像の左、1 は右（Tabs の縦向きの印と同じく中身の側）
+       vertical-bar-under: 1 は棒を画像の下に横に引く（横に並べたときと同じ）。0 は画像の横に縦に引く
+       vertical-scrollbar-start: つまみの側。0 は帯の右、1 は帯の左
+       vertical-scrollbar-room: 1 はつまみの分の溝を取り、画像と棒に重ねない。0 は中身の上に重ねる */
   --thumbnails-vertical-bar-end: 1;
+  --thumbnails-vertical-bar-under: 0;
+  --thumbnails-vertical-scrollbar-start: 0;
+  --thumbnails-vertical-scrollbar-room: 0;
   /* ── END thumbnails */
 
   /* ── Gallery — ADR-290〜293 ── BEGIN gallery */
