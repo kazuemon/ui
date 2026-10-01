@@ -5,6 +5,7 @@ import type {
   FieldLabelLayoutProps,
   FieldNameProps,
   FieldProps,
+  FieldSize,
   FieldLoadingBehavior,
   FieldValidate,
   FieldValidationMode,
@@ -33,6 +34,12 @@ export interface InputFieldProps extends FieldMarkProps, FieldLabelLayoutProps {
   accessibleName?: string;
   /** 押せない（Disabled）状態にします */
   disabled?: boolean;
+  /**
+   * 本体の大きさ。sm は表の行や小さな面の中、Button の size="sm" の横に置く、一段小さい欄です。
+   * 高さは Button の sm と同じで、指で押す画面でも小さいままです。指で押すことが多い画面の主な欄には md を使います
+   * @default 'md'
+   */
+  size?: FieldSize;
   /** フォームの中でこの欄を識別する名前。送信する値の名前で、Form の errors もこの名前で欄に届きます（design/adr/0255） */
   name?: string;
   /** 補足（ヘルプテキスト）。エラー・警告のあいだも消えない */
@@ -142,6 +149,7 @@ type FieldOwnKey =
   | 'successText'
   | 'infoText'
   | 'disabled'
+  | 'size'
   | 'loading'
   | 'loadingBehavior'
   | 'required'
@@ -173,6 +181,7 @@ export function splitFieldProps<P extends Partial<Record<FieldOwnKey, unknown>>>
     successText,
     infoText,
     disabled,
+    size,
     loading,
     loadingBehavior,
     required,
@@ -199,6 +208,7 @@ export function splitFieldProps<P extends Partial<Record<FieldOwnKey, unknown>>>
       success: successText,
       info: infoText,
       disabled,
+      size,
       loading,
       loadingBehavior,
       required,

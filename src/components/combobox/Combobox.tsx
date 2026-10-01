@@ -395,6 +395,7 @@ interface ComboboxFieldProps extends Pick<
   InputFieldProps,
   | 'label'
   | 'accessibleName'
+  | 'size'
   | 'caption'
   | 'captionPlacement'
   | 'infoText'

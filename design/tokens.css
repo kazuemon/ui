@@ -441,6 +441,14 @@
   --text-control-sm: 14px;
   --leading-control-sm: 20px;
   --spacing-icon-sm: 16px;
+  /* 入力欄の小さい段（size="sm"）— 軸 521。高さは Button と同じ --spacing-control-sm（ADR-0424）。Field の根が密度の寸法をこの値に差し替える
+     --field-sm-text・--field-sm-leading: 値・プレースホルダ・prefix・suffix の文字と行の高さ
+     --field-sm-x: 左右の余白（prefix・suffix の塊の左右の余白も読む）
+     --field-sm-icon: 中のアイコン（▼・消すボタンの ×・回る印・成功の印） */
+  --field-sm-text: var(--text-control-sm);
+  --field-sm-leading: var(--leading-control-sm);
+  --field-sm-x: var(--spacing-control-x-sm);
+  --field-sm-icon: var(--spacing-icon-sm);
   /* 読む文字の大きさと行の高さ — 軸 51 の E
      マウスでは本文 16px。指では、機能の画面（設定・SNS など）の本文を 14px にし、部品の文字と同じ大きさにする
      読みもの（Prose の中。data-reading を付けた要素）では、指でもマウスと同じ大きさ（本文 16px）を保つ（src/styles/theme.css）

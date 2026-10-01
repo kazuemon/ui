@@ -67,6 +67,18 @@ export const fieldStyles = tv({
     start: {
       true: { root: '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid' },
     },
+    // 大きさの段（軸 521）。sm は Button の小さい段と同じ高さ（--spacing-control-sm。ADR-0424）
+    //   密度の寸法（高さ・左右の余白・文字・行の高さ・アイコン）を根で差し替え、本体・prefix・suffix・ラベルの縦の位置が一緒に読む
+    //   ラベルとキャプションの大きさは変えない
+    size: {
+      md: {},
+      sm: {
+        root: [
+          '[--spacing-control:var(--spacing-control-sm)] [--spacing-control-x:var(--field-sm-x)]',
+          '[--text-input:var(--field-sm-text)] [--leading-input:var(--field-sm-leading)] [--spacing-icon-input:var(--field-sm-icon)]',
+        ],
+      },
+    },
     // 横に置くラベルの重さ（ADR-0367）。muted は標準の太さで一段淡い色
     muted: {
       true: { label: 'font-normal text-fg-muted' },
