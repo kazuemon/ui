@@ -1019,8 +1019,8 @@
 
   /* ── 回る円（Spinner。src/components/loading/Loading.tsx）— 軸 434 ── BEGIN spinner */
   /* size="control"・"text" は部品の中の文字・周りの文字に合わせる（線は viewBox 16 に対して 2）
-     size-{sm,md,lg}: 密度で変わらない段。stroke-{sm,md,lg}: 段ごとの線の太さ（viewBox 16 に対する幅）
-     track-opacity: 薄い輪の濃さ（0 で弧だけになる） */
+     size-{sm,md,lg}: 密度で変わらない段。stroke-{sm,md,lg}: 段ごとの線の太さ（viewBox 16 に対する幅）。大きい段でも線は 2〜2.5px に保つ
+     track-opacity: 薄い輪の濃さ（hideTrack で輪を出さず、弧だけにできる） */
   --spinner-size-sm: calc(var(--spacing) * 4); /* 16px */
   --spinner-size-md: calc(var(--spacing) * 6); /* 24px */
   --spinner-size-lg: calc(var(--spacing) * 10); /* 40px */
@@ -1562,15 +1562,11 @@
   /* ── END code-group */
 
   /* ── Notice の操作を文の右に置く形（actionsPlacement="end"）— 軸 435 ── BEGIN notice */
-  /* 文と操作を折り返せる横の並びにする。src/components/notice/Notice.tsx
-     actions-align: 縦のそろえ方（center は文の塊の真ん中、flex-start は 1 行目の頭）
+  /* 文と操作を折り返せる横の並びにする。操作は文の塊の縦の真ん中にそろえ、上下の余白へはみ出させる。src/components/notice/Notice.tsx
      actions-gap: 文と操作のあいだ
-     actions-text-min: 文の列の最小の幅。お知らせがこれより狭くなると、操作は文の下（左寄せ）に回る。0 で回らない
-     actions-margin-y: 操作の上下のはみ出し（負の値で、ボタンが行より高くてもお知らせを高くしない。下へ回ったときの間は部品が差し引く） */
-  --notice-actions-align: center;
+     actions-text-min: 文の列の最小の幅。文の列がこれより狭くなると、操作は文の下（bottom と同じ見た目）に回る */
   --notice-actions-gap: calc(var(--spacing) * 4);
   --notice-actions-text-min: 16rem;
-  --notice-actions-margin-y: calc((var(--leading-control) - var(--spacing-control)) / 2);
   /* ── END notice */
 
   /* ── Toast — 軸 147・148 ── BEGIN toast */
@@ -1809,21 +1805,11 @@
   --bar-height-sm: var(--spacing); /* 4px */
   --bar-height-md: calc(var(--spacing) * 2); /* 8px */
   --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
-  /* 状態の色（color="success"・"danger"。軸 432）。塗り（fill）は Meter の範囲の色と同じ値
-     track: 地の色。value: ラベルの行の右端の値の文字の色 */
-  --bar-success-fill: var(--color-success);
-  --bar-success-track: var(--color-field-addon);
-  --bar-success-value: var(--color-fg-muted);
-  --bar-danger-fill: var(--color-danger);
-  --bar-danger-track: var(--color-field-addon);
-  --bar-danger-value: var(--color-fg-muted);
   /* 分けて塗るバー（MeterGroup。軸 433）
-     group-gap: 区切りの間（地の色が見える）。group-segment-radius: 区切りごとの角（0 は地の角で切り抜くだけ）
-     group-marker-size・group-marker-radius: 凡例の色の印の大きさと角 */
+     group-gap: 区切りの間（地の色が見える）。区切りは角を付けず、両端だけ地の角で切り抜く
+     group-marker-size: 凡例の色の印（丸）の大きさ */
   --bar-group-gap: calc(var(--spacing) / 2);
-  --bar-group-segment-radius: 0px;
   --bar-group-marker-size: calc(var(--spacing) * 2.5);
-  --bar-group-marker-radius: var(--radius-pill);
   /* 値が変わったときに塗りが伸び縮みする長さ */
   --duration-bar: var(--duration-normal);
   /* ── END bar */
@@ -2041,11 +2027,9 @@
   --stat-delta-leading: var(--leading-body-sm);
   --stat-delta-weight: 700;
   --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
-  /* 読み込み中（loading。軸 431）: 数字の場所に Skeleton の文字の行を 1 本置く。行の高さは数字と同じなので、読み込んでも跳ばない
-     loading-width: 帯の長さ（数字の文字の大きさが基準）。loading-bar: 帯の太さ。loading-radius: 帯の角 */
+  /* 読み込み中（loading。軸 431）: 数字の場所に Skeleton の文字の行を 1 本置く（太さ・角は文字の行のまま）。行の高さは数字と同じなので、読み込んでも跳ばない
+     loading-width: 帯の長さ（数字の文字の大きさが基準） */
   --stat-loading-width: 3em;
-  --stat-loading-bar: 0.7em;
-  --stat-loading-radius: var(--radius-sm);
   /* ── END stat */
 
   /* ── Masonry — ADR-294〜296 ── BEGIN masonry */

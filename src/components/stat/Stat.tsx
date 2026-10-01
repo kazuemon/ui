@@ -13,7 +13,8 @@ import { Skeleton } from '../skeleton/Skeleton';
 //   増えたことが良いのか悪いのかは部品には分からないので、良し悪し（trend）は使う側が選ぶ（原則20）。書かなければ矢印の向き（deltaIndicator）から決める
 // 数字の大きさは、文字の尺度の段をトークンで差し替える（size。既定は見出し1 — 密度で一緒に変わる）
 // 増減は、矢印の有無（hideDeltaIcon）と淡い面の有無（deltaFill）を選べる。色は trend
-// 読み込み中（loading）: 数字の場所に Skeleton の文字の行を置き、dl に aria-busy を付ける。帯の長さ・太さ・角は --stat-loading-*（軸 431）
+// 読み込み中（loading）: 数字の場所に Skeleton の文字の行を置き、dl に aria-busy を付ける。帯の太さ・角は文字の行のまま、長さは --stat-loading-width（軸 431）
+//   値がまだなく loading も渡さないときは、部品は何も足さない。使う側が「—」などを value に入れる
 //   ラベル・単位・キャプションは読み込む前から分かっているので、そのまま出す。増減は数字と一緒に届くので、読み込むまで出さない（原則にない判断）
 //   読み込み中であることは、数字の場所に読み上げだけの文（loadingText）を置いて知らせる
 
@@ -28,10 +29,7 @@ const stat = tv({
       '[font-weight:var(--stat-value-weight)] text-fg tabular-nums',
     ],
     // 読み込み中の帯。文字の大きさと行の高さを数字から受け継ぐ（Skeleton の文字の行）
-    loading: [
-      'inline-block w-(--stat-loading-width) max-w-full align-bottom',
-      '[--skeleton-text-bar:var(--stat-loading-bar)] [--skeleton-text-radius:var(--stat-loading-radius)]',
-    ],
+    loading: 'inline-block w-(--stat-loading-width) max-w-full align-bottom',
     unit: 'text-body text-fg-muted',
     delta: [
       'inline-flex items-center gap-(--stat-delta-gap) whitespace-nowrap tabular-nums',

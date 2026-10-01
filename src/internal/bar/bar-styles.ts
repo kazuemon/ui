@@ -9,8 +9,10 @@ import { tv } from '../tv';
 //   塗りは地の角で切り抜く（塗りの右端も地と同じ角になる）
 //   太さは size で 3 段（--bar-height-{sm,md,lg}）。太くしても角は pill のまま（原則5: 角は何であるかで決め、高さに比例させない）
 // 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（トグルの ON と同じ）
-//   状態の色は success（終わった・うまくいった）と danger（失敗・上限を超えた）だけを持つ（軸 432）。塗り・地・値の文字の色は --bar-{success,danger}-*
-//     地（--bar-track）と値の文字（--bar-value-color）も色ごとに差し替えられる。ほかの色では地はグレー、値の文字は一段淡い色のまま
+//   状態の色は success（終わった・うまくいった）と danger（失敗・上限を超えた）だけを持つ（軸 432）。塗りは状態の色
+//     地は既定で同じ色相の淡い面（タグ・お知らせの淡い面と同じ）。trackColor="neutral" でほかの色と同じグレーに戻せる
+//     値の文字は既定で一段淡い色。valueColor="color" で白地の文字用の状態の色にできる
+//     状態の色ごとの淡い面と文字の色は --bar-status-{subtle,fg} に置く。ほかの色ではグレーと一段淡い色なので、trackColor・valueColor は効かない
 //   ピンクは面用（文字を載せない塗り — 原則12）。トグルの ON と同じ
 //   部品の色は --bar-own に置き、塗りは --bar-fill で描く。Meter は範囲ごとに --bar-fill を差し替える
 // 値が変わったときは、塗りを --duration-bar で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
@@ -18,7 +20,7 @@ export const barStyles = tv({
   slots: {
     root: [
       'grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-(--spacing-field-gap)',
-      '[--bar-fill:var(--bar-own)] [--bar-track:var(--color-field-addon)] [--bar-value-color:var(--color-fg-muted)]',
+      '[--bar-fill:var(--bar-own)] [--bar-status-fg:var(--color-fg-muted)] [--bar-status-subtle:var(--color-field-addon)]',
     ],
     label: 'col-start-1 text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
     value:
@@ -38,11 +40,19 @@ export const barStyles = tv({
       secondary: { root: '[--bar-own:var(--color-secondary)]' },
       neutral: { root: '[--bar-own:var(--color-neutral-strong)]' },
       success: {
-        root: '[--bar-own:var(--bar-success-fill)] [--bar-track:var(--bar-success-track)] [--bar-value-color:var(--bar-success-value)]',
+        root: '[--bar-own:var(--color-success)] [--bar-status-fg:var(--color-fg-success)] [--bar-status-subtle:var(--color-success-subtle)]',
       },
       danger: {
-        root: '[--bar-own:var(--bar-danger-fill)] [--bar-track:var(--bar-danger-track)] [--bar-value-color:var(--bar-danger-value)]',
+        root: '[--bar-own:var(--color-danger)] [--bar-status-fg:var(--color-fg-danger)] [--bar-status-subtle:var(--color-danger-subtle)]',
       },
+    },
+    trackColor: {
+      color: { root: '[--bar-track:var(--bar-status-subtle)]' },
+      neutral: { root: '[--bar-track:var(--color-field-addon)]' },
+    },
+    valueColor: {
+      muted: { root: '[--bar-value-color:var(--color-fg-muted)]' },
+      color: { root: '[--bar-value-color:var(--bar-status-fg)]' },
     },
     size: {
       sm: { root: '[--bar-height:var(--bar-height-sm)]' },
@@ -50,7 +60,7 @@ export const barStyles = tv({
       lg: { root: '[--bar-height:var(--bar-height-lg)]' },
     },
   },
-  defaultVariants: { color: 'neutral', size: 'md' },
+  defaultVariants: { color: 'neutral', size: 'md', trackColor: 'color', valueColor: 'muted' },
 });
 
 /**
@@ -60,6 +70,10 @@ export const barStyles = tv({
 export type BarColor = 'primary' | 'secondary' | 'neutral' | 'success' | 'danger';
 /** バーの太さ */
 export type BarSize = 'sm' | 'md' | 'lg';
+/** 状態の色（success・danger）のときの地の色。color は同じ色相の淡い面、neutral はほかの色と同じグレー */
+export type BarTrackColor = 'color' | 'neutral';
+/** 状態の色（success・danger）のときの値の文字の色。muted は一段淡い色、color は状態の色 */
+export type BarValueColor = 'muted' | 'color';
 
 /** ラベルとキャプションから、aria-describedby と キャプションの id を作る */
 export function barDescribedBy(

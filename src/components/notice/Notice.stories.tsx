@@ -58,6 +58,8 @@ const meta = {
           '- アイコンは状態の色ごとに付きます（`neutral` と `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
           '- 記事の中にはじめからある補足や注意には、読み上げで知らせない `Callout` を使います。',
           '- 操作は `actions` に、白いボタン（`<Button color="white">`）か文字のリンク（`<Link>`）を置きます。リンクはお知らせの文字の色の太字になります。',
+          '- 操作はふだん本文の下に置きます。1 行で済むお知らせでは、`actionsPlacement="end"` で文の右に置けます。操作は文の縦の真ん中にそろい、お知らせの高さは文だけのときと同じです。',
+          '- `end` でも、幅が狭く文の列が細くなるときは、操作が本文の下に回ります（見た目は本文の下に置いたときと同じです）。狭くても右に置き続けたいときは `narrowActionsPlacement="end"` にします。',
           '- `onClosed` を渡すと、右上に閉じるボタン（×）が出ます。読み上げの名前は `closeName`（既定は「閉じる」）で、題があるときは「閉じる 題」と読みます。',
           '- × で閉じてお知らせが消えると、フォーカスはその次にあるフォーカスできるものへ移ります。なければ前のもの、それもなければ `NoticeRegion` そのものです。',
           '- 操作のあとで出すお知らせは、`NoticeRegion` の中に入れます。ページを開いたときからあるお知らせは、領域に入れずに置きます。',
@@ -273,6 +275,74 @@ export const WithClose: Story = {
   play: async ({ args, canvas }) => {
     await userEvent.click(canvas.getByRole('button', { name: '閉じる 保存できませんでした' }));
     await expect(args.onClosed).toHaveBeenCalledOnce();
+  },
+};
+
+export const ActionsPlacement: Story = {
+  tags: ['visual'],
+  name: '操作の置き場所',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Gallery columnWidth="36rem">
+      <Specimen label="end">
+        <Notice
+          status="info"
+          actionsPlacement="end"
+          actions={<Button color="white">更新する</Button>}
+        >
+          新しい版があります。
+        </Notice>
+      </Specimen>
+      <Specimen label="end・題と本文・×">
+        <Notice
+          status="warning"
+          title="ストレージが残りわずかです"
+          actionsPlacement="end"
+          actions={<Button color="white">整理する</Button>}
+          onClosed={() => {}}
+        >
+          残りが 5% を切りました。
+        </Notice>
+      </Specimen>
+      <Specimen label="end・狭い幅（本文の下に回る）">
+        <div className="w-[320px]" data-testid="wrapped">
+          <Notice
+            status="success"
+            actionsPlacement="end"
+            actions={<Link href="#detail">くわしく見る</Link>}
+          >
+            保存しました。公開するまで、ほかの人には見えません。
+          </Notice>
+        </div>
+      </Specimen>
+      <Specimen label="bottom・狭い幅">
+        <div className="w-[320px]">
+          <Notice status="success" actions={<Link href="#detail">くわしく見る</Link>}>
+            保存しました。公開するまで、ほかの人には見えません。
+          </Notice>
+        </div>
+      </Specimen>
+      <Specimen label="end・狭い幅・narrowActionsPlacement=end">
+        <div className="w-[320px]" data-testid="kept">
+          <Notice
+            status="danger"
+            variant="filled"
+            actionsPlacement="end"
+            narrowActionsPlacement="end"
+            actions={<Button color="white">再送</Button>}
+          >
+            送れませんでした。
+          </Notice>
+        </div>
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvas }) => {
+    const actionsOf = (id: string) =>
+      canvas.getByTestId(id).querySelector('[data-slot="notice-actions"]');
+    // 狭いと本文の下に回る。回らない指定では右に置き続ける
+    await waitFor(() => expect(actionsOf('wrapped')).toHaveAttribute('data-wrapped'));
+    await expect(actionsOf('kept')).not.toHaveAttribute('data-wrapped');
   },
 };
 

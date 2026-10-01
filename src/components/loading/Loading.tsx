@@ -19,7 +19,7 @@ interface IndicatorProps {
 // 回る円の大きさ（軸 434）。control は部品の中の文字と並ぶ大きさ（--spacing-icon。密度で変わる）、text は周りの文字に比例（Icon と同じ）
 //   sm・md・lg は密度で変わらない段（--spinner-size-*）。面の真ん中に 1 つだけ置く読み込み中は lg
 //   線の太さは viewBox 16 に対する幅（--spinner-stroke-*）。大きい段で線が太くなりすぎないよう、段ごとに持つ
-//   薄い輪の濃さは --spinner-track-opacity
+//   薄い輪の濃さは --spinner-track-opacity。hideTrack で輪を出さず、弧だけにできる（既定は輪あり。ボタン・入力欄の中は輪あり）
 const spinner = tv({
   slots: {
     root: 'inline-flex shrink-0',
@@ -60,10 +60,15 @@ export interface SpinnerProps extends IndicatorProps {
    * ボタンや入力欄の中のように、周りが待っていることを伝えているときは書きません
    */
   accessibleName?: string;
+  /**
+   * 下地の薄い輪を出さず、回る弧だけにします
+   * @default false
+   */
+  hideTrack?: boolean;
 }
 
 /** 回る円 */
-export function Spinner({ className, size, accessibleName }: SpinnerProps) {
+export function Spinner({ className, size, accessibleName, hideTrack = false }: SpinnerProps) {
   const styles = spinner({ size });
   const svg = (
     <svg
@@ -72,7 +77,9 @@ export function Spinner({ className, size, accessibleName }: SpinnerProps) {
       className={styles.svg({ className: accessibleName ? undefined : className })}
       aria-hidden
     >
-      <circle className={styles.track()} cx="8" cy="8" r="6" fill="none" stroke="currentColor" />
+      {hideTrack ? null : (
+        <circle className={styles.track()} cx="8" cy="8" r="6" fill="none" stroke="currentColor" />
+      )}
       <path
         className={styles.arc()}
         d="M8 2a6 6 0 0 1 6 6"

@@ -369,7 +369,7 @@ export {
   type SpinnerProps,
   type SpinnerSize,
 } from './components/loading/Loading';
-export type { BarColor, BarSize } from './internal/bar/bar-styles';
+export type { BarColor, BarSize, BarTrackColor, BarValueColor } from './internal/bar/bar-styles';
 export {
   Notice,
   type NoticeProps,

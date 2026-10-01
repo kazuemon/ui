@@ -11,7 +11,7 @@ import {
 import { tv } from '../../internal/tv';
 
 // 1 本のバーを、内訳ごとに分けて塗る（ストレージの内訳、予算の使い道など）。Meter と同じバーの形・太さ・3 層の並び
-// 区切りは地の上に左から順に並べ、残りは地のまま。区切りの間と角は --bar-group-*（軸 433）
+// 区切りは地の上に左から順に並べ、残りは地のまま。区切りの間は --bar-group-gap で地の色を見せ、区切りに角は付けない（両端は地の pill で切り抜く）。凡例の印は丸（軸 433）
 // 色だけで伝えない（原則6）: バーの下に凡例（色の印・名前・値の文字）をいつも出す。バーそのものは読み上げに出さず、凡例を読む
 // 区切りの色は、書かないときは primary・secondary・neutral の順（原則にない判断。4 つ目からは color を書く）
 const meterGroup = tv({
@@ -19,7 +19,7 @@ const meterGroup = tv({
   slots: {
     track: 'flex gap-(--bar-group-gap)',
     segment: [
-      'h-full min-w-0 shrink grow-0 rounded-(--bar-group-segment-radius) bg-(color:--bar-segment)',
+      'h-full min-w-0 shrink grow-0 bg-(color:--bar-segment)',
       'transition-[flex-basis] duration-(--duration-bar) ease-press motion-reduce:transition-none',
     ],
     legend: [
@@ -27,8 +27,7 @@ const meterGroup = tv({
       'text-(length:--text-label) leading-(--leading-label)',
     ],
     legendItem: 'inline-flex min-w-0 items-center gap-1.5',
-    marker:
-      'size-(--bar-group-marker-size) shrink-0 rounded-(--bar-group-marker-radius) bg-(color:--bar-segment)',
+    marker: 'size-(--bar-group-marker-size) shrink-0 rounded-pill bg-(color:--bar-segment)',
     legendLabel: 'text-fg',
     legendValue: 'text-fg-muted tabular-nums',
   },
@@ -38,8 +37,8 @@ const segmentColor: Record<BarColor, string> = {
   primary: '[--bar-segment:var(--color-primary)]',
   secondary: '[--bar-segment:var(--color-secondary)]',
   neutral: '[--bar-segment:var(--color-neutral-strong)]',
-  success: '[--bar-segment:var(--bar-success-fill)]',
-  danger: '[--bar-segment:var(--bar-danger-fill)]',
+  success: '[--bar-segment:var(--color-success)]',
+  danger: '[--bar-segment:var(--color-danger)]',
 };
 
 const defaultColors: BarColor[] = ['primary', 'secondary', 'neutral'];
