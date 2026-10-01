@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/492 仮画像から本物への切り替わり',
   id: 'design-review-492-image-reveal',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -140,6 +140,11 @@ export const Axis: Story = {
         );
       }}
     >
+      <p>
+        決定:
+        仮画像があるときは、読み込めたら本物にすぐ替える（A）。仮画像がないときは今のまま。ユーザーの返事「仮画像があるときは
+        A でいいなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Image に、読み込むまで敷く仮画像（placeholder。数十 px に縮めた画像の URL か、BlurHash
         を描いた要素）を足しました。仮画像はぼかして枠いっぱいに広げ、読み込めたら本物に替えます。ぼかしの強さは軸

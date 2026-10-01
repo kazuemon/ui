@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/493 仮画像のぼかしの強さ',
   id: 'design-review-493-image-placeholder-blur',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -87,6 +87,11 @@ export const Axis: Story = {
         );
       }}
     >
+      <p>
+        決定: ぼかしの強さは既定を B（8px）にし、props
+        で段を選べるようにする。ユーザーの返事「選べると良さそうですが、デフォルトは B
+        ですかね。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Image
         の仮画像（placeholder）を、どれだけぼかして敷くかです。ぼかしは画像の大きさによらず同じ強さなので、小さい画像ほど強く効きます。ぼかした縁が透けないよう、仮画像は少し大きくして枠で切っています。
