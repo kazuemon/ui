@@ -253,3 +253,30 @@ export const Accessibility: Story = {
     await expect(canvas.queryByRole('button', { name: '再生' })).toBeNull();
   },
 };
+
+const refs = {
+  callback: null as HTMLVideoElement | null,
+  object: { current: null as HTMLVideoElement | null },
+};
+
+export const UserRef: Story = {
+  name: 'ref が届く',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div>
+      <Video
+        fit="contain"
+        src={sample}
+        ref={(node) => {
+          refs.callback = node;
+        }}
+      />
+      <Video fit="contain" src={sample} ref={refs.object} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const [first, second] = canvasElement.querySelectorAll('video');
+    await expect(refs.callback).toBe(first);
+    await expect(refs.object.current).toBe(second);
+  },
+};

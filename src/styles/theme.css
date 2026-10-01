@@ -21,10 +21,12 @@
   /*
    * 密度（design/adr/0004）: 寸法は入力方式（pointer）で決める。
    * data-density="coarse" / "fine" を付けた要素の中は、入力方式にかかわらずその密度に固定する。
+   * data-density="auto" は、外側の固定を打ち消して入力方式に戻す。
    * --density-coarse は、いまの密度が指用なら 1、マウス用なら 0。下の .coarse-large が読む（design/adr/0045）
    */
   :root,
-  [data-density='fine'] {
+  [data-density='fine'],
+  [data-density='auto'] {
     --density-coarse: 0;
     --spacing-control: var(--spacing-control-fine);
     --text-control: var(--text-control-fine);
@@ -80,7 +82,8 @@
   }
 
   @media (pointer: coarse) {
-    :root:not([data-density='fine']) {
+    :root:not([data-density='fine']),
+    [data-density='auto'] {
       --density-coarse: 1;
       --spacing-control: var(--spacing-control-coarse);
       --text-control: var(--text-control-coarse);

@@ -123,11 +123,10 @@ export function AvatarGroup({
   const showCount = max !== undefined && max < total ? Math.max(max - 1, 0) : total;
   const visible = items.slice(0, showCount);
   const hiddenCount = total - showCount;
-  // 「+N」の形（丸・四角）を、先頭のアバターに合わせる。渡っていないときは Avatar の既定（丸）のまま
-  const firstShape =
-    isValidElement<AvatarProps>(items[0]) && items[0].type === Avatar
-      ? items[0].props.shape
-      : undefined;
+  // 「+N」の形（丸・四角）と大きさを、先頭のアバターに合わせる。渡っていないときは Avatar の既定のまま
+  const first =
+    isValidElement<AvatarProps>(items[0]) && items[0].type === Avatar ? items[0].props : undefined;
+  const firstShape = first?.shape;
   // hover で押しのける先（次のアバター）を選ぶための印（[data-avatar-group-item]:hover+[data-avatar-group-item]）。
   // expandOnHover が false のときも付けておいて害はない（対応する CSS のクラスが付かないので何も起きない）
   const dataItem = { 'data-avatar-group-item': '' };
@@ -151,7 +150,7 @@ export function AvatarGroup({
         <Avatar
           key="avatar-group-more"
           {...dataItem}
-          size={size}
+          size={size ?? first?.size}
           shape={firstShape}
           color="neutral"
           alt={(moreName ?? moreLabel)(hiddenCount)}

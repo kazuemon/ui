@@ -117,7 +117,7 @@ export function ListItem({ checked, className, children, ...props }: ListItemPro
   }
   return (
     <li className={['task-list-item', className].filter(Boolean).join(' ')} {...props}>
-      <input type="checkbox" disabled defaultChecked={checked} /> {children}
+      <input type="checkbox" disabled readOnly checked={checked} /> {children}
     </li>
   );
 }

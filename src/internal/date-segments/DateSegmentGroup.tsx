@@ -145,12 +145,18 @@ export function DateSegmentGroup<T>({
             className={cn(styles.group(), groupProps?.className)}
             // ラベルを押したとき（Base UI がこの箱にフォーカスを移す）は、最初の空の区切りへ
             onFocus={(event) => {
+              // 欄の外から区切りに入ったときと、グループ自身に入ったとき（このあと区切りへ移す）に、一度だけ呼ぶ
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                control.onFocus?.(event);
+                // 使う側のハンドラーも、欄に入ったときに続けて呼ぶ（区切りのあいだの移動では呼ばない）
+                groupProps?.onFocus?.(event);
+              }
               if (event.target === event.currentTarget) segments.focus(firstEmpty());
-              else if (!event.currentTarget.contains(event.relatedTarget)) control.onFocus?.(event);
             }}
             onBlur={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget)) {
                 control.onBlur?.(event as never);
+                groupProps?.onBlur?.(event);
               }
             }}
             // 区切りの外（余白）を押したときも、最初の空の区切りへ

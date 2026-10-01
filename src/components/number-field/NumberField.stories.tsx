@@ -478,3 +478,15 @@ export const Composition: Story = {
     await expect(input).toHaveValue('2');
   },
 };
+
+const inputOnChange = fn();
+export const InputPropsOnChange: Story = {
+  name: 'inputProps の onChange も呼ぶ',
+  parameters: { controls: { disable: true } },
+  render: () => <NumberField label="数量" inputProps={{ onChange: inputOnChange }} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByLabelText('数量'));
+    await userEvent.keyboard('12');
+    await expect(inputOnChange).toHaveBeenCalledTimes(2);
+  },
+};

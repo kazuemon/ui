@@ -378,3 +378,23 @@ export const Composition: Story = {
     await expect(hidden?.value).toBe(time.toString({ smallestUnit: 'minute' }));
   },
 };
+
+const groupOnFocus = fn();
+const groupOnBlur = fn();
+export const InputPropsFocusBlur: Story = {
+  name: 'inputProps の onFocus・onBlur も呼ぶ',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <TimeField label="開始" inputProps={{ onFocus: groupOnFocus, onBlur: groupOnBlur }} />
+  ),
+  play: async ({ canvas }) => {
+    const hour = canvas.getByRole('spinbutton', { name: /^時/ });
+    await userEvent.click(hour);
+    await expect(groupOnFocus).toHaveBeenCalled();
+    await expect(groupOnBlur).not.toHaveBeenCalled();
+    await userEvent.tab();
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect(groupOnBlur).toHaveBeenCalled();
+  },
+};
