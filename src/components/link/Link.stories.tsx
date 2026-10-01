@@ -36,7 +36,7 @@ const meta = {
           '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`circle`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
           '- `underline` は塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目です。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
-          '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。ボタンと見分けられるよう、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
+          '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。新しいタブで開くときは、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -396,7 +396,7 @@ export const ButtonLook: Story = {
         story: [
           '`variant="button"` は、ボタンと同じ見た目（塗り）のリンクです。画面内で最も進めたい移動に使います。見た目は Button のものをそのまま使うので、ボタンと並べてもずれません。',
           '',
-          '- 最後に右上向きの矢印（↗）が付き、ボタンと見分けられます。',
+          '- `target="_blank"` のときは、最後に右上向きの矢印（↗）が付きます。同じタブで開くときは付きません。',
           '- `caption` で、リンクの下に補足を出せます（「外部のサイトに移動します」など）。読み上げではリンクの説明になります。',
           '- `target="_blank"` のときは、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
           '- `disabled` のときは、色を指定していても押せないグレーのボタンと同じ見た目です（原則7）。Tab では止まらず、押しても何もしません。',
@@ -443,7 +443,7 @@ export const UnderlineLook: Story = {
           '`variant="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目のリンクです。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
           '',
           '- 寸法・左右の余白・角丸は枠線のボタンと同じで、押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出ます。',
-          '- 最後に右上向きの矢印（↗）が付き、同じ見た目のボタンと見分けられます。',
+          '- `target="_blank"` のときは、最後に右上向きの矢印（↗）が付きます。同じタブで開くときは付きません。',
           '- 文章の中に置くリンクは、これではなく文字のリンク（`text`）を使います。',
         ].join('\n'),
       },
@@ -476,9 +476,11 @@ export const UnderlineLook: Story = {
     </div>
   ),
   play: async ({ canvas }) => {
-    // 下線のリンクにも ↗ が付き、同じ見た目のボタンと見分けられる
+    // ↗ は新しいタブで開くときだけ付く
     const link = canvas.getByRole('link', { name: '一覧' });
-    await expect(link.querySelectorAll('svg')).toHaveLength(1);
+    await expect(link.querySelectorAll('svg')).toHaveLength(0);
+    const external = canvas.getByRole('link', { name: /外部のサイト/ });
+    await expect(external.querySelectorAll('svg')).toHaveLength(1);
     await expect(getComputedStyle(link).textDecorationLine).toBe('underline');
     // 押せないリンクは、押せないグレーのボタンと同じで下線が外れる
     const off = canvas.getByRole('link', { name: '公開前' });
@@ -538,10 +540,8 @@ export const RenderElement: Story = {
     // to だけのルーターのリンクも、リンクとして描く
     const text = canvas.getByRole('link', { name: '作品の一覧' });
     await expect(text).toHaveAttribute('href', '#works');
-    await expect(canvas.getByRole('link', { name: '作品を見る' })).toHaveAttribute(
-      'href',
-      '#works'
-    );
+    const button = canvas.getByRole('link', { name: '作品を見る' });
+    await expect(button.querySelectorAll('svg')).toHaveLength(0);
     // 渡した要素の target="_blank" で、↗ と読み上げの文と rel が付く
     const external = canvas.getByRole('link', { name: /外部のサイト.*新しいタブで開きます/ });
     await expect(external).toHaveAttribute('rel', 'noopener noreferrer');

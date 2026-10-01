@@ -366,7 +366,7 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
   /**
    * 描く要素（Base UI の render と同じ）。`<a href>` や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
    * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは children に書く。
-   * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
+   * 新しいタブで開くリンクには、右上向きの矢印（↗）を最後に付ける。disabled は押せないリンクになる（design/adr/0046）
    */
   render: ReactElement;
   /**
@@ -417,13 +417,14 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
  * ボタンの見た目のリンク（Link の variant="button"・"underline" — design/adr/0046）。公開しない
  * 利用者は Link で作る（`<Link variant="button">`）。Link がこの部品を描く
  * 見た目は Button と同じで、要素だけが渡した要素（<a>）になる。キーボードではリンクのまま（Enter で移り、Space では移らない）
- * 右上向きの矢印（↗）を必ず最後に付け、ボタンと見分ける。飾りなので読み上げない（aria-hidden）
+ * 新しいタブで開く（target="_blank"）リンクには、右上向きの矢印（↗）を最後に付ける。同じタブで開くリンクには付けない。飾りなので読み上げない（aria-hidden）
  *   利用者が最後に ArrowUpRightIcon を置いたときは、足さない（2つにならない）。ほかのアイコンは、その後ろに ↗ が付く
+ *   押せないときも残す（枠線のリンクと同じ）
  * リンクとして描かない（link={false}）ときは、↗・新しいタブの読み上げと rel・押せないときの role="link" を付けない
  * 新しいタブで開く（渡した要素の target="_blank"）ときは、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
  *   名前を aria-label・aria-labelledby で付けたときは、名前そのものに足す（Link と同じ。link-parts の newTabNaming）
  * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする。読み上げでは「リンク、利用不可」
- *   見た目は <Button disabled> と同じ（data-disabled）。↗ は残す。Tab では止まらず、押しても何もしない（onClick も呼ばない）
+ *   見た目は <Button disabled> と同じ（data-disabled）。Tab では止まらず、押しても何もしない（onClick も呼ばない）
  *   リンクとして描かないときは、渡した要素のまま押しても何もしない（data-disabled・aria-disabled。role は付けない）
  * リンクは送信中を持たない。loading・loadingIndicator・inlineSpinner・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
  * キャプション（caption）はボタンと同じく、リンクの下に出し、リンクの説明（aria-describedby）につなぐ（包みは withCaption）
@@ -489,8 +490,8 @@ export function ButtonLink({
       children: (
         <>
           {children}
-          {/* アイコンだけのリンクには ↗ を足さない（正方形に 2 つのアイコンは入らない。枠線のリンクと同じ） */}
-          {link && !iconOnly && !endsWithElement(children, ArrowUpRightIcon) && (
+          {/* ↗ は新しいタブで開くときだけ。アイコンだけのリンクには足さない（正方形に 2 つのアイコンは入らない。枠線のリンクと同じ） */}
+          {blank && !iconOnly && !endsWithElement(children, ArrowUpRightIcon) && (
             <ArrowUpRightIcon />
           )}
           {/* sr-only は絶対配置なので、位置の基準（relative）を持つ要素の中に置く（Button は relative） */}
