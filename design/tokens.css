@@ -433,7 +433,7 @@
      入力欄の文字は指でもマウスでも 16px なので、アイコンもどちらも 20px */
   --spacing-icon-input-coarse: 20px;
   --spacing-icon-input-fine: 20px;
-  /* 小さい段（size="sm"）— 軸 461。ボタンが読む。入力欄にも同じ段を足すときは、同じ値を読んで高さをそろえる
+  /* 小さい段（size="sm"）— 軸 461。ボタンが読む。入力欄の sm も同じ値を読む
      高さ・文字・行の高さ・左右の余白・アイコンは密度で変えない（指でも 36px。見た目の釣り合いのため、指で押せる高さ 44px を割る）
      文字は指の部品の文字と同じ 14px */
   --spacing-control-sm: calc(var(--spacing) * 9); /* 36px */
@@ -441,21 +441,6 @@
   --text-control-sm: 14px;
   --leading-control-sm: 20px;
   --spacing-icon-sm: 16px;
-  /* 入力欄の小さい段（size="sm"）— 軸 521。高さは Button と同じ --spacing-control-sm（ADR-0424）。Field の根が密度の寸法をこの値に差し替える
-     --field-sm-text・--field-sm-leading: 値・プレースホルダ・prefix・suffix の文字と行の高さ
-     --field-sm-x: 左右の余白（prefix・suffix の塊の左右の余白も読む）
-     --field-sm-icon: 中のアイコン（▼・消すボタンの ×・回る印・成功の印） */
-  --field-sm-text: var(--text-control-sm);
-  --field-sm-leading: var(--leading-control-sm);
-  --field-sm-x: var(--spacing-control-x-sm);
-  --field-sm-icon: var(--spacing-icon-sm);
-  /* Select の消すボタン（clearable）— 軸 522
-     --select-clear-at-caret: × の場所。0 は右端（▼ が × の左へずれる。Combobox と同じ）、1 は ▼ の左（▼ は右端から動かない。DatePicker と同じ）
-     --select-clear-caret-gap: × を ▼ の左に置くときの、× と ▼ のあいだ
-     --select-clear-hover-joined: × に hover しているあいだも、欄を hover の塗りにするか（1 か 0） */
-  --select-clear-at-caret: 0;
-  --select-clear-caret-gap: var(--spacing);
-  --select-clear-hover-joined: 1;
   /* 選択肢のアイコン（ListboxItem の icon）— 軸 523。Select・Combobox・Autocomplete・TagsInput の一覧で共有する
      --listbox-item-icon-size: 大きさ。em は選択肢の文字に対する比
      --listbox-item-icon-color: 色

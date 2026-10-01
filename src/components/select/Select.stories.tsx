@@ -443,6 +443,52 @@ export const ReadOnly: Story = {
   },
 };
 
+export const Clearable: Story = {
+  tags: ['visual'],
+  name: '値を消すボタン',
+  parameters: {
+    controls: { exclude: ['clearable'] },
+    docs: {
+      description: {
+        story:
+          '`clearable` を付けると、値があるときだけ欄の右端に × を出し、▼ は × の左へずれます。× を押すと値が空に戻り、フォーカスは欄に戻ります。× にマウスを載せているあいだは × だけが濃くなり、欄の塗りは変わりません。読み取り専用の欄では出さず、押せない欄では押せない形で出します。読み上げの名前は `clearName` で変えられます。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="値あり">
+        <Select {...args} clearable defaultValue="ward-3" />
+      </Specimen>
+      <Specimen label="値なし">
+        <Select {...args} clearable placeholder="選んでください" />
+      </Specimen>
+      <Specimen label="押せない">
+        <Select {...args} clearable disabled defaultValue="ward-3" />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+export const ClearableClick: Story = {
+  name: '値を消すボタンを押す',
+  args: { clearable: true, defaultValue: 'ward-3' },
+  parameters: {
+    docs: {
+      description: {
+        story: '× を押すと値が空に戻り、フォーカスは欄に戻ります。× は消えます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('combobox');
+    await userEvent.click(canvas.getByRole('button', { name: '選んだ項目を消去' }));
+    await expect(trigger).toHaveFocus();
+    await expect(canvas.queryByRole('button', { name: '選んだ項目を消去' })).toBeNull();
+    trigger.blur();
+  },
+};
+
 // Show code: 表（Matrix）と枠（PopoverFrame）の中身は出ないので、使い方を source.code に手で書く
 export const Loading: Story = {
   tags: ['visual'],

@@ -348,23 +348,22 @@ const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
  * Base UI から来た値を onValueChange に渡す
  * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
  */
-// 消すボタン（clearable — 軸 522）。本体（ボタン）と × を包み、× を本体の上に重ねる
+// 消すボタン（clearable）。本体（ボタン）と × を包み、× を本体の上に重ねる
 //   幅（--select-clear-width）は suffix のボタンと同じ（左右の余白＋アイコン）。中のアイコンは入力欄の大きさ
-//   --select-clear-at-caret: 0 は × を右端に置き、▼ が × の左へずれる（Combobox と同じ）。1 は × を ▼ の左に置き、▼ は右端から動かない（DatePicker と同じ）
-//   --select-clear-hover-joined: × に hover しているあいだ、欄も hover の塗りにするか（1 か 0）
+//   × は右端に置き、本体は × の分の場所を空ける。▼ は × の左へずれる（Combobox と同じ）
+//   × に hover しているあいだは、欄の塗りを通常に戻す（× だけが濃くなる。開く場所と消す場所の境目を見せる）
 const selectClearField = [
   'relative w-full min-w-0 [--spacing-icon:var(--spacing-icon-input)]',
   '[--select-clear-width:calc(var(--spacing-control-x)*2+var(--spacing-icon-input))]',
 ].join(' ');
 const selectClearTrigger = [
-  'pe-[calc(var(--spacing-control-x)-var(--field-border-width)+var(--select-clear-width)*(1-var(--select-clear-at-caret)))]',
-  '[--select-clear-caret-space:calc((var(--select-clear-width)+var(--select-clear-caret-gap))*var(--select-clear-at-caret))]',
-  '[[data-slot=select-field]:has(>[data-select-clear]:enabled:hover)>&]:not-focus-within:[--control-bg:color-mix(in_srgb,var(--color-field-hover)_calc(var(--select-clear-hover-joined)*100%),var(--color-field))]',
+  'pe-[calc(var(--spacing-control-x)-var(--field-border-width)+var(--select-clear-width))]',
+  '[[data-slot=select-field]:has(>[data-select-clear]:enabled:hover)>&]:not-focus-within:[--control-bg:var(--color-field)]',
 ].join(' ');
 const selectClearButton = [
   'absolute! inset-y-(--field-border-width) m-0! border-0! [--addon-inset:0px]',
-  'end-[calc(var(--field-border-width)+(var(--spacing-control-x)-var(--field-border-width)+var(--spacing-icon-input)+var(--select-clear-caret-gap))*var(--select-clear-at-caret))]',
-  '[border-start-end-radius:calc(var(--addon-radius)*(1-var(--select-clear-at-caret)))]! [border-end-end-radius:calc(var(--addon-radius)*(1-var(--select-clear-at-caret)))]!',
+  'end-(--field-border-width)',
+  '[border-start-end-radius:var(--addon-radius)]! [border-end-end-radius:var(--addon-radius)]!',
 ].join(' ');
 
 // 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ。出すかは --select-value-icon-display
@@ -527,8 +526,8 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
     if (onValueChange) emitValue(onValueChange, next);
   };
   const hasValue = Array.isArray(currentValue) ? currentValue.length > 0 : currentValue != null;
-  // 消すボタン（軸 522）。本体はボタンなので、中にボタンを置けない。本体と × を包み、× は本体の上に重ねる
-  //   本体は × の分の場所を空け、▼ を × の左（右端に置くとき）か、× を ▼ の左に置く（--select-clear-at-caret）
+  // 消すボタン。本体はボタンなので、中にボタンを置けない。本体と × を包み、× は本体の上に重ねる
+  //   本体は右端に × の分の場所を空け、▼ は × の左に来る
   const showClear = clearable && !readOnly && hasValue;
   // 本体に出す値（軸 523）。renderValue か、選んだ選択肢にアイコンがあるときだけ、Base UI の既定の文字を差し替える
   //   差し替えると Base UI は placeholder を出さないので、空のときの文もここで出す
@@ -629,7 +628,6 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       <BaseSelect.Icon
         className={[
           'flex group-data-disabled/field:text-fg-subtle',
-          showClear && 'ms-(--select-clear-caret-space)',
           readOnly ? 'text-fg-subtle' : 'text-fg-muted',
           'group-data-[loading=blocking]/field:text-fg-subtle',
           (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
@@ -685,18 +683,21 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
             止めるときは、押せない欄と同じ見た目（controlBox）にする
             プレースホルダの場所の文（ふだんの文・押せないときの理由・止めるときの loadingText）は、どれも --color-fg-subtle
             押せない文字の色（--color-on-field-disabled）は選んだ値だけ。値が入った押せない欄と、文を出している欄を見分けるため */}
-      {showClear ? (
+      {/* clearable では、値の有無にかかわらず包む。× を消したときに本体を作り直すと、本体に戻したフォーカスが外れるため */}
+      {clearable ? (
         <div data-slot="select-field" className={selectClearField}>
           {trigger}
-          <FieldAddonButton
-            data-select-clear=""
-            aria-label={clearName ?? (multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去')}
-            disabled={blocking || disabled || undefined}
-            onClick={clear}
-            className={selectClearButton}
-          >
-            <XIcon standalone />
-          </FieldAddonButton>
+          {showClear && (
+            <FieldAddonButton
+              data-select-clear=""
+              aria-label={clearName ?? (multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去')}
+              disabled={blocking || disabled || undefined}
+              onClick={clear}
+              className={selectClearButton}
+            >
+              <XIcon standalone />
+            </FieldAddonButton>
+          )}
         </div>
       ) : (
         trigger
