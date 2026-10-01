@@ -135,9 +135,7 @@ const styles = tv({
         ],
         stage: '[grid-area:stage]',
         controls: '[grid-area:controls]',
-        // 棒をスライドの側に引くか（1）、外の側に引くか（0）
-        thumbnails:
-          'h-0 min-h-full [--thumbnails-vertical-bar-end:var(--carousel-thumbnails-bar-toward-slide)] [grid-area:thumbnails]',
+        thumbnails: 'h-0 min-h-full [grid-area:thumbnails]',
       },
       end: {
         root: [
@@ -146,8 +144,7 @@ const styles = tv({
         ],
         stage: '[grid-area:stage]',
         controls: '[grid-area:controls]',
-        thumbnails:
-          'h-0 min-h-full [--thumbnails-vertical-bar-end:calc(1-var(--carousel-thumbnails-bar-toward-slide))] [grid-area:thumbnails]',
+        thumbnails: 'h-0 min-h-full [grid-area:thumbnails]',
       },
     },
     peek: {
@@ -562,6 +559,8 @@ export function CarouselView({
               onValueChange: changeTo,
               slideId,
               orientation: thumbnailsPlacement === 'bottom' ? 'horizontal' : 'vertical',
+              // 帯の内側（スライドの側）に棒、外側につまみ
+              slideSide: thumbnailsPlacement === 'end' ? 'start' : 'end',
             }}
           >
             {thumbnails}

@@ -30,11 +30,9 @@ import { tv } from '../../internal/tv';
 //   並びが入り切らないときは横にスクロールする。続きは左右の端の内側の影で見せる（原則1。ScrollArea と同じ）
 //     選んでいるものが見えている範囲の外に出たら、見える位置まで送る（動きを減らす設定では滑らせない）
 //   orientation="vertical" は縦に並べる（Carousel の横に置く帯）。入れ物の高さに収め、はみ出す分は縦にスクロールする
-//     ↑↓ で選ぶ。選んでいる印とスクロールのつまみが重ならないよう、印とつまみの置き場所を軸 453 で比べている
-//       --thumbnails-vertical-bar-end: 棒を画像の左（0）か右（1）に縦に引く
-//       --thumbnails-vertical-bar-under: 1 なら、横に並べたときと同じく棒を画像の下に横に引く（間をその分広げる）
-//       --thumbnails-vertical-scrollbar-start: つまみを帯の右（0）か左（1）に置く
-//       --thumbnails-vertical-scrollbar-room: 1 なら、つまみの分の溝を帯の端に取り、画像と棒に重ねない
+//     ↑↓ で選ぶ。選んでいる棒は帯の内側（スライドの側）に縦に引き、スクロールのつまみは外側（ページの端の側）に溝を取って置く。
+//       棒とつまみが同じ端に重ならない。Carousel の左（thumbnailsPlacement="start"）では棒が右・つまみが左、右（end）では逆
+//       Carousel の横に置かないときは、左に置く形（棒が右・つまみが左）
 //     Carousel の thumbnailsPlacement が start・end のときは、書かなくても縦になる
 
 const styles = tv({
@@ -76,35 +74,24 @@ const styles = tv({
         list: 'w-max',
         item: 'after:inset-x-0 after:top-[calc(100%+var(--thumbnails-bar-gap))] after:h-(--thumbnails-bar-height)',
       },
-      // 縦: 入れ物の高さに収める。棒は画像の横（--thumbnails-vertical-bar-end が 0 なら左、1 なら右）に縦に引く
+      // 縦: 入れ物の高さに収める。棒は画像の横（内側）に縦に引き、つまみは外側の溝に置く。左右は slideSide で決める
       vertical: {
         root: [
           // 外へ広げるのはフォーカスの線の分だけ。棒の側は、棒の分だけ内側に余白を取る（横向きの下の棒と同じ）
           '-m-(--thumbnails-room) flex h-full max-h-full flex-col',
           '[--thumbnails-bar-room:max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
-          // 棒を横に引くときだけ、横の余白に棒の分を数える
-          '[--thumbnails-side-bar-room:calc((1-var(--thumbnails-vertical-bar-under))*var(--thumbnails-bar-room))]',
-          // つまみの溝（帯の幅と、帯を端から離す分）
-          '[--thumbnails-scrollbar-gutter:calc(var(--thumbnails-vertical-scrollbar-room)*(var(--scroll-area-thumb-size-hover)+var(--scroll-area-thumb-inset)*2))]',
+          // つまみの溝（帯の幅と、帯を端から離す分）。つまみを画像と棒に重ねない
+          '[--thumbnails-scrollbar-gutter:calc(var(--scroll-area-thumb-size-hover)+var(--scroll-area-thumb-inset)*2)]',
         ],
-        viewport: [
-          'pt-(--thumbnails-room)',
-          'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-vertical-bar-under)*var(--thumbnails-bar-room)))]',
-          'ps-[calc(max(var(--thumbnails-room),calc((1-var(--thumbnails-vertical-bar-end))*var(--thumbnails-side-bar-room)))+var(--thumbnails-vertical-scrollbar-start)*var(--thumbnails-scrollbar-gutter))]',
-          'pe-[calc(max(var(--thumbnails-room),calc(var(--thumbnails-vertical-bar-end)*var(--thumbnails-side-bar-room)))+(1-var(--thumbnails-vertical-scrollbar-start))*var(--thumbnails-scrollbar-gutter))]',
-        ],
-        // つまみを左に置くときは、Base UI が右に寄せる位置を左へ移す
-        scrollbar:
-          '[inset-inline-end:calc(var(--thumbnails-vertical-scrollbar-start)*(100%-var(--scroll-area-thumb-size-hover)-var(--scroll-area-thumb-inset)*2))]!',
-        list: 'h-max flex-col gap-[calc(var(--thumbnails-gap)+var(--thumbnails-vertical-bar-under)*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
-        item: [
-          // 横に引く棒: 画像の高さいっぱいの縦の棒。下に引く棒: 画像の幅いっぱいの横の棒
-          'after:top-[calc(var(--thumbnails-vertical-bar-under)*(100%+var(--thumbnails-bar-gap)))]',
-          'after:h-[calc((1-var(--thumbnails-vertical-bar-under))*100%+var(--thumbnails-vertical-bar-under)*var(--thumbnails-bar-height))]',
-          'after:w-[calc((1-var(--thumbnails-vertical-bar-under))*var(--thumbnails-bar-height)+var(--thumbnails-vertical-bar-under)*100%)]',
-          'after:start-[calc((1-var(--thumbnails-vertical-bar-under))*((1-var(--thumbnails-vertical-bar-end))*(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))+var(--thumbnails-vertical-bar-end)*(100%+var(--thumbnails-bar-gap))))]',
-        ],
+        viewport: 'pt-(--thumbnails-room) pb-(--thumbnails-room)',
+        list: 'h-max flex-col gap-(--thumbnails-gap)',
+        item: 'after:top-0 after:h-full after:w-(--thumbnails-bar-height)',
       },
+    },
+    // 縦のとき、帯から見てスライド（中身）のある側。棒はこちら、つまみは反対の側に置く
+    slideSide: {
+      start: {},
+      end: {},
     },
     // 選んでいる印の色（原則6）。指定しないときは濃いグレー（Tabs と同じ）。フォーカスの線も部品の色
     color: {
@@ -124,7 +111,34 @@ const styles = tv({
       },
     },
   },
-  defaultVariants: { color: 'neutral', indicator: 'underline', orientation: 'horizontal' },
+  compoundVariants: [
+    {
+      orientation: 'vertical',
+      slideSide: 'end',
+      class: {
+        viewport:
+          'ps-[calc(var(--thumbnails-room)+var(--thumbnails-scrollbar-gutter))] pe-(--thumbnails-bar-room)',
+        // Base UI が右に寄せるつまみを、帯の左へ移す
+        scrollbar: '[inset-inline-end:calc(100%-var(--thumbnails-scrollbar-gutter))]!',
+        item: 'after:start-[calc(100%+var(--thumbnails-bar-gap))]',
+      },
+    },
+    {
+      orientation: 'vertical',
+      slideSide: 'start',
+      class: {
+        viewport:
+          'ps-(--thumbnails-bar-room) pe-[calc(var(--thumbnails-room)+var(--thumbnails-scrollbar-gutter))]',
+        item: 'after:start-[calc(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+      },
+    },
+  ],
+  defaultVariants: {
+    color: 'neutral',
+    indicator: 'underline',
+    orientation: 'horizontal',
+    slideSide: 'end',
+  },
 });
 
 /** 並べる向き。horizontal は横、vertical は縦 */
@@ -171,6 +185,7 @@ export interface ThumbnailsProps extends Omit<
   indicator?: ThumbnailsIndicator;
   /**
    * 並べる向き。horizontal は横に並べ、棒を画像の下に引きます。vertical は縦に並べ、入れ物の高さに収めます（高さは className などで決めます）。
+   * 縦では、棒を画像の右に、スクロールのつまみを帯の左に引きます（Carousel の右に置いたときは左右が逆）。
    * Carousel の `thumbnailsPlacement` が start・end のときは、書かなくても縦になります
    * @default 'horizontal'
    */
@@ -218,7 +233,7 @@ export function Thumbnails({
   };
   const orientation = orientationProp ?? carousel?.orientation ?? 'horizontal';
   const vertical = orientation === 'vertical';
-  const s = styles({ color, indicator, orientation });
+  const s = styles({ color, indicator, orientation, slideSide: carousel?.slideSide });
 
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);

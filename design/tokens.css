@@ -1150,19 +1150,17 @@
   --carousel-count-gap: var(--spacing);
   /* per-view-gap: 1 画面に複数枚（slidesPerView）のときのスライドのあいだ（軸 452）
      autoplay-inline-gap: 自動の送りを止めるボタンと位置の印のあいだ（軸 451）
-     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ
-     thumbnails-bar-toward-slide: 横に置いた帯の棒を、スライドの側に引くか（1）、外の側に引くか（0）（軸 453 で比べている） */
+     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ */
   --carousel-per-view-gap: calc(var(--spacing) * 3);
   --carousel-autoplay-inline-gap: calc(var(--spacing) * 3);
   --carousel-thumbnails-side-gap: calc(var(--spacing) * 3);
-  --carousel-thumbnails-bar-toward-slide: 1;
   /* ── END carousel */
 
   /* ── Thumbnails — 軸 288 ── BEGIN thumbnails */
   /* 小さな画像を並べ、押して切り替える帯。src/components/thumbnails
      1 つずつは平らな押すもの（原則3）。hover で本文の色を淡く敷き、押すと沈む。選んでいるものは hover も沈みもしない（Tabs と同じ）
      item-width・item-ratio: 1 つの幅と比。radius: 角（押すものなので部品の角 — 原則5）。outline: 画像の細い輪郭（Figure と同じ濃さ）
-     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く
+     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く。縦に並べたときは画像の内側（スライドの側）の横に縦に引き、スクロールのつまみは外側に溝を取って置く（軸 453）
      rest-opacity・hover-opacity: 選んでいない画像の濃さと、載せたときの濃さ（1 で薄くしない）
      dim-rest-opacity・dim-hover-opacity: indicator="underline-dim" のときの、選んでいない画像の濃さと載せたときの濃さ（軸 288・決定: B） */
   --thumbnails-gap: calc(var(--spacing) * 2);
@@ -1176,15 +1174,6 @@
   --thumbnails-hover-opacity: 1;
   --thumbnails-dim-rest-opacity: 0.6;
   --thumbnails-dim-hover-opacity: 0.85;
-  /* 縦に並べたとき（orientation="vertical"）の、選んでいる印とスクロールのつまみ（軸 453 で比べている。比べるための出し分けを含む）
-       vertical-bar-end: 棒の側。0 は画像の左、1 は右（Tabs の縦向きの印と同じく中身の側）
-       vertical-bar-under: 1 は棒を画像の下に横に引く（横に並べたときと同じ）。0 は画像の横に縦に引く
-       vertical-scrollbar-start: つまみの側。0 は帯の右、1 は帯の左
-       vertical-scrollbar-room: 1 はつまみの分の溝を取り、画像と棒に重ねない。0 は中身の上に重ねる */
-  --thumbnails-vertical-bar-end: 1;
-  --thumbnails-vertical-bar-under: 0;
-  --thumbnails-vertical-scrollbar-start: 0;
-  --thumbnails-vertical-scrollbar-room: 0;
   /* ── END thumbnails */
 
   /* ── Gallery — ADR-290〜293 ── BEGIN gallery */
