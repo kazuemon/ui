@@ -86,8 +86,9 @@ const navbar = tv({
     end: 'ms-auto flex shrink-0 items-center gap-2',
     menuButton: '@3xl/navbar:hidden',
     // メニューの面の中身。まとまりを縦に積む。まとまりに入れずに置いたものは隠す（帯にだけ出す）
+    //   まとまりを中に持つ要素（自分の部品が返した div など）は隠さない
     menuContent:
-      'flex flex-col gap-4 [&>:not([data-slot=navbar-links],[data-slot=navbar-group])]:hidden',
+      'flex flex-col gap-4 [&>:not([data-slot=navbar-links],[data-slot=navbar-group],:has([data-slot=navbar-links],[data-slot=navbar-group]))]:hidden',
     // 行の塗りは左右にはみ出させ、文字の位置をシートの題とそろえる
     menuList: '-mx-3 flex flex-col gap-1',
   },

@@ -440,8 +440,9 @@ export const LinksInBar: Story = {
 };
 
 // 自分の部品で包んだ行き先（サイトの共通の部品にまとめるときなど）
+// 自分の部品が、まとまりを要素で包んで返す形
 function SiteLinks() {
-  return links('Blog');
+  return <div className="flex">{links('Blog')}</div>;
 }
 
 export const WrappedLinks: Story = {
@@ -472,6 +473,8 @@ export const WrappedLinks: Story = {
     const menu = within(await body.findByRole('dialog', { name: 'メニュー' }));
     const nav = menu.getByRole('navigation', { name: 'メイン' });
     await expect(within(nav).getAllByRole('listitem')).toHaveLength(3);
+    // 包んだ要素ごと出るので、行き先を押せる
+    await expect(within(nav).getByRole('link', { name: 'Blog' })).toBeVisible();
     await expect(menu.getByText('β')).not.toBeVisible();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
