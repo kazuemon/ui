@@ -8,6 +8,7 @@ import {
   useId,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react';
 
 import { useInspectorContext } from './inspector-context';
@@ -18,6 +19,7 @@ import {
   useOverlayActionsSlot,
 } from '../../internal/overlay/overlay-actions-context';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
+import { ResizeHandle } from '../../internal/resize-handle/ResizeHandle';
 import { focusTargetRef, type OverlayFocusTarget } from '../../internal/overlay/overlay-props';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -93,9 +95,35 @@ export interface InspectorProps extends Omit<
   overlayEdge?: InspectorOverlayEdge;
   /**
    * パネルの幅。数値は px、文字列は CSS の長さ（'24rem'・'30%' など）です。書かないときは Drawer の横のパネルと同じ幅です。
-   * 重ねる形では、狭い領域で本文の側に少し残して縮みます
+   * 重ねる形では、狭い領域で本文の側に少し残して縮みます。
+   * resizable のときに数値を渡すと、幅を外で持つ形（制御）になり、onWidthChange で受けた幅を渡し直します
    */
   width?: number | string;
+  /**
+   * 本文との境のつまみをドラッグして、幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で 16px ずつ、Home・End で最小・最大。
+   * ダブルクリックで defaultWidth（なければ部品の幅）に戻ります
+   * @default false
+   */
+  resizable?: boolean;
+  /** resizable のときの、はじめの幅（px。非制御）。書かないときは width か、部品の幅です */
+  defaultWidth?: number;
+  /** resizable で幅を変えたときに、次の幅（px）を渡して呼びます。覚えておくときはここで保存します */
+  onWidthChange?: (width: number) => void;
+  /**
+   * resizable のときの、いちばん狭い幅（px）
+   * @default 240
+   */
+  minWidth?: number;
+  /**
+   * resizable のときの、いちばん広い幅（px）。重ねる形では、領域の幅でも縮みます
+   * @default 640
+   */
+  maxWidth?: number;
+  /**
+   * 幅を変えるつまみの読み上げの名前
+   * @default 'パネルの幅'
+   */
+  resizeName?: string;
   /**
    * 開閉の動き。slide は領域の端から滑らせ、none は動かさずにすぐ切り替えます。動きを減らす設定では、slide でも動かしません
    * @default 'slide'
@@ -138,6 +166,12 @@ export function Inspector({
   variant = 'push',
   overlayEdge = 'flush',
   width,
+  resizable = false,
+  defaultWidth,
+  onWidthChange,
+  minWidth = 240,
+  maxWidth = 640,
+  resizeName = 'パネルの幅',
   motion = 'slide',
   closeOnEscape = true,
   hideCloseButton = false,
@@ -201,11 +235,21 @@ export function Inspector({
   // 中身に置いた下の操作の帯（InspectorActions）。置かれたら、中身の下の余白と続きの印を帯に譲る
   const slot = useOverlayActionsSlot('inspector', layout, actions != null);
   const s = inspectorStyles({ variant, side, overlayEdge, motion });
+  // 幅を変えられるとき: 数値の width は制御、なければ部品の中で持つ（はじめは defaultWidth）
+  const [widthState, setWidthState] = useState(defaultWidth);
+  const [resizing, setResizing] = useState(false);
+  const controlledWidth = resizable && typeof width === 'number';
+  const resizedWidth = resizable ? (controlledWidth ? (width as number) : widthState) : undefined;
+  const setWidth = (next: number) => {
+    if (!controlledWidth) setWidthState(next);
+    onWidthChange?.(next);
+  };
+  const shownWidth = resizedWidth ?? width;
   // 幅を渡されたときは、枠に書いてパネルと一緒に読ませる
   const widthStyle: (CSSProperties & Record<'--inspector-width', string>) | undefined =
-    width === undefined
+    shownWidth === undefined
       ? undefined
-      : { '--inspector-width': typeof width === 'number' ? `${width}px` : width };
+      : { '--inspector-width': typeof shownWidth === 'number' ? `${shownWidth}px` : shownWidth };
   return (
     <div
       data-slot="inspector-frame"
@@ -214,6 +258,8 @@ export function Inspector({
       data-overlay-edge={variant === 'overlay' ? overlayEdge : undefined}
       data-motion={motion}
       data-open={open || undefined}
+      data-resizable={resizable || undefined}
+      data-resizing={resizing || undefined}
       style={widthStyle}
       className={s.frame()}
     >
@@ -229,6 +275,7 @@ export function Inspector({
           data-variant={variant}
           data-side={side}
           data-open={open || undefined}
+          data-resizing={resizing || undefined}
           onKeyDown={handleKeyDown}
           className={s.panel({ className: `${overlayTitleLeading} ${className ?? ''}` })}
         >
@@ -287,6 +334,26 @@ export function Inspector({
           )}
         </aside>
       </OverlayCloseContext>
+      {/* 幅を変えるつまみ。本文との境の線の上に、つかめる幅を半分ずつ重ねる（開いているあいだだけ） */}
+      {resizable && open && (
+        <ResizeHandle
+          name={resizeName}
+          controls={panelId}
+          target={panelRef}
+          width={resizedWidth}
+          min={minWidth}
+          max={maxWidth}
+          edge={side === 'right' ? 'left' : 'right'}
+          slot="inspector-resize-handle"
+          className={s.handle()}
+          onWidthChange={setWidth}
+          onResizingChange={setResizing}
+          onReset={() => {
+            if (!controlledWidth) setWidthState(defaultWidth);
+            if (defaultWidth !== undefined) onWidthChange?.(defaultWidth);
+          }}
+        />
+      )}
     </div>
   );
 }

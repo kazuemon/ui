@@ -15,7 +15,9 @@ import { tv } from '../../internal/tv';
 //   どちらの形も、閉じた動きが終わったら visibility で隠す（読み上げとフォーカスからも外れる）
 export const inspectorStyles = tv({
   slots: {
-    frame: 'shrink-0',
+    frame: 'shrink-0 data-resizing:transition-none',
+    // 幅を変えるつまみ（resizable）。本文との境（パネルの本文側の端）に、つかめる幅を半分ずつ重ねる
+    handle: 'pointer-events-auto inset-y-0',
     panel: [
       'flex h-full min-h-0 flex-col text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
       '[transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
@@ -23,13 +25,17 @@ export const inspectorStyles = tv({
       'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
       // 閉じた動きが終わったら隠す（visibility は、見えなくなる向きでは動きの終わりに切り替わる）
       'invisible data-open:visible',
+      // 幅を変えているあいだは、幅の動きを止める（指に遅れないように）
+      'data-resizing:transition-none',
     ],
   },
   variants: {
     variant: {
       push: {
         frame: [
-          'relative h-full w-0 max-w-full overflow-hidden data-open:w-(--inspector-width)',
+          'relative h-full w-0 max-w-full overflow-clip data-open:w-(--inspector-width)',
+          // 幅を変えるつまみの半分（本文の側にはみ出す分）を切り取らない
+          'data-resizable:[overflow-clip-margin:calc(var(--resize-handle-hit)/2)]',
           'transition-[width] [transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
           'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
         ],
@@ -47,8 +53,8 @@ export const inspectorStyles = tv({
       },
     },
     side: {
-      left: { frame: 'order-first' },
-      right: { frame: 'order-last' },
+      left: { frame: 'order-first', handle: '-right-[calc(var(--resize-handle-hit)/2)]' },
+      right: { frame: 'order-last', handle: '-left-[calc(var(--resize-handle-hit)/2)]' },
     },
     overlayEdge: {
       flush: {

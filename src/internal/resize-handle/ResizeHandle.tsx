@@ -53,9 +53,9 @@ export interface ResizeHandleProps {
   max?: number;
   /**
    * つまみが、幅を変える要素のどちらの端にあるか。end は要素の終わりの端（左から右へ書く向きでは右の端。右へ引くと広がる）、
-   * start は始まりの端（左へ引くと広がる。右に置いたパネルの左の端）
+   * start は始まりの端。left・right は書く向きによらない左右の端（右に置いたパネルの左の端は left。左へ引くと広がる）
    */
-  edge: 'start' | 'end';
+  edge: 'start' | 'end' | 'left' | 'right';
   /** @default 'line' */
   look?: ResizeHandleLook;
   /** 幅を変えたとき（範囲に収めた値） */
@@ -109,6 +109,8 @@ export function ResizeHandle({
   const current = () => width ?? target.current?.offsetWidth ?? min;
   // 右へ引いて広がるか（左から右へ書く向きで、終わりの端にあるつまみ）
   const growSign = (element: Element) => {
+    if (edge === 'left') return -1;
+    if (edge === 'right') return 1;
     const rtl = getComputedStyle(element).direction === 'rtl';
     return (edge === 'end' ? 1 : -1) * (rtl ? -1 : 1);
   };
