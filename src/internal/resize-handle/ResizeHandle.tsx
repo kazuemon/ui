@@ -29,7 +29,7 @@ const styles = tv({
   slots: {
     handle: [
       'group/resize-handle absolute z-3 w-(--resize-handle-hit) cursor-col-resize touch-none outline-none',
-      "before:absolute before:inset-y-0 before:start-1/2 before:w-(--resize-handle-line-width) before:-translate-x-1/2 before:bg-(color:--resize-handle-rest) before:content-['']",
+      "before:absolute before:inset-y-0 before:start-1/2 before:w-(--resize-handle-line-width) before:-translate-x-1/2 before:bg-(color:--resize-handle-rest) before:content-[''] rtl:before:translate-x-1/2",
       'before:[transition:background-color_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
       'hover:before:bg-(color:--resize-handle-hover)',
       'focus-visible:before:bg-(color:--resize-handle-focus)',
