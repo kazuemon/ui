@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { DensityPair, Matrix } from '../../stories/story-parts';
@@ -12,6 +12,14 @@ import {
   type SortableProps,
   type SortableVariant,
 } from './Sortable';
+import { SortableItemActions, SortableSeparator } from './Sortable';
+import { SortableTableBody } from './SortableTableBody';
+import { DataTableHeader } from '../data-table/DataTableHeader';
+import { DataTableRow } from '../data-table/DataTableRow';
+import { DataTable } from '../data-table/DataTable';
+import { MenuItem } from '../menu/MenuItem';
+import { TableCell, TableHead, TableRow } from '../table/Table';
+import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 
 const items = [
   { id: 'draft', label: '下書きを書く' },
@@ -369,5 +377,260 @@ export const Disabled: Story = {
     // つまみは隠れ、フォーカスも止まらない。項目の文はそのまま読める
     await expect(canvas.queryAllByRole('button')).toHaveLength(0);
     await expect(canvas.getByText('公開する')).toBeVisible();
+  },
+};
+
+// 動かさない行（区切り・見出し）を挟んだ見本。value は項目だけで、区切りは「上から 2 件のあと」に描く
+function SeparatorSample({ variant }: { variant?: SortableVariant }) {
+  const [order, setOrder] = useState(() => items.map((item) => item.id));
+  return (
+    <div className="w-64">
+      <Sortable
+        value={order}
+        onValueChange={setOrder}
+        aria-label={`今週やること（${variant ?? 'card'}）`}
+        variant={variant}
+      >
+        <SortableSeparator>今日</SortableSeparator>
+        {order.map((id, index) => (
+          <Fragment key={id}>
+            {index === 2 && <SortableSeparator>明日以降</SortableSeparator>}
+            <SortableItem value={id} accessibleName={labelOf(id)}>
+              <SortableHandle />
+              {labelOf(id)}
+            </SortableItem>
+          </Fragment>
+        ))}
+      </Sortable>
+    </div>
+  );
+}
+
+export const Separators: Story = {
+  tags: ['visual'],
+  name: '動かさない行（区切り・見出し）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`SortableSeparator` は、並びの途中に挟む動かさない行です。`value` には入れず、項目のあいだに描きます。項目は区切りをまたいで動き、区切りの位置は使う側がどこに描くかで決めます（ここでは上から 2 件のあと）。文字を書かないと線だけの区切りになります。済んだ項目のように、項目そのものを止めるときは `SortableItem` の `disabled` です。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap gap-8">
+      {variants.map((variant) => (
+        <SeparatorSample key={variant} variant={variant} />
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const list = within(canvasElement).getByRole('list', { name: '今週やること（card）' });
+    const canvas = within(list);
+    const labels = () =>
+      canvas
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+        .filter((text) => text !== '');
+    // 2 件目を下へ動かすと、区切り（明日以降）をまたいで 3 件目に入る
+    const handle = canvas.getByRole('button', { name: '見直しを頼むを並べ替え' });
+    handle.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await waitFor(() =>
+      expect(labels()).toEqual([
+        '今日',
+        '下書きを書く',
+        '見出しの画像を作る',
+        '明日以降',
+        '見直しを頼む',
+        '公開する',
+      ])
+    );
+    await userEvent.keyboard('{ArrowUp}');
+    await waitFor(() => expect(labels()[2]).toBe('見直しを頼む'));
+    handle.blur();
+  },
+};
+
+const otherLists = [
+  { value: 'later', label: 'あとで' },
+  { value: 'done', label: '済み' },
+];
+
+function MenuSample() {
+  const [order, setOrder] = useState(() => items.map((item) => item.id));
+  const [moved, setMoved] = useState<string[]>([]);
+  return (
+    <div className="flex w-72 flex-col gap-3">
+      <Sortable
+        value={order}
+        onValueChange={setOrder}
+        aria-label="今日やること"
+        moveActions="item-menu"
+        moveTargets={otherLists}
+        onMoveToTarget={(item, target) => {
+          setOrder((current) => current.filter((id) => id !== item));
+          setMoved((current) => [...current, `${labelOf(item)} → ${target}`]);
+        }}
+        showSwapActions
+      >
+        {order.map((id) => (
+          <SortableItem
+            key={id}
+            value={id}
+            accessibleName={labelOf(id)}
+            menu={
+              <MenuItem onClick={() => setOrder((c) => c.filter((x) => x !== id))}>削除</MenuItem>
+            }
+          >
+            <SortableHandle />
+            {labelOf(id)}
+          </SortableItem>
+        ))}
+      </Sortable>
+      <p className="text-sm text-fg-muted" data-testid="moved">
+        {moved.join('、')}
+      </p>
+    </div>
+  );
+}
+
+export const MenuExtras: Story = {
+  name: 'メニューに足す項目と、ほかのリストへの移動',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`moveActions="item-menu"` の ︙ のメニューに、項目を足せます。`moveTargets` と `onMoveToTarget` を渡すと「〜へ移動」を足し、リストをまたぐ移動を引かずにできます（両方の並びは使う側が更新します）。`showSwapActions` は、ほかの項目と入れ替える「〜と入れ替え」を足します。`SortableItem` の `menu` には、その項目だけの操作（MenuItem）を渡します。移動の操作のあとに、区切り線を挟んで並びます。',
+      },
+    },
+  },
+  render: () => <MenuSample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const labels = () => canvas.getAllByRole('listitem').map((item) => item.textContent);
+
+    // 入れ替え: 先頭と末尾を入れ替える
+    await userEvent.click(canvas.getByRole('button', { name: '下書きを書くを移動' }));
+    let menu = await body.findByRole('menu');
+    await expect(within(menu).getByRole('menuitem', { name: '済みへ移動' })).toBeInTheDocument();
+    await expect(within(menu).getByRole('menuitem', { name: '削除' })).toBeInTheDocument();
+    await userEvent.click(within(menu).getByRole('menuitem', { name: '公開すると入れ替え' }));
+    await waitFor(() =>
+      expect(labels()).toEqual(['公開する', '見直しを頼む', '見出しの画像を作る', '下書きを書く'])
+    );
+    await waitFor(() =>
+      expect(canvas.getByRole('button', { name: '下書きを書くを並べ替え' })).toHaveFocus()
+    );
+
+    // ほかのリストへ移す: onMoveToTarget に項目と移す先を渡す
+    await userEvent.click(canvas.getByRole('button', { name: '見直しを頼むを移動' }));
+    menu = await body.findByRole('menu');
+    await userEvent.click(within(menu).getByRole('menuitem', { name: '済みへ移動' }));
+    await waitFor(() =>
+      expect(canvas.getByTestId('moved')).toHaveTextContent('見直しを頼む → done')
+    );
+    await expect(labels()).toHaveLength(3);
+  },
+};
+
+const tasks = [
+  { id: 't1', title: '見出しを決める', owner: '佐藤' },
+  { id: 't2', title: '図を描く', owner: '鈴木' },
+  { id: 't3', title: '本文を書く', owner: '高橋' },
+];
+
+function TableSample({ moveActions }: Pick<SortableProps, 'moveActions'>) {
+  const [order, setOrder] = useState(() => tasks.map((task) => task.id));
+  const taskOf = (id: string) => tasks.find((task) => task.id === id);
+  return (
+    <div className="w-[420px]">
+      <DataTable accessibleName="作業の順番">
+        <TableHead>
+          <TableRow>
+            <DataTableHeader className="w-px">
+              <VisuallyHidden>並べ替え</VisuallyHidden>
+            </DataTableHeader>
+            <DataTableHeader>作業</DataTableHeader>
+            <DataTableHeader>担当</DataTableHeader>
+            {moveActions !== 'none' && (
+              <DataTableHeader className="w-px">
+                <VisuallyHidden>操作</VisuallyHidden>
+              </DataTableHeader>
+            )}
+          </TableRow>
+        </TableHead>
+        <SortableTableBody value={order} onValueChange={setOrder} moveActions={moveActions}>
+          {order.map((id) => (
+            <SortableItem
+              key={id}
+              value={id}
+              render={<DataTableRow />}
+              accessibleName={taskOf(id)?.title}
+            >
+              <TableCell>
+                <SortableHandle />
+              </TableCell>
+              <TableCell>{taskOf(id)?.title}</TableCell>
+              <TableCell>{taskOf(id)?.owner}</TableCell>
+              {moveActions !== 'none' && (
+                <TableCell>
+                  <SortableItemActions />
+                </TableCell>
+              )}
+            </SortableItem>
+          ))}
+        </SortableTableBody>
+      </DataTable>
+    </div>
+  );
+}
+
+export const TableRows: Story = {
+  tags: ['visual'],
+  name: '表の行',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）は、置きたいセルの中に入れます。それだけを入れたセルは、中身の幅に詰まります。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      <TableSample moveActions="none" />
+      <TableSample moveActions="item-menu" />
+      <TableSample moveActions="buttons" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const table = within(canvasElement).getAllByRole('table')[0];
+    const canvas = within(table);
+    const titles = () =>
+      canvas
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => row.querySelectorAll('td')[1]?.textContent);
+    const handle = canvas.getByRole('button', { name: '見出しを決めるを並べ替え' });
+    await expect(handle).toHaveAccessibleDescription('上下の矢印キーで並べ替えます');
+    handle.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await waitFor(() => expect(titles()).toEqual(['図を描く', '見出しを決める', '本文を書く']));
+    await expect(handle).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        within(canvasElement.ownerDocument.body)
+          .getAllByRole('status')
+          .map((s) => s.textContent)
+      ).toContain('2 番目に移しました（3 件中）')
+    );
+    await userEvent.keyboard('{ArrowUp}');
+    await waitFor(() => expect(titles()[0]).toBe('見出しを決める'));
+    handle.blur();
   },
 };

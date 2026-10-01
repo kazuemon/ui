@@ -515,12 +515,22 @@ export {
   type SortableHandlePlacement,
   type SortableHandleProps,
   SortableItem,
+  SortableItemActions,
+  type SortableItemActionsProps,
   type SortableItemProps,
+  type SortableMenuLayout,
   type SortableMotion,
   type SortableMoveActions,
+  type SortableMoveTarget,
   type SortableProps,
+  SortableSeparator,
+  type SortableSeparatorProps,
   type SortableVariant,
 } from './components/sortable/Sortable';
+export {
+  SortableTableBody,
+  type SortableTableBodyProps,
+} from './components/sortable/SortableTableBody';
 export {
   Dropzone,
   type DropzoneBaseProps,

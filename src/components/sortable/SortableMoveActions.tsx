@@ -1,12 +1,12 @@
 'use client';
 
-import { use } from 'react';
+import { type ReactNode, use } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { CaretDownIcon, CaretUpIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 import { Menu } from '../menu/Menu';
-import { MenuItem } from '../menu/MenuItem';
+import { MenuGroup, MenuItem, MenuSeparator, MenuSubmenu } from '../menu/MenuItem';
 import { ItemContext, ListContext, type ListContextValue } from './sortable-context';
 
 // 引かずに並べ替える操作（WCAG 2.2 の 2.5.7）。移動は部品が onValueChange で知らせるので、エンジンに頼らない
@@ -33,12 +33,73 @@ const actions = tv({
     ],
     icon: 'size-(--spacing-icon)',
   },
+  variants: {
+    // 表の行: 置かれたセル（操作の列）の中に、部品の高さで並べる
+    row: {
+      true: {
+        root: 'my-0 me-0 inline-flex align-middle',
+        button: 'h-(--spacing-control)',
+      },
+      false: {},
+    },
+  },
 });
 
 /** ︙ のメニューの中の移動の操作。メニューを開いたボタンの名前に項目の名前が入っているので、文字は短いまま */
-function MoveMenuItems({ list, item }: { list: ListContextValue; item: string }) {
+export function MoveMenuItems({
+  list,
+  item,
+  menu,
+  defaultSubmenuOpen,
+}: {
+  list: ListContextValue;
+  item: string;
+  menu?: ReactNode;
+  /** 入れ子（menuLayout="submenu"）の最初の 1 つをはじめから開く（比べるストーリーで、開いた形を見せる） */
+  defaultSubmenuOpen?: boolean;
+}) {
   const index = list.order.indexOf(item);
   const last = list.order.length - 1;
+  // 移す先（ほかのリスト）と、入れ替える相手（同じリストのほかの項目）
+  const targets = (list.moveTargets ?? []).map((target) => (
+    <MenuItem key={target.value} onClick={() => list.moveToTarget(item, target.value)}>
+      {list.labels.moveTo(target.label)}
+    </MenuItem>
+  ));
+  const others = list.showSwapActions
+    ? list.order
+        .filter((other) => other !== item)
+        .map((other) => (
+          <MenuItem key={other} onClick={() => list.swap(item, other)}>
+            {list.labels.swap(list.names.get(other) ?? other)}
+          </MenuItem>
+        ))
+    : [];
+  const section = (title: string, entries: ReactNode[], open = false) => {
+    if (entries.length === 0) return null;
+    if (list.menuLayout === 'submenu') {
+      return (
+        <MenuSubmenu items={entries} defaultOpen={open}>
+          {title}
+        </MenuSubmenu>
+      );
+    }
+    if (list.menuLayout === 'group') {
+      return (
+        <>
+          <MenuSeparator />
+          <MenuGroup label={title}>{entries}</MenuGroup>
+        </>
+      );
+    }
+    return (
+      <>
+        <MenuSeparator />
+        {entries}
+      </>
+    );
+  };
+  const nested = list.menuLayout === 'submenu' && (targets.length > 0 || others.length > 0);
   return (
     <>
       <MenuItem disabled={index <= 0} onClick={() => list.moveTo(item, index - 1)}>
@@ -53,20 +114,29 @@ function MoveMenuItems({ list, item }: { list: ListContextValue; item: string })
       <MenuItem disabled={index >= last} onClick={() => list.moveTo(item, last)}>
         {list.labels.last}
       </MenuItem>
+      {nested && <MenuSeparator />}
+      {section(list.labels.moveToTitle, targets, defaultSubmenuOpen)}
+      {section(list.labels.swapTitle, others)}
+      {menu != null && (
+        <>
+          <MenuSeparator />
+          {menu}
+        </>
+      )}
     </>
   );
 }
 
 /** 項目の末尾に置く移動の操作（item-menu の ︙、buttons の「上へ」「下へ」） */
-export function ItemMoveActions() {
+export function ItemMoveActions({ className }: { className?: string }) {
   const list = use(ListContext);
   const item = use(ItemContext);
   if (!list || !item || list.disabled) return null;
   if (list.moveActions !== 'item-menu' && list.moveActions !== 'buttons') return null;
-  const { root, button, icon } = actions();
+  const { root, button, icon } = actions({ row: item.row });
   const index = list.order.indexOf(item.value);
   // 1 つだけ止めた項目は、つまみと同じく場所を残して隠す
-  const hidden = item.locked ? 'invisible' : '';
+  const hidden = [item.locked ? 'invisible' : '', className].filter(Boolean).join(' ');
   const named = (label: string) => (item.name ? `${item.name}を${label}` : label);
   if (list.moveActions === 'item-menu') {
     return (
@@ -80,7 +150,7 @@ export function ItemMoveActions() {
             </button>
           }
         >
-          <MoveMenuItems list={list} item={item.value} />
+          <MoveMenuItems list={list} item={item.value} menu={item.menu} />
         </Menu>
       </div>
     );

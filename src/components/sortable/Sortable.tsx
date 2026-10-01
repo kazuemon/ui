@@ -2,14 +2,15 @@
 
 import {
   type ComponentProps,
+  type ReactElement,
   type ReactNode,
   use,
   useId,
   useLayoutEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
+import { useRender } from '@base-ui/react/use-render';
 import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -19,13 +20,23 @@ import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 import {
   ItemContext,
   ListContext,
-  type ListContextValue,
+  type SortableMenuLayout,
   type SortableMoveActions,
+  type SortableMoveTarget,
 } from './sortable-context';
 import { ItemMoveActions } from './SortableMoveActions';
-import { useMoveAnimation } from './use-move-animation';
+import {
+  defaultMovedText,
+  defaultMoveToTargetLabel,
+  defaultSwapLabel,
+  useSortableList,
+} from './use-sortable-list';
 
-export type { SortableMoveActions } from './sortable-context';
+export type {
+  SortableMenuLayout,
+  SortableMoveActions,
+  SortableMoveTarget,
+} from './sortable-context';
 
 // 並べ替えられるリスト。見た目と、キーボードでの並べ替えだけを持つ
 //   ポインタで引く動き（ドラッグ）は持たない。dnd-kit などの外のエンジンに任せ、状態は props（dragging・dragSource）で受ける
@@ -91,6 +102,36 @@ const sortable = tv({
       '[--focus-ring-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     handleIcon: 'size-(--spacing-icon)',
+    // 表の行（SortableItem の render に tr を渡したとき）。面と余白は表のものを使い、並べ替えの状態だけを足す
+    row: [
+      'group/sortable-item',
+      // つまみ・移動の操作だけを入れたセル（取っ手の列・操作の列）は、中身の幅に詰め、左右の余白を持たない
+      '[&>td:has(>[data-slot=sortable-handle]:only-child)]:w-px [&>td:has(>[data-slot=sortable-handle]:only-child)]:px-0 [&>td:has(>[data-slot=sortable-handle]:only-child)]:py-0',
+      // つまみだけのセルでは、つまみの高さで行を支える（文字の行の高さからはみ出させない。はみ出すと表の枠がスクロールする）
+      '[&>td>[data-slot=sortable-handle]:only-child]:my-0',
+      '[&>td:has(>[data-slot=sortable-actions]:only-child)]:w-px [&>td:has(>[data-slot=sortable-actions]:only-child)]:px-0 [&>td:has(>[data-slot=sortable-actions]:only-child)]:py-0',
+      // 持ち上げた行: セルに面を敷き、行に影を落として、少しだけ大きく（リストの持ち上げた項目と同じ考え方）
+      //   面はセルに置く（dnd-kit が引いている行の背景を消すため）
+      'data-dragging:relative data-dragging:z-1 data-dragging:cursor-grabbing',
+      'data-dragging:*:bg-(color:--sortable-row-lifted-bg)',
+      'data-dragging:scale-(--sortable-row-lifted-scale) data-dragging:[box-shadow:var(--sortable-row-lifted-shadow)]',
+      'data-dragging:[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press)]',
+      'data-dragging:starting:scale-100 data-dragging:starting:[box-shadow:none]',
+      'motion-reduce:[transition:none]',
+      // 入る場所（DragOverlay で写しを描くとき）: セルの中身を消し、点線の枠を残す
+      'data-drag-source:[outline-style:dashed] data-drag-source:*:text-transparent data-drag-source:*:*:opacity-0',
+      'data-drag-source:[outline-width:var(--sortable-source-line-width)] data-drag-source:[outline-color:var(--sortable-source-line-color)]',
+      'data-drag-source:[outline-offset:calc(var(--sortable-source-line-width)*-1)]',
+    ],
+    // 動かさない行（SortableSeparator）。見出しの文字と、残りの幅に引く線
+    separator: [
+      'flex items-center gap-(--sortable-separator-gap)',
+      'px-(--sortable-separator-px) pt-(--sortable-separator-pt) pb-(--sortable-separator-pb)',
+      'rounded-(--sortable-item-radius) bg-(color:--sortable-separator-bg)',
+      'text-(length:--text-label) leading-(--leading-label) font-bold text-(color:--sortable-separator-fg)',
+      // 見出しのあとに、残りの幅に線を引く（太さ 0 で線なし）。文字のない区切りは線だけになる
+      "after:h-(--sortable-separator-line-width) after:flex-1 after:bg-line after:content-['']",
+    ],
   },
   variants: {
     // 項目の面（ADR-0337）
@@ -108,6 +149,11 @@ const sortable = tv({
       // 1 つの枠の中で、項目を細い線で区切る（表の行と同じ）
       divided: {
         list: 'rounded-(--sortable-item-radius) border-(length:--border-width-thin) border-line',
+        // 枠の中では、見出しの頭を項目の文字の端にそろえ、線は項目と同じ区切りの線（下の辺）だけにする
+        separator: [
+          'rounded-none px-(--spacing-control-x) pb-(--sortable-separator-pt) after:hidden',
+          'not-last:border-b-(length:--border-width-thin) not-last:border-line',
+        ],
         item: [
           '[--sortable-item-bg:var(--color-surface)] [--sortable-item-hover-bg:var(--color-field)] [--sortable-item-shadow:none]',
           'not-last:border-b-(length:--border-width-thin) not-last:border-line',
@@ -121,6 +167,15 @@ const sortable = tv({
       outline: { item: 'data-drag-source:bg-transparent' },
       filled: { item: 'data-drag-source:bg-field' },
     },
+    // 表の行のつまみ。行の端に重ねず、置かれたセル（取っ手の列）の中に、部品の高さで置く
+    row: {
+      // 上下は文字の行の高さからはみ出す分だけ外へ出し、行を高くしない（セルの文字とつまみの中心がそろう）
+      true: {
+        handle:
+          'static my-[calc((1lh-var(--spacing-control))/2)] inline-flex h-(--spacing-control) shrink-0 align-middle',
+      },
+      false: {},
+    },
     // 並べ替えの動き（ADR-0341）。slide は元の位置から滑らせる（既定）、none は動かさない
     motion: {
       slide: {},
@@ -131,6 +186,7 @@ const sortable = tv({
     grabArea: {
       handle: {},
       item: {
+        row: 'cursor-grab data-disabled:cursor-default',
         item: [
           'cursor-grab [transition:background-color_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
           'not-data-disabled:not-data-drag-source:not-data-dragging:hover:bg-(color:--sortable-item-hover-bg)',
@@ -234,14 +290,48 @@ export interface SortableProps extends Omit<
    * @default '移動'
    */
   moveMenuName?: string;
+  /**
+   * ほかのリストへ移す先。item-menu の ︙ のメニューに「〜へ移動」を足します（onMoveToTarget も渡します）。
+   * ドラッグでしかできなかった、リストをまたぐ移動を、引かずにできるようにします
+   */
+  moveTargets?: SortableMoveTarget[];
+  /** 「〜へ移動」を押したときに、動かす項目の value と、移す先の value を渡して呼びます。使う側が、両方のリストの並びを更新します */
+  onMoveToTarget?: (item: string, target: string) => void;
+  /**
+   * 「〜へ移動」の文字。移す先の label を受けます
+   * @default (label) => `${label}へ移動`
+   */
+  moveToTargetLabel?: (label: string) => string;
+  /**
+   * 移す先をまとめる見出し（menuLayout が submenu・group のとき）
+   * @default '別のリストへ移動'
+   */
+  moveTargetsTitle?: string;
+  /**
+   * item-menu の ︙ のメニューに、ほかの項目と入れ替える操作（「〜と入れ替え」）を足します
+   * @default false
+   */
+  showSwapActions?: boolean;
+  /**
+   * 「〜と入れ替え」の文字。相手の項目の名前（SortableItem の accessibleName）を受けます
+   * @default (name) => `${name}と入れ替え`
+   */
+  swapLabel?: (name: string) => string;
+  /**
+   * 入れ替える相手をまとめる見出し（menuLayout が submenu・group のとき）
+   * @default '入れ替え'
+   */
+  swapTitle?: string;
+  /**
+   * 移す先・入れ替える相手の並べ方。flat は区切り線のあとに 1 つずつ、submenu は入れ子に、group は見出しを付けたまとまりにします
+   * @default 'flat'
+   */
+  menuLayout?: SortableMenuLayout;
   /** 項目（SortableItem）を value の順に並べます */
   children?: ReactNode;
   /** 一覧の要素（ul）に付きます */
   className?: string;
 }
-
-const defaultMovedText = (position: number, total: number) =>
-  `${position} 番目に移しました（${total} 件中）`;
 
 /**
  * 並べ替えられるリスト
@@ -264,6 +354,14 @@ export function Sortable({
   moveFirstLabel = '先頭へ移動',
   moveLastLabel = '末尾へ移動',
   moveMenuName = '移動',
+  moveTargets,
+  onMoveToTarget,
+  moveToTargetLabel = defaultMoveToTargetLabel,
+  moveTargetsTitle = '別のリストへ移動',
+  showSwapActions = false,
+  swapLabel = defaultSwapLabel,
+  swapTitle = '入れ替え',
+  menuLayout = 'flat',
   className,
   children,
   ref,
@@ -272,66 +370,32 @@ export function Sortable({
   const listRef = useRef<HTMLUListElement>(null);
   const mergedRef = useMergedRefs(ref, listRef);
   const instructionId = useId();
-  const focusAfterMove = useRef<string | null>(null);
-  const [announcement, setAnnouncement] = useState('');
-  const { capture } = useMoveAnimation(listRef);
-
-  // 描き直すたびに最新の value を読む（move を context に載せても、context を毎回作り直さない）
-  const latest = useRef({ value, onValueChange, movedText });
-  useLayoutEffect(() => {
-    latest.current = { value, onValueChange, movedText };
+  const { context, announcement } = useSortableList(listRef, {
+    value,
+    onValueChange,
+    variant,
+    dragSourceVariant,
+    grabArea,
+    disabled,
+    instructionId,
+    movedText,
+    moveActions,
+    labels: {
+      up: moveUpLabel,
+      down: moveDownLabel,
+      first: moveFirstLabel,
+      last: moveLastLabel,
+      menu: moveMenuName,
+      swap: swapLabel,
+      moveTo: moveToTargetLabel,
+      moveToTitle: moveTargetsTitle,
+      swapTitle,
+    },
+    moveTargets,
+    onMoveToTarget,
+    showSwapActions,
+    menuLayout,
   });
-
-  const context = useMemo<ListContextValue>(
-    () => ({
-      variant,
-      dragSourceVariant,
-      grabArea,
-      disabled,
-      instructionId,
-      moveActions,
-      labels: {
-        up: moveUpLabel,
-        down: moveDownLabel,
-        first: moveFirstLabel,
-        last: moveLastLabel,
-        menu: moveMenuName,
-      },
-      order: value,
-      claimFocus: (item) => {
-        if (item === undefined || focusAfterMove.current !== item) return false;
-        focusAfterMove.current = null;
-        return true;
-      },
-      moveTo: (item, to) => {
-        const { value: order, onValueChange: notify, movedText: text } = latest.current;
-        const from = order.indexOf(item);
-        if (!notify || from < 0 || from === to || to < 0 || to >= order.length) return;
-        const next = [...order];
-        next.splice(from, 1);
-        next.splice(to, 0, item);
-        capture();
-        focusAfterMove.current = item;
-        notify(next);
-        setAnnouncement(text(to + 1, order.length));
-      },
-    }),
-    [
-      variant,
-      dragSourceVariant,
-      grabArea,
-      disabled,
-      instructionId,
-      moveActions,
-      moveUpLabel,
-      moveDownLabel,
-      moveFirstLabel,
-      moveLastLabel,
-      moveMenuName,
-      value,
-      capture,
-    ]
-  );
   const { list } = sortable({ variant, motion });
   return (
     <ListContext value={context}>
@@ -350,7 +414,8 @@ export interface SortableItemProps extends Omit<ComponentProps<'li'>, 'value'> {
   /** この項目を見分ける値。Sortable の value に並べる値です */
   value: string;
   /**
-   * ポインタについて動く、持ち上げた項目の見た目にします。エンジンが引いているあいだに描く写し（dnd-kit の DragOverlay の中身）に付けます
+   * ポインタについて動く、持ち上げた項目の見た目にします。エンジンが引いているあいだに描く写し（dnd-kit の DragOverlay の中身）に付けます。
+   * 表の行では、引いている行そのもの（dnd-kit の isDragging）に付けます
    * @default false
    */
   dragging?: boolean;
@@ -369,9 +434,18 @@ export interface SortableItemProps extends Omit<ComponentProps<'li'>, 'value'> {
    * （「下書きを書くを並べ替え」「下書きを書くを上へ移動」）
    */
   accessibleName?: string;
+  /**
+   * ︙ のメニュー（Sortable の moveActions="item-menu"）に足す項目（MenuItem を並べる）。移動の操作のあとに、区切り線を挟んで並べます
+   */
+  menu?: ReactNode;
+  /**
+   * 描く要素（Base UI の render と同じ）。表の行にするときは `render={<DataTableRow />}` か `render={<tr />}` を渡し、SortableTableBody の中に置きます。
+   * 行では、中身をそのまま行に入れます（セルを並べます）。つまみ（SortableHandle）と移動の操作（SortableItemActions）は、置きたいセルの中に入れます
+   */
+  render?: ReactElement;
   /** 項目の中身。文と、つまみ（SortableHandle）を入れます。つまみを置く端は SortableHandle の placement で決めます */
   children?: ReactNode;
-  /** 項目の要素（li）に付きます */
+  /** 項目の要素（li。render を渡したときはその要素）に付きます */
   className?: string;
 }
 
@@ -384,35 +458,88 @@ export function SortableItem({
   dragSource = false,
   disabled = false,
   accessibleName,
+  menu,
+  render,
   className,
   children,
+  ref,
   ...props
 }: SortableItemProps) {
   const listContext = use(ListContext);
-  const { item, content } = sortable({
+  const styles = sortable({
     variant: listContext?.variant,
     grabArea: listContext?.grabArea,
     dragSourceVariant: listContext?.dragSourceVariant,
   });
   const itemDisabled = disabled || (listContext?.disabled ?? false);
+  const row = render != null;
   const itemContext = useMemo(
-    () => ({ value, locked: disabled, name: accessibleName }),
-    [value, disabled, accessibleName]
+    () => ({ value, locked: disabled, name: accessibleName, menu, row }),
+    [value, disabled, accessibleName, menu, row]
   );
+  // 入れ替える相手の一覧に、この項目の名前を出す
+  if (listContext && accessibleName) listContext.names.set(value, accessibleName);
+  const element = useRender({
+    render,
+    defaultTagName: 'li',
+    ref,
+    props: {
+      ...props,
+      className: row ? styles.row({ className }) : styles.item({ className }),
+      'data-value': value,
+      'data-dragging': dragging || undefined,
+      'data-drag-source': (dragSource && !dragging) || undefined,
+      'data-disabled': itemDisabled || undefined,
+      children: row ? (
+        children
+      ) : (
+        <>
+          <div className={styles.content()}>{children}</div>
+          <ItemMoveActions />
+        </>
+      ),
+    },
+  });
+  return <ItemContext value={itemContext}>{element}</ItemContext>;
+}
+
+export interface SortableItemActionsProps {
+  /** 包む要素（div）に付きます */
+  className?: string;
+}
+
+/**
+ * 項目の移動の操作（Sortable の moveActions）を、置きたい場所に置きます。表の行（SortableItem の render）で、操作の列のセルに入れます。
+ * リストの項目では、項目の末尾に自動で置くので要りません
+ */
+export function SortableItemActions({ className }: SortableItemActionsProps) {
+  return <ItemMoveActions className={className} />;
+}
+
+export interface SortableSeparatorProps extends ComponentProps<'li'> {
+  /** 見出しの文字（「明日」「ここから下は公開しない」）。書かないときは、線だけの区切りになります */
+  children?: ReactNode;
+  /** 区切りの要素（li）に付きます */
+  className?: string;
+}
+
+/**
+ * 並びの途中に挟む、動かさない行（区切りや見出し）。Sortable の value には入れず、項目のあいだに置きます。
+ * 項目はキーボードや移動の操作で、区切りをまたいで動きます。区切りの位置は、使う側が並びのどこに描くかで決めます
+ */
+export function SortableSeparator({ children, className, ...props }: SortableSeparatorProps) {
+  const listContext = use(ListContext);
+  const { separator } = sortable({ variant: listContext?.variant });
+  const hasLabel = children != null && children !== false;
   return (
-    <ItemContext value={itemContext}>
-      <li
-        className={item({ className })}
-        data-value={value}
-        data-dragging={dragging || undefined}
-        data-drag-source={(dragSource && !dragging) || undefined}
-        data-disabled={itemDisabled || undefined}
-        {...props}
-      >
-        <div className={content()}>{children}</div>
-        <ItemMoveActions />
-      </li>
-    </ItemContext>
+    <li
+      role={hasLabel ? undefined : 'separator'}
+      data-slot="sortable-separator"
+      className={separator({ className })}
+      {...props}
+    >
+      {children}
+    </li>
   );
 }
 
@@ -460,7 +587,7 @@ export function SortableHandle({
     element.scrollIntoView?.({ block: 'nearest' });
   });
 
-  const { handle, handleIcon } = sortable();
+  const { handle, handleIcon } = sortable({ row: itemContext?.row ?? false });
   return (
     <button
       ref={mergedRef}

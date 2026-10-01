@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { sourceCode } from '../stories/story-states';
+import { type Task, SortableTaskTable } from './sortable-data-table';
+import tableRecipe from './sortable-data-table.tsx?raw';
 import { SortableList } from './sortable-dnd-kit';
 import recipe from './sortable-dnd-kit.tsx?raw';
 
@@ -72,6 +74,61 @@ export const Vertical: Story = {
     // dnd-kit の読み上げの仕組みを外したので、つまみに英語の役割や押した状態が付かない
     await expect(handle).not.toHaveAttribute('aria-pressed');
     await expect(handle).not.toHaveAttribute('aria-roledescription');
+    handle.blur();
+  },
+};
+
+const tableCode = tableRecipe.replace(
+  /import \{([^}]*)\} from '\.\.\/components\/[^']+';\n/g,
+  (_, list: string) => `import {${list}} from '@kazuemon/ui';\n`
+);
+
+const tasks: Task[] = [
+  { id: 'heading', title: '見出しを決める', owner: '佐藤', status: '進行中' },
+  { id: 'figure', title: '図を描く', owner: '鈴木', status: '未着手' },
+  { id: 'body', title: '本文を書く', owner: '高橋', status: '確認待ち' },
+  { id: 'proof', title: '校正する', owner: '田中', status: '未着手' },
+];
+
+export const TableRows: Story = {
+  tags: ['visual'],
+  name: '表の行',
+  parameters: {
+    docs: {
+      source: sourceCode(tableCode),
+      description: {
+        story: [
+          '`DataTable` の行を、ポインタで引いて並べ替える見本です。`TableBody` の代わりに `SortableTableBody` を置き、行は `SortableItem` の `render` に `DataTableRow` を渡して描きます。',
+          '',
+          '- 表の行では、`DragOverlay`（ポインタについて動く写し）を使いません。写しは表の外に描かれるので、列の幅が合わなくなります。dnd-kit は、引いている行そのものを動かし、セルの幅を保ちます。引いている行には `useSortable` の `isDragging` を `dragging` で渡します。',
+          '- つまみ（`SortableHandle`）は先頭の列のセルに、移動の操作（`SortableItemActions`）は末尾の列のセルに入れます。それだけを入れたセルは、中身の幅に詰まります。見出しのセルは読み上げだけの文字（`VisuallyHidden`）にし、`className="w-px"` で幅を詰めます。',
+          '- ほかは縦のリストと同じです（ポインタだけを dnd-kit に任せる・4px 動かしてから引き始める・動きの長さをそろえる・︙ のメニューで引かずに並べ替える）。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-xl">
+      <SortableTaskTable defaultTasks={tasks} label="記事を出すまでの作業" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const titles = () =>
+      canvas
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => row.querySelectorAll('td')[1]?.textContent);
+    const handle = canvas.getByRole('button', { name: '見出しを決めるを並べ替え' });
+    handle.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await waitFor(() =>
+      expect(titles()).toEqual(['図を描く', '見出しを決める', '本文を書く', '校正する'])
+    );
+    await expect(handle).toHaveFocus();
+    await expect(handle).not.toHaveAttribute('aria-roledescription');
+    await userEvent.keyboard('{ArrowUp}');
+    await waitFor(() => expect(titles()[0]).toBe('見出しを決める'));
     handle.blur();
   },
 };
