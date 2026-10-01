@@ -235,6 +235,41 @@ export const Caption: Story = {
   },
 };
 
+export const FocusableWhenDisabled: Story = {
+  name: '押せないままフォーカスできる',
+  parameters: {
+    controls: { include: [] },
+    docs: {
+      description: {
+        story:
+          '`focusableWhenDisabled` を `disabled` と一緒に渡すと、押せないボタンが Tab で止まります。押せないことは読み上げで伝わり、押しても `onClick` を呼びません。押せない理由を Tooltip やキャプションで添えるときに使います。',
+      },
+    },
+  },
+  args: { onClick: fn() },
+  render: (args) => (
+    <Button
+      {...args}
+      color="primary"
+      disabled
+      focusableWhenDisabled
+      caption="下書きを保存すると公開できます"
+    >
+      公開する
+    </Button>
+  ),
+  play: async ({ args, canvas }) => {
+    const button = canvas.getByRole('button', { name: '公開する' });
+    await expect(button).not.toBeDisabled();
+    await expect(button).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await userEvent.click(button);
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+};
+
 export const WithIcon: Story = {
   name: 'アイコン付き',
   parameters: {

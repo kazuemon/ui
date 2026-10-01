@@ -130,7 +130,7 @@ const button = tv({
       sm: [
         '[--spacing-control:calc(var(--spacing-control-sm-fine)_+_var(--density-coarse)_*_(var(--spacing-control-sm-coarse)_-_var(--spacing-control-sm-fine)))]',
         '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
-        '[--text-control:var(--text-control-sm)] [--leading-control:var(--leading-control-sm)]',
+        '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
       ],
     },
   },

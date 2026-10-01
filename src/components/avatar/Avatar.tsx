@@ -41,7 +41,7 @@ const avatar = tv({
       xs: {
         root: [
           '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xs)] [--avatar-outline-width:var(--avatar-outline-width-xs)]',
+          '[--avatar-outline-width:var(--avatar-outline-width-xs)] [--avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
         ],
       },
       sm: {

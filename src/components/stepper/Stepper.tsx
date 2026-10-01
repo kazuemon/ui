@@ -97,8 +97,8 @@ const stepper = tv({
       sm: {
         root: [
           '[--stepper-gap:var(--stepper-gap-sm)] [--stepper-label-gap:var(--stepper-label-gap-sm)]',
-          '[--stepper-marker-size:var(--stepper-marker-size-sm)] [--stepper-marker-text:var(--stepper-marker-text-sm)] [--stepper-marker-icon-size:var(--stepper-marker-icon-size-sm)]',
-          '[--stepper-label-text:var(--stepper-label-text-sm)] [--stepper-label-leading:var(--stepper-label-leading-sm)]',
+          '[--stepper-marker-icon-size:var(--stepper-marker-icon-size-sm)] [--stepper-marker-size:var(--stepper-marker-size-sm)] [--stepper-marker-text:var(--stepper-marker-text-sm)]',
+          '[--stepper-label-leading:var(--stepper-label-leading-sm)] [--stepper-label-text:var(--stepper-label-text-sm)]',
         ],
       },
     },
