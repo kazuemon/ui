@@ -8,12 +8,12 @@ const meta = {
   title: 'Design Review/464 Stepper の小さい段',
   id: 'design-review-464-stepper-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,B,D', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -166,6 +166,14 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: マーカーは 24px（A・B）、ラベルはマウスで 14px（A）・指で
+        12px（B）と密度で変える。D（10px の点）は variant
+        として選べるようにし、縦並びのときに点と見出しの縦の位置をそろえる。ユーザーの返事「マーカーは24pxでいいかなと思いました。ラベルについてはマウス14px、指12pxでいいかなと。variant
+        として 10px
+        の点があっても良さそうですが、縦並びの時に見出しの縦位置とズレているのが気になりますね。」
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Stepper に大きさ（size）を足しました。sm
         はマーカー・ラベル・段のあいだを一段小さくします。ダイアログやサイドバーのような狭い場所に置くときに使います。

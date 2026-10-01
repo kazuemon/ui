@@ -8,7 +8,7 @@ const meta = {
   title: 'Design Review/463 アバターのいちばん小さい段',
   id: 'design-review-463-avatar-xs',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -161,6 +161,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: D（20px・頭文字 9px）。ユーザーの返事「D
+        かなと思いました。キャプションをはみ出していますが、同じ高さにするには16pxよりさらに小さくする必要があるためです。」
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Avatar に、24px
         より小さい段（xs）を足しました。キャプションや表の小さい文字の横に、誰のものかを添えるときに使います。

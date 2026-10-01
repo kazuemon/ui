@@ -17,7 +17,7 @@ const meta = {
       focusVisible: ['[data-preview="focus"] button'],
     },
   },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -142,6 +142,13 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: A（矢印 8px・本体とのあいだ 8px）。ユーザーの返事「A かなと思いました。ボタンについて
+        props でフォーカス制御を入れていますが、Tooltip で囲まれているなら focusable
+        が伝搬するのが良さそう？と思いました。」 押せないボタンを Tooltip で包んだときは、Button
+        が自動で focusableWhenDisabled になる（明示した false は優先する）。
+        候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Tooltip に、本体を指す矢印（showArrow）を足しました。Popover
         の矢印と同じ作りで、面と同じ白に外側の 2
