@@ -29,7 +29,7 @@ export interface TextFieldControlProps
   extends
     Omit<
       ComponentProps<'input'>,
-      'className' | 'prefix' | 'value' | 'defaultValue' | 'disabled' | 'required' | 'name'
+      'className' | 'prefix' | 'value' | 'defaultValue' | 'disabled' | 'required' | 'name' | 'size'
     >,
     Pick<
       InputFieldProps,
