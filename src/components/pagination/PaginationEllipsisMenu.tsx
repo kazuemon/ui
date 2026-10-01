@@ -53,10 +53,11 @@ export function PaginationEllipsisMenu({
         </button>
       }
     >
+      {/* 開いている間に disabled になったときも選べないよう、項目にも渡す */}
       {pages.map((page) => {
         if (!asLink) {
           return (
-            <MenuItem key={page} onClick={() => onChange?.(page)}>
+            <MenuItem key={page} disabled={disabled} onClick={() => onChange?.(page)}>
               {pageLabel(page)}
             </MenuItem>
           );
@@ -66,6 +67,7 @@ export function PaginationEllipsisMenu({
         return (
           <MenuLinkItem
             key={page}
+            disabled={disabled}
             href={href?.(page)}
             render={onChange ? cloneElement(element, { onClick: () => onChange(page) }) : element}
           >
