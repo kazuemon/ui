@@ -1,14 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { Drawer } from './Drawer';
+import { Drawer, DrawerActions } from './Drawer';
 import { OverlayClose } from '../../internal/overlay/overlay-close';
 import { PhoneFrame, ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { Form } from '../form/Form';
 import { Link } from '../link/Link';
+import { Stack } from '../stack/Stack';
 import { Switch } from '../switch/Switch';
+import { TextField } from '../text-field/TextField';
 
 // 開いた状態のストーリーも、ドキュメントのページでは閉じて描く（開くとフォーカスが移り、ページが流れるため）
 const openOnLoad = (viewMode: string) => viewMode !== 'docs';
@@ -44,6 +47,7 @@ const meta = {
           '- 下から出すとき、中身が画面の半分より長ければ、半分の高さで開いてつまみを出します（`detent="half"`、既定）。つまみを上へ引くと高さいっぱいに広がります。`full` は中身の高さで開きます。',
           '- 中身が長いときはスクロールし、上の端に区切り線、上下の端に続きの影を出します。',
           '- 下に並べるボタンは `actions` に渡します。中身をスクロールしても動きません。押して閉じるボタンは `OverlayClose` の `render` に渡します。並べ方は `actionsLayout` で選びます。既定の `auto` は、下から出すシートでは幅いっぱいで縦に積み（最後に渡した主な操作が上）、横から出すパネルでは右に寄せます。渡した順に上から積むときは `stack`、横に並べるときは `end`（右寄せ）か `fill`（幅を等分）です。',
+          '- 中身の `Form` の送信のボタンを下に並べるときは、`actions` の代わりに、`Form` の中の最後に `DrawerActions` を置きます。見た目と並べ方は `actions` と同じ下の帯のままで（中身が長いときも下に残ります）、送信のボタンが `Form` の送信・Enter・送信中にそのまま加わります。`actions` と `DrawerActions` は、どちらか一方にします。',
           '- `title` は見出しの題で、読み上げでは開いた面の名前になります。中身の見出しで何の面か分かるときは `title` を省き、`accessibleName` に読み上げの名前を書きます（どちらか一方が要ります）。',
           '- 開いた直後は面そのものにフォーカスが移ります。中身の要素に `autoFocus` を付けると、その要素に移ります。',
           '- 開いているあいだ、後ろの画面は暗くなり、押すと閉じます（`dismissible={false}` で閉じないようにできます）。Esc で閉じないようにするときは `closeOnEscape={false}`、右上の × を置かないときは `hideCloseButton` を渡し、`actions` に閉じる手段を置きます。',
@@ -180,6 +184,88 @@ export const Long: Story = {
       )}
     </PhoneFrame>
   ),
+};
+
+const addressSubmit = fn();
+
+export const WithForm: Story = {
+  tags: ['visual'],
+  name: 'Form と組む',
+  args: { title: '届け先を変更' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`Form` の中の最後に `DrawerActions` を置くと、下のボタンが `Form` の中に入ります。中身が長く半分の高さで開いたときも、帯は画面の下の端に残ります。入力欄で Enter を押すと送信します。',
+      },
+      source: sourceCode(`
+        <Drawer title="届け先を変更" trigger={<Button>届け先を変更</Button>}>
+          <Form onFormSubmit={save}>
+            <Stack>
+              <TextField name="postalCode" label="郵便番号" />
+              …
+            </Stack>
+            <DrawerActions>
+              <Button type="submit" color="primary">保存する</Button>
+            </DrawerActions>
+          </Form>
+        </Drawer>
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <Drawer
+          {...args}
+          trigger={<Button>届け先を変更</Button>}
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <Form onFormSubmit={addressSubmit}>
+            <Stack>
+              <TextField name="postalCode" label="郵便番号" defaultValue="100-0001" />
+              <TextField name="prefecture" label="都道府県" defaultValue="東京都" />
+              <TextField name="city" label="市区町村" />
+              <TextField name="street" label="番地" />
+              <TextField name="building" label="建物名・部屋番号" />
+              <TextField name="phone" label="電話番号" />
+            </Stack>
+            <DrawerActions>
+              <Button type="submit" color="primary">
+                保存する
+              </Button>
+            </DrawerActions>
+          </Form>
+        </Drawer>
+      )}
+    </PhoneFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    addressSubmit.mockClear();
+    const body = within(canvasElement.ownerDocument.body);
+    const drawer = await body.findByRole('dialog', { name: '届け先を変更' });
+    const footer = drawer.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    const content = drawer.querySelector<HTMLElement>('[data-slot="sheet-content"]')!;
+    await expect(footer.closest('form')).not.toBeNull();
+    // 半分の高さで開いても、帯は中身の下の端（画面の下の端）にある
+    await waitFor(() =>
+      expect(
+        Math.abs(footer.getBoundingClientRect().bottom - content.getBoundingClientRect().bottom)
+      ).toBeLessThan(1)
+    );
+    await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      canvasElement.querySelector('[data-density]')!.getBoundingClientRect().bottom + 1
+    );
+    // 入力欄の Enter で Form を送信する
+    await userEvent.type(within(drawer).getByRole('textbox', { name: '郵便番号' }), '{Enter}');
+    await waitFor(() => expect(addressSubmit).toHaveBeenCalledTimes(1));
+    await expect(addressSubmit.mock.calls[0]?.[0]).toMatchObject({
+      postalCode: '100-0001',
+      prefecture: '東京都',
+    });
+  },
 };
 
 export const NoSwipe: Story = {
