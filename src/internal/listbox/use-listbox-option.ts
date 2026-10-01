@@ -27,6 +27,12 @@ export interface ListboxItemNote {
 export type ListboxValue = string | number;
 
 /**
+ * items から決まった値の型。items が空の配列（never になる）のときは、文字か数（ListboxValue）に倒す
+ * （あとで選択肢を読み込む使い方でも、value に変数を渡せ、onValueChange が never にならないように）
+ */
+export type ListboxValueOf<Value> = [Value] extends [never] ? ListboxValue : Value;
+
+/**
  * 選択肢の値が文字か数かを確かめる型。部品の props に重ね、そうでない値の items を型エラーにする
  * 部品の型引数に `extends ListboxValue` を付けないのは、付けると items の値がリテラルの型（'tokyo' | 'osaka'）で推論され、
  * value に string の変数を渡せなくなるため（付けなければ string・number に広がる）

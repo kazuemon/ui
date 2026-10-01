@@ -60,6 +60,7 @@ import type {
   ListboxItem,
   ListboxValue,
   ListboxValueCheck,
+  ListboxValueOf,
 } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
@@ -207,7 +208,7 @@ export interface AutocompleteControlProps<Value = string> {
    * 既定では、候補の文字を欄に入れて候補を閉じます。`event.preventDefault()` を呼ぶと、欄も候補もそのままにします
    * `onValueChange` は preventDefault を呼んだときは呼びません
    */
-  onSelect?: (item: ListboxItem<Value>, event: AutocompleteSelectEvent) => void;
+  onSelect?: (item: ListboxItem<ListboxValueOf<Value>>, event: AutocompleteSelectEvent) => void;
   /**
    * 候補を選んだあとに候補を閉じるか。false では、選んだ文字を欄に入れたまま候補を開いておきます
    * @default true

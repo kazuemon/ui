@@ -65,6 +65,7 @@ import type {
   ListboxItem,
   ListboxValue,
   ListboxValueCheck,
+  ListboxValueOf,
 } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
@@ -113,11 +114,11 @@ export type ComboboxFilter<Value = string> = (
 
 /**
  * Combobox の値の型。単数では `Value | null`、`multiple` では `Value[]` です。
- * `Value` は選択肢の値の型（文字か数）で、`items` から決まります
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります。`items` が空の配列のときは `string | number` です
  */
 export type ComboboxValue<Value = string, Multiple extends boolean = false> = Multiple extends true
-  ? Value[]
-  : Value | null;
+  ? ListboxValueOf<Value>[]
+  : ListboxValueOf<Value> | null;
 
 /**
  * Combobox の本体（ComboboxControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します

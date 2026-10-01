@@ -39,7 +39,11 @@ import {
   type ListboxItems,
   normalizeItems,
 } from '../../internal/listbox/listbox-items';
-import type { ListboxValue, ListboxValueCheck } from '../../internal/listbox/use-listbox-option';
+import type {
+  ListboxValue,
+  ListboxValueCheck,
+  ListboxValueOf,
+} from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -75,11 +79,11 @@ export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 
 /**
  * Select の値の型。単数では `Value | null`、`multiple` では `Value[]` です。
- * `Value` は選択肢の値の型（文字か数）で、`items` から決まります
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります。`items` が空の配列のときは `string | number` です
  */
 export type SelectValue<Value = string, Multiple extends boolean = false> = Multiple extends true
-  ? Value[]
-  : Value | null;
+  ? ListboxValueOf<Value>[]
+  : ListboxValueOf<Value> | null;
 
 /**
  * Select の本体（SelectControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します

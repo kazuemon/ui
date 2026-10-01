@@ -50,6 +50,30 @@ describe('値の型（型の確かめ）', () => {
     });
   });
 
+  test('空の items では、値は文字か数（string | number）', () => {
+    typeOnly(() => {
+      // あとで選択肢を読み込む使い方。never にならず、文字の変数も value に渡せる
+      const selected: string | null = null;
+      Select({
+        label: '区',
+        items: [],
+        value: selected,
+        onValueChange: (value) => expectTypeOf(value).toEqualTypeOf<string | number | null>(),
+      });
+      Combobox({
+        label: '区',
+        items: [],
+        multiple: true,
+        onValueChange: (value) => expectTypeOf(value).toEqualTypeOf<(string | number)[]>(),
+      });
+      Autocomplete({
+        label: '区',
+        items: [],
+        onSelect: (item) => expectTypeOf(item.value).toEqualTypeOf<string | number>(),
+      });
+    });
+  });
+
   test('数の items では、onValueChange に number が届く', () => {
     typeOnly(() => {
       Select({
