@@ -1,6 +1,6 @@
 import { tv } from './tv';
 
-// 小物（Tag・Chip）の先頭に置くアイコン・アバターの置き場所 — 軸 419・420（Tag と Chip で共有）
+// 小物（Tag・Chip）の先頭に置くアイコン・アバターの置き場所 — ADR-0399・0400（Tag と Chip で共有）
 //   アイコンは文字と同じ大きさ（1em）。Icon（size="text"）も素の svg も同じ大きさにそろえる
 //   アイコンの色は既定で文字の色。color は Tag・Chip の color と同じ色で、その色の小物の文字と同じ色になる
 //   部品が子の間に gap を持つとき（Chip の消すボタン）は、その分（--small-parts-inner-gap）を引く

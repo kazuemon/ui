@@ -26,7 +26,7 @@ const chip = tv({
     'text-[length:var(--chip-font)] leading-[var(--chip-leading)]',
     // 消すボタンがあるとき、右は ×（丸）の分だけ空ける。丸は上下左右とも 6px 内側に置く（フォーカスの線がチップの外に出ない）
     'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5 has-data-[slot=chip-remove]:[--small-parts-inner-gap:calc(var(--spacing)_*_1)]',
-    // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — 軸 420）
+    // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — ADR-0400）
     '[--small-parts-host-height:var(--chip-height)]',
     'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--chip-border-width)))]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',

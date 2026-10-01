@@ -20,17 +20,17 @@ import { tv } from '../../internal/tv';
 // 状態を表す色（info・success・warning・danger）は、利用者が選ぶ色とは別。お知らせの soft と同じ面と文字
 //   warning — design/adr/0038。info・success・danger — design/adr/0043（info は primary と同じ値）
 // 大きさ（sm・md・lg・inherit）は Tag・Badge・Chip 共通の 1 本の軸 — ADR-0259（値は src/internal/small-parts-size.ts）
-// 形（variant）— 軸 418: soft（淡い面。既定）・outline（面なし・文字の色を薄めた縁）・surface（白い面・文字の色の縁）・
+// 形（variant）— ADR-0398: soft（淡い面。既定）・outline（面なし・文字の色を薄めた縁）・surface（白い面・文字の色の縁）・
 //   solid（濃い塗り）・dashed（面なし・破線の縁。「まだない」の印）
 //   outline は Button の outline と同じく面を塗らない。白い面を敷く形は SegmentedControl のつまみと同じ surface と呼ぶ
 //   色ごとに面・文字・濃い塗りを --tag-color-* に置き、variant がそれを --tag-bg・--tag-fg・縁へ振り分ける
 //   縁はどの形でも同じ幅で引き（塗りの形では透明）、左右の余白から縁の幅を引く。形を変えても寸法は変わらない
-// リンク（href・render・link）— 軸 417 の D: ブログのタグから一覧のページへ移る
+// リンク（href・render・link）— ADR-0397: ブログのタグから一覧のページへ移る
 //   平らな押すもの（原則3）: hover で文字の色を淡く敷いて下線を出し、押すと濃く敷いて沈む。影は付けない（この大きさでは影で押せると読めない）
 //   敷く色は面の上に重ねる層（background-image）なので、どの形・色にも効く
-//   link の既定は href があるか（link ?? href != null）。Link など、ほかのリンクの部品と同じ決まり
+//   link の既定は href があるか（link ?? href != null — ADR-0401）。Link など、ほかのリンクの部品と同じ決まり
 //   Tag はサーバーのまま描けるよう、フックを使わない（render は cloneElement で重ねる）
-// 先頭のアイコン・アバター（icon・avatar）— 軸 419・420。置き方は src/internal/small-parts-leading.ts（Chip と共有）
+// 先頭のアイコン・アバター（icon・avatar）— ADR-0399・0400。置き方は src/internal/small-parts-leading.ts（Chip と共有）
 //   アイコンは文字と同じ大きさで、色は既定で文字の色。iconColor で color と同じ色から選べる（solid では文字の色のまま）
 const tag = tv({
   base: [
