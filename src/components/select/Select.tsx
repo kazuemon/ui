@@ -349,10 +349,6 @@ export type SelectProps<Value = string, Multiple extends boolean = false> = Fiel
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
-/**
- * Base UI から来た値を onValueChange に渡す
- * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
- */
 // 消すボタン（clearable）。本体（ボタン）と × を包み、× を本体の上に重ねる
 //   幅（--select-clear-width）は suffix のボタンと同じ（左右の余白＋アイコン）。中のアイコンは入力欄の大きさ
 //   × は右端に置き、本体は × の分の場所を空ける。▼ は × の左へずれる（Combobox と同じ）
@@ -374,6 +370,10 @@ const selectClearButton = [
 // 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ（文字の 1.25 倍・文字の色）
 const selectValueIcon = 'flex shrink-0 [&>svg]:size-[1.25em]';
 
+/**
+ * Base UI から来た値を onValueChange に渡す
+ * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
+ */
 function emitValue<Value, Multiple extends boolean>(
   onValueChange: (value: SelectValue<Value, Multiple>) => void,
   next: ListboxValue | ListboxValue[] | null
