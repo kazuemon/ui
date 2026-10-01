@@ -37,7 +37,10 @@ import { useNavbarScroll } from './use-navbar-scroll';
 //     stickyEdge: line（既定）は貼り付けていないときと同じ細い線、shadow は線の代わりに下へ淡い影（重なるレイヤーとして見せる — 原則1）
 //     stickyBackdrop: solid（既定）は白い面、blur は面を透かして後ろをぼかす
 //       transparent-until-scroll は、いちばん上では透かし（軸 504）、スクロールしたら solid と同じ面にする
+//         透かしているあいだの文字の守り方は transparentVariant で選ぶ（軸 504）
+//           plain（既定）は面なし・本文の色、scrim は上から暗い幕と白い文字、frosted は淡いすりガラス、text-shadow は白い文字に淡い影
 //     stickyBehavior: always（既定）はいつも出す。hide-on-scroll は下へスクロールすると隠し、上へ戻すと出す（軸 503）
+//       スクロールした量だけ帯を押し上げ、止まったら近い方へ寄せる（スマートフォンのブラウザのアドレスバーと同じ）
 //   中身（children）は自由に置く。行き先は NavbarLinks（nav と ul）に、ほかのもの（検索の欄など）は NavbarGroup に入れる
 //   帯の幅が 48rem（Tailwind の md と同じ幅）より狭いときの行き先は、まとまりごとに narrowPlacement で選ぶ
 //     menu（既定）はメニューのボタンに畳み、押すと Drawer に縦に並べて出す。bar は帯に残す。hidden は隠す
@@ -62,6 +65,7 @@ export type NavbarCurrentIndicator = 'text' | 'neutral' | 'primary' | 'underline
 export type NavbarStickyEdge = 'line' | 'shadow';
 export type NavbarStickyBackdrop = 'solid' | 'blur' | 'transparent-until-scroll';
 export type NavbarStickyBehavior = 'always' | 'hide-on-scroll';
+export type NavbarTransparentVariant = 'plain' | 'scrim' | 'frosted' | 'text-shadow';
 
 const NavbarContext = createContext<{
   placement: Placement;
@@ -107,6 +111,7 @@ const navbar = tv({
     stickyEdge: { line: {}, shadow: {} },
     stickyBackdrop: { solid: {}, blur: {}, 'transparent-until-scroll': {} },
     stickyBehavior: { always: {}, 'hide-on-scroll': {} },
+    transparentVariant: { plain: {}, scrim: {}, frosted: {}, 'text-shadow': {} },
   },
   compoundVariants: [
     {
@@ -121,31 +126,64 @@ const navbar = tv({
         root: 'bg-(--navbar-backdrop-bg) backdrop-blur-(--navbar-backdrop-blur)',
       },
     },
-    // いちばん上では透かす（data-scrolled がないあいだ）。文字の色は、帯の中だけ本文の色を差し替える
+    // いちばん上では透かす（data-scrolled がないあいだ）
     {
       sticky: true,
       stickyBackdrop: 'transparent-until-scroll',
       class: {
         root: [
           'not-data-scrolled:border-transparent not-data-scrolled:shadow-none',
-          'not-data-scrolled:bg-(color:--navbar-top-bg) not-data-scrolled:bg-(image:--navbar-top-scrim) not-data-scrolled:bg-origin-border not-data-scrolled:backdrop-blur-(--navbar-top-blur)',
-          'not-data-scrolled:[--color-fg-muted:var(--navbar-top-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-top-fg)]',
-          'not-data-scrolled:[text-shadow:var(--navbar-top-text-shadow)]',
-          '[transition:background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press),translate_var(--navbar-show-duration)_var(--navbar-show-ease),opacity_var(--navbar-show-duration)_var(--navbar-show-ease)]',
+          '[transition:background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press),translate_var(--duration-normal)_var(--ease-press)]',
         ],
       },
     },
-    // スクロールで隠す。影まで見えなくなるよう、帯の高さより少し余分に押し上げる
-    //   スクロールの量に合わせて動かしているあいだ（data-following）は、動きを付けずに --navbar-follow-offset だけ押し上げる
+    // 透かしているあいだの文字の守り方。白い文字にするときは、帯の中だけ本文の色を差し替える
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      transparentVariant: ['plain', 'text-shadow'],
+      class: { root: 'not-data-scrolled:bg-transparent' },
+    },
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      transparentVariant: 'scrim',
+      class: {
+        root: [
+          'not-data-scrolled:bg-transparent not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border',
+          'not-data-scrolled:[--color-fg-muted:var(--navbar-scrim-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
+        ],
+      },
+    },
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      transparentVariant: 'frosted',
+      class: {
+        root: 'not-data-scrolled:bg-(color:--navbar-frosted-bg) not-data-scrolled:backdrop-blur-(--navbar-frosted-blur)',
+      },
+    },
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      transparentVariant: 'text-shadow',
+      class: {
+        root: [
+          'not-data-scrolled:[--color-fg-muted:var(--navbar-text-shadow-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
+          'not-data-scrolled:[text-shadow:var(--navbar-text-shadow)]',
+        ],
+      },
+    },
+    // スクロールで隠す。スクロールしているあいだ（data-following）は、動きを付けずに --navbar-follow-offset だけ押し上げる
+    //   止まったら近い方へ寄せる。隠すときは、影まで見えなくなるよう帯の高さより少し余分に押し上げる
     {
       sticky: true,
       stickyBehavior: 'hide-on-scroll',
       class: {
         root: [
           'translate-y-[calc(var(--navbar-follow-offset,0px)*-1)]',
-          'data-hidden:-translate-y-[calc(100%+var(--navbar-hide-shadow-room))] data-hidden:opacity-(--navbar-hide-opacity)',
-          '[transition:translate_var(--navbar-show-duration)_var(--navbar-show-ease),opacity_var(--navbar-show-duration)_var(--navbar-show-ease),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
-          'data-hidden:[transition:translate_var(--navbar-hide-duration)_var(--navbar-hide-ease),opacity_var(--navbar-hide-duration)_var(--navbar-hide-ease),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
+          'data-hidden:-translate-y-[calc(100%+var(--navbar-hide-shadow-room))]',
+          '[transition:translate_var(--duration-normal)_var(--ease-press),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
           'data-following:transition-none motion-reduce:transition-none',
         ],
       },
@@ -156,6 +194,7 @@ const navbar = tv({
     stickyEdge: 'line',
     stickyBackdrop: 'solid',
     stickyBehavior: 'always',
+    transparentVariant: 'plain',
   },
 });
 
@@ -239,8 +278,15 @@ export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> 
    */
   stickyBackdrop?: NavbarStickyBackdrop;
   /**
-   * 貼り付けた（sticky）ときの出し方。always はいつも出し、hide-on-scroll は下へスクロールすると隠して、上へ戻すと出します。
-   * 帯の中にフォーカスがあるときと、メニューを開いているときは隠しません
+   * stickyBackdrop="transparent-until-scroll" で透かしているあいだの、文字の読みやすさの守り方。
+   * plain は面を敷かず本文の色のまま（明るい画像向け）、scrim は上から暗い幕を敷いて文字を白く、
+   * frosted は白を薄く敷いて後ろをぼかし、text-shadow は面を敷かずに文字を白くして淡い影を落とします（暗い画像向け）
+   * @default 'plain'
+   */
+  transparentVariant?: NavbarTransparentVariant;
+  /**
+   * 貼り付けた（sticky）ときの出し方。always はいつも出し、hide-on-scroll はスクロールした量だけ帯を押し上げて隠し、上へ戻すと出します。
+   * スクロールを止めると、近い方（隠すか出すか）へ寄せます。帯の中にフォーカスがあるときと、メニューを開いているときは隠しません
    * @default 'always'
    */
   stickyBehavior?: NavbarStickyBehavior;
@@ -285,6 +331,7 @@ export function Navbar({
   stickyEdge,
   stickyBackdrop,
   stickyBehavior,
+  transparentVariant,
   accessibleName = 'メイン',
   menuTitle = 'メニュー',
   menuSide = 'auto',
@@ -295,7 +342,7 @@ export function Navbar({
   ref,
   ...props
 }: NavbarProps) {
-  const s = navbar({ sticky, stickyEdge, stickyBackdrop, stickyBehavior });
+  const s = navbar({ sticky, stickyEdge, stickyBackdrop, stickyBehavior, transparentVariant });
   const sheet = useSheetPresentation('auto');
   const side = menuSide === 'auto' ? (sheet ? 'bottom' : 'right') : menuSide;
   const [openState, setOpenState] = useState(false);

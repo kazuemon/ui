@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Navbar, NavbarGroup, NavbarLink, NavbarLinks, NavbarMenuList } from './Navbar';
-import { landscape } from '../../samples/images';
+import { landscape, night } from '../../samples/images';
 import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
@@ -59,7 +59,9 @@ const meta = {
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
           '- いまいるページの印は `currentIndicator` で選びます。`text`（既定）は文字を濃く太く、`neutral` はグレーの面、`primary` は淡い青の面、`underline` は文字の下に青い線です。',
-          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`・`transparent-until-scroll`）で選びます。`transparent-until-scroll` は、いちばん上では面と境目を消して後ろを見せ、スクロールすると `solid` と同じ面にします。`stickyBehavior="hide-on-scroll"` で、下へスクロールすると隠し、上へ戻すと出します。',
+          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`・`transparent-until-scroll`）で選びます。`transparent-until-scroll` は、いちばん上では面と境目を消して後ろを見せ、スクロールすると `solid` と同じ面にします。',
+          '- 透かしているあいだの文字は `transparentVariant` で守ります。`plain`（既定）は面を敷かず本文の色のままで、明るい画像に向きます。`scrim` は上から暗い幕を敷いて文字を白く、`frosted` は白を薄く敷いて後ろをぼかし、`text-shadow` は面を敷かずに文字を白くして淡い影を落とします。暗い画像には `scrim` か `text-shadow` を使います。帯を画像に重ねるには、帯の下の余白を使う側で詰めます（`className="-mb-(--navbar-height)"` など）。',
+          '- `stickyBehavior="hide-on-scroll"` で、スクロールした量だけ帯を押し上げて隠し、上へ戻すと出します。スクロールを止めると、隠すか出すか近い方へ寄せます。帯の中にフォーカスがあるときと、メニューを開いているときは隠しません。',
           '- Next.js の `Link` は、`NavbarLink` の `render` に渡します。',
         ].join('\n'),
       },
@@ -72,6 +74,7 @@ const meta = {
     stickyEdge: 'line',
     stickyBackdrop: 'solid',
     stickyBehavior: 'always',
+    transparentVariant: 'plain',
     accessibleName: 'メイン',
     menuTitle: 'メニュー',
     menuSide: 'auto',
@@ -101,6 +104,11 @@ const meta = {
       control: 'inline-radio',
       options: ['always', 'hide-on-scroll'],
       table: { defaultValue: { summary: "'always'" } },
+    },
+    transparentVariant: {
+      control: 'inline-radio',
+      options: ['plain', 'scrim', 'frosted', 'text-shadow'],
+      table: { defaultValue: { summary: "'plain'" } },
     },
     menuSide: {
       control: 'inline-radio',
@@ -289,6 +297,47 @@ export const Sticky: Story = {
               />
             </div>
           </div>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+const transparentVariants = ['plain', 'scrim', 'frosted', 'text-shadow'] as const;
+
+export const TransparentTop: Story = {
+  tags: ['visual'],
+  name: 'いちばん上で透かすとき',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-4">
+      {transparentVariants.map((variant) => (
+        <div key={variant} className="flex items-center gap-6">
+          <span className="w-24 text-xs font-bold text-fg-subtle">{variant}</span>
+          {[landscape, night].map((image) => (
+            <div key={image} className="h-40 w-[560px] overflow-y-auto border border-line bg-bg">
+              <Navbar
+                sticky
+                stickyBackdrop="transparent-until-scroll"
+                transparentVariant={variant}
+                className="-mb-(--navbar-height)"
+                brand={<span>k6n</span>}
+                actions={<Button variant="outline">Contact</Button>}
+              >
+                {links()}
+              </Navbar>
+              <img src={image} alt="" className="block h-48 w-full object-cover" />
+            </div>
+          ))}
         </div>
       ))}
     </div>
