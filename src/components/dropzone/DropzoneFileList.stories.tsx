@@ -156,8 +156,12 @@ export const Saved: Story = {
     await expect(link).toHaveAttribute('href', '#resume.pdf');
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(canvas.getAllByRole('button', { name: '削除: cover.svg' })).toHaveLength(2);
-    await expect(canvas.getAllByRole('button', { name: '外す: kazuemon-icon.png' })).toHaveLength(2);
+    await expect(canvas.getAllByRole('button', { name: '外す: kazuemon-icon.png' })).toHaveLength(
+      2
+    );
     // いま選んだものはリンクにしない
-    await expect(canvas.queryByRole('link', { name: /kazuemon-icon\.png/ })).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByRole('link', { name: /kazuemon-icon\.png/ })
+    ).not.toBeInTheDocument();
   },
 };

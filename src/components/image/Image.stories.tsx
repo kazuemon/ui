@@ -18,6 +18,9 @@ const landscape = svg(
 const portrait = `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" width="360" height="480"><rect width="360" height="480" fill="#cfeafc"/><circle cx="180" cy="170" r="70" fill="#fff4cc"/><path d="M0 380 L120 300 L240 360 L360 290 L360 480 L0 480Z" fill="#2f6b58"/></svg>')}`;
 // 読み込めない画像（壊れたデータ）
 const broken = 'data:image/png;base64,AAAA';
+// landscape を 16×9 px に縮めた仮画像（ぼかして敷く）
+const landscapeTiny =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAAA0UlEQVR42mNoOPqDJMTQefIHQbTn9hMggrAZJp37gRVNPvMNiCDsj+8vAhGEzTD70k8QuvBtzonXUDaYO3fHNSACMoDcRVe+AdHsc5+BbIal134uvvhl/s5r8zefX3TiJZC75Mo3CBeEdl4DcoGCCw49hChgWHXp4/ytF6HSm88vO/F84a7rcC4QAbnIIgwLtl6cuOpAQlcPEAEZEFEgI7KtxbYkLb1/8ox1x+GqgeIMQY21+tkRcATketeWIouY5ccDteVNnuVSkQfkMiDLEYMAA9EatvHG6TMAAAAASUVORK5CYII=';
 
 // Next.js の Image の代わり。src などを受け取り、渡された className を img に付ける
 function FrameworkImage(props: ComponentProps<'img'> & { src: string; alt: string }) {
@@ -41,6 +44,8 @@ const meta = {
           '- 読み込みに失敗したときは、面の上に破れた画像のアイコンと「読み込みに失敗しました」を出します。文は `errorText` で変えられます。',
           '- `radius` は角です。`card`（既定）はカードの角、`nested` は入れ子のカードの内側の角、`none` はカードの端まで届かせる画像です。',
           '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。外すときは `hideOutline` を渡します。',
+          '- `placeholder` に小さな画像の URL（数十 px の縮小版や data URL）か要素を渡すと、読み込み中の面の代わりに、それをぼかして敷きます。読み込めたら本物に替わります。',
+          '- `fallbackSrc` を渡すと、`src` が読み込めなかったときに一度だけその画像に替えます。それも読み込めなかったときは、失敗の面を出します。',
           '- Next.js の `Image` は `render` に渡します。',
         ].join('\n'),
       },
@@ -226,5 +231,32 @@ export const Fit: Story = {
   play: async ({ canvas }) => {
     await expect(getComputedStyle(canvas.getByAltText('切り取る')).objectFit).toBe('cover');
     await expect(getComputedStyle(canvas.getByAltText('収める')).objectFit).toBe('contain');
+  },
+};
+
+export const PlaceholderAndFallback: Story = {
+  name: '仮画像・代わりの画像',
+  decorators: [narrow],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-6">
+      <Specimen label="読み込み中（仮画像）">
+        <Image alt="読み込み中の絵" placeholder={landscapeTiny} />
+      </Specimen>
+      <Specimen label="読み込めない src と、代わりの画像">
+        <Image src={broken} fallbackSrc={landscape} alt="空と山の絵" ratio="16 / 9" />
+      </Specimen>
+      <Specimen label="代わりの画像も読み込めない">
+        <Image src={broken} fallbackSrc={broken} alt="壊れた絵" ratio="16 / 9" />
+      </Specimen>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const frames = [...canvasElement.querySelectorAll('[data-slot="image"]')];
+    await expect(frames[0]).toHaveAttribute('data-status', 'loading');
+    await expect(frames[0]).toHaveAttribute('data-placeholder');
+    await waitFor(() => expect(frames[1]).toHaveAttribute('data-status', 'loaded'));
+    await expect(frames[1].querySelector('img')).toHaveAttribute('src', landscape);
+    await waitFor(() => expect(frames[2]).toHaveAttribute('data-status', 'error'));
   },
 };
