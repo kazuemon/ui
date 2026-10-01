@@ -15,7 +15,13 @@ export function useFormReset(onReset: () => void, enabled: boolean): RefCallback
   const ref = useCallback((node: HTMLInputElement | null) => setForm(node?.form ?? null), []);
   useEffect(() => {
     if (!enabled || !form) return undefined;
-    const reset = () => latest.current();
+    // reset はキャンセルできる（ほかの listener が preventDefault を呼ぶ）。全部の listener が済んでから確かめ、
+    // キャンセルされなかったときだけ戻す
+    const reset = (event: Event) => {
+      setTimeout(() => {
+        if (!event.defaultPrevented) latest.current();
+      });
+    };
     form.addEventListener('reset', reset);
     return () => form.removeEventListener('reset', reset);
   }, [enabled, form]);
