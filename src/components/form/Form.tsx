@@ -57,7 +57,8 @@ export interface FormProps extends ComponentProps<'form'> {
    * どの欄にも結び付かないエラーの文です（「通信できませんでした」「このメールアドレスはすでに登録されています」など）。
    * フォームの上に危険のお知らせとして出します。showErrorSummary のときは、エラーの一覧と一緒に出します。
    * 送信したとき（submitting を false に戻したときも）に渡されていれば、このお知らせへフォーカスを移します。
-   * サーバーから返ってきたときは、errors と同じく submitting を false にするのと同じ描画で渡してください
+   * サーバーから返ってきたときは、errors と同じく submitting を false にするのと同じ描画で渡してください。
+   * 送り始めて submitting を true にしているあいだは、前の送信のお知らせへはフォーカスを移しません
    */
   formErrorText?: ReactNode;
   /**
@@ -157,9 +158,11 @@ export function Form({
   const errorSummaryRef = useRef(showErrorSummary);
   const hasFormError = formErrorText != null && formErrorText !== false && formErrorText !== '';
   const formErrorRef = useRef(hasFormError);
+  const submittingRef = useRef(submitting);
   useLayoutEffect(() => {
     errorSummaryRef.current = showErrorSummary;
     formErrorRef.current = hasFormError;
+    submittingRef.current = submitting;
   });
   const setRefs = useCallback(
     (node: HTMLFormElement | null) => {
@@ -248,7 +251,8 @@ export function Form({
     const entries = collectErrors(form);
     const summaryShown = errorSummaryRef.current && entries.length > 0;
     setSummary(summaryShown ? { entries } : null);
-    if (summaryShown || formErrorRef.current) {
+    // 送り始めて submitting にした描画では、前の送信の formErrorText へは移さない（送り終えたときに移す）
+    if (summaryShown || (formErrorRef.current && !submittingRef.current)) {
       setPanelFocus(focusCount);
       return;
     }

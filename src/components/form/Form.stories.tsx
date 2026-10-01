@@ -653,6 +653,60 @@ export const FormErrorText: Story = {
   },
 };
 
+// 送り直しても前のエラーを消さないアプリ。送っているあいだは、前のエラーのお知らせへフォーカスを移さない
+function FormErrorTextKeptForm() {
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string>();
+  const [count, setCount] = useState(0);
+  return (
+    <Form
+      formErrorText={formError}
+      submitting={submitting}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        setTimeout(() => {
+          setFormError(`通信できませんでした（${count + 1} 回目）`);
+          setCount(count + 1);
+          setSubmitting(false);
+        }, 300);
+      }}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      <TextField name="email" label="メールアドレス" defaultValue="kazuemon@example.com" />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  );
+}
+
+export const FormErrorTextResubmit: Story = {
+  name: 'どの欄にも結び付かないエラー: 送り直す',
+  parameters: { controls: { disable: true } },
+  render: () => <FormErrorTextKeptForm />,
+  play: async ({ canvas }) => {
+    const button = canvas.getByRole('button', { name: '登録する' });
+    await userEvent.click(button);
+    const first = await canvas.findByText('通信できませんでした（1 回目）', undefined, {
+      timeout: 3000,
+    });
+    const panel = first.closest('[data-slot="form-error-summary"]');
+    await waitFor(() => expect(panel).toHaveFocus());
+    // 送り直す: 送っているあいだは、前のエラーへフォーカスを移さない
+    await userEvent.click(button);
+    await expect(panel).not.toHaveFocus();
+    await canvas.findByText('通信できませんでした（2 回目）', undefined, { timeout: 3000 });
+    await waitFor(() =>
+      expect(
+        canvas
+          .getByText('通信できませんでした（2 回目）')
+          .closest('[data-slot="form-error-summary"]')
+      ).toHaveFocus()
+    );
+  },
+};
+
 // 一覧と両方あるとき: どの欄にも結び付かないエラーを、一覧の上に別のお知らせとして並べる
 export const FormErrorTextWithSummary: Story = {
   name: 'どの欄にも結び付かないエラーと、エラーの一覧',
