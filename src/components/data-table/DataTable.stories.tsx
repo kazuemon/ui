@@ -472,6 +472,81 @@ export const ResizableColumns: Story = {
   },
 };
 
+const columnWidthChange = fn();
+
+function ControlledColumnWidths() {
+  const [width, setWidth] = useState(160);
+  return (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文">
+        <TableHead>
+          <TableRow>
+            <DataTableHeader
+              resizable
+              width={width}
+              maxWidth={176}
+              onWidthChange={(next) => {
+                columnWidthChange(next);
+                setWidth(next);
+              }}
+              resizeName="お店の列の幅"
+            >
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end" resizable resizeName="金額の列の幅">
+              金額
+            </DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 2).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  );
+}
+
+export const ResizableColumnsControlled: Story = {
+  name: '列の幅を外で持つ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`resizable` の列に数の `width` を渡すと、幅を外で持つ形になります。`onWidthChange` で受けた幅を `width` に渡し直します（TanStack Table では `header.getSize()` と `table.setColumnSizing`）。',
+      },
+    },
+  },
+  render: () => <ControlledColumnWidths />,
+  play: async ({ canvas }) => {
+    columnWidthChange.mockClear();
+    const handle = canvas.getByRole('separator', { name: 'お店の列の幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '160');
+    handle.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
+    await expect(handle).toHaveAttribute('aria-valuenow', '176');
+    // 上限を越えない
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
+    await userEvent.keyboard('{Home}');
+    await expect(handle).toHaveAttribute('aria-valuenow', '48');
+    // 最後の列のつまみは、表の外へはみ出さない（枠に横のスクロールを生まない）
+    const last = canvas.getByRole('separator', { name: '金額の列の幅' });
+    const cell = last.closest('th')!;
+    await expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
+      cell.getBoundingClientRect().right + 0.5
+    );
+    const scroller = canvas.getByRole('region', { name: '注文' });
+    await expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth);
+  },
+};
+
 export const EmptyAndLoading: Story = {
   tags: ['visual'],
   name: '空のとき・読み込み中',

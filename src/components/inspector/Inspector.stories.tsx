@@ -88,6 +88,7 @@ const meta = {
           '- `variant` で開き方を選びます。`push`（既定）は本文を押しのけて場所を占め、本文の幅が狭くなります。`overlay` は領域の中で本文の上に重ね、本文の幅は変えません。',
           '- 重ねる形の端の形は `overlayEdge` で選びます。`flush`（既定）は領域の端に着け、角を丸めません。`floating` は領域の端から少し離し、4 つの角を丸めて浮かべます。',
           '- 幅は `width` で変えられます。数値は px、文字列は CSS の長さです。書かないときは Drawer の横のパネルと同じ幅です。',
+          '- `resizable` を付けると、本文との境のつまみをドラッグして、ユーザーが幅を変えられます（`minWidth`〜`maxWidth`）。キーボードでは、つまみにフォーカスして ← → で 16px ずつ、Home・End で最小・最大にし、ダブルクリックではじめの幅に戻ります。はじめの幅は `defaultWidth` です。変えた幅を覚えておくときは、`onWidthChange` で受けて保存し、`width` に渡し直します。',
           '- 開閉の動きは `motion` で選びます。`slide`（既定）は領域の端から滑らせ、`none` は動かさずにすぐ切り替えます。何度も開け閉めする画面や、本文の折り返しが動くのを避けたいときは `none` にします。',
           '- `side` で出す辺を選びます。既定は `right` です。Sidebar を左に置くときは、反対の右に置きます。',
           '- 見出しには題（`title`）と説明（`description`）、右上に閉じる × を置きます。題はパネルの読み上げの名前になります。× を置かないときは `hideCloseButton` を渡し、`InspectorTrigger` か `actions` に閉じる手段を置きます。',
@@ -277,6 +278,58 @@ export const WidthPercent: Story = {
         0
       )
     );
+  },
+};
+
+const resizeChange = fn();
+
+export const Resizable: Story = {
+  name: 'ユーザーが幅を変える',
+  args: {
+    resizable: true,
+    defaultWidth: 320,
+    minWidth: 288,
+    maxWidth: 352,
+    onWidthChange: resizeChange,
+  },
+  parameters: {
+    controls: { include: ['variant', 'side'] },
+    docs: {
+      description: {
+        story:
+          '`resizable` を付けると、本文との境のつまみで幅を変えられます。つまみはふだん見えず、載せると線が出ます。ここでは `minWidth`・`maxWidth` を狭くとっています。',
+      },
+      source: sourceCode(`
+        <Inspector title="企画書.pdf" resizable defaultWidth={320} onWidthChange={saveWidth}>
+          …
+        </Inspector>
+      `),
+    },
+  },
+  render: (args) => <Area inspector={<Inspector {...args}>{details}</Inspector>} />,
+  play: async ({ canvas }) => {
+    resizeChange.mockClear();
+    const panel = await canvas.findByRole('complementary', { name: '企画書.pdf' });
+    const handle = canvas.getByRole('separator', { name: 'パネルの幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '320');
+    await expect(handle).toHaveAttribute('aria-valuemin', '288');
+    await expect(handle).toHaveAttribute('aria-valuemax', '352');
+    handle.focus();
+    // 右に置いたパネルは、左へ動かすと広がる
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(resizeChange).toHaveBeenLastCalledWith(336);
+    await waitFor(() => expect(panel.getBoundingClientRect().width).toBeCloseTo(336, 0));
+    // 上限・下限を越えない
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
+    await expect(resizeChange).toHaveBeenLastCalledWith(352);
+    await expect(handle).toHaveAttribute('aria-valuenow', '352');
+    await userEvent.keyboard('{Home}{ArrowRight}');
+    await expect(resizeChange).toHaveBeenLastCalledWith(288);
+    await userEvent.keyboard('{End}');
+    await expect(handle).toHaveAttribute('aria-valuenow', '352');
+    // ダブルクリックで、はじめの幅に戻る
+    await userEvent.dblClick(handle);
+    await expect(handle).toHaveAttribute('aria-valuenow', '320');
   },
 };
 
