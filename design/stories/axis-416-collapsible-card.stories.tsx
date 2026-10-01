@@ -16,12 +16,12 @@ const meta = {
       focusVisible: '[data-slot="collapsible-trigger"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'A,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['A,C', '', 'current', 'A', 'B', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -152,6 +152,12 @@ export const Axis: Story = {
               title="詳しい設定"
               defaultOpen={column.label === '開いている'}
             >
+              <p>
+                決定: variant="card" は A（カードの角・開いた行は塗らない・間 8px）を既定にし、C
+                の開いた行の塗りを選べる（間は A と同じ
+                8px）。項目の間を密度で変えるかは後で考える。ユーザーの返事「カードの角、デフォルト塗りなし、塗りあり選択可。項目間8px、backlog
+                で密度調整検討を足してください。」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+              </p>
               {answer}
             </Collapsible>
           </div>

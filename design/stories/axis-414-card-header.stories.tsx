@@ -19,12 +19,12 @@ const meta = {
   title: 'Design Review/414 カードの頭の帯',
   id: 'design-review-414-card-header',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,B,C', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -182,6 +182,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: CardHeader は A（白い帯＋下の線）を既定にし、グレーの帯（B・C
+        の塗り）と、下の線のあり・なしを選べる。入れ子（nested）では、帯の下の線の端を丸めない。ユーザーの返事「デフォルトA、グレーと線ありなしも選択可、ですかね。nested
+        で線の端は丸めないでほしいです。」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Card に頭の帯 CardHeader を足します。カードのいちばん上に置き、題と右端の操作を 1
         行に並べます。左右の余白は中身とそろえます。入れ子（nested）では、帯を画像と同じく内側に収め、角を同心の角にします。

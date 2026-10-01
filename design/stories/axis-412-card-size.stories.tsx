@@ -11,12 +11,12 @@ const meta = {
   title: 'Design Review/412 カードの詰めた余白',
   id: 'design-review-412-card-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['D', '', 'current', 'A', 'B', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -88,6 +88,22 @@ const candidates: Candidate[] = [
       '--card-nested-inset-sm': 'calc(var(--spacing) * 1)',
     },
   },
+  {
+    id: 'D',
+    name: '余白 12px・間はそのまま・入れ子 6px',
+    intent:
+      'ユーザーの返事から足した形。中身の余白を 12px に詰め、縦の間は md と同じ 4px に残す。入れ子の余白は A と同じ 6px',
+    spec: [
+      ['中身の余白', '12px'],
+      ['縦の間', '4px'],
+      ['入れ子の余白', '6px'],
+    ],
+    tokens: {
+      '--card-padding-sm': 'calc(var(--spacing) * 3)',
+      '--card-gap-sm': 'calc(var(--spacing) * 1)',
+      '--card-nested-inset-sm': 'calc(var(--spacing) * 1.5)',
+    },
+  },
 ];
 
 const columns: Column[] = [
@@ -157,6 +173,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 候補にない D（中身の余白 12px・縦の間 4px・入れ子の余白 6px）を size="sm"
+        の値にする。ユーザーの返事「ここにない 12/4/6 かなと思いました。」。D
+        は返事を受けて足した行です。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Card に余白の段 size（sm・md）を足します。md は今の余白のままで既定です。sm
         は狭い列や、たくさん並べる一覧のために、中身の余白・日付と題のあいだ・入れ子の画像の周りを詰めます。

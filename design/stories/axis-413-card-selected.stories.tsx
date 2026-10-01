@@ -18,12 +18,12 @@ const meta = {
       focusVisible: '[data-slot="card"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'A,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,C', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -166,6 +166,11 @@ export const Axis: Story = {
         )
       }
     >
+      <p>
+        決定: 選んでいる見た目は A（淡い面＋線）を既定にし、C（線だけ）も選べる。色は primary
+        などを指定できる。ユーザーの返事「ユーザーの考え次第ですが、デフォAでCも選べる、色は primary
+        など指定可能、かなと。」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Card に onClick を渡すと、href がなければカード全体が 1
         つのボタン（button）になります。見た目は href のカードと同じ浮いた押すもの（薄い影・hover
