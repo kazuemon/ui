@@ -394,6 +394,7 @@ export {
   type NavbarNarrowPlacement,
   type NavbarProps,
   type NavbarStickyBackdrop,
+  type NavbarStickyBehavior,
   type NavbarStickyEdge,
 } from './components/navbar/Navbar';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';

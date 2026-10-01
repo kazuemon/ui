@@ -1311,6 +1311,28 @@
   --navbar-sticky-shadow: 0 4px 16px rgb(from var(--color-shadow) r g b / 0.08);
   --navbar-backdrop-bg: color-mix(in oklab, var(--color-bg) 80%, transparent);
   --navbar-backdrop-blur: calc(var(--spacing) * 3);
+  /* スクロールで隠す（stickyBehavior="hide-on-scroll"。軸 503。比べている途中）
+       hide-*: 下へスクロールして隠れる動き。show-*: 上へ戻して出てくる動き。hide-opacity: 隠れたときの濃さ（1 で動きだけ、0 で薄れる）
+       hide-follow: 1 でスクロールの量に合わせて帯を押し上げ、止めたら近い方へ寄せる（0 で、向きが変わったら一度に動かす）
+       hide-shadow-room: 隠すとき、影まで見えなくなるよう余分に押し上げる幅 */
+  --navbar-hide-duration: var(--duration-normal);
+  --navbar-hide-ease: var(--ease-press);
+  --navbar-show-duration: var(--duration-normal);
+  --navbar-show-ease: var(--ease-press);
+  --navbar-hide-opacity: 1;
+  --navbar-hide-follow: 0;
+  --navbar-hide-shadow-room: calc(var(--spacing) * 4);
+  /* いちばん上では透かす（stickyBackdrop="transparent-until-scroll"。軸 504。比べている途中）
+       top-bg・top-scrim・top-blur: いちばん上にいるときの面の色・上から下へ薄れる幕・後ろのぼかし
+       top-fg・top-fg-muted: いちばん上にいるときの文字の色（写真の上で白くするとき）。top-text-shadow: 文字の影
+       backdrop-duration: 透けた面から不透明な面へ移る長さ */
+  --navbar-top-bg: transparent;
+  --navbar-top-scrim: none;
+  --navbar-top-blur: 0px;
+  --navbar-top-fg: var(--color-fg);
+  --navbar-top-fg-muted: var(--color-fg-muted);
+  --navbar-top-text-shadow: none;
+  --navbar-backdrop-duration: var(--duration-normal);
   /* ── END navbar */
 
   /* ── Affix — ADR-0175・0176 ── BEGIN affix */

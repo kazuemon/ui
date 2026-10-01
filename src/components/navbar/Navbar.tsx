@@ -5,6 +5,7 @@ import {
   Children,
   type ComponentProps,
   createContext,
+  type CSSProperties,
   type MouseEvent,
   type ReactElement,
   type ReactNode,
@@ -27,6 +28,7 @@ import { Button } from '../button/Button';
 import { Container, type ContainerSize } from '../container/Container';
 import { Drawer, type SheetSide } from '../drawer/Drawer';
 import { useMenuGroups } from './use-menu-groups';
+import { useNavbarScroll } from './use-navbar-scroll';
 
 // ページの上の帯 — 軸 104・105
 //   ロゴ（brand）・行き先（NavbarLink）・操作（actions）を 1 行に並べる。中身の幅と左右の余白は Container と同じ
@@ -34,6 +36,8 @@ import { useMenuGroups } from './use-menu-groups';
 //   貼り付け（sticky）は既定で切り、選べるようにする（軸 105）。貼り付けると内容が帯の下を通るので、境目と面を選べる
 //     stickyEdge: line（既定）は貼り付けていないときと同じ細い線、shadow は線の代わりに下へ淡い影（重なるレイヤーとして見せる — 原則1）
 //     stickyBackdrop: solid（既定）は白い面、blur は面を透かして後ろをぼかす
+//       transparent-until-scroll は、いちばん上では透かし（軸 504）、スクロールしたら solid と同じ面にする
+//     stickyBehavior: always（既定）はいつも出す。hide-on-scroll は下へスクロールすると隠し、上へ戻すと出す（軸 503）
 //   中身（children）は自由に置く。行き先は NavbarLinks（nav と ul）に、ほかのもの（検索の欄など）は NavbarGroup に入れる
 //   帯の幅が 48rem（Tailwind の md と同じ幅）より狭いときの行き先は、まとまりごとに narrowPlacement で選ぶ
 //     menu（既定）はメニューのボタンに畳み、押すと Drawer に縦に並べて出す。bar は帯に残す。hidden は隠す
@@ -56,7 +60,8 @@ type Placement = 'bar' | 'menu';
 export type NavbarNarrowPlacement = 'menu' | 'bar' | 'hidden';
 export type NavbarCurrentIndicator = 'text' | 'neutral' | 'primary' | 'underline';
 export type NavbarStickyEdge = 'line' | 'shadow';
-export type NavbarStickyBackdrop = 'solid' | 'blur';
+export type NavbarStickyBackdrop = 'solid' | 'blur' | 'transparent-until-scroll';
+export type NavbarStickyBehavior = 'always' | 'hide-on-scroll';
 
 const NavbarContext = createContext<{
   placement: Placement;
@@ -100,7 +105,8 @@ const navbar = tv({
       false: {},
     },
     stickyEdge: { line: {}, shadow: {} },
-    stickyBackdrop: { solid: {}, blur: {} },
+    stickyBackdrop: { solid: {}, blur: {}, 'transparent-until-scroll': {} },
+    stickyBehavior: { always: {}, 'hide-on-scroll': {} },
   },
   compoundVariants: [
     {
@@ -115,8 +121,42 @@ const navbar = tv({
         root: 'bg-(--navbar-backdrop-bg) backdrop-blur-(--navbar-backdrop-blur)',
       },
     },
+    // いちばん上では透かす（data-scrolled がないあいだ）。文字の色は、帯の中だけ本文の色を差し替える
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      class: {
+        root: [
+          'not-data-scrolled:border-transparent not-data-scrolled:shadow-none',
+          'not-data-scrolled:bg-(color:--navbar-top-bg) not-data-scrolled:bg-(image:--navbar-top-scrim) not-data-scrolled:backdrop-blur-(--navbar-top-blur)',
+          'not-data-scrolled:[--color-fg-muted:var(--navbar-top-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-top-fg)]',
+          'not-data-scrolled:[text-shadow:var(--navbar-top-text-shadow)]',
+          '[transition:background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press),translate_var(--navbar-show-duration)_var(--navbar-show-ease),opacity_var(--navbar-show-duration)_var(--navbar-show-ease)]',
+        ],
+      },
+    },
+    // スクロールで隠す。影まで見えなくなるよう、帯の高さより少し余分に押し上げる
+    //   スクロールの量に合わせて動かしているあいだ（data-following）は、動きを付けずに --navbar-follow-offset だけ押し上げる
+    {
+      sticky: true,
+      stickyBehavior: 'hide-on-scroll',
+      class: {
+        root: [
+          'translate-y-[calc(var(--navbar-follow-offset,0px)*-1)]',
+          'data-hidden:-translate-y-[calc(100%+var(--navbar-hide-shadow-room))] data-hidden:opacity-(--navbar-hide-opacity)',
+          '[transition:translate_var(--navbar-show-duration)_var(--navbar-show-ease),opacity_var(--navbar-show-duration)_var(--navbar-show-ease),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
+          'data-hidden:[transition:translate_var(--navbar-hide-duration)_var(--navbar-hide-ease),opacity_var(--navbar-hide-duration)_var(--navbar-hide-ease),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
+          'data-following:transition-none motion-reduce:transition-none',
+        ],
+      },
+    },
   ],
-  defaultVariants: { sticky: false, stickyEdge: 'line', stickyBackdrop: 'solid' },
+  defaultVariants: {
+    sticky: false,
+    stickyEdge: 'line',
+    stickyBackdrop: 'solid',
+    stickyBehavior: 'always',
+  },
 });
 
 const navbarLink = tv({
@@ -193,10 +233,17 @@ export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> 
    */
   stickyEdge?: NavbarStickyEdge;
   /**
-   * 貼り付けた（sticky）ときの面。solid は白い面、blur は面を透かして後ろをぼかします
+   * 貼り付けた（sticky）ときの面。solid は白い面、blur は面を透かして後ろをぼかします。
+   * transparent-until-scroll は、いちばん上では面と境目を消して後ろを見せ、スクロールすると solid と同じ面にします
    * @default 'solid'
    */
   stickyBackdrop?: NavbarStickyBackdrop;
+  /**
+   * 貼り付けた（sticky）ときの出し方。always はいつも出し、hide-on-scroll は下へスクロールすると隠して、上へ戻すと出します。
+   * 帯の中にフォーカスがあるときと、メニューを開いているときは隠しません
+   * @default 'always'
+   */
+  stickyBehavior?: NavbarStickyBehavior;
   /**
    * 行き先の並び（nav）の読み上げの名前。画面には出ません
    * @default 'メイン'
@@ -237,6 +284,7 @@ export function Navbar({
   currentIndicator = 'text',
   stickyEdge,
   stickyBackdrop,
+  stickyBehavior,
   accessibleName = 'メイン',
   menuTitle = 'メニュー',
   menuSide = 'auto',
@@ -247,7 +295,7 @@ export function Navbar({
   ref,
   ...props
 }: NavbarProps) {
-  const s = navbar({ sticky, stickyEdge, stickyBackdrop });
+  const s = navbar({ sticky, stickyEdge, stickyBackdrop, stickyBehavior });
   const sheet = useSheetPresentation('auto');
   const side = menuSide === 'auto' ? (sheet ? 'bottom' : 'right') : menuSide;
   const [openState, setOpenState] = useState(false);
@@ -267,6 +315,11 @@ export function Navbar({
   const rootRef = useRef<HTMLElement>(null);
   // 内部の ref（帯の幅を測る）と、利用者が渡した ref をつなぐ（ADR-0250）
   const mergedRef = useMergedRefs(rootRef, ref);
+  const scroll = useNavbarScroll(rootRef, {
+    watchTop: Boolean(sticky) && stickyBackdrop === 'transparent-until-scroll',
+    hideOnScroll: Boolean(sticky) && stickyBehavior === 'hide-on-scroll',
+    keepShown: open,
+  });
 
   // 開いたまま帯が広がり、行き先が帯に戻ったら、メニューを閉じる
   useEffect(() => {
@@ -281,7 +334,23 @@ export function Navbar({
   }, [open]);
 
   return (
-    <header {...props} ref={mergedRef} data-slot="navbar" className={s.root({ className })}>
+    <header
+      {...props}
+      ref={mergedRef}
+      data-slot="navbar"
+      data-scrolled={scroll.scrolled ? '' : undefined}
+      data-hidden={scroll.hidden ? '' : undefined}
+      data-following={scroll.followOffset !== null ? '' : undefined}
+      style={
+        scroll.followOffset !== null
+          ? ({
+              ...props.style,
+              '--navbar-follow-offset': `${scroll.followOffset}px`,
+            } as CSSProperties)
+          : props.style
+      }
+      className={s.root({ className })}
+    >
       <Container size={size} className={s.inner()}>
         {brand && (
           <div data-slot="navbar-brand" className={s.brand()}>
