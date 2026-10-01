@@ -149,13 +149,13 @@ export const sidebar = tv({
     split: 'group/sidebar-split relative flex',
     // 行（リンク）。山形のぶん右を空け、山形に載せているあいだも行の面を出すかはトークンで決める
     splitRow: [
-      'w-auto min-w-0 flex-1 me-(--sidebar-toggle-inset) pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve))]',
+      'me-(--sidebar-toggle-inset) w-auto min-w-0 flex-1 pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve))]',
       'group-has-[[data-slot=sidebar-item-toggle]:hover]/sidebar-split:[--flat-bg:color-mix(in_oklab,var(--sidebar-row-hover)_calc(var(--sidebar-toggle-row-hover)*100%),var(--sidebar-row-rest))]',
       'aria-[current=page]:group-has-[[data-slot=sidebar-item-toggle]:hover]/sidebar-split:[--flat-bg:color-mix(in_oklab,var(--sidebar-current-hover)_calc(var(--sidebar-toggle-row-hover)*100%),var(--sidebar-row-rest))]',
     ],
     // 開け閉めのボタン（山形）。行の右端に重ねる
     toggle: [
-      'group/sidebar-toggle absolute top-[calc((var(--spacing-control)-var(--sidebar-toggle-size))/2)] end-[calc((var(--sidebar-row-px)-var(--spacing))*var(--sidebar-toggle-inside))]',
+      'group/sidebar-toggle absolute end-[calc((var(--sidebar-row-px)-var(--spacing))*var(--sidebar-toggle-inside))] top-[calc((var(--spacing-control)-var(--sidebar-toggle-size))/2)]',
       'grid size-(--sidebar-toggle-size) cursor-pointer place-items-center rounded-control text-fg-subtle',
       'bg-(color:--flat-bg) [--flat-bg:transparent]',
       'hover:text-fg hover:[--flat-bg:color-mix(in_oklab,var(--sidebar-row-press)_calc(var(--sidebar-toggle-hover-depth)*100%),var(--sidebar-row-hover))]',
@@ -169,7 +169,8 @@ export const sidebar = tv({
     ],
     // 行ごとのメニュー（︙）もあるとき、山形はその左に置く
     toggleWithMenu: 'me-[calc(var(--spacing)*7)]',
-    splitRowWithMenu: 'pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve)+var(--spacing)*7)]',
+    splitRowWithMenu:
+      'pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve)+var(--spacing)*7)]',
     // 節（SidebarSection）。題は行と同じ左の位置から始める。畳んだ列では題を出さず、節のあいだに線を引く
     section: 'group/sidebar-section-li flex flex-col not-first:mt-4',
     // 畳んだ列の節の区切り。題の代わりに残した場所の、縦の真ん中に引く（最初の節には引かない）
