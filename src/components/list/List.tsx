@@ -112,10 +112,25 @@ export function List({
 
 // 項目の印をアイコンにした形（icon・status）と、末尾の枠（trailing）
 // 印のアイコンは、箇条書きの印（li::before）を消して、同じ位置（li の左の外、1 行目の中央）に置く。飾りなので読まない
-// 印のアイコンは文字の 1.25 倍（部品の中のアイコンと同じ比）。色は文字の色で、使う側がアイコンに色を付ければその色になる
-// 状態（status）は、状態の色と形のアイコン（成功は丸のチェック、警告は三角、危険は丸の「!」— 原則6）。文は文字の色のまま
+// 印のアイコンは文字の 1.25 倍（部品の中のアイコンと同じ比）。色は既定で項目の文字の色。iconColor で Tag の color と同じ色から選べる
+// 文の色は color で、Tag の color と同じ色から選べる（その色のタグの文字と同じ色）。指定しないときは文字の色
+// 状態（status）は、状態の色と形のアイコン（成功は丸のチェック、警告は三角、危険は丸の「!」— 原則6）。文は文字の色のまま。iconColor を書けばそちらが勝つ
 // 末尾の枠は、文の列の後ろに置く 2 つ目の列で、右端に寄せる。1 行目の行の高さの中で縦の中央にそろえる
 // 中身は使う側が置く JSX なので、文字の大きさや色は決めない
+// 文とアイコンの色。Tag・Chip の color と同じ色で、その色のタグの文字と同じ色
+const listItemColors = {
+  primary: 'text-on-primary-subtle',
+  secondary: 'text-on-secondary-subtle',
+  neutral: 'text-fg-muted',
+  info: 'text-fg-info',
+  success: 'text-fg-success',
+  warning: 'text-fg-warning',
+  danger: 'text-fg-danger',
+} as const;
+
+/** 項目の文と印のアイコンの色。Tag の color と同じ色です */
+export type ListItemColor = keyof typeof listItemColors;
+
 const listItem = tv({
   slots: {
     root: '',
@@ -136,23 +151,28 @@ const listItem = tv({
     status: {
       success: {
         root: '[--list-status-color:var(--color-fg-success)]',
+        icon: 'text-(color:--list-status-color)',
       },
       warning: {
         root: '[--list-status-color:var(--color-fg-warning)]',
+        icon: 'text-(color:--list-status-color)',
       },
       danger: {
         root: '[--list-status-color:var(--color-fg-danger)]',
-      },
-    },
-  },
-  compoundVariants: [
-    {
-      status: ['success', 'warning', 'danger'],
-      class: {
         icon: 'text-(color:--list-status-color)',
       },
     },
-  ],
+    // 印のアイコンの色。status の色より後ろに置き、書いたときは status の色に勝つ。書かないときは、状態の色か、項目の文字の色
+    iconColor: {
+      primary: { icon: listItemColors.primary },
+      secondary: { icon: listItemColors.secondary },
+      neutral: { icon: listItemColors.neutral },
+      info: { icon: listItemColors.info },
+      success: { icon: listItemColors.success },
+      warning: { icon: listItemColors.warning },
+      danger: { icon: listItemColors.danger },
+    },
+  },
 });
 
 /** 項目の状態 */
@@ -164,21 +184,30 @@ const statusIcons = {
   danger: WarningCircleIcon,
 } as const;
 
-export interface ListItemProps extends ComponentProps<'li'> {
+export interface ListItemProps extends Omit<ComponentProps<'li'>, 'color'> {
   /**
    * チェックリストの項目にします。true は済み、false はまだです。箱は押せません（記事の中の表示です）
    */
   checked?: boolean;
   /**
    * 項目の状態。印を状態の色と形のアイコン（success は丸のチェック、warning は三角、danger は丸の「!」）にします。
-   * 文は文字の色のままです。文に色を付けるときは className で指定します。印は読み上げないので、状態は文でも伝えてください
+   * 文は文字の色のままです（文の色は color で選びます）。印は読み上げないので、状態は文でも伝えてください
    */
   status?: ListItemStatus;
   /**
-   * 印の代わりに出すアイコン。status のアイコンより優先します。大きさは文字の 1.25 倍です。
-   * 色は文字の色で、アイコンに色を付けるとその色になります（`<CheckIcon className="text-fg-success" />`）。飾りとして扱い、読み上げません
+   * 印の代わりに出すアイコン。status のアイコンより優先します。大きさは文字の 1.25 倍で、色は iconColor で選びます。
+   * 飾りとして扱い、読み上げません
    */
   icon?: ReactNode;
+  /**
+   * 印のアイコン（icon・status）の色。Tag の color と同じ色から選びます（その色のタグの文字と同じ色）。
+   * 書かないと、status があれば状態の色、なければ項目の文字の色（color）です
+   */
+  iconColor?: ListItemColor;
+  /**
+   * 項目の文の色。Tag の color と同じ色から選びます（その色のタグの文字と同じ色）。書かないと、文字の色です
+   */
+  color?: ListItemColor;
   /**
    * 項目の末尾に置くもの（数・日付・タグ・ボタンなど）。右端に寄せ、1 行目の行の高さの中で縦の中央にそろえます。
    * 文字の大きさや色は付けないので、薄くするときなどは置くものに指定してください
@@ -197,15 +226,19 @@ export function ListItem({
   checked,
   status,
   icon,
+  iconColor,
+  color,
   trailing,
-  className,
+  className: classNameProp,
   children,
   ...props
 }: ListItemProps) {
+  const className =
+    [color && listItemColors[color], classNameProp].filter(Boolean).join(' ') || undefined;
   const StatusIcon = status ? statusIcons[status] : undefined;
   const marker = icon ?? (StatusIcon ? <StatusIcon /> : null);
   if (checked == null && (marker != null || trailing != null)) {
-    const s = listItem({ marker: marker != null, status });
+    const s = listItem({ marker: marker != null, status, iconColor });
     return (
       <li className={s.root({ className })} data-status={status} {...props}>
         {marker != null && (

@@ -24,7 +24,7 @@ const meta = {
           '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
           '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
           '- `ListItem` の `status`（`success`・`warning`・`danger`）で、印を状態の色と形のアイコンにします。`icon` で好きなアイコンを印にできます。印は読み上げないので、状態は文でも伝えます。',
-          '- 印のアイコンは文字の 1.25 倍の大きさで、色は文字の色です。アイコンの色はアイコンに、文の色は `ListItem` の `className` に付けます。',
+          '- 印のアイコンは文字の 1.25 倍の大きさです。`ListItem` の `iconColor` でアイコンの色を、`color` で文の色を、Tag の `color` と同じ色から選びます。書かないときはどちらも文字の色で、`status` のアイコンは状態の色です。',
           '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグ・ボタンなどを置きます。右端に寄せ、1 行目の高さの中で縦の中央にそろえます。文字の大きさや色は、置くものに付けます。',
         ].join('\n'),
       },
@@ -120,11 +120,21 @@ export const StatusAndTrailing: Story = {
           <ListItem>配布物を作る: まだ</ListItem>
         </List>
       </Specimen>
-      <Specimen label="icon（色はアイコンに付ける）">
+      <Specimen label="icon・iconColor・color">
         <List>
-          <ListItem icon={<CheckIcon className="text-fg-success" />}>部品をすべて使える</ListItem>
-          <ListItem icon={<CheckIcon className="text-fg-success" />}>ドキュメントの見本</ListItem>
+          <ListItem icon={<CheckIcon />} iconColor="success">
+            部品をすべて使える
+          </ListItem>
+          <ListItem icon={<CheckIcon />} iconColor="success">
+            ドキュメントの見本
+          </ListItem>
           <ListItem icon={<RocketLaunchIcon />}>はじめの設定を手伝う</ListItem>
+          <ListItem icon={<RocketLaunchIcon />} color="primary">
+            文もアイコンも primary
+          </ListItem>
+          <ListItem status="danger" iconColor="neutral" color="danger">
+            status に iconColor を重ねる
+          </ListItem>
         </List>
       </Specimen>
       <Specimen label="trailing（折り返す文・タグ）">
@@ -214,5 +224,38 @@ export const Reversed: Story = {
     const list = canvas.getByRole('list');
     await expect(list).toHaveAttribute('reversed');
     await expect(reversedRef.current).toBe(list);
+  },
+};
+
+export const IconAndTextColor: Story = {
+  name: 'アイコンと文の色',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List>
+      <ListItem status="success">状態の色</ListItem>
+      <ListItem status="success" iconColor="danger">
+        iconColor が勝つ
+      </ListItem>
+      <ListItem icon={<CheckIcon />} color="info">
+        文の色をアイコンも継ぐ
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvas }) => {
+    const items = canvas.getAllByRole('listitem');
+    const iconColor = (li: HTMLElement) =>
+      getComputedStyle(li.querySelector('[data-slot="list-item-icon"]')!).color;
+    const fg = (name: string) => {
+      const probe = document.createElement('span');
+      probe.style.color = `var(--color-${name})`;
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    };
+    await expect(iconColor(items[0])).toBe(fg('fg-success'));
+    await expect(iconColor(items[1])).toBe(fg('fg-danger'));
+    await expect(getComputedStyle(items[2]).color).toBe(fg('fg-info'));
+    await expect(iconColor(items[2])).toBe(fg('fg-info'));
   },
 };
