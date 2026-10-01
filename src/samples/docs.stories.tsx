@@ -20,7 +20,7 @@ import { CopyButton } from '../components/copy-button/CopyButton';
 import { Drawer } from '../components/drawer/Drawer';
 import { Heading } from '../components/heading/Heading';
 import { Icon } from '../components/icon/Icon';
-import { Navbar, NavbarLink } from '../components/navbar/Navbar';
+import { Navbar, NavbarLink, NavbarLinks } from '../components/navbar/Navbar';
 import { Pager } from '../components/pager/Pager';
 import { Prose } from '../components/prose/Prose';
 import { Tab, TabList, TabPanel, Tabs } from '../components/tabs/Tabs';
@@ -67,11 +67,13 @@ function DocsScreen() {
         }
         actions={<Button variant="outline">GitHub</Button>}
       >
-        <NavbarLink href="#docs" current>
-          ドキュメント
-        </NavbarLink>
-        <NavbarLink href="#components">部品</NavbarLink>
-        <NavbarLink href="#blog">ブログ</NavbarLink>
+        <NavbarLinks>
+          <NavbarLink href="#docs" current>
+            ドキュメント
+          </NavbarLink>
+          <NavbarLink href="#components">部品</NavbarLink>
+          <NavbarLink href="#blog">ブログ</NavbarLink>
+        </NavbarLinks>
       </Navbar>
       <div className="mx-auto flex max-w-[1280px] gap-10 px-5 py-8">
         <aside className="sticky top-20 hidden h-fit w-60 shrink-0 lg:block">{nav}</aside>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Navbar, NavbarLink, Text } from '@kazuemon/ui';
+import { Container, Navbar, NavbarLink, NavbarLinks, Text } from '@kazuemon/ui';
 import type { CSSProperties, ReactNode } from 'react';
 
 import type { Site } from './sites';
@@ -70,11 +70,13 @@ export function SamplePage({
         menuSide="right"
         brand={<Text as="span">{site?.name}</Text>}
       >
-        {site?.nav.map(({ label, href }) => (
-          <NavbarLink key={href} href={href} current={label === current}>
-            {label}
-          </NavbarLink>
-        ))}
+        <NavbarLinks>
+          {site?.nav.map(({ label, href }) => (
+            <NavbarLink key={href} href={href} current={label === current}>
+              {label}
+            </NavbarLink>
+          ))}
+        </NavbarLinks>
       </Navbar>
       {full ? (
         <Container size="full" render={<main className="py-10" />}>

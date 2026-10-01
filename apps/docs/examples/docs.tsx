@@ -23,6 +23,7 @@ import {
   Navbar,
   type NavbarCurrentIndicator,
   NavbarLink,
+  NavbarLinks,
   Pager,
   Prose,
   ScrollArea,
@@ -251,11 +252,13 @@ function DocsScreen({
         }
         actions={<Button variant="outline">GitHub</Button>}
       >
-        <NavbarLink href="#docs" current>
-          ドキュメント
-        </NavbarLink>
-        <NavbarLink href="#components">部品</NavbarLink>
-        <NavbarLink href="#blog">ブログ</NavbarLink>
+        <NavbarLinks>
+          <NavbarLink href="#docs" current>
+            ドキュメント
+          </NavbarLink>
+          <NavbarLink href="#components">部品</NavbarLink>
+          <NavbarLink href="#blog">ブログ</NavbarLink>
+        </NavbarLinks>
       </Navbar>
       <div className="mx-auto flex max-w-[1280px] gap-10 px-5 py-8">
         {/* 目次が画面より長いときは、ScrollArea の中だけをスクロールさせる（ページは動かさない） */}

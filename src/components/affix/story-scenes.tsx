@@ -5,7 +5,7 @@ import { type ReactNode, useCallback, useId, useRef } from 'react';
 import { Button } from '../button/Button';
 import { Container } from '../container/Container';
 import { Heading } from '../heading/Heading';
-import { Navbar, NavbarLink } from '../navbar/Navbar';
+import { Navbar, NavbarLink, NavbarLinks } from '../navbar/Navbar';
 import { TableOfContents } from '../table-of-contents/TableOfContents';
 import { Text } from '../text/Text';
 import { Affix, type AffixProps } from './Affix';
@@ -64,12 +64,14 @@ function Frame({
       className={`${width} ${height} overflow-y-auto rounded-card border border-line bg-bg`}
     >
       <Navbar sticky brand={brand}>
-        <NavbarLink href="#blog" current onClick={stop}>
-          Blog
-        </NavbarLink>
-        <NavbarLink href="#works" onClick={stop}>
-          Works
-        </NavbarLink>
+        <NavbarLinks>
+          <NavbarLink href="#blog" current onClick={stop}>
+            Blog
+          </NavbarLink>
+          <NavbarLink href="#works" onClick={stop}>
+            Works
+          </NavbarLink>
+        </NavbarLinks>
       </Navbar>
       {children}
     </div>
