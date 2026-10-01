@@ -21,7 +21,11 @@ async function writeClipboard(source: string | Promise<string>) {
   }
   if (typeof ClipboardItem !== 'undefined' && typeof navigator.clipboard.write === 'function') {
     const blob = source.then((text) => new Blob([text], { type: 'text/plain' }));
-    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]);
+    // write が blob の失敗より先に済んでも、作れなかったことを呼び出し元に伝える
+    await Promise.all([
+      navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]),
+      blob,
+    ]);
     return;
   }
   await navigator.clipboard.writeText(await source);
