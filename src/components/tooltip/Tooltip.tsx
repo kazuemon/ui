@@ -192,6 +192,8 @@ export function Tooltip({
   const providerDelay = use(TooltipDelayContext);
   const delay = delayProp ?? providerDelay ?? DEFAULT_DELAY;
   const portalContainer = usePortalContainer(container);
+  // 外の Tooltip の本体の中にいるか（自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
+  const inOuterTrigger = use(TooltipTriggerContext);
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {
     className: positionerClassName,
@@ -245,8 +247,9 @@ export function Tooltip({
       }}
       onOpenChangeComplete={onOpenChangeComplete}
     >
-      {/* 本体の中の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように） */}
-      <TooltipTriggerContext value>
+      {/* 本体の中の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように）
+          Tooltip を止めているとき（disabled）は出す理由がないので配らない。外の Tooltip の本体の中なら、その値を引き継ぐ */}
+      <TooltipTriggerContext value={!disabled || inOuterTrigger}>
         <BaseTooltip.Trigger
           ref={anchorRef}
           render={children}

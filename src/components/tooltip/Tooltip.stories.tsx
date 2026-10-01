@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { FormEvent } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
@@ -232,6 +233,42 @@ export const DisabledTrigger: Story = {
     await userEvent.tab();
     await expect(optedOut).not.toHaveFocus();
     publish.blur();
+  },
+};
+
+const onCheckSubmit = fn((event: FormEvent) => event.preventDefault());
+
+export const DisabledTriggerCheck: Story = {
+  name: '押せないボタンの本体（確かめ）',
+  tags: ['!autodocs'],
+  args: { content: '下書きを保存すると公開できます' },
+  render: (args) => (
+    <form className="flex gap-3 p-12" onSubmit={onCheckSubmit}>
+      <input aria-label="題名" />
+      <Tooltip {...args}>
+        <Button type="submit" color="primary" disabled>
+          公開する
+        </Button>
+      </Tooltip>
+      <Tooltip {...args} disabled>
+        <Button disabled>止めた Tooltip</Button>
+      </Tooltip>
+    </form>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const submit = canvas.getByRole('button', { name: '公開する' });
+    // Tooltip を止めているときは、ふつうの押せないボタンのまま（Tab で止まらない）
+    await expect(canvas.getByRole('button', { name: '止めた Tooltip' })).toBeDisabled();
+    // フォーカスできる押せない送信のボタン: 押しても、Enter・Space でも、入力欄で Enter を押しても送らない
+    onCheckSubmit.mockClear();
+    await userEvent.click(submit);
+    submit.focus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard(' ');
+    await userEvent.click(canvas.getByRole('textbox', { name: '題名' }));
+    await userEvent.keyboard('{Enter}');
+    await expect(onCheckSubmit).not.toHaveBeenCalled();
   },
 };
 
