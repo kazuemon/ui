@@ -84,10 +84,24 @@ const stepper = tv({
     content:
       'flex flex-col gap-0.5 data-[orientation=horizontal]:items-center data-[orientation=horizontal]:text-center',
     label:
-      'text-(length:--text-control) leading-(--leading-control) text-(color:--stepper-label-color)',
+      'text-(length:--stepper-label-text) leading-(--stepper-label-leading) text-(color:--stepper-label-color)',
     description: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
   variants: {
+    // 大きさの段（軸 464）。root で段の寸法を入れ、マーカー・線・ラベルが読む
+    //   md のラベルは部品の文字（密度で変わる）。sm は --stepper-*-sm に差し替える
+    size: {
+      md: {
+        root: '[--stepper-label-leading:var(--leading-control)] [--stepper-label-text:var(--text-control)]',
+      },
+      sm: {
+        root: [
+          '[--stepper-gap:var(--stepper-gap-sm)] [--stepper-label-gap:var(--stepper-label-gap-sm)]',
+          '[--stepper-marker-size:var(--stepper-marker-size-sm)] [--stepper-marker-text:var(--stepper-marker-text-sm)] [--stepper-marker-icon-size:var(--stepper-marker-icon-size-sm)]',
+          '[--stepper-label-text:var(--stepper-label-text-sm)] [--stepper-label-leading:var(--stepper-label-leading-sm)]',
+        ],
+      },
+    },
     orientation: {
       horizontal: { list: 'items-start' },
       vertical: { list: 'flex-col' },
@@ -142,6 +156,7 @@ const stepper = tv({
     },
   },
   defaultVariants: {
+    size: 'md',
     orientation: 'horizontal',
     color: 'neutral',
     status: 'upcoming',
@@ -153,6 +168,9 @@ const stepper = tv({
 export type StepperOrientation = 'horizontal' | 'vertical';
 
 export type StepperColor = 'neutral' | 'primary' | 'secondary';
+
+/** 大きさ。sm はマーカーと文を一段小さくする */
+export type StepperSize = 'sm' | 'md';
 
 /**
  * 完了した段のマーカー。check はチェックの印に差し替える（既定、ADR-0318）。number は数字のまま色だけ変える
@@ -212,6 +230,11 @@ export interface StepperProps extends Omit<ComponentProps<'nav'>, 'color' | 'chi
    */
   variant?: StepperVariant;
   /**
+   * 大きさ。sm はマーカーとラベルを一段小さくし、段のあいだも詰めます。ダイアログやサイドバーの中など、狭い場所に置くときに使います
+   * @default 'md'
+   */
+  size?: StepperSize;
+  /**
    * 並び（nav）の読み上げの名前。画面には出ません
    * @default '進み具合'
    */
@@ -233,6 +256,7 @@ export function Stepper({
   orientation = 'horizontal',
   color,
   variant = 'check',
+  size,
   accessibleName = '進み具合',
   className,
   children,
@@ -243,7 +267,7 @@ export function Stepper({
     (child): child is ReactElement<StepperStepProps> =>
       isValidElement(child) && child.type === StepperStep
   );
-  const s = stepper({ orientation, color });
+  const s = stepper({ orientation, color, size });
 
   return (
     <nav

@@ -26,7 +26,7 @@ export type TooltipAlign = 'start' | 'center' | 'end';
 // className は tv でまとめる（面の色だけを差し替えられるようにする。生の文字列で並べると、後ろに置いても打ち消せない）
 const tooltipPopup = tv({
   base: [
-    'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
+    'relative rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
     popupMotionClass,
     'max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption) [box-shadow:var(--shadow-tooltip)]',
   ],
@@ -38,6 +38,16 @@ const tooltipPopup = tv({
   },
   defaultVariants: { shadow: true },
 });
+
+// 本体を指す矢印（showArrow — 軸 462）。Popover の矢印と同じ作り: 面と同じ白に、外側の 2 辺だけ輪郭を引いた四角を 45 度回す
+//   大きさは --tooltip-arrow-size。面の端から半分だけはみ出す。本体とのあいだ（--tooltip-offset）は矢印の分も含めた距離
+const tooltipArrow = [
+  'size-(--tooltip-arrow-size) rotate-45 border-surface-line bg-surface',
+  'data-[side=bottom]:top-[calc(var(--tooltip-arrow-size)/-2)] data-[side=bottom]:border-t-(length:--border-width-thin) data-[side=bottom]:border-l-(length:--border-width-thin)',
+  'data-[side=top]:bottom-[calc(var(--tooltip-arrow-size)/-2)] data-[side=top]:border-r-(length:--border-width-thin) data-[side=top]:border-b-(length:--border-width-thin)',
+  'data-[side=left]:right-[calc(var(--tooltip-arrow-size)/-2)] data-[side=left]:border-t-(length:--border-width-thin) data-[side=left]:border-r-(length:--border-width-thin)',
+  'data-[side=right]:left-[calc(var(--tooltip-arrow-size)/-2)] data-[side=right]:border-b-(length:--border-width-thin) data-[side=right]:border-l-(length:--border-width-thin)',
+].join(' ');
 
 export interface TooltipProps {
   /** 出す文。短い補足だけを書く。欠かせない情報は Tooltip に置かず、Popover で見せる */
@@ -91,6 +101,11 @@ export interface TooltipProps {
    * @default false
    */
   hideShadow?: boolean;
+  /**
+   * 本体を指す小さな矢印を出すか。並んだボタンのどれの補足かを、はっきりさせたいときに出します
+   * @default false
+   */
+  showArrow?: boolean;
   /**
    * 描く場所。本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
    * まとめて決めるときは ThemeProvider の portalContainer を使います
@@ -164,6 +179,7 @@ export function Tooltip({
   onOpenChangeComplete,
   disabled,
   hideShadow = false,
+  showArrow = false,
   portalContainer: container,
   popupProps,
   positionerProps,
@@ -285,6 +301,7 @@ export function Tooltip({
               className: cn(className, popupClassName),
             })}
           >
+            {showArrow && <BaseTooltip.Arrow data-slot="tooltip-arrow" className={tooltipArrow} />}
             {content}
           </BaseTooltip.Popup>
         </BaseTooltip.Positioner>

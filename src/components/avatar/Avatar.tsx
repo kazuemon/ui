@@ -37,6 +37,13 @@ const avatar = tv({
   variants: {
     // 大きさの段。四角のときの角も、段ごとに持つ（小さい段は部品の角、大きい段はカードの角）
     size: {
+      // xs（軸 463）: 文字の行より小さい場所（小さい文字の横・数字の前）に置く段。輪郭の太さも段で持つ
+      xs: {
+        root: [
+          '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xs)] [--avatar-outline-width:var(--avatar-outline-width-xs)]',
+        ],
+      },
       sm: {
         root: [
           '[--avatar-size:var(--avatar-size-sm)] [--avatar-text:var(--avatar-text-sm)]',
@@ -118,7 +125,7 @@ export interface AvatarProps
    */
   children?: ComponentProps<'span'>['children'];
   /**
-   * 大きさ。sm は文字の行の中、md は一覧の行、lg はカードの見出し、xl はプロフィールの見出しに合う段です
+   * 大きさ。xs は小さい文字（キャプション・表の小さい文字）の横、sm は文字の行の中、md は一覧の行、lg はカードの見出し、xl はプロフィールの見出しに合う段です
    * @default 'md'
    */
   size?: VariantProps<typeof avatar>['size'];

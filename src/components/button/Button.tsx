@@ -122,6 +122,17 @@ const button = tv({
       neutral: '',
       white: '',
     },
+    // 大きさの段（軸 461）。sm は密度の寸法（高さ・左右の余白・文字・アイコン）を、自分の中だけ小さい段に差し替える
+    //   高さは密度で変わる（--density-coarse: 指用 1・マウス用 0 で、-fine と -coarse のあいだを選ぶ。.coarse-large と同じ式）
+    //   中の回る円・アイコンも --spacing-icon を読むので、一緒に小さくなる。値は design/tokens.css の *-sm
+    size: {
+      md: '',
+      sm: [
+        '[--spacing-control:calc(var(--spacing-control-sm-fine)_+_var(--density-coarse)_*_(var(--spacing-control-sm-coarse)_-_var(--spacing-control-sm-fine)))]',
+        '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
+        '[--text-control:var(--text-control-sm)] [--leading-control:var(--leading-control-sm)]',
+      ],
+    },
   },
   compoundVariants: [
     {
@@ -195,7 +206,7 @@ const button = tv({
       ],
     },
   ],
-  defaultVariants: { variant: 'filled', color: 'neutral' },
+  defaultVariants: { variant: 'filled', color: 'neutral', size: 'md' },
 });
 
 // アイコンだけのボタン（iconOnly）: 部品の高さの正方形（幅の下限を高さと同じにし、左右の余白をなくす）
@@ -338,6 +349,19 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    * @default 'neutral'
    */
   color?: VariantProps<typeof button>['color'];
+  /**
+   * 大きさ。sm は表の行や小さな面の中に置く、一段小さいボタンです。
+   * マウスでは低くなり、指で操作するときは押せる高さ（44px）を保って、文字と左右の余白だけが小さくなります
+   * @default 'md'
+   */
+  size?: VariantProps<typeof button>['size'];
+  /**
+   * 押せないとき（disabled）も、Tab で止まるようにします。ボタンは aria-disabled で押せないことを伝え、
+   * 押しても onClick を呼びません（フォームも送信しません）。見た目は押せないボタンと同じです。
+   * 押せない理由を Tooltip で出すときや、押せなくなってもフォーカスを外したくないときに使います
+   * @default false
+   */
+  focusableWhenDisabled?: boolean;
 }
 
 /** アイコンだけのボタン（iconOnly）の props。読み上げの名前（aria-label）が要ります */
@@ -430,6 +454,7 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
 export function ButtonLink({
   variant,
   color,
+  size,
   className,
   render,
   loading,
@@ -481,6 +506,7 @@ export function ButtonLink({
       className: button({
         variant,
         color,
+        size,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       }),
       children: (
@@ -524,6 +550,7 @@ export function Button(allProps: ButtonProps | ButtonIconOnlyProps) {
 function NativeButton({
   variant,
   color,
+  size,
   className,
   type = 'button',
   loading,
@@ -532,6 +559,8 @@ function NativeButton({
   caption,
   iconOnly = false,
   shape = 'square',
+  focusableWhenDisabled = false,
+  disabled,
   onClick,
   children,
   ref,
@@ -556,6 +585,9 @@ function NativeButton({
   const formBusy = submit && loading === undefined && form.submitting;
   // busy: 押せない見た目にし、押しても何もしない。marked: 送信中の印（回る円・線）を出す
   const busy = loading ?? formBusy;
+  // フォーカスできる押せないボタン（focusableWhenDisabled）: disabled 属性を付けず、aria-disabled と data-disabled で描く
+  //   見た目は押せないボタンと同じ（data-disabled: は disabled: と同じ指定）。押しても何もしない
+  const softDisabled = disabled === true && focusableWhenDisabled;
   const marked = loading ?? (formBusy && self !== null && form.submitter === self);
   // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない
   const overlay = marked && loadingIndicator === 'spinner' && !inlineSpinner;
@@ -564,13 +596,15 @@ function NativeButton({
     <button
       type={type}
       {...props}
+      disabled={softDisabled ? undefined : disabled}
       ref={submit ? setRefs : ref}
       aria-describedby={joinIds(ariaDescribedBy, caption ? captionId : undefined)}
       data-loading={busy || undefined}
+      data-disabled={softDisabled || undefined}
       aria-busy={marked || undefined}
-      aria-disabled={busy || props['aria-disabled']}
+      aria-disabled={busy || softDisabled || props['aria-disabled']}
       onClick={(event) => {
-        if (busy) {
+        if (busy || softDisabled) {
           event.preventDefault();
           return;
         }
@@ -581,6 +615,7 @@ function NativeButton({
       className={button({
         variant,
         color,
+        size,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       })}
     >
