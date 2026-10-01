@@ -1423,6 +1423,14 @@
   --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
   /* ── END bleed */
 
+  /* ── Form のどの欄にも結び付かないエラー（formErrorText。比較中）。src/components/form/Form.tsx
+     エラーの一覧と両方あるときの並べ方。separate は別のお知らせを一覧の上に置くか（flex・none）、
+     in-summary は一覧の本文の先頭に置くか（block・none）。どちらか一方だけを出す */
+  --form-error-separate: flex;
+  --form-error-in-summary: none;
+  --form-error-gap: var(--spacing-field-gap); /* 2 つのお知らせの間 */
+  /* ── END form-error */
+
   /* ── Calendar — ADR-0133〜0142 ── BEGIN calendar
      日は部品の高さの正方形（原則7・11）。平らな押すもの（原則3）で、hover と押下で文字の色を淡く敷き、押すと沈む
      選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯、選んでいる途中は半分の濃さの帯（ADR-0141）
