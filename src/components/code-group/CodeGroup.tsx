@@ -16,6 +16,7 @@ import {
 import { CopiedStatus, CopyErrorTooltip, CopyGlyph } from '../../internal/copy/copy-parts';
 import { useCopy } from '../../internal/copy/use-copy';
 import { focusRing } from '../../internal/focus-styles';
+import { warnOnce } from '../../internal/link-parts';
 import { codeBlockStyles } from '../../internal/reading/code-block';
 import { codeTextOf } from '../../internal/reading/code-text';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
@@ -229,6 +230,13 @@ export function CodeGroup({
     isValidElement<CodeBlockProps>(child)
   );
   const names = blocks.map((block, index) => tabNameOf(block, index));
+  // 同じ名前のタブは value で区別できず、あとのほうを開けない
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index);
+  if (duplicate !== undefined) {
+    warnOnce(
+      `CodeGroup に、同じ名前（${duplicate}）のタブが 2 つ以上あります。CodeBlock の title を、タブごとに別の名前にしてください。`
+    );
+  }
   // 開くタブ: value（制御）、なければ groupId でそろえた名前、なければ自分で選んだ名前。持っていない名前は飛ばす
   const known = (name: string | null | undefined) =>
     name != null && names.includes(name) ? name : undefined;
