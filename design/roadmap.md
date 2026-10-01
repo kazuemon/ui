@@ -113,6 +113,10 @@
 - [x] Carousel
 - [x] Thumbnails
 - [ ] Indicator
+- [ ] BarList
+- [ ] Sparkline・グラフの見た目
+- [ ] タイムテーブル
+- [ ] CompareSlider（Splitter も計画にあるので、同時に作れそう）
 
 ### 操作
 
