@@ -384,3 +384,31 @@ export const ClearName: Story = {
     await expect(canvas.getByRole('searchbox', { name: '記事を検索' })).toHaveValue('');
   },
 };
+
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームを戻す（reset）と、はじめの値に戻り、消去のボタンも消えます。',
+      },
+    },
+  },
+  render: () => (
+    <form className="flex max-w-sm flex-col items-start gap-3">
+      <SearchField label="記事を検索" />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('記事を検索');
+    await userEvent.type(input, 'ボタン');
+    await expect(canvas.getByRole('button', { name: '入力内容を消去' })).toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await expect(input).toHaveValue('');
+    await expect(canvas.queryByRole('button', { name: '入力内容を消去' })).toBeNull();
+  },
+};

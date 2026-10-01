@@ -4,6 +4,7 @@ import { useState } from 'react';
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, userEvent } from 'storybook/test';
 
+import { Button } from '../button/Button';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import { EyeIcon, EyeSlashIcon } from '../../internal/icons';
 import { TextField, type TextFieldProps } from './TextField';
@@ -518,6 +519,35 @@ export const Clearable: Story = {
     // 空のあいだは出さない
     await expect(canvas.queryByRole('button', { name: '表示名を消去' })).toBeNull();
     await userEvent.type(input, 'かず');
+    await expect(canvas.getByRole('button', { name: '表示名を消去' })).toBeInTheDocument();
+  },
+};
+
+export const ClearableReset: Story = {
+  name: '文字を消すボタン（フォームを戻す）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: '`clearable` の欄も、フォームを戻す（reset）と、はじめの値に戻ります。',
+      },
+    },
+  },
+  render: () => (
+    <form className="flex max-w-sm flex-col items-start gap-3">
+      <TextField label="表示名" defaultValue="かずえもん" clearable clearName="表示名を消去" />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('表示名');
+    await userEvent.click(canvas.getByRole('button', { name: '表示名を消去' }));
+    await expect(input).toHaveValue('');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await expect(input).toHaveValue('かずえもん');
+    // 部品が持つ値も戻るので、消すボタンがまた出る
     await expect(canvas.getByRole('button', { name: '表示名を消去' })).toBeInTheDocument();
   },
 };

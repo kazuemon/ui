@@ -9,8 +9,10 @@ import {
 } from '../text-field/TextField';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldClearButton } from '../../internal/field/FieldClearButton';
+import { useFormReset } from '../../internal/field/use-form-reset';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { MagnifyingGlassIcon } from '../../internal/icons';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
 type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
@@ -109,6 +111,9 @@ export function SearchFieldControl({
     if (valueProp === undefined) setInnerValue(next);
     onValueChange?.(next);
   };
+  // 値を渡されないときは、form を戻したらはじめの値に戻す（消すボタンが出たまま残らないように）
+  const resetRef = useFormReset(() => setInnerValue(defaultValue), valueProp === undefined);
+  const inputRef = useMergedRefs(props.ref, resetRef);
   const clear = () => {
     change('');
     onCleared?.();
@@ -146,6 +151,7 @@ export function SearchFieldControl({
   return (
     <TextFieldControl
       {...props}
+      ref={inputRef}
       type="search"
       enterKeyHint={props.enterKeyHint ?? 'search'}
       value={value}

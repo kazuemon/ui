@@ -8,6 +8,7 @@ import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
 import { FieldClearButton } from '../../internal/field/FieldClearButton';
 import { FieldCount } from '../../internal/field/FieldCount';
+import { useFormReset } from '../../internal/field/use-form-reset';
 import {
   type FieldCountProps,
   isOverCount,
@@ -20,6 +21,7 @@ import {
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { warnOnce } from '../../internal/link-parts';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { cn } from '../../internal/tv';
 
 /** TextField の本体（TextFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
@@ -99,6 +101,12 @@ export function TextFieldControl({
     if (valueProp === undefined) setInnerValue(next);
     onValueChange?.(next);
   };
+  // 値を部品が持つとき（消すボタンを出し、値を渡されないとき）は、form を戻したらはじめの値に戻す
+  const resetRef = useFormReset(
+    () => setInnerValue(defaultValue ?? ''),
+    clearable && valueProp === undefined
+  );
+  const inputRef = useMergedRefs(restInputProps.ref, props.ref, resetRef);
   // 文字数（Textarea と同じ）。数えるのは見えている文字（書記素）
   const {
     over,
@@ -164,6 +172,7 @@ export function TextFieldControl({
           {...(clearable ? { value } : { value: valueProp, defaultValue })}
           // 説明のつながりは部品が決める（prefix・suffix・文字数・キャプション・下の行の順）
           aria-describedby={describedBy}
+          ref={inputRef}
           onValueChange={(next) => change(next)}
         />
       )}
