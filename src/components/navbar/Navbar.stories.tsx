@@ -2,11 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
-import { Navbar, NavbarLink, NavbarMenuList } from './Navbar';
+import { Navbar, NavbarGroup, NavbarLink, NavbarLinks, NavbarMenuList } from './Navbar';
 import { landscape } from '../../samples/images';
 import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { SearchField } from '../search-field/SearchField';
 
 const pages = [
   { label: 'Works', href: '#works' },
@@ -22,17 +23,20 @@ const brand = (
 );
 
 // 見本では移らない（押しても Storybook のページを動かさない）
-const links = (current = 'Works') =>
-  pages.map((page) => (
-    <NavbarLink
-      key={page.label}
-      href={page.href}
-      current={page.label === current}
-      onClick={(event) => event.preventDefault()}
-    >
-      {page.label}
-    </NavbarLink>
-  ));
+const links = (current = 'Works') => (
+  <NavbarLinks>
+    {pages.map((page) => (
+      <NavbarLink
+        key={page.label}
+        href={page.href}
+        current={page.label === current}
+        onClick={(event) => event.preventDefault()}
+      >
+        {page.label}
+      </NavbarLink>
+    ))}
+  </NavbarLinks>
+);
 
 const meta = {
   title: 'Components/Navbar',
@@ -45,9 +49,11 @@ const meta = {
         component: [
           'ページの上の帯です。左にロゴ、中に行き先、右に操作を 1 行に並べます。',
           '',
-          '- 行き先は `NavbarLink` を並べます。いまいるページには `current` を付けます（読み上げでは「現在のページ」）。',
+          '- 行き先は `NavbarLinks` の中に `NavbarLink` を並べ、`Navbar` の中に置きます。いまいるページには `current` を付けます（読み上げでは「現在のページ」）。',
+          '- 行き先のほかのもの（検索の欄など）は `NavbarGroup` に入れて、`NavbarLinks` と並べて置きます。どちらにも入れずに置いたものは、帯が狭いときも帯に残ります。',
+          '- `narrowPlacement` が `menu` のまとまりは、帯とメニューの 2 か所に描かれます。検索の欄など状態を持つものを入れるときは、`value` と `onValueChange` で外から状態を渡すと、帯とメニューで同じ値になります。',
           '- `brand` には、トップへのリンクにしたロゴやサイトの名前を渡します。`actions` には、帯の右端に置くボタンなどを渡します。',
-          '- 帯の幅が 768px より狭いときは、行き先をメニューのボタンに畳みます。畳むかどうかは画面の幅ではなく帯そのものの幅で決まるので、画面の一部に置いた帯も、置いた幅に合わせて畳まれます。押すと、行き先を縦に並べた面が開きます。行き先を押すと面は閉じます。',
+          '- 帯の幅が 768px より狭いときは、行き先をメニューのボタンに畳みます。`NavbarLinks`・`NavbarGroup` ごとに `narrowPlacement` で、メニューに畳む（`menu`。既定）・帯に残す（`bar`）・隠す（`hidden`）を選べます。畳むかどうかは画面の幅ではなく帯そのものの幅で決まるので、画面の一部に置いた帯も、置いた幅に合わせて畳まれます。押すと、行き先を縦に並べた面が開きます。行き先を押すと面は閉じます。',
           '- メニューの面は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです。`menuSide` で固定できます。',
           '- メニューの開閉を外から決めるときは `menuOpen` と `onMenuOpenChange` を使います（ページを移ったあとに閉じるときなど）。',
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
@@ -116,9 +122,11 @@ export const Playground: Story = {
           brand={<a href="/">k6n</a>}
           actions={<Button color="primary">Contact</Button>}
         >
-          <NavbarLink href="/works" current>Works</NavbarLink>
-          <NavbarLink href="/blog">Blog</NavbarLink>
-          <NavbarLink href="/about">About</NavbarLink>
+          <NavbarLinks>
+            <NavbarLink href="/works" current>Works</NavbarLink>
+            <NavbarLink href="/blog">Blog</NavbarLink>
+            <NavbarLink href="/about">About</NavbarLink>
+          </NavbarLinks>
         </Navbar>
       `),
     },
@@ -223,9 +231,7 @@ export const CurrentIndicators: Story = {
             </Navbar>
           </div>
           <div className="w-48 rounded-card border border-line p-4">
-            <NavbarMenuList accessibleName="メイン" currentIndicator={indicator}>
-              {links()}
-            </NavbarMenuList>
+            <NavbarMenuList currentIndicator={indicator}>{links()}</NavbarMenuList>
           </div>
         </div>
       ))}
@@ -298,6 +304,187 @@ export const Densities: Story = {
   ),
 };
 
+// 行き先のほかに置くもの。検索の欄は帯に残し、ヘルプは隠し、ログインはメニューに畳む
+const groups = (
+  <>
+    {links()}
+    <NavbarGroup narrowPlacement="bar" className="min-w-0 flex-1">
+      <SearchField accessibleName="サイト内を検索" placeholder="検索" className="min-w-0 flex-1" />
+    </NavbarGroup>
+    <NavbarGroup narrowPlacement="hidden">
+      <Button variant="outline">ヘルプ</Button>
+    </NavbarGroup>
+    <NavbarGroup>
+      <Button color="primary">ログイン</Button>
+    </NavbarGroup>
+  </>
+);
+
+export const NarrowPlacement: Story = {
+  tags: ['visual'],
+  name: '狭いときの行き先',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行き先のほかのものは `NavbarGroup` に入れます。帯が狭いときの行き先は、`narrowPlacement` で、メニューに畳む（`menu`。既定）・帯に残す（`bar`）・隠す（`hidden`）から選びます。ここでは、行き先とログインはメニューに畳み、検索の欄は帯に残し、ヘルプは隠しています。',
+      },
+      source: sourceCode(`
+        <Navbar brand={<a href="/">k6n</a>}>
+          <NavbarLinks>
+            <NavbarLink href="/works" current>Works</NavbarLink>
+            <NavbarLink href="/blog">Blog</NavbarLink>
+          </NavbarLinks>
+          <NavbarGroup narrowPlacement="bar">
+            <SearchField accessibleName="サイト内を検索" placeholder="検索" />
+          </NavbarGroup>
+          <NavbarGroup narrowPlacement="hidden">
+            <Button variant="outline">ヘルプ</Button>
+          </NavbarGroup>
+          <NavbarGroup>
+            <Button color="primary">ログイン</Button>
+          </NavbarGroup>
+        </Navbar>
+      `),
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      <div data-testid="wide" className="w-[1024px] max-w-full border border-line">
+        <Navbar brand={brand} menuSide="right">
+          {groups}
+        </Navbar>
+      </div>
+      <div data-testid="narrow" className="w-[375px] border border-line" data-density="coarse">
+        <Navbar brand={brand} menuSide="right">
+          {groups}
+        </Navbar>
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const wide = within(within(canvasElement).getByTestId('wide'));
+    const narrow = within(within(canvasElement).getByTestId('narrow'));
+
+    // 広い帯: どのまとまりも帯に並び、メニューのボタンはない
+    const nav = wide.getByRole('navigation', { name: 'メイン' });
+    await expect(within(nav).getByRole('list')).toBeVisible();
+    await expect(within(nav).getAllByRole('listitem')).toHaveLength(3);
+    await expect(wide.getByRole('searchbox', { name: 'サイト内を検索' })).toBeVisible();
+    await expect(wide.getByRole('button', { name: 'ヘルプ' })).toBeVisible();
+    await expect(wide.getByRole('button', { name: 'ログイン' })).toBeVisible();
+    await expect(wide.queryByRole('button', { name: 'メニュー' })).toBeNull();
+
+    // 狭い帯: bar は残り、menu と hidden は帯から消える
+    await expect(narrow.getByRole('searchbox', { name: 'サイト内を検索' })).toBeVisible();
+    await expect(narrow.queryByRole('navigation', { name: 'メイン' })).toBeNull();
+    await expect(narrow.queryByRole('button', { name: 'ヘルプ' })).toBeNull();
+    await expect(narrow.queryByRole('button', { name: 'ログイン' })).toBeNull();
+
+    // メニューには menu のまとまりだけが並ぶ（行き先は nav と ul のまま）
+    const menuButton = narrow.getByRole('button', { name: 'メニュー' });
+    await userEvent.click(menuButton);
+    const menu = within(await body.findByRole('dialog', { name: 'メニュー' }));
+    const menuNav = menu.getByRole('navigation', { name: 'メイン' });
+    await expect(within(menuNav).getAllByRole('listitem')).toHaveLength(3);
+    await expect(menu.getByRole('button', { name: 'ログイン' })).toBeVisible();
+    await expect(menu.queryByRole('searchbox')).toBeNull();
+    await expect(menu.queryByRole('button', { name: 'ヘルプ' })).toBeNull();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+    // 撮る前に、戻ったフォーカスを外す（フォーカスの線を写さない）
+    menuButton.blur();
+  },
+};
+
+function OnlyBarDemo() {
+  return (
+    <div className="w-[375px] border border-line">
+      <Navbar brand={brand}>
+        <NavbarLinks narrowPlacement="bar">
+          <NavbarLink href="#works" current onClick={(event) => event.preventDefault()}>
+            Works
+          </NavbarLink>
+          <NavbarLink href="#blog" onClick={(event) => event.preventDefault()}>
+            Blog
+          </NavbarLink>
+        </NavbarLinks>
+      </Navbar>
+    </div>
+  );
+}
+
+export const LinksInBar: Story = {
+  name: '行き先を帯に残す',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行き先が少ないときは、`NavbarLinks` に `narrowPlacement="bar"` を付けると、狭い帯でも畳まずに並べます。メニューに畳むものがないときは、メニューのボタンも出しません。',
+      },
+    },
+  },
+  render: () => <OnlyBarDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = canvas.getByRole('navigation', { name: 'メイン' });
+    await expect(nav).toBeVisible();
+    await expect(within(nav).getAllByRole('listitem')).toHaveLength(2);
+    await expect(canvas.queryByRole('button', { name: 'メニュー' })).toBeNull();
+  },
+};
+
+// 自分の部品で包んだ行き先（サイトの共通の部品にまとめるときなど）
+// 自分の部品が、まとまりを要素で包んで返す形
+function SiteLinks() {
+  return (
+    <div className="flex items-center gap-2">
+      {links('Blog')}
+      <span className="text-xs text-fg-subtle">β</span>
+    </div>
+  );
+}
+
+export const WrappedLinks: Story = {
+  name: '包んだ部品の中に置く',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`NavbarLinks`・`NavbarGroup` は、自分の部品で包んで置いても、狭い帯ではメニューに畳みます。まとまりに入れずに置いたもの（ここでは部品の中でまとまりと並べた「β」の印）は、狭い帯でも帯に残り、メニューには出しません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="w-[375px] border border-line">
+      <Navbar brand={brand} menuSide="right">
+        <SiteLinks />
+      </Navbar>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await expect(canvas.getByText('β')).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: 'メニュー' }));
+    const menu = within(await body.findByRole('dialog', { name: 'メニュー' }));
+    const nav = menu.getByRole('navigation', { name: 'メイン' });
+    await expect(within(nav).getAllByRole('listitem')).toHaveLength(3);
+    // 包んだ要素ごと出るので、行き先を押せる
+    await expect(within(nav).getByRole('link', { name: 'Blog' })).toBeVisible();
+    await expect(menu.getByText('β')).not.toBeVisible();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+  },
+};
+
 export const Menu: Story = {
   tags: ['visual'],
   name: 'メニューを開いたところ',
@@ -357,6 +544,8 @@ export const Accessibility: Story = {
     await userEvent.click(button);
     const menu = await body.findByRole('dialog', { name: 'メニュー' });
     const nav = within(menu).getByRole('navigation', { name: 'メイン' });
+    await expect(within(nav).getByRole('list')).toBeInTheDocument();
+    await expect(within(nav).getAllByRole('listitem')).toHaveLength(3);
     await expect(within(nav).getAllByRole('link')).toHaveLength(3);
     await expect(within(nav).getByRole('link', { name: 'Blog' })).toHaveAttribute(
       'aria-current',

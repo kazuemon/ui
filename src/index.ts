@@ -345,8 +345,13 @@ export { NoticeRegion, type NoticeRegionProps } from './components/notice/Notice
 export {
   Navbar,
   type NavbarCurrentIndicator,
+  NavbarGroup,
+  type NavbarGroupProps,
   NavbarLink,
   type NavbarLinkProps,
+  NavbarLinks,
+  type NavbarLinksProps,
+  type NavbarNarrowPlacement,
   type NavbarProps,
   type NavbarStickyBackdrop,
   type NavbarStickyEdge,

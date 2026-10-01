@@ -3,7 +3,7 @@
 import { Affix } from '../affix/Affix';
 import { Container } from '../container/Container';
 import { Heading } from '../heading/Heading';
-import { Navbar, NavbarLink } from '../navbar/Navbar';
+import { Navbar, NavbarLink, NavbarLinks } from '../navbar/Navbar';
 import { Text } from '../text/Text';
 import { Progress, type ProgressProps } from './Progress';
 import { useReadingProgress } from './use-reading-progress';
@@ -82,9 +82,11 @@ export function ReadingScene({
             </a>
           }
         >
-          <NavbarLink href="#blog" current onClick={stop}>
-            Blog
-          </NavbarLink>
+          <NavbarLinks>
+            <NavbarLink href="#blog" current onClick={stop}>
+              Blog
+            </NavbarLink>
+          </NavbarLinks>
         </Navbar>
       ) : null}
       <Affix belowNavbar={navbar} className="[--affix-gap:0px]">

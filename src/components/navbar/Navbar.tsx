@@ -26,6 +26,7 @@ import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
 import { Container, type ContainerSize } from '../container/Container';
 import { Drawer, type SheetSide } from '../drawer/Drawer';
+import { useMenuGroups } from './use-menu-groups';
 
 // ページの上の帯 — 軸 104・105
 //   ロゴ（brand）・行き先（NavbarLink）・操作（actions）を 1 行に並べる。中身の幅と左右の余白は Container と同じ
@@ -33,7 +34,11 @@ import { Drawer, type SheetSide } from '../drawer/Drawer';
 //   貼り付け（sticky）は既定で切り、選べるようにする（軸 105）。貼り付けると内容が帯の下を通るので、境目と面を選べる
 //     stickyEdge: line（既定）は貼り付けていないときと同じ細い線、shadow は線の代わりに下へ淡い影（重なるレイヤーとして見せる — 原則1）
 //     stickyBackdrop: solid（既定）は白い面、blur は面を透かして後ろをぼかす
-//   帯の幅が 48rem（Tailwind の md と同じ幅）より狭いときは、行き先をメニューのボタンに畳み、押すと Drawer に縦に並べて出す
+//   中身（children）は自由に置く。行き先は NavbarLinks（nav と ul）に、ほかのもの（検索の欄など）は NavbarGroup に入れる
+//   帯の幅が 48rem（Tailwind の md と同じ幅）より狭いときの行き先は、まとまりごとに narrowPlacement で選ぶ
+//     menu（既定）はメニューのボタンに畳み、押すと Drawer に縦に並べて出す。bar は帯に残す。hidden は隠す
+//     Drawer には children をもう一度描き、menu のまとまりだけが中身を出す（ほかは描かず、まとまりに入れずに置いたものは隠す）
+//     メニューのボタンは、menu のまとまりが 1 つでもあるときだけ出す（まとまりが名乗り出た数で決める）
 //     画面の幅ではなく帯の幅で決める（コンテナクエリ）。横に並べた画面の一部に置いても、置いた幅で畳む
 //     出し方は浮かぶ UI と同じ判定（原則11）: 指で操作していて画面が狭いときは下から出すシート、それ以外は横から出すパネル
 //     メニューの行き先を押すと、移る前に Drawer を閉じる。帯が広がって行き先が帯に戻ったら、開いていた Drawer を閉じる
@@ -48,13 +53,22 @@ const WIDE_REM = 48;
 
 type Placement = 'bar' | 'menu';
 
+export type NavbarNarrowPlacement = 'menu' | 'bar' | 'hidden';
 export type NavbarCurrentIndicator = 'text' | 'neutral' | 'primary' | 'underline';
 export type NavbarStickyEdge = 'line' | 'shadow';
 export type NavbarStickyBackdrop = 'solid' | 'blur';
 
-const NavbarContext = createContext<{ placement: Placement; indicator: NavbarCurrentIndicator }>({
+const NavbarContext = createContext<{
+  placement: Placement;
+  indicator: NavbarCurrentIndicator;
+  accessibleName: string;
+  /** メニューへ畳むまとまりが名乗り出る。戻り値で取り消す */
+  registerMenuGroup: () => () => void;
+}>({
   placement: 'bar',
   indicator: 'text',
+  accessibleName: 'メイン',
+  registerMenuGroup: () => () => {},
 });
 
 const navbar = tv({
@@ -66,10 +80,17 @@ const navbar = tv({
     inner: 'flex h-(--navbar-height) items-center gap-(--navbar-gap)',
     brand:
       'flex shrink-0 items-center text-(length:--text-control) leading-(--leading-control) font-bold',
-    barNav: 'hidden min-w-0 flex-1 @3xl/navbar:block',
+    // 中身（children）を並べる場所。まとまりの間はロゴ・操作との間と同じ
+    content: 'flex min-w-0 flex-1 items-center gap-(--navbar-gap)',
     barList: 'flex items-center gap-(--navbar-item-gap)',
     end: 'ms-auto flex shrink-0 items-center gap-2',
     menuButton: '@3xl/navbar:hidden',
+    // メニューの面の中身。まとまりを縦に積む。まとまりに入れずに置いたものは隠す（帯にだけ出す）
+    //   まとまりを中に持つ要素（自分の部品が返した div など）は隠さず、その中のまとまりでないものを隠す
+    menuContent: [
+      'flex flex-col gap-4 [&>:not([data-slot=navbar-links],[data-slot=navbar-group],:has([data-slot=navbar-links],[data-slot=navbar-group]))]:hidden',
+      '[&_*:has([data-slot=navbar-links],[data-slot=navbar-group])>:not([data-slot=navbar-links],[data-slot=navbar-group],:has([data-slot=navbar-links],[data-slot=navbar-group]))]:hidden',
+    ],
     // 行の塗りは左右にはみ出させ、文字の位置をシートの題とそろえる
     menuList: '-mx-3 flex flex-col gap-1',
   },
@@ -144,7 +165,10 @@ const navbarLink = tv({
 export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> {
   /** 左端のロゴやサイトの名前。トップへのリンクにします */
   brand?: ReactNode;
-  /** 行き先。NavbarLink を並べます */
+  /**
+   * ロゴと操作の間に置く中身。行き先は NavbarLinks に、ほかのものは NavbarGroup に入れて置きます。
+   * まとまりに入れずに置いたものは、帯が狭いときも帯に残ります
+   */
   children?: ReactNode;
   /** 右端に置く操作（ボタンなど）。帯が狭いときも帯に残ります */
   actions?: ReactNode;
@@ -237,7 +261,9 @@ export function Navbar({
   useLayoutEffect(() => {
     closeRef.current = () => setOpen(false);
   });
-  const hasLinks = Children.count(children) > 0;
+  const hasContent = Children.count(children) > 0;
+  // 帯が狭いときにメニューへ畳むまとまりがあるか
+  const { hasMenu, register: registerMenuGroup } = useMenuGroups(children);
   const rootRef = useRef<HTMLElement>(null);
   // 内部の ref（帯の幅を測る）と、利用者が渡した ref をつなぐ（ADR-0250）
   const mergedRef = useMergedRefs(rootRef, ref);
@@ -262,18 +288,23 @@ export function Navbar({
             {brand}
           </div>
         )}
-        {hasLinks && (
-          <nav aria-label={accessibleName} className={s.barNav()}>
-            <ul className={s.barList()}>
-              <NavbarContext value={{ placement: 'bar', indicator: currentIndicator }}>
-                {children}
-              </NavbarContext>
-            </ul>
-          </nav>
+        {hasContent && (
+          <div data-slot="navbar-content" className={s.content()}>
+            <NavbarContext
+              value={{
+                placement: 'bar',
+                indicator: currentIndicator,
+                accessibleName,
+                registerMenuGroup,
+              }}
+            >
+              {children}
+            </NavbarContext>
+          </div>
         )}
         <div className={s.end()}>
           {actions}
-          {hasLinks && (
+          {hasMenu && (
             <Drawer
               title={menuTitle}
               side={side}
@@ -302,24 +333,154 @@ export function Navbar({
   );
 }
 
+const noRegister = () => () => {};
+
+// まとまり（NavbarLinks・NavbarGroup）の共通の処理
+//   帯の中で menu のものはメニューへ畳むと名乗り出る。メニューの中では menu のものだけを描く
+function useNavbarGroup(narrowPlacement: NavbarNarrowPlacement) {
+  const context = use(NavbarContext);
+  const { placement, registerMenuGroup } = context;
+  useLayoutEffect(() => {
+    if (placement !== 'bar' || narrowPlacement !== 'menu') return undefined;
+    return registerMenuGroup();
+  }, [placement, narrowPlacement, registerMenuGroup]);
+  return { ...context, visible: placement === 'bar' || narrowPlacement === 'menu' };
+}
+
 /**
- * メニューの面の中身（行き先を縦に並べる）。Navbar が Drawer の中に描く。公開しない（比較のストーリーでも使う）
+ * メニューの面の中身（まとまりを縦に積む）。Navbar が Drawer の中に描く。公開しない（ストーリーでも使う）
  */
 export function NavbarMenuList({
-  accessibleName,
+  accessibleName = 'メイン',
   currentIndicator = 'text',
   children,
 }: {
-  accessibleName: string;
+  accessibleName?: string;
   currentIndicator?: NavbarCurrentIndicator;
   children?: ReactNode;
 }) {
   return (
-    <NavbarContext value={{ placement: 'menu', indicator: currentIndicator }}>
-      <nav aria-label={accessibleName}>
-        <ul className={navbar().menuList()}>{children}</ul>
-      </nav>
+    <NavbarContext
+      value={{
+        placement: 'menu',
+        indicator: currentIndicator,
+        accessibleName,
+        registerMenuGroup: noRegister,
+      }}
+    >
+      <div className={navbar().menuContent()}>{children}</div>
     </NavbarContext>
+  );
+}
+
+const navbarGroup = tv({
+  variants: {
+    placement: {
+      // 帯の中: 横に並べる
+      bar: 'flex items-center gap-(--navbar-item-gap)',
+      // メニューの中: 縦に積み、幅いっぱいに広げる
+      menu: 'flex flex-col items-stretch gap-2',
+    },
+    narrowPlacement: { menu: '', bar: '', hidden: '' },
+  },
+  compoundVariants: [
+    // 帯が狭いときは、帯に残すもののほかは隠す（menu はメニューの面に出る）
+    {
+      placement: 'bar',
+      narrowPlacement: ['menu', 'hidden'],
+      class: 'hidden @3xl/navbar:flex',
+    },
+  ],
+});
+
+// 行き先の並びの nav。並びの見た目は ul に置き、nav は出す／隠すだけを受け持つ
+const navbarLinks = tv({
+  variants: {
+    placement: { bar: 'block min-w-0', menu: '' },
+    narrowPlacement: { menu: '', bar: '', hidden: '' },
+  },
+  compoundVariants: [
+    {
+      placement: 'bar',
+      narrowPlacement: ['menu', 'hidden'],
+      class: 'hidden @3xl/navbar:block',
+    },
+  ],
+});
+
+export interface NavbarLinksProps extends ComponentProps<'nav'> {
+  /** 行き先。NavbarLink を並べます */
+  children?: ReactNode;
+  /**
+   * 帯が狭いときの行き先。menu はメニューのボタンに畳み、bar は帯に残し、hidden は隠します
+   * @default 'menu'
+   */
+  narrowPlacement?: NavbarNarrowPlacement;
+  /** 読み上げの名前。画面には出ません。省くと Navbar の accessibleName を使います */
+  accessibleName?: string;
+  /** いちばん外の要素（nav）に付きます */
+  className?: string;
+}
+
+/**
+ * Navbar の行き先の並び（nav と ul）。Navbar の中に置き、中に NavbarLink を並べます
+ */
+export function NavbarLinks({
+  narrowPlacement = 'menu',
+  accessibleName,
+  className,
+  children,
+  ...props
+}: NavbarLinksProps) {
+  const context = useNavbarGroup(narrowPlacement);
+  const s = navbar();
+  if (!context.visible) return null;
+  return (
+    <nav
+      aria-label={accessibleName ?? context.accessibleName}
+      {...props}
+      data-slot="navbar-links"
+      className={navbarLinks({ placement: context.placement, narrowPlacement, className })}
+    >
+      <ul className={context.placement === 'menu' ? s.menuList() : s.barList()}>{children}</ul>
+    </nav>
+  );
+}
+
+export interface NavbarGroupProps extends ComponentProps<'div'> {
+  /** 帯に置くもの（検索の欄やボタンなど） */
+  children?: ReactNode;
+  /**
+   * 帯が狭いときの行き先。menu はメニューのボタンに畳み、bar は帯に残し、hidden は隠します
+   * @default 'menu'
+   */
+  narrowPlacement?: NavbarNarrowPlacement;
+  /** いちばん外の要素（div）に付きます */
+  className?: string;
+}
+
+/**
+ * Navbar の中身のまとまり。行き先のほかに置くもの（検索の欄など）を入れ、帯が狭いときの行き先を選びます
+ *
+ * narrowPlacement が menu のまとまりは、帯と、狭いときに開くメニューの 2 か所に描かれ、それぞれが別の部品になります。
+ * 入力欄など状態を持つものを入れるときは、value と onValueChange で外から状態を渡し、2 か所で同じ値を見るようにします
+ */
+export function NavbarGroup({
+  narrowPlacement = 'menu',
+  className,
+  children,
+  ...props
+}: NavbarGroupProps) {
+  const { placement, visible } = useNavbarGroup(narrowPlacement);
+  if (!visible) return null;
+  return (
+    <div
+      {...props}
+      data-slot="navbar-group"
+      className={navbarGroup({ placement, narrowPlacement, className })}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -338,7 +499,7 @@ export interface NavbarLinkProps extends ComponentProps<'a'> {
 }
 
 /**
- * Navbar の行き先のリンク。Navbar の中に並べます
+ * Navbar の行き先のリンク。NavbarLinks の中に並べます
  */
 export function NavbarLink({
   current = false,

@@ -1,6 +1,6 @@
 // サイトの上の帯。ページをまたいで同じものを出す（部品を並べるだけで、見た目は書かない）
 //   行き先（はじめに・見本・GitHub）は帯が狭いと右のメニューに畳み、Storybook だけ帯に残す
-import { Link, Navbar, NavbarLink, Text } from '@kazuemon/ui';
+import { Link, Navbar, NavbarLink, NavbarLinks, Text } from '@kazuemon/ui';
 import NextLink from 'next/link';
 
 const STORYBOOK = 'https://story.ui.k6n.jp/';
@@ -21,16 +21,18 @@ export function SiteHeader({ current }: { current: 'home' | 'examples' }) {
         </Link>
       }
     >
-      <NavbarLink render={<NextLink href="/" />} current={current === 'home'}>
-        はじめに
-      </NavbarLink>
-      <NavbarLink render={<NextLink href="/examples" />} current={current === 'examples'}>
-        見本
-      </NavbarLink>
-      {/* 外のサイトなので別のタブで開く（NavbarLink の props は a にそのまま渡ります） */}
-      <NavbarLink href={REPOSITORY} target="_blank" rel="noreferrer">
-        GitHub
-      </NavbarLink>
+      <NavbarLinks>
+        <NavbarLink render={<NextLink href="/" />} current={current === 'home'}>
+          はじめに
+        </NavbarLink>
+        <NavbarLink render={<NextLink href="/examples" />} current={current === 'examples'}>
+          見本
+        </NavbarLink>
+        {/* 外のサイトなので別のタブで開く（NavbarLink の props は a にそのまま渡ります） */}
+        <NavbarLink href={REPOSITORY} target="_blank" rel="noreferrer">
+          GitHub
+        </NavbarLink>
+      </NavbarLinks>
     </Navbar>
   );
 }
