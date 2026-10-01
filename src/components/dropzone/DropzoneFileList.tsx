@@ -95,9 +95,15 @@ export interface DropzoneFileListProps extends Omit<ComponentProps<'ul'>, 'child
    * @default 'list'
    */
   variant?: DropzoneFileListVariant;
-  /** 外すボタンを押したときに呼ぶ。押した項目と、その位置を受け取る。渡さないと外すボタンを出さない */
+  /**
+   * 外すボタンを押したときに呼ぶ。押した項目と、その位置を受け取る。渡さないと外すボタンを出さない。
+   * 受け取るのは File ではなく項目（DropzoneFileEntry）。いま選んだファイルは entry.file で取り出す
+   */
   onRemove?: (entry: DropzoneFileEntry, index: number) => void;
-  /** 外すボタンの読み上げの名前を作る関数。既定は、いま選んだものが「外す: {ファイル名}」、保存済みのものが「削除: {ファイル名}」 */
+  /**
+   * 外すボタンの読み上げの名前を作る関数。既定は、いま選んだものが「外す: {ファイル名}」、保存済みのものが「削除: {ファイル名}」。
+   * 受け取るのは File ではなく項目（DropzoneFileEntry）
+   */
   removeName?: (entry: DropzoneFileEntry) => string;
   /** いちばん外の要素（ul）に付く */
   className?: string;
