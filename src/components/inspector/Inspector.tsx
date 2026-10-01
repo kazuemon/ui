@@ -12,6 +12,11 @@ import {
 
 import { useInspectorContext } from './inspector-context';
 import { inspectorStyles } from './inspector-styles';
+import { OverlayActions } from '../../internal/overlay/overlay-actions';
+import {
+  OverlayActionsContext,
+  useOverlayActionsSlot,
+} from '../../internal/overlay/overlay-actions-context';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { focusTargetRef, type OverlayFocusTarget } from '../../internal/overlay/overlay-props';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
@@ -59,7 +64,10 @@ export interface InspectorProps extends Omit<
   description?: ReactNode;
   /** パネルの中身。長いときはスクロールし、上下の端に続きの印を出す */
   children?: ReactNode;
-  /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。押して閉じるボタンは OverlayClose の render に渡す */
+  /**
+   * 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。押して閉じるボタンは OverlayClose の render に渡す。
+   * 中身の Form の送信のボタンを並べるときは、actions の代わりに中身の Form の中に InspectorActions を置きます
+   */
   actions?: ReactNode;
   /**
    * 下の操作（actions）の並べ方。auto と end は右に寄せます。幅を等分するときは fill、縦に積むときは stack（渡した順に上から）か stack-reverse（最後に渡した主な操作が上）です
@@ -190,6 +198,8 @@ export function Inspector({
   };
 
   const layout = actionsLayout === 'auto' ? 'end' : actionsLayout;
+  // 中身に置いた下の操作の帯（InspectorActions）。置かれたら、中身の下の余白と続きの印を帯に譲る
+  const slot = useOverlayActionsSlot('inspector', layout, actions != null);
   const s = inspectorStyles({ variant, side, overlayEdge, motion });
   // 幅を渡されたときは、枠に書いてパネルと一緒に読ませる
   const widthStyle: (CSSProperties & Record<'--inspector-width', string>) | undefined =
@@ -251,19 +261,21 @@ export function Inspector({
             data-slot="inspector-content"
             className={[
               'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
-              actions == null && 'pb-(--sheet-padding-x)',
+              actions == null && !slot.placed && 'pb-(--sheet-padding-x)',
             ]
               .filter(Boolean)
               .join(' ')}
           >
-            {children}
+            <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
           </div>
-          <SheetMoreCue
-            edge="bottom"
-            sheet
-            sheetMoreCue="divider-always-shadow"
-            divider={actions != null ? 'shadow' : undefined}
-          />
+          {!slot.placed && (
+            <SheetMoreCue
+              edge="bottom"
+              sheet
+              sheetMoreCue="divider-always-shadow"
+              divider={actions != null ? 'shadow' : undefined}
+            />
+          )}
           {actions != null && (
             <div
               data-slot="inspector-footer"
@@ -277,4 +289,21 @@ export function Inspector({
       </OverlayCloseContext>
     </div>
   );
+}
+
+export interface InspectorActionsProps extends ComponentProps<'div'> {
+  /** 下に並べる操作（ボタン）。押して閉じるボタンは OverlayClose の render に渡す */
+  children?: ReactNode;
+  /** 帯（div）に付きます */
+  className?: string;
+}
+
+/**
+ * Inspector の下の操作（ボタン）の帯。中身のどこに置いても、actions と同じ下の帯に見え、中身が長いときは下に貼り付きます。
+ * 並べ方は Inspector の actionsLayout に従います。
+ * 中身の Form の中に置くと、送信のボタンが Form の送信・Enter・送信中・FormData にそのまま加わります。
+ * 中身の最後（Form の中なら、その最後）に 1 つだけ置き、Inspector の actions とは両方渡しません
+ */
+export function InspectorActions(props: InspectorActionsProps) {
+  return <OverlayActions name="InspectorActions" {...props} />;
 }

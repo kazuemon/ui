@@ -5,6 +5,7 @@ import { type ReactElement, type ReactNode, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { OverlayActionsContext } from '../../internal/overlay/overlay-actions-context';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import {
   focusTargetRef,
@@ -174,7 +175,8 @@ export function Popover({
         className={props.className}
         detent="full"
       >
-        {children}
+        {/* Popover は下の操作の帯を持たない（中身に置いた DialogActions などを、シートの帯にも外の面の帯にもしない） */}
+        <OverlayActionsContext value={null}>{children}</OverlayActionsContext>
       </Drawer>
     );
   }
@@ -306,7 +308,11 @@ function FloatingPopover({
                   {description}
                 </BasePopover.Description>
               )}
-              {children != null && <div className={heading ? 'mt-3' : undefined}>{children}</div>}
+              {children != null && (
+                <div className={heading ? 'mt-3' : undefined}>
+                  <OverlayActionsContext value={null}>{children}</OverlayActionsContext>
+                </div>
+              )}
               {/* 裏を止めるときは、読み上げで面から出られるよう閉じる手段を面の中に置く（Base UI は、これがないと焦点を閉じ込めない） */}
               {modal === true && (
                 <BasePopover.Close data-slot="popover-close" className="sr-only">

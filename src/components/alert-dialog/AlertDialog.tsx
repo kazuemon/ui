@@ -1,7 +1,21 @@
 'use client';
 
-import { type FormEvent, type ReactElement, type ReactNode, useId, useState } from 'react';
+import {
+  type ComponentProps,
+  createContext,
+  type FormEvent,
+  type ReactElement,
+  type ReactNode,
+  use,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useState,
+} from 'react';
 
+import { warnOnce } from '../../internal/link-parts';
+import { OverlayActions } from '../../internal/overlay/overlay-actions';
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import type { OverlayFocusTarget, PopupProps } from '../../internal/overlay/overlay-props';
 import { Button } from '../button/Button';
@@ -17,7 +31,10 @@ export interface AlertDialogProps {
   title: ReactNode;
   /** 題の下の説明。何が起き、元に戻せないことを書く。読み上げでは、開いた面の説明になる */
   description?: ReactNode;
-  /** 中身（消えるものの一覧など）。題と説明で足りるときは渡さない */
+  /**
+   * 中身（消えるものの一覧など）。題と説明で足りるときは渡さない。
+   * 2 つのボタンを中身の中の決まった場所に描くときは、AlertDialogActions を置きます
+   */
   children?: ReactNode;
   /** 実行する側のボタンの文言。何が起きるかを動詞で書く（「削除する」など） */
   actionLabel: ReactNode;
@@ -85,6 +102,14 @@ export interface AlertDialogProps {
   className?: string;
 }
 
+// 中身に置いた AlertDialogActions に、2 つのボタンを配る。置かれたら、AlertDialog は下の帯にボタンを描かない
+//   帯は、置かれたことが AlertDialog に届いてからボタンを描く（同じボタンが 2 か所に同時に出て、開いた直後のフォーカスが消えた側に移らないように）
+const AlertDialogActionsContext = createContext<{
+  buttons: ReactNode;
+  placed: boolean;
+  register: () => () => void;
+} | null>(null);
+
 /**
  * 取り消せない操作の前に、続けるかを確かめる面。閉じるのは下の 2 つのボタンだけで、後ろの画面・Esc・下へはじく操作では閉じません
  *
@@ -110,6 +135,12 @@ export function AlertDialog({
   const open = openProp ?? openState;
   const [pending, setPending] = useState(false);
   const formId = useId();
+  // 中身に置いた AlertDialogActions の数
+  const [placed, setPlaced] = useState(0);
+  const register = useCallback(() => {
+    setPlaced((n) => n + 1);
+    return () => setPlaced((n) => n - 1);
+  }, []);
   const changeOpen = (next: boolean) => {
     setOpenState(next);
     onOpenChange?.(next);
@@ -137,6 +168,31 @@ export function AlertDialog({
     if (actionDisabled || pending) return;
     void run();
   };
+  // 取り消す側と実行する側のボタン。下の帯か、中身に置いた AlertDialogActions に描く
+  const buttons = (
+    <>
+      {/* 開いた直後のフォーカスは、渡されなければ取り消す側に置く（うっかり Enter で実行しないため） */}
+      <Button
+        variant="outline"
+        autoFocus={autoFocus === undefined}
+        disabled={pending}
+        data-slot="alert-dialog-cancel"
+        onClick={() => changeOpen(false)}
+      >
+        {cancelLabel}
+      </Button>
+      <Button
+        type="submit"
+        form={formId}
+        color={color}
+        loading={pending}
+        disabled={actionDisabled}
+        data-slot="alert-dialog-action"
+      >
+        {actionLabel}
+      </Button>
+    </>
+  );
   return (
     <OverlayRoleContext value="alertdialog">
       <Dialog
@@ -151,38 +207,48 @@ export function AlertDialog({
         hideCloseButton
         autoFocus={autoFocus}
         actions={
-          <>
-            {/* 中身がないときは、送信の先になる form を下の操作の中に置く（隠す。並びの隙間にもならない） */}
-            {children == null && <form id={formId} hidden onSubmit={submit} />}
-            {/* 開いた直後のフォーカスは、渡されなければ取り消す側に置く（うっかり Enter で実行しないため） */}
-            <Button
-              variant="outline"
-              autoFocus={autoFocus === undefined}
-              disabled={pending}
-              data-slot="alert-dialog-cancel"
-              onClick={() => changeOpen(false)}
-            >
-              {cancelLabel}
-            </Button>
-            <Button
-              type="submit"
-              form={formId}
-              color={color}
-              loading={pending}
-              disabled={actionDisabled}
-              data-slot="alert-dialog-action"
-            >
-              {actionLabel}
-            </Button>
-          </>
+          placed > 0 ? undefined : (
+            <>
+              {/* 中身がないときは、送信の先になる form を下の操作の中に置く（隠す。並びの隙間にもならない） */}
+              {children == null && <form id={formId} hidden onSubmit={submit} />}
+              {buttons}
+            </>
+          )
         }
       >
         {children == null ? null : (
           <form id={formId} data-slot="alert-dialog-form" onSubmit={submit}>
-            {children}
+            <AlertDialogActionsContext value={{ buttons, placed: placed > 0, register }}>
+              {children}
+            </AlertDialogActionsContext>
           </form>
         )}
       </Dialog>
     </OverlayRoleContext>
+  );
+}
+
+export interface AlertDialogActionsProps extends Omit<ComponentProps<'div'>, 'children'> {
+  /** 帯（div）に付きます */
+  className?: string;
+}
+
+/**
+ * AlertDialog の 2 つのボタン（取り消す側と実行する側）を、中身の中の置いた場所に描く帯。見た目は下の帯と同じです。
+ * ボタンの文言・色・押したときの処理は AlertDialog の props で決めます。中身の最後に 1 つだけ置きます
+ */
+export function AlertDialogActions(props: AlertDialogActionsProps) {
+  const alert = use(AlertDialogActionsContext);
+  const register = alert?.register;
+  useLayoutEffect(() => register?.(), [register]);
+  const outside = alert == null;
+  useEffect(() => {
+    if (outside) warnOnce('AlertDialogActions は AlertDialog の中身に置きます');
+  }, [outside]);
+  if (!alert) return null;
+  return (
+    <OverlayActions name="AlertDialogActions" {...props}>
+      {alert.placed && alert.buttons}
+    </OverlayActions>
   );
 }

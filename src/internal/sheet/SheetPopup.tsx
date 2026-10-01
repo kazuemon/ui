@@ -4,6 +4,7 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 
 import { initialFocusOf } from '../overlay/initial-focus';
+import { OverlayActionsContext, useOverlayActionsSlot } from '../overlay/overlay-actions-context';
 import {
   focusTargetRef,
   overlayNameAttributes,
@@ -41,7 +42,7 @@ interface SheetPopupProps {
   accessibleName?: string;
   description?: ReactNode;
   children?: ReactNode;
-  /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない */
+  /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。中身に置いた帯（DrawerActions など）でも置ける */
   footer?: ReactNode;
   /** 下の操作の並べ方 */
   footerLayout?: OverlayActionsLayout;
@@ -124,6 +125,9 @@ export function SheetPopup({
     footerLayout === 'auto' ? (side === 'bottom' ? 'stack-reverse' : 'end') : footerLayout;
   const overlayId = useId();
   const bottom = side === 'bottom';
+  // 中身に置いた下の操作の帯（DrawerActions など）。置かれたら、中身の下の余白と続きの印を帯に譲る
+  const actions = useOverlayActionsSlot('sheet', layout, footer != null);
+  const footerInContent = actions.placed;
   return (
     // 中身に入力欄を置くシートのために、ソフトウェアキーボードに合わせてスクロールを整える（Base UI）
     <BaseDrawer.VirtualKeyboardProvider>
@@ -244,19 +248,23 @@ export function SheetPopup({
               data-slot="sheet-content"
               className={[
                 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
-                footer == null && 'pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
+                footer == null &&
+                  !footerInContent &&
+                  'pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
               ]
                 .filter(Boolean)
                 .join(' ')}
             >
-              {children}
+              <OverlayActionsContext value={actions.value}>{children}</OverlayActionsContext>
             </BaseDrawer.Content>
-            <SheetMoreCue
-              edge="bottom"
-              sheet
-              sheetMoreCue="divider-always-shadow"
-              divider={footer != null ? 'shadow' : undefined}
-            />
+            {!footerInContent && (
+              <SheetMoreCue
+                edge="bottom"
+                sheet
+                sheetMoreCue="divider-always-shadow"
+                divider={footer != null ? 'shadow' : undefined}
+              />
+            )}
             {footer != null && (
               <div
                 data-slot="sheet-footer"

@@ -21,6 +21,11 @@ interface SheetMoreCueProps {
    * scrollable: 中身がスクロールできるあいだいつも出す。shadow: 影が出ているあいだ出す（下の端にも引く）
    */
   divider?: 'scrollable' | 'shadow';
+  /**
+   * 下の操作の帯（中身の中に置いて、下の端に貼り付けたもの）の上の端に付けるか。
+   * 流れの中に置かず、帯の上に重ねる。帯はスクロールバーの内側にあるので、影をスクロールバーの手前で止めない
+   */
+  attached?: boolean;
 }
 
 // 中身が長いとき、上下に続きがあることを見せる印 — adr/0037
@@ -33,6 +38,7 @@ export function SheetMoreCue({
   sheet,
   sheetMoreCue,
   divider: dividerWhen,
+  attached = false,
 }: SheetMoreCueProps) {
   const top = edge === 'top';
   const level = top ? 'var(--cue-top, 0)' : 'var(--cue-bottom, 0)';
@@ -57,9 +63,11 @@ export function SheetMoreCue({
   return (
     <div
       aria-hidden
-      className={['pointer-events-none relative z-1 h-3 shrink-0', top ? '-mb-3' : '-mt-3'].join(
-        ' '
-      )}
+      className={
+        attached
+          ? 'pointer-events-none absolute inset-x-0 bottom-full h-3 [--cue-right:0px]'
+          : ['pointer-events-none relative z-1 h-3 shrink-0', top ? '-mb-3' : '-mt-3'].join(' ')
+      }
     >
       {shadow && (
         <div

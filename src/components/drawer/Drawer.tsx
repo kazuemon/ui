@@ -1,10 +1,19 @@
 'use client';
 
 import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
-import { type ReactElement, type ReactNode, use, useCallback, useRef, useState } from 'react';
+import {
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+  use,
+  useCallback,
+  useRef,
+  useState,
+} from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { OverlayActions } from '../../internal/overlay/overlay-actions';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import type {
   OverlayFocusTarget,
@@ -30,7 +39,10 @@ export interface DrawerBaseProps {
   description?: ReactNode;
   /** 面の中身。長いときはスクロールし、上下の端に続きの印を出す */
   children?: ReactNode;
-  /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。押して閉じるボタンは OverlayClose の render に渡す */
+  /**
+   * 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。押して閉じるボタンは OverlayClose の render に渡す。
+   * 中身の Form の送信のボタンを並べるときは、actions の代わりに中身の Form の中に DrawerActions を置きます
+   */
   actions?: ReactNode;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
   trigger?: ReactElement;
@@ -270,4 +282,21 @@ export function Drawer({
       </OverlayCloseContext>
     </BaseDrawer.Root>
   );
+}
+
+export interface DrawerActionsProps extends ComponentProps<'div'> {
+  /** 下に並べる操作（ボタン）。押して閉じるボタンは OverlayClose の render に渡す */
+  children?: ReactNode;
+  /** 帯（div）に付きます */
+  className?: string;
+}
+
+/**
+ * Drawer の下の操作（ボタン）の帯。中身のどこに置いても、actions と同じ下の帯に見え、中身が長いときは下に貼り付きます。
+ * 並べ方は Drawer の actionsLayout に従います。
+ * 中身の Form の中に置くと、送信のボタンが Form の送信・Enter・送信中・FormData にそのまま加わります。
+ * 中身の最後（Form の中なら、その最後）に 1 つだけ置き、Drawer の actions とは両方渡しません
+ */
+export function DrawerActions(props: DrawerActionsProps) {
+  return <OverlayActions name="DrawerActions" {...props} />;
 }
