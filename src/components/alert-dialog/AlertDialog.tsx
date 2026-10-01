@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactElement, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactElement, type ReactNode, useId, useState } from 'react';
 
 import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import type { OverlayFocusTarget, PopupProps } from '../../internal/overlay/overlay-props';
@@ -32,6 +32,11 @@ export interface AlertDialogProps {
    */
   onAction?: () => unknown;
   /**
+   * 実行する側のボタンを押せなくするか。確かめの入力（消すものの名前を打つなど）が済むまで止めるときに使います
+   * @default false
+   */
+  actionDisabled?: boolean;
+  /**
    * 実行する側のボタンの色。消す・外すなど失うものがある操作は danger、
    * 失うものはないが取り消せない操作（送信・公開など）は primary にします
    * @default 'danger'
@@ -62,6 +67,11 @@ export interface AlertDialogProps {
    * @default 'auto'
    */
   actionsLayout?: OverlayActionsLayout;
+  /**
+   * 開いた直後に焦点を当てる要素。要素そのものか、要素の ref を渡します（中身に置いた入力欄など）。
+   * 書かないときは取り消す側のボタンです（うっかり Enter で実行しないため）
+   */
+  autoFocus?: OverlayFocusTarget;
   /** 閉じたあとに焦点を戻す要素。要素そのものか、要素の ref を渡します。書かないときは開いたボタン */
   returnFocus?: OverlayFocusTarget;
   /**
@@ -77,6 +87,9 @@ export interface AlertDialogProps {
 
 /**
  * 取り消せない操作の前に、続けるかを確かめる面。閉じるのは下の 2 つのボタンだけで、後ろの画面・Esc・下へはじく操作では閉じません
+ *
+ * 中身は form で包まれ、実行する側のボタンはその送信のボタンです。中身に置いた入力欄で Enter を押すと実行します
+ * （入力欄の required などの確かめを通ったときだけ）
  */
 export function AlertDialog({
   title,
@@ -86,6 +99,8 @@ export function AlertDialog({
   cancelLabel = 'キャンセル',
   onAction,
   color = 'danger',
+  actionDisabled = false,
+  autoFocus,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -94,6 +109,7 @@ export function AlertDialog({
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   const [pending, setPending] = useState(false);
+  const formId = useId();
   const changeOpen = (next: boolean) => {
     setOpenState(next);
     onOpenChange?.(next);
@@ -113,6 +129,14 @@ export function AlertDialog({
     }
     changeOpen(false);
   };
+  // 実行は form の送信にする。中身の入力欄で Enter を押すと、実行する側のボタンが押されたのと同じになる
+  //   面は画面の外（portal）に描くが、React のイベントは部品の木を上るので、外の form に送信を伝えない
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (actionDisabled || pending) return;
+    void run();
+  };
   return (
     <OverlayRoleContext value="alertdialog">
       <Dialog
@@ -125,12 +149,15 @@ export function AlertDialog({
         dismissible={false}
         closeOnEscape={false}
         hideCloseButton
+        autoFocus={autoFocus}
         actions={
           <>
-            {/* 開いた直後のフォーカスは取り消す側に置く（うっかり Enter で実行しないため） */}
+            {/* 中身がないときは、送信の先になる form を下の操作の中に置く（隠す。並びの隙間にもならない） */}
+            {children == null && <form id={formId} hidden onSubmit={submit} />}
+            {/* 開いた直後のフォーカスは、渡されなければ取り消す側に置く（うっかり Enter で実行しないため） */}
             <Button
               variant="outline"
-              autoFocus
+              autoFocus={autoFocus === undefined}
               disabled={pending}
               data-slot="alert-dialog-cancel"
               onClick={() => changeOpen(false)}
@@ -138,17 +165,23 @@ export function AlertDialog({
               {cancelLabel}
             </Button>
             <Button
+              type="submit"
+              form={formId}
               color={color}
               loading={pending}
+              disabled={actionDisabled}
               data-slot="alert-dialog-action"
-              onClick={() => void run()}
             >
               {actionLabel}
             </Button>
           </>
         }
       >
-        {children}
+        {children == null ? null : (
+          <form id={formId} data-slot="alert-dialog-form" onSubmit={submit}>
+            {children}
+          </form>
+        )}
       </Dialog>
     </OverlayRoleContext>
   );

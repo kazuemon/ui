@@ -43,6 +43,7 @@ function Demo({
   stack?: ToastStack;
   variant?: ToastVariant;
   hideOutline?: boolean;
+  offset?: number;
 }) {
   return (
     <ToastProvider portalContainer={container} {...props}>
@@ -77,11 +78,13 @@ const meta = {
           '- `status` は状態の色（`info`・`success`・`warning`・`danger`）です。書かないと、色を持たないグレーになります。危険だけが読み上げに割り込み、ほかは静かに知らせます。',
           '- 既定では自動で消えません（`timeout` は 0）。消えるまでの時間を決めると、その時間で消え、面の下に残り時間の線が出ます。読んでいるあいだ（マウスを載せている・触れている・キーボードで入っている）は、時間も線も止まります。',
           '- 時間は、全体（`ToastProvider` の `timeout`）でも、トーストごと（`useToast().show({ timeout })`）でも決められます。',
+          '- 画面の端からの離れは `offset`（px）です。固定したヘッダーやタブバーを避けるときに渡します。',
           '- 出る場所は `position` です。`auto`（既定）は、指で操作していて画面が狭いときは下の中央、それ以外は右下に出します。',
           '- 積み方は `stack` です。`auto`（既定）は、3 枚までは縦に並べ、4 枚めからは重ねます。いちど重ねたら、全部消えるまで重ねたままです（読んでいる途中で形が変わらないように）。重ねると手前の 1 枚だけが見え、載せる・触れる・キーボードで入ると開いて全部見えます。',
           '- 面は `variant`（`soft`（既定）・`filled`）と `hideOutline`（細い輪郭。既定は出す）で決めます。',
           '- はじく（スワイプする）と消せます。× でも閉じられます。',
-          '- `useToast().promise` に Promise を渡すと、待ち・成功・失敗のトーストを順に出せます。',
+          '- `useToast().update(id, { … })` で、出したトーストを書き換えます。渡したものだけが変わり、`status` を変えると色と読み上げの割り込みも変わります。',
+          '- `useToast().promise` に Promise を渡すと、待ち・成功・失敗のトーストを順に出せます。段ごとに `show` と同じ形か、文字だけ（本文になります）を渡します。状態を書かないときは、成功は `success`、失敗は `danger` です。',
           '- 押して何かをさせたいとき（「元に戻す」など）は `actions` にボタンかリンクを渡します。読まないと困ることは、消えてしまうトーストではなく `Notice` に置きます。',
         ].join('\n'),
       },
@@ -322,6 +325,137 @@ export const Positions: Story = {
     await waitFor(async () => {
       await expect(canvas.getAllByText('保存しました').length).toBeGreaterThanOrEqual(3);
     });
+  },
+};
+
+export const Offset: Story = {
+  name: '端からの離れ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`offset` で画面の端からの離れ（px）を変えます。下に固定したタブバーの上に出すときなどに使います。',
+      },
+    },
+  },
+  render: () => (
+    <ScreenFrame height="h-[300px]">
+      {(frame) => (
+        <Demo container={frame} timeout={0} position="bottom-end" offset={64} toasts={[saved]} />
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    await waitFor(async () => {
+      await expect(canvas.getAllByText('保存しました').length).toBeGreaterThan(0);
+    });
+    const viewport = canvasElement.querySelector<HTMLElement>('[data-slot="toast-viewport"]');
+    await expect(getComputedStyle(viewport!).bottom).toBe('64px');
+    await expect(getComputedStyle(viewport!).right).toBe('64px');
+  },
+};
+
+// 書き換えと Promise の見本。押すと、待ちのトーストが 1 秒で成功か失敗に変わる（押すたびに交互）
+function UpdateButtons() {
+  const toast = useToast();
+  const fail = useRef(false);
+  const settle = (resolve: () => void, reject: () => void) => {
+    const next = fail.current ? reject : resolve;
+    fail.current = !fail.current;
+    setTimeout(next, 1000);
+  };
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        onClick={() => {
+          const id = toast.show({ title: '送信しています' });
+          settle(
+            () => toast.update(id, { status: 'success', title: '送信しました' }),
+            () =>
+              toast.update(id, {
+                status: 'danger',
+                title: '送信できませんでした',
+                description: '通信を確かめて、もう一度お試しください。',
+              })
+          );
+        }}
+      >
+        書き換える
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          const promise = new Promise<string>((resolve, reject) =>
+            settle(
+              () => resolve('記事'),
+              () => reject(new Error('通信できませんでした'))
+            )
+          );
+          toast
+            .promise(promise, {
+              loading: { title: '公開しています' },
+              success: (name) => ({ title: `${name}を公開しました` }),
+              error: (reason) => ({
+                title: '公開できませんでした',
+                description: reason instanceof Error ? reason.message : undefined,
+              }),
+            })
+            .catch(() => {});
+        }}
+      >
+        Promise で出す
+      </Button>
+    </div>
+  );
+}
+
+export const Update: Story = {
+  name: '書き換えと Promise',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`update` で出したトーストを書き換えます。`promise` は、待ち・成功・失敗を 1 枚のトーストで順に出します。どちらも `show` と同じ形で渡します。',
+      },
+    },
+  },
+  render: (args) => (
+    <ScreenFrame>
+      {(frame) => (
+        <Demo {...args} container={frame} timeout={0} stack="list">
+          <UpdateButtons />
+        </Demo>
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const toastOf = (text: string) =>
+      [...canvasElement.querySelectorAll<HTMLElement>('[data-slot="toast"]')].find((el) =>
+        el.textContent?.includes(text)
+      );
+    // update: 状態を変えると色（data-status）も変わる
+    await userEvent.click(canvas.getByRole('button', { name: '書き換える' }));
+    await waitFor(() => expect(toastOf('送信しています')).toBeDefined());
+    await expect(toastOf('送信しています')).toHaveAttribute('data-status', 'neutral');
+    await waitFor(() => expect(toastOf('送信しました')).toHaveAttribute('data-status', 'success'), {
+      timeout: 3000,
+    });
+    // 危険でない状態は割り込まない（alertdialog にならない）
+    await expect(toastOf('送信しました')).toHaveAttribute('role', 'dialog');
+    // promise: 待ち → 失敗（2 回めは失敗する）。状態を書かない失敗は danger になる
+    await userEvent.click(canvas.getByRole('button', { name: 'Promise で出す' }));
+    await waitFor(() =>
+      expect(toastOf('公開しています')).toHaveAttribute('data-status', 'neutral')
+    );
+    await waitFor(
+      () => expect(toastOf('公開できませんでした')).toHaveAttribute('data-status', 'danger'),
+      { timeout: 3000 }
+    );
+    await expect(toastOf('通信できませんでした')).toBeDefined();
+    // 失敗（danger）に変わると、読み上げに割り込む（alertdialog）
+    await expect(toastOf('公開できませんでした')).toHaveAttribute('role', 'alertdialog');
   },
 };
 

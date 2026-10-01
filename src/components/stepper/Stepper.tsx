@@ -159,6 +159,7 @@ export type StepperColor = 'neutral' | 'primary' | 'secondary';
  */
 export type StepperVariant = 'number' | 'check';
 
+/** 段の状態。upcoming はまだ、current はいまの段、completed は済んだ段 */
 export type StepperStepStatus = 'upcoming' | 'current' | 'completed';
 
 interface StepperContextValue {
@@ -256,8 +257,10 @@ export function Stepper({
       <ol role="list" data-orientation={orientation} className={s.list()}>
         <StepperContext value={{ orientation, variant }}>
           {items.map((item, index) => {
+            // 段ごとの status があればそれを使い、なければ value と並び順で決める
             const status: StepperStepStatus =
-              index < value ? 'completed' : index === value ? 'current' : 'upcoming';
+              item.props.status ??
+              (index < value ? 'completed' : index === value ? 'current' : 'upcoming');
             const clickable = onStepClick != null && !item.props.disabled && status === 'completed';
             return (
               <StepperItemContext
@@ -283,6 +286,12 @@ export function Stepper({
 export interface StepperStepProps extends Omit<ComponentProps<'li'>, 'title'> {
   /** 段のラベル */
   label: ReactNode;
+  /**
+   * この段の状態を、value と並び順で決まるものから上書きします。順番どおりに進まないウィザードで、
+   * 先の段を済ませた（completed）ときや、済ませた段をやり直し（upcoming）にするときに渡します。
+   * upcoming はまだ、current はいまの段、completed は済んだ段です。書かないときは value と並び順で決まります
+   */
+  status?: StepperStepStatus;
   /** ラベルの下に添える説明 */
   description?: ReactNode;
   /**
@@ -310,6 +319,7 @@ export interface StepperStepProps extends Omit<ComponentProps<'li'>, 'title'> {
  */
 export function StepperStep({
   label,
+  status: _status,
   description,
   invalid = false,
   disabled = false,

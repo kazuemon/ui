@@ -23,14 +23,20 @@ const stateColumns: Column[] = [
 ];
 
 /** クリップボードの代わりを置いて、fn を返す。戻すときは restore を呼ぶ */
-function stubClipboard(writeText = fn(async (_text: string) => {})) {
+function stubClipboard(
+  writeText = fn(async (_text: string) => {}),
+  write = fn(async (_items: ClipboardItem[]) => {})
+) {
   const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
-  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText, write },
+  });
   const restore = () => {
     if (original) Object.defineProperty(navigator, 'clipboard', original);
     else Reflect.deleteProperty(navigator, 'clipboard');
   };
-  return { writeText, restore };
+  return { writeText, write, restore };
 }
 
 const meta = {
@@ -43,7 +49,7 @@ const meta = {
         component: [
           '文字列をクリップボードに写すボタンです。写せると印がチェックに変わり、読み上げでも「コピーしました」と知らせます。',
           '',
-          '- 写す文字列は `text` に渡します。関数を渡すと、押したときに呼んで、返した文字列を写します。',
+          '- 写す文字列は `text` に渡します。関数を渡すと、押したときに呼んで、返した文字列を写します。関数は Promise を返してもかまいません（サーバーで共有のリンクを作るときなど）。決まった文字列を写し、Promise が失敗したときは写せなかったことにします。',
           '- 既定は「コピー」の文字の付いた枠線のボタンです。並びが詰まっているところでは `iconOnly` でアイコンだけにします。アイコンだけのときは `label` が読み上げの名前になり、マウスを載せたときやキーボードでフォーカスしたときに吹き出しでも出ます。',
           '- アイコンだけのボタンの形は `shape` で選びます。`square`（既定）は文字のボタンと同じ角の正方形、`circle` は丸です。',
           '- 何を写すのかが周りから分からないときは、`label="URL をコピー"` のように書きます。',
@@ -253,6 +259,53 @@ export const Accessibility: Story = {
   },
 };
 
+export const AsyncText: Story = {
+  name: 'あとで決まる文字列を写す',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`text` に Promise を返す関数を渡すと、決まった文字列を写します。サーバーで共有のリンクを作ってから写すときなどに使います。Safari でも写せるよう、押したときにすぐ書き込みを始め、文字列が決まるのを待ちます。',
+      },
+      source: sourceCode(`
+        <CopyButton
+          label="共有のリンクをコピー"
+          text={async () => {
+            const { url } = await createShareLink();
+            return url;
+          }}
+        />
+      `),
+    },
+  },
+  render: (args) => (
+    <CopyButton
+      {...args}
+      label="共有のリンクをコピー"
+      text={() =>
+        new Promise<string>((resolve) => setTimeout(() => resolve('https://k6n.jp/s/42'), 300))
+      }
+    />
+  ),
+  play: async ({ args, canvas }) => {
+    const { write, restore } = stubClipboard();
+    try {
+      await userEvent.click(canvas.getByRole('button', { name: '共有のリンクをコピー' }));
+      // 押した処理の中で、Promise のまま ClipboardItem に渡して書き込みを始める
+      await expect(write).toHaveBeenCalledTimes(1);
+      const [item] = write.mock.calls[0][0];
+      const blob = await item.getType('text/plain');
+      await expect(await blob.text()).toBe('https://k6n.jp/s/42');
+      await waitFor(() => expect(args.onCopied).toHaveBeenCalledWith('https://k6n.jp/s/42'));
+      await waitFor(() =>
+        expect(canvas.getAllByRole('status')[0]).toHaveTextContent('コピーしました')
+      );
+    } finally {
+      restore();
+    }
+  },
+};
+
 /** クリップボードを使えなくして押す */
 function failingClipboard() {
   return stubClipboard(
@@ -360,6 +413,37 @@ export const CopyErrorHandled: Story = {
       // 吹き出しも読み上げも出さない
       await expect(document.body.querySelector('[data-slot="tooltip"]')).not.toBeInTheDocument();
       await expect(canvasElement.querySelector('[role="status"]')).toHaveTextContent('');
+    } finally {
+      restore();
+    }
+  },
+};
+
+// text の Promise が失敗したときは、写せなかったことにする（クリップボードは中身を読むときに失敗を受け取る）
+export const AsyncTextFailed: Story = {
+  name: 'あとで決まる文字列が作れなかったとき',
+  tags: ['!autodocs'],
+  args: { onCopyFailed: fn() },
+  render: (args) => (
+    <CopyButton
+      {...args}
+      label="共有のリンクをコピー"
+      text={() => Promise.reject(new Error('サーバーに届きません'))}
+    />
+  ),
+  play: async ({ args, canvas }) => {
+    const { restore } = stubClipboard(
+      undefined,
+      fn(async (items: ClipboardItem[]) => {
+        await items[0].getType('text/plain');
+      })
+    );
+    try {
+      const button = canvas.getByRole('button', { name: '共有のリンクをコピー' });
+      await userEvent.click(button);
+      await waitFor(() => expect(args.onCopyFailed).toHaveBeenCalledTimes(1));
+      await expect(args.onCopied).not.toHaveBeenCalled();
+      await expect(button).not.toHaveAttribute('data-copied');
     } finally {
       restore();
     }

@@ -215,6 +215,8 @@ export interface MenuLinkItemProps extends MenuItemBaseProps, DisableableProps {
   rel?: string;
   /** ルーターのリンクの部品などで描くとき、その要素を渡す（Base UI の render） */
   render?: ReactElement;
+  /** 押したときの処理（移る前に呼びます。移るのを止めるときは event.preventDefault()）。押せないときは呼びません */
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
   /**
    * 押したあと一覧を閉じるか
    * @default true
@@ -238,6 +240,7 @@ export function MenuLinkItem({
   rel,
   render,
   disabled = false,
+  onClick,
   closeOnClick = true,
   className,
   style,
@@ -253,6 +256,7 @@ export function MenuLinkItem({
       target={disabled ? undefined : target}
       rel={disabled ? undefined : (rel ?? (newTab ? 'noopener noreferrer' : undefined))}
       render={disabled ? disabledAnchor(render) : render}
+      onClick={disabled ? undefined : onClick}
       label={typeaheadLabel(children, label)}
       closeOnClick={disabled ? false : closeOnClick}
       aria-labelledby={ids.labelledBy}
@@ -286,6 +290,10 @@ export interface MenuCheckboxItemProps extends MenuItemBaseProps, DisableablePro
   /** 入・切が変わるときに、次の値を渡して呼びます */
   onCheckedChange?: (checked: boolean) => void;
   /**
+   * 文字の後ろに出すショートカット（例: 「Ctrl+Shift+H」）。表示だけで、キーの操作は利用者が付けます。シートでは出しません
+   */
+  shortcut?: ReactNode;
+  /**
    * 押したあと一覧を閉じるか。続けて切り替えられるよう、既定では閉じません
    * @default false
    */
@@ -302,11 +310,15 @@ export function MenuCheckboxItem({
   checked,
   defaultChecked,
   onCheckedChange,
+  shortcut,
   closeOnClick,
   className,
   style,
 }: MenuCheckboxItemProps) {
-  const ids = useItemDescription(description, undefined);
+  const { sheet } = useMenuContext();
+  // 指で操作するシートでは、キーボードのショートカットを出さない
+  const shownShortcut = sheet ? undefined : shortcut;
+  const ids = useItemDescription(description, shownShortcut);
   return (
     <BaseMenu.CheckboxItem
       data-slot="menu-item"
@@ -326,6 +338,7 @@ export function MenuCheckboxItem({
         description={description}
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
+        shortcut={shownShortcut}
         shortcutId={ids.shortcutId}
         mark={
           <BaseMenu.CheckboxItemIndicator className="flex">

@@ -43,8 +43,11 @@ export interface CopyButtonProps extends Omit<
   | 'variant'
   | 'shape'
 > {
-  /** 写す文字列。関数を渡すと、押したときに呼んで、返した文字列を写します */
-  text: string | (() => string);
+  /**
+   * 写す文字列。関数を渡すと、押したときに呼んで、返した文字列を写します。
+   * 関数は Promise を返してもかまいません（サーバーで共有のリンクを作るときなど）。決まった文字列を写し、Promise が失敗したときは写せなかったことにします
+   */
+  text: string | (() => string | Promise<string>);
   /**
    * ボタンの文字と読み上げの名前。アイコンだけのボタンでは、読み上げの名前になります。
    * 何を写すのかが周りから分からないときは、「URL をコピー」のように書きます
@@ -125,7 +128,8 @@ export function CopyButton({
     onClick?.(event);
     if (event.defaultPrevented) return;
     const value = typeof text === 'function' ? text() : text;
-    void copy(value).then((ok) => (ok ? onCopied?.(value) : onCopyFailed?.()));
+    // Promise のときも、押した処理の中でそのまま写し始める（Safari は、待ってから写すと断る）
+    void copy(value).then(async (ok) => (ok ? onCopied?.(await value) : onCopyFailed?.()));
   };
 
   const showLabel = feedback === 'label';

@@ -212,6 +212,11 @@ export interface PaginationProps extends Omit<ComponentProps<'nav'>, 'children' 
    */
   showPageInput?: boolean;
   /**
+   * 前へ・番号・次へ・省略のメニューを、すべて押せなくします（読み込み中など）。いまのページの印は残り、数を打つ欄はただの数になります
+   * @default false
+   */
+  disabled?: boolean;
+  /**
    * 並び（nav）の読み上げの名前。画面には出ません
    * @default 'ページ送り'
    */
@@ -285,6 +290,9 @@ function LinkControl({
     props: disabled
       ? {
           ...disabledLinkProps,
+          // いまのページの印と番号の名前は、押せなくても残す
+          'aria-current': current ? ('page' as const) : undefined,
+          'aria-label': ariaLabel,
           'data-slot': 'pagination-item',
           'data-kind': kind,
           className,
@@ -355,6 +363,7 @@ export function Pagination({
   narrowDisplay = 'summary',
   ellipsisMenu = false,
   showPageInput = false,
+  disabled = false,
   accessibleName = 'ページ送り',
   prevLabel = '前へ',
   nextLabel = '次へ',
@@ -386,14 +395,14 @@ export function Pagination({
   const steps = (children: ReactNode) => (
     <>
       <li className="flex">
-        <Control {...shared} target={page - 1} disabled={page <= 1} kind="prev">
+        <Control {...shared} target={page - 1} disabled={disabled || page <= 1} kind="prev">
           <CaretLeftIcon />
           <span className={s.stepLabel()}>{prevLabel}</span>
         </Control>
       </li>
       {children}
       <li className="flex">
-        <Control {...shared} target={page + 1} disabled={page >= count} kind="next">
+        <Control {...shared} target={page + 1} disabled={disabled || page >= count} kind="next">
           <span className={s.stepLabel()}>{nextLabel}</span>
           <CaretRightIcon />
         </Control>
@@ -412,6 +421,7 @@ export function Pagination({
                 target={slot}
                 kind="page"
                 current={slot === page}
+                disabled={disabled}
                 ariaLabel={pageName(slot)}
               >
                 {slot}
@@ -424,6 +434,7 @@ export function Pagination({
                 className={s.item()}
                 label={ellipsisName}
                 pageLabel={pageName}
+                disabled={disabled}
                 href={href}
                 render={renderPage}
                 onChange={changePage}
@@ -450,7 +461,7 @@ export function Pagination({
             <span id={summaryId} className="sr-only">
               {summaryText(page, count)}
             </span>
-            {showPageInput ? (
+            {showPageInput && !disabled ? (
               <PaginationPageInput
                 page={page}
                 count={count}

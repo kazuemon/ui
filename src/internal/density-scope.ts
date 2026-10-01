@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 // 本体の祖先に付いた密度（data-density）と大きい指用（coarse-large）。浮かぶ部分とシートは body の直下に出て、
 // 途中の要素から引き継がないので、浮かぶ部分に写す。html に付いたものは body の直下にも効くので写さない
@@ -30,5 +30,9 @@ export function useDensityScope<T extends HTMLElement = HTMLButtonElement>(open:
     const next = readDensityScope(anchorRef.current);
     setScope((prev) => (prev.density === next.density && prev.large === next.large ? prev : next));
   }, [open]);
-  return { anchorRef, scope };
+  // 要素の種類を問わずに渡せる ref（開くボタンと、ボタンがないときに置く空の印のどちらにも付ける）
+  const setAnchor = useCallback((node: T | null) => {
+    anchorRef.current = node;
+  }, []);
+  return { anchorRef, setAnchor, scope };
 }

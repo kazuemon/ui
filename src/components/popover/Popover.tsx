@@ -37,8 +37,11 @@ export type PopoverSide = 'top' | 'bottom' | 'left' | 'right';
 export type PopoverAlign = 'start' | 'center' | 'end';
 
 export interface PopoverProps {
-  /** 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる */
-  trigger: ReactElement;
+  /**
+   * 開くボタン。Button などの要素を渡す。押すと開き、もう一度押すと閉じる。
+   * 省くときは、open で開閉を外から決め、positionerProps の anchor に位置の基準にする要素を渡します
+   */
+  trigger?: ReactElement;
   /**
    * 題。読み上げでは、開いた面の名前になる。シートでは見出しに出す
    * 名前のない面は、読み上げで何の面か分からないので必ず渡す。画面に出したくないときは `hideTitle` を付ける
@@ -210,7 +213,7 @@ function FloatingPopover({
   onOpenChange: (open: boolean) => void;
 }) {
   const portalContainer = usePortalContainer(container);
-  const { anchorRef, scope } = useDensityScope(open);
+  const { setAnchor, scope } = useDensityScope<HTMLElement>(open);
   // 見出しの分の間は、見えている題か説明があるときだけ空ける（見えない題は場所を取らない）
   const heading = (title != null && !hideTitle) || description != null;
   // passive は、裏を止めないが外を押しても（フォーカスが外れても）閉じない
@@ -241,7 +244,12 @@ function FloatingPopover({
       onOpenChangeComplete={onOpenChangeComplete}
       modal={passive ? false : modal}
     >
-      <BasePopover.Trigger ref={anchorRef} render={trigger} />
+      {/* 開いた面に写す密度は、開くボタンの祖先から読む。ボタンがないときは、部品を置いた場所に描く空の印から読む */}
+      {trigger ? (
+        <BasePopover.Trigger ref={setAnchor} render={trigger} />
+      ) : (
+        <span ref={setAnchor} hidden />
+      )}
       <OverlayCloseContext value={() => changeOpen(false)}>
         <BasePopover.Portal container={portalContainer}>
           <BasePopover.Positioner

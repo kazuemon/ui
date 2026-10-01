@@ -1,7 +1,15 @@
 'use client';
 
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
-import { type ReactElement, type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  type ReactElement,
+  type ReactNode,
+  use,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
@@ -47,7 +55,8 @@ export interface TooltipProps {
    */
   align?: TooltipAlign;
   /**
-   * マウスを載せてから出るまで（ms）。キーボードでフォーカスしたときは待たずに出ます
+   * マウスを載せてから出るまで（ms）。キーボードでフォーカスしたときは待たずに出ます。
+   * 書かないときは、包む TooltipProvider の delay です
    * @default 400
    */
   delay?: number;
@@ -96,6 +105,45 @@ export interface TooltipProps {
   className?: string;
 }
 
+/** マウスを載せてから出るまでの既定（ms） */
+const DEFAULT_DELAY = 400;
+
+// TooltipProvider が決めた、マウスを載せてから出るまで（ms）。包まれていないときは null
+const TooltipDelayContext = createContext<number | null>(null);
+
+export interface TooltipProviderProps {
+  /** 待ち時間をそろえる範囲。ツールバーやアプリ全体を入れます */
+  children?: ReactNode;
+  /**
+   * 中の Tooltip の、マウスを載せてから出るまで（ms）。Tooltip ごとに delay を渡したときは、そちらが先です
+   * @default 400
+   */
+  delay?: number;
+  /**
+   * 中の Tooltip の、マウスが離れてから消えるまで（ms）
+   * @default 0
+   */
+  closeDelay?: number;
+}
+
+/**
+ * 中の Tooltip の待ち時間をそろえます。1 つが出たあとは、隣の Tooltip へマウスを移すと待たずに出ます
+ * （ツールバーのボタンを順に見ていくときに、毎回待たせないため）
+ */
+export function TooltipProvider({
+  children,
+  delay = DEFAULT_DELAY,
+  closeDelay = 0,
+}: TooltipProviderProps) {
+  return (
+    <TooltipDelayContext value={delay}>
+      <BaseTooltip.Provider delay={delay} closeDelay={closeDelay}>
+        {children}
+      </BaseTooltip.Provider>
+    </TooltipDelayContext>
+  );
+}
+
 // 長押しとみなさない指の動き（px）。これより動いたらスクロールとみなし、長押しをやめる
 const LONG_PRESS_SLOP = 10;
 
@@ -107,7 +155,7 @@ export function Tooltip({
   children,
   side = 'bottom',
   align = 'center',
-  delay = 400,
+  delay: delayProp,
   longPressDelay = 500,
   longPressSide = 'top',
   open: openProp,
@@ -123,6 +171,9 @@ export function Tooltip({
 }: TooltipProps) {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
+  // 待ち時間は、Tooltip ごとの delay、包む TooltipProvider の delay、既定の順に決める
+  const providerDelay = use(TooltipDelayContext);
+  const delay = delayProp ?? providerDelay ?? DEFAULT_DELAY;
   const portalContainer = usePortalContainer(container);
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {

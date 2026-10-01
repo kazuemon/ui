@@ -11,6 +11,7 @@ import {
   use,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -187,6 +188,10 @@ export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> 
    * @default 'auto'
    */
   menuSide?: 'auto' | SheetSide;
+  /** 帯が狭いときに出すメニューが開いているか（制御）。行き先を押したあとの処理で閉じるときなどに使います */
+  menuOpen?: boolean;
+  /** メニューの開閉が変わるときに、次の値を渡して呼びます。帯が広がって行き先が帯に戻ったときも、閉じる値で呼びます */
+  onMenuOpenChange?: (open: boolean) => void;
   /**
    * メニューの面を描く場所。ThemeProvider の portalContainer でまとめて指定できます
    * @default document.body
@@ -211,6 +216,8 @@ export function Navbar({
   accessibleName = 'メイン',
   menuTitle = 'メニュー',
   menuSide = 'auto',
+  menuOpen,
+  onMenuOpenChange,
   portalContainer,
   className,
   ref,
@@ -219,7 +226,17 @@ export function Navbar({
   const s = navbar({ sticky, stickyEdge, stickyBackdrop });
   const sheet = useSheetPresentation('auto');
   const side = menuSide === 'auto' ? (sheet ? 'bottom' : 'right') : menuSide;
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = menuOpen ?? openState;
+  const setOpen = (next: boolean) => {
+    if (menuOpen === undefined) setOpenState(next);
+    onMenuOpenChange?.(next);
+  };
+  // 帯の幅を測る処理（ResizeObserver）から、いまの通知を読むための控え
+  const closeRef = useRef(() => {});
+  useLayoutEffect(() => {
+    closeRef.current = () => setOpen(false);
+  });
   const hasLinks = Children.count(children) > 0;
   const rootRef = useRef<HTMLElement>(null);
   // 内部の ref（帯の幅を測る）と、利用者が渡した ref をつなぐ（ADR-0250）
@@ -231,7 +248,7 @@ export function Navbar({
     if (!open || !root) return undefined;
     const observer = new ResizeObserver(() => {
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      if (root.offsetWidth >= WIDE_REM * rem) setOpen(false);
+      if (root.offsetWidth >= WIDE_REM * rem) closeRef.current();
     });
     observer.observe(root);
     return () => observer.disconnect();

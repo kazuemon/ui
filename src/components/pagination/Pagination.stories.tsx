@@ -36,6 +36,7 @@ const meta = {
           '- 番号と前へ・次への形は `shape` で選びます。`square`（既定）はボタンと同じ角、`circle` は丸です。Navbar の行き先と並べるときは `circle` にすると形がそろいます。',
           '- `showOutline` を付けると、番号ごとに細い枠線を引き、押せる範囲をふだんから見せます。',
           '- 端のページでは、前へ・次へは押せない見た目で残ります。並びの位置は動きません。',
+          '- 読み込み中などで全体を押せなくするときは `disabled` を付けます。前へ・番号・次へ・省略のメニューが押せなくなり、いまのページの印は残ります。',
           '- どのページにいても番号の数は同じです。ページを送っても、前へ・次へのボタンの位置が変わりません。',
           '- `siblings`（既定 1）はいまのページの左右に出す番号の数、`boundaries`（既定 1）は両端に出す番号の数です。',
           '- 置いた場所の幅が狭いときは、前へ・次へを矢印だけにし、さらに狭いといまのページの左右の番号を省き、いちばん狭いところでは番号をやめて「5 / 10」だけにします。画面の幅ではなく、置いた場所の幅で決めます。',
@@ -60,6 +61,7 @@ const meta = {
     narrowDisplay: 'summary',
     ellipsisMenu: false,
     showPageInput: false,
+    disabled: false,
   },
   argTypes: {
     page: { control: { type: 'number', min: 1 } },
@@ -519,6 +521,33 @@ export const Buttons: Story = {
     await userEvent.click(canvas.getByRole('button', { name: '8 ページ目' }));
     await expect(args.onPageChange).toHaveBeenLastCalledWith(8);
     await expect(canvas.getByRole('button', { name: '次へ' })).toBeDisabled();
+  },
+};
+
+export const Disabled: Story = {
+  name: '全体を押せなくする',
+  args: { href: undefined, onPageChange: fn(), disabled: true, ellipsisMenu: true, page: 5 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`disabled` を付けると、前へ・番号・次へ・省略のメニューがすべて押せなくなります。次のページを読み込んでいるあいだなどに使います。',
+      },
+    },
+  },
+  render: (args) => frame(<Pagination {...args} />),
+  play: async ({ canvas, args }) => {
+    const buttons = canvas.getAllByRole('button');
+    for (const button of buttons) await expect(button).toBeDisabled();
+    // いまのページの印は残る
+    await expect(canvas.getByRole('button', { name: '5 ページ目' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    await userEvent.click(canvas.getByRole('button', { name: '6 ページ目' }), {
+      pointerEventsCheck: 0,
+    });
+    await expect(args.onPageChange).not.toHaveBeenCalled();
   },
 };
 

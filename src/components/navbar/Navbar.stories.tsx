@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Navbar, NavbarLink, NavbarMenuList } from './Navbar';
@@ -48,6 +49,7 @@ const meta = {
           '- `brand` には、トップへのリンクにしたロゴやサイトの名前を渡します。`actions` には、帯の右端に置くボタンなどを渡します。',
           '- 帯の幅が 768px より狭いときは、行き先をメニューのボタンに畳みます。畳むかどうかは画面の幅ではなく帯そのものの幅で決まるので、画面の一部に置いた帯も、置いた幅に合わせて畳まれます。押すと、行き先を縦に並べた面が開きます。行き先を押すと面は閉じます。',
           '- メニューの面は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです。`menuSide` で固定できます。',
+          '- メニューの開閉を外から決めるときは `menuOpen` と `onMenuOpenChange` を使います（ページを移ったあとに閉じるときなど）。',
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
           '- いまいるページの印は `currentIndicator` で選びます。`text`（既定）は文字を濃く太く、`neutral` はグレーの面、`primary` は淡い青の面、`underline` は文字の下に青い線です。',
@@ -97,6 +99,8 @@ const meta = {
     actions: { control: false },
     children: { control: false },
     portalContainer: { control: false },
+    menuOpen: { control: false },
+    onMenuOpenChange: { control: false },
   },
 } satisfies Meta<typeof Navbar>;
 
@@ -362,5 +366,56 @@ export const Accessibility: Story = {
     // 行き先を押すと閉じる
     await userEvent.click(within(nav).getByRole('link', { name: 'About' }));
     await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+  },
+};
+
+function ControlledMenuDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex w-[375px] flex-col gap-4">
+      <Navbar brand={brand} menuSide="right" menuOpen={open} onMenuOpenChange={setOpen}>
+        {links()}
+      </Navbar>
+      <div className="flex items-center gap-3">
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          外から開く
+        </Button>
+        <span data-testid="menu-state">{open ? '開いている' : '閉じている'}</span>
+      </div>
+    </div>
+  );
+}
+
+export const ControlledMenu: Story = {
+  name: 'メニューを外から開閉する',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`menuOpen` と `onMenuOpenChange` で、メニューの開閉を外から決めます。ページを移ったあとの処理で閉じるときなどに使います。',
+      },
+      source: sourceCode(`
+        const [open, setOpen] = useState(false);
+
+        <Navbar brand={brand} menuOpen={open} onMenuOpenChange={setOpen}>
+          …
+        </Navbar>
+      `),
+    },
+  },
+  render: () => <ControlledMenuDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // 外から開ける
+    await userEvent.click(canvas.getByRole('button', { name: '外から開く' }));
+    const menu = await body.findByRole('dialog', { name: 'メニュー' });
+    await expect(canvas.getByTestId('menu-state')).toHaveTextContent('開いている');
+    // 行き先を押して閉じると、onMenuOpenChange に閉じる値が届く
+    await userEvent.click(within(menu).getByRole('link', { name: 'About' }));
+    await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+    await expect(canvas.getByTestId('menu-state')).toHaveTextContent('閉じている');
   },
 };

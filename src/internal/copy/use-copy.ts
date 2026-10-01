@@ -11,8 +11,29 @@ export type CopyState = 'idle' | 'copied' | 'failed';
  */
 export const CopiedPreviewContext = createContext<CopyState>('idle');
 
+// 文字列か、あとで決まる文字列（Promise）をクリップボードに写す
+//   Promise のときは、押した処理の中で（待つ前に）ClipboardItem に Promise のまま渡す。Safari は、押した処理から
+//   await を挟んで呼んだ書き込みを、利用者の操作によるものと見なさず断るため。ClipboardItem がない環境では、待ってから写す
+async function writeClipboard(source: string | Promise<string>) {
+  if (typeof source === 'string') {
+    await navigator.clipboard.writeText(source);
+    return;
+  }
+  if (typeof ClipboardItem !== 'undefined' && typeof navigator.clipboard.write === 'function') {
+    const blob = source.then((text) => new Blob([text], { type: 'text/plain' }));
+    // write が blob の失敗より先に済んでも、作れなかったことを呼び出し元に伝える
+    await Promise.all([
+      navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]),
+      blob,
+    ]);
+    return;
+  }
+  await navigator.clipboard.writeText(await source);
+}
+
 /**
  * 文字列をクリップボードに写し、duration のあいだ結果（写せた・写せなかった）を持つ
+ * Promise も受け、決まった文字列を写す（Promise が失敗したときは、写せなかったことにする）
  * 写せなかったとき（権限がない・安全でない接続）は failed になり、false を返す
  * CodeBlock のコピーのボタンと CopyButton が使う
  */
@@ -22,10 +43,10 @@ export function useCopy(duration: number) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const copy = useCallback(
-    async (text: string) => {
+    async (text: string | Promise<string>) => {
       let ok = true;
       try {
-        await navigator.clipboard.writeText(text);
+        await writeClipboard(text);
       } catch {
         ok = false;
       }
