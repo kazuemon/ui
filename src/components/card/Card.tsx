@@ -45,9 +45,9 @@ const styles = tv({
       'border-(length:--card-line-width) border-(color:--card-line)',
       '[--card-line-width:var(--border-width-thin)] [--card-line:var(--color-surface-line)]',
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
-      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない。線の色は color から作る（--card-selected-line）
+      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない。線の色は color の色（--card-accent）
       "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:-inset-(--card-line-width) data-selected:after:z-1 data-selected:after:content-['']",
-      'data-selected:after:rounded-card data-selected:after:border-(length:--card-selected-line-width) data-selected:after:border-(color:--card-selected-line)',
+      'data-selected:after:rounded-card data-selected:after:border-(length:--card-selected-line-width) data-selected:after:border-(color:--card-accent)',
     ],
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
     // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線（輪郭と同じ細い線）で中身と分ける
@@ -74,14 +74,13 @@ const styles = tv({
         header: 'mb-(--card-nested-inset)',
       },
       // 強調の形。並べたカードのうち 1 枚（おすすめなど）を目立たせる。画像の置き方は default と同じ
+      //   面・輪郭・hover の塗りは default のまま変えず、輪郭の外に淡い輪を足す（Timeline の強調と同じ考え方。軸 415）
+      //   輪の色は color の色（--card-accent）を --card-emphasis-halo-mix に薄めた色。押せるときの影と重ねて描く
       emphasis: {
         root: [
           '[--card-body-padding:var(--card-padding)]',
-          '[--card-line-width:var(--card-emphasis-line-width)] [--card-line:var(--card-emphasis-line)]',
-          '[--card-fill:var(--card-emphasis-fill)]',
-          // 輪郭の外の淡い輪（Timeline の強調と同じ考え方）。輪の色は --card-emphasis-halo-base を薄めた色。影と重ねて描く
           'ring-(length:--card-emphasis-halo) ring-(color:--card-halo-color)',
-          '[--card-halo-color:color-mix(in_oklab,var(--card-emphasis-halo-base)_var(--card-emphasis-halo-mix),transparent)]',
+          '[--card-halo-color:color-mix(in_oklab,var(--card-accent)_var(--card-emphasis-halo-mix),transparent)]',
         ],
       },
     },
@@ -92,16 +91,17 @@ const styles = tv({
       },
       md: {},
     },
-    // 選んでいる見た目の色。線は前景の色、淡い面はその色の淡い面。neutral は色を持たないグレーと濃紺（原則6）
+    // 選んでいる見た目と強調の輪の色。--card-accent は前景の色（選んでいる線と、強調の輪のもと）、淡い面はその色の淡い面。
+    // neutral は色を持たないグレーと濃紺（原則6）
     color: {
       primary: {
-        root: '[--card-selected-line:var(--color-primary)] [--card-selected-tint:var(--color-primary-subtle)]',
+        root: '[--card-accent:var(--color-primary)] [--card-selected-tint:var(--color-primary-subtle)]',
       },
       secondary: {
-        root: '[--card-selected-line:var(--color-fg-secondary)] [--card-selected-tint:var(--color-secondary-subtle)]',
+        root: '[--card-accent:var(--color-fg-secondary)] [--card-selected-tint:var(--color-secondary-subtle)]',
       },
       neutral: {
-        root: '[--card-selected-line:var(--color-neutral-strong)] [--card-selected-tint:var(--color-select-neutral-selected)]',
+        root: '[--card-accent:var(--color-neutral-strong)] [--card-selected-tint:var(--color-select-neutral-selected)]',
       },
     },
     // 選んでいる見た目の形。fill は面を淡く塗って線を重ね、line は面を変えずに線だけを重ねる
@@ -141,17 +141,12 @@ const styles = tv({
   compoundVariants: [
     // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
     { variant: ['default', 'emphasis'], interactive: true, class: { root: 'p-0' } },
-    {
-      variant: 'emphasis',
-      interactive: true,
-      class: { root: 'hover:[--card-fill:var(--card-emphasis-fill-hover)]' },
-    },
     // 塗って選んでいる押せるカードの hover。淡い面に線の色を少し混ぜる
     {
       interactive: true,
       selectedIndicator: 'fill',
       class: {
-        root: 'data-selected:hover:[--card-fill:color-mix(in_oklab,var(--card-selected-tint),var(--card-selected-line)_var(--card-selected-hover-mix))]',
+        root: 'data-selected:hover:[--card-fill:color-mix(in_oklab,var(--card-selected-tint),var(--card-accent)_var(--card-selected-hover-mix))]',
       },
     },
     // 入れ子の帯の角。上の角は画像と同じ同心の角。下の線があるときは下の角を丸めず、線をまっすぐ端まで引く
@@ -196,7 +191,7 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClic
    * 型
    * - default: 画像をカードの端まで届かせます
    * - nested: 画像をカードの内側に、余白を空けて収めます
-   * - emphasis: default の置き方のまま、面と輪郭で目立たせます。並べたカードのうち、おすすめの 1 枚などに使います
+   * - emphasis: default のまま、輪郭の外に淡い輪を足して目立たせます。輪の色は color で変えられます。並べたカードのうち、おすすめの 1 枚などに使います
    * @default 'default'
    */
   variant?: CardVariant;
@@ -218,7 +213,7 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClic
    */
   selectedIndicator?: CardSelectedIndicator;
   /**
-   * 選んでいる見た目の色（selected のとき）。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーと濃紺です
+   * 選んでいる見た目（selected のとき）と、強調の形（variant="emphasis"）の輪の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーと濃紺です
    * @default 'primary'
    */
   color?: CardColor;

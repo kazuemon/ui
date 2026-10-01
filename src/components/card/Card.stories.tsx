@@ -4,7 +4,7 @@ import { expect } from 'storybook/test';
 
 import { Card, CardBody, CardHeader, CardImage } from './Card';
 import { landscape } from '../../samples/images';
-import { DensityPair, Matrix } from '../../stories/story-parts';
+import { DensityPair, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
 import { Heading } from '../heading/Heading';
@@ -43,7 +43,7 @@ const meta = {
           '- `href` を渡さずに `onClick` を渡すと、カード全体が 1 つのボタンになります。選ぶ・開くなど、ページを移らない操作に使います。',
           '- 選択肢として並べるときは、選んでいるカードに `selected` を付けます。ボタンのときは、読み上げに押している状態として伝えます。既定では面を淡く塗って線を重ね、`selectedIndicator="line"` で線だけにします。色は `color`（`primary`・`secondary`・`neutral`）で選びます。',
           '- 題と操作を 1 行に並べる帯は `CardHeader` に入れ、カードのいちばん上に置きます。下の線で中身と分けます。`variant="filled"` で帯を淡いグレーで塗り、`hideDivider` で線を消します。',
-          '- 並べたカードのうち 1 枚を目立たせるときは、`variant="emphasis"` にします。',
+          '- 並べたカードのうち 1 枚（おすすめなど）を目立たせるときは、`variant="emphasis"` にします。面と輪郭はそのままで、輪郭の外に淡い輪を足します。輪の色は `color` で選びます。',
           '- 狭い列やたくさん並べる一覧では、`size="sm"` で余白を詰めます。',
           '- hover で画像を少し大きくしたいときは、`imageZoom` を渡します。',
           '- 幅は置いた場所に合わせます。一覧は grid で並べます。',
@@ -481,6 +481,98 @@ export const Selected: Story = {
         </Card>
       )}
     />
+  ),
+};
+
+const Plan = ({
+  name,
+  price,
+  ...props
+}: { name: string; price: string } & ComponentProps<typeof Card>) => (
+  <Card {...props}>
+    <CardBody>
+      <Text size="sm" variant="subtle">
+        {props.variant === 'emphasis' ? 'おすすめ' : 'プラン'}
+      </Text>
+      <Heading level={3} size="md">
+        {name}
+      </Heading>
+      <Text size="sm" variant="muted">
+        {price}
+      </Text>
+    </CardBody>
+  </Card>
+);
+
+const emphasisColumns: MatrixColumn[] = [
+  { label: '押せない' },
+  { label: '押せる' },
+  { label: '押せる・hover', state: 'hover' },
+  { label: '押せる・フォーカス', state: 'focus' },
+];
+
+export const Emphasis: Story = {
+  tags: ['visual'],
+  name: '強調の形',
+  parameters: {
+    controls: { exclude: ['variant', 'href'] },
+    docs: {
+      description: {
+        story:
+          '`variant="emphasis"` は、並べたカードのうち 1 枚を目立たせます。面と輪郭は `default` のままで、輪郭の外に淡い輪を足します。輪の色は `color` で選び、既定は `primary` です。選んでいるカード（`selected`）と並べても、線ではなく外側の輪で見分けられます。',
+      },
+    },
+    pseudo: statePseudo({
+      hover: '[data-slot="card"]',
+      focusVisible: '[data-slot="card"]',
+    }),
+  },
+  render: () => (
+    // 輪が左端で切れないよう、内側に空ける
+    <div className="flex flex-col gap-8 p-1">
+      <Specimen label="並べたとき（真ん中が emphasis）">
+        <div className="grid max-w-md grid-cols-3 gap-4">
+          <Plan name="フリー" price="0 円" />
+          <Plan name="スタンダード" price="月 500 円" variant="emphasis" />
+          <Plan name="チーム" price="月 1,500 円" />
+        </div>
+      </Specimen>
+      <Matrix
+        rows={['primary', 'secondary', 'neutral'] as const}
+        columns={emphasisColumns}
+        columnWidth="11rem"
+        rowLabel={(color) => color}
+        renderCell={(color, column) => (
+          <Plan
+            name="スタンダード"
+            price="月 500 円"
+            variant="emphasis"
+            color={color}
+            onClick={column.label === '押せない' ? undefined : () => {}}
+          />
+        )}
+      />
+      <div className="flex flex-wrap gap-x-10 gap-y-8">
+        {(['fill', 'line'] as const).map((indicator) => (
+          <Specimen
+            key={indicator}
+            label={`選んでいるカード（${indicator}）と並べる（左が emphasis）`}
+          >
+            <div className="grid w-md grid-cols-3 gap-4">
+              <Plan name="スタンダード" price="月 500 円" variant="emphasis" onClick={() => {}} />
+              <Plan
+                name="チーム"
+                price="月 1,500 円"
+                selected
+                selectedIndicator={indicator}
+                onClick={() => {}}
+              />
+              <Plan name="フリー" price="0 円" onClick={() => {}} />
+            </div>
+          </Specimen>
+        ))}
+      </div>
+    </div>
   ),
 };
 
