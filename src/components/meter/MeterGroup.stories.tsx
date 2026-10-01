@@ -103,3 +103,36 @@ export const Accessibility: Story = {
     await expect(canvas.getByText('24.3 GB')).toBeVisible();
   },
 };
+
+export const EdgeValues: Story = {
+  name: '0 の内訳・合計が上限を超える',
+  render: () => (
+    <div className="flex flex-col gap-6">
+      <MeterGroup
+        data-testid="zero"
+        label="0 の内訳"
+        items={[
+          { label: '写真', value: 40 },
+          { label: '動画', value: 0 },
+          { label: 'その他', value: 20 },
+        ]}
+      />
+      <MeterGroup
+        data-testid="over"
+        label="上限を超える"
+        items={[
+          { label: '写真', value: 80 },
+          { label: '動画', value: 60 },
+        ]}
+      />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 0 の内訳は凡例にだけ出し、バーに区切りを置かない
+    const zero = canvas.getByTestId('zero');
+    await expect(zero.querySelectorAll('[data-slot="meter-group-segment"]')).toHaveLength(2);
+    await expect(zero.querySelectorAll('li')).toHaveLength(3);
+    // 合計の値の文字は上限で止める
+    await expect(canvas.getByTestId('over')).toHaveTextContent('100%');
+  },
+};

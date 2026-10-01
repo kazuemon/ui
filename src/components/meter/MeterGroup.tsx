@@ -139,16 +139,19 @@ export function MeterGroup({
       ) : null}
       {!hideValue ? <span className={styles.value()}>{totalText}</span> : null}
       <div aria-hidden data-slot="meter-group-track" className={styles.track()}>
-        {items.map((item, i) => (
-          <span
-            key={i}
-            data-slot="meter-group-segment"
-            className={styles.segment({
-              className: segmentColor[item.color ?? defaultColors[i % defaultColors.length]],
-            })}
-            style={{ flexBasis: `${(clamp(item.value) / range) * 100}%` }}
-          />
-        ))}
+        {/* 0 の内訳は区切りを置かない（置くと、幅のない区切りの両側に間が 2 つ並ぶ）。凡例には出す */}
+        {items.map((item, i) =>
+          clamp(item.value) > 0 ? (
+            <span
+              key={i}
+              data-slot="meter-group-segment"
+              className={styles.segment({
+                className: segmentColor[item.color ?? defaultColors[i % defaultColors.length]],
+              })}
+              style={{ flexBasis: `${(clamp(item.value) / range) * 100}%` }}
+            />
+          ) : null
+        )}
       </div>
       <ul data-slot="meter-group-legend" className={styles.legend()}>
         {items.map((item, i) => (
