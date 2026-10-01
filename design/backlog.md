@@ -37,7 +37,8 @@
 
 ### TextField
 
-- 入力欄の `size`（F109）を足すときは、Button の小さい段と同じ高さ（`--spacing-control-sm`。[ADR-0424](./adr/0424-button-size-sm.md)）を読みます。横に並べた sm どうしの高さをそろえるためです。指でも 36px のままで、指で押せる高さ（44px）を割ります
+- 入力欄を `size="sm"` にしても、開いた選択肢の一覧は md のままです（[ADR-0463](./adr/0463-field-size-sm.md)）。一覧も小さくするかは決めていません
+- Slider・PinField は `size` を持ちません（[ADR-0463](./adr/0463-field-size-sm.md)）。横に並べる入力欄の小さい段にそろえるかは決めていません
 - 読み取り専用で値が空の欄には、いまはプレースホルダーを出しています。「なし」などの文字で値がないことを示すかは決めていません（[ADR-0171](./adr/0171-field-placeholder.md)）
 
 ### SearchField・PasswordField
@@ -271,6 +272,8 @@
 
 ### Select
 
+- 選択肢にアイコンの色（`iconColor`）を足すかは決めていません。Tag・List にはあります（[ADR-0465](./adr/0465-listbox-item-icon.md)）
+- Combobox の複数選択のチップに、選択肢のアイコンを出すかは決めていません（[ADR-0465](./adr/0465-listbox-item-icon.md)）
 - 読み取り専用の Select は、押しても開きません。破線の輪郭と淡い ▼ から、開かないことを使う人が予想できるかは分かっていません。書き方（Docs）で補うかを決めます（[ADR-0196](./adr/0196-choice-readonly.md)）
 - Select の浮かぶ面と項目は、Combobox と同じ `src/internal/listbox` に乗せ替えました（見た目は変えていません）。`--select-popup-*` のトークン名を `--listbox-popup-*` に寄せるかは決めていません
 
@@ -308,6 +311,7 @@
 
 2026-09-19 に作りました。決定は [ADR-0149](./adr/0149-menu-marks.md)〜[ADR-0152](./adr/0152-menu-submenu-sheet.md) です。
 
+- Menu の項目のアイコンは一段淡い色のままで、選択肢（文字の色）と色がそろいません。そろえるかは決めていません（[ADR-0465](./adr/0465-listbox-item-icon.md)）
 - `MenuCheckboxItem`・`MenuRadioItem` は、選んだ行に面を敷きません（Select の選んだ項目は面を敷きます）
 - 右クリックで開けません（2026-10-01 のトリアージ、あとで）。`trigger` を当てる範囲にする ContextMenu で、ロードマップの ContextMenu をこれで済ませる案です。Base UI の ContextMenu を包みます
 
