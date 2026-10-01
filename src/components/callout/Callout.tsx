@@ -18,11 +18,12 @@ import { tv } from '../../internal/tv';
 //   囲み: 本文にはじめからある補足。role="note" で題を名前にし、読み上げで割り込まない。閉じる・操作を持たない
 // 文字は読む文字（--text-body）。記事の本文と同じ大きさで、密度で変わる（原則11）
 // 題の要素は、headingLevel を渡すと見出し（h2〜h6）、渡さないと p
-// 畳める囲み（collapsible — 軸 443 で比較中）: 題の行（アイコン・題・開閉の印）を Base UI の Collapsible の Trigger にし、中身を Panel に入れる
+// 畳める囲み（collapsible — 軸 443）: 題の行（アイコン・題・開閉の印）を Base UI の Collapsible の Trigger にし、中身を Panel に入れる
 //   押せる範囲と hover の塗りは、題の行から囲みの端（上・左右。閉じているときは下も）まで広げる（原則17）。疑似要素 ::before で描く
-//   開いているときは、塗りを題の行の下端で止める。中身は塗らない
-//   印は Collapsible と同じ ▼（開くと上を向く）。位置は --callout-indicator-margin-start（auto で右端、0 で題のすぐ後ろ）
-//   hover の塗りは囲みの文字の色を --callout-trigger-hover-mix だけ混ぜる。押しても濃くしない（開閉の行と同じ。原則3）
+//   開いているときも、塗りは題の上と同じだけ題の下へ広げ、そこで止める（上下の余白をそろえる）。中身は塗らない
+//   その分、中身は同じだけ下げて始める。下げる余白は Panel の中に置くので、閉じる動きの途中で行が跳ねない
+//   印は Collapsible と同じ ▼（開くと上を向く）で、行の右端に置く
+//   hover の塗りは囲みの文字の色を 6% 混ぜる。押しても濃くしない（開閉の行と同じ。原則3）
 //   フォーカスの線は、塗りと同じ範囲の内側に引く（囲みの端で切れないように）
 //   閉じた中身はページ内検索で見つかるように残し（hidden="until-found"）、見つかると開く
 const callout = tv({
@@ -33,18 +34,19 @@ const callout = tv({
       'outline-none',
       // 押せる範囲と塗り: 囲みの端まで広げる
       'before:absolute before:-inset-x-(--spacing-control-x) before:-top-(--spacing-control-x) before:-bottom-(--spacing-control-x) before:-z-1 before:rounded-control',
-      'data-panel-open:before:bottom-0 data-panel-open:before:rounded-b-none',
+      'data-panel-open:before:rounded-b-none',
       'before:[transition:background-color_var(--duration-field)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-trigger-hover-mix),transparent)]',
+      'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_6%,transparent)]',
       'focus-visible:before:[outline:var(--focus-ring-width)_solid_var(--color-focus-ring)] focus-visible:before:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     title: 'min-w-0 font-bold text-(color:--notice-title-color)',
     indicator: [
-      'ms-(--callout-indicator-margin-start) mt-(--notice-icon-offset) flex shrink-0 text-(color:--notice-icon-color) [&_svg]:size-(--spacing-icon)',
+      'ms-auto mt-(--notice-icon-offset) flex shrink-0 text-(color:--notice-icon-color) [&_svg]:size-(--spacing-icon)',
       'transition-[rotate] duration-(--collapsible-duration) ease-(--collapsible-ease) group-data-panel-open/callout-trigger:rotate-180 motion-reduce:[transition:none]',
     ],
     // 中身は、アイコンがあるときはアイコンと間の分だけ字下げして、題の頭にそろえる
-    content: 'ps-(--callout-panel-inset) pt-0.5',
+    //   上は、題の行の塗りが題の下へ広がる分（囲みの内側の余白と同じ）だけ空ける
+    content: 'ps-(--callout-panel-inset) pt-(--spacing-control-x)',
   },
   variants: {
     collapsible: {

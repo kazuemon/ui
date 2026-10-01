@@ -30,17 +30,12 @@ export const textStyles = {
     label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
-  // 意味の色（Text の color — 軸 444 で比較中）。白地の文字の状態の色（原則6。warning はオリーブ）
-  //   --text-status-color に状態の色を置き、文字は --text-status-text-follow（1 で状態の色、0 で本文の色）で混ぜる
-  //   アイコンの出し方は --text-status-icon-display（Text が 1 文字目の前に状態のアイコンを置く）
+  // 意味の色（Text の color — 軸 444）。白地の文字の状態の色（warning はオリーブ）。色だけで、形は添えない
   color: {
-    info: '[--text-status-color:var(--color-fg-info)] [--text-status-ink:color-mix(in_srgb,var(--text-status-color)_calc(var(--text-status-text-follow)*100%),var(--color-fg))] text-(color:--text-status-ink)',
-    success:
-      '[--text-status-color:var(--color-fg-success)] [--text-status-ink:color-mix(in_srgb,var(--text-status-color)_calc(var(--text-status-text-follow)*100%),var(--color-fg))] text-(color:--text-status-ink)',
-    warning:
-      '[--text-status-color:var(--color-fg-warning)] [--text-status-ink:color-mix(in_srgb,var(--text-status-color)_calc(var(--text-status-text-follow)*100%),var(--color-fg))] text-(color:--text-status-ink)',
-    danger:
-      '[--text-status-color:var(--color-fg-danger)] [--text-status-ink:color-mix(in_srgb,var(--text-status-color)_calc(var(--text-status-text-follow)*100%),var(--color-fg))] text-(color:--text-status-ink)',
+    info: 'text-fg-info',
+    success: 'text-fg-success',
+    warning: 'text-fg-warning',
+    danger: 'text-fg-danger',
   },
   weight: {
     normal: 'font-normal',

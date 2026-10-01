@@ -127,12 +127,12 @@ const link = tv({
       // 周りの文字の色のまま（意味の色の Text の中、見出しの中など）。下線は文字の色から作るので、周りの色に合う
       inherit: '[--link-color:currentColor]',
     },
-    // 文字のリンクの下線（text のときだけ効く）。always はいつも淡い下線、hover は載せたときだけ（軸 445 で比較中）
-    //   hover: ふだんは下線を透明にし、載せたときに --link-underline-hover-only の色にする。色だけを動かすので、位置は動かない
+    // 文字のリンクの下線（text のときだけ効く）。always はいつも淡い下線、hover は載せたときだけ（軸 445）
+    //   hover: ふだんは下線を透明にし、載せたときに always の hover と同じ濃い下線にする。色だけを動かすので、位置は動かない
     underline: {
       always: '',
       hover:
-        '[text-decoration-color:transparent] not-data-disabled:hover:[text-decoration-color:var(--link-underline-hover-only)]',
+        '[text-decoration-color:transparent] not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)]',
     },
     // 幅いっぱいに広げたときの中身の寄せ方。枠線のリンクだけに効く（design/adr/0046）
     contentAlign: { center: '', between: '', 'center-end': '' },

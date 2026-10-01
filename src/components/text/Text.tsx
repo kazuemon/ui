@@ -1,7 +1,6 @@
 import type { ComponentProps } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../../internal/icons';
 import { inlineStyles } from '../../internal/reading/inline';
 import { textLinkSizeReset } from '../../internal/reading/text-link';
 import { textStyles } from '../../internal/reading/text';
@@ -43,17 +42,6 @@ export type TextWeight = NonNullable<VariantProps<typeof text>['weight']>;
 /** 意味の色 */
 export type TextColor = NonNullable<VariantProps<typeof text>['color']>;
 
-// 意味の色の形（原則6: 色だけでなく形でも見分ける）。お知らせ・欄の下の行と同じ割り当て
-// 出すかどうかは --text-status-icon-display（軸 444 で比較中）。大きさと縦の位置は Icon の text と同じ（周りの文字に比例）
-const statusIcons = {
-  info: InfoIcon,
-  success: CheckCircleIcon,
-  warning: WarningIcon,
-  danger: WarningCircleIcon,
-} as const;
-const statusIconClass =
-  'me-[0.25em] [display:var(--text-status-icon-display)] size-(--icon-size-text) shrink-0 align-[calc(var(--icon-text-center)-var(--icon-size-text)/2)] text-(color:--text-status-color)';
-
 export interface TextProps extends Omit<ComponentProps<'p'>, 'color'> {
   /**
    * 描く要素。段落は p、文の中の一部は span、ほかの部品を含むときは div にします。
@@ -79,7 +67,7 @@ export interface TextProps extends Omit<ComponentProps<'p'>, 'color'> {
    */
   weight?: TextWeight;
   /**
-   * 意味の色。期日を過ぎた・保存した・注意が要るといった状態を、文字の色と前に置く形（丸の「!」・丸のチェック・三角・丸の「i」）で示します。
+   * 意味の色。期日を過ぎた・保存した・注意が要るといった文字を、状態の色にします。色だけを変え、形（アイコン）は添えず、読み上げも変えません。
    * 色は白地の状態の色で、warning はオリーブです。書かないときは variant の濃さのままです。色を付けた文字は、variant の濃さより色が勝ちます
    */
   color?: TextColor;
@@ -92,27 +80,14 @@ export interface TextProps extends Omit<ComponentProps<'p'>, 'color'> {
 /**
  * 本文の文字
  */
-export function Text({
-  as = 'p',
-  size,
-  variant,
-  weight,
-  color,
-  className,
-  children,
-  ...props
-}: TextProps) {
+export function Text({ as = 'p', size, variant, weight, color, className, ...props }: TextProps) {
   // props は段落（p）の型で受ける。描く要素だけが変わる
   const Tag = as as 'p';
-  const StatusIcon = color ? statusIcons[color] : undefined;
   return (
     <Tag
       className={text({ size, variant, weight, color, as, className })}
       data-color={color}
       {...props}
-    >
-      {StatusIcon ? <StatusIcon className={statusIconClass} /> : null}
-      {children}
-    </Tag>
+    />
   );
 }

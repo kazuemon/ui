@@ -20,7 +20,7 @@ const meta = {
           '- `size` は `md`（既定、本文）・`sm`（日付や注記）・`xs`（キャプションと同じ大きさ）と、見出しと同じ段の `lg`〜`5xl` です。Heading の `size` と同じ名前です。',
           '- `lg`〜`5xl` は、料金の「¥980」のように、見出しではない大きな文字に使います。太さは `weight` で選びます。',
           '- `variant` は見た目です。`body`（既定）は本文、`muted` は補足、`subtle` は目立たせない文、`label` は欄のラベルと同じ大きさ・太さ・色、`caption` は欄のキャプションと同じ大きさ・色です。',
-          '- `color` は意味の色です。`info`・`success`・`warning`・`danger` から選び、文字の色と前に置く形（丸の「i」・丸のチェック・三角・丸の「!」）で状態を示します。期日を過ぎた、保存した、のような短い文に使います。',
+          '- `color` は意味の色です。`info`・`success`・`warning`・`danger` から選び、文字を状態の色にします。期日を過ぎた、保存した、のような短い文に使います。色だけを変え、形（アイコン）は添えず、読み上げも変えません。色のほかに形や読み上げで状態を伝えたいときは、Notice などのお知らせの部品を使います。',
           '- `weight` は太さです。`normal`・`medium`・`bold` から選びます。書かないと、`variant` と要素の既定の太さのままです。',
           '- `as` で要素を選びます。段落は `p`（既定）、文の中の一部は `span`、ほかの部品を含むときは `div` です。強調は `strong`、強勢は `em`、打ち消しは `del` で、記事の本文と同じ飾りが付きます。',
           '- 本文は、マウスで操作しているときは 16px、指で操作しているときは部品の文字と同じ 14px です。記事の中（`data-reading` を付けた要素）では、指でも 16px です。',
@@ -180,7 +180,10 @@ export const StatusColors: Story = {
   play: async ({ canvas }) => {
     const danger = canvas.getByText('期日を 2 日過ぎています');
     await expect(danger).toHaveAttribute('data-color', 'danger');
-    // 形は飾り。読み上げには出さない
-    await expect(danger.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    // 色だけ。形（アイコン）は添えない
+    await expect(danger.querySelector('svg')).toBeNull();
+    await expect(getComputedStyle(danger).color).not.toBe(
+      getComputedStyle(canvas.getByText('保存しました')).color
+    );
   },
 };

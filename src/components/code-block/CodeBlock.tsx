@@ -10,6 +10,7 @@ import { tv } from '../../internal/tv';
 import { codeTextOf } from '../../internal/reading/code-text';
 import { useScrollTabStops } from '../../internal/use-scrollable';
 import { ScrollFrame } from '../../internal/ScrollFrame';
+import { useWrapIndent } from './use-wrap-indent';
 
 // 複数行のコード（軸 64・66・67・68・69）
 // 色分けはブログ側がビルド時に Shiki で行い、この部品は色分けしたあとの HTML に見た目を付ける
@@ -24,11 +25,12 @@ import { ScrollFrame } from '../../internal/ScrollFrame';
 //   ボタンは指で押せる 44px（原則11）で、帯の上・下・右に 4px 空ける。帯の中では塗らない
 //   題がないときは右上から 4px に浮かせ、下のコードを面の色で隠し、白いボタンと同じ細い輪郭を付ける
 //   写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CopyButton の吹き出しと同じ面）
-// 言語のラベル（language — 軸 441 で比較中）: 帯に置く。題がなくても、ラベルがあれば帯を出す
-//   題の前か後ろか（--codeblock-language-order）と、文字だけか面を敷くか（--codeblock-language-bg ほか）はトークン
+// 言語のラベル（language — 軸 441）: 帯に置く。題がなくても、ラベルがあれば帯を出す
+//   既定は題の前に、文字の色を 12% 混ぜた淡い丸い面を敷く（D）。題の後ろ（languagePlacement="end"）と、文字だけ（hideLanguageBackground）も選べる
 // 最大の高さ（maxHeight）: 超えた分は ScrollFrame の中でスクロールさせ、続きがある端に内側の影を落とす（原則1）
 //   縦と横のどちらのスクロールも枠が受け持つので、pre は overflow: visible にし、pre の Tab の止まりを外す（枠が止まる）
-// 折り返し（wrap — 軸 442 で比較中）: 横にスクロールさせず、長い行を折り返す。続きの行の字下げは --codeblock-wrap-indent
+// 折り返し（wrap — 軸 442）: 横にスクロールさせず、長い行を折り返す。続きの行は、その行のもとの字下げ（行頭の空白）と同じだけ下げる
+//   行頭の空白の桁数は use-wrap-indent が行ごとに --cb-line-indent へ書く。字下げのない行の続きは行の頭にそろう
 const codeBlock = tv({
   slots: {
     root: [
@@ -52,11 +54,9 @@ const codeBlock = tv({
     ],
     title:
       'min-w-0 flex-1 truncate font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
-    // 言語のラベル。並びの位置と面はトークン（軸 441）
-    language: [
-      'order-(--codeblock-language-order) shrink-0 font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
-      'rounded-(--codeblock-language-radius) bg-(color:--codeblock-language-bg) px-(--codeblock-language-pad-x) py-(--codeblock-language-pad-y)',
-    ],
+    // 言語のラベル。題と同じ淡い色・等幅の文字
+    language:
+      'shrink-0 font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
     body: ['min-w-0', ...codeBlockStyles.body],
     copy: [
       // 最大の高さのスクロールのつまみ（z-2）より上に置く
@@ -101,6 +101,18 @@ const codeBlock = tv({
         ],
       },
     },
+    // 言語のラベルの置き場: start は題の前、end は題の後ろ（帯の右へ寄せる）
+    languagePlacement: {
+      start: { language: 'order-first' },
+      end: { language: 'order-last' },
+    },
+    // 言語のラベルの面: 既定は文字の色を 12% 混ぜた淡い丸い面。濃い地でも同じ割合で明るく見える
+    languageBackground: {
+      true: {
+        language: 'rounded-pill bg-[color-mix(in_oklab,currentColor_12%,transparent)] px-2 py-0.5',
+      },
+      false: {},
+    },
     lineNumbers: {
       // 行番号: 行の左に疑似要素で描く（コピーの文字列に入らない）。区切りの細い線は右端に内側の影で引く
       //   桁の幅 2ch、コードとの間 16px（線はその中央）
@@ -116,20 +128,27 @@ const codeBlock = tv({
       },
       false: {},
     },
-    // 折り返し: 長い行を折り返し、続きの行を --codeblock-wrap-indent だけ字下げする（ぶら下げ）
+    // 折り返し: 長い行を折り返し、続きの行を行頭の空白の分（--cb-line-indent）だけ下げる（ぶら下げ）
+    //   左の余白を字下げの分だけ広げ、1 行目は負の text-indent で戻す。1 行目の行頭の空白がちょうどその分を埋める
     //   行番号と差分の印は疑似要素なので、字下げを受け継がないよう 0 に戻す
     wrap: {
       true: {
         body: [
           '[&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap [&_pre_code]:w-auto',
-          '[&_pre_.line]:pl-[calc(var(--cb-pad-left)+var(--codeblock-wrap-indent))] [&_pre_.line]:[text-indent:calc(var(--codeblock-wrap-indent)*-1)]',
+          '[&_pre_.line]:pl-[calc(var(--cb-pad-left)+var(--cb-line-indent,0ch))] [&_pre_.line]:[text-indent:calc(var(--cb-line-indent,0ch)*-1)]',
           '[&_pre_.line]:before:[text-indent:0] [&_pre_.line]:after:[text-indent:0]',
         ],
       },
       false: {},
     },
   },
-  defaultVariants: { variant: 'surface', lineNumbers: false, wrap: false },
+  defaultVariants: {
+    variant: 'surface',
+    languagePlacement: 'start',
+    languageBackground: true,
+    lineNumbers: false,
+    wrap: false,
+  },
 });
 
 /** コードの面の見た目 */
@@ -161,11 +180,21 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
    */
   language?: string;
   /**
+   * 言語のラベルの置き場。start は題の前、end は題の後ろ（帯の右、コピーのボタンの左）です
+   * @default 'start'
+   */
+  languagePlacement?: 'start' | 'end';
+  /**
+   * 言語のラベルの淡い面を消し、文字だけにします
+   * @default false
+   */
+  hideLanguageBackground?: boolean;
+  /**
    * 最大の高さ。数は px、文字列は CSS の長さ（`'24rem'`・`'50vh'`）です。超えた分は枠の中でスクロールし、続きがある端に影を落とします
    */
   maxHeight?: number | string;
   /**
-   * 長い行を、横にスクロールさせずに折り返します。続きの行は少し字下げします。
+   * 長い行を、横にスクロールさせずに折り返します。続きの行は、その行の字下げ（行頭の空白）と同じだけ下げます。
    * 文章に近い設定ファイルや、狭い画面で読ませたいときに使います
    * @default false
    */
@@ -214,6 +243,8 @@ export function CodeBlock({
   variant,
   title,
   language,
+  languagePlacement = 'start',
+  hideLanguageBackground = false,
   maxHeight,
   wrap = false,
   lineNumbers = false,
@@ -226,12 +257,19 @@ export function CodeBlock({
   style,
   ...props
 }: CodeBlockProps) {
-  const styles = codeBlock({ variant, lineNumbers: lineNumbers !== false, wrap });
+  const styles = codeBlock({
+    variant,
+    languagePlacement,
+    languageBackground: !hideLanguageBackground,
+    lineNumbers: lineNumbers !== false,
+    wrap,
+  });
   const scrollsInFrame = maxHeight != null;
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const copyId = useId();
   const { copied, failed, copy } = useCopy(2000);
+  useWrapIndent(bodyRef, wrap);
 
   // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
   // 判定は表・Prose と同じ internal/use-scrollable。中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
@@ -291,7 +329,11 @@ export function CodeBlock({
             </span>
           ) : null}
           {hasLanguage ? (
-            <span data-slot="code-block-language" className={styles.language()}>
+            <span
+              data-slot="code-block-language"
+              data-placement={languagePlacement}
+              className={styles.language()}
+            >
               {language}
             </span>
           ) : null}
