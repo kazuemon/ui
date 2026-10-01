@@ -28,11 +28,12 @@ export function useWrapIndent(rootRef: RefObject<HTMLElement | null>, wrap: bool
     const pre = root.querySelector('pre');
     if (!pre) return;
     const tabSize = Number.parseInt(getComputedStyle(pre).tabSize, 10) || 8;
+    // 描くたびに走るので、値が変わった行だけに書く（コピーの押下などで中身が変わらないときは何も書かない）
     for (const line of root.querySelectorAll<HTMLElement>('pre .line')) {
-      line.style.setProperty(
-        '--cb-line-indent',
-        `${leadingColumns(line.textContent ?? '', tabSize)}ch`
-      );
+      const indent = `${leadingColumns(line.textContent ?? '', tabSize)}ch`;
+      if (line.style.getPropertyValue('--cb-line-indent') !== indent) {
+        line.style.setProperty('--cb-line-indent', indent);
+      }
     }
   });
 }

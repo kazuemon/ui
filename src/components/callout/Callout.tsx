@@ -128,7 +128,13 @@ export function Callout({
   const surfaceStatus = status ?? 'neutral';
   const canCollapse = collapsible && title != null;
   const styles = callout({ collapsible: canCollapse });
-  const surfaceClass = noticeSurface({ variant, status: surfaceStatus, size: 'body', className });
+  // 畳めるときの並べ方（縦に積む）は面の既定（横並び）を上書きし、使う側の className はさらにその上に効かせる（tailwind-merge で）
+  const surfaceClass = noticeSurface({
+    variant,
+    status: surfaceStatus,
+    size: 'body',
+    className: canCollapse ? [styles.root(), className] : className,
+  });
   const TitleTag = headingLevel ? (`h${headingLevel}` as const) : 'p';
   const common = {
     role: 'note',
@@ -157,7 +163,7 @@ export function Callout({
         open={open}
         defaultOpen={defaultOpen}
         onOpenChange={onOpenChange ? (next) => onOpenChange(next) : undefined}
-        className={`${surfaceClass} ${styles.root()}`}
+        className={surfaceClass}
       >
         {headingLevel ? <TitleTag className="m-0 font-[inherit]">{trigger}</TitleTag> : trigger}
         <BaseCollapsible.Panel
