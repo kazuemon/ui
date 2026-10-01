@@ -27,7 +27,7 @@ const meta = {
       focusVisible: '[data-slot="sortable-handle"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -238,6 +238,15 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(_column, candidate) => <Tasks layout={layoutOf[candidate.id]} />}
     >
+      <p>
+        決定:
+        取っ手（つまみ）の列は部品が自動で入れず、使う側が自分でセルとして置く（つまみの部品を、置きたいセルに置く）。既定の形は
+        A（先頭に取っ手の列）で、レシピは A
+        の形を使う側が組む例にする。行のどこでも掴めるようにする（C）のは props
+        で指定し、そのときもつまみを置くかは使う側が決める。ユーザーの返事「自動ではなく、利用者が自分で挿入する、が正しいかなと思いました。A
+        のようにしたい場合は列を自分で足してもらう、というイメージです。全体を押せるようにしたい場合は、ハンドル列は任意に挿入してもらったうえで、prop
+        で全体適用を指定できるようにする、かなと思いました。」
+      </p>
       <p>
         SortableItem に render
         を足し、表の行（DataTableRow）を並べ替えられるようにしました。表の本文は TableBody

@@ -15,7 +15,7 @@ const meta = {
   title: 'Design Review/483 並べ替えの動かさない行',
   id: 'design-review-483-sortable-separator',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -136,6 +136,10 @@ export const Axis: Story = {
         <List variant={column.label as SortableVariant} separators={candidate.id !== '現行版'} />
       )}
     >
+      <p>
+        決定: B（ラベルだけ）を既定にし、線は props で足せる（A
+        の形）。ユーザーの返事「デフォルトはBで、線が欲しかったら追加できる、でいいかなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         SortableSeparator
         を足し、並べ替えられるリストの途中に、動かさない行（「今日」「明日以降」のような見出しや区切り）を挟めるようにしました。value

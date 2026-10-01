@@ -20,7 +20,7 @@ const meta = {
   title: 'Design Review/482 表の動かしている行',
   id: 'design-review-482-sortable-row-lifted',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -173,6 +173,10 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Tasks variant={column.label as TableVariant} />}
     >
+      <p>
+        決定: A。動かしている行は、枠（表・divided
+        の枠など）の中にあるときは大きくしない。影と輪郭はリストと同じ。枠がないときはリストと同じ（大きくする）。ユーザーの返事「枠の中にあるなら大きくしない、枠がないならリストと同じでいいかなと思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         表の行をポインタで引いているあいだ、引いている行そのものがポインタについて動きます（表の行では、表の外に写しを描くと列の幅が合わないため）。元の場所は空いたまま、周りの行がずれて入る場所を空けます。
       </p>

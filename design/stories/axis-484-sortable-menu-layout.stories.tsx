@@ -19,7 +19,7 @@ const meta = {
   title: 'Design Review/484 並べ替えのメニューの移す先',
   id: 'design-review-484-sortable-menu-layout',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -182,6 +182,15 @@ export const Axis: Story = {
         <OpenMenu layout={layoutOf[candidate.id]} extra={column.label.startsWith('項目')} />
       )}
     >
+      <p>
+        決定: どの案も採らない。部品が「〜へ移動」「〜と入れ替え」を組み立てる口は消し、︙
+        のメニューは何もしなければ既定の項目（上へ・下へ・先頭へ・末尾へ）だけを出す。使う側は、既定の項目のあとに自分の
+        MenuItem を足す・既定の項目を出さない・既定の動きを呼べる関数を受け取って Menu
+        を自分で組み直す、ができる。リストをまたぐ移動はレシピの側で組む。ユーザーの返事「ユーザーが好きなように
+        Menu
+        を追加できる、でいいんじゃないかなと思いました。そもそも上へ移動とかも変えたい可能性があるので、何もしなければ上下先頭末尾を、カスタムしたい場合はデフォルトのを無効にしたり、自分で
+        Menu を構成しなおせる、とかでいいかなと。」
+      </p>
       <p>
         moveActions="item-menu" の ︙ のメニューに、3 つの口を足しました。moveTargets と
         onMoveToTarget
