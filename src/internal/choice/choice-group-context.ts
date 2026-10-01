@@ -12,4 +12,6 @@ export const ChoiceGroupContext = createContext<{
   color?: ChoiceColor;
   readOnly?: boolean;
   form?: string;
+  /** RadioGroup の frame。card では選択肢 1 つずつをカードの形にする */
+  frame?: 'none' | 'card';
 } | null>(null);

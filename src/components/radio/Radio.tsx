@@ -15,6 +15,8 @@ import {
   choiceReadOnly,
   choiceRows,
   choiceStyles,
+  radioCard,
+  type RadioGroupFrame,
 } from '../../internal/choice/choice-styles';
 import {
   type CaptionPlacement,
@@ -44,6 +46,11 @@ export interface RadioProps extends Omit<
   label: ReactNode;
   /** 横の文字の下の説明。押せないときも読めるままです */
   caption?: ReactNode;
+  /**
+   * 横の文字と同じ行の右端に置くもの（値段など）。RadioGroup の frame="card" で使います。
+   * 読み上げでは選択肢の名前に入らないので、選ぶのに要る情報は label か caption にも書きます
+   */
+  labelAside?: ReactNode;
   /** この選択肢の値。RadioGroup の value と突き合わせ、選ばれているかが決まります */
   value: unknown;
   /**
@@ -75,6 +82,7 @@ export interface RadioProps extends Omit<
 export function Radio({
   label,
   caption,
+  labelAside,
   className,
   value,
   disabled,
@@ -86,13 +94,15 @@ export function Radio({
 }: RadioProps) {
   const group = useContext(ChoiceGroupContext);
   const s = choiceStyles({ color: group?.color });
+  const card = group?.frame === 'card' ? radioCard({ color: group?.color }) : undefined;
   // Form の送信中と読み取り専用（軸 177）は、押せない丸と同じ見た目にして選び直しを止める
   // 読み取り専用はグループ（RadioGroup の readOnly）からも来る
   const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
   return (
     <BaseField.Item
       disabled={disabled}
-      className={s.item({ className: [choiceRows(caption), className] })}
+      className={s.item({ className: [choiceRows(caption), card?.item(), className] })}
+      data-radio-card={card ? '' : undefined}
     >
       <BaseRadio.Root
         value={value}
@@ -105,7 +115,7 @@ export function Radio({
         readOnly={locked.readOnly}
         aria-disabled={locked.ariaDisabled || ariaDisabled}
         className={s.box({
-          className: ['rounded-pill', locked.readOnlyLook && choiceReadOnly.box],
+          className: ['rounded-pill', locked.readOnlyLook && choiceReadOnly.box, card?.box()],
         })}
         {...locked.data}
         {...props}
@@ -113,10 +123,17 @@ export function Radio({
         <BaseRadio.Indicator className={s.dot()} />
       </BaseRadio.Root>
       <BaseField.Label
-        className={s.label({ className: locked.readOnlyLook ? choiceReadOnly.label : undefined })}
+        className={s.label({
+          className: [locked.readOnlyLook ? choiceReadOnly.label : undefined, card?.label()],
+        })}
       >
         {label}
       </BaseField.Label>
+      {labelAside != null && (
+        <span data-slot="radio-label-aside" className={card?.aside() ?? radioCard().aside()}>
+          {labelAside}
+        </span>
+      )}
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
     </BaseField.Item>
   );
@@ -166,6 +183,12 @@ export interface RadioGroupControlProps<Value> extends Omit<
    * @default 'fit'
    */
   itemWidth?: ChoiceGroupItemWidth;
+  /**
+   * 選択肢の囲み方。card は選択肢 1 つずつをカードの形にし、カード全体を押せるようにします。
+   * 題・説明・値段（Radio の label・caption・labelAside）を載せた、プランや配送方法の選択に使います
+   * @default 'none'
+   */
+  frame?: RadioGroupFrame;
   /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
@@ -186,6 +209,7 @@ export function RadioGroupControl<Value>({
   direction = 'vertical',
   wrap = false,
   itemWidth = 'fit',
+  frame = 'none',
   children,
   readOnly,
   'aria-describedby': ariaDescribedBy,
@@ -195,7 +219,9 @@ export function RadioGroupControl<Value>({
   useFieldControlKind({ nativeLabel: false, registerCaption: false });
   const field = useFieldState();
   const disabled = field?.disabled;
-  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  const context = useMemo(() => ({ color, readOnly, frame }), [color, readOnly, frame]);
+  // カードの形は、カードどうしの間（--radio-card-gap）を空けて並べる。横に並べるときも同じ間で、カードの高さを行でそろえる
+  const cardGap = frame === 'card' ? 'items-stretch gap-(--radio-card-gap)!' : undefined;
   // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
   const locked = useChoiceLock(disabled, readOnly);
   return (
@@ -216,10 +242,12 @@ export function RadioGroupControl<Value>({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        className="flex flex-col"
+        className={['flex flex-col', cardGap].filter(Boolean).join(' ')}
       >
         {direction === 'horizontal' ? (
-          <div className={choiceGroupList({ direction, wrap, itemWidth })}>{children}</div>
+          <div className={choiceGroupList({ direction, wrap, itemWidth, className: cardGap })}>
+            {children}
+          </div>
         ) : (
           children
         )}

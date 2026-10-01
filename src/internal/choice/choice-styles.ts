@@ -174,6 +174,56 @@ export const choiceGroupList = tv({
   defaultVariants: { direction: 'vertical', itemWidth: 'fit', wrap: false },
 });
 
+/** RadioGroup の選択肢の囲み方。card は選択肢 1 つずつをカードの形にする */
+export type RadioGroupFrame = 'none' | 'card';
+
+/**
+ * カードの形の選択肢（RadioGroup の frame="card" — 軸 524）
+ * カード（Card）と同じ白い面・細い輪郭・角。選択肢 1 つが 1 枚で、カード全体が押せる範囲（原則17）
+ *   押せる範囲: 横の文字の ::after をカードいっぱいに広げる（文字を押すと選ばれるので、カードのどこを押しても選ばれる）
+ *   hover: 押せるカードと同じ淡い塗り（--card-fill-hover）
+ *   選んでいる: 色（color）の淡い面を --radio-card-selected-fill-mix で混ぜ、輪郭の上に --radio-card-selected-line-width の線を重ねる（寸法は変えない）
+ *   フォーカス: キーボードのとき、丸ではなくカードの外に線を引く（押せる範囲の外形に出す）
+ *   押せない: 面は白のまま、hover しない。横の文字は丸と一緒にグレー
+ *   横の文字の右に labelAside（値段など）を置ける
+ */
+export const radioCard = tv({
+  slots: {
+    item: [
+      'relative grid-cols-[auto_minmax(0,1fr)_auto] rounded-card p-(--radio-card-padding)!',
+      'border-(length:--border-width-thin) border-(color:--color-surface-line)',
+      'bg-(color:--radio-card-fill) [--radio-card-fill:var(--color-surface)]',
+      'hover:not-has-data-disabled:[--radio-card-fill:var(--card-fill-hover)]',
+      'has-data-checked:[--radio-card-fill:color-mix(in_srgb,var(--radio-card-tint)_calc(var(--radio-card-selected-fill-mix)*100%),var(--color-surface))]',
+      'has-data-checked:hover:not-has-data-disabled:[--radio-card-fill:color-mix(in_oklab,color-mix(in_srgb,var(--radio-card-tint)_calc(var(--radio-card-selected-fill-mix)*100%),var(--color-surface)),var(--radio-card-line)_var(--card-selected-hover-mix))]',
+      "after:pointer-events-none after:absolute after:-inset-(--border-width-thin) after:z-1 after:rounded-card after:border-(color:--radio-card-line) after:content-['']",
+      'after:border-0 has-data-checked:after:border-(length:--radio-card-selected-line-width)',
+      'has-data-disabled:has-data-checked:after:opacity-(--disabled-opacity)',
+      '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
+      'has-[[role=radio]:focus-visible]:[outline-width:var(--focus-ring-width)] has-[[role=radio]:focus-visible]:[outline-style:solid]',
+      'has-[[role=radio]:focus-visible]:[outline-color:var(--color-focus-ring)]',
+    ],
+    box: 'focus-visible:[outline-color:transparent]!',
+    label: "after:absolute after:inset-0 after:content-['']",
+    aside:
+      'col-start-3 row-start-1 ps-(--choice-gap) text-(length:--text-control) leading-(--leading-control) whitespace-nowrap text-fg peer-data-disabled/box:text-(color:--color-on-field-disabled)',
+  },
+  variants: {
+    color: {
+      primary: {
+        item: '[--radio-card-line:var(--color-primary)] [--radio-card-tint:var(--color-primary-subtle)]',
+      },
+      secondary: {
+        item: '[--radio-card-line:var(--color-fg-secondary)] [--radio-card-tint:var(--color-secondary-subtle)]',
+      },
+      neutral: {
+        item: '[--radio-card-line:var(--color-neutral-strong)] [--radio-card-tint:var(--color-select-neutral-selected)]',
+      },
+    },
+  },
+  defaultVariants: { color: 'neutral' },
+});
+
 /**
  * 読み取り専用（軸 177）の上書き。箱の見た目は押せないときと同じままで、横の文字だけ本文の色に戻す
  * 横の文字は読むための文字なので薄くしません（原則13）。カーソルも、押せないときの禁止の形にはしません
