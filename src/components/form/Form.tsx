@@ -369,7 +369,8 @@ export function Form({
                           href={entry.controlId ? `#${entry.controlId}` : '#'}
                           onClick={(event) => {
                             event.preventDefault();
-                            if (formRef.current) focusField(formRef.current, entry.messageId, false);
+                            if (formRef.current)
+                              focusField(formRef.current, entry.messageId, false);
                           }}
                         >
                           {entryText(entry)}

@@ -126,7 +126,11 @@ export const Axis: Story = {
             return <Calendar today={today} renderDayContent={content(dot)} />;
           case '文字の印':
             return (
-              <Calendar today={today} defaultValue={day('2026-09-16')} renderDayContent={content(text)} />
+              <Calendar
+                today={today}
+                defaultValue={day('2026-09-16')}
+                renderDayContent={content(text)}
+              />
             );
           default:
             return (
@@ -142,10 +146,12 @@ export const Axis: Story = {
       }}
     >
       <p>
-        Calendar に、日ごとの印を出す renderDayContent を足しました。日付を受け取って、点や短い文字（空きの有無、残りの数、値段）を返すと、日の数字に添えて出します。印の色は、返したものの色です（ここでは数字と同じ色なので、選んだ日の上では白くなります）。
+        Calendar に、日ごとの印を出す renderDayContent
+        を足しました。日付を受け取って、点や短い文字（空きの有無、残りの数、値段）を返すと、日の数字に添えて出します。印の色は、返したものの色です（ここでは数字と同じ色なので、選んだ日の上では白くなります）。
       </p>
       <p>
-        選ぶのは、印の置き場（数字の下か、角か）と文字の大きさです。密度はツールバーで切り替えて見てください（指では数字が 14px になります）。
+        選ぶのは、印の置き場（数字の下か、角か）と文字の大きさです。密度はツールバーで切り替えて見てください（指では数字が
+        14px になります）。
       </p>
     </Comparison>
   ),

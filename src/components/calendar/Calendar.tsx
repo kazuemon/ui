@@ -123,8 +123,8 @@ const calendar = tv({
     dayNumber: '[[data-has-content]>&]:[translate:0_var(--calendar-day-number-shift)]',
     // 日ごとの印。日のボタンいっぱいの箱の中で、トークンの置き場に寄せる。押すのは日のボタン
     dayContent: [
-      'pointer-events-none absolute flex [inset:var(--calendar-day-content-inset)]',
-      '[justify-content:var(--calendar-day-content-justify)] [align-items:var(--calendar-day-content-align)]',
+      'pointer-events-none absolute [inset:var(--calendar-day-content-inset)] flex',
+      '[align-items:var(--calendar-day-content-align)] [justify-content:var(--calendar-day-content-justify)]',
       'text-(length:--calendar-day-content-text) leading-none font-normal',
     ],
   },
@@ -700,13 +700,7 @@ export function Calendar(props: CalendarProps) {
     const onSelect = (_next: DateRange | undefined, triggerDate: Date) => {
       const date = fromDate(triggerDate);
       // 始まりの日をもう一度押すと 1 日の期間になる。それより長い期間が要るときは、始まりのまま待つ
-      if (
-        range &&
-        !range.end &&
-        date.equals(range.start) &&
-        (props.minRangeDays ?? 1) > 1
-      )
-        return;
+      if (range && !range.end && date.equals(range.start) && (props.minRangeDays ?? 1) > 1) return;
       const value: CalendarRange =
         range && !range.end
           ? Temporal.PlainDate.compare(date, range.start) < 0

@@ -119,12 +119,10 @@ const listItem = tv({
     root: '',
     icon: [
       'pointer-events-none absolute flex items-center justify-center',
-      '[right:calc(100%+var(--list-marker-gap))] [top:calc((var(--list-leading,var(--leading-body))-var(--list-icon-size))/2)]',
+      '[top:calc((var(--list-leading,var(--leading-body))-var(--list-icon-size))/2)] [right:calc(100%+var(--list-marker-gap))]',
       'size-(--list-icon-size) text-(color:--list-icon-color) [&_svg]:size-full',
     ],
-    body: [
-      'grid [grid-template-columns:var(--list-trailing-columns)] gap-x-(--list-trailing-gap)',
-    ],
+    body: ['grid [grid-template-columns:var(--list-trailing-columns)] gap-x-(--list-trailing-gap)'],
     trailing: [
       '[align-self:var(--list-trailing-align)]',
       'text-(length:--list-trailing-text) text-(color:--color-list-trailing)',
@@ -152,7 +150,7 @@ const listItem = tv({
     {
       status: ['success', 'warning', 'danger'],
       class: {
-        root: '[--list-icon-color:var(--list-status-color)] text-[color-mix(in_oklab,var(--list-status-color)_calc(var(--list-status-text-k)*100%),currentColor)]',
+        root: 'text-[color-mix(in_oklab,var(--list-status-color)_calc(var(--list-status-text-k)*100%),currentColor)] [--list-icon-color:var(--list-status-color)]',
       },
     },
   ],
