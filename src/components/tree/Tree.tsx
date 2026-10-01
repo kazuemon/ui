@@ -20,6 +20,8 @@ import { ArrowUpRightIcon, CaretRightIcon } from '../../internal/icons';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
+import { Spinner } from '../loading/Loading';
+import { Skeleton } from '../skeleton/Skeleton';
 
 // 入れ子の行き先を木の形で並べる（ドキュメントの目次、ファイルの一覧）— 軸 149・150
 //   行は一覧の項目の仲間（原則3）。hover は入力欄の塗り、いまいる行は部品の色に従う（原則6）。影は付けない（原則1）
@@ -35,6 +37,9 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //     Tab で入るのは 1 行だけ（roving tabindex）。↑↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移る
 //     文字を打つと、その文字で始まる行へ移る（型あたり）。続けて打った文字は 1 語にまとめ、間が空いたら打ち直し。開いていない枝の中は相手にしない
 //     行き先（href）を渡した行はリンクになり、Enter で移る。子を持つ行は Space で開け閉めする
+//   子をあとから読み込む行（hasChildren・loading）: children がまだなくても開け閉めできる行にし、開いたら使う側が読み込む
+//     読み込んでいるあいだは、行に aria-busy を付け、読み上げにだけ届ける文（loadingText）を説明にする。見える印は読み上げに出さない
+//     見える印の形は軸 454 で比べている（--tree-loading-*: 開閉の印を回る円に替える・行の右端の回る円・開いた中の「読み込んでいます」の行・場所取りの行）
 
 const tree = tv({
   slots: {
@@ -78,6 +83,26 @@ const tree = tv({
     caretSpace: 'size-(--spacing-icon) shrink-0',
     icon: 'grid size-(--spacing-icon) shrink-0 place-items-center [&_svg]:size-(--spacing-icon)',
     label: 'min-w-0 flex-1 truncate',
+    // 読み込み中の印（軸 454 の比較のため、形ごとに描き、--tree-loading-* で出し分ける）
+    caretLoading: 'group-aria-busy/tree-row:[display:var(--tree-loading-caret-display)]',
+    caretSpinner: [
+      'size-(--spacing-icon) shrink-0 place-items-center text-fg-subtle',
+      'hidden group-aria-busy/tree-row:[display:var(--tree-loading-caret-spinner-display)]',
+    ],
+    endSpinner:
+      '[display:var(--tree-loading-end-display)] shrink-0 place-items-center text-fg-subtle',
+    // 開いた中に置く、読み込み中の行。行と同じ字下げ・高さで、押せない
+    loadingItem: 'flex flex-col',
+    loadingRow: [
+      'h-(--spacing-control) items-center gap-(--tree-gap) pe-(--tree-row-px) text-fg-subtle',
+      'ms-[calc(var(--tree-indent)*var(--tree-depth))] ps-(--tree-row-px)',
+      '[display:var(--tree-loading-row-display)]',
+    ],
+    loadingSkeleton: [
+      'ms-[calc(var(--tree-indent)*var(--tree-depth))] flex-col ps-(--tree-row-px) pe-(--tree-row-px)',
+      '[display:var(--tree-loading-skeleton-display)]',
+    ],
+    loadingSkeletonRow: 'flex h-(--spacing-control) items-center gap-(--tree-gap)',
   },
   variants: {
     // いまいる行の色（原則6）。指定しないときはグレー
@@ -339,6 +364,21 @@ export interface TreeItemProps extends Omit<
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   /** 入れ子の行（TreeItem）。渡すと開け閉めできる行になります */
   children?: ReactNode;
+  /**
+   * 子をあとから読み込む行にします。children がまだなくても開け閉めできる行になり、開いたとき（`onExpandedChange`）に読み込みます
+   * @default false
+   */
+  hasChildren?: boolean;
+  /**
+   * 子を読み込んでいます。開いた中に読み込み中の印を出し、行に aria-busy を付けます
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込んでいるあいだ、読み上げにだけ届ける文
+   * @default '読み込んでいます'
+   */
+  loadingText?: string;
   /** 行の要素に付きます。知らない props（id・data-*・aria-*）も行の要素に流します */
   className?: string;
   /** 行の要素に付きます */
@@ -360,6 +400,9 @@ export function TreeItem({
   disabled = false,
   onClick,
   children,
+  hasChildren: hasChildrenProp = false,
+  loading = false,
+  loadingText = '読み込んでいます',
   className,
   ref,
   ...props
@@ -367,13 +410,15 @@ export function TreeItem({
   const context = use(TreeContext);
   const id = useId();
   const noteId = useId();
+  const loadingId = useId();
   // 入れ子の並び（group）は li の中、行（treeitem）の兄弟に置く（WAI-ARIA APG の Navigation Treeview）
   //   aria-owns で行に結び付けると、行の読み上げの名前に中の行き先が全部入ってしまう
   const groupId = `${id}-group`;
   const [uncontrolled, setUncontrolled] = useState(defaultExpanded);
   if (!context) throw new Error('TreeItem は Tree の中に置いてください');
   const { depth, slots, active, setActive, rootRef, typeaheadRef } = context;
-  const hasChildren = children != null && children !== false;
+  const hasChildren = hasChildrenProp || (children != null && children !== false);
+  const busy = hasChildren && loading;
   const open = expanded ?? uncontrolled;
 
   const setOpen = (next: boolean) => {
@@ -470,6 +515,10 @@ export function TreeItem({
       role: 'treeitem',
       'aria-expanded': hasChildren ? open : undefined,
       'aria-current': current ? ('page' as const) : undefined,
+      'aria-busy': busy || undefined,
+      'aria-describedby': busy
+        ? [props['aria-describedby'], loadingId].filter(Boolean).join(' ')
+        : props['aria-describedby'],
       'aria-disabled': disabled || undefined,
       'data-slot': 'tree-item',
       'data-depth': depth,
@@ -491,9 +540,14 @@ export function TreeItem({
       children: (
         <>
           {hasChildren ? (
-            <span aria-hidden="true" className={slots.caret()}>
-              <CaretRightIcon />
-            </span>
+            <>
+              <span aria-hidden="true" className={slots.caret({ className: slots.caretLoading() })}>
+                <CaretRightIcon />
+              </span>
+              <span aria-hidden="true" className={slots.caretSpinner()}>
+                <Spinner />
+              </span>
+            </>
           ) : (
             <span aria-hidden="true" className={slots.caretSpace()} />
           )}
@@ -512,6 +566,16 @@ export function TreeItem({
             </span>
           )}
           {naming?.note}
+          {busy && (
+            <span aria-hidden="true" className={slots.endSpinner()}>
+              <Spinner />
+            </span>
+          )}
+          {busy && (
+            <span id={loadingId} hidden>
+              {loadingText}
+            </span>
+          )}
         </>
       ),
     },
@@ -544,6 +608,28 @@ export function TreeItem({
           render={<ul />}
         >
           {children}
+          {busy && (
+            <li
+              role="none"
+              aria-hidden="true"
+              data-slot="tree-loading"
+              className={slots.loadingItem()}
+              style={{ ['--tree-depth' as string]: depth + 1 }}
+            >
+              <div className={slots.loadingRow()}>
+                <Spinner />
+                {loadingText}
+              </div>
+              <div className={slots.loadingSkeleton()}>
+                {['w-2/3', 'w-1/2'].map((width) => (
+                  <div key={width} className={slots.loadingSkeletonRow()}>
+                    <span className={slots.caretSpace()} />
+                    <Skeleton variant="text" className={width} />
+                  </div>
+                ))}
+              </div>
+            </li>
+          )}
         </BaseCollapsible.Panel>
       </TreeContext>
     </BaseCollapsible.Root>

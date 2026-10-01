@@ -13,6 +13,8 @@ export interface CarouselSelection {
   onValueChange: (value: number) => void;
   /** n 枚目のスライドの id（Thumbnails の aria-controls）。スライドを持たない部品は渡さない */
   slideId?: (index: number) => string;
+  /** Thumbnails を並べる向き。Carousel の thumbnailsPlacement が start・end のときは縦 */
+  orientation?: 'horizontal' | 'vertical';
 }
 
 export const CarouselSelectionContext = createContext<CarouselSelection | null>(null);

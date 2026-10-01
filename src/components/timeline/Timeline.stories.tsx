@@ -1,3 +1,4 @@
+import { BriefcaseIcon, CheckIcon, WarningIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 
@@ -26,6 +27,8 @@ const meta = {
           '- `datePlacement` は日付の置き場所です。既定は点の右・題の上（`stack`）です。題と同じ行に置く（`inline`）と縦に詰まり、点の左の列にそろえる（`aside`）と日付が読み取りやすくなります。',
           '- `aside` は狭い入れ物では列を置けないので、`collapse` で畳むかを選びます。既定は題の上へ畳む（`stack`）で、列を保つ（`none`）も選べます。',
           '- `markerType` は点の見せ方、`line` は項目をつなぐ縦の線で、どちらも Steps の点と線に合わせた種類と色です。既定はグレーの丸（`neutral`）と細い実線（`solid`）です。輪郭の丸（`outline`）・Primary の青の丸（`primary`）、点線（`dotted`）・線なし（`none`）も選べます。',
+          '- 起きたことの結果を色で示すときは、状態の色の点（`success`・`warning`・`danger`）を使います。色だけに頼らず、題やアイコンでも伝えます。',
+          '- `TimelineItem` の `icon` にアイコンを渡すと、点の代わりにアイコンを入れた丸を置きます。丸の色は点の種類に従います。',
           '- 点の種類は項目ごとに変えられます。`TimelineItem` にも `markerType` を渡せて、渡した項目だけ `Timeline` の指定を上書きします。',
           '- `markerSize` は点の大きさです。既定は `md` で、点を骨組みとして見せたいときは `lg`、さらに静かにしたいときは `sm` にします。',
           '- `tail="dotted"` にすると、最後の項目のあとに線が少しだけ点線で伸びて、年表がまだ続くことを見せます。',
@@ -49,7 +52,10 @@ const meta = {
   argTypes: {
     headingLevel: { control: 'inline-radio', options: [2, 3, 4, 5, 6, false] },
     markerSize: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
-    markerType: { control: 'inline-radio', options: ['neutral', 'outline', 'primary'] },
+    markerType: {
+      control: 'inline-radio',
+      options: ['neutral', 'outline', 'primary', 'success', 'warning', 'danger'],
+    },
     line: { control: 'inline-radio', options: ['solid', 'dotted', 'none'] },
     tail: { control: 'inline-radio', options: ['none', 'dotted'] },
     datePlacement: { control: 'inline-radio', options: ['stack', 'inline', 'aside'] },
@@ -329,6 +335,29 @@ export const ItemMarkers: Story = {
     const halo = (el: Element) => getComputedStyle(el).getPropertyValue('--tl-marker-halo').trim();
     await expect(halo(second)).toBe('0px');
     await expect(halo(overridden)).not.toBe('0px');
+  },
+};
+
+export const StatusAndIcons: Story = {
+  name: '状態の色とアイコン',
+  render: () => (
+    <Timeline>
+      <TimelineItem date="2026年8月" title="審査を通過" markerType="success" icon={<CheckIcon />} />
+      <TimelineItem
+        date="2026年7月"
+        title="公開を延期"
+        markerType="warning"
+        icon={<WarningIcon />}
+      />
+      <TimelineItem date="2026年6月" title="v0.9 を取り下げ" markerType="danger" />
+      <TimelineItem date="2024年4月" title="入社" icon={<BriefcaseIcon />} />
+    </Timeline>
+  ),
+  play: async ({ canvasElement }) => {
+    // アイコンは飾り。読み上げは題と日付
+    const icons = canvasElement.querySelectorAll('[data-slot="timeline-icon"]');
+    await expect(icons).toHaveLength(3);
+    for (const icon of icons) await expect(icon).toHaveAttribute('aria-hidden', 'true');
   },
 };
 

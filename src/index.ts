@@ -119,6 +119,8 @@ export {
   type CarouselControlsPosition,
   type CarouselIndicator,
   type CarouselProps,
+  type CarouselSlidesPerView,
+  type CarouselThumbnailsPlacement,
 } from './components/carousel/Carousel';
 export {
   Checkbox,
@@ -670,6 +672,7 @@ export {
   Thumbnails,
   type ThumbnailsColor,
   type ThumbnailsIndicator,
+  type ThumbnailsOrientation,
   type ThumbnailsProps,
 } from './components/thumbnails/Thumbnails';
 export { Time, type TimeProps } from './components/time/Time';

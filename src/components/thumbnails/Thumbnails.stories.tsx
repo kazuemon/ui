@@ -182,6 +182,24 @@ export const WithFigure: Story = {
   },
 };
 
+export const Vertical: Story = {
+  name: '縦に並べる',
+  render: () => (
+    <Thumbnails orientation="vertical" className="h-64">
+      {thumbs}
+    </Thumbnails>
+  ),
+  play: async ({ canvas }) => {
+    // 縦では ↑↓ で選ぶ
+    const tabs = canvas.getAllByRole('tab');
+    await expect(canvas.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical');
+    tabs[0].focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs[1]).toHaveFocus();
+  },
+};
+
 export const Keyboard: Story = {
   name: 'キーボード',
   args: { onValueChange: fn() },

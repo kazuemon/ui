@@ -26,10 +26,16 @@ import { tv } from '../../internal/tv';
 // 日付の置き場所（datePlacement）は stack（点の右・題の上）・inline（題と同じ行）・aside（点の左の列）
 //   aside は狭い入れ物では日付の列を置けないので、collapse で畳む先を選ぶ（入れ物の幅で決める — 原則11）
 // 左右交互（align="alternate"）は、点を中央に置き、偶数の項目を左側に寄せる。日付は stack・inline のときだけ
+// 状態の色（markerType の success・warning・danger）: 起きたことの結果（公開した・保留・取り下げ）を点の色で示す。色だけに頼らず、
+//   題や icon でも伝える（原則6）。点の色は --color-timeline-marker-*（警告は黄色の塗りでは白地で見えにくいので、軸 456 で比べている）
+// 点のアイコン（TimelineItem の icon）: 点の代わりに、アイコンを入れた丸を置く。丸の色は点の種類の色から作る（軸 455 で比べている）
+//   点の列（--tl-axis）は、アイコンの丸を持つ項目が 1 つでもあれば、その丸の幅に広げる。どの項目も題の頭がそろい、点も線も列の中央に立つ
 
 const timeline = tv({
   base: [
     '@container/timeline m-0 list-none ps-0',
+    // アイコンの丸を持つ項目があれば、点の列をその丸の幅に広げる
+    '[&:has([data-slot=timeline-icon])]:[--tl-icon-axis:var(--timeline-icon-marker-size)]',
     textStyles.size.md,
     textStyles.variant.body,
     // Prose が li に当てる印（::before）と項目の間を消し、項目の間を空ける
@@ -40,11 +46,15 @@ const timeline = tv({
 
 const inner = tv({
   base: [
-    'relative ps-[calc(var(--tl-gutter)+var(--timeline-marker-size)+var(--timeline-marker-gap))]',
-    // 点の上端。1 行目（--tl-line）の中央に、点の中心をそろえる
-    '[--tl-marker-top:calc((var(--tl-line)-var(--timeline-marker-size))/2)]',
-    // 点
-    'before:absolute before:start-(--tl-gutter) before:top-(--tl-marker-top) before:content-[""]',
+    // 点の列の幅。点の大きさか、アイコンの丸の大きさ（どれかの項目が持つとき）の大きいほう
+    '[--tl-axis:max(var(--timeline-marker-size),var(--tl-icon-axis,0px))]',
+    // この項目の印（点かアイコンの丸）の大きさ
+    '[--tl-own:var(--timeline-marker-size)]',
+    'relative ps-[calc(var(--tl-gutter)+var(--tl-axis)+var(--timeline-marker-gap))]',
+    // 印の上端。1 行目（--tl-line）の中央に、印の中心をそろえる
+    '[--tl-marker-top:calc((var(--tl-line)-var(--tl-own))/2)]',
+    // 点。列の中央に置く
+    'before:absolute before:start-[calc(var(--tl-gutter)+(var(--tl-axis)-var(--timeline-marker-size))/2)] before:top-(--tl-marker-top) before:content-[""]',
     'before:size-(--timeline-marker-size) before:rounded-pill before:bg-(--tl-marker-bg)',
     'before:[transform:scale(var(--tl-marker-scale))]',
     // 強調したときに点の周りに出る輪。その点の色（--tl-marker-color）を薄めた色にする
@@ -52,8 +62,14 @@ const inner = tv({
     'before:[box-shadow:inset_0_0_0_var(--tl-marker-ring)_var(--tl-marker-ring-color),0_0_0_var(--tl-marker-halo)_var(--tl-marker-halo-color)]',
     // 項目をつなぐ線。点の下から、次の項目の点の上まで
     'after:absolute after:w-0 after:content-[""]',
-    'after:start-[calc(var(--tl-gutter)+var(--timeline-marker-size)/2-var(--timeline-line-width)/2)]',
-    'after:top-[calc(var(--tl-marker-top)+var(--timeline-marker-size)+var(--timeline-line-gap))]',
+    'after:start-[calc(var(--tl-gutter)+var(--tl-axis)/2-var(--timeline-line-width)/2)]',
+    'after:top-[calc(var(--tl-marker-top)+var(--tl-own)+var(--timeline-line-gap))]',
+    // アイコンの丸の色。点の種類の色（--tl-marker-*）から作る（軸 455）
+    //   面: fill が 1 なら点の色の塗り、0 なら淡い面。surface が 0 なら面を持たない（地の色で線を隠すだけ）
+    //   アイコン: 濃い塗りの上では塗りに載せる色、それ以外は前景の色
+    '[--tl-icon-ring:var(--timeline-icon-ring)] [--tl-icon-surface:var(--timeline-icon-surface)]',
+    '[--tl-icon-bg:color-mix(in_oklab,color-mix(in_oklab,var(--tl-marker-color)_calc(var(--timeline-icon-fill)*100%),var(--tl-marker-subtle))_calc(var(--tl-icon-surface)*100%),var(--color-bg))]',
+    '[--tl-icon-fg:color-mix(in_oklab,var(--tl-marker-on)_calc(var(--timeline-icon-fill)*var(--tl-icon-surface)*100%),var(--tl-marker-fg))]',
     'after:bottom-[calc(var(--timeline-line-gap)-var(--timeline-gap)-var(--tl-marker-top))]',
     'after:[border-inline-start:var(--timeline-line-width)_var(--tl-line-style)_var(--color-timeline-line)]',
   ],
@@ -65,22 +81,54 @@ const inner = tv({
       lg: '[--timeline-marker-size:var(--timeline-marker-size-lg)]',
     },
     // 点の見せ方（Steps の marker と同じ種類・同じ色）。どれも影を付けず、押せる見た目にしない
+    //   on・subtle・fg は、アイコンの丸（icon）に使う塗りに載せる色・淡い面・前景の色
+    //   状態の色（success・warning・danger）の点は、淡い面と点の色を --timeline-status-fill で混ぜ、--timeline-status-ring の輪郭を前景の色で引く（軸 456）
     markerType: {
       neutral: [
         '[--tl-marker-color:var(--color-timeline-marker)]',
         '[--tl-marker-bg:var(--tl-marker-color)]',
         '[--tl-marker-ring-color:transparent] [--tl-marker-ring:0px]',
+        '[--tl-marker-fg:var(--color-fg-muted)] [--tl-marker-on:var(--color-bg)] [--tl-marker-subtle:var(--color-field)]',
       ],
       outline: [
         '[--tl-marker-color:var(--color-timeline-marker)]',
         '[--tl-marker-bg:var(--color-bg)]',
         '[--tl-marker-ring-color:var(--tl-marker-color)] [--tl-marker-ring:var(--timeline-marker-ring)]',
+        '[--tl-marker-fg:var(--color-fg-muted)] [--tl-marker-on:var(--color-bg)] [--tl-marker-subtle:var(--color-field)]',
+        // アイコンの丸も、地の色で抜いた輪郭の丸にする
+        '[--tl-icon-ring:var(--timeline-marker-ring)] [--tl-icon-surface:0]',
       ],
       primary: [
         '[--tl-marker-color:var(--color-primary)]',
         '[--tl-marker-bg:var(--tl-marker-color)]',
         '[--tl-marker-ring-color:transparent] [--tl-marker-ring:0px]',
+        '[--tl-marker-fg:var(--color-on-primary-subtle)] [--tl-marker-on:var(--color-on-primary)] [--tl-marker-subtle:var(--color-primary-subtle)]',
       ],
+      success: [
+        '[--tl-marker-color:var(--color-timeline-marker-success)]',
+        '[--tl-marker-fg:var(--color-fg-success)] [--tl-marker-on:var(--color-on-success)] [--tl-marker-subtle:var(--color-success-subtle)]',
+      ],
+      warning: [
+        '[--tl-marker-color:var(--color-timeline-marker-warning)]',
+        '[--tl-marker-fg:var(--color-fg-warning)] [--tl-marker-on:var(--color-timeline-marker-on-warning)] [--tl-marker-subtle:var(--color-warning-subtle)]',
+      ],
+      danger: [
+        '[--tl-marker-color:var(--color-timeline-marker-danger)]',
+        '[--tl-marker-fg:var(--color-fg-danger)] [--tl-marker-on:var(--color-on-danger)] [--tl-marker-subtle:var(--color-danger-subtle)]',
+      ],
+    },
+    // 状態の色の点（success・warning・danger）の塗りと輪郭
+    status: {
+      true: [
+        '[--tl-marker-bg:color-mix(in_oklab,var(--tl-marker-color)_var(--timeline-status-fill),var(--tl-marker-subtle))]',
+        '[--tl-marker-ring-color:var(--tl-marker-fg)] [--tl-marker-ring:var(--timeline-status-ring)]',
+      ],
+      false: '',
+    },
+    // 点の代わりにアイコンの丸を置く項目。点は描かず、印の大きさを丸の大きさにする
+    icon: {
+      true: '[--tl-own:var(--timeline-icon-marker-size)] before:content-none',
+      false: '',
     },
     // 項目をつなぐ線（Steps の line と同じ名前・同じ値）。点線は太さと点とのあいだを点線用の値に差し替える
     line: {
@@ -124,9 +172,9 @@ const inner = tv({
     align: {
       start: '',
       alternate: [
-        '[--tl-gutter:calc(50%-var(--timeline-marker-size)/2)]',
+        '[--tl-gutter:calc(50%-var(--tl-axis)/2)]',
         '[li:nth-child(even)>&]:ps-0',
-        '[li:nth-child(even)>&]:pe-[calc(50%+var(--timeline-marker-size)/2+var(--timeline-marker-gap))]',
+        '[li:nth-child(even)>&]:pe-[calc(50%+var(--tl-axis)/2+var(--timeline-marker-gap))]',
         '[li:nth-child(even)>&]:text-end',
       ],
     },
@@ -139,6 +187,17 @@ const inner = tv({
       false: '[--tl-marker-halo:0px] [--tl-marker-scale:1]',
     },
   },
+});
+
+// アイコンの丸。点と同じく列の中央に置き、強調の輪も点と同じ形で付ける
+const iconMarker = tv({
+  base: [
+    'absolute start-[calc(var(--tl-gutter)+(var(--tl-axis)-var(--tl-own))/2)] top-(--tl-marker-top)',
+    'grid size-(--tl-own) place-items-center rounded-pill bg-(--tl-icon-bg) text-(--tl-icon-fg)',
+    '[transform:scale(var(--tl-marker-scale))]',
+    '[box-shadow:inset_0_0_0_var(--tl-icon-ring)_var(--tl-marker-fg),0_0_0_var(--tl-marker-halo)_var(--tl-marker-halo-color)]',
+    '[&_svg]:size-(--timeline-icon-size)',
+  ],
 });
 
 const head = tv({
@@ -200,7 +259,13 @@ const sizeOfLevel = { 2: 'xl', 3: 'lg', 4: 'md', 5: 'md', 6: 'md' } as const;
 
 export type TimelineMarkerSize = 'sm' | 'md' | 'lg';
 
-export type TimelineMarkerType = 'neutral' | 'outline' | 'primary';
+export type TimelineMarkerType =
+  | 'neutral'
+  | 'outline'
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 export type TimelineLine = 'solid' | 'dotted' | 'none';
 
@@ -245,7 +310,9 @@ export interface TimelineProps extends ComponentProps<'ol'> {
    */
   markerSize?: TimelineMarkerSize;
   /**
-   * 点の見せ方。neutral はグレーの丸、outline は地の色で抜いた輪郭の丸、primary は Primary の青の丸です（Steps の marker と同じ種類・同じ色）。項目ごとに `TimelineItem` の `markerType` で上書きできます
+   * 点の見せ方。neutral はグレーの丸、outline は地の色で抜いた輪郭の丸、primary は Primary の青の丸です（Steps の marker と同じ種類・同じ色）。
+   * success・warning・danger は状態の色の丸で、起きたことの結果（公開した・保留・取り下げなど）を示します。色だけに頼らず、題や `icon` でも伝えます。
+   * 項目ごとに `TimelineItem` の `markerType` で上書きできます
    * @default 'neutral'
    */
   markerType?: TimelineMarkerType;
@@ -326,6 +393,11 @@ export interface TimelineItemProps extends Omit<ComponentProps<'li'>, 'title'> {
    */
   markerType?: TimelineMarkerType;
   /**
+   * 点の代わりに置くアイコン（`@phosphor-icons/react` など）。アイコンを入れた丸を置き、丸の色は点の種類（markerType）に従います。
+   * 1 つの項目に置くと、ほかの項目の点もその丸の幅の列の中央に並びます
+   */
+  icon?: ReactNode;
+  /**
    * この項目を強調します。点の種類はそのままに、周りに淡い輪を足して少し大きくします。青くしたいときは `markerType="primary"` を足します
    * @default false
    */
@@ -341,6 +413,7 @@ export function TimelineItem({
   date,
   title,
   markerType: itemMarkerType,
+  icon,
   emphasis = false,
   className,
   children,
@@ -362,6 +435,7 @@ export function TimelineItem({
   const titleSize = sizeOfLevel[level === false ? 3 : level];
   const titled = title != null && title !== false;
   const dated = date != null && date !== false;
+  const hasIcon = icon != null && icon !== false;
   // 1 行目は、点をそろえる行。stack では日付、inline では題と日付が並ぶ行、aside では題の行になる
   //   （aside の日付は流れの外にあるので、1 行目に数えない）
   const firstLine =
@@ -387,8 +461,15 @@ export function TimelineItem({
           collapse: fold,
           align,
           emphasis,
+          status: markerType === 'success' || markerType === 'warning' || markerType === 'danger',
+          icon: hasIcon,
         })}
       >
+        {hasIcon ? (
+          <span aria-hidden="true" data-slot="timeline-icon" className={iconMarker()}>
+            {icon}
+          </span>
+        ) : null}
         {dated || titled ? (
           <div data-slot="timeline-head" className={head({ datePlacement })}>
             {dated ? (

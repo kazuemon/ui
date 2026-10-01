@@ -1148,6 +1148,23 @@
   --carousel-dot-color: var(--color-line-strong);
   --carousel-dot-current-color: var(--color-neutral-strong);
   --carousel-count-gap: var(--spacing);
+  /* slidesPerView（1 画面に複数枚。軸 452 で比べている）
+       per-view-gap: 複数枚のときのスライドのあいだ。per-view-peek: 右端にのぞかせる次の 1 枚の割合（0 はのぞかせない）
+     autoplay-*（自動の送りを止めるボタン。軸 451 で比べている。比べるための出し分けを含む）
+       inline-outline-display・inline-plain-display: 下の行の位置の印の左に置く、枠線のボタンと線のないボタン（contents で出す、none で消す）
+       inline-gap: ボタンと位置の印のあいだ
+       overlay-display・overlay-justify: 画像の下の隅に重ねる白い丸（flex で出す、none で消す）と、左右どちらの隅か
+     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ
+     thumbnails-bar-toward-slide: 横に置いた帯の棒を、スライドの側に引くか（1）、外の側に引くか（0）（軸 453 で比べている） */
+  --carousel-per-view-gap: calc(var(--spacing) * 4);
+  --carousel-per-view-peek: 0;
+  --carousel-autoplay-inline-outline-display: contents;
+  --carousel-autoplay-inline-plain-display: none;
+  --carousel-autoplay-inline-gap: calc(var(--spacing) * 3);
+  --carousel-autoplay-overlay-display: none;
+  --carousel-autoplay-overlay-justify: end;
+  --carousel-thumbnails-side-gap: calc(var(--spacing) * 3);
+  --carousel-thumbnails-bar-toward-slide: 1;
   /* ── END carousel */
 
   /* ── Thumbnails — 軸 288 ── BEGIN thumbnails */
@@ -1168,6 +1185,8 @@
   --thumbnails-hover-opacity: 1;
   --thumbnails-dim-rest-opacity: 0.6;
   --thumbnails-dim-hover-opacity: 0.85;
+  /* vertical-bar-end: 縦に並べたとき（orientation="vertical"）の棒の側。0 は画像の左、1 は右（Tabs の縦向きの印と同じく中身の側。軸 453 で比べている） */
+  --thumbnails-vertical-bar-end: 1;
   /* ── END thumbnails */
 
   /* ── Gallery — ADR-290〜293 ── BEGIN gallery */
@@ -1624,6 +1643,15 @@
   /* Chrome は overflow-clip-margin に calc() を受け取らない（0 として扱う）ので、ここだけは計算せずに書く。
      フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
   --tree-panel-clip-margin: 6px;
+  /* 子を読み込んでいるあいだの印（TreeItem の loading。軸 454 で比べている。比べるための出し分け）
+       caret-display・caret-spinner-display: 開閉の印を出すか（grid・none）と、印の場所に回る円を出すか（grid・none）
+       end-display: 行の右端の回る円（grid・none）
+       row-display: 開いた中の「読み込んでいます」の行（flex・none）。skeleton-display: 開いた中の場所取りの行（flex・none） */
+  --tree-loading-caret-display: none;
+  --tree-loading-caret-spinner-display: grid;
+  --tree-loading-end-display: none;
+  --tree-loading-row-display: none;
+  --tree-loading-skeleton-display: none;
   /* ── END tree */
 
   /* ── Sidebar — ADR-0350〜0364 ── BEGIN sidebar */
@@ -1802,6 +1830,25 @@
   --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
   --timeline-tail-length: calc(var(--spacing) * 5);
   --color-timeline-line: var(--color-line);
+  /* 状態の色の点（markerType の success・warning・danger。軸 456 で比べている）
+       color-marker-*: 点の色。警告の黄色は白地で 1.2:1 と見えにくいので、前景用のオリーブ色を既定にしている
+       color-marker-on-warning: 警告の点の色の上に載せるアイコンの色（黄色なら濃紺、オリーブなら白）
+       status-fill: 点の色と淡い面の混ぜ方（100% は点の色の塗り、0% は淡い面）。status-ring: 前景の色の輪郭の太さ（0 は引かない）
+     アイコンの丸（TimelineItem の icon。軸 455 で比べている）
+       icon-marker-size: 丸の大きさ。icon-size: 中のアイコンの大きさ
+       icon-fill: 1 は点の色の塗りに塗りに載せる色のアイコン、0 は淡い面に前景の色のアイコン
+       icon-surface: 0 は面を持たない（地の色で線を隠し、アイコンだけを前景の色で置く）。icon-ring: 前景の色の輪郭の太さ */
+  --color-timeline-marker-success: var(--color-success);
+  --color-timeline-marker-warning: var(--color-fg-warning);
+  --color-timeline-marker-on-warning: var(--palette-white);
+  --color-timeline-marker-danger: var(--color-danger);
+  --timeline-status-fill: 100%;
+  --timeline-status-ring: 0px;
+  --timeline-icon-marker-size: calc(var(--spacing) * 6);
+  --timeline-icon-size: calc(var(--spacing) * 3.5);
+  --timeline-icon-fill: 1;
+  --timeline-icon-surface: 1;
+  --timeline-icon-ring: 0px;
   /* ── END timeline */
 
   /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */

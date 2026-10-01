@@ -11,7 +11,8 @@ import type { CarouselEngine, CarouselEngineOptions } from './carousel-engine';
 //     送っているあいだに途中の 1 枚を知らせると、index が途中へ戻って行き来するので、着くまで（または使う人が触るまで）知らせない
 //   動きを減らす設定では、滑らせずにすぐ送る（原則14）。はじめの位置（defaultValue）も滑らせない
 //   枠の幅が変わったら、いまの 1 枚の位置に置き直す
-// 端でつながる（無限ループ）・自動で送る、は持たない
+//   並んで見えている枚数（slidesPerView）を、枠と 1 枚の幅から測って visibleCount で返す。幅が変わったら測り直す
+// 端でつながる（loop）・自動で送る（autoPlay）は、見た目の側（CarouselView）が index を変えて行う。ここは送る先へ送るだけ
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
@@ -51,6 +52,22 @@ function nearestIndex(viewport: HTMLElement) {
   return best;
 }
 
+/** 枠に並んで見えている枚数。のぞかせる端（peek）は数えない */
+function measureVisible(viewport: HTMLElement) {
+  const slides = slidesOf(viewport);
+  const first = slides[0];
+  const track = first?.parentElement;
+  if (!first || !track || first.offsetWidth === 0) return 1;
+  const style = getComputedStyle(track);
+  const gap = parseFloat(style.columnGap) || 0;
+  const inner =
+    viewport.clientWidth -
+    (parseFloat(style.paddingLeft) || 0) -
+    (parseFloat(style.paddingRight) || 0);
+  const fits = Math.floor((inner + gap + 1) / (first.offsetWidth + gap));
+  return Math.min(Math.max(fits, 1), slides.length);
+}
+
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -60,6 +77,7 @@ export function useScrollSnapEngine({
   onIndexChange,
 }: CarouselEngineOptions): CarouselEngine {
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(1);
   const bindViewport = useCallback((element: HTMLDivElement | null) => setViewport(element), []);
   // 送っている先。着くまで、途中の 1 枚を知らせない
   const target = useRef<number | null>(null);
@@ -173,8 +191,9 @@ export function useScrollSnapEngine({
     viewport.addEventListener('touchend', touchEnd);
     viewport.addEventListener('touchcancel', touchEnd);
     viewport.addEventListener('focusin', interact);
-    // 幅が変わったら、いまの 1 枚の位置に置き直す
+    // 幅が変わったら、並んで見えている枚数を測り直し、いまの 1 枚の位置に置き直す
     const observer = new ResizeObserver(() => {
+      setVisibleCount(measureVisible(viewport));
       if (target.current === null && !userActive) realign();
     });
     observer.observe(viewport);
@@ -193,5 +212,10 @@ export function useScrollSnapEngine({
     };
   }, [viewport]);
 
-  return { mode: 'scroll', bindViewport };
+  // 子の数が変わったときも測り直す
+  useIsomorphicLayoutEffect(() => {
+    if (viewport) setVisibleCount(measureVisible(viewport));
+  }, [viewport, count]);
+
+  return { mode: 'scroll', bindViewport, visibleCount };
 }

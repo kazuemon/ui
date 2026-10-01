@@ -13,10 +13,12 @@ import {
 import { CarouselSelectionContext } from '../../internal/carousel-context';
 import { focusRing } from '../../internal/focus-styles';
 import { PositionCount, PositionDots } from '../../internal/position-indicator';
-import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
+import { breakpointVars, type Responsive } from '../../internal/breakpoints';
+import { CaretLeftIcon, CaretRightIcon, PauseIcon, PlayIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
 import type { CarouselEngine } from './carousel-engine';
+import { useAutoPlay } from './use-auto-play';
 import type { CarouselState } from './use-carousel-state';
 
 // 横に送って 1 枚ずつ見せる並び（作品のスクリーンショット、記事の中の数枚の画像）。値は design/tokens.css の --carousel-*
@@ -40,10 +42,29 @@ import type { CarouselState } from './use-carousel-state';
 //     Thumbnails を組んだときは、Thumbnails が位置を示すので既定で出さない（軸 286・決定）
 //   peek（軸 287・決定）: 1 枚を少し狭くして中央に止め、両隣の端をのぞかせる。既定は 1 枚を幅いっぱい
 //   続きがあることは、位置の印と次へのボタンで見せる。枠の端に影は落とさない（画像そのものに影がかかるため）
+//   slidesPerView: 1 画面に並べる枚数。数か、画面の幅の段ごとの数（Grid の columns と同じ形）。1 つずつ送り、止まる位置は「枚数 − 並べる数 + 1」
+//     1 枚の幅は「(枠の幅 − 間 ×（並べる数 − 1）) ÷ 並べる数」。--carousel-per-view-peek が 0 より大きいと、右端に次の 1 枚の端をのぞかせる
+//     いま何枚並んでいるかは、送る仕組み（engine）が測って visibleCount で返す（画面の幅の段は CSS が決めるため）
+//   loop: 端でつながる。最後の次は最初へ、最初の前は最後へ戻る（並びを巻き戻して送る。複製は置かない）
+//   autoPlay（use-auto-play.ts）: 間（autoPlayInterval）ごとに次へ送り、最後のあとは最初へ戻る。止めるボタンを必ず出す（WCAG 2.2.2）
+//     送っているあいだは、読み上げの「3 / 5」を黙らせる（WAI-ARIA の Carousel パターン）
+//     止めるボタンの置き場所と形は軸 451 で比べている（--carousel-autoplay-*）
+//   thumbnailsPlacement: Thumbnails の置き場所。bottom は枠の下、start・end は枠の横に縦に並べる（Thumbnails は縦向きになる）
 
 const styles = tv({
   slots: {
     root: 'flex min-w-0 flex-col gap-(--carousel-controls-gap)',
+    // Thumbnails を包む。横に置くときは枠の高さに合わせ（自分の高さで行を伸ばさない）、はみ出す分は帯の中でスクロールする
+    thumbnails: 'min-w-0',
+    // 自動の送りを止めるボタン（軸 451 の比較のため、置き場所ごとに描き、--carousel-autoplay-* で出し分ける）
+    autoplayInline:
+      'flex items-center gap-(--carousel-autoplay-inline-gap) [justify-self:var(--carousel-indicator-justify)] [grid-area:indicator]',
+    autoplayInlineOutline: '[display:var(--carousel-autoplay-inline-outline-display)]',
+    autoplayInlinePlain: '[display:var(--carousel-autoplay-inline-plain-display)]',
+    autoplayOverlay: [
+      'pointer-events-none absolute inset-x-(--carousel-overlay-inset) bottom-(--carousel-overlay-inset) *:pointer-events-auto',
+      '[display:var(--carousel-autoplay-overlay-display)] [justify-content:var(--carousel-autoplay-overlay-justify)]',
+    ],
     stage: 'relative min-w-0',
     // 1 枚の幅（--carousel-slide-size）は、枠の幅に対する割合（cqi）で書く
     viewport: [
@@ -94,6 +115,48 @@ const styles = tv({
       overlay: {},
     },
     // 両隣を少し見せる。1 枚を狭くして中央に止め、最初と最後の 1 枚も中央に止まるよう両端に余白を取る
+    // 1 画面に複数枚。並べる数は --carousel-per-view（画面の幅の段ごとに --carousel-per-view-<段> から読む）
+    perView: {
+      true: {
+        root: [
+          '[--carousel-per-view-base:initial] [--carousel-per-view-lg:initial] [--carousel-per-view-md:initial] [--carousel-per-view-sm:initial] [--carousel-per-view-xl:initial]',
+          '[--carousel-per-view:var(--carousel-per-view-base,1)]',
+          'sm:[--carousel-per-view:var(--carousel-per-view-sm,var(--carousel-per-view-base,1))]',
+          'md:[--carousel-per-view:var(--carousel-per-view-md,var(--carousel-per-view-sm,var(--carousel-per-view-base,1)))]',
+          'lg:[--carousel-per-view:var(--carousel-per-view-lg,var(--carousel-per-view-md,var(--carousel-per-view-sm,var(--carousel-per-view-base,1))))]',
+          'xl:[--carousel-per-view:var(--carousel-per-view-xl,var(--carousel-per-view-lg,var(--carousel-per-view-md,var(--carousel-per-view-sm,var(--carousel-per-view-base,1)))))]',
+          '[--carousel-gap:var(--carousel-per-view-gap)]',
+          // のぞかせる端（peek）があるときは、その手前の間も 1 つ数える
+          '[--carousel-slide-size:calc((100cqi-var(--carousel-gap)*(var(--carousel-per-view)-1+clamp(0,var(--carousel-per-view-peek)*1000,1)))/(var(--carousel-per-view)+var(--carousel-per-view-peek)))]',
+        ],
+      },
+      false: {},
+    },
+    // Thumbnails の置き場所。start・end は枠の横に置き、前へ・次へと位置の印の行は枠の下だけに置く
+    thumbnailsPlacement: {
+      bottom: {},
+      start: {
+        root: [
+          'grid [grid-template-columns:auto_minmax(0,1fr)] items-start gap-x-(--carousel-thumbnails-side-gap)',
+          "[grid-template-areas:'thumbnails_stage'_'._controls']",
+        ],
+        stage: '[grid-area:stage]',
+        controls: '[grid-area:controls]',
+        // 棒をスライドの側に引くか（1）、外の側に引くか（0）
+        thumbnails:
+          'h-0 min-h-full [--thumbnails-vertical-bar-end:var(--carousel-thumbnails-bar-toward-slide)] [grid-area:thumbnails]',
+      },
+      end: {
+        root: [
+          'grid [grid-template-columns:minmax(0,1fr)_auto] items-start gap-x-(--carousel-thumbnails-side-gap)',
+          "[grid-template-areas:'stage_thumbnails'_'controls_.']",
+        ],
+        stage: '[grid-area:stage]',
+        controls: '[grid-area:controls]',
+        thumbnails:
+          'h-0 min-h-full [--thumbnails-vertical-bar-end:calc(1-var(--carousel-thumbnails-bar-toward-slide))] [grid-area:thumbnails]',
+      },
+    },
     peek: {
       true: {
         root: [
@@ -105,6 +168,12 @@ const styles = tv({
     },
   },
 });
+
+/** 1 画面に並べる枚数。数か、画面の幅の段ごとの数（`{ base: 1, md: 3 }`。Grid の columns と同じ段） */
+export type CarouselSlidesPerView = Responsive<number>;
+
+/** Thumbnails の置き場所。bottom は枠の下、start は枠の左、end は枠の右に縦に並べる */
+export type CarouselThumbnailsPlacement = 'bottom' | 'start' | 'end';
 
 /** 位置の印。dots は点、count は「3 / 5」、none は出さない */
 export type CarouselIndicator = 'dots' | 'count' | 'none';
@@ -146,9 +215,46 @@ export interface CarouselProps extends Omit<
    */
   peek?: boolean;
   /**
+   * 1 画面に並べる枚数。数か、画面の幅の段ごとの数（`{ base: 1, md: 3 }`。段は Grid の `columns` と同じ）を渡します。
+   * 送るのは 1 枚ずつです。書かないときは 1 枚を幅いっぱいに見せます（`peek` は 1 枚のときだけ効きます）
+   */
+  slidesPerView?: CarouselSlidesPerView;
+  /**
+   * 端でつなぎます。最後の次は最初へ、最初の前は最後へ戻ります。前へ・次へはいつも押せます
+   * @default false
+   */
+  loop?: boolean;
+  /**
+   * 間（`autoPlayInterval`）ごとに、自動で次の 1 枚へ送ります。最後のあとは最初へ戻ります。
+   * 止めるボタンを出し、マウスを載せているあいだと、中にキーボードのフォーカスがあるあいだも止まります。
+   * 動きを減らす設定では、止めた状態で始まります（ボタンで送りはじめられます）
+   * @default false
+   */
+  autoPlay?: boolean;
+  /**
+   * 自動で送る間（ミリ秒）
+   * @default 5000
+   */
+  autoPlayInterval?: number;
+  /**
+   * 自動の送りを止めるボタンの読み上げの名前
+   * @default '自動の送りを止める'
+   */
+  pauseName?: string;
+  /**
+   * 止めた送りを始めるボタンの読み上げの名前
+   * @default '自動の送りを始める'
+   */
+  playName?: string;
+  /**
    * 枠の下に置く Thumbnails（`<Thumbnails>…</Thumbnails>`）。置くと、Thumbnails の value と切り替えを Carousel とつなぎます
    */
   thumbnails?: ReactNode;
+  /**
+   * Thumbnails の置き場所。bottom は枠の下、start は枠の左、end は枠の右です。start・end では Thumbnails を縦に並べ、枠の高さに収めます
+   * @default 'bottom'
+   */
+  thumbnailsPlacement?: CarouselThumbnailsPlacement;
   /**
    * 前へのボタンの読み上げの名前
    * @default '前のスライド'
@@ -214,26 +320,93 @@ function StepButton({
   );
 }
 
+interface AutoPlayButtonProps {
+  playing: boolean;
+  pauseName: string;
+  playName: string;
+  viewportId: string;
+  onClick: () => void;
+  variant: 'outline' | 'underline' | 'filled';
+}
+
+/** 自動の送りを止める・始めるボタン。送っているあいだは一時停止の印、止めたら再生の印 */
+function AutoPlayButton({
+  playing,
+  pauseName,
+  playName,
+  viewportId,
+  onClick,
+  variant,
+}: AutoPlayButtonProps) {
+  return (
+    <Button
+      iconOnly
+      variant={variant}
+      color={variant === 'filled' ? 'white' : 'neutral'}
+      shape={variant === 'filled' ? 'circle' : 'square'}
+      aria-label={playing ? pauseName : playName}
+      aria-controls={viewportId}
+      onClick={onClick}
+      data-slot="carousel-autoplay"
+    >
+      {playing ? <PauseIcon standalone /> : <PlayIcon standalone />}
+    </Button>
+  );
+}
+
 /**
  * Carousel の見た目。いまの 1 枚（state）と送る仕組み（engine）を受け取って描く。公開の Carousel は scroll-snap の仕組みを渡す
  */
 export function CarouselView({
-  state: { slides, count, index, change },
-  engine: { mode, bindViewport, canPrev: engineCanPrev, canNext: engineCanNext },
+  state: { slides, count, index, change: changeTo },
+  engine: { mode, bindViewport, canPrev: engineCanPrev, canNext: engineCanNext, visibleCount },
   accessibleName,
   indicator: indicatorProp,
   controlsPosition = 'bottom',
   peek = false,
+  slidesPerView,
+  loop = false,
+  autoPlay = false,
+  autoPlayInterval = 5000,
+  pauseName = '自動の送りを止める',
+  playName = '自動の送りを始める',
   thumbnails,
+  thumbnailsPlacement = 'bottom',
   prevName = '前のスライド',
   nextName = '次のスライド',
   className,
+  style,
   ...props
 }: CarouselViewProps) {
-  const canPrev = engineCanPrev ?? index > 0;
-  const canNext = engineCanNext ?? index < count - 1;
+  // 止まる位置の数。複数枚を並べるときは、最後の数枚がまとめて見えた位置が最後
+  const stops = Math.max(1, count - Math.max(1, visibleCount ?? 1) + 1);
+  const position = Math.min(index, stops - 1);
+  const wraps = loop && stops > 1;
+  const canPrev = engineCanPrev ?? (wraps || position > 0);
+  const canNext = engineCanNext ?? (wraps || position < stops - 1);
   const indicator = indicatorProp ?? (thumbnails != null ? 'none' : 'dots');
-  const s = styles({ mode, controlsPosition, peek });
+  const perView = slidesPerView != null;
+  const s = styles({
+    mode,
+    controlsPosition,
+    peek: peek && !perView,
+    perView,
+    thumbnailsPlacement: thumbnails != null ? thumbnailsPlacement : 'bottom',
+  });
+
+  // 端でつながるときは、範囲の外を反対の端へ回す
+  const change = (next: number) => {
+    if (wraps && next < 0) changeTo(stops - 1);
+    else if (wraps && next > stops - 1) changeTo(0);
+    else changeTo(Math.min(next, stops - 1));
+  };
+
+  const auto = useAutoPlay({
+    enabled: autoPlay && stops > 1,
+    interval: autoPlayInterval,
+    position,
+    onTick: () => changeTo(position + 1 > stops - 1 ? 0 : position + 1),
+  });
 
   const id = useId();
   const viewportId = `${id}-viewport`;
@@ -243,28 +416,34 @@ export function CarouselView({
 
   // 押したボタンが押せなくなるときは、フォーカスを反対のボタンへ移す
   const goPrev = () => {
-    if (index - 1 <= 0 && engineCanPrev === undefined && document.activeElement === prevRef.current)
+    if (
+      !wraps &&
+      position - 1 <= 0 &&
+      engineCanPrev === undefined &&
+      document.activeElement === prevRef.current
+    )
       nextRef.current?.focus();
-    change(index - 1);
+    change(position - 1);
   };
   const goNext = () => {
     if (
-      index + 1 >= count - 1 &&
+      !wraps &&
+      position + 1 >= stops - 1 &&
       engineCanNext === undefined &&
       document.activeElement === nextRef.current
     )
       prevRef.current?.focus();
-    change(index + 1);
+    change(position + 1);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     // 中のリンクやボタンにいるときは奪わない
     if (event.target !== event.currentTarget) return;
     const next = {
-      ArrowLeft: index - 1,
-      ArrowRight: index + 1,
+      ArrowLeft: position - 1,
+      ArrowRight: position + 1,
       Home: 0,
-      End: count - 1,
+      End: stops - 1,
     }[event.key];
     if (next === undefined) return;
     event.preventDefault();
@@ -297,23 +476,45 @@ export function CarouselView({
     />
   );
 
+  const showAutoPlay = autoPlay && stops > 1;
+  const autoPlayButton = (variant: AutoPlayButtonProps['variant']) => (
+    <AutoPlayButton
+      playing={auto.playing}
+      pauseName={pauseName}
+      playName={playName}
+      viewportId={viewportId}
+      onClick={auto.toggle}
+      variant={variant}
+    />
+  );
+
   const indicatorElement =
     indicator === 'dots' ? (
       <PositionDots
-        index={index}
-        count={count}
+        index={position}
+        count={stops}
         slot="carousel-dots"
-        className={s.indicator({ className: s.dots() })}
+        className={showAutoPlay ? s.dots() : s.indicator({ className: s.dots() })}
       />
     ) : indicator === 'count' ? (
       <PositionCount
-        index={index}
-        count={count}
+        index={position}
+        count={stops}
         slot="carousel-count"
-        className={s.indicator({ className: s.count() })}
+        className={showAutoPlay ? s.count() : s.indicator({ className: s.count() })}
       />
     ) : null;
-  const showControls = !overlay || indicatorElement !== null;
+  // 止めるボタンは、位置の印と一緒に行の中に置く（置き場所は軸 451 で比べている）
+  const indicatorCell = showAutoPlay ? (
+    <div className={s.autoplayInline()}>
+      <span className={s.autoplayInlineOutline()}>{autoPlayButton('outline')}</span>
+      <span className={s.autoplayInlinePlain()}>{autoPlayButton('underline')}</span>
+      {indicatorElement}
+    </div>
+  ) : (
+    indicatorElement
+  );
+  const showControls = !overlay || indicatorCell !== null;
 
   return (
     <section
@@ -321,6 +522,8 @@ export function CarouselView({
       aria-label={accessibleName}
       data-slot="carousel"
       {...props}
+      {...(showAutoPlay ? auto.rootProps : {})}
+      style={{ ...breakpointVars('carousel-per-view', slidesPerView), ...style }}
       className={s.root({ className })}
     >
       <div className={s.stage()}>
@@ -355,22 +558,32 @@ export function CarouselView({
             <div className={s.overlayNext()}>{nextButton}</div>
           </>
         )}
+        {showAutoPlay && <div className={s.autoplayOverlay()}>{autoPlayButton('filled')}</div>}
       </div>
       {showControls && (
         <div data-slot="carousel-controls" className={s.controls()}>
           {!overlay && prevButton}
-          {indicatorElement}
+          {indicatorCell}
           {!overlay && nextButton}
         </div>
       )}
       {thumbnails != null && (
-        <CarouselSelectionContext value={{ value: index, onValueChange: change, slideId }}>
-          {thumbnails}
-        </CarouselSelectionContext>
+        <div data-slot="carousel-thumbnails" className={s.thumbnails()}>
+          <CarouselSelectionContext
+            value={{
+              value: index,
+              onValueChange: changeTo,
+              slideId,
+              orientation: thumbnailsPlacement === 'bottom' ? 'horizontal' : 'vertical',
+            }}
+          >
+            {thumbnails}
+          </CarouselSelectionContext>
+        </div>
       )}
-      {/* いまの 1 枚が変わったときに、1 回だけ読む */}
-      <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {`${index + 1} / ${count}`}
+      {/* いまの位置が変わったときに、1 回だけ読む。自動で送っているあいだは黙る */}
+      <div aria-live={auto.running ? 'off' : 'polite'} aria-atomic="true" className="sr-only">
+        {`${position + 1} / ${stops}`}
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 import { FileTextIcon, FolderIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Tree, TreeItem } from './Tree';
@@ -40,6 +41,7 @@ const meta = {
           '- 行の頭のアイコンは `icon` で渡します。渡さないときは置きません。',
           '- Tab で入るのは 1 行だけです。↑ ↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移ります。子を持つ行は Space で開け閉めします。',
           '- 文字を打つと、その文字で始まる行へ移ります。続けて打った文字は 1 語として扱い、少し間が空くと打ち直しになります。開いていない枝の中の行には移りません。',
+          '- 子をあとから読み込むときは、行に `hasChildren` を付けます。children がなくても開け閉めでき、開いたとき（`onExpandedChange`）に読み込みます。読み込んでいるあいだは `loading` を付けます。',
           '- 開いている行を自分で持つときは `expanded`・`onExpandedChange` を使います。はじめから開けておくときは `defaultExpanded` です。',
           '- 字下げの案内線は `hideGuides` で消せます。いまいる行の色は `color` で選びます。',
           '- 行の塗り（hover・いまいる行）は、既定では字下げの分だけ左を空けます。木の幅いっぱいに塗るときは `rowWidth="full"` にします。',
@@ -275,6 +277,51 @@ const files = (
     </TreeItem>
   </>
 );
+
+function LazyTree() {
+  const [children, setChildren] = useState<string[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  return (
+    <Tree accessibleName="ドキュメント" className="max-w-xs">
+      <TreeItem label="はじめに" href="#intro" />
+      <TreeItem
+        label="部品"
+        hasChildren
+        loading={loading}
+        onExpandedChange={(open) => {
+          if (!open || children) return;
+          setLoading(true);
+          window.setTimeout(() => {
+            setChildren(['Button', 'TextField']);
+            setLoading(false);
+          }, 1500);
+        }}
+      >
+        {children?.map((name) => (
+          <TreeItem key={name} label={name} href={`#${name.toLowerCase()}`} />
+        ))}
+      </TreeItem>
+    </Tree>
+  );
+}
+
+export const LazyChildren: Story = {
+  name: '子をあとから読み込む',
+  render: () => <LazyTree />,
+  play: async ({ canvas }) => {
+    // 子がなくても開け閉めでき、読み込んでいるあいだは aria-busy と「読み込んでいます」を届ける
+    const row = canvas.getByRole('treeitem', { name: '部品' });
+    await expect(row).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(row);
+    await expect(row).toHaveAttribute('aria-expanded', 'true');
+    await expect(row).toHaveAttribute('aria-busy', 'true');
+    await expect(row).toHaveAccessibleDescription('読み込んでいます');
+    await waitFor(() => expect(canvas.getByRole('treeitem', { name: 'Button' })).toBeVisible(), {
+      timeout: 3000,
+    });
+    await expect(row).not.toHaveAttribute('aria-busy');
+  },
+};
 
 export const Typeahead: Story = {
   name: '型あたり',

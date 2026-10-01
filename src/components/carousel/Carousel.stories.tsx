@@ -31,7 +31,11 @@ const meta = {
           '- `peek` を付けると、1 枚を少し狭くして中央に止め、両隣のスライドの端を少し見せます。既定は 1 枚を幅いっぱいに見せます。',
           '- `thumbnails` に `Thumbnails` を渡すと、小さな画像の帯で、いまの 1 枚を示して切り替えられます。Thumbnails だけで位置を示す（`indicator="none"`、既定）なら、`controlsPosition="overlay"` と組むと、下に空いた行が残りません。',
           '- `accessibleName` に、何の並びか（「作品の画面」など）を書きます。読み上げでは、いまの 1 枚が変わるたびに「3 / 5」を読みます。',
-          '- いまの 1 枚は `value`・`defaultValue`・`onValueChange` で扱います（0 から数えます）。端でつながる送り方と、自動で送る動きは持ちません。',
+          '- `slidesPerView` で 1 画面に複数枚を並べます。数か、画面の幅の段ごとの数（`{ base: 1, md: 3 }`。Grid の `columns` と同じ段）を渡します。送るのは 1 枚ずつで、位置の印は止まる位置の数を示します。',
+          '- `loop` を付けると端でつながり、最後の次は最初へ、最初の前は最後へ戻ります。',
+          '- `autoPlay` を付けると、`autoPlayInterval`（既定 5 秒）ごとに自動で送ります。止めるボタンが付き、マウスを載せているあいだと、キーボードで中に入ったあいだも止まります。動きを減らす設定では、止めた状態で始まります。',
+          '- `thumbnailsPlacement` で Thumbnails の置き場所を選びます。`bottom`（既定）は枠の下、`start`・`end` は枠の横に縦に並べます。',
+          '- いまの 1 枚は `value`・`defaultValue`・`onValueChange` で扱います（0 から数えます）。',
         ].join('\n'),
       },
     },
@@ -159,6 +163,81 @@ export const Variants: Story = {
     await waitFor(() => expect(offCenter()).toBeLessThan(1));
     await expect(peekSlide.offsetWidth).toBeLessThan(peekViewport.clientWidth * 0.9);
   },
+};
+
+export const AutoPlay: Story = {
+  name: '自動で送る',
+  decorators: [narrow],
+  args: { autoPlay: true, loop: true },
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        <Carousel accessibleName="作品の画面" autoPlay loop>
+          <Image ratio={16 / 9} src="/works/top.png" alt="トップページ" />
+          <Image ratio={16 / 9} src="/works/list.png" alt="作品の一覧" />
+          <Image ratio={16 / 9} src="/works/detail.png" alt="作品の詳細" />
+        </Carousel>
+      `),
+    },
+  },
+  play: async ({ canvas, canvasElement }) => {
+    // 止めるボタンで止め、もう一度押すと送りはじめる。止めているあいだは位置を読み上げる（送っているあいだは黙る）
+    //   動きを減らす設定（テストはこの設定で流す）では、止めた状態で始まる
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const live = canvasElement.querySelector('[aria-live]')!;
+    const [first, second] = reduced
+      ? ['自動の送りを始める', '自動の送りを止める']
+      : ['自動の送りを止める', '自動の送りを始める'];
+    const button = canvas.getByRole('button', { name: first });
+    await userEvent.click(button);
+    await expect(canvas.getByRole('button', { name: second })).toBe(button);
+    if (reduced) await userEvent.click(button);
+    await expect(live).toHaveAttribute('aria-live', 'polite');
+  },
+};
+
+export const Loop: Story = {
+  name: '端でつなぐ',
+  decorators: [narrow],
+  args: { loop: true, defaultValue: 4 },
+  play: async ({ canvas, canvasElement }) => {
+    // 最後の 1 枚の次は最初へ戻る。端でも前へ・次へは押せる
+    const next = canvas.getByRole('button', { name: '次のスライド' });
+    await expect(next).toBeEnabled();
+    await userEvent.click(next);
+    await waitFor(() =>
+      expect(
+        canvasElement
+          .querySelector('[data-slot="carousel-slide"][data-current]')
+          ?.getAttribute('aria-label')
+      ).toBe('1 / 5')
+    );
+  },
+};
+
+export const SlidesPerView: Story = {
+  name: '複数枚を並べる',
+  args: { slidesPerView: { base: 1, sm: 2, md: 3 } },
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        <Carousel accessibleName="作品の画面" slidesPerView={{ base: 1, sm: 2, md: 3 }}>
+          …
+        </Carousel>
+      `),
+    },
+  },
+};
+
+export const ThumbnailsAside: Story = {
+  name: 'Thumbnails を横に置く',
+  args: {
+    thumbnails: <Thumbnails>{thumbs}</Thumbnails>,
+    thumbnailsPlacement: 'start',
+    indicator: undefined,
+    controlsPosition: 'overlay',
+  },
+  decorators: [(Story: () => ReactNode) => <div className="max-w-2xl">{Story()}</div>],
 };
 
 export const WithThumbnails: Story = {
