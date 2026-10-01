@@ -246,6 +246,48 @@ export const Required: Story = {
   },
 };
 
+export const NarrowCentered: Story = {
+  tags: ['visual'],
+  name: '狭い画面の中央',
+  args: {
+    title: '利用規約が変わりました',
+    description: '続けるには、新しい利用規約に同意してください。',
+  },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '中央に出す面（`presentation="popover"`）は、画面が面の幅より狭いときも、左右に余白を残して画面の幅に収まります。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <ScreenFrame height="h-[360px]" width="w-[400px]">
+      {(frame) => (
+        <Dialog
+          {...args}
+          presentation="popover"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+          actions={actions}
+        />
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: '利用規約が変わりました' });
+    const frame = canvasElement.ownerDocument.querySelector('[data-density="fine"].relative');
+    await waitFor(() => {
+      const box = dialog.getBoundingClientRect();
+      const bounds = frame!.getBoundingClientRect();
+      void expect(box.left).toBeGreaterThanOrEqual(bounds.left);
+      void expect(box.right).toBeLessThanOrEqual(bounds.right);
+    });
+  },
+};
+
 export const Accessibility: Story = {
   name: '読み上げとキーボード',
   parameters: { controls: { disable: true } },

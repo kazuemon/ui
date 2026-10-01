@@ -121,16 +121,18 @@ export function PhoneFrame({ children }: { children: (frame: HTMLElement) => Rea
 export function ScreenFrame({
   children,
   height = 'h-[520px]',
+  width = 'w-[720px]',
 }: {
   children: (frame: HTMLElement) => ReactNode;
   height?: string;
+  width?: string;
 }) {
   const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   return (
     <div
       ref={setFrame}
       data-density="fine"
-      className={`relative ${height} w-[720px] max-w-full [transform:translateZ(0)] overflow-clip rounded-card border border-line bg-bg`}
+      className={`relative ${height} ${width} max-w-full [transform:translateZ(0)] overflow-clip rounded-card border border-line bg-bg`}
     >
       <div className="flex flex-col items-start gap-4 p-6">{frame && children(frame)}</div>
     </div>
