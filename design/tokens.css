@@ -1464,6 +1464,12 @@
   --calendar-day-content-align: flex-end;
   --calendar-day-content-text: 10px;
   --calendar-day-number-shift: calc(var(--spacing) * -1.5);
+  /* 印を持つ日がある月で、印のない日の数字も同じだけずらすか（0・1。比較中）。1 ならすべての日の数字の高さがそろう */
+  --calendar-day-content-reserve: 0;
+  /* 今日の下線を、日のボタンの下ではなく数字のすぐ下に引くか（0・1。比較中）。1 なら下線はいつも数字と印のあいだ */
+  --calendar-today-mark-on-number: 0;
+  /* 数字のすぐ下に引くときの、数字の行の下からの位置（比較中） */
+  --calendar-today-mark-offset: calc(var(--spacing) * 0.75);
   /* ── END calendar */
 
   /* ── Avatar — 軸 140・141 ── BEGIN avatar */

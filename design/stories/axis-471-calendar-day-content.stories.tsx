@@ -15,7 +15,7 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['', 'current', 'A', 'B', 'C', 'E'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -63,6 +63,9 @@ const candidates: Candidate[] = [
       '--calendar-day-content-align': 'flex-end',
       '--calendar-day-content-text': '10px',
       '--calendar-day-number-shift': 'calc(var(--spacing) * -1.5)',
+      '--calendar-day-content-reserve': '0',
+      '--calendar-today-mark-on-number': '0',
+      '--calendar-today-mark-offset': 'calc(var(--spacing) * 0.75)',
     },
   },
   {
@@ -81,6 +84,9 @@ const candidates: Candidate[] = [
       '--calendar-day-content-align': 'flex-end',
       '--calendar-day-content-text': 'var(--text-caption)',
       '--calendar-day-number-shift': 'calc(var(--spacing) * -2)',
+      '--calendar-day-content-reserve': '0',
+      '--calendar-today-mark-on-number': '0',
+      '--calendar-today-mark-offset': 'calc(var(--spacing) * 0.75)',
     },
   },
   {
@@ -99,6 +105,31 @@ const candidates: Candidate[] = [
       '--calendar-day-content-align': 'flex-start',
       '--calendar-day-content-text': '10px',
       '--calendar-day-number-shift': '0px',
+      '--calendar-day-content-reserve': '0',
+      '--calendar-today-mark-on-number': '0',
+      '--calendar-today-mark-offset': 'calc(var(--spacing) * 0.75)',
+    },
+  },
+  {
+    id: 'E',
+    name: '月の全部の日に印の余白',
+    intent:
+      '印を持つ日がある月は、印のない日も含めてすべての日の数字を印の分だけ上へずらし、数字の高さを横でそろえる。印は日の下の中央。今日の下線はいつも数字のすぐ下に引き、数字と印のあいだに来る',
+    spec: [
+      ['置き場', '数字の下の中央（下から 7px）'],
+      ['文字の大きさ', '10px'],
+      ['数字のずらし', '上へ 9px（月のすべての日）'],
+      ['今日の下線', '数字のすぐ下（印の上）'],
+    ],
+    tokens: {
+      '--calendar-day-content-inset': 'auto 0 calc(var(--spacing) * 1.75) 0',
+      '--calendar-day-content-justify': 'center',
+      '--calendar-day-content-align': 'flex-end',
+      '--calendar-day-content-text': '10px',
+      '--calendar-day-number-shift': 'calc(var(--spacing) * -2.25)',
+      '--calendar-day-content-reserve': '1',
+      '--calendar-today-mark-on-number': '1',
+      '--calendar-today-mark-offset': 'calc(var(--spacing) * -0.75)',
     },
   },
 ];
@@ -148,6 +179,10 @@ export const Axis: Story = {
       <p>
         Calendar に、日ごとの印を出す renderDayContent
         を足しました。日付を受け取って、点や短い文字（空きの有無、残りの数、値段）を返すと、日の数字に添えて出します。印の色は、返したものの色です（ここでは数字と同じ色なので、選んだ日の上では白くなります）。
+      </p>
+      <p>
+        E
+        は、返事（「全体として下に点や文字の余白が入り、横で数字が揃う」「今日を表す印は常に数字と付加要素の間」）から足した案です。印を持つ日がある月は、すべての日の下に印の分の余白を取ります。
       </p>
       <p>
         選ぶのは、印の置き場（数字の下か、角か）と文字の大きさです。密度はツールバーで切り替えて見てください（指では数字が

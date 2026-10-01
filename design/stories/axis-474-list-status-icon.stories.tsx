@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/474 リストの状態と印のアイコン',
   id: 'design-review-474-list-status-icon',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -165,6 +165,10 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 印のアイコン（status・icon）は B（文字の 1.25
+        倍）。アイコンの色と文の色は、それぞれ使う側が指定できる。指定しないときは文字の色。ユーザーの返事「どのパターンもあり得ると思いましたが、アイコンについては文字に合わせた大きさのB、アイコン・テキストの色は自由に指定できると良さそうです（未指定なら文字色の原則）」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         ListItem に、結果を並べるための status（success・warning・danger）と、印をアイコンにする
         icon を足しました。status

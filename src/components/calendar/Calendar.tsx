@@ -54,7 +54,7 @@ const calendar = tv({
       'inline-block w-[calc(var(--spacing-control)*7)] max-w-full text-fg',
       // セルが置かないときの値（セルの変数はここから継ぐ）
       '[--day-mark:0] [--day-weekend-k:0] [--day-weekend:var(--color-fg)] [--day-weight-look:400] [--day-weight-today:400]',
-      '[--day-hover:0%] [--day-press:0%] [--day-strike:none]',
+      '[--cal-month-content:0] [--day-hover:0%] [--day-press:0%] [--day-strike:none]',
       // 動きを減らす設定では、月を送っても動かさない（ADR-0142）
       'motion-reduce:[--calendar-month-fade-duration:1ms]',
     ],
@@ -67,7 +67,11 @@ const calendar = tv({
     captionLabel: 'text-(length:--text-control) leading-(--leading-control) font-bold',
     previous: '',
     next: 'order-2',
-    grid: 'order-3 col-span-full w-full table-fixed border-separate border-spacing-0',
+    grid: [
+      'order-3 col-span-full w-full table-fixed border-separate border-spacing-0',
+      // 日ごとの印を持つ日がある月（--calendar-day-content-reserve が 1 なら、すべての日の数字を印の分ずらす）
+      'has-[[data-has-content]]:[--cal-month-content:1]',
+    ],
     // 月を送るとき、その場でふわっと入れ替える（monthTransition="fade" — ADR-0142）
     // react-day-picker はこのクラスを 1 つの名前として足し外しするので、空白を含まない 1 つのクラスにする
     fadeIn:
@@ -111,7 +115,9 @@ const calendar = tv({
       '[font-weight:max(var(--day-weight-look),var(--day-weight-today))]',
       'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press)))]',
       // 今日の下線（ADR-0135）。文字の色なので、選んだ日の上では白くなる
-      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-(--day-mark)',
+      // --calendar-today-mark-on-number が 1 なら、下線は数字のすぐ下（数字の印のあいだ）に引く（dayNumber）
+      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--calendar-today-mark-on-number)))]',
+      '[--day-own-content:0] data-has-content:[--day-own-content:1]',
       'enabled:hover:[--day-hover:var(--flat-hover-mix)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--day-press:var(--flat-press-mix)]',
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため
@@ -120,7 +126,11 @@ const calendar = tv({
       '[text-decoration-line:var(--day-strike)] [text-decoration-thickness:var(--border-width-thin)]',
     ],
     // 日の数字。印（renderDayContent）があるときは、印の分だけずらす
-    dayNumber: '[[data-has-content]>&]:[translate:0_var(--calendar-day-number-shift)]',
+    // --calendar-day-content-reserve が 1 なら、印を持つ日がある月では、印のない日も同じだけずらす
+    dayNumber: [
+      'relative [translate:0_calc(var(--calendar-day-number-shift)*max(var(--day-own-content),var(--cal-month-content)*var(--calendar-day-content-reserve)))]',
+      'after:absolute after:top-[calc(100%+var(--calendar-today-mark-offset))] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*var(--calendar-today-mark-on-number))]',
+    ],
     // 日ごとの印。日のボタンいっぱいの箱の中で、トークンの置き場に寄せる。押すのは日のボタン
     dayContent: [
       'pointer-events-none absolute [inset:var(--calendar-day-content-inset)] flex',

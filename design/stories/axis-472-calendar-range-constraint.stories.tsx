@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/472 期間の制約で選べない日',
   id: 'design-review-472-calendar-range-constraint',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -137,6 +137,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: もとから押せない日（isDateDisabled）は今の灰色のまま。期間の制約で選べない日は
+        B（押せない日と同じ色＋取り消し線）。ユーザーの返事「期間外と無効（満室などの意味）は別の意味であると思っています。disabled
+        は灰色、別で選択不可にした場合はBの見た目になるかなと思いました。色は常に押せない日と同じで良いと思います。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         期間を選ぶ Calendar に、長さの制約を足しました。minRangeDays・maxRangeDays
         はいちばん短い・長い日数（始まりと終わりの日を両方数える）、excludeDisabled

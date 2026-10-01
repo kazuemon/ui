@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/475 リストの項目の末尾',
   id: 'design-review-475-list-trailing',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -167,6 +167,13 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 末尾は右端に置き、1 行目の行の高さの中で縦の中央にそろえる（A
+        の置き場で、ベースラインではなく 1 行目の中央）。trailing は JSX
+        を置く場所なので、文字の大きさや色は部品が決めず、使う側にゆだねる。ユーザーの返事「右端で1行目の縦中央かなと思いました。trailing
+        自体は JSX 要素が配置できる（actions
+        みたいなイメージ）ものだと思うので、文字サイズとか色は利用者にゆだねるかな？と思いました。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         ListItem に、項目の末尾に数・日付・タグなどを置く trailing
         を足しました。文の列の後ろに、もう 1 つの列として置きます。
