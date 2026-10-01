@@ -10,12 +10,12 @@ const meta = {
   title: 'Design Review/435 お知らせの操作を右に置く',
   id: 'design-review-435-notice-actions-end',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['C,B', '', 'current', 'A', 'B', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -177,6 +177,12 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: actionsPlacement="end" は
+        C（上下の真ん中にそろえ、狭いと本文の下に回る）。下に回ったときの余白は現行版（bottom）と同じにする。下に回らない
+        B の形も props で選べる。ユーザーの返事「C
+        で、折りたたまないようにする選択肢も合っていいかなと思いました。ただ、現状のCの下に回したときは余白が少なく、見た目は現行版と同じにしたいです。」
+      </p>
       <p>
         Notice
         に操作の置き場所（actionsPlacement）を足しました。bottom（いまの形・既定）は本文の下、end

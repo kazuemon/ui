@@ -11,12 +11,12 @@ const meta = {
   title: 'Design Review/434 回る円の大きさ',
   id: 'design-review-434-spinner-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['C,D', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -181,6 +181,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 大きさの段は C（16・24・40px、線は細いまま）。D（薄い輪なし・弧だけ）も props
+        で選べる。既定は輪あり。ボタン・入力欄の中の回る円は今のまま。ユーザーの返事「C で、D
+        のような見た目も選べると良さそうです。」
+      </p>
       <p>
         回る円（Spinner）に大きさ（size）と読み上げの名前（accessibleName）を足しました。control（既定）と
         text は周りの文字に合わせる大きさで、いまのボタンや入力欄の中の円はそのままです。sm・md・lg

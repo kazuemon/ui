@@ -9,12 +9,12 @@ const meta = {
   title: 'Design Review/431 数字の読み込み中',
   id: 'design-review-431-stat-loading',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A,current', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -181,6 +181,12 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: loading を渡したときは A（Skeleton の文字の行と同じ太さ 1em・長さ
+        3em・小さな角）。値がなく loading
+        も渡さないときは現行版のまま（使う側が「—」などを入れ、部品は何も足さない）。ユーザーの返事「値が無い時は現行版になって、loading
+        なら A になるとかですかね。」
+      </p>
       <p>
         Stat に読み込み中（loading）を足しました。数字の場所に Skeleton の文字の行を 1
         本置き、全体に aria-busy

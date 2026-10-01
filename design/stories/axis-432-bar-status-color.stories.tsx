@@ -9,12 +9,12 @@ const meta = {
   title: 'Design Review/432 バーの成功・失敗の色',
   id: 'design-review-432-bar-status-color',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B,A,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['B,A,C', '', 'current', 'A', 'B', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -178,6 +178,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: 既定は B（塗りを状態の色にし、地も同じ色相の淡い面にする）。地を淡くしない A
+        も選べ、値の文字を状態の色にする C の形も選べるようにする。ユーザーの返事「B で、A
+        にもできて、値の文字も状態の色に変更できると良さそうですね。」
+      </p>
       <p>
         Progress・Meter の color に success（うまくいった）と
         danger（失敗した・上限を超えた）を足しました。 警告と情報は足していません（Meter

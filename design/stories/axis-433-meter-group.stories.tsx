@@ -10,12 +10,12 @@ const meta = {
   title: 'Design Review/433 分けて塗るバー',
   id: 'design-review-433-meter-group',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['A', '', 'current', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -200,6 +200,10 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定: A（区切りの間 2px・区切りの角なしで両端は地の pill・凡例の印は丸）。ユーザーの返事「A
+        が一番見やすく感じました。」
+      </p>
       <p>
         1 本のバーを内訳ごとに分けて塗る MeterGroup
         を足しました（ストレージの内訳、予算の使い道など）。 バーの形・太さ・3 層の並びは Meter
