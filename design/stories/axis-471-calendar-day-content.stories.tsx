@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/471 カレンダーの日ごとの印',
   id: 'design-review-471-calendar-day-content',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'E' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -176,6 +176,11 @@ export const Axis: Story = {
         }
       }}
     >
+      <p>
+        決定:
+        E（印を持つ日がある月は、すべての日の数字を印の分だけ上へずらす。今日の下線は数字のすぐ下で、数字と印のあいだ）。ユーザーの返事「E
+        でよさそう。今日のマークについてはバックログに追加して、見直し対象とさせてください。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Calendar に、日ごとの印を出す renderDayContent
         を足しました。日付を受け取って、点や短い文字（空きの有無、残りの数、値段）を返すと、日の数字に添えて出します。印の色は、返したものの色です（ここでは数字と同じ色なので、選んだ日の上では白くなります）。
