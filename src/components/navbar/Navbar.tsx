@@ -128,7 +128,7 @@ const navbar = tv({
       class: {
         root: [
           'not-data-scrolled:border-transparent not-data-scrolled:shadow-none',
-          'not-data-scrolled:bg-(color:--navbar-top-bg) not-data-scrolled:bg-(image:--navbar-top-scrim) not-data-scrolled:backdrop-blur-(--navbar-top-blur)',
+          'not-data-scrolled:bg-(color:--navbar-top-bg) not-data-scrolled:bg-(image:--navbar-top-scrim) not-data-scrolled:bg-origin-border not-data-scrolled:backdrop-blur-(--navbar-top-blur)',
           'not-data-scrolled:[--color-fg-muted:var(--navbar-top-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-top-fg)]',
           'not-data-scrolled:[text-shadow:var(--navbar-top-text-shadow)]',
           '[transition:background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press),translate_var(--navbar-show-duration)_var(--navbar-show-ease),opacity_var(--navbar-show-duration)_var(--navbar-show-ease)]',

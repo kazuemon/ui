@@ -59,7 +59,7 @@ const meta = {
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
           '- いまいるページの印は `currentIndicator` で選びます。`text`（既定）は文字を濃く太く、`neutral` はグレーの面、`primary` は淡い青の面、`underline` は文字の下に青い線です。',
-          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`）で選びます。',
+          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`・`transparent-until-scroll`）で選びます。`transparent-until-scroll` は、いちばん上では面と境目を消して後ろを見せ、スクロールすると `solid` と同じ面にします。`stickyBehavior="hide-on-scroll"` で、下へスクロールすると隠し、上へ戻すと出します。',
           '- Next.js の `Link` は、`NavbarLink` の `render` に渡します。',
         ].join('\n'),
       },
@@ -71,6 +71,7 @@ const meta = {
     currentIndicator: 'text',
     stickyEdge: 'line',
     stickyBackdrop: 'solid',
+    stickyBehavior: 'always',
     accessibleName: 'メイン',
     menuTitle: 'メニュー',
     menuSide: 'auto',
@@ -93,8 +94,13 @@ const meta = {
     },
     stickyBackdrop: {
       control: 'inline-radio',
-      options: ['solid', 'blur'],
+      options: ['solid', 'blur', 'transparent-until-scroll'],
       table: { defaultValue: { summary: "'solid'" } },
+    },
+    stickyBehavior: {
+      control: 'inline-radio',
+      options: ['always', 'hide-on-scroll'],
+      table: { defaultValue: { summary: "'always'" } },
     },
     menuSide: {
       control: 'inline-radio',
