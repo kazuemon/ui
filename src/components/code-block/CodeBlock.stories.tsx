@@ -5,6 +5,7 @@ import { CodeBlock } from './CodeBlock';
 import {
   diffHtml,
   focusHtml,
+  longLineHtml,
   shellHtml,
   shellOneLineHtml,
   typescriptHtml,
@@ -29,6 +30,9 @@ const meta = {
           '- `title` でファイル名などの題を上の帯に出し、コピーのボタンを帯の右に置きます。題がないときは、ボタンを右上に浮かせます。',
           '- `variant` は見た目です。`surface`（既定）はグレーの面、`dark` は濃紺の地です。',
           '- `lineNumbers` で行番号を出します。数を渡すと、その番号から数えます。',
+          '- `language` で言語の名前（`ts` など）を上の帯に出します。題がなくても帯が出ます。',
+          '- `maxHeight` で高さに上限を付けます。超えた分は枠の中でスクロールし、続きがある端に影が出ます。',
+          '- `wrap` で長い行を折り返します。続きの行は少し字下げします。',
           '- コピーのボタンは、表示している行の文字を写します（差分で消した行は写しません）。`copyText` で写す文字を決められます。押すと「コピーしました」に変わり、読み上げでも伝えます。',
           '- 写せなかったとき（権限がない・安全でない接続）は、ボタンの下に淡い赤の吹き出しで知らせます。文は `copyErrorText` で変えられます。',
           '- 文字はパソコンでもスマホでも 14px です。長い行は、コードの部分だけが横にスクロールします。',
@@ -45,6 +49,9 @@ const meta = {
   argTypes: {
     variant: { control: 'inline-radio', options: ['surface', 'dark'] },
     lineNumbers: { control: 'boolean' },
+    wrap: { control: 'boolean' },
+    language: { control: 'text' },
+    maxHeight: { control: 'text' },
     title: { control: 'text' },
     html: { control: false },
   },
@@ -236,5 +243,36 @@ export const CopyWithoutRemovedLines: Story = {
       if (original) Object.defineProperty(navigator, 'clipboard', original);
       else Reflect.deleteProperty(navigator, 'clipboard');
     }
+  },
+};
+
+export const LanguageHeightWrap: Story = {
+  name: '言語・最大の高さ・折り返し',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div data-reading className="flex max-w-xl flex-col gap-4">
+      <CodeBlock title="src/lib/posts.ts" language="ts" html={typescriptHtml} />
+      <CodeBlock language="sh" html={shellHtml} />
+      <CodeBlock title="長い行" language="ts" maxHeight={96} html={longLineHtml} />
+      <CodeBlock title="折り返し" language="ts" wrap lineNumbers html={longLineHtml} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const blocks = [...canvasElement.querySelectorAll<HTMLElement>('[data-slot="code-block"]')];
+    // 言語のラベルは帯に出る。題がなくても帯が出る
+    await expect(blocks[0]?.querySelector('[data-slot="code-block-language"]')).toHaveTextContent(
+      'ts'
+    );
+    await expect(blocks[1]).toHaveAttribute('data-titled');
+    // 最大の高さ: 枠がスクロールし、pre は Tab で止まらない
+    const frame = blocks[2]?.querySelector<HTMLElement>('[data-slot="code-block-scroll"]');
+    await expect(frame).not.toBeNull();
+    await expect(frame?.getBoundingClientRect().height).toBeLessThanOrEqual(97);
+    await waitFor(() => expect(blocks[2]?.querySelector('pre')).not.toHaveAttribute('tabindex'));
+    // 折り返し: 横にはみ出さない
+    const wrapped = blocks[3]?.querySelector('pre');
+    await waitFor(() =>
+      expect(wrapped?.scrollWidth).toBeLessThanOrEqual((wrapped?.clientWidth ?? 0) + 1)
+    );
   },
 };

@@ -535,6 +535,14 @@
   --color-codeblock-dark-deleted: var(--palette-code-dark-deleted); /* 面は 14% */
   --color-codeblock-dark-number: var(--palette-code-dark-line-number);
   --color-codeblock-dark-copy-line: var(--color-codeblock-dark-line);
+  /* 言語のラベル（language）— 軸 441 で比較中。order は 1 で題の後ろ（帯の右）、-1 で題の前。面は transparent で文字だけ */
+  --codeblock-language-order: 1;
+  --codeblock-language-bg: transparent;
+  --codeblock-language-pad-x: 0px;
+  --codeblock-language-pad-y: 0px;
+  --codeblock-language-radius: var(--radius-pill);
+  /* 折り返し（wrap）の続きの行の字下げ — 軸 442 で比較中 */
+  --codeblock-wrap-indent: 2ch;
 
   /* ── リスト（軸 60 の B）。src/components/list/List.tsx ─────────────
      印は li::before。li の左の外に置き、文字との間は --list-marker-gap。縦は 1 行目の中央
@@ -634,6 +642,8 @@
   /* 下線の色の変化の長さと緩急。ゆっくり始めてゆっくり終える — adr/0030 */
   --link-underline-duration: var(--duration-normal);
   --link-underline-ease: var(--ease-in-out);
+  /* 下線を載せたときだけ出すリンク（Link の underline="hover"）の、載せたときの下線の色 — 軸 445 で比較中 */
+  --link-underline-hover-only: var(--color-link-underline-hover);
   /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031 */
   --link-text-radius: var(--radius-md);
   /* 文字のリンクで、新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）— adr/0046
@@ -1189,6 +1199,14 @@
   --collapsible-duration: var(--duration-normal);
   --collapsible-ease: var(--ease-sheet);
   --collapsible-start-opacity: 0;
+  /* 文字の意味の色（Text の color）— 軸 444 で比較中。src/internal/reading/text.ts
+     text-follow: 1 で文字を状態の色に、0 で本文の色のまま（アイコンだけに色）。icon-display: 前に置く状態のアイコン（none で出さない） */
+  --text-status-text-follow: 1;
+  --text-status-icon-display: inline-block;
+  /* 畳める囲み（Callout の collapsible）— 軸 443 で比較中。src/components/callout/Callout.tsx
+     題の行の hover の塗り（囲みの文字の色をこの割合で混ぜる。濃い塗りの上では明るくなる）と、開閉の印の位置（auto で右端、0 で題のすぐ後ろ） */
+  --callout-trigger-hover-mix: 6%;
+  --callout-indicator-margin-start: auto;
   /* ── END collapsible */
 
   /* ── Transition — 軸 92 ── BEGIN transition */

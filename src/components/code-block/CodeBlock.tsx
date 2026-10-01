@@ -9,6 +9,7 @@ import { codeBlockStyles } from '../../internal/reading/code-block';
 import { tv } from '../../internal/tv';
 import { codeTextOf } from '../../internal/reading/code-text';
 import { useScrollTabStops } from '../../internal/use-scrollable';
+import { ScrollFrame } from '../../internal/ScrollFrame';
 
 // 複数行のコード（軸 64・66・67・68・69）
 // 色分けはブログ側がビルド時に Shiki で行い、この部品は色分けしたあとの HTML に見た目を付ける
@@ -23,6 +24,11 @@ import { useScrollTabStops } from '../../internal/use-scrollable';
 //   ボタンは指で押せる 44px（原則11）で、帯の上・下・右に 4px 空ける。帯の中では塗らない
 //   題がないときは右上から 4px に浮かせ、下のコードを面の色で隠し、白いボタンと同じ細い輪郭を付ける
 //   写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CopyButton の吹き出しと同じ面）
+// 言語のラベル（language — 軸 441 で比較中）: 帯に置く。題がなくても、ラベルがあれば帯を出す
+//   題の前か後ろか（--codeblock-language-order）と、文字だけか面を敷くか（--codeblock-language-bg ほか）はトークン
+// 最大の高さ（maxHeight）: 超えた分は ScrollFrame の中でスクロールさせ、続きがある端に内側の影を落とす（原則1）
+//   縦と横のどちらのスクロールも枠が受け持つので、pre は overflow: visible にし、pre の Tab の止まりを外す（枠が止まる）
+// 折り返し（wrap — 軸 442 で比較中）: 横にスクロールさせず、長い行を折り返す。続きの行の字下げは --codeblock-wrap-indent
 const codeBlock = tv({
   slots: {
     root: [
@@ -31,22 +37,30 @@ const codeBlock = tv({
       // 横のスクロールバーが場所を取るとき（data-scrollbar）は、下の角を丸めない。丸めると、スクロールバーの端が角で切られてなじまない
       //   重ねて出るスクロールバー（macOS の既定など）は場所を取らないので、角は丸いまま
       'data-scrollbar:rounded-b-none',
+      // 最大の高さ: スクロールは枠（ScrollFrame）が受け持つ
+      '[&[data-max-height]_pre]:overflow-visible',
       ...codeBlockStyles.surface,
       // 題がなくボタンを浮かせるときは、pre をボタンと上下 4px の高さまで伸ばし、行を縦の中央に置く（1 行でもボタンの上下がそろう）
       '[&[data-copy]:not([data-titled])_pre]:min-h-[calc(var(--spacing-control)+var(--spacing)*2)] [&[data-copy]:not([data-titled])_pre]:content-center',
     ],
     head: [
-      'flex items-center px-4',
+      'flex items-center gap-2 px-4',
       'min-h-[calc(var(--cb-head-h)+var(--border-width-thin))] pb-(--border-width-thin)',
       // コピーのボタンの分だけ右を空ける
       'pr-[calc(var(--spacing-control)+var(--spacing)*3)]',
       'bg-(color:--cb-head-bg) [box-shadow:inset_0_calc(var(--border-width-thin)*-1)_0_0_var(--cb-line)]',
     ],
     title:
-      'min-w-0 truncate font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
+      'min-w-0 flex-1 truncate font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
+    // 言語のラベル。並びの位置と面はトークン（軸 441）
+    language: [
+      'order-(--codeblock-language-order) shrink-0 font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
+      'rounded-(--codeblock-language-radius) bg-(color:--codeblock-language-bg) px-(--codeblock-language-pad-x) py-(--codeblock-language-pad-y)',
+    ],
     body: ['min-w-0', ...codeBlockStyles.body],
     copy: [
-      'absolute z-1 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
+      // 最大の高さのスクロールのつまみ（z-2）より上に置く
+      'absolute z-3 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
       // 帯の中: 上と右に (帯の高さ − ボタン) / 2 = 4px。題がないとき: 外枠の角から 4px
       'top-(--cb-copy-offset) right-(--cb-copy-offset)',
       '[--cb-copy-offset:var(--spacing)] group-data-titled/code-block:[--cb-copy-offset:calc((var(--cb-head-h)-var(--spacing-control))/2)]',
@@ -102,8 +116,20 @@ const codeBlock = tv({
       },
       false: {},
     },
+    // 折り返し: 長い行を折り返し、続きの行を --codeblock-wrap-indent だけ字下げする（ぶら下げ）
+    //   行番号と差分の印は疑似要素なので、字下げを受け継がないよう 0 に戻す
+    wrap: {
+      true: {
+        body: [
+          '[&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap [&_pre_code]:w-auto',
+          '[&_pre_.line]:pl-[calc(var(--cb-pad-left)+var(--codeblock-wrap-indent))] [&_pre_.line]:[text-indent:calc(var(--codeblock-wrap-indent)*-1)]',
+          '[&_pre_.line]:before:[text-indent:0] [&_pre_.line]:after:[text-indent:0]',
+        ],
+      },
+      false: {},
+    },
   },
-  defaultVariants: { variant: 'surface', lineNumbers: false },
+  defaultVariants: { variant: 'surface', lineNumbers: false, wrap: false },
 });
 
 /** コードの面の見た目 */
@@ -129,6 +155,21 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
   variant?: CodeBlockVariant;
   /** ファイル名などの題。コードの上の帯に出し、コピーのボタンを帯の右に置きます */
   title?: ReactNode;
+  /**
+   * 言語の名前（`ts`・`tsx`・`sh` など）。上の帯に小さく出します。渡した文字をそのまま出すので、見せたい綴りで渡します。
+   * 題がなくても、渡すと帯を出します。色分けはしないので、Shiki の codeToHtml の lang と同じ名前を渡すと分かりやすくなります
+   */
+  language?: string;
+  /**
+   * 最大の高さ。数は px、文字列は CSS の長さ（`'24rem'`・`'50vh'`）です。超えた分は枠の中でスクロールし、続きがある端に影を落とします
+   */
+  maxHeight?: number | string;
+  /**
+   * 長い行を、横にスクロールさせずに折り返します。続きの行は少し字下げします。
+   * 文章に近い設定ファイルや、狭い画面で読ませたいときに使います
+   * @default false
+   */
+  wrap?: boolean;
   /**
    * 行番号を出します。数を渡すと、その番号から数えます
    * @default false
@@ -164,6 +205,7 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
 
 /**
  * 複数行のコード。色分けはビルド時に済ませ、色分けしたあとの HTML を渡します。
+ * 色分けはこの部品ではせず、Shiki（`shiki` と `@shikijs/transformers`）が要ります。ブログのビルド時に codeToHtml で色分けし、その HTML を `html` に渡してください。
  * 横にはみ出す行は、コードの部分だけが横にスクロールします。スクロールできるときだけ、キーボードで移れます
  */
 export function CodeBlock({
@@ -171,6 +213,9 @@ export function CodeBlock({
   children,
   variant,
   title,
+  language,
+  maxHeight,
+  wrap = false,
   lineNumbers = false,
   hideCopyButton = false,
   copyText,
@@ -181,7 +226,8 @@ export function CodeBlock({
   style,
   ...props
 }: CodeBlockProps) {
-  const styles = codeBlock({ variant, lineNumbers: lineNumbers !== false });
+  const styles = codeBlock({ variant, lineNumbers: lineNumbers !== false, wrap });
+  const scrollsInFrame = maxHeight != null;
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const copyId = useId();
@@ -194,40 +240,69 @@ export function CodeBlock({
     const root = pre.closest('[data-slot="code-block"]');
     if (pre.offsetHeight - pre.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
     else root?.removeAttribute('data-scrollbar');
+    // 最大の高さがあるときは、枠（ScrollFrame）がスクロールしてキーボードで止まるので、pre は止まらない
+    if (scrollsInFrame) pre.removeAttribute('tabindex');
   });
 
   const start = typeof lineNumbers === 'number' ? lineNumbers - 1 : undefined;
   const hasTitle = title != null && title !== false;
+  const hasLanguage = language != null && language !== '';
+  // 帯は、題か言語のラベルのどちらかがあるときに出す
+  const hasHead = hasTitle || hasLanguage;
+  const maxHeightValue = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
+  const rootStyle = {
+    ...style,
+    ...(start == null ? {} : { ['--cb-start' as string]: start }),
+    ...(maxHeightValue == null ? {} : { ['--cb-max-h' as string]: maxHeightValue }),
+  };
+
+  const body =
+    html != null ? (
+      <div
+        ref={bodyRef}
+        className={styles.body()}
+        // ビルド時に作った HTML だけを受け取る（JSDoc の html を参照）
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    ) : (
+      <div ref={bodyRef} className={styles.body()}>
+        <pre>{children}</pre>
+      </div>
+    );
 
   return (
     <figure
       className={styles.root({ className })}
       data-slot="code-block"
       data-variant={variant ?? 'surface'}
-      data-titled={hasTitle ? '' : undefined}
+      data-titled={hasHead ? '' : undefined}
+      data-wrap={wrap ? '' : undefined}
+      data-max-height={scrollsInFrame ? '' : undefined}
       data-copy={hideCopyButton ? undefined : ''}
       data-line-numbers={lineNumbers !== false ? '' : undefined}
-      style={start == null ? style : { ...style, ['--cb-start' as string]: start }}
+      style={rootStyle}
       {...props}
     >
-      {hasTitle ? (
+      {hasHead ? (
         <figcaption className={styles.head()}>
-          <span id={titleId} className={styles.title()}>
-            {title}
-          </span>
+          {hasTitle ? (
+            <span id={titleId} className={styles.title()}>
+              {title}
+            </span>
+          ) : null}
+          {hasLanguage ? (
+            <span data-slot="code-block-language" className={styles.language()}>
+              {language}
+            </span>
+          ) : null}
         </figcaption>
       ) : null}
-      {html != null ? (
-        <div
-          ref={bodyRef}
-          className={styles.body()}
-          // ビルド時に作った HTML だけを受け取る（JSDoc の html を参照）
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+      {scrollsInFrame ? (
+        <ScrollFrame slot="code-block-scroll" className="max-h-(--cb-max-h)">
+          {body}
+        </ScrollFrame>
       ) : (
-        <div ref={bodyRef} className={styles.body()}>
-          <pre>{children}</pre>
-        </div>
+        body
       )}
       {hideCopyButton ? null : (
         // 写せなかったとき（軸 176）は、淡い赤の吹き出しで知らせる。濃い地の上では、ボタンの中では伝わらないため

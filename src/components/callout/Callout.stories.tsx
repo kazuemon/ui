@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Callout } from './Callout';
 import type { NoticeStatus, NoticeVariant } from '../notice/Notice';
@@ -36,6 +36,8 @@ const meta = {
           '- `variant` は、`soft`（既定、淡い面）・`muted`（グレーの面に小さな題）・`outline`（白い面に状態の色の枠線）・`filled`（濃い塗り）です。',
           '- アイコンは状態ごとに付きます（状態なしと `muted` ではなし）。`icon` にほかのアイコンを渡すと置き換わり、`icon={false}` で消えます。',
           '- 文字は本文と同じ大きさです。',
+          '- `headingLevel` で題を見出し（h2〜h6）にできます。記事の目次に題を載せたいときに使います。',
+          '- `collapsible` で題の行を押して中身を畳めます。はじめに開くかは `defaultOpen` です。閉じた中身も、ページ内検索で見つかると開きます。',
         ].join('\n'),
       },
     },
@@ -124,5 +126,41 @@ export const Accessibility: Story = {
     await expect(note).toHaveTextContent('この部品は Base UI を土台にしています。');
     // 読み上げで知らせる箱（status・alert）は持たない
     await expect(canvas.queryByRole('status')).toBeNull();
+  },
+};
+
+export const Collapsible: Story = {
+  name: '畳める囲みと見出し',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div data-reading className="flex max-w-xl flex-col gap-4">
+      <Callout status="info" title="インストールの手順" collapsible headingLevel={3}>
+        pnpm add @kazuemon/ui のあと、CSS を読み込みます。
+      </Callout>
+      <Callout status="warning" title="古い版から上げるとき" collapsible defaultOpen>
+        v1 の size の値は v2 で変わりました。
+      </Callout>
+      <Callout title="見出しにした題" headingLevel={4}>
+        畳めない囲みの題も、見出しにできます。
+      </Callout>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const first = canvas.getByRole('button', { name: 'インストールの手順' });
+    await expect(first).toHaveAttribute('aria-expanded', 'false');
+    // 題は見出しの中のボタン
+    await expect(
+      canvas.getByRole('heading', { level: 3, name: 'インストールの手順' })
+    ).toContainElement(first);
+    await userEvent.click(first);
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await waitFor(() => expect(canvas.getByText(/pnpm add/)).toBeVisible());
+    await expect(canvas.getByRole('button', { name: '古い版から上げるとき' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    await expect(canvas.getByRole('heading', { level: 4, name: '見出しにした題' })).toBeVisible();
+    // 囲みの名前は題
+    await expect(canvas.getAllByRole('note', { name: 'インストールの手順' })).toHaveLength(1);
   },
 };

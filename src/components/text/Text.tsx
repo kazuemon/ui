@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { CheckCircleIcon, InfoIcon, WarningCircleIcon, WarningIcon } from '../../internal/icons';
 import { inlineStyles } from '../../internal/reading/inline';
 import { textLinkSizeReset } from '../../internal/reading/text-link';
 import { textStyles } from '../../internal/reading/text';
@@ -18,6 +19,7 @@ const text = tv({
     size: textStyles.size,
     variant: { ...textStyles.variant, ...textStyles.fieldVariant },
     weight: textStyles.weight,
+    color: textStyles.color,
     as: {
       p: '',
       span: '',
@@ -38,8 +40,21 @@ export type TextSize = NonNullable<VariantProps<typeof text>['size']>;
 export type TextVariant = NonNullable<VariantProps<typeof text>['variant']>;
 /** 文字の太さ */
 export type TextWeight = NonNullable<VariantProps<typeof text>['weight']>;
+/** 意味の色 */
+export type TextColor = NonNullable<VariantProps<typeof text>['color']>;
 
-export interface TextProps extends ComponentProps<'p'> {
+// 意味の色の形（原則6: 色だけでなく形でも見分ける）。お知らせ・欄の下の行と同じ割り当て
+// 出すかどうかは --text-status-icon-display（軸 444 で比較中）。大きさと縦の位置は Icon の text と同じ（周りの文字に比例）
+const statusIcons = {
+  info: InfoIcon,
+  success: CheckCircleIcon,
+  warning: WarningIcon,
+  danger: WarningCircleIcon,
+} as const;
+const statusIconClass =
+  'me-[0.25em] [display:var(--text-status-icon-display)] size-(--icon-size-text) shrink-0 align-[calc(var(--icon-text-center)-var(--icon-size-text)/2)] text-(color:--text-status-color)';
+
+export interface TextProps extends Omit<ComponentProps<'p'>, 'color'> {
   /**
    * 描く要素。段落は p、文の中の一部は span、ほかの部品を含むときは div にします。
    * strong・em・del は、文の中の強調・強勢・打ち消しです（記事の本文と同じ飾りが付きます）
@@ -63,6 +78,11 @@ export interface TextProps extends ComponentProps<'p'> {
    * 文字の太さ。書かないと、variant と要素の既定の太さのままです（label は太字、strong は太字）
    */
   weight?: TextWeight;
+  /**
+   * 意味の色。期日を過ぎた・保存した・注意が要るといった状態を、文字の色と前に置く形（丸の「!」・丸のチェック・三角・丸の「i」）で示します。
+   * 色は白地の状態の色で、warning はオリーブです。書かないときは variant の濃さのままです。色を付けた文字は、variant の濃さより色が勝ちます
+   */
+  color?: TextColor;
   /** 読む文字。文の中の一部にするときは as を span にします */
   children?: ComponentProps<'p'>['children'];
   /** 描いた要素に付きます */
@@ -72,8 +92,27 @@ export interface TextProps extends ComponentProps<'p'> {
 /**
  * 本文の文字
  */
-export function Text({ as = 'p', size, variant, weight, className, ...props }: TextProps) {
+export function Text({
+  as = 'p',
+  size,
+  variant,
+  weight,
+  color,
+  className,
+  children,
+  ...props
+}: TextProps) {
   // props は段落（p）の型で受ける。描く要素だけが変わる
   const Tag = as as 'p';
-  return <Tag className={text({ size, variant, weight, as, className })} {...props} />;
+  const StatusIcon = color ? statusIcons[color] : undefined;
+  return (
+    <Tag
+      className={text({ size, variant, weight, color, as, className })}
+      data-color={color}
+      {...props}
+    >
+      {StatusIcon ? <StatusIcon className={statusIconClass} /> : null}
+      {children}
+    </Tag>
+  );
 }

@@ -40,7 +40,7 @@ export {
   type AvatarGroupOverlap,
   type AvatarGroupProps,
 } from './components/avatar-group/AvatarGroup';
-export { Badge, type BadgeProps } from './components/badge/Badge';
+export { Badge, type BadgePlacement, type BadgeProps } from './components/badge/Badge';
 export {
   Blockquote,
   type BlockquoteColor,
@@ -92,7 +92,7 @@ export {
   type CalendarShape,
   type CalendarSingleProps,
 } from './components/calendar/Calendar';
-export { Callout, type CalloutProps } from './components/callout/Callout';
+export { Callout, type CalloutHeadingLevel, type CalloutProps } from './components/callout/Callout';
 export {
   Card,
   CardBody,
@@ -216,7 +216,7 @@ export {
   type FileTreeItemProps,
   type FileTreeProps,
 } from './components/file-tree/FileTree';
-export { Figure, type FigureProps } from './components/figure/Figure';
+export { Figure, type FigureCaptionAlign, type FigureProps } from './components/figure/Figure';
 export {
   FootnoteItem,
   type FootnoteItemProps,
@@ -295,7 +295,12 @@ export {
   type ListMarkerType,
   type ListProps,
 } from './components/list/List';
-export { Link, type LinkContentAlign, type LinkProps } from './components/link/Link';
+export {
+  Link,
+  type LinkContentAlign,
+  type LinkProps,
+  type LinkUnderline,
+} from './components/link/Link';
 export { LinkCard, type LinkCardProps } from './components/link-card/LinkCard';
 export { Masonry, type MasonryGap, type MasonryProps } from './components/masonry/Masonry';
 export { Mark, type MarkProps } from './components/mark/Mark';
@@ -622,6 +627,7 @@ export {
 export {
   Text,
   type TextAs,
+  type TextColor,
   type TextProps,
   type TextSize,
   type TextVariant,
