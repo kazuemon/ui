@@ -18,7 +18,7 @@ const meta = {
       focusVisible: '[data-slot="card"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -224,6 +224,11 @@ export const Axis: Story = {
         )
       }
     >
+      <p>
+        決定: variant="emphasis" は A（面は白のまま、輪郭を青（primary）の 2px）。ユーザーの返事「Step?
+        と同じ emphasis の案を足せますか?」（E・F を足した）、「悩んでいます。一旦後回しにします。」、「415
+        は悩みましたが A でお願いします」。候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Card の variant に、強調の形 emphasis を足します。画像の置き方は default
         と同じ（端まで届かせる）で、面と輪郭だけを変えます。並べたカードのうち、おすすめの 1
