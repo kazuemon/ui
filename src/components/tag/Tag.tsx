@@ -120,9 +120,12 @@ export interface TagProps
   size?: SmallPartsSize;
   /** 渡すと、タグがリンク（a）になります。記事のタグから、そのタグの一覧のページへ移るときに使います */
   href?: string;
-  /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
+  /** href か render と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
   target?: string;
-  /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
+  /**
+   * href か render と一緒に渡すリンクの rel
+   * @default target が '_blank' なら 'noopener noreferrer'
+   */
   rel?: string;
   /**
    * 描く要素。Next.js の Link などを渡すと、その要素にタグの見た目を重ねます（例: `render={<NextLink href="/tags/design" />}`）。
@@ -170,10 +173,15 @@ export function Tag({
   ...props
 }: TagProps) {
   const isLink = link ?? href != null;
-  const newTab = target === '_blank';
+  // 開き方（target・rel）は、a か render の要素（ルーターのリンク）に渡す。書いていない属性は渡さない（render の側の値を消さない）
+  const anchor = href != null || render != null;
+  const newTab = anchor && target === '_blank';
+  const linkRel = newTab ? (rel ?? 'noopener noreferrer') : rel;
   const own = {
     ...props,
-    ...(href != null && { href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel }),
+    ...(href != null && { href }),
+    ...(anchor && target != null && { target }),
+    ...(anchor && linkRel != null && { rel: linkRel }),
     'data-slot': 'tag',
     'data-link': isLink || undefined,
     className: tag({ variant, color, size, link: isLink, className }),

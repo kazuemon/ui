@@ -216,6 +216,9 @@ export const LinkResolution: Story = {
       <Tag {...args} href="https://example.com" target="_blank">
         新しいタブ
       </Tag>
+      <Tag {...args} render={<a href="https://example.com" />} link target="_blank">
+        render で新しいタブ
+      </Tag>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -224,8 +227,11 @@ export const LinkResolution: Story = {
     await expect(withHref).toHaveAttribute('data-link');
     await expect(canvas.getByRole('link', { name: 'link=false' })).not.toHaveAttribute('data-link');
     await expect(canvas.getByRole('link', { name: 'render と link' })).toHaveAttribute('data-link');
-    const newTab = canvas.getByRole('link', { name: /新しいタブ/ });
+    const newTab = canvas.getByRole('link', { name: /^新しいタブ\s*（/ });
     await expect(newTab).toHaveAttribute('rel', 'noopener noreferrer');
+    const renderNewTab = canvas.getByRole('link', { name: /^render で新しいタブ\s*（/ });
+    await expect(renderNewTab).toHaveAttribute('target', '_blank');
+    await expect(renderNewTab).toHaveAttribute('rel', 'noopener noreferrer');
   },
 };
 
