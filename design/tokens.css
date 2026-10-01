@@ -456,6 +456,15 @@
   --select-clear-at-caret: 0;
   --select-clear-caret-gap: var(--spacing);
   --select-clear-hover-joined: 1;
+  /* 選択肢のアイコン（ListboxItem の icon）— 軸 523。Select・Combobox・Autocomplete・TagsInput の一覧で共有する
+     --listbox-item-icon-size: 大きさ。em は選択肢の文字に対する比
+     --listbox-item-icon-color: 色
+     --listbox-item-icon-gap: ラベルとの間
+     --select-value-icon-display: Select の本体で、選んだ値の前にもアイコンを出すか（flex か none） */
+  --listbox-item-icon-size: var(--spacing-icon-input);
+  --listbox-item-icon-color: var(--color-fg-muted);
+  --listbox-item-icon-gap: calc(var(--spacing) * 2);
+  --select-value-icon-display: flex;
   /* 読む文字の大きさと行の高さ — 軸 51 の E
      マウスでは本文 16px。指では、機能の画面（設定・SNS など）の本文を 14px にし、部品の文字と同じ大きさにする
      読みもの（Prose の中。data-reading を付けた要素）では、指でもマウスと同じ大きさ（本文 16px）を保つ（src/styles/theme.css）

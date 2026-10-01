@@ -43,6 +43,10 @@ interface ListboxOptionContentProps {
   note?: ListboxItemNote;
   /** useListboxOption が返す noteId */
   noteId: string;
+  /** ラベルの前のアイコン（ListboxItem の icon） */
+  icon?: ReactNode;
+  /** useListboxOption が返す iconClassName */
+  iconClassName?: string;
   /** 選んだ印（Base UI の ItemIndicator に indicatorProps を広げたもの） */
   indicator?: ReactNode;
   /** ラベル（Base UI の ItemText や span に labelProps を広げたもの） */
@@ -56,11 +60,18 @@ interface ListboxOptionContentProps {
 export function ListboxOptionContent({
   note,
   noteId,
+  icon,
+  iconClassName,
   indicator,
   children,
 }: ListboxOptionContentProps) {
   return (
     <>
+      {icon != null && (
+        <span aria-hidden data-slot="listbox-item-icon" className={iconClassName}>
+          {icon}
+        </span>
+      )}
       <div className={optionSlots.body()}>
         {children}
         {note && <ListboxOptionNote note={note} id={noteId} />}

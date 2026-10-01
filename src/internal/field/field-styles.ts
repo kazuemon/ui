@@ -74,8 +74,8 @@ export const fieldStyles = tv({
       md: {},
       sm: {
         root: [
-          '[--spacing-control:var(--spacing-control-sm)] [--spacing-control-x:var(--field-sm-x)]',
-          '[--text-input:var(--field-sm-text)] [--leading-input:var(--field-sm-leading)] [--spacing-icon-input:var(--field-sm-icon)]',
+          '[--spacing-control-x:var(--field-sm-x)] [--spacing-control:var(--spacing-control-sm)]',
+          '[--leading-input:var(--field-sm-leading)] [--spacing-icon-input:var(--field-sm-icon)] [--text-input:var(--field-sm-text)]',
         ],
       },
     },

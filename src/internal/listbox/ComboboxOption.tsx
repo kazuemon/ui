@@ -31,7 +31,7 @@ export function ComboboxOption<Value extends ListboxValue>({
   indicator = true,
   onPress,
 }: ComboboxOptionProps<Value>) {
-  const { itemProps, labelProps, indicatorProps, noteId } = useListboxOption(item);
+  const { itemProps, labelProps, indicatorProps, iconClassName, noteId } = useListboxOption(item);
   const handleClick: MouseEventHandler | undefined = onPress ? () => onPress(item) : undefined;
   return (
     <BaseCombobox.Item
@@ -43,6 +43,8 @@ export function ComboboxOption<Value extends ListboxValue>({
       <ListboxOptionContent
         note={item.note}
         noteId={noteId}
+        icon={item.icon}
+        iconClassName={iconClassName}
         indicator={
           indicator ? (
             <BaseCombobox.ItemIndicator {...indicatorProps}>

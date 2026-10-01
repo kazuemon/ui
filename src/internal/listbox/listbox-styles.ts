@@ -110,13 +110,20 @@ export const listboxOption = tv({
     label: 'group-data-selected/option:[font-weight:var(--select-item-selected-weight)]',
     // 選んだ印（チェック）
     indicator: 'flex text-(color:--color-select-check)',
+    // ラベルの前のアイコン（軸 523）。大きさ・色・ラベルとの間は --listbox-item-icon-*（design/tokens.css）
+    //   ラベルの 1 行目の高さの箱の中で縦の中央に置く（2 行目のある項目でも、1 行目にそろえる）
+    //   項目の中身の間（--spacing-control-x）から、ラベルとの間に詰める。選べない項目は文字と同じ押せない色
+    icon: [
+      'flex h-[1lh] shrink-0 items-center text-(color:--listbox-item-icon-color) [&>svg]:size-(--listbox-item-icon-size)',
+      'me-[calc(var(--listbox-item-icon-gap)-var(--spacing-control-x))] group-data-disabled/option:text-current',
+    ],
     // 2行目の「選べない理由」。キャプションと同じ灰色の文字だけ（原則4）
     reason: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
   variants: {
     // 2行目のある項目は、上下に余白を足して高さを伸ばす（1行の項目は部品の高さのまま）
     described: {
-      true: { root: 'py-1.5' },
+      true: { root: 'py-1.5', icon: 'self-start' },
       false: {},
     },
   },

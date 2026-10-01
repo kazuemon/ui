@@ -262,6 +262,11 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
    * @default multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去'
    */
   clearName?: string;
+  /**
+   * 本体に出す、選んだ値の見せ方。値があるときだけ呼びます（空のときは placeholder）。
+   * 書かないときは、選んだ選択肢のラベルです。選択肢に icon があれば、その前に同じアイコンを出します
+   */
+  renderValue?: (value: SelectValue<Value, Multiple>) => ReactNode;
   /** 本体（選択肢を開くボタン）に付くクラス */
   className?: string;
 }
@@ -362,6 +367,10 @@ const selectClearButton = [
   '[border-start-end-radius:calc(var(--addon-radius)*(1-var(--select-clear-at-caret)))]! [border-end-end-radius:calc(var(--addon-radius)*(1-var(--select-clear-at-caret)))]!',
 ].join(' ');
 
+// 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ。出すかは --select-value-icon-display
+const selectValueIcon =
+  'shrink-0 text-(color:--listbox-item-icon-color) group-data-disabled/field:text-current [display:var(--select-value-icon-display)] [&>svg]:size-(--listbox-item-icon-size)';
+
 function emitValue<Value, Multiple extends boolean>(
   onValueChange: (value: SelectValue<Value, Multiple>) => void,
   next: ListboxValue | ListboxValue[] | null
@@ -412,6 +421,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   hideCaretOnDisabled = false,
   clearable = false,
   clearName,
+  renderValue,
   className,
 }: SelectControlProps<Value, Multiple> & ListboxValueCheck<Value>) {
   const field = useFieldState();
@@ -520,6 +530,32 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   // 消すボタン（軸 522）。本体はボタンなので、中にボタンを置けない。本体と × を包み、× は本体の上に重ねる
   //   本体は × の分の場所を空け、▼ を × の左（右端に置くとき）か、× を ▼ の左に置く（--select-clear-at-caret）
   const showClear = clearable && !readOnly && hasValue;
+  // 本体に出す値（軸 523）。renderValue か、選んだ選択肢にアイコンがあるときだけ、Base UI の既定の文字を差し替える
+  //   差し替えると Base UI は placeholder を出さないので、空のときの文もここで出す
+  const selectedIcon = Array.isArray(currentValue)
+    ? undefined
+    : flatItems.find((item) => item.value === currentValue)?.icon;
+  const placeholderText = loadingBlocking ? loadingText : placeholder;
+  const valueChildren =
+    renderValue || selectedIcon != null
+      ? (shown: ListboxValue | ListboxValue[] | null) => {
+          const empty = Array.isArray(shown) ? shown.length === 0 : shown == null;
+          if (empty) return placeholderText;
+          if (renderValue)
+            return (renderValue as (value: ListboxValue | ListboxValue[] | null) => ReactNode)(
+              shown
+            );
+          const item = flatItems.find((option) => option.value === shown);
+          return (
+            <span className="inline-flex max-w-full items-center gap-(--listbox-item-icon-gap) align-top">
+              <span aria-hidden data-slot="select-value-icon" className={selectValueIcon}>
+                {item?.icon}
+              </span>
+              <span className="truncate">{item?.label}</span>
+            </span>
+          );
+        }
+      : undefined;
   const clear = () => {
     changeValue(emptyValue);
     triggerRef.current?.focus();
@@ -570,8 +606,10 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
       <BaseSelect.Value
         className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
-        placeholder={loadingBlocking ? loadingText : placeholder}
-      />
+        placeholder={placeholderText}
+      >
+        {valueChildren}
+      </BaseSelect.Value>
       {loading && loadingIndicator === 'spinner' && (
         <FieldSpinner
           className={
