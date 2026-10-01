@@ -77,6 +77,7 @@ export interface DialogBaseProps {
   actions?: ReactNode;
   /**
    * 下の操作の左に置く文やチェックボックス（保存の状態、注記、「次から表示しない」など）。
+   * 文字列だけを渡したときは、小さい淡い文字で描きます。要素を渡したときは、文字の大きさや色を付けません（Text などで決めます）。
    * 画面の下から出すシートで、操作を縦に積むときは操作の上に置きます。中身に DialogActions を置くときは、その start に渡します
    */
   actionsStart?: ReactNode;
@@ -88,7 +89,7 @@ export interface DialogBaseProps {
   /**
    * 中身が画面より高いときのスクロールのしかた。viewport は面ごと画面の中でスクロールし、content は題と下の操作を残して中身だけをスクロールします。
    * シートで出すときは、いつも中身だけをスクロールします
-   * @default 'viewport'
+   * @default 'content'
    */
   scrollBehavior?: DialogScrollBehavior;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
@@ -258,7 +259,7 @@ function CenteredDialog({
   actions,
   actionsStart,
   size = 'md',
-  scrollBehavior = 'viewport',
+  scrollBehavior = 'content',
   trigger,
   open,
   onOpenChange: changeOpen,
@@ -454,7 +455,7 @@ function CenteredDialog({
 export interface DialogActionsProps extends ComponentProps<'div'> {
   /** 下に並べる操作（ボタン）。最も進めたい操作を最後に置きます。押して閉じるボタンは OverlayClose の render に渡す */
   children?: ReactNode;
-  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Dialog の actionsStart と同じ置き方です */
+  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Dialog の actionsStart と同じ置き方・同じ文字の扱いです */
   start?: ReactNode;
   /** 帯（div）に付きます */
   className?: string;

@@ -47,18 +47,23 @@ export interface OverlayActionsProps extends ComponentProps<'div'> {
 /**
  * 下の操作の帯の、操作の左に置くもの（actionsStart・*Actions の start）。
  * 横に並べるときは左の端に寄せ、縦に積むとき（stack・stack-reverse）と幅を等分するとき（fill）は、操作の上に 1 行で置く。
- * 文字の大きさと色は --overlay-actions-start-*（中に置いた部品は、その部品の大きさのまま）
+ * 置く場所だけを決め、要素を渡されたときは文字の大きさや色を付けない（使う側が Text などで決める）。
+ * 文字列（数）だけを渡されたときは、補足として小さい淡い文字で描く
  */
 export function OverlayActionsStart({ children }: { children: ReactNode }) {
+  const text = typeof children === 'string' || typeof children === 'number';
   return (
     <div
       data-slot="overlay-actions-start"
       className={[
-        'me-auto min-w-0 self-center text-(length:--overlay-actions-start-size) leading-(--overlay-actions-start-leading) text-(color:--overlay-actions-start-color)',
+        'me-auto min-w-0 self-center',
+        text && 'text-caption leading-caption text-fg-muted',
         // 縦に積むときは操作の上に置く（stack-reverse は逆順に並ぶので、いちばん後ろに回すと上に来る）
         'in-data-[layout=stack]:self-start in-data-[layout=stack-reverse]:order-last in-data-[layout=stack-reverse]:self-start',
         'in-data-[layout=fill]:basis-full!',
-      ].join(' ')}
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       {children}
     </div>

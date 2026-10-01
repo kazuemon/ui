@@ -295,7 +295,7 @@ export function Drawer({
 export interface DrawerActionsProps extends ComponentProps<'div'> {
   /** 下に並べる操作（ボタン）。押して閉じるボタンは OverlayClose の render に渡す */
   children?: ReactNode;
-  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Drawer の actionsStart と同じ置き方です */
+  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Drawer の actionsStart と同じ置き方・同じ文字の扱いです */
   start?: ReactNode;
   /** 帯（div）に付きます */
   className?: string;

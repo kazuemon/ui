@@ -200,8 +200,8 @@ export function SheetPopup({
                 // はじいて閉じるときは、離した位置から下へ滑らせる（transition では滑らない場合がある — src/styles/theme.css）
                 'data-swipe-dismiss:data-ending-style:animate-[sheet-swipe-out-down_var(--duration-sheet)_var(--ease-sheet)_forwards] motion-reduce:data-swipe-dismiss:data-ending-style:animate-none',
               ],
-              // 上から出すシート（軸 514。比べている途中）: 下から出すシートを上下に返した形。下の角を丸め、影は下へ向ける（原則1）
-              //   つまみの場所は --drawer-top-handle-head（見出しの上。visibility）と --drawer-top-handle-foot（下の端。display）で選ぶ
+              // 上から出すシート: 下から出すシートを上下に返した形。下の角を丸め、影は下へ向ける（原則1）
+              //   つまみは、はじく向きの側（下の端）に置く。指が届く側でもある。見出しの上は、下から出すシートと並びをそろえるため場所だけ空ける
               top && [
                 'max-h-(--sheet-max-height) w-full rounded-b-card border-b-(length:--border-width-thin) [box-shadow:var(--shadow-sheet-top)]',
                 'before:inset-x-0 before:bottom-[calc(100%-1px)] before:h-(--sheet-bleed)',
@@ -242,8 +242,8 @@ export function SheetPopup({
                 )
               }
             >
-              {/* 上から出すシートの、見出しの上のつまみ（出さないときも場所は取る） */}
-              {top && <SheetHandleRow shown={handle} place="head" />}
+              {/* 上から出すシートの、見出しの上の空き（下から出すシートのつまみの場所。並びをそろえる） */}
+              {top && <SheetHandleRow place="head" />}
               {title != null && (
                 <BaseDrawer.Title className={sheetTitleClass}>{title}</BaseDrawer.Title>
               )}
@@ -301,7 +301,7 @@ export function SheetPopup({
               </div>
             )}
             {/* 上から出すシートの、下の端のつまみ（はじく向きの側） */}
-            {top && handle && <SheetHandleRow shown place="foot" />}
+            {top && handle && <SheetHandleRow place="foot" />}
           </BaseDrawer.Popup>
         </BaseDrawer.Viewport>
       </BaseDrawer.Portal>
@@ -310,22 +310,17 @@ export function SheetPopup({
 }
 
 /**
- * 上から出すシートのつまみの行。head は見出しの上（出さないときも場所を取り、visibility で隠す）、foot は下の端（出さないときは場所も取らない）
- * どちらに出すかは --drawer-top-handle-head・--drawer-top-handle-foot（軸 514。比べている途中）
+ * 上から出すシートのつまみの行。head は見出しの上の空き（つまみは描かず、場所だけ取る）、foot は下の端のつまみ（はじく向きの側）
  */
-function SheetHandleRow({ shown, place }: { shown: boolean; place: 'head' | 'foot' }) {
+function SheetHandleRow({ place }: { place: 'head' | 'foot' }) {
   return (
     <div
       aria-hidden
       data-slot="sheet-handle"
       className={[
-        'h-4 shrink-0 items-center justify-center',
-        place === 'head'
-          ? ['flex', shown ? '[visibility:var(--drawer-top-handle-head)]' : 'invisible'].join(' ')
-          : '-mt-2 [display:var(--drawer-top-handle-foot)]',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+        'flex h-4 shrink-0 items-center justify-center',
+        place === 'head' ? 'invisible' : '-mt-2',
+      ].join(' ')}
     >
       <div className="h-1 w-9 rounded-pill bg-(color:--color-line)" />
     </div>

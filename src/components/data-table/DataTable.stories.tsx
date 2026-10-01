@@ -164,6 +164,7 @@ const meta = {
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
           '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
+          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
           '- セルと行の見出しのない列には、`TableHead`・`TableBody`・`TableRow`・`TableCell` をそのまま使います。',
         ].join('\n'),
       },
@@ -411,6 +412,63 @@ export const ColumnWidths: Story = {
     await expect(widthOf(narrow, 'お店')).toBeGreaterThanOrEqual(12 * rem - 0.5);
     const frame = within(canvas.getByTestId('narrow')).getByRole('region');
     await expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth);
+  },
+};
+
+export const ResizableColumns: Story = {
+  tags: ['visual'],
+  name: '列の幅を変える',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`resizable` を付けた列は、右の境のつまみで幅を変えられます。表の列の境は線が薄いので、つまみはふだんから淡い線で見せます。',
+      },
+      source: {
+        code: [
+          '<DataTableHeader resizable defaultWidth={128} resizeName="注文番号の列の幅">',
+          '  注文番号',
+          '</DataTableHeader>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文">
+        <TableHead>
+          <TableRow>
+            <DataTableHeader resizable defaultWidth={128} resizeName="注文番号の列の幅">
+              注文番号
+            </DataTableHeader>
+            <DataTableHeader resizable resizeName="お店の列の幅">
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end" resizable resizeName="金額の列の幅">
+              金額
+            </DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 3).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '128');
+    // 表の列のつまみは、ふだんから線を見せる
+    const line = getComputedStyle(handle, '::before').backgroundColor;
+    await expect(line).not.toBe('rgba(0, 0, 0, 0)');
   },
 };
 

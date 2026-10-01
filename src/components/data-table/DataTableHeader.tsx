@@ -121,7 +121,8 @@ export function DataTableHeader({
       edge="end"
       slot="data-table-resize-handle"
       // 最後の列は、表の外へはみ出さない（枠に横のスクロールを生まない）よう、セルの内側に置く
-      className="inset-y-0 -end-[calc(var(--resize-handle-hit)/2)] [th:last-child>&]:end-0"
+      // 表の列の境は線が薄いか無く、幅を変えられることに気づけないので、ふだんから淡い線を出す（Sidebar・Inspector は載せたときだけ）
+      className="inset-y-0 -end-[calc(var(--resize-handle-hit)/2)] [--resize-handle-rest:var(--color-line)] [th:last-child>&]:end-0"
       onWidthChange={setWidth}
       onReset={() => {
         if (!controlledWidth) setWidthState(defaultWidth);

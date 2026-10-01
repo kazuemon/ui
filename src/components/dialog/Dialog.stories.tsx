@@ -37,6 +37,9 @@ const meta = {
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。開閉を外から決めるときは `open`・`onOpenChange` を使います。',
           '- 下に並べるボタンは `actions` に渡します。押して閉じるボタンは `OverlayClose` の `render` に渡します。最も進めたい操作を右端に置き、色を付けます。',
           '- 中身の `Form` の送信のボタンを下に並べるときは、`actions` の代わりに、`Form` の中の最後に `DialogActions` を置きます。見た目は `actions` と同じ下の帯のままで、送信のボタンが `Form` の送信・Enter・送信中にそのまま加わります。`actions` と `DialogActions` は、どちらか一方にします。',
+          '- 下のボタンの左に、保存の状態や注記、「次から表示しない」のチェックボックスを置くときは `actionsStart` に渡します（`DialogActions` では `start`）。文字列だけを渡すと小さい淡い文字で描きます。要素を渡すときは、文字の大きさや色を `Text` などで決めます。',
+          '- 中央に浮かべるときの幅は `size` で選びます。`sm` は確かめや短い問い、既定の `md` は入力が数個の面、`lg` は表や長い文を読ませる面です。画面が狭いときは、どの段も左右に余白を残して縮みます。',
+          '- 中身が画面より高いときは、題と下のボタンを残して中身だけがスクロールします（`scrollBehavior="content"`）。面ごとスクロールさせるときは `scrollBehavior="viewport"` にします。シートで出すときは、いつも中身だけがスクロールします。',
           '- 閉じる手段は、右上の ×、Esc、後ろの画面を押す、の3つです。入力の途中で閉じると困るときは `dismissible={false}` で後ろの画面を押しても閉じないようにし、答えるまで閉じたくないときは `closeOnEscape={false}` と `hideCloseButton` も付けて、`actions` のボタンだけで閉じるようにします。',
           '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。シートのときは、下のボタンを幅いっぱいで縦に積み、最後に渡した主な操作を上にします。並べ方は `actionsLayout` で変えられます（`stack` 渡した順に上から・`end` 右寄せ・`fill` 幅を等分）。中央に浮かべるときは、いつも右寄せです。',
           '- 裏を止めたくないときは `modal={false}`、後ろを見せたまま外を押しても閉じないようにするときは `modal="passive"` にします。シートで出すときに、はじいて閉じるかだけを変えるときは `closeOnSwipe` です。',
@@ -173,6 +176,67 @@ export const Confirm: Story = {
     </ScreenFrame>
   ),
 };
+
+export const LongContent: Story = {
+  tags: ['visual'],
+  name: '中身が長い',
+  parameters: {
+    controls: { include: ['title', 'description'] },
+    docs: {
+      description: {
+        story:
+          '中身が画面より高いときは、題と下のボタンを残して中身だけがスクロールします。続きがあるあいだは、下の帯の上に影が出ます。下のボタンの左には、`actionsStart` で保存の状態を置いています。',
+      },
+    },
+  },
+  args: {
+    title: '利用規約',
+    description: '最後まで読んでから同意してください。',
+  },
+  render: (args, { viewMode }) => (
+    <ScreenFrame height="h-[420px]">
+      {(frame) => (
+        <Dialog
+          {...args}
+          presentation="popover"
+          trigger={<Button>利用規約を読む</Button>}
+          actions={
+            <>
+              <OverlayClose render={<Button variant="outline">あとで</Button>} />
+              <OverlayClose render={<Button color="primary">同意する</Button>} />
+            </>
+          }
+          actionsStart="第 1 版"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <Stack gap="sm">
+            {terms.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </Stack>
+        </Dialog>
+      )}
+    </ScreenFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('dialog', { name: '利用規約' });
+    // 中身だけがスクロールし、題と下の帯は面の中に残る
+    const content = dialog.querySelector<HTMLElement>('[data-slot="dialog-content"]')!;
+    await expect(content.scrollHeight).toBeGreaterThan(content.clientHeight);
+    await expect(dialog).toHaveAttribute('data-scroll-behavior', 'content');
+  },
+};
+
+const terms = [
+  'このサービスは、登録した人がプロフィールと作品を公開するための場所です。登録した時点で、この規約に同意したものとします。',
+  '公開した作品の権利は、作った人にあります。運営は、サービスの紹介のために、作品の題と画像を使うことがあります。',
+  '他の人の権利を侵す作品や、法律に反する作品は公開できません。見つけたときは、予告なく非公開にします。',
+  'アカウントは 1 人につき 1 つです。パスワードは他の人に教えないでください。',
+  '運営は、サービスを止めたり内容を変えたりすることがあります。大きく変えるときは、30 日前までに知らせます。',
+  '退会すると、公開していた作品とプロフィールは 30 日後に消えます。消えるまでのあいだは、元に戻せます。',
+];
 
 export const Sheet: Story = {
   tags: ['visual'],
@@ -543,7 +607,7 @@ export const WithoutTitle: Story = {
     },
   },
   render: (_args, { viewMode }) => (
-    <ScreenFrame height="h-[440px]">
+    <ScreenFrame height="h-[460px]">
       {(frame) => (
         <Dialog
           accessibleName="新しい機能のお知らせ"
