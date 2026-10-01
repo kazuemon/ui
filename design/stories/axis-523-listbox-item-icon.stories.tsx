@@ -157,6 +157,9 @@ const withNotes = (on: boolean): ListboxItem[] => [
 ];
 
 // 開いた一覧を、セルの中に描く（浮かぶ部分の置き場をセルにする）
+//   セルの高さに一覧の分の場所を取り、一覧はいつも欄のすぐ下に出す（画面の端で上に返したり、ずらしたりしない）
+const below = { collisionAvoidance: { side: 'none', align: 'none' } } as const;
+
 function PopoverFrame({ children }: { children: (container: HTMLElement) => ReactNode }) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   return (
@@ -191,6 +194,7 @@ export const Axis: Story = {
                     presentation="popover"
                     popoverMaxHeight="none"
                     portalContainer={container}
+                    positionerProps={below}
                   />
                 )}
               </PopoverFrame>
@@ -213,6 +217,7 @@ export const Axis: Story = {
                     popoverMaxHeight="none"
                     modal={false}
                     portalContainer={container}
+                    positionerProps={below}
                   />
                 )}
               </PopoverFrame>
