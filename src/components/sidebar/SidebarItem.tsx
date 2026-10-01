@@ -21,7 +21,7 @@ import { ArrowUpRightIcon, CaretDownIcon, DotsThreeVerticalIcon } from '../../in
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Menu } from '../menu/Menu';
-import { MenuGroup, MenuItem, MenuLinkItem, MenuSubmenu } from '../menu/MenuItem';
+import { MenuGroup, MenuItem, MenuLinkItem, MenuSeparator, MenuSubmenu } from '../menu/MenuItem';
 import { Tooltip } from '../tooltip/Tooltip';
 import {
   SidebarLayoutContext,
@@ -29,6 +29,7 @@ import {
   type SidebarItemBadge,
   SidebarNavContext,
   type SidebarNavContextValue,
+  SidebarRailLinkCompareContext,
 } from './sidebar-context';
 import { countColor, sidebar } from './sidebar-styles';
 
@@ -49,7 +50,8 @@ export interface SidebarItemProps extends Omit<
    */
   icon?: ReactNode;
   /**
-   * 行き先。渡すとリンクになります。入れ子を持つ行は、開け閉めするボタンになります。
+   * 行き先。渡すとリンクになります。入れ子を持つ行に渡すと、行はリンクになり、開け閉めは行の右端の山形のボタンに分かれます。
+   * 畳んだ列では、横に出す面の先頭に、この行へのリンクを置きます。
    * `target="_blank"` を足すと、右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入ります
    */
   href?: string;
@@ -94,7 +96,12 @@ export interface SidebarItemProps extends Omit<
    * @default 'その他の操作'
    */
   menuName?: string;
-  /** 押したときに呼ばれます。入れ子を持つ行では、開け閉めと一緒に呼ばれます */
+  /**
+   * 入れ子を持つリンクの行で、開け閉めする山形のボタンの読み上げの名前。行の文字と合わせて「ステージ 下の行」のように読み、開いているかは別に伝えます
+   * @default '下の行'
+   */
+  toggleName?: string;
+  /** 押したときに呼ばれます。入れ子を持つ行では、開け閉めと一緒に呼ばれます（リンクの行では、山形ではなく行を押したときに呼ばれます） */
   onClick?: (event: MouseEvent<HTMLElement>) => void;
   /** 入れ子の行（SidebarItem）。渡すと開け閉めできる行になります */
   children?: ReactNode;
@@ -165,6 +172,7 @@ function ListItem({
   submenuTitle: _submenuTitle,
   menu,
   menuName = 'その他の操作',
+  toggleName = '下の行',
   onClick,
   children,
   className,
@@ -185,7 +193,10 @@ function ListItem({
   const hasChildren = children != null && children !== false;
   const nested = nav.depth > 0;
   const s = sidebar({ nested });
-  const asLink = !hasChildren && href != null && !disabled;
+  // 入れ子を持つリンクの行: 行はリンクにし、開け閉めは右端の山形のボタンに分ける（リンクの中にボタンは置けない）
+  const split = hasChildren && href != null && !disabled;
+  const asLink = (!hasChildren || split) && href != null && !disabled;
+  const toggles = hasChildren && !split;
   const mark = resolveBadge(badge, nav.collapsedBadgeShape);
   const hasMenu = menu != null && menu !== false;
   // 新しいタブで開く行（Tree・Link と同じ扱い）: ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足す
@@ -202,8 +213,8 @@ function ListItem({
       type: asLink ? undefined : 'button',
       'aria-current': current ? ('page' as const) : undefined,
       'aria-disabled': disabled || undefined,
-      'aria-expanded': hasChildren ? open : undefined,
-      'aria-controls': hasChildren ? groupId : undefined,
+      'aria-expanded': toggles ? open : undefined,
+      'aria-controls': toggles ? groupId : undefined,
       'data-slot': 'sidebar-item',
       'data-disabled': disabled ? '' : undefined,
       ...(asLink && { href }),
@@ -212,12 +223,19 @@ function ListItem({
           event.preventDefault();
           return;
         }
-        if (hasChildren) setOpen(!open);
+        if (toggles) setOpen(!open);
         onClick?.(event);
         // 狭い画面の Drawer では、行き先を押したら閉じてから移る
-        if (!hasChildren && nav.mode === 'drawer') closeDrawer();
+        if (!toggles && nav.mode === 'drawer') closeDrawer();
       },
-      className: s.row({ className: [hasMenu && s.actionRow(), className] }),
+      className: s.row({
+        className: [
+          hasMenu && s.actionRow(),
+          split && s.splitRow(),
+          split && hasMenu && s.splitRowWithMenu(),
+          className,
+        ],
+      }),
       children: (
         <>
           {icon || !nested ? (
@@ -235,7 +253,7 @@ function ListItem({
           ) : mark ? (
             <span data-slot="sidebar-dot" aria-hidden="true" className={s.dot()} />
           ) : null}
-          {hasChildren && (
+          {toggles && (
             <span aria-hidden="true" className={s.caret()}>
               <CaretDownIcon />
             </span>
@@ -250,6 +268,21 @@ function ListItem({
       ),
     },
   });
+  const toggle = split ? (
+    <button
+      type="button"
+      aria-label={`${label} ${toggleName}`}
+      aria-expanded={open}
+      aria-controls={groupId}
+      data-slot="sidebar-item-toggle"
+      className={s.toggle({ className: hasMenu && s.toggleWithMenu() })}
+      onClick={() => setOpen(!open)}
+    >
+      <span aria-hidden="true" className={s.caret()}>
+        <CaretDownIcon />
+      </span>
+    </button>
+  ) : null;
   const action = hasMenu ? (
     <RowMenu name={`${label} ${menuName}`} current={current} color={nav.color}>
       {menu}
@@ -272,7 +305,14 @@ function ListItem({
         <li className={`group/sidebar-li relative flex flex-col ${mark?.colorClass ?? ''}`} />
       }
     >
-      {row}
+      {split ? (
+        <div className={s.split()}>
+          {row}
+          {toggle}
+        </div>
+      ) : (
+        row
+      )}
       {action}
       <SidebarNavContext value={{ ...nav, depth: nav.depth + 1 }}>
         <BaseCollapsible.Panel
@@ -302,6 +342,7 @@ function RailItem({
   submenuTitle,
   menu: _menu,
   menuName: _menuName,
+  toggleName: _toggleName,
   onClick,
   children,
   className,
@@ -314,10 +355,14 @@ function RailItem({
   const noteId = useId();
   const hasChildren = children != null && children !== false;
   const s = sidebar();
-  const asLink = !hasChildren && href != null && !disabled;
+  const compare = use(SidebarRailLinkCompareContext);
+  // 入れ子を持つリンクの行（軸 502）: flyout は面の先頭にリンクを置き、icon はアイコンそのものをリンクにする
+  const parentLink = hasChildren && href != null && !disabled;
+  const iconLink = parentLink && compare.railParentLink === 'icon';
+  const asLink = (!hasChildren || iconLink) && href != null && !disabled;
   const newTab = asLink && (props.target === '_blank' || opensNewTab(render));
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
-  const [flyoutOpen, setFlyoutOpen] = useState(false);
+  const [flyoutOpen, setFlyoutOpen] = useState(compare.flyoutDefaultOpen ?? false);
   const triggerRef = useRef<HTMLElement>(null);
   const mergedRef = useMergedRefs(triggerRef, ref);
   // Base UI の入れ子の面は、いちばん奥の面から出ても、手前の面を閉じない。マウスが行と面のどこにもないまま closeDelay が過ぎたら、まとめて閉じる
@@ -413,8 +458,24 @@ function RailItem({
         closeDelay={nav.closeDelay}
       >
         <SidebarNavContext value={{ ...nav, mode: 'flyout', depth: 1 }}>
-          {/* 畳んだ列の面には、親の行の名前を、面の見出しとして出す */}
-          <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
+          {parentLink && !iconLink ? (
+            // 面の先頭に、行そのもののリンクを置く。見出しは submenuTitle を渡したときだけ出す
+            <ParentLinkItems
+              label={label}
+              icon={icon}
+              href={href}
+              render={render}
+              current={current}
+              target={props.target}
+              rel={props.rel}
+              submenuTitle={submenuTitle}
+            >
+              {children}
+            </ParentLinkItems>
+          ) : (
+            /* 畳んだ列の面には、親の行の名前を、面の見出しとして出す */
+            <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
+          )}
         </SidebarNavContext>
       </Menu>
     </li>
@@ -478,13 +539,32 @@ function FlyoutItem({
   const text = countLabel ? `${label}（${countLabel}）` : label;
   const hasChildren = children != null && children !== false;
   if (hasChildren) {
+    // 入れ子を持つリンクの行は、入れ子の面の先頭に行そのもののリンクを置く
+    const parentLink = href != null && !disabled;
     return (
       <MenuSubmenu
         icon={icon}
         title={submenuTitle ?? label}
         // シートでは、入れ子の題はシートの見出しに出るので、面の中の見出しは重ねない
         items={
-          nav.sheet ? children : <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
+          parentLink ? (
+            <ParentLinkItems
+              label={label}
+              icon={icon}
+              href={href}
+              render={render}
+              current={current}
+              target={target}
+              rel={rel}
+              submenuTitle={nav.sheet ? undefined : submenuTitle}
+            >
+              {children}
+            </ParentLinkItems>
+          ) : nav.sheet ? (
+            children
+          ) : (
+            <MenuGroup label={submenuTitle ?? label}>{children}</MenuGroup>
+          )
         }
         disabled={disabled}
         className={className}
@@ -521,5 +601,41 @@ function FlyoutItem({
     >
       {text}
     </MenuLinkItem>
+  );
+}
+
+/**
+ * 入れ子を持つリンクの行を面（Menu）に出すときの中身。先頭に行そのもののリンクを置き、区切りのあとに入れ子を並べる
+ */
+function ParentLinkItems({
+  label,
+  icon,
+  href,
+  render,
+  current,
+  target,
+  rel,
+  submenuTitle,
+  children,
+}: Pick<
+  SidebarItemProps,
+  'label' | 'icon' | 'href' | 'render' | 'current' | 'target' | 'rel' | 'submenuTitle' | 'children'
+>) {
+  const linkRender = current ? cloneElement(render ?? <a />, { 'aria-current': 'page' }) : render;
+  return (
+    <>
+      <MenuLinkItem
+        icon={icon}
+        href={href}
+        target={target}
+        rel={rel}
+        render={linkRender}
+        className={current ? 'font-bold' : undefined}
+      >
+        {label}
+      </MenuLinkItem>
+      <MenuSeparator />
+      {submenuTitle ? <MenuGroup label={submenuTitle}>{children}</MenuGroup> : children}
+    </>
   );
 }

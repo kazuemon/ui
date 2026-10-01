@@ -143,8 +143,33 @@ export const sidebar = tv({
     caret: [
       'grid size-(--spacing-icon) shrink-0 -rotate-90 place-items-center text-fg-subtle',
       '[transition:rotate_var(--duration-fast)_var(--ease-press)] motion-reduce:[transition:none]',
-      'group-aria-expanded/sidebar-row:rotate-0',
+      'group-aria-expanded/sidebar-row:rotate-0 group-aria-expanded/sidebar-toggle:rotate-0',
     ],
+    // 入れ子を持つリンクの行（軸 501）: 行（リンク）と開け閉めのボタン（山形）を並べる枠
+    split: 'group/sidebar-split relative flex',
+    // 行（リンク）。山形のぶん右を空け、山形に載せているあいだも行の面を出すかはトークンで決める
+    splitRow: [
+      'w-auto min-w-0 flex-1 me-(--sidebar-toggle-inset) pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve))]',
+      'group-has-[[data-slot=sidebar-item-toggle]:hover]/sidebar-split:[--flat-bg:color-mix(in_oklab,var(--sidebar-row-hover)_calc(var(--sidebar-toggle-row-hover)*100%),var(--sidebar-row-rest))]',
+      'aria-[current=page]:group-has-[[data-slot=sidebar-item-toggle]:hover]/sidebar-split:[--flat-bg:color-mix(in_oklab,var(--sidebar-current-hover)_calc(var(--sidebar-toggle-row-hover)*100%),var(--sidebar-row-rest))]',
+    ],
+    // 開け閉めのボタン（山形）。行の右端に重ねる
+    toggle: [
+      'group/sidebar-toggle absolute top-[calc((var(--spacing-control)-var(--sidebar-toggle-size))/2)] end-[calc((var(--sidebar-row-px)-var(--spacing))*var(--sidebar-toggle-inside))]',
+      'grid size-(--sidebar-toggle-size) cursor-pointer place-items-center rounded-control text-fg-subtle',
+      'bg-(color:--flat-bg) [--flat-bg:transparent]',
+      'hover:text-fg hover:[--flat-bg:color-mix(in_oklab,var(--sidebar-row-press)_calc(var(--sidebar-toggle-hover-depth)*100%),var(--sidebar-row-hover))]',
+      'active:translate-y-(--flat-press-depth) active:[--flat-bg:var(--sidebar-row-press)]',
+      // リンクとのあいだの縦の線（toggle-divider が transparent なら見えない）
+      "before:pointer-events-none before:absolute before:inset-y-2 before:start-0 before:border-s before:border-(color:--sidebar-toggle-divider) before:content-['']",
+      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      'motion-reduce:[transition:none]',
+      ...focusRing,
+      'focus-visible:z-2',
+    ],
+    // 行ごとのメニュー（︙）もあるとき、山形はその左に置く
+    toggleWithMenu: 'me-[calc(var(--spacing)*7)]',
+    splitRowWithMenu: 'pe-[calc(var(--sidebar-row-px)+var(--sidebar-toggle-reserve)+var(--spacing)*7)]',
     // 節（SidebarSection）。題は行と同じ左の位置から始める。畳んだ列では題を出さず、節のあいだに線を引く
     section: 'group/sidebar-section-li flex flex-col not-first:mt-4',
     // 畳んだ列の節の区切り。題の代わりに残した場所の、縦の真ん中に引く（最初の節には引かない）
