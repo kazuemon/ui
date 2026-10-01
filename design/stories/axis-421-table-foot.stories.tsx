@@ -17,7 +17,7 @@ const meta = {
   title: 'Design Review/421 表の合計の行',
   id: 'design-review-421-table-foot',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B,C,D' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -200,6 +200,11 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 合計の行は B（濃い線 1.5px・太字）を既定にし、C（グレーの塗り）と
+        D（二重線）も選べる。ユーザーの返事「デフォルトでは B として、C と D
+        も選べると良さそうです。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Table に
         TableFoot（tfoot）を足しました。見積もり・明細の表で、本文の下に合計の行を置きます。行の頭の「合計」は

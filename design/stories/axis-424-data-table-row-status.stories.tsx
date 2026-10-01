@@ -21,7 +21,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: statePseudo({ hover: '[data-slot="data-table-row"][data-status]' }),
   },
-  args: { pick: '' },
+  args: { pick: 'A,B,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -246,6 +246,11 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 行の状態は A（淡い塗り）を既定にし、B（左端の帯）と
+        C（塗り＋帯）も選べる。ユーザーの返事「デフォルトは A で、B or C
+        も選べると良さそうです。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         DataTableRow に status（'muted' | 'warning' |
         'danger'）を足しました。取り消した注文（muted）、発送の遅れ（warning）、支払いの失敗（danger）のように、行ごとの状態を一覧で見つけやすくします。

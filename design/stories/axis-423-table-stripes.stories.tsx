@@ -16,7 +16,7 @@ const meta = {
   title: 'Design Review/423 表の縞',
   id: 'design-review-423-table-stripes',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -145,6 +145,12 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 縞は
+        A（縞＋行の線）を既定にし、B（縞だけ・行の線なし）も選べる。ユーザーの返事「縞のバリエーションは
+        A or B で良さそうです。デフォルトは A
+        ですかね。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Table に showStripes（既定は false）を足しました。列の多い横に長い表で、1
         行おきに面を敷いて、行を目で追いやすくします。どの見た目（variant）にも重ねられます。

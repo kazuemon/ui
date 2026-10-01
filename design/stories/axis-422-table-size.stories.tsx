@@ -17,7 +17,7 @@ const meta = {
   title: 'Design Review/422 表の詰めた余白',
   id: 'design-review-422-table-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -165,6 +165,12 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: size="sm" は A（上下だけ詰める・文字はそのまま）。文字の大きさは size とは別の props
+        で指定でき、size
+        で勝手に小さくしない。ユーザーの返事「幅が共通なので、左右が詰まったのがあまり感じられませんでしたが、A
+        でいいかなと思いました。文字を小さくしたい場合は、サイズ指定できる（勝手に小さくならない）でよさそうです。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         Table に size（'sm' | 'md'。既定は
         md）を足しました。行の多い一覧を、一度に多く見せるための詰めた余白です。

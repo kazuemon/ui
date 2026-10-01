@@ -25,7 +25,7 @@ const meta = {
       focusVisible: '[aria-expanded="true"][data-slot="data-table-expand"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'B,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -200,6 +200,12 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 開いた行は B（線も塗りもなく字下げだけ）を既定にし、字下げなしと
+        C（開いた親の行と同じ塗りでつなぐ）も選べる。開く山形のアイコンは行の縦の中央にそろえる。ユーザーの返事「デフォルトは
+        B
+        で、字下げなし・Cも選べると良さそうです。サンプルでは開くアイコンが行の縦中央に無いので、直してもらえると。」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         DataTable に、行を開く組み立てを足しました。行の頭の DataTableExpandCell（開閉のボタン。▶
         が開くと ▼）と、そのすぐ下に置く DataTableExpandRow（列をまたぐ 1

@@ -16,7 +16,7 @@ const meta = {
   title: 'Design Review/425 データの表の読み直し',
   id: 'design-review-425-data-table-refreshing',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -186,6 +186,11 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column) => <Cell column={column} />}
     >
+      <p>
+        決定: 読み直し中は A（本体を薄く）を既定にし、上端を動く線（B
+        のローダー）も足せる。ユーザーの返事「デフォルトは A
+        で、ローダー表示を追加もできる、とかですかねえ」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         DataTable に refreshing（既定は
         false）を足しました。並べ替え・ページ送りのあと、サーバーから新しい行が届くまでのあいだに使います。行は残したまま、表に
