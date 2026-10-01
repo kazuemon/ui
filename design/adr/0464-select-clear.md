@@ -38,8 +38,7 @@ Select は一度選ぶと空に戻せませんでした。選んだ値を空に�
 
 ## 影響
 
-- `src/components/select/Select.tsx`: `clearable`。× を本体の上に重ね、本体の右の余白を × の分だけ広げます
-- `src/internal/field/field-styles.ts`: 端のものが増えても欄の幅を変えない並び（[原則 8](../principles.md#8-入力欄の様式は編集できるかで決まる)）を Select にも使います
+- `src/components/select/Select.tsx`: `clearable`・`clearName`。本体と × を包み、× を本体の上に重ね、本体の右の余白を × の分だけ広げます。端のものが増えても欄の幅を変えない並び（[原則 8](../principles.md#8-入力欄の様式は編集できるかで決まる)）です
 
 ## 原則への反映
 
