@@ -51,13 +51,14 @@ const styles = tv({
       // 仮画像があるときだけ、本物を重ねて出す動きを付ける（ないときは今まで通りすぐ出す）
       'group-data-placeholder/image:transition-[opacity,filter] group-data-placeholder/image:duration-(--image-reveal-duration) group-data-placeholder/image:ease-out',
       'group-data-placeholder/image:group-data-[status=loading]/image:[filter:blur(var(--image-reveal-from-blur))]',
-      'motion-reduce:group-data-placeholder/image:[filter:none]',
+      // 動きを減らす設定では、ふわっと出さずにすぐ出す（原則14）
+      'motion-reduce:transition-none',
     ],
     // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、少し大きくして枠で切る
     blur: [
       'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius)',
       // 本物を出し終えてから隠す（透ける画像の下に残らないように）
-      'transition-[visibility] delay-(--image-reveal-duration) group-data-[status=loaded]/image:invisible',
+      'transition-[visibility] delay-(--image-reveal-duration) group-data-[status=loaded]/image:invisible motion-reduce:delay-0',
     ],
     blurInner:
       'block size-full scale-110 [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
