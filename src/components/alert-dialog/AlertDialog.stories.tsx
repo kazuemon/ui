@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { AlertDialog } from './AlertDialog';
+import { AlertDialog, AlertDialogActions } from './AlertDialog';
 import { PhoneFrame, ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
@@ -28,6 +28,7 @@ const meta = {
           '- 実行する側のボタンの色は `color` で選びます。既定の `danger` は危険の色で、消す・外すなど失うものがある操作に使います。失うものはないが取り消せない操作（送信・公開など）は `primary` にします。',
           '- 開いた直後のフォーカスは、取り消す側のボタンに置きます。うっかり Enter を押しても実行しません。中身に入力欄を置いたときは、`autoFocus` にその要素（か ref）を渡して、そこから始められます。',
           '- 中身は form で包まれ、実行する側のボタンはその送信のボタンです。中身の入力欄で Enter を押すと実行します。',
+          '- 2 つのボタンは、ふだんは中身の下の帯に描きます。中身の中に `AlertDialogActions` を置くと、その場所に描きます（見た目は同じ下の帯です）。ボタンの文言・色・処理は、置いたときも AlertDialog の props で決めます。',
           '- 確かめの入力が済むまで実行させないときは、`actionDisabled` で実行する側のボタンを押せなくします。',
           '- 出し方（`presentation`）は Dialog と同じです。シートで出すときも、下へはじいて閉じることはできず、つまみも出ません。',
           '- 入力を求めるとき、閉じる手段を複数残したいときは、Dialog を使います。',
@@ -219,6 +220,102 @@ export const Sheet: Story = {
     await waitFor(() =>
       expect(within(dialog).getByRole('button', { name: 'キャンセル' })).toHaveFocus()
     );
+  },
+};
+
+const manyDrafts = Array.from({ length: 30 }, (_, i) => `下書き ${i + 1}`);
+
+export const WithActions: Story = {
+  tags: ['visual'],
+  name: 'ボタンを中身に置く',
+  args: {
+    title: '30 件の下書きを削除しますか？',
+    description: '次の下書きを削除します。削除した下書きは元に戻せません。',
+    actionLabel: '30 件を削除する',
+    onAction: fn(),
+  },
+  parameters: {
+    controls: { include: ['title', 'description', 'actionLabel', 'color'] },
+    docs: {
+      description: {
+        story:
+          '中身の中に `AlertDialogActions` を置くと、2 つのボタンをその場所に描きます。見た目は下の帯と同じで、シートで中身が長いときも下の端に残ります。',
+      },
+      source: sourceCode(`
+        <AlertDialog title="30 件の下書きを削除しますか？" actionLabel="30 件を削除する" onAction={remove}>
+          <ul>…</ul>
+          <AlertDialogActions />
+        </AlertDialog>
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <AlertDialog
+          {...args}
+          presentation="sheet"
+          trigger={<Button>選んだ下書きを削除</Button>}
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <ul className="list-disc pl-5 text-fg-muted">
+            {manyDrafts.map((draft) => (
+              <li key={draft}>{draft}</li>
+            ))}
+          </ul>
+          <AlertDialogActions />
+        </AlertDialog>
+      )}
+    </PhoneFrame>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('alertdialog', { name: '30 件の下書きを削除しますか？' });
+    // ボタンは 1 組だけで、中身の form の中にある
+    await expect(within(dialog).getAllByRole('button', { name: 'キャンセル' })).toHaveLength(1);
+    const cancel = within(dialog).getByRole('button', { name: 'キャンセル' });
+    const action = within(dialog).getByRole('button', { name: '30 件を削除する' });
+    const form = dialog.querySelector('[data-slot="alert-dialog-form"]');
+    await expect(form).toContainElement(cancel);
+    await expect(form).toContainElement(action);
+    // 開いた直後のフォーカスは、置いた帯の取り消す側
+    await waitFor(() => expect(cancel).toHaveFocus());
+    // 帯は中身の下の端にある
+    const footer = dialog.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    const content = dialog.querySelector<HTMLElement>('[data-slot="sheet-content"]')!;
+    await waitFor(() =>
+      expect(
+        Math.abs(footer.getBoundingClientRect().bottom - content.getBoundingClientRect().bottom)
+      ).toBeLessThan(1)
+    );
+    await expect(args.onAction).not.toHaveBeenCalled();
+  },
+};
+
+// 置いた帯の実行する側を押すと実行して閉じる（中央に浮かべる形）
+export const WithActionsRun: Story = {
+  name: 'ボタンを中身に置く（実行）',
+  tags: ['!autodocs'],
+  args: { onAction: fn() },
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <AlertDialog {...args} presentation="popover" trigger={<Button>名前で削除</Button>}>
+      <TextField label="名前" />
+      <AlertDialogActions />
+    </AlertDialog>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(within(canvasElement).getByRole('button', { name: '名前で削除' }));
+    const dialog = await body.findByRole('alertdialog');
+    await expect(
+      dialog.querySelector('[data-slot="dialog-footer"]')?.closest('form')
+    ).not.toBeNull();
+    // 入力欄の Enter で実行する
+    await userEvent.type(within(dialog).getByRole('textbox', { name: '名前' }), 'a{Enter}');
+    await waitFor(() => expect(body.queryByRole('alertdialog')).toBeNull());
+    await expect(args.onAction).toHaveBeenCalledTimes(1);
   },
 };
 

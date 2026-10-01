@@ -342,7 +342,8 @@ export const FormSubmit: Story = {
     // 欄の確かめを通らないときは送らない
     await userEvent.clear(input);
     await userEvent.keyboard('{Enter}');
-    await expect(await within(dialog).findByText('表示名を入力してください')).toBeVisible();
+    const error = await within(dialog).findByText('表示名を入力してください');
+    await waitFor(() => expect(error).toBeVisible());
     await expect(save).not.toHaveAttribute('data-loading');
     await expect(body.getByRole('dialog')).toBeInTheDocument();
     await userEvent.type(input, 'かずえもんさん{Enter}');
