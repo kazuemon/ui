@@ -152,11 +152,12 @@
 
 ### Navbar
 
-2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md) です。
+2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md)・[ADR-0454](./adr/0454-navbar-hide-on-scroll.md)〜[0456](./adr/0456-navbar-default-solid.md) です。
 
 - Navbar の行き先を、下に開くメニュー（NavigationMenu）にする形は決めていません
 - Navbar のメニューを開いたとき、actions（Contact などのボタン）をメニューの中にも出すかは決めていません
 - **貼り付けた（sticky）Navbar があるページで、アンカーリンクで移った見出しが帯の下に隠れます（2026-09-23、ドキュメントサイトで気づきました）。** 見出しに `scroll-margin-top`（Navbar の高さ + 下の線の太さ。`--navbar-height` + `--border-width-thin`）を付けるのは、いまは使う側の責任です（`apps/docs/app/globals.css` で対応）。見出しはライブラリのコンポーネントではなく、必要なオフセットは使う側の構成（sticky にするか、高さ）次第なので、いまはアプリ側に留めています。2つ目の消費者が同じ対応をするときは、レシピか公開のトークンにまとめるかを検討します
+- ヒーロー画像に Navbar を重ねる（`transparent-until-scroll`）には、ページ側で帯の高さを打ち消す必要があります（ストーリーでは `-mb-(--navbar-height)`）。部品で口を持つかは決めていません
 
 ### Tabs
 
@@ -181,7 +182,7 @@
 
 2026-09-19 に作りました。決定は [ADR-0175](./adr/0175-affix-surface-edge.md)・[ADR-0176](./adr/0176-affix-gap.md) です。
 
-- 貼り付けた Navbar の下に留めるのは `belowNavbar` で使う側が指定します。Navbar が貼り付いているかを部品が自分で読む形（Navbar が `data-sticky` を出し、`:has()` で読む）にするかは決めていません
+- 貼り付けた Navbar の下に留めるのは `belowNavbar` で使う側が指定します。Navbar が貼り付いているかを部品が自分で読む形（Navbar が `data-sticky` を出し、`:has()` で読む）にするかは決めていません また、帯を `stickyBehavior="hide-on-scroll"` で隠したときに、`belowNavbar` で留めたものが帯に追いつかず、空きが残ります。帯の動きに合わせて上へ寄せるかも、同じところで決めます
 - 留まった目次が画面より長いときの扱い（高さを画面に収めて中をスクロールさせるか）は、TableOfContents の側で決めます。上からの離れは `--affix-inset` で読めます
 - 記事の横の列そのもの（目次を置く列）は、Sidebar を部品にしたので、Sidebar で足りるか、別の部品にするかを決めます
 
