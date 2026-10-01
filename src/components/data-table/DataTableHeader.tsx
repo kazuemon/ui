@@ -132,10 +132,11 @@ export function DataTableHeader({
   ) : null;
   // つまみを置くセルは、つまみの位置の基準にする（貼り付いた見出しの sticky は、表の側のクラスが勝つ）
   // 貼り付いた見出しのセルはそれぞれ重なりの層を作り、後ろのセルが前のセルからはみ出したつまみを覆うので、
-  // つまみに載せている・動かしている・フォーカスしているあいだは、そのセルを上に出す
+  // つまみに載せている・動かしている・フォーカスしているあいだは、そのセルを上に出す。
+  // 後ろのセルに覆われた半分（つまみの真ん中の線を含む）からも載せられるよう、後ろのセルに載せているあいだも上に出す
   const cellClassName = resizable
     ? [
-        'relative has-[>[data-slot=data-table-resize-handle]:is(:hover,:focus-visible,[data-resizing])]:z-2!',
+        'relative has-[>[data-slot=data-table-resize-handle]:is(:hover,:focus-visible,[data-resizing])]:z-2! [&:has(+th:hover)]:z-2!',
         className,
       ]
         .filter(Boolean)
