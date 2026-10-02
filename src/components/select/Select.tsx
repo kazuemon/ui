@@ -37,7 +37,13 @@ import {
   flattenItems,
   isGroupedItems,
   type ListboxItems,
+  normalizeItems,
 } from '../../internal/listbox/listbox-items';
+import type {
+  ListboxValue,
+  ListboxValueCheck,
+  ListboxValueOf,
+} from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -72,14 +78,18 @@ export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
 
 /**
- * Select の値の型。単数では `string | null`、`multiple` では `string[]` です
+ * Select の値の型。単数では `Value | null`、`multiple` では `Value[]` です。
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります。`items` が空の配列のときは `string | number` です
  */
-export type SelectValue<Multiple extends boolean = false> = Multiple extends true
-  ? string[]
-  : string | null;
+export type SelectValue<Value = string, Multiple extends boolean = false> = Multiple extends true
+  ? ListboxValueOf<Value>[]
+  : ListboxValueOf<Value> | null;
 
-/** Select の本体（SelectControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
-export interface SelectControlProps<Multiple extends boolean = false> {
+/**
+ * Select の本体（SelectControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります
+ */
+export interface SelectControlProps<Value = string, Multiple extends boolean = false> {
   /**
    * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
    * @default false
@@ -99,11 +109,12 @@ export interface SelectControlProps<Multiple extends boolean = false> {
    */
   color?: ListboxColor;
   /**
-   * 選択肢。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
-   * 各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
+   * 選択肢。そのまま並べる配列か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 1 つの選択肢は、値だけ（文字か数。ラベルは値の文字）か `{ label, value }` で、混ぜて渡せます。値の型が `value`・`onValueChange` の型になります
+   * `{ label, value }` の項目には disabled（選べない）と note（ラベルの下の2行目）を付けられる（design/adr/0044）
    * 選べない理由や警告の文は、呼び出し側が組み立てて渡す（書き方は実装ガイドラインで決める）。部品は渡された文をそのまま出す
    */
-  items: ListboxItems;
+  items: ListboxItems<Value>;
   /**
    * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
    * @default 'label'
@@ -127,16 +138,17 @@ export interface SelectControlProps<Multiple extends boolean = false> {
    */
   addonShape?: AddonShape;
   /**
-   * 複数選べるようにします。値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * 複数選べるようにします。値は配列になり、フォームでは同じ名前で複数送られます
    * @default false
    */
   multiple?: Multiple;
-  /** 選んだ値（制御）。単数では `string | null`、`multiple` では `string[]` */
-  value?: SelectValue<Multiple>;
-  /** はじめの値（非制御）。単数では `string | null`、`multiple` では `string[]` */
-  defaultValue?: SelectValue<Multiple>;
-  /** 値が変わるときに、次の値を渡して呼びます */
-  onValueChange?: (value: SelectValue<Multiple>) => void;
+  // 値の型は items から決める（NoInfer）。value から推論させると、multiple に boolean を渡したときに配列が値の型に混ざる
+  /** 選んだ値（制御）。単数では `Value | null`、`multiple` では `Value[]` */
+  value?: SelectValue<NoInfer<Value>, Multiple>;
+  /** はじめの値（非制御）。単数では `Value | null`、`multiple` では `Value[]` */
+  defaultValue?: SelectValue<NoInfer<Value>, Multiple>;
+  /** 値が変わるときに、次の値を渡して呼びます。値は選択肢の `value` のままです（数の値は数のまま） */
+  onValueChange?: (value: SelectValue<Value, Multiple>) => void;
   /** 欄が属するフォームの id。フォームの外に置くときに使います */
   form?: string;
   /**
@@ -282,7 +294,7 @@ interface SelectFieldProps extends Pick<
    * @default false
    */
   disabled?: boolean;
-  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
+  /** フォームに送るときの名前。値は文字にして送られます（数の 3 は「3」）。multiple では同じ名前で複数送られます */
   name?: string;
   /**
    * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
@@ -302,14 +314,16 @@ interface SelectFieldProps extends Pick<
 }
 
 /** Select の props から、label・accessibleName の組み合わせの決まりを外したもの。Select を包む部品が継ぎます */
-export type SelectBaseProps<Multiple extends boolean = false> = Omit<
-  SelectControlProps<Multiple>,
+export type SelectBaseProps<Value = string, Multiple extends boolean = false> = Omit<
+  SelectControlProps<Value, Multiple>,
   'className'
 > &
   SelectFieldProps;
 
 /** Select の props。label か accessibleName のどちらかが要ります */
-export type SelectProps<Multiple extends boolean = false> = FieldNamed<SelectBaseProps<Multiple>>;
+export type SelectProps<Value = string, Multiple extends boolean = false> = FieldNamed<
+  SelectBaseProps<Value, Multiple>
+>;
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
@@ -317,11 +331,11 @@ const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
  * Base UI から来た値を onValueChange に渡す
  * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
  */
-function emitValue<Multiple extends boolean>(
-  onValueChange: (value: SelectValue<Multiple>) => void,
-  next: string | string[] | null
+function emitValue<Value, Multiple extends boolean>(
+  onValueChange: (value: SelectValue<Value, Multiple>) => void,
+  next: ListboxValue | ListboxValue[] | null
 ) {
-  (onValueChange as (value: string | string[] | null) => void)(next);
+  (onValueChange as (value: ListboxValue | ListboxValue[] | null) => void)(next);
 }
 
 /**
@@ -329,7 +343,7 @@ function emitValue<Multiple extends boolean>(
  * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
  * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function SelectControl<Multiple extends boolean = false>({
+export function SelectControl<Value = string, Multiple extends boolean = false>({
   hideSuccessMark = false,
   readOnly,
   color = 'neutral',
@@ -366,7 +380,7 @@ export function SelectControl<Multiple extends boolean = false>({
   loadedText = defaultLoadedText,
   hideCaretOnDisabled = false,
   className,
-}: SelectControlProps<Multiple>) {
+}: SelectControlProps<Value, Multiple> & ListboxValueCheck<Value>) {
   const field = useFieldState();
   // 本体はボタンなので、ラベルを <label> にしない（組み立てで置いたときも）
   useFieldControlKind({ nativeLabel: false });
@@ -438,8 +452,11 @@ export function SelectControl<Multiple extends boolean = false>({
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
   };
 
+  // 値だけで渡された選択肢は { label, value } にそろえる（ラベルは値の文字）
+  //   中では値を文字か数（ListboxValue）として扱い、onValueChange に渡すときに Value に戻す
+  const shownItems = useMemo(() => normalizeItems(items as ListboxItems<ListboxValue>), [items]);
   // まとまりで渡されたときも、選んだ値の文字と選択肢の数は、まとまりをほどいた並びから読む
-  const flatItems = useMemo(() => flattenItems(items), [items]);
+  const flatItems = useMemo(() => flattenItems(shownItems), [shownItems]);
   // 読み込みの知らせ（design/adr/0042）。閉じていても消えない見えない status の箱の中身を入れ替える
   const announcement = useLoadingAnnouncement({
     open,
@@ -467,11 +484,11 @@ export function SelectControl<Multiple extends boolean = false>({
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   return (
-    <BaseSelect.Root<string, boolean>
+    <BaseSelect.Root<ListboxValue, boolean>
       items={flatItems}
       multiple={multiple}
-      value={value}
-      defaultValue={defaultValue}
+      value={value as ListboxValue | ListboxValue[] | null | undefined}
+      defaultValue={defaultValue as ListboxValue | ListboxValue[] | null | undefined}
       onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
       form={form}
       autoComplete={autoComplete}
@@ -657,8 +674,8 @@ export function SelectControl<Multiple extends boolean = false>({
               onScroll={sheet || popoverCue ? updateCues : undefined}
               className={listboxList({ presentation: listPresentation, loadingRow })}
             >
-              {isGroupedItems(items)
-                ? items.map((group, index) => (
+              {isGroupedItems(shownItems)
+                ? shownItems.map((group, index) => (
                     <SelectGroupSection
                       // 見出しは文字とは限らないので、並びの番号を key にする
                       key={index}
@@ -667,7 +684,7 @@ export function SelectControl<Multiple extends boolean = false>({
                       labelStyle={groupLabelStyle}
                     />
                   ))
-                : items.map((item) => <SelectOption key={item.value} item={item} />)}
+                : shownItems.map((item) => <SelectOption key={item.value} item={item} />)}
             </BaseSelect.List>
             {(long || popoverCue) && (
               <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
@@ -698,11 +715,17 @@ export function SelectControl<Multiple extends boolean = false>({
 /**
  * 選択肢から1つを選ぶ入力欄
  */
-export function Select<Multiple extends boolean = false>(props: SelectProps<Multiple>) {
+export function Select<Value = string, Multiple extends boolean = false>(
+  props: SelectProps<Value, Multiple> & ListboxValueCheck<Value>
+) {
   const [field, control] = splitFieldProps(props);
   return (
     <Field {...field} nativeLabel={false}>
-      {() => <SelectControl<Multiple> {...control} />}
+      {() => (
+        <SelectControl<Value, Multiple>
+          {...(control as SelectControlProps<Value, Multiple> & ListboxValueCheck<Value>)}
+        />
+      )}
     </Field>
   );
 }

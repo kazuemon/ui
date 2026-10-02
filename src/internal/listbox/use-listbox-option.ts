@@ -20,12 +20,39 @@ export interface ListboxItemNote {
   text: ReactNode;
 }
 
-/** 選択肢。Select・Combobox・Autocomplete・TagsInput が共有する形 */
-export interface ListboxItem {
+/**
+ * 選択肢の値に使える型。文字か数です。
+ * フォームには文字にして送ります（数の 3 は「3」）
+ */
+export type ListboxValue = string | number;
+
+/**
+ * items から決まった値の型。items が空の配列（never になる）のときは、文字か数（ListboxValue）に倒す
+ * （あとで選択肢を読み込む使い方でも、value に変数を渡せ、onValueChange が never にならないように）
+ */
+export type ListboxValueOf<Value> = [Value] extends [never] ? ListboxValue : Value;
+
+/**
+ * 選択肢の値が文字か数かを確かめる型。部品の props に重ね、そうでない値の items を型エラーにする
+ * 部品の型引数に `extends ListboxValue` を付けないのは、付けると items の値がリテラルの型（'tokyo' | 'osaka'）で推論され、
+ * value に string の変数を渡せなくなるため（付けなければ string・number に広がる）
+ */
+// unknown は通す: Storybook の Meta<typeof Select> のように、型引数を決めずに props の型を読むときは unknown になるため
+export type ListboxValueCheck<Value> = unknown extends Value
+  ? unknown
+  : [Value] extends [ListboxValue]
+    ? unknown
+    : { items: '選択肢の値は文字か数にします' };
+
+/**
+ * 選択肢。Select・Combobox・Autocomplete・TagsInput が共有する形
+ * `Value` は値の型（文字か数）で、Select・Combobox の `value`・`onValueChange` の型と同じです
+ */
+export interface ListboxItem<Value = string> {
   /** 選択肢に出る文字。読み上げの名前にもなり、打って絞り込むときの当たり先にもなる */
   label: string;
-  /** 選んだことを表す値。フォームに送られ、value・defaultValue でも指す */
-  value: string;
+  /** 選んだことを表す値。フォームには文字にして送られ、value・defaultValue でも指す */
+  value: Value;
   /**
    * 選べない（design/adr/0044）。ラベルを押せない文字の色にし、押しても選ばれない
    * 矢印キーでは止まり、選べないこと（disabled）と note が読まれる。文字を打って探すときは飛ばす（Base UI のまま）
@@ -61,7 +88,7 @@ export interface ListboxOptionParts {
  * 選択肢1項目のクラスと読み上げのつなぎを作る。Base UI のどの部品かは問わない
  * 読み上げの名前はラベルだけ（aria-labelledby）、2行目は説明（aria-describedby）
  */
-export function useListboxOption(item: ListboxItem): ListboxOptionParts {
+export function useListboxOption(item: ListboxItem<ListboxValue>): ListboxOptionParts {
   const id = useId();
   const { note } = item;
   const slots = listboxOption({ described: !!note });

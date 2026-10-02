@@ -125,7 +125,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/Combobox',
-  component: Combobox,
+  component: Combobox<string, boolean>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -225,7 +225,7 @@ const meta = {
     popupProps: { control: false },
     inputProps: { control: false },
   },
-} satisfies Meta<typeof Combobox>;
+} satisfies Meta<typeof Combobox<string, boolean>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -565,7 +565,7 @@ export const Disabled: Story = {
         <Combobox {...args} disabled />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox<boolean>
+        <Combobox<string, boolean>
           {...args}
           items={skills}
           multiple
@@ -595,7 +595,7 @@ export const ReadOnly: Story = {
         <Combobox {...args} readOnly defaultValue="ward-3" />
       </Specimen>
       <Specimen label="複数選ぶ">
-        <Combobox<boolean>
+        <Combobox<string, boolean>
           {...args}
           items={skills}
           multiple
@@ -678,7 +678,7 @@ export const Loading: Story = {
 function LoadOnOpenCombobox({
   onOpenChange,
   ...props
-}: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading'>>) {
+}: FieldNamed<Omit<ComboboxBaseProps<string, boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -777,7 +777,7 @@ export const LoadOnOpen: Story = {
 
 // 打った文字を外に渡し、返ってきた結果を filteredItems で出す（絞り込みを外でする）
 function AsyncCombobox(
-  props: FieldNamed<Omit<ComboboxBaseProps<boolean>, 'items' | 'loading' | 'filteredItems'>>
+  props: FieldNamed<Omit<ComboboxBaseProps<string, boolean>, 'items' | 'loading' | 'filteredItems'>>
 ) {
   const [results, setResults] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -891,7 +891,12 @@ export const Densities: Story = {
       <div className="w-64">
         <Combobox {...args} />
         <div className="h-4" />
-        <Combobox<boolean> {...args} items={skills} multiple defaultValue={['design', 'a11y']} />
+        <Combobox<string, boolean>
+          {...args}
+          items={skills}
+          multiple
+          defaultValue={['design', 'a11y']}
+        />
       </div>
     </DensityPair>
   ),
@@ -1003,5 +1008,89 @@ export const PrefixFocus: Story = {
     // 文字を押しても、打つ欄にフォーカスが移る
     await userEvent.click(canvas.getByText('東京都'));
     await expect(input).toHaveFocus();
+  },
+};
+
+// 値が数の選択肢。選んだ値をそのまま出して、onValueChange に数が届くことを見せる
+function NumberValuesExample() {
+  const [year, setYear] = useState<number | null>(2025);
+  const [floors, setFloors] = useState<number[]>([1]);
+  return (
+    <form aria-label="条件" className="flex max-w-sm flex-col gap-5">
+      <Combobox
+        label="年"
+        name="year"
+        items={[2024, 2025, 2026]}
+        value={year}
+        onValueChange={setYear}
+        presentation="popover"
+      />
+      <Combobox
+        label="階"
+        name="floor"
+        items={[
+          {
+            label: '低層',
+            items: [
+              { label: '1 階', value: 1 },
+              { label: '2 階', value: 2 },
+            ],
+          },
+          { label: '高層', items: [{ label: '10 階', value: 10 }] },
+        ]}
+        multiple
+        value={floors}
+        onValueChange={setFloors}
+        presentation="popover"
+      />
+      <output className="text-sm text-fg-muted">
+        年: {String(year)}（{typeof year}）・階: {floors.join(', ')}（
+        {floors.map((floor) => typeof floor).join(', ')}）
+      </output>
+    </form>
+  );
+}
+
+export const NumberValues: Story = {
+  name: '数の値',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`items` には、値だけ（文字か数）か `{ label, value }` を混ぜて渡せます。値だけの選択肢は、値の文字がそのままラベルになり、打って絞り込むときもその文字に当てます。値の型は `items` から決まり、数の値なら `value`・`defaultValue` も数で指し、`onValueChange` にも数が届きます。フォームには文字にして送ります。',
+      },
+      source: sourceCode(`
+        const [year, setYear] = useState<number | null>(2025);
+
+        <Combobox label="年" name="year" items={[2024, 2025, 2026]} value={year} onValueChange={setYear} />
+      `),
+    },
+  },
+  render: () => <NumberValuesExample />,
+  play: async ({ canvas, canvasElement }) => {
+    const form = canvas.getByRole('form', { name: '条件' }) as HTMLFormElement;
+    const year = canvas.getByRole('combobox', { name: '年' });
+    const floor = canvas.getByRole('combobox', { name: '階' });
+    // 数で指した値も、選択肢のラベルで出す
+    await expect(year).toHaveValue('2025');
+    await expect(canvas.getByText('1 階')).toBeVisible();
+    await expect(new FormData(form).get('year')).toBe('2025');
+    await expect(new FormData(form).getAll('floor')).toEqual(['1']);
+
+    // 打って絞り込み、選ぶと onValueChange に数のまま届く
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.clear(year);
+    await userEvent.type(year, '26');
+    await userEvent.click(await page.findByRole('option', { name: '2026' }));
+    await expect(canvas.getByText(/年: 2026（number）/)).toBeInTheDocument();
+    // 複数選ぶときも、まとまりの中の選択肢も同じ
+    await userEvent.click(floor);
+    await userEvent.click(await page.findByRole('option', { name: '10 階' }));
+    await expect(canvas.getByText(/階: 1, 10（\s*number, number）/)).toBeInTheDocument();
+    await expect(canvas.getByText('10 階')).toBeVisible();
+    // フォームには文字で入る
+    await waitFor(() => expect(new FormData(form).get('year')).toBe('2026'));
+    await expect(new FormData(form).getAll('floor')).toEqual(['1', '10']);
   },
 };

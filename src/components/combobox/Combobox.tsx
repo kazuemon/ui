@@ -49,18 +49,24 @@ import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import {
-  type ListboxGroup,
   type ListboxItems,
+  type NormalizedListboxGroup,
   flattenItems,
   isGroupedItems,
   labelMap,
+  normalizeItems,
 } from '../../internal/listbox/listbox-items';
 import {
   type ListboxInputProps,
   type ListboxSlotProps,
   mergeSlotClass,
 } from '../../internal/listbox/listbox-slot-props';
-import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
+import type {
+  ListboxItem,
+  ListboxValue,
+  ListboxValueCheck,
+  ListboxValueOf,
+} from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
@@ -98,22 +104,27 @@ export type ComboboxSheetInput = 'field' | 'inside';
 /**
  * 打った文字と選択肢を突き合わせる関数。`Combobox.useFilter`（Base UI）の `contains` などを渡す
  * null を渡すと、部品の中では絞り込まず、渡された選択肢をそのまま出す（外で絞り込むとき）
+ * 値だけで渡した選択肢も、`{ label, value }`（ラベルは値の文字）にそろえて渡す
  */
-export type ComboboxFilter = (
-  item: ListboxItem,
+export type ComboboxFilter<Value = string> = (
+  item: ListboxItem<Value>,
   query: string,
-  itemToString?: (item: ListboxItem) => string
+  itemToString?: (item: ListboxItem<Value>) => string
 ) => boolean;
 
 /**
- * Combobox の値の型。単数では `string | null`、`multiple` では `string[]` です
+ * Combobox の値の型。単数では `Value | null`、`multiple` では `Value[]` です。
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります。`items` が空の配列のときは `string | number` です
  */
-export type ComboboxValue<Multiple extends boolean = false> = Multiple extends true
-  ? string[]
-  : string | null;
+export type ComboboxValue<Value = string, Multiple extends boolean = false> = Multiple extends true
+  ? ListboxValueOf<Value>[]
+  : ListboxValueOf<Value> | null;
 
-/** Combobox の本体（ComboboxControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
-export interface ComboboxControlProps<Multiple extends boolean = false> {
+/**
+ * Combobox の本体（ComboboxControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します
+ * `Value` は選択肢の値の型（文字か数）で、`items` から決まります
+ */
+export interface ComboboxControlProps<Value = string, Multiple extends boolean = false> {
   /**
    * 成功のとき、本体の ▼ の左に置くチェックを隠すか。true では下の行だけを出します
    * @default false
@@ -133,10 +144,11 @@ export interface ComboboxControlProps<Multiple extends boolean = false> {
    */
   color?: ListboxColor;
   /**
-   * 選択肢。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
-   * 各項目に disabled（選べない）と note（ラベルの下の2行目）を付けられます（design/adr/0044）
+   * 選択肢。そのまま並べる配列か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
+   * 1 つの選択肢は、値だけ（文字か数。ラベルは値の文字）か `{ label, value }` で、混ぜて渡せます。値の型が `value`・`onValueChange` の型になります
+   * `{ label, value }` の項目には disabled（選べない）と note（ラベルの下の2行目）を付けられます（design/adr/0044）
    */
-  items: ListboxItems;
+  items: ListboxItems<Value>;
   /**
    * まとまりの見出しの文字。label は入力欄のラベルと同じ太字、caption はキャプションと同じ小さいグレーです
    * @default 'label'
@@ -171,18 +183,19 @@ export interface ComboboxControlProps<Multiple extends boolean = false> {
   enterKeyHint?: ComponentProps<'input'>['enterKeyHint'];
   /**
    * 複数選べるようにします。選んだ項目は欄の中にチップで並び、欄の高さが伸びます。
-   * 値は文字の配列になり、フォームでは同じ名前で複数送られます
+   * 値は配列になり、フォームでは同じ名前で複数送られます
    * 値の型（`ComboboxValue`）はこの props から決まるので、`multiple` か `multiple={true}` と直に書きます。
    * 変数（`boolean` の値）を渡すと、単数と複数の両方を受ける広い型になります
    * @default false
    */
   multiple?: Multiple;
-  /** 選んだ値（制御）。単数では `string | null`、`multiple` では `string[]` */
-  value?: ComboboxValue<Multiple>;
-  /** はじめの値（非制御）。単数では `string | null`、`multiple` では `string[]` */
-  defaultValue?: ComboboxValue<Multiple>;
-  /** 値が変わるときに、次の値を渡して呼びます */
-  onValueChange?: (value: ComboboxValue<Multiple>) => void;
+  // 値の型は items から決める（NoInfer）。value から推論させると、multiple に boolean を渡したときに配列が値の型に混ざる
+  /** 選んだ値（制御）。単数では `Value | null`、`multiple` では `Value[]` */
+  value?: ComboboxValue<NoInfer<Value>, Multiple>;
+  /** はじめの値（非制御）。単数では `Value | null`、`multiple` では `Value[]` */
+  defaultValue?: ComboboxValue<NoInfer<Value>, Multiple>;
+  /** 値が変わるときに、次の値を渡して呼びます。値は選択肢の `value` のままです（数の値は数のまま） */
+  onValueChange?: (value: ComboboxValue<Value, Multiple>) => void;
   /** 打っている文字（制御）。外で絞り込むときに使います */
   inputValue?: string;
   /** はじめの打っている文字（非制御） */
@@ -193,12 +206,12 @@ export interface ComboboxControlProps<Multiple extends boolean = false> {
    * 打った文字と選択肢を突き合わせる関数。書かないときは Base UI の既定（前後の空白を無視した部分一致）です。
    * null にすると部品の中では絞り込まず、`items`（または `filteredItems`）をそのまま出します
    */
-  filter?: ComboboxFilter | null;
+  filter?: ComboboxFilter<Value> | null;
   /**
    * 外で絞り込んだ選択肢。渡すと、部品の中の絞り込みの代わりにこれを出します。
    * `items` には、選んだ項目を残したままにします（選んだ値のラベルを引けなくなるため）
    */
-  filteredItems?: ListboxItems;
+  filteredItems?: ListboxItems<Value>;
   /**
    * 打ち始めたときに、最初に当たった選択肢へ自動で印を移すか
    * @default false
@@ -412,7 +425,7 @@ interface ComboboxFieldProps extends Pick<
    * @default false
    */
   disabled?: boolean;
-  /** フォームに送るときの名前。multiple では同じ名前で複数送られます */
+  /** フォームに送るときの名前。値は文字にして送られます（数の 3 は「3」）。multiple では同じ名前で複数送られます */
   name?: string;
   /**
    * 選択肢を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
@@ -432,12 +445,14 @@ interface ComboboxFieldProps extends Pick<
 }
 
 /** Combobox の props から、label・accessibleName の組み合わせの決まりを外したもの。Combobox を包む部品が継ぎます */
-export type ComboboxBaseProps<Multiple extends boolean = false> = ComboboxControlProps<Multiple> &
-  ComboboxFieldProps;
+export type ComboboxBaseProps<
+  Value = string,
+  Multiple extends boolean = false,
+> = ComboboxControlProps<Value, Multiple> & ComboboxFieldProps;
 
 /** Combobox の props。label か accessibleName のどちらかが要ります */
-export type ComboboxProps<Multiple extends boolean = false> = FieldNamed<
-  ComboboxBaseProps<Multiple>
+export type ComboboxProps<Value = string, Multiple extends boolean = false> = FieldNamed<
+  ComboboxBaseProps<Value, Multiple>
 >;
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
@@ -447,11 +462,11 @@ const defaultChipRemoveName = (label: string) => `${label} を外す`;
  * Base UI から来た値を onValueChange に渡す
  * 値の型は multiple の有無で決まるので（ComboboxValue）、Base UI 側の広い型からここで橋渡しする
  */
-function emitValue<Multiple extends boolean>(
-  onValueChange: (value: ComboboxValue<Multiple>) => void,
-  next: string | string[] | null
+function emitValue<Value, Multiple extends boolean>(
+  onValueChange: (value: ComboboxValue<Value, Multiple>) => void,
+  next: ListboxValue | ListboxValue[] | null
 ) {
-  (onValueChange as (value: string | string[] | null) => void)(next);
+  (onValueChange as (value: ListboxValue | ListboxValue[] | null) => void)(next);
 }
 
 /**
@@ -459,7 +474,7 @@ function emitValue<Multiple extends boolean>(
  * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
  * シートの見出しにも、Field のラベル・キャプション・エラー・警告を出します
  */
-export function ComboboxControl<Multiple extends boolean = false>({
+export function ComboboxControl<Value = string, Multiple extends boolean = false>({
   hideSuccessMark = false,
   readOnly,
   color = 'neutral',
@@ -514,7 +529,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
   chipMaxWidth,
   chipSize = 'md',
   form,
-}: ComboboxControlProps<Multiple>) {
+}: ComboboxControlProps<Value, Multiple> & ListboxValueCheck<Value>) {
   const field = useFieldState();
   const disabled = field?.disabled ?? false;
   const loading = field?.loading ?? false;
@@ -567,18 +582,26 @@ export function ComboboxControl<Multiple extends boolean = false>({
     onOpenChange?.(next);
   };
 
-  // 値は文字（value）で持つ。Base UI には、項目から値とラベルを引く collection を渡す
+  // 値だけで渡された選択肢は { label, value } にそろえる（ラベルは値の文字）
+  //   中では値を文字か数（ListboxValue）として扱い、onValueChange に渡すときに Value に戻す
+  const shownItems = useMemo(() => normalizeItems(items as ListboxItems<ListboxValue>), [items]);
+  const shownFilteredItems = useMemo(
+    () => (filteredItems ? normalizeItems(filteredItems as ListboxItems<ListboxValue>) : undefined),
+    [filteredItems]
+  );
+  // 値は選択肢の value（文字か数）で持つ。Base UI には、項目から値とラベルを引く collection を渡す
   //   こうすると、選んだ値・フォームに送る値・絞り込みの当たり先が、すべて items の label・value から決まる
+  //   フォームには Base UI が値を文字にして送る（数の 3 は「3」）
   const collection = useMemo(
     () =>
-      BaseCombobox.createItems<ListboxItem, string>(items, {
+      BaseCombobox.createItems<ListboxItem<ListboxValue>, ListboxValue>(shownItems, {
         getValue: (item) => item.value,
         getLabel: (item) => item.label,
       }),
-    [items]
+    [shownItems]
   );
   // 値からラベルを引く（チップの文字）。外で絞り込んで項目が消えても、items に残っていれば引ける
-  const flat = useMemo(() => flattenItems(items), [items]);
+  const flat = useMemo(() => flattenItems(shownItems), [shownItems]);
   const labelOf = useMemo(() => labelMap(flat), [flat]);
 
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
@@ -627,7 +650,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
   // 打つ欄を、欄の中のチップと同じ高さにそろえる（h-(--combobox-chip-height)）
   const chipHeightStyle = comboboxChipHeightStyle(chipSize);
   const selected = selectedTokens(color);
-  const grouped = isGroupedItems(filteredItems ?? items);
+  const grouped = isGroupedItems(shownFilteredItems ?? shownItems);
 
   // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
   const {
@@ -816,7 +839,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
       >
         {triggerPrefix.addon}
         <BaseCombobox.Value>
-          {(selectedValue: string | string[] | null) => {
+          {(selectedValue: ListboxValue | ListboxValue[] | null) => {
             const values = Array.isArray(selectedValue) ? selectedValue : [];
             if (multiple && values.length > 0) {
               return (
@@ -830,10 +853,16 @@ export function ComboboxControl<Multiple extends boolean = false>({
                 />
               );
             }
-            const single = !multiple && typeof selectedValue === 'string' ? selectedValue : null;
-            if (single) {
+            // 数の 0 も選んだ値として出す（空の文字は選んでいないものとして扱う）
+            const single =
+              !multiple && selectedValue != null && !Array.isArray(selectedValue)
+                ? selectedValue
+                : null;
+            if (single !== null && single !== '') {
               return (
-                <span className="min-w-0 flex-1 truncate">{labelOf.get(single) ?? single}</span>
+                <span className="min-w-0 flex-1 truncate">
+                  {labelOf.get(single) ?? String(single)}
+                </span>
               );
             }
             return (
@@ -867,17 +896,17 @@ export function ComboboxControl<Multiple extends boolean = false>({
   );
 
   return (
-    <BaseCombobox.Root<string, boolean, ListboxItem>
+    <BaseCombobox.Root<ListboxValue, boolean, ListboxItem<ListboxValue>>
       items={collection}
       multiple={multiple}
-      value={value}
-      defaultValue={defaultValue}
+      value={value as ListboxValue | ListboxValue[] | null | undefined}
+      defaultValue={defaultValue as ListboxValue | ListboxValue[] | null | undefined}
       onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
       inputValue={inputValue}
       defaultInputValue={defaultInputValue}
       onInputValueChange={(next) => onInputValueChange?.(next)}
-      filter={filter}
-      filteredItems={filteredItems}
+      filter={filter as ComboboxFilter<ListboxValue> | null | undefined}
+      filteredItems={shownFilteredItems}
       autoHighlight={autoHighlight}
       openOnInputClick={openOnInputClick}
       disabled={disabled}
@@ -1024,7 +1053,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
               })}
             >
               {grouped
-                ? (group: ListboxGroup, index: number) => (
+                ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
                     <ComboboxGroupSection
                       key={index}
                       group={group}
@@ -1034,7 +1063,9 @@ export function ComboboxControl<Multiple extends boolean = false>({
                       {(item) => <ComboboxOption key={item.value} item={item} />}
                     </ComboboxGroupSection>
                   )
-                : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
+                : (item: ListboxItem<ListboxValue>) => (
+                    <ComboboxOption key={item.value} item={item} />
+                  )}
             </BaseCombobox.List>
             {(long || popoverCue) && (
               <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
@@ -1059,9 +1090,19 @@ export function ComboboxControl<Multiple extends boolean = false>({
 /**
  * 選択肢を打って絞り込み、選ぶ入力欄
  */
-export function Combobox<Multiple extends boolean = false>(props: ComboboxProps<Multiple>) {
+export function Combobox<Value = string, Multiple extends boolean = false>(
+  props: ComboboxProps<Value, Multiple> & ListboxValueCheck<Value>
+) {
   const [field, control] = splitFieldProps(props);
   // ラベルを <label> にするかは、打つ欄をシートの中に置くか（本体の中で決まる）で変わるので、外枠には渡さず本体が useFieldControlKind で知らせる
   //   最初の描画だけ <label> で描かれ、layout effect のあと本体に合う
-  return <Field {...field}>{() => <ComboboxControl<Multiple> {...control} />}</Field>;
+  return (
+    <Field {...field}>
+      {() => (
+        <ComboboxControl<Value, Multiple>
+          {...(control as ComboboxControlProps<Value, Multiple> & ListboxValueCheck<Value>)}
+        />
+      )}
+    </Field>
+  );
 }

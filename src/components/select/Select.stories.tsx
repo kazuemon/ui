@@ -95,7 +95,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 
 const meta = {
   title: 'Components/Select',
-  component: Select,
+  component: Select<string, boolean>,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -187,7 +187,7 @@ const meta = {
     positionerProps: { control: false },
     popupProps: { control: false },
   },
-} satisfies Meta<typeof Select>;
+} satisfies Meta<typeof Select<string, boolean>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -504,7 +504,7 @@ export const Loading: Story = {
 function LoadOnOpenSelect({
   onOpenChange,
   ...props
-}: FieldNamed<Omit<SelectBaseProps<boolean>, 'items' | 'loading'>>) {
+}: FieldNamed<Omit<SelectBaseProps<string, boolean>, 'items' | 'loading'>>) {
   const [items, setItems] = useState<ListboxItem[]>([]);
   const [loading, setLoading] = useState(false);
   return (
@@ -993,5 +993,91 @@ export const Groups: Story = {
       true,
     ]);
     await expect(within(groups[1]).getAllByRole('option')).toHaveLength(2);
+  },
+};
+
+// 値が数の選択肢。選んだ値をそのまま出して、onValueChange に数が届くことを見せる
+function NumberValuesExample() {
+  const [people, setPeople] = useState<number | null>(2);
+  const [seat, setSeat] = useState<number | null>(102);
+  return (
+    <form aria-label="予約" className="flex max-w-sm flex-col gap-5">
+      <Select
+        label="人数"
+        name="people"
+        items={[1, 2, { label: '3 人以上', value: 3 }]}
+        value={people}
+        onValueChange={setPeople}
+        presentation="popover"
+      />
+      <Select
+        label="席"
+        name="seat"
+        items={[
+          { label: '1 階', items: [101, { label: '102（窓側）', value: 102 }] },
+          { label: '2 階', items: [201, 202] },
+        ]}
+        value={seat}
+        onValueChange={setSeat}
+        presentation="popover"
+      />
+      <output className="text-sm text-fg-muted">
+        人数: {String(people)}（{typeof people}）・席: {String(seat)}（{typeof seat}）
+      </output>
+    </form>
+  );
+}
+
+export const NumberValues: Story = {
+  name: '数の値',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`items` には、値だけ（文字か数）か `{ label, value }` を混ぜて渡せます。値だけの選択肢は、値の文字がそのままラベルになります。値の型は `items` から決まり、数の値なら `value`・`defaultValue` も数で指し、`onValueChange` にも数が届きます。フォームには文字にして送ります（3 は「3」）。',
+      },
+      source: sourceCode(`
+        const [people, setPeople] = useState<number | null>(2);
+
+        <Select
+          label="人数"
+          name="people"
+          items={[1, 2, { label: '3 人以上', value: 3 }]}
+          value={people}
+          onValueChange={setPeople}
+        />
+      `),
+    },
+  },
+  render: () => <NumberValuesExample />,
+  play: async ({ canvas, canvasElement }) => {
+    const form = canvas.getByRole('form', { name: '予約' });
+    const people = canvas.getByRole('combobox', { name: /人数/ });
+    const seat = canvas.getByRole('combobox', { name: /席/ });
+    // 数で指した値も、選択肢のラベルで出す。値だけの選択肢は値の文字がラベル
+    await expect(people).toHaveTextContent('2');
+    await expect(seat).toHaveTextContent('102（窓側）');
+    await expect(Object.fromEntries(new FormData(form as HTMLFormElement))).toEqual({
+      people: '2',
+      seat: '102',
+    });
+
+    // 選ぶと、onValueChange に数のまま届く
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(people);
+    await userEvent.click(await page.findByRole('option', { name: '3 人以上' }));
+    await expect(canvas.getByText(/人数: 3（number）/)).toBeInTheDocument();
+    // まとまりの中の選択肢も同じ
+    await userEvent.click(seat);
+    await userEvent.click(await page.findByRole('option', { name: '201' }));
+    await expect(canvas.getByText(/席: 201（number）/)).toBeInTheDocument();
+    // フォームには文字で入る
+    await waitFor(() =>
+      expect(Object.fromEntries(new FormData(form as HTMLFormElement))).toEqual({
+        people: '3',
+        seat: '201',
+      })
+    );
   },
 };

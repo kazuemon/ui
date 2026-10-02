@@ -3,17 +3,21 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
 
 import { CheckIcon } from '../../internal/icons';
-import type { ListboxGroup } from '../../internal/listbox/listbox-items';
+import type { NormalizedListboxGroup } from '../../internal/listbox/listbox-items';
 import {
   type GroupLabelStyle,
   listboxGroupLabel,
   listboxSeparatorClass,
 } from '../../internal/listbox/listbox-styles';
 import { ListboxOptionContent } from '../../internal/listbox/ListboxOption';
-import { type ListboxItem, useListboxOption } from '../../internal/listbox/use-listbox-option';
+import {
+  type ListboxItem,
+  type ListboxValue,
+  useListboxOption,
+} from '../../internal/listbox/use-listbox-option';
 
 // 選択肢の1項目。見た目は選択肢の一覧で共有する（src/internal/listbox）
-export function SelectOption({ item }: { item: ListboxItem }) {
+export function SelectOption<Value extends ListboxValue>({ item }: { item: ListboxItem<Value> }) {
   const { itemProps, labelProps, indicatorProps, noteId } = useListboxOption(item);
   return (
     <BaseSelect.Item value={item.value} disabled={item.disabled} {...itemProps}>
@@ -36,12 +40,12 @@ export function SelectOption({ item }: { item: ListboxItem }) {
  * 選択肢のまとまり（Combobox と同じ見た目 — design/adr/0214）。見出しと、その中の選択肢を並べる
  * 2 つ目以降のまとまりの前に、区切り線を引ける
  */
-export function SelectGroupSection({
+export function SelectGroupSection<Value extends ListboxValue>({
   group,
   separator,
   labelStyle,
 }: {
-  group: ListboxGroup;
+  group: NormalizedListboxGroup<Value>;
   /** 前のまとまりとのあいだに区切り線を引くか（先頭のまとまりでは false を渡す） */
   separator: boolean;
   labelStyle: GroupLabelStyle;

@@ -4,14 +4,14 @@ import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
 import type { ReactNode } from 'react';
 
 import { CaretDownIcon, CheckMarkIcon, XIcon } from '../icons';
-import type { ListboxGroup } from '../listbox/listbox-items';
+import type { NormalizedListboxGroup } from '../listbox/listbox-items';
 import {
   type GroupLabelStyle,
   listboxEmptyClass,
   listboxGroupLabel,
   listboxSeparatorClass,
 } from '../listbox/listbox-styles';
-import type { ListboxItem } from '../listbox/use-listbox-option';
+import type { ListboxItem, ListboxValue } from '../listbox/use-listbox-option';
 import { sheetCloseButtonClass } from '../sheet/sheet-styles';
 import { comboboxEmptyClass } from './combobox-popup-styles';
 
@@ -80,17 +80,17 @@ export function ComboboxEmpty({ children }: { children?: ReactNode }) {
  * 選択肢のまとまり（design/adr/0214）。見出しと、その中の選択肢を並べる
  * 2 つ目以降のまとまりの前に、区切り線を引ける
  */
-export function ComboboxGroupSection({
+export function ComboboxGroupSection<Value extends ListboxValue>({
   group,
   separator,
   labelStyle,
   children,
 }: {
-  group: ListboxGroup;
+  group: NormalizedListboxGroup<Value>;
   /** 前のまとまりとのあいだに区切り線を引くか（先頭のまとまりでは false を渡す） */
   separator: boolean;
   labelStyle: GroupLabelStyle;
-  children: (item: ListboxItem) => ReactNode;
+  children: (item: ListboxItem<Value>) => ReactNode;
 }) {
   return (
     <BaseCombobox.Group items={group.items} className="block">
