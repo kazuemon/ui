@@ -6,6 +6,8 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { TagsInput, TagsInputControl } from './TagsInput';
+import { Button } from '../button/Button';
+import { Form } from '../form/Form';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
@@ -57,7 +59,8 @@ const meta = {
           '- 値は文字の配列です。`defaultValue` か、`value`・`onValueChange` で持ちます。`name` を渡すと、タグの数だけ同じ名前でフォームに送られます。',
           '- `items` を渡すと、打っているあいだに候補が出ます。候補にない文字もそのままタグになります。渡さないときは候補を出しません。',
           '- 同じ文字のタグは既定では足さず、すでにあるチップを一瞬強調します（`allowDuplicates` で足せます）。数の上限は `max` で決めます。',
-          '- タグにしてよいかを確かめるときは `validate` を渡します。通らなかった文字はタグにならず、返した文をエラーの行に出します。',
+          '- タグにしてよいかを確かめるときは `validateTag` を渡します。通らなかった文字はタグにならず、返した文をエラーの行に出します。',
+          '- 欄全体（タグの並び）を確かめるときは `validate` を渡します。ほかの入力欄と同じく、`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。',
           '- タグが増えると欄が高くなります。高さを止めたいときは `maxRows` で行数を指定します（あふれた分はスクロールします）。',
           '- 欄が空のときの Backspace は、1 回目で最後のチップを選び、2 回目で外します。チップの × でも外せます。',
           '- フォーカスが外れたときは、打っている途中の文字をタグにします（`commitOnBlur={false}` で捨てられます）。',
@@ -128,7 +131,7 @@ const meta = {
     commitOnBlur: { control: 'boolean' },
     max: { control: 'number' },
     separators: { control: 'object', table: { defaultValue: { summary: "[',']" } } },
-    validate: { control: false },
+    validateTag: { control: false },
     onReject: { control: false },
     openOnInputClick: { control: 'boolean' },
     autoHighlight: { control: 'boolean' },
@@ -292,7 +295,7 @@ export const Validate: Story = {
   args: {
     label: 'メールの宛先',
     placeholder: 'メールアドレスを打つ',
-    validate: (tag: string) =>
+    validateTag: (tag: string) =>
       tag.includes('@') ? null : `${tag} はメールアドレスの形ではありません`,
   },
   parameters: {
@@ -300,13 +303,13 @@ export const Validate: Story = {
     docs: {
       description: {
         story:
-          '`validate` を渡すと、タグにする前に確かめます。通らなかった文字はチップにならず、返した文を本体の下のエラーの行に出します。文は呼び出し側が作ります。',
+          '`validateTag` を渡すと、タグにする前に確かめます。通らなかった文字はチップにならず、返した文を本体の下のエラーの行に出します。文は呼び出し側が作ります。',
       },
       source: sourceCode(`
         <TagsInput
           label="メールの宛先"
           placeholder="メールアドレスを打つ"
-          validate={(tag) => (tag.includes('@') ? null : \`\${tag} はメールアドレスの形ではありません\`)}
+          validateTag={(tag) => (tag.includes('@') ? null : \`\${tag} はメールアドレスの形ではありません\`)}
         />
       `),
     },
@@ -801,7 +804,7 @@ export const Composition: Story = {
     docs: {
       description: {
         story:
-          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `TagsInputControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。組み立てでは、`validate` を通らなかった文と `rejectMessage` の文は下の行に出ず、読み上げだけで知らせます。',
+          '並べ方を変えたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と `TagsInputControl` を置きます。ラベル・キャプション・状態の文と、押せない・読み込んでいる状態は `Field` に渡します。ここではキャプションを本体の下に置いています。組み立てでは、`validateTag` を通らなかった文と `rejectMessage` の文は下の行に出ず、読み上げだけで知らせます。',
       },
     },
   },
@@ -820,5 +823,44 @@ export const Composition: Story = {
     await expect(input).toHaveAccessibleDescription('Enter か , で足せます タグは 5 つまでです');
     await userEvent.type(input, '実装{Enter}');
     await expect(canvas.getByText('実装')).toBeVisible();
+  },
+};
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const ValidateField: Story = {
+  name: '欄全体を確かめる',
+  args: { label: 'タグ' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`validate` は、タグの並び（`string[]`）とフォーム全体の値を受け取り、欄全体が正しくないとき（1 つもない・多すぎるなど）にエラーの文を返します。ほかの入力欄と同じく、`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。タグ 1 つずつは `validateTag` で確かめます。「保存する」を押して確かめてください。',
+      },
+    },
+  },
+  render: () => (
+    <Form className="flex max-w-sm flex-col gap-5">
+      <TagsInput
+        name="tags"
+        label="タグ"
+        validate={(value) =>
+          Array.isArray(value) && value.length > 0 ? null : 'タグを 1 つ以上足してください'
+        }
+      />
+      <Button type="submit" color="primary" className="self-start">
+        保存する
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox');
+    await userEvent.click(canvas.getByRole('button', { name: '保存する' }));
+    const line = await canvas.findByText('タグを 1 つ以上足してください');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    await expect(input.getAttribute('aria-describedby')).toContain(line.closest('[id]')?.id);
+    // タグを足すと確かめ直し、行が閉じる
+    await userEvent.type(input, 'デザイン{Enter}');
+    await waitFor(() => expect(input).not.toHaveAttribute('aria-invalid', 'true'));
   },
 };

@@ -24,6 +24,7 @@ import {
 import { useKeyboardProxy } from '../../internal/combobox-base/use-keyboard-proxy';
 import { useScrollRestore } from '../../internal/combobox-base/use-scroll-restore';
 import { useDensityScope } from '../../internal/density-scope';
+import { renderFieldAddon } from '../../internal/field/FieldBox';
 import {
   Field,
   type FieldLoadingBehavior,
@@ -78,6 +79,7 @@ import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-d
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import { AutocompleteScroll } from './AutocompleteScroll';
@@ -143,6 +145,16 @@ export interface AutocompleteControlProps {
    * 印は押せません。押せるものは置かないでください（グレー地の塊が押せるものの印のため）
    */
   icon?: ReactNode;
+  /**
+   * 本体の前に付く文字（グレーのラベル）。文字は欄の説明としてまとめて読み上げられ、文字そのものは読み上げから外れます。
+   * icon を渡していないときだけ置けます（同じ場所のため）。シートの中の打つ欄には付けません
+   */
+  prefix?: ReactNode;
+  /**
+   * prefix の形。attached は本体の端に接する塊、floating は本体の内側に 4px 浮かせます（design/adr/0035）
+   * @default 'attached'
+   */
+  addonShape?: AddonShape;
   /**
    * 候補。`ListboxItem[]`（そのまま並べる）か `ListboxGroup[]`（`label` と `items` のまとまり）で渡します。
    * 各候補に disabled（選べない）と note（ラベルの下の2行目）を付けられます。
@@ -426,6 +438,8 @@ export function AutocompleteControl({
   readOnly,
   color = 'neutral',
   icon,
+  prefix,
+  addonShape = 'attached',
   emptyItems,
   items,
   groupLabelStyle = 'label',
@@ -626,15 +640,34 @@ export function AutocompleteControl({
   const inputClass = comboboxInputClass({ blocking, readOnly });
 
   // 欄の中身（打つ欄・端のボタン）。シートの中に打つ欄を移すとき（sheetInput="inside"）は、同じものをシートの見出しの下に置く
-  const renderControl = (place: 'field' | 'sheet', messageIds: string | undefined) => {
+  const renderControl = (place: 'field' | 'sheet', fieldMessageIds: string | undefined) => {
     const inSheet = place === 'sheet';
+    // 本体の前の文字（Select・TextField と同じ）。欄の説明につなぎ、文字は読み上げから外す。頭の印があるときとシートの中の打つ欄には付けない
+    const before = renderFieldAddon(inSheet || icon ? null : prefix, `${sheetId}prefix`);
+    const messageIds = [before.describedBy, fieldMessageIds].filter(Boolean).join(' ') || undefined;
     return (
       <BaseAutocomplete.InputGroup
         ref={inSheet ? undefined : setFieldElement}
         data-slot={inSheet ? 'autocomplete-sheet-input' : 'control'}
         data-field-readonly={readOnly || undefined}
+        data-addon-shape={addonShape}
+        // prefix の文字を押しても、打つ欄にフォーカスを移す（TextField と同じ）
+        onMouseDown={
+          before.addon
+            ? (event) => {
+                if (
+                  event.target instanceof Element &&
+                  event.target.closest('[data-slot="field-addon"]')
+                ) {
+                  event.preventDefault();
+                  event.currentTarget.querySelector('input')?.focus();
+                }
+              }
+            : undefined
+        }
         className={comboboxControl({ color, loading, className: ['group/cbx gap-0 px-0'] })}
       >
+        {before.addon}
         {icon && (
           // 欄の頭の印。押せないので塗りのない印（SearchField の虫眼鏡と同じ）
           <span
@@ -681,6 +714,8 @@ export function AutocompleteControl({
   };
 
   // シートの中に打つ欄を移したとき（sheetInput="inside"）の本体。押すと開くボタンで、いまの文字を出す
+  // 開くボタンの前の文字も、打つ欄と同じく説明につなぎ、文字は読み上げから外す
+  const triggerPrefix = renderFieldAddon(icon ? null : prefix, `${sheetId}trigger-prefix`);
   const renderTrigger = (messageIds: string | undefined) => (
     <>
       <BaseAutocomplete.Trigger
@@ -688,18 +723,23 @@ export function AutocompleteControl({
         onClick={
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
-        aria-describedby={messageIds}
+        aria-describedby={
+          [triggerPrefix.describedBy, messageIds].filter(Boolean).join(' ') || undefined
+        }
         aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
         data-slot="control"
         data-field-readonly={readOnly || undefined}
+        data-addon-shape={addonShape}
         className={comboboxControl({
           color,
           loading,
           className: [
             'text-left',
             blocking ? 'cursor-progress' : readOnly ? 'cursor-default' : 'cursor-pointer',
+            // prefix は本体の左の余白を打ち消して、端から置く（Select と同じ）
+            '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
           ],
         })}
       >
@@ -708,6 +748,7 @@ export function AutocompleteControl({
             {icon}
           </span>
         )}
+        {triggerPrefix.addon}
         {text ? (
           <span className="min-w-0 flex-1 truncate">{text}</span>
         ) : (

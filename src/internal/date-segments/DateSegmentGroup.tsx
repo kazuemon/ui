@@ -47,6 +47,8 @@ export interface DateSegmentGroupProps<T> extends Omit<DateSegmentsOptions<T>, '
   toFormValue: (value: T | null) => string;
   /** form に送る名前。省くと、包む Field の name（Base UI の Field.Root）を使う */
   name?: string;
+  /** 隠れた input が属するフォームの id */
+  form?: string;
   disabled?: boolean;
   readOnly?: boolean;
   /** 待っているあいだ・送信中に止めている。書き換えられないが、フォーカスは外さない */
@@ -73,6 +75,7 @@ export function DateSegmentGroup<T>({
   placeholderStyle,
   toFormValue,
   name,
+  form,
   disabled,
   readOnly,
   blocking,
@@ -256,6 +259,7 @@ export function DateSegmentGroup<T>({
             // Base UI の Field.Control は、Field.Root の name を render の props に入れる（型の HTMLProps には無い）
             name={name ?? (control as { name?: string }).name}
             value={formValue}
+            form={form}
             disabled={disabled}
           />
         </>

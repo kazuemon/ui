@@ -1103,3 +1103,59 @@ export const Composition: Story = {
     );
   },
 };
+
+export const Prefix: Story = {
+  tags: ['visual'],
+  name: 'prefix',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`prefix` に文字を渡すと、本体の前にグレーのラベルが付きます（Select・Combobox と同じ）。文字は欄の説明として読み上げられます。形は `addonShape` で選びます。頭の印（`icon`）と同じ場所なので、`icon` を渡していないときだけ置けます。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery>
+      <Specimen label="attached">
+        <Autocomplete
+          label="市区町村"
+          prefix="北海道"
+          items={cities}
+          placeholder="市を打って探す"
+        />
+      </Specimen>
+      <Specimen label="floating">
+        <Autocomplete
+          label="市区町村"
+          prefix="北海道"
+          addonShape="floating"
+          items={cities}
+          defaultValue="札幌市"
+        />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+export const PrefixFocus: Story = {
+  name: 'prefix を押す',
+  args: { label: '市区町村', prefix: '北海道', items: cities },
+  parameters: { controls: { disable: true } },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole('combobox', { name: '市区町村' });
+    // prefix の文字は、欄の説明につながる
+    await expect(input).toHaveAccessibleDescription('北海道');
+    // 文字を押しても、打つ欄にフォーカスが移る
+    await userEvent.click(canvas.getByText('北海道'));
+    await expect(input).toHaveFocus();
+  },
+};

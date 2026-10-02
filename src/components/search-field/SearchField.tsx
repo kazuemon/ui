@@ -9,17 +9,22 @@ import {
 } from '../text-field/TextField';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldClearButton } from '../../internal/field/FieldClearButton';
+import { useFormReset } from '../../internal/field/use-form-reset';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
 import { MagnifyingGlassIcon } from '../../internal/icons';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // Base UI の input が渡すイベント（preventBaseUIHandler を持つ）
 type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
   NonNullable<TextFieldBaseProps[K]>
 >[0];
 
+// 検索の欄が持たない TextField の props。消すボタンはいつも出し、文字数は数えない
+type NotInSearch = 'clearable' | 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
+
 export interface SearchFieldBaseProps extends Omit<
   TextFieldBaseProps,
-  'type' | 'prefix' | 'suffix'
+  'type' | 'prefix' | 'suffix' | NotInSearch
 > {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
@@ -37,6 +42,11 @@ export interface SearchFieldBaseProps extends Omit<
   hideSearchIcon?: boolean;
   /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
   prefix?: ReactNode;
+  /**
+   * 消去のボタンの読み上げの名前
+   * @default '入力内容を消去'
+   */
+  clearName?: string;
 }
 
 /** 検索の欄だけが持つ props。外枠（SearchField）と本体（SearchFieldControl）が同じものを受けます */
@@ -56,12 +66,17 @@ interface SearchOwnProps {
   hideSearchIcon?: boolean;
   /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
   prefix?: ReactNode;
+  /**
+   * 消去のボタンの読み上げの名前
+   * @default '入力内容を消去'
+   */
+  clearName?: string;
 }
 
 /** SearchField の本体（SearchFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
 export interface SearchFieldControlProps
   extends
-    Omit<TextFieldControlProps, 'type' | 'prefix' | 'suffix' | keyof SearchOwnProps>,
+    Omit<TextFieldControlProps, 'type' | 'prefix' | 'suffix' | NotInSearch | keyof SearchOwnProps>,
     SearchOwnProps {}
 
 /** SearchField の props。label か accessibleName のどちらかが要ります */
@@ -78,6 +93,7 @@ export function SearchFieldControl({
   onCleared,
   hideSearchIcon = false,
   prefix,
+  clearName,
   className,
   readOnly,
   onChange,
@@ -95,6 +111,9 @@ export function SearchFieldControl({
     if (valueProp === undefined) setInnerValue(next);
     onValueChange?.(next);
   };
+  // 値を渡されないときは、form を戻したらはじめの値に戻す（消すボタンが出たまま残らないように）
+  const resetRef = useFormReset(() => change(defaultValue ?? ''), valueProp === undefined);
+  const inputRef = useMergedRefs(props.ref, resetRef);
   const clear = () => {
     change('');
     onCleared?.();
@@ -132,6 +151,7 @@ export function SearchFieldControl({
   return (
     <TextFieldControl
       {...props}
+      ref={inputRef}
       type="search"
       enterKeyHint={props.enterKeyHint ?? 'search'}
       value={value}
@@ -152,6 +172,7 @@ export function SearchFieldControl({
           onClear={clear}
           readOnly={readOnly}
           disabled={disabled || Boolean(field?.loading && field.loadingBehavior === 'blocking')}
+          aria-label={clearName}
         />
       }
     />

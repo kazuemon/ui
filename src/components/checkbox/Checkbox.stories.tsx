@@ -375,3 +375,107 @@ export const GroupComposed: Story = {
     await expect(canvas.getByRole('checkbox', { name: 'メール' })).toHaveAccessibleDescription('');
   },
 };
+
+export const GroupOutsideForm: Story = {
+  name: 'グループをフォームの外に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'グループを `<form>` の外に置くときは、`form` にフォームの id を渡します。中の箱がすべてそのフォームに属します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <form id="checkbox-group-outside-form" />
+      <CheckboxGroup
+        label="連絡の方法"
+        form="checkbox-group-outside-form"
+        defaultValue={['mail', 'post']}
+      >
+        <Checkbox name="contact" value="mail" label="メール" />
+        <Checkbox name="contact" value="tel" label="電話" />
+        <Checkbox name="contact" value="post" label="郵送" />
+      </CheckboxGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // 外に置いたグループの値も、form で指したフォームの値に入る
+    const form = canvasElement.querySelector<HTMLFormElement>('#checkbox-group-outside-form');
+    await expect(form && new FormData(form).getAll('contact')).toEqual(['mail', 'post']);
+  },
+};
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const Validation: Story = {
+  name: '値を確かめる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '1つだけ置く箱は、`validate` で確かめられます。選んでいるか（真偽値）とフォーム全体の値を受け取り、正しくないときはエラーの文を返します。文は `errorText` と同じ行に出ます。`validationMode` で確かめるタイミングを選べます（既定は送信したとき）。CheckboxGroup の中では、グループの `validate` を使います。「登録する」を押して確かめてください。',
+      },
+    },
+  },
+  render: () => (
+    <Form className="flex max-w-sm flex-col gap-5">
+      <Checkbox
+        name="terms"
+        label="利用規約に同意する"
+        required
+        validate={(checked) => (checked ? null : '利用規約に同意してください')}
+      />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: '利用規約に同意する' });
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const line = await canvas.findByText('利用規約に同意してください');
+    // 返した文はエラーの行に出て、箱の説明につながる
+    await waitFor(() => expect(box).toHaveAttribute('aria-invalid', 'true'));
+    await expect(box.getAttribute('aria-describedby')).toBe(line.closest('[id]')?.id);
+    // 選ぶと確かめ直し、行が閉じる
+    await userEvent.click(box);
+    await waitFor(() => expect(box).not.toHaveAttribute('aria-describedby'));
+  },
+};
+
+export const SuccessText: Story = {
+  name: '成功の文',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '1つだけ置く箱は、`successText` で成功の文を箱の行の下に出せます。エラー・警告の行の下、情報の行の上に出ます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-sm">
+      <Checkbox
+        label="通知を受け取る"
+        defaultChecked
+        successText="通知の設定を保存しました"
+        infoText="あとから設定で変えられます"
+      />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: '通知を受け取る' });
+    const success = canvas.getByText('通知の設定を保存しました').closest('[id]');
+    const info = canvas.getByText('あとから設定で変えられます').closest('[id]');
+    // 説明は見た目の順（成功 → 情報）でつなぐ
+    await expect(box.getAttribute('aria-describedby')).toBe(`${success?.id} ${info?.id}`);
+    // 成功の行は情報の行の上に出る
+    await expect(success!.getBoundingClientRect().top).toBeLessThan(
+      info!.getBoundingClientRect().top
+    );
+  },
+};

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ComponentProps } from 'react';
 import { expect, within } from 'storybook/test';
 
 import { Button } from '../button/Button';
@@ -6,7 +7,7 @@ import { Select } from '../select/Select';
 import { Text } from '../text/Text';
 import { TextField, TextFieldControl } from '../text-field/TextField';
 import { Textarea } from '../textarea/Textarea';
-import { Field, FieldCaption, FieldControl, FieldLabel, FieldMessages } from './Field';
+import { Field, FieldCaption, FieldControl, FieldLabel, FieldMessages, useField } from './Field';
 import { FieldGroup } from './FieldGroup';
 
 const meta = {
@@ -23,6 +24,7 @@ const meta = {
           '- 複数の欄のラベルの列をそろえるときは、`FieldGroup` で包みます。ラベルの列は、中で最も長いラベルの幅になります',
           '- 見えるラベルを置かないときは、`label` の代わりに `accessibleName` を渡します。置き場所や見本の文字で何の欄か分かるときだけにします',
           '- 並べ方を変えたいとき・ライブラリにない本体を入れたいときは、`Field` の中に `FieldLabel`・`FieldCaption`・`FieldMessages` と本体（`TextFieldControl`・`FieldControl` など）を置きます',
+          '- 自作の本体は `useField` で欄の状態（エラー・押せない・止めている・必須）を読めます。Field の外では `null` です',
         ].join('\n'),
       },
     },
@@ -156,5 +158,36 @@ export const Composition: Story = {
     await expect(describedBy.length).toBe(2);
     await expect(input).toHaveAttribute('aria-invalid', 'true');
     await expect(canvas.getByLabelText(/テーマの色/)).toHaveAttribute('type', 'color');
+  },
+};
+
+// 自作の本体: useField で欄の状態を読み、エラーのときは枠を赤くする
+function ColorInput(props: ComponentProps<'input'>) {
+  const field = useField();
+  return (
+    <input
+      {...props}
+      type="color"
+      data-field-invalid={field?.invalid ? '' : undefined}
+      className="h-11 w-20 rounded-control border border-line-strong data-field-invalid:border-danger"
+    />
+  );
+}
+
+/** 自作の本体が useField で欄の状態を読む */
+export const CustomControl: Story = {
+  args: { label: '', children: null },
+  render: () => (
+    <Field label="テーマの色" errorText="明るすぎる色は選べません" required>
+      <FieldLabel />
+      <FieldControl render={<ColorInput defaultValue="#ffff00" />} />
+      <FieldMessages />
+    </Field>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByLabelText(/テーマの色/);
+    await expect(input).toHaveAttribute('data-field-invalid');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
   },
 };

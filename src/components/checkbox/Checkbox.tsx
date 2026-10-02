@@ -14,6 +14,8 @@ import {
   choiceStyles,
 } from '../../internal/choice/choice-styles';
 import {
+  type FieldValidate,
+  type FieldValidationMode,
   FieldMessageLine,
   mergeBaseFieldError,
   useFormFieldErrors,
@@ -29,8 +31,8 @@ export type { ChoiceColor } from '../../internal/choice/choice-styles';
 //   下の行は、最後の3行に置く（位置を決めないと、上の余白の空いた行に入ってしまう）
 const soloRows = (caption: ReactNode) =>
   caption
-    ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto_auto]'
-    : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto_auto]';
+    ? 'grid-rows-[var(--choice-row-pad-y)_auto_auto_var(--choice-row-pad-y)_auto_auto_auto_auto]'
+    : 'grid-rows-[var(--choice-row-pad-y)_auto_var(--choice-row-pad-y)_auto_auto_auto_auto]';
 
 export interface CheckboxProps
   extends
@@ -64,7 +66,7 @@ export interface CheckboxProps
   value?: string;
   /** フォームに送るときの名前 */
   name?: string;
-  /** 箱が属するフォームの id。フォームの外に置くときに使います */
+  /** 箱が属するフォームの id。フォームの外に置くときに使います。CheckboxGroup の中では、指定しなければグループの form になります */
   form?: string;
   /** 隠れた input の id */
   id?: string;
@@ -91,10 +93,32 @@ export interface CheckboxProps
    */
   warningText?: FieldMessage;
   /**
+   * 成功の内容。1つだけ置くときに使います。箱の行の下に丸のチェックと緑の文字で出します。箱の見た目は変えません。
+   * エラー・警告の行の下に出ます。CheckboxGroup の中では使いません
+   */
+  successText?: FieldMessage;
+  /**
    * 情報の内容。1つだけ置くときに使います。箱の行の下に丸の「i」と青い文字で出します。箱の見た目は変えません。
-   * エラー・警告の行の下に出ます。CheckboxGroup の中では使いません（グループの infoText を使います）
+   * エラー・警告・成功の行の下に出ます。CheckboxGroup の中では使いません（グループの infoText を使います）
    */
   infoText?: FieldMessage;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。1つだけ置くとき（同意など）に使います。選んでいるか（真偽値）とフォーム全体の値を受け取り、
+   * 正しくないときはエラーの文（複数あれば配列）を返します。何も返さない・null・空文字・空配列は「正しい」とみなします。
+   * 返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します。
+   * CheckboxGroup の中では使いません（グループの validate を使います）
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この指定が勝ちます。CheckboxGroup の中では使いません
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です。CheckboxGroup の中では使いません
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /**
    * 押せない（Disabled）状態にします。箱と横の文字がグレーになり、フォームでは値が送られません
    * @default false
@@ -139,7 +163,11 @@ export function Checkbox({
   uncheckedValue,
   errorText,
   warningText,
+  successText,
   infoText,
+  validate,
+  validationMode,
+  validationDebounceTime,
   className,
   disabled,
   readOnly,
@@ -171,7 +199,7 @@ export function Checkbox({
       indeterminate={indeterminate}
       value={value}
       name={name}
-      form={form}
+      form={form ?? group?.form}
       id={idProp}
       inputRef={inputRef}
       uncheckedValue={uncheckedValue}
@@ -220,6 +248,7 @@ export function Checkbox({
     caption: `${id}caption`,
     error: `${id}error`,
     warning: `${id}warning`,
+    success: `${id}success`,
     info: `${id}info`,
   };
   return (
@@ -228,6 +257,9 @@ export function Checkbox({
       data-slot="field"
       disabled={disabled}
       invalid={appInvalid}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
       className={s.item({
         className: [soloRows(caption), ...choiceMessagePull, className],
       })}
@@ -242,6 +274,7 @@ export function Checkbox({
         caption={caption}
         errorText={errorText}
         warningText={warningText}
+        successText={successText}
         infoText={infoText}
         ids={ids}
         ariaDescribedBy={ariaDescribedBy}
@@ -266,6 +299,7 @@ function ChoiceSoloFields({
   caption,
   errorText,
   warningText,
+  successText,
   infoText,
   ids,
   ariaDescribedBy,
@@ -282,8 +316,9 @@ function ChoiceSoloFields({
   caption: ReactNode;
   errorText?: FieldMessage;
   warningText?: FieldMessage;
+  successText?: FieldMessage;
   infoText?: FieldMessage;
-  ids: { caption: string; error: string; warning: string; info: string };
+  ids: { caption: string; error: string; warning: string; success: string; info: string };
   ariaDescribedBy: string | undefined;
   s: ReturnType<typeof choiceStyles>;
   name: string | undefined;
@@ -303,6 +338,7 @@ function ChoiceSoloFields({
             caption && ids.caption,
             error && ids.error,
             warningText && ids.warning,
+            successText && ids.success,
             infoText && ids.info,
           ]
             .filter(Boolean)
@@ -331,12 +367,18 @@ function ChoiceSoloFields({
               kind="error"
               content={error}
               id={ids.error}
-              className={s.message({ className: 'row-start-[-4]' })}
+              className={s.message({ className: 'row-start-[-5]' })}
             />
             <FieldMessageLine
               kind="warning"
               content={warningText}
               id={ids.warning}
+              className={s.message({ className: 'row-start-[-4]' })}
+            />
+            <FieldMessageLine
+              kind="success"
+              content={successText}
+              id={ids.success}
               className={s.message({ className: 'row-start-[-3]' })}
             />
             <FieldMessageLine

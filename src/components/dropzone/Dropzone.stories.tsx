@@ -49,6 +49,10 @@ const reasonText: Record<string, string> = {
   maxFiles: '選べる数を超えています',
 };
 
+// 理由の文。custom は validateFile が返した文をそのまま出す
+const rejectionText = (r: DropzoneRejection) =>
+  `${r.file.name}: ${r.reason === 'custom' ? r.message : reasonText[r.reason]}`;
+
 /** Playground・使い方の例。選んだファイルの一覧（DropzoneFileList）と組み合わせる、写して使える形 */
 function DropzoneDemo(props: Partial<DropzoneProps>) {
   const [files, setFiles] = useState<File[]>([]);
@@ -71,9 +75,7 @@ function DropzoneDemo(props: Partial<DropzoneProps>) {
         onFilesRejected={setRejections}
         errorText={
           props.errorText ??
-          (rejections.length > 0
-            ? rejections.map((r) => `${r.file.name}: ${reasonText[r.reason]}`).join('、')
-            : undefined)
+          (rejections.length > 0 ? rejections.map(rejectionText).join('、') : undefined)
         }
       />
       <DropzoneFileList
@@ -96,7 +98,8 @@ const meta = {
           '',
           '- 押すか、フォーカスして Enter・Space で OS のファイル選択が開きます。ファイルを落としても選べます。',
           '- `accept`・`multiple` は `<input type="file">` と同じ意味です。`maxSize`（バイト）・`maxFiles` で、大きさと数の上限を決めます。',
-          '- 受け付けなかったファイルは、選ぶたびに `onFilesRejected` に理由（`accept`・`maxSize`・`maxFiles`）とともに渡ります。欄自体は選んだ分だけを `onValueChange` で受け取ります。',
+          '- 独自の条件で弾くときは `validateFile` を渡し、受け付けないファイルに理由の文を返します。',
+          '- 受け付けなかったファイルは、選ぶたびに `onFilesRejected` に理由（`accept`・`maxSize`・`maxFiles`・`custom`）とともに渡ります。`custom` のときは `validateFile` が返した文も `message` で渡ります。欄自体は選んだ分だけを `onValueChange` で受け取ります。',
           '- 選んだファイルの一覧は `DropzoneFileList` と組み合わせます（名前・大きさ・外すボタン。任意で `Progress` 用の進み具合）。アップロードそのものは行いません。',
           '- 押せない（`disabled`）・読み取り専用（`readOnly`）は、押せないときと同じ見た目になります。読み取り専用はフォーカスでき、フォームでは値が送られます。',
         ].join('\n'),
@@ -364,5 +367,41 @@ export const Composed: Story = {
     await expect(input).toHaveAccessibleDescription('プロフィールに出ます');
     await expect(input).toHaveAttribute('name', 'avatar');
     await expect(input).toHaveAttribute('aria-required', 'true');
+  },
+};
+
+export const ValidateFile: Story = {
+  name: '独自の条件で弾く（validateFile）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          "`validateFile` は、種類と大きさを通ったファイルを 1 つずつ受け取り、受け付けないときは理由の文を返します。弾いたファイルは `onFilesRejected` に `reason: 'custom'` と、返した文（`message`）で渡ります。",
+      },
+    },
+  },
+  render: () => (
+    <DropzoneDemo
+      accept={undefined}
+      validateFile={(file) =>
+        file.name.includes(' ') ? '名前に空白のあるファイルは選べません' : null
+      }
+    />
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('画像') as HTMLInputElement;
+    const dt = new DataTransfer();
+    dt.items.add(new File(['a'], 'my photo.png', { type: 'image/png' }));
+    dt.items.add(new File(['b'], 'photo.png', { type: 'image/png' }));
+    dispatchDrag('drop', input, dt);
+    // 通ったファイルだけを受け付け、弾いたファイルは返した文で知らせる
+    await expect(await canvas.findByText('photo.png')).toBeVisible();
+    await waitFor(async () =>
+      expect(
+        await canvas.findByText(/my photo\.png: 名前に空白のあるファイルは選べません/)
+      ).toBeVisible()
+    );
+    await waitFor(() => expect(input.files).toHaveLength(1));
   },
 };

@@ -621,3 +621,41 @@ export const InFieldset: Story = {
     await expect(disabled.getByRole('button', { name: /^チェックアウト/ })).toBeDisabled();
   },
 };
+
+export const OutsideForm: Story = {
+  name: 'フォームの外に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '欄を `<form>` の外に置くときは、`form` にフォームの id を渡します。打つ形でもボタンの形でも、送る値（ISO 8601 の文字）はフォームの値に入ります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col gap-4">
+      <form id="date-picker-outside-form" />
+      <DatePicker
+        label="出発の日"
+        name="start"
+        form="date-picker-outside-form"
+        defaultValue={day}
+      />
+      <DatePicker
+        label="帰りの日"
+        name="end"
+        variant="button"
+        form="date-picker-outside-form"
+        defaultValue={today}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // 外に置いた欄の値も、form で指したフォームの値に入る
+    const form = canvasElement.querySelector<HTMLFormElement>('#date-picker-outside-form');
+    const data = form && new FormData(form);
+    await expect(data?.get('start')).toBe('2026-09-20');
+    await expect(data?.get('end')).toBe('2026-09-30');
+  },
+};

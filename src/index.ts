@@ -490,6 +490,7 @@ export {
   type DropzoneProps,
   type DropzoneRejection,
   type DropzoneRejectReason,
+  type DropzoneValidateFile,
   type DropzoneVariant,
 } from './components/dropzone/Dropzone';
 export {
@@ -692,6 +693,8 @@ export {
   FieldMessages,
   type FieldMessagesProps,
   type FieldProps,
+  type FieldState,
+  useField,
 } from './components/field/Field';
 export {
   FieldGroup,

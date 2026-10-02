@@ -1,13 +1,21 @@
 // Dropzone の判定（accept・multiple・大きさ・数の上限）。DOM を読まない純粋な関数だけを置く
 
-/** ファイルを受け付けなかった理由。accept: 種類が違う、maxSize: 大きすぎる、maxFiles: 数の上限を超えた */
-export type DropzoneRejectReason = 'accept' | 'maxSize' | 'maxFiles';
+/**
+ * ファイルを受け付けなかった理由。accept: 種類が違う、maxSize: 大きすぎる、maxFiles: 数の上限を超えた、
+ * custom: validateFile が文を返した
+ */
+export type DropzoneRejectReason = 'accept' | 'maxSize' | 'maxFiles' | 'custom';
 
 /** 受け付けなかったファイルと理由の組 */
 export interface DropzoneRejection {
   file: File;
   reason: DropzoneRejectReason;
+  /** reason が custom のとき、validateFile が返した文 */
+  message?: string;
 }
+
+/** ファイルを独自の条件で確かめる関数。受け付けないときは理由の文を返します（受け付けるときは null・undefined・空文字） */
+export type DropzoneValidateFile = (file: File) => string | null | undefined;
 
 /** input[type=file] の accept と同じ書式（拡張子・MIME タイプ・"image/*" のワイルドカード、","区切り）で、ファイルが当たるか */
 export function matchesAccept(file: File, accept: string): boolean {
@@ -55,6 +63,7 @@ export interface EvaluateFilesOptions {
   multiple?: boolean;
   maxSize?: number;
   maxFiles?: number;
+  validateFile?: DropzoneValidateFile;
   /** すでに選ばれているファイルの数（maxFiles の計算に使う） */
   currentCount: number;
 }
@@ -64,10 +73,13 @@ export interface EvaluateFilesResult {
   rejected: DropzoneRejection[];
 }
 
-/** 選んだ・落としたファイルを、accept・multiple・大きさ・数の上限で受け付ける分と弾く分に分ける */
+/**
+ * 選んだ・落としたファイルを、accept・multiple・大きさ・validateFile・数の上限で受け付ける分と弾く分に分ける
+ * validateFile は種類と大きさのあと、数の上限の前に確かめる（弾いたファイルは数に入れない）
+ */
 export function evaluateFiles(
   files: File[],
-  { accept, multiple, maxSize, maxFiles, currentCount }: EvaluateFilesOptions
+  { accept, multiple, maxSize, maxFiles, validateFile, currentCount }: EvaluateFilesOptions
 ): EvaluateFilesResult {
   const accepted: File[] = [];
   const rejected: DropzoneRejection[] = [];
@@ -81,6 +93,11 @@ export function evaluateFiles(
     }
     if (maxSize != null && file.size > maxSize) {
       rejected.push({ file, reason: 'maxSize' });
+      continue;
+    }
+    const message = validateFile?.(file);
+    if (message) {
+      rejected.push({ file, reason: 'custom', message });
       continue;
     }
     if (limit != null && count >= limit) {

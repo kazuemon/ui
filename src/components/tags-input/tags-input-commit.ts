@@ -2,10 +2,10 @@ import type { ReactNode } from 'react';
 
 // 打った文字をタグに確定するときの計算。DOM も状態も持たない純粋な関数だけを置く
 
-/** タグにならなかった理由。duplicate: すでにある、max: 上限に達した、invalid: validate を通らなかった */
+/** タグにならなかった理由。duplicate: すでにある、max: 上限に達した、invalid: validateTag を通らなかった */
 export type TagsInputRejectReason = 'duplicate' | 'max' | 'invalid';
 
-/** タグにならなかったもの。message は validate が返した文 */
+/** タグにならなかったもの。message は validateTag が返した文 */
 export interface TagsInputRejection {
   tag: string;
   reason: TagsInputRejectReason;
@@ -27,7 +27,7 @@ export interface CommitOptions {
   /** タグの数の上限 */
   max?: number;
   /** タグにしてよいかを確かめる関数。通らないときはエラーの文を返す */
-  validate?: (tag: string, tags: string[]) => ReactNode;
+  validateTag?: (tag: string, tags: string[]) => ReactNode;
 }
 
 /**
@@ -55,12 +55,12 @@ export function takeTags(text: string, separators: string[]): { tags: string[]; 
 
 /**
  * タグの候補を、いまのタグに足す。前後の空白を落とし、空のものは数えない
- * 重複・上限・validate で弾かれたものはタグにならず、はじめに弾かれたものを rejected で返す
+ * 重複・上限・validateTag で弾かれたものはタグにならず、はじめに弾かれたものを rejected で返す
  */
 export function commitTags(
   current: string[],
   candidates: string[],
-  { allowDuplicates, max, validate }: CommitOptions
+  { allowDuplicates, max, validateTag }: CommitOptions
 ): CommitResult {
   const next = [...current];
   const added: string[] = [];
@@ -79,7 +79,7 @@ export function commitTags(
       reject({ tag, reason: 'max' });
       continue;
     }
-    const message = validate?.(tag, next);
+    const message = validateTag?.(tag, next);
     if (message) {
       reject({ tag, reason: 'invalid', message });
       continue;

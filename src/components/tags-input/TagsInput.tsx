@@ -33,6 +33,7 @@ import { useDensityScope } from '../../internal/density-scope';
 import {
   Field,
   type FieldLoadingBehavior,
+  type FieldValidate,
   FieldLoadingBar,
   FieldSpinner,
   FieldSuccessMark,
@@ -159,10 +160,10 @@ export interface TagsInputControlProps {
   /** タグの数の上限。書かないときは上限なしです */
   max?: number;
   /**
-   * タグにしてよいかを確かめる関数。通らないときはエラーの文を返します（通るときは null）。
-   * 通らなかった文字はチップにならず、返した文を本体の下のエラーの行に出します
+   * タグ 1 つずつを、タグにしてよいかを確かめる関数。打った文字と、足す前のタグの並びを受け取り、通らないときはエラーの文を返します（通るときは null）。
+   * 通らなかった文字はチップにならず、返した文を本体の下のエラーの行に出します。欄全体（タグの並び）を確かめるときは validate を使います
    */
-  validate?: (tag: string, tags: string[]) => ReactNode;
+  validateTag?: (tag: string, tags: string[]) => ReactNode;
   /**
    * フォーカスが外れたときに、打っている途中の文字をタグにするか
    * @default true
@@ -175,7 +176,7 @@ export interface TagsInputControlProps {
    * @default 'enter'
    */
   enterKeyHint?: ComponentProps<'input'>['enterKeyHint'];
-  /** タグにならなかったとき（重複・上限・validate）。弾かれた文字と理由を受け取ります */
+  /** タグにならなかったとき（重複・上限・validateTag）。弾かれた文字と理由を受け取ります */
   onReject?: (tag: string, reason: TagsInputRejectReason) => void;
   /**
    * タグにならなかったときに、本体の下へ一瞬だけ出す文。理由と弾かれた文字を受け取り、出さないときは false を返します。
@@ -365,6 +366,8 @@ interface TagsInputFieldProps extends Pick<
   | 'caption'
   | 'captionPlacement'
   | 'infoText'
+  | 'validationMode'
+  | 'validationDebounceTime'
   | 'required'
   | 'requiredMark'
   | 'optionalMark'
@@ -392,6 +395,12 @@ interface TagsInputFieldProps extends Pick<
   /** フォームに送るときの名前。タグの数だけ、同じ名前で送られます */
   name?: string;
   /**
+   * 欄全体を確かめる関数です（design/adr/0255）。タグの並び（`string[]`）とフォーム全体の値を受け取り、正しくないとき
+   * （1 つもないとき・多すぎるときなど）はエラーの文（複数あれば配列）を返します。errorText があるときは、そちらを優先します。
+   * タグ 1 つずつを確かめるときは validateTag を使います
+   */
+  validate?: FieldValidate;
+  /**
    * 候補を読み込んでいる（design/adr/0042）。印を出し、本体に aria-busy を付ける
    * @default false
    */
@@ -416,7 +425,7 @@ export type TagsInputProps = FieldNamed<TagsInputBaseProps>;
 /**
  * 打った文字をタグにして並べる欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
  * 押せない・読み込んでいる・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
- * 組み立てでは、validate を通らなかった文と rejectMessage の文は、本体の下の行には出ず、読み上げで知らせます
+ * 組み立てでは、validateTag を通らなかった文と rejectMessage の文は、本体の下の行には出ず、読み上げで知らせます
  */
 export function TagsInputControl({
   hideSuccessMark = false,
@@ -431,7 +440,7 @@ export function TagsInputControl({
   separators = defaultSeparators,
   allowDuplicates = false,
   max,
-  validate,
+  validateTag,
   commitOnBlur = true,
   enterKeyHint = 'enter',
   onReject,
@@ -521,9 +530,9 @@ export function TagsInputControl({
   // 候補に印が付いているか（Enter を候補に渡すか、打った文字をタグにするかの分かれ目）
   const highlighted = useRef<string | undefined>(undefined);
 
-  /** タグの候補を足す。弾かれたものは合図と、validate の文で見せる */
+  /** タグの候補を足す。弾かれたものは合図と、validateTag の文で見せる */
   const addTags = (candidates: string[]) => {
-    const result = commitTags(values, candidates, { allowDuplicates, max, validate });
+    const result = commitTags(values, candidates, { allowDuplicates, max, validateTag });
     if (result.added.length > 0) {
       setValues(result.next);
       setInvalidMessage(null);
@@ -541,7 +550,7 @@ export function TagsInputControl({
   const commitText = () => {
     if (text.trim() === '') return;
     const result = addTags(splitBySeparators(text, separators));
-    // validate を通らなかった文字は、直せるように欄へ残す（エラーの行もそのあいだ出したままにする）
+    // validateTag を通らなかった文字は、直せるように欄へ残す（エラーの行もそのあいだ出したままにする）
     if (result.added.length === 0 && result.rejected?.reason === 'invalid') return;
     setText('');
   };
@@ -562,7 +571,7 @@ export function TagsInputControl({
     setText(rest);
   };
 
-  // 候補を選んだとき・チップを外したとき・消去したとき。足すものは重複・上限・validate を通す
+  // 候補を選んだとき・チップを外したとき・消去したとき。足すものは重複・上限・validateTag を通す
   const changeValues = (next: string[]) => {
     const added = next.filter((item) => !values.includes(item));
     if (added.length === 0) {
@@ -610,7 +619,7 @@ export function TagsInputControl({
   const shownError = field?.messages.error ?? invalidMessage;
   const rejectText = tagsRejectText(flash, rejectMessage);
   // 弾いた文の読み上げ。内蔵の形では、利用者が info を渡していて、同じ行の文が入れ替わるときだけ、見えない箱で知らせる
-  //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱を置き、validate を通らなかった文も知らせる
+  //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱を置き、validateTag を通らなかった文も知らせる
   const announceReject = outer ? Boolean(rejectMessage) && Boolean(infoText) : true;
   const statusText = outer ? rejectText : (rejectText ?? invalidMessage);
   const sheetMessages: SheetMessage[] = [];
@@ -990,8 +999,7 @@ export function TagsInputControl({
 /**
  * 打った文字をタグにして並べる入力欄
  */
-export function TagsInput({ validate, ...props }: TagsInputProps) {
-  // validate はタグ 1 つずつを確かめる本体の props（Field の validate ではない）なので、外枠に渡さない
+export function TagsInput(props: TagsInputProps) {
   const [field, control] = splitFieldProps(props);
   const feedback = useTagsFeedback();
   const error = field.error ?? feedback.invalidMessage;
@@ -1012,7 +1020,7 @@ export function TagsInput({ validate, ...props }: TagsInputProps) {
   return (
     <TagsFeedbackContext value={{ feedback, info: field.info }}>
       <Field {...field} error={error} info={info}>
-        {() => <TagsInputControl {...control} validate={validate} />}
+        {() => <TagsInputControl {...control} />}
       </Field>
     </TagsFeedbackContext>
   );

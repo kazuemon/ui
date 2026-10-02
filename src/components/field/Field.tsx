@@ -1,12 +1,13 @@
 'use client';
 
 import { Field as BaseField } from '@base-ui/react/field';
-import type { ReactElement, ReactNode } from 'react';
+import { type ReactElement, type ReactNode, useContext } from 'react';
 
 import {
   Field as FieldRoot,
   FieldCaption,
   type FieldCaptionProps,
+  FieldContext,
   FieldLabel,
   type FieldLabelProps,
   FieldMessages,
@@ -93,4 +94,41 @@ export function FieldControl({ render, className, children }: FieldControlProps)
       {children}
     </BaseField.Control>
   );
+}
+
+/** useField が返す、欄の状態 */
+export interface FieldState {
+  /** Field の name。フォームの中でこの欄を識別する名前です */
+  name: string | undefined;
+  /** キャプションと、出ている状態の行の id（見た目の順）。本体の aria-describedby に渡します */
+  describedBy: string | undefined;
+  /** エラーの状態か（errorText・invalid・validate・Form の errors） */
+  invalid: boolean;
+  /** 押せない状態か（Field・Fieldset の disabled） */
+  disabled: boolean;
+  /** 待っているか（loading） */
+  loading: boolean;
+  /** 書き換えを止めているか（loadingBehavior="blocking" で待っている、または Form の送信中） */
+  blocking: boolean;
+  /** 必須か */
+  required: boolean;
+}
+
+/**
+ * いちばん近い Field の状態を読みます。FieldControl の render に渡した自作の本体が、
+ * エラー・押せない・止めているなどの状態に合わせて見た目や振る舞いを変えるときに使います。
+ * Field の外では null を返します
+ */
+export function useField(): FieldState | null {
+  const field = useContext(FieldContext);
+  if (!field) return null;
+  return {
+    name: field.name,
+    describedBy: field.describedBy,
+    invalid: field.invalid,
+    disabled: field.disabled,
+    loading: field.loading,
+    blocking: field.blocking,
+    required: field.required,
+  };
 }

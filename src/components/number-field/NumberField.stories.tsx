@@ -490,3 +490,27 @@ export const InputPropsOnChange: Story = {
     await expect(inputOnChange).toHaveBeenCalledTimes(2);
   },
 };
+
+export const OutsideForm: Story = {
+  name: 'フォームの外に置く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '欄を `<form>` の外に置くときは、`form` にフォームの id を渡します。送る値はフォームの値に入ります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xs flex-col gap-4">
+      <form id="number-field-outside-form" />
+      <NumberField label="数量" name="quantity" form="number-field-outside-form" defaultValue={3} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // 外に置いた欄の値も、form で指したフォームの値に入る
+    const form = canvasElement.querySelector<HTMLFormElement>('#number-field-outside-form');
+    await expect(form && new FormData(form).get('quantity')).toBe('3');
+  },
+};

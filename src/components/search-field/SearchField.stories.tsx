@@ -355,3 +355,92 @@ export const Composition: Story = {
     await expect(input).toHaveValue('');
   },
 };
+
+export const ClearName: Story = {
+  name: '消去のボタンの名前',
+  args: {
+    accessibleName: '記事を検索',
+    label: undefined,
+    defaultValue: 'かずえもん',
+    clearName: '検索語を消去',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '消去のボタンの読み上げの名前は `clearName` で変えられます。同じ画面に検索の欄が複数あるときなど、何を消すのかを名前で伝えたいときに使います。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '検索語を消去' }));
+    await expect(canvas.getByRole('searchbox', { name: '記事を検索' })).toHaveValue('');
+  },
+};
+
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームを戻す（reset）と、はじめの値に戻り、消去のボタンも消えます。',
+      },
+    },
+  },
+  render: () => (
+    <form className="flex max-w-sm flex-col items-start gap-3">
+      <SearchField label="記事を検索" />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('記事を検索');
+    await userEvent.type(input, 'ボタン');
+    await expect(canvas.getByRole('button', { name: '入力内容を消去' })).toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await expect(input).toHaveValue('');
+    await expect(canvas.queryByRole('button', { name: '入力内容を消去' })).toBeNull();
+  },
+};
+
+export const FormResetCanceled: Story = {
+  name: 'フォームを戻すのを取りやめる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームの reset を `preventDefault()` で取りやめたときは、値はそのままです。',
+      },
+    },
+  },
+  render: () => (
+    <form
+      className="flex max-w-sm flex-col items-start gap-3"
+      onReset={(event) => event.preventDefault()}
+    >
+      <SearchField label="記事を検索" />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('記事を検索');
+    await userEvent.type(input, 'ボタン');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    // 少し待っても、値も消去のボタンも残る
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await expect(input).toHaveValue('ボタン');
+    await expect(canvas.getByRole('button', { name: '入力内容を消去' })).toBeInTheDocument();
+  },
+};

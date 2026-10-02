@@ -15,7 +15,8 @@ import type { LoadingIndicator } from '../../components/loading/Loading';
 // 文字（FieldAddon）は入力欄の説明（aria-describedby）につなぎ、文字そのものは読み上げから外す（aria-hidden — design/adr/0040）
 //   Tab キーで入ったときに「https://」などが伝わり、前から順に読んでも1回だけ読まれる
 //   ボタンはそれ自体にフォーカスが止まるので、つながない。FieldAddon に aria-hidden を渡したときは、読み上げは呼び出し側に任せ、つながない
-function renderAddon(
+// Combobox・Autocomplete の prefix も同じ規則で置く
+export function renderFieldAddon(
   node: ReactNode,
   fallbackId: string
 ): { addon: ReactNode; describedBy?: string } {
@@ -89,8 +90,8 @@ export function FieldBox({
   children,
 }: FieldBoxProps) {
   const id = useId();
-  const before = renderAddon(prefix, `${id}prefix`);
-  const after = renderAddon(suffix, `${id}suffix`);
+  const before = renderFieldAddon(prefix, `${id}prefix`);
+  const after = renderFieldAddon(suffix, `${id}suffix`);
   // 説明は prefix → suffix → 渡された説明 → キャプション → エラー → 警告 → 成功 → 情報の順（design/adr/0040・0041）
   // キャプションと本体の下の行の id は Field から見た目の順で受け取る（Base UI も後ろに足すが、重なった id は1回だけ）
   const describe =

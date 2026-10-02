@@ -38,6 +38,8 @@ export interface DateFieldControlProps extends Pick<
   max?: PlainDate;
   /** 中の区切りを並べる要素の id */
   id?: string;
+  /** 欄が属するフォームの id。フォームの外に置くときに使います */
+  form?: string;
   /** 中の区切りを並べる要素への ref */
   ref?: Ref<HTMLDivElement>;
   /** 中の区切りを並べる要素に渡すもの（class・data-* など）。欄の外枠には className を使います */
@@ -93,6 +95,7 @@ export function DateFieldControlInner({
   min,
   max,
   id,
+  form,
   ref,
   inputProps,
   segmentPlaceholder = 'letters',
@@ -159,6 +162,7 @@ export function DateFieldControlInner({
           onHalfWidth={onHalfWidth}
           toFormValue={(date) => date?.toString() ?? ''}
           id={id}
+          form={form}
           ref={ref}
           groupProps={inputProps}
           disabled={disabled}

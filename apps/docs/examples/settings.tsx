@@ -91,6 +91,7 @@ const rejectionText: Record<DropzoneRejection['reason'], string> = {
   accept: 'PNG か JPEG の画像を選んでください',
   maxSize: '5MB までの画像を選んでください',
   maxFiles: '画像は 1 つだけ選べます',
+  custom: 'この画像は選べません',
 };
 
 // 通知を止める時間帯の初めの値（夜 23 時から朝 7 時まで）

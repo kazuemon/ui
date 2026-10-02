@@ -7,6 +7,8 @@ import type { VariantProps } from 'tailwind-variants';
 
 import {
   type CaptionPlacement,
+  type FieldValidate,
+  type FieldValidationMode,
   FieldMessageLine,
   mergeBaseFieldError,
   useFormFieldErrors,
@@ -71,8 +73,8 @@ const rowCaption =
 // 囲みがあるときは、トラックを行（囲み）の縦の中央に置く。囲みなし（none）はラベルの行の中央のまま
 //   「46 で区切り線か囲みがあるときは、トグルが縦中央に来るようにしてほしいです（囲みなしではそのまま）」
 //   トラックは1行の margin を付けたまま中央にそろえるので、キャプションがなければ囲みなしと同じ位置
-//   行の最後の2行はエラー・警告の行なので、トラックはその手前（線 -3）までを占める
-const rowTrack = 'row-[1/-3] self-center';
+//   行の最後の4行はエラー・警告・成功・情報の行なので、トラックはその手前（線 -5）までを占める
+const rowTrack = 'row-[1/-5] self-center';
 const rowLine = 'border-line';
 
 // 読み取り専用（軸 177）の上書き。トラックとノブは押せないときと同じ見た目のまま、ラベルだけ本文の色に戻す
@@ -257,6 +259,32 @@ export interface SwitchProps
    * errorText と両方あるときは、エラーの行が上です
    */
   warningText?: FieldMessage;
+  /**
+   * 成功の内容。行の下に丸のチェックと緑の文字で出します。トラックの見た目は変えません。
+   * エラー・警告の行の下に出ます
+   */
+  successText?: FieldMessage;
+  /**
+   * 情報の内容。行の下に丸の「i」と青い文字で出します。トラックの見た目は変えません。
+   * エラー・警告・成功の行の下に出ます
+   */
+  infoText?: FieldMessage;
+  /**
+   * 値を確かめる関数です（design/adr/0255）。ON か（真偽値）とフォーム全体の値を受け取り、正しくないときはエラーの文
+   * （複数あれば配列）を返します。何も返さない・null・空文字・空配列は「正しい」とみなします。
+   * 返したエラーの文は errorText と同じ行に出します。errorText があるときは、そちらを優先します
+   */
+  validate?: FieldValidate;
+  /**
+   * 検証のタイミングです（design/adr/0255）。Form の validationMode より、この指定が勝ちます
+   * @default 'onSubmit'
+   */
+  validationMode?: FieldValidationMode;
+  /**
+   * validationMode="onChange" のとき、validate を呼ぶまでの待ち時間（ミリ秒）です
+   * @default 0
+   */
+  validationDebounceTime?: number;
   /** ON か（制御） */
   checked?: boolean;
   /** はじめに ON か（非制御） */
@@ -345,6 +373,11 @@ export function Switch({
   captionPlacement = 'top',
   errorText,
   warningText,
+  successText,
+  infoText,
+  validate,
+  validationMode,
+  validationDebounceTime,
   checked,
   defaultChecked,
   onCheckedChange,
@@ -376,17 +409,19 @@ export function Switch({
   // Fieldset のまとまりのエラーと押せない状態も受ける（Field を通らないので、ここで足す）
   const fieldset = useContext(FieldsetContext);
   const appInvalid = useAppInvalid(errorText || fieldset.invalid);
-  // 行を明示する（ラベルの行・キャプションの行・エラーの行・警告の行）。
-  // 囲みのあるトラックの row-[1/-3] の -3 は明示した行の線を指すので、行を明示しないと数が合わない
-  const rows = caption ? 'grid-rows-[auto_auto_auto_auto]' : 'grid-rows-[auto_auto_auto]';
-  // 説明は見た目の順（キャプション → エラー → 警告）でつなぐ（design/adr/0041）
-  const ids = { caption: `${id}caption`, error: `${id}error`, warning: `${id}warning` };
-  const describedBy = withFieldsetErrors(
-    fieldset.errorIds,
-    [ariaDescribedBy, caption && ids.caption, errorText && ids.error, warningText && ids.warning]
-      .filter(Boolean)
-      .join(' ') || undefined
-  );
+  const formErrors = useFormFieldErrors();
+  // 行を明示する（ラベルの行・キャプションの行・エラー・警告・成功・情報の行）。
+  // 囲みのあるトラックの row-[1/-5] の -5 は明示した行の線を指すので、行を明示しないと数が合わない
+  const rows = caption
+    ? 'grid-rows-[auto_auto_auto_auto_auto_auto]'
+    : 'grid-rows-[auto_auto_auto_auto_auto]';
+  const ids = {
+    caption: `${id}caption`,
+    error: `${id}error`,
+    warning: `${id}warning`,
+    success: `${id}success`,
+    info: `${id}info`,
+  };
   // キャプションは、top ではラベルの列（トラックの横）、bottom では行の下に幅いっぱいで置く
   const captionNode = caption ? (
     <BaseField.Description
@@ -404,6 +439,9 @@ export function Switch({
       data-slot="field"
       disabled={disabled}
       invalid={appInvalid}
+      validate={validate}
+      validationMode={validationMode}
+      validationDebounceTime={validationDebounceTime}
       // 続けて置いた行をつなぐ（card の間・divided の線）ための印。none には付けない
       data-switch-frame={frame === 'none' ? undefined : frame}
       className={s.root({
@@ -420,77 +458,89 @@ export function Switch({
         <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
       {captionNode}
-      <BaseSwitch.Root
-        className={s.track({ className: locked.readOnlyLook ? switchReadOnly.track : undefined })}
-        checked={checked}
-        defaultChecked={defaultChecked}
-        onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
-        value={value}
-        uncheckedValue={uncheckedValue}
-        name={name}
-        form={form}
-        id={idProp}
-        inputRef={inputRef}
-        disabled={disabled}
-        // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-        // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
-        required={false}
-        aria-required={required || undefined}
-        readOnly={locked.readOnly}
-        aria-describedby={describedBy}
-        aria-disabled={locked.ariaDisabled || ariaDisabled}
-        {...locked.data}
-        {...props}
-      >
-        <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
-      </BaseSwitch.Root>
-      {/* エラー・警告の行（入力欄と同じ — design/adr/0041・0044）。行の最後の2行に置く */}
-      <SwitchErrorLine
-        errorText={errorText}
-        id={ids.error}
-        className="col-span-full row-start-[-3] mt-0 data-open:mt-0"
-        name={name}
-        disabled={disabled || fieldset.disabled}
-      />
-      <FieldMessageLine
-        kind="warning"
-        content={warningText}
-        id={ids.warning}
-        className="col-span-full row-start-[-2] mt-0 data-open:mt-0"
-      />
+      {/* BaseField.Validity（公開 API）で、validate・Form の errors から Base UI が見つけたエラーを読む（design/adr/0255）
+          errorText があれば、そちらを優先する。説明（aria-describedby）も、ここで決まったエラーの有無を見て組む */}
+      <BaseField.Validity>
+        {(validity) => {
+          const error =
+            errorText ??
+            mergeBaseFieldError({
+              name,
+              disabled: disabled || fieldset.disabled,
+              formErrors,
+              validity,
+            });
+          // 説明は見た目の順（キャプション → エラー → 警告 → 成功 → 情報）でつなぐ（design/adr/0041）
+          const describedBy = withFieldsetErrors(
+            fieldset.errorIds,
+            [
+              ariaDescribedBy,
+              caption && ids.caption,
+              error && ids.error,
+              warningText && ids.warning,
+              successText && ids.success,
+              infoText && ids.info,
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined
+          );
+          return (
+            <>
+              <BaseSwitch.Root
+                className={s.track({
+                  className: locked.readOnlyLook ? switchReadOnly.track : undefined,
+                })}
+                checked={checked}
+                defaultChecked={defaultChecked}
+                onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
+                value={value}
+                uncheckedValue={uncheckedValue}
+                name={name}
+                form={form}
+                id={idProp}
+                inputRef={inputRef}
+                disabled={disabled}
+                // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+                // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
+                required={false}
+                aria-required={required || undefined}
+                readOnly={locked.readOnly}
+                aria-describedby={describedBy}
+                aria-disabled={locked.ariaDisabled || ariaDisabled}
+                {...locked.data}
+                {...props}
+              >
+                <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
+              </BaseSwitch.Root>
+              {/* エラー・警告・成功・情報の行（入力欄と同じ — design/adr/0041・0044）。行の最後の4行に置く */}
+              <FieldMessageLine
+                kind="error"
+                content={error}
+                id={ids.error}
+                className="col-span-full row-start-[-5] mt-0 data-open:mt-0"
+              />
+              <FieldMessageLine
+                kind="warning"
+                content={warningText}
+                id={ids.warning}
+                className="col-span-full row-start-[-4] mt-0 data-open:mt-0"
+              />
+              <FieldMessageLine
+                kind="success"
+                content={successText}
+                id={ids.success}
+                className="col-span-full row-start-[-3] mt-0 data-open:mt-0"
+              />
+              <FieldMessageLine
+                kind="info"
+                content={infoText}
+                id={ids.info}
+                className="col-span-full row-start-[-2] mt-0 data-open:mt-0"
+              />
+            </>
+          );
+        }}
+      </BaseField.Validity>
     </BaseField.Root>
-  );
-}
-
-// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI 自身が見つけたエラーを読む（design/adr/0255）
-// validate など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
-function SwitchErrorLine({
-  errorText,
-  id,
-  className,
-  name,
-  disabled,
-}: {
-  errorText?: FieldMessage;
-  id: string;
-  className?: string;
-  name: string | undefined;
-  disabled: boolean | undefined;
-}) {
-  const formErrors = useFormFieldErrors();
-  return (
-    <BaseField.Validity>
-      {(validity) => {
-        const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
-        return (
-          <FieldMessageLine
-            kind="error"
-            content={errorText ?? baseError}
-            id={id}
-            className={className}
-          />
-        );
-      }}
-    </BaseField.Validity>
   );
 }

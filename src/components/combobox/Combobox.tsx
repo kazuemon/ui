@@ -28,6 +28,7 @@ import {
 import { useKeyboardProxy } from '../../internal/combobox-base/use-keyboard-proxy';
 import { useScrollRestore } from '../../internal/combobox-base/use-scroll-restore';
 import { useDensityScope } from '../../internal/density-scope';
+import { renderFieldAddon } from '../../internal/field/FieldBox';
 import {
   Field,
   type FieldLoadingBehavior,
@@ -83,6 +84,7 @@ import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-d
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 
@@ -150,6 +152,17 @@ export interface ComboboxControlProps<Multiple extends boolean = false> {
    * まだ選んでいないと分かる書き方にします
    */
   placeholder?: string;
+  /**
+   * 本体の前に付く文字（グレーのラベル）。例: 都道府県を選んだあとの市区町村の欄に「東京都」。
+   * 文字は欄の説明としてまとめて読み上げられ、文字そのものは読み上げから外れます。シートの中の打つ欄には付けません。
+   * `multiple` では使えません（チップが折り返す欄の前に置く形は決めていないため、付けません）
+   */
+  prefix?: ReactNode;
+  /**
+   * prefix の形。attached は本体の端に接する塊、floating は本体の内側に 4px 浮かせます（design/adr/0035）
+   * @default 'attached'
+   */
+  addonShape?: AddonShape;
   /**
    * スマホのキーボードの実行キーの表示。
    * Enter は候補の選択に使うので、欄が並んでいても「次へ」にせず、Enter を欄へ届けます
@@ -454,6 +467,8 @@ export function ComboboxControl<Multiple extends boolean = false>({
   groupLabelStyle = 'label',
   showGroupSeparator = false,
   placeholder,
+  prefix,
+  addonShape = 'attached',
   enterKeyHint = 'enter',
   multiple: multipleProp,
   value,
@@ -661,13 +676,31 @@ export function ComboboxControl<Multiple extends boolean = false>({
   // 欄の中身（打つ欄・チップ・端のボタン）。multiple ではチップと打つ欄を Chips の中に並べる（← でチップへ移れる）
   // シートの中に打つ欄を移すとき（sheetInput="inside"）は、同じものをシートの見出しの下に置く
   // 並びと余白は src/internal/combobox-base（TagsInput と共有）
-  const renderControl = (place: 'field' | 'sheet', messageIds: string | undefined) => {
+  const renderControl = (place: 'field' | 'sheet', fieldMessageIds: string | undefined) => {
     const inSheet = place === 'sheet';
+    // 本体の前の文字（Select・TextField と同じ）。欄の説明につなぎ、文字は読み上げから外す。シートの中の打つ欄と multiple には付けない
+    const before = renderFieldAddon(inSheet || multiple ? null : prefix, `${sheetId}prefix`);
+    const messageIds = [before.describedBy, fieldMessageIds].filter(Boolean).join(' ') || undefined;
     return (
       <BaseCombobox.InputGroup
         ref={inSheet ? undefined : setFieldElement}
         data-slot={inSheet ? 'combobox-sheet-input' : 'control'}
         data-field-readonly={readOnly || undefined}
+        data-addon-shape={addonShape}
+        // prefix の文字を押しても、打つ欄にフォーカスを移す（TextField と同じ）
+        onMouseDown={
+          before.addon
+            ? (event) => {
+                if (
+                  event.target instanceof Element &&
+                  event.target.closest('[data-slot="field-addon"]')
+                ) {
+                  event.preventDefault();
+                  event.currentTarget.querySelector('input')?.focus();
+                }
+              }
+            : undefined
+        }
         style={multiple ? chipHeightStyle : undefined}
         className={comboboxControl({
           color,
@@ -678,6 +711,7 @@ export function ComboboxControl<Multiple extends boolean = false>({
           ],
         })}
       >
+        {before.addon}
         {multiple ? (
           <ComboboxChips
             labelOf={labelOf}
@@ -750,6 +784,8 @@ export function ComboboxControl<Multiple extends boolean = false>({
 
   // シートの中に打つ欄を移したとき（sheetInput="inside"）の本体。押すと開くボタンで、形は Select の本体と同じ
   // 選んだ値は文字（単数）かチップ（multiple）で出す。チップの × はボタンの中に置けないので、外す操作はシートの中で行う
+  // 開くボタンの前の文字も、打つ欄と同じく説明につなぎ、文字は読み上げから外す
+  const triggerPrefix = renderFieldAddon(multiple ? null : prefix, `${sheetId}trigger-prefix`);
   const renderTrigger = (messageIds: string | undefined) => (
     <>
       <BaseCombobox.Trigger
@@ -757,12 +793,15 @@ export function ComboboxControl<Multiple extends boolean = false>({
         onClick={
           focusInputOnOpen ? (event) => keyboardProxy.focusProxy(event.currentTarget) : undefined
         }
-        aria-describedby={messageIds}
+        aria-describedby={
+          [triggerPrefix.describedBy, messageIds].filter(Boolean).join(' ') || undefined
+        }
         aria-required={required || undefined}
         aria-disabled={blocking || undefined}
         aria-busy={loading || undefined}
         data-slot="control"
         data-field-readonly={readOnly || undefined}
+        data-addon-shape={addonShape}
         className={comboboxControl({
           color,
           loading,
@@ -770,9 +809,12 @@ export function ComboboxControl<Multiple extends boolean = false>({
             'text-left',
             multiple && 'h-auto min-h-(--spacing-control) flex-wrap py-(--spacing)',
             blocking ? 'cursor-progress' : readOnly ? 'cursor-default' : 'cursor-pointer',
+            // prefix は本体の左の余白を打ち消して、端から置く（Select と同じ）
+            '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
           ],
         })}
       >
+        {triggerPrefix.addon}
         <BaseCombobox.Value>
           {(selectedValue: string | string[] | null) => {
             const values = Array.isArray(selectedValue) ? selectedValue : [];
