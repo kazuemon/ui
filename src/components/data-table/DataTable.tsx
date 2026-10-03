@@ -5,7 +5,6 @@ import { type ComponentProps, type CSSProperties, type ReactNode, useId } from '
 import type { ChoiceColor } from '../../internal/choice/choice-styles';
 import { tableStyles } from '../../internal/reading/table';
 import { ScrollFrame } from '../../internal/ScrollFrame';
-import { TableVariantContext } from '../../internal/table-variant-context';
 import { tv } from '../../internal/tv';
 import type { TableVariant, TableVerticalAlign } from '../table/Table';
 import { DataTableContext } from './data-table-context';
@@ -199,7 +198,7 @@ export function DataTable({
             aria-busy={loading || undefined}
             {...props}
           >
-            <TableVariantContext value={variant ?? 'lines'}>{children}</TableVariantContext>
+            {children}
           </table>
         </ScrollFrame>
         {caption == null ? null : (

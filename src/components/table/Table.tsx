@@ -4,7 +4,6 @@ import { type ComponentProps, type ReactNode, useId, useRef } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { tableStyles } from '../../internal/reading/table';
-import { TableVariantContext } from '../../internal/table-variant-context';
 import { tv } from '../../internal/tv';
 import { useScrollable } from '../../internal/use-scrollable';
 
@@ -131,7 +130,7 @@ export function Table({
           aria-label={ariaLabel}
           {...props}
         >
-          <TableVariantContext value={variant ?? 'lines'}>{children}</TableVariantContext>
+          {children}
         </table>
       </div>
       {caption == null ? null : (

@@ -675,7 +675,7 @@ export const TableRows: Story = {
     docs: {
       description: {
         story:
-          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみの列は部品が足さないので、つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）を、置きたいセルの中に入れます。ふつうは先頭に取っ手の列、末尾に操作の列を足し、見出しのセルは読み上げだけの文字（`VisuallyHidden`）にします。それだけを入れたセルは、中身の幅に詰まります。行のどこを掴んでも引けるようにするときは `grabArea="item"` を付けます（つまみを置くかは使う側が決めます。キーボードで動かすにはつまみか ︙ が要ります）。引いている行は、リストと同じ面と影で浮かせ、少しだけ大きくします。外枠のある表（`variant="framed"`）の中では、枠の線とずれないよう大きくしません。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
+          '表の行を並べ替えるときは、`TableBody` の代わりに `SortableTableBody` を置き、`SortableItem` の `render` に `DataTableRow`（か `tr`）を渡します。props は `Sortable` と同じです。つまみの列は部品が足さないので、つまみ（`SortableHandle`）と移動の操作（`SortableItemActions`）を、置きたいセルの中に入れます。ふつうは先頭に取っ手の列、末尾に操作の列を足し、見出しのセルは読み上げだけの文字（`VisuallyHidden`）にします。それだけを入れたセルは、中身の幅に詰まります。行のどこを掴んでも引けるようにするときは `grabArea="item"` を付けます（つまみを置くかは使う側が決めます。キーボードで動かすにはつまみか ︙ が要ります）。引いている行は、リストと同じ面と影で浮かせます。表の行は幅いっぱいに並ぶので、表の見た目によらず大きくしません。ポインタで引くつなぎ方は Recipes/Sortable にあります。',
       },
     },
   },
@@ -720,7 +720,7 @@ export const TableRowLifted: Story = {
     docs: {
       description: {
         story:
-          '引いている行（`dragging`）は、リストと同じ面と影で浮かせ、少しだけ大きくします。外枠のある表（`variant="framed"`）の中では、枠の線とずれないよう大きくしません。',
+          '引いている行（`dragging`）は、リストと同じ面と影で浮かせます。表の行は幅いっぱいに並ぶので、`lines`・`framed`・`banded` のどれでも大きくしません。',
       },
     },
   },
@@ -737,8 +737,12 @@ export const TableRowLifted: Story = {
       const row = within(table).getByRole('button', { name: '図を描くを並べ替え' }).closest('tr');
       return row == null ? null : getComputedStyle(row).scale;
     };
-    await waitFor(() => expect(scaleOf(lines)).toBe('1.03'));
-    await waitFor(() => expect(scaleOf(banded)).toBe('1.03'));
-    await waitFor(() => expect(scaleOf(framed)).toBe('1'));
+    for (const table of [lines, framed, banded]) {
+      await waitFor(() => expect(['none', '1']).toContain(scaleOf(table)));
+      const row = within(table).getByRole('button', { name: '図を描くを並べ替え' }).closest('tr');
+      await waitFor(() =>
+        expect(row == null ? 'none' : getComputedStyle(row).boxShadow).not.toBe('none')
+      );
+    }
   },
 };

@@ -99,13 +99,12 @@ const sortable = tv({
       // つまみだけのセルでは、つまみの高さで行を支える（文字の行の高さからはみ出させない。はみ出すと表の枠がスクロールする）
       '[&>td>[data-slot=sortable-handle]:only-child]:my-0',
       '[&>td:has(>[data-slot=sortable-actions]:only-child)]:w-px [&>td:has(>[data-slot=sortable-actions]:only-child)]:px-0 [&>td:has(>[data-slot=sortable-actions]:only-child)]:py-0',
-      // 持ち上げた行: セルに面を敷き、行に影を落として、少しだけ大きく（リストの持ち上げた項目と同じ面・影・大きさ）
-      //   外枠のある表（framed）の中では大きくしない（SortableTableBody が --sortable-lifted-scale を 1 にする）
+      // 持ち上げた行: セルに面を敷き、行に影を落とす（リストの持ち上げた項目と同じ面と影）。表の行は幅いっぱいに並ぶので、大きくするとはみ出す（列の線もずれる）。形によらず大きくしない
       //   面はセルに置く（dnd-kit が引いている行の背景を消すため）
       'data-dragging:relative data-dragging:z-1 data-dragging:cursor-grabbing',
-      'data-dragging:scale-(--sortable-lifted-scale) data-dragging:[box-shadow:var(--sortable-lifted-shadow)] data-dragging:*:bg-(color:--sortable-lifted-bg)',
-      'data-dragging:[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press)]',
-      'data-dragging:starting:scale-100 data-dragging:starting:[box-shadow:none]',
+      'data-dragging:[box-shadow:var(--sortable-lifted-shadow)] data-dragging:*:bg-(color:--sortable-lifted-bg)',
+      'data-dragging:[transition:box-shadow_var(--duration-press)_var(--ease-press)]',
+      'data-dragging:starting:[box-shadow:none]',
       'motion-reduce:[transition:none]',
       // 入る場所（DragOverlay で写しを描くとき）: セルの中身を消し、点線の枠を残す
       'data-drag-source:[outline-style:dashed] data-drag-source:*:text-transparent data-drag-source:*:*:opacity-0',
