@@ -501,16 +501,17 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 ### Sortable
 
-2026-09-28 に作りました。決定は [ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0342](./adr/0342-sortable-move-actions.md) です。
+2026-09-28 に作りました。決定は [ADR-0335](./adr/0335-headless-look-only-recipes.md)〜[ADR-0342](./adr/0342-sortable-move-actions.md) です。表の行・動かさない行・︙ のメニューの組み直しは [ADR-0420](./adr/0420-sortable-row-handle-column.md)〜[ADR-0423](./adr/0423-sortable-menu-items.md) で決めました。
 
-- 横向きのリストや、グリッド状の並び替えは持っていません。リストをまたぐ移動（Kanban のような列間のドラッグ）も、部品としてはまだ検討していません
+- 横向きのリストや、グリッド状の並び替えは持っていません。リストをまたぐドラッグ（Kanban のような列間のドラッグ）も、部品としてはまだ検討していません。︙ のメニューからリストをまたいで移す形はレシピ（`src/recipes/sortable-move-between-lists.tsx`）にしました（[ADR-0423](./adr/0423-sortable-menu-items.md)）
 - 入る場所（dragSource）は、周りをずらして空ける dnd-kit の既定の動きに合わせた形だけです。線だけで入る場所を示す形（周りを動かさない）は、[ADR-0339](./adr/0339-sortable-drop-slot.md) で候補にしていません
 - `grabArea="item"` にすると、指でリストの上をスクロールしようとしたときにも引き始めることがあります（[ADR-0340](./adr/0340-sortable-grab.md)）。指で使う画面でどう使い分けるかは、実機で確かめてから案内を足します
 - `moveActions="buttons"` の上へ・下へのボタンは、先頭へ・末尾へまとめて動かす操作を持ちません（`item-menu` の ︙ のメニューは先頭へ・末尾へも持ちます）。長い一覧での使い勝手は実機で見ます
 - Sortable は `color` を持ちません。並びそのものが値で、選んでいることを示す部品ではないため、意味の色を渡す場面がないと判断しました。項目の中に色付きの部品（Tag など）を置く形で対応します
 - 指での並べ替え（長押し・はじく動きとの兼ね合い）と、読み上げソフト（VoiceOver・NVDA など）での確かめは、まだしていません
-- **リストをまたぐ移動は、ドラッグでしかできません。** キーボード・︙ のメニュー・上へ下へのボタンは、1 つのリストの中だけを動かします。タスクボードの見本では、列を移す操作を詳細のパネルの Select に置きました。部品で持つなら、︙ のメニューに「〜へ移す」を足す形が考えられます（2026-09-28、見本のページで気づいたこと）
 - レシピ（`src/recipes/sortable-dnd-kit.tsx`）は、1 つのリストの例だけです。dnd-kit 0.5 の optimistic sorting は、置く先が sortable のときしか働きません。そのため複数のリストで空の列（`useDroppable`）に置くには、`onDragOver` で `move` を呼ぶ必要がありました。レシピの注意書き（optimistic sorting に任せる前提）とずれるので、複数のリストのレシピを足すかを決めます（2026-09-28、見本のページで気づいたこと）
+- divided のリストで引いているとき、DragOverlay の中に描く写しは、リストの variant を受け取らず既定の card で描かれます。写しにも divided の見た目（区切りの線・角）を渡すかを決めます（2026-10-01、[ADR-0421](./adr/0421-sortable-row-lifted.md) の記録で気づいたこと）
+- `hideMoveItems`（既定の項目を消す）と `useSortableItemActions`（動かす関数を読むフック）の名前を、`design/props.md` の語彙に足すかを決めます。`hideMoveItems` は「既定で出るものは hide」の決まりに沿っていますが、語彙の一覧には載っていません（[ADR-0423](./adr/0423-sortable-menu-items.md)）
 
 ### DataTable
 
