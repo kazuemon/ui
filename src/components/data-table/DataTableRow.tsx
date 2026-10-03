@@ -17,6 +17,7 @@ import { DataTableContext } from './data-table-context';
 //   キーボードと読み上げは DataTableRowLink（本物の a）で移る。行そのものはフォーカスに止まらない
 //   押したときは、載せたときのグレーに本文の色を少し混ぜる（選んだ行に載せたときと同じ混ぜ方）
 //   行の中のボタン・箱・リンクを押したときと、文字を選んだときは移らない
+//   中ボタン（ホイール）で押したときは、行のリンクの行き先を新しいタブで開く（リンクの文字を中ボタンで押したときと同じ）
 const row = tv({
   base: [
     'bg-(--data-table-row-bg) [--data-table-row-bg:var(--data-table-row-rest,transparent)]',
@@ -77,27 +78,21 @@ export interface DataTableRowProps extends TableRowProps {
 
 /**
  * 本文の行（tr）。載せると淡く塗り、選んだ行には面を敷きます。
- * 中に DataTableRowLink を置くと、行のどこを押してもそのリンクで移ります
+ * 中に DataTableRowLink を置くと、行のどこを押してもそのリンクで移ります（中ボタンでは新しいタブで開きます）
  */
 export function DataTableRow({
   selected,
   status,
   className,
   onClick,
+  onAuxClick,
   ...props
 }: DataTableRowProps) {
   const { statusIndicator } = useContext(DataTableContext);
   const handleClick = (event: MouseEvent<HTMLTableRowElement>) => {
     onClick?.(event);
-    if (event.defaultPrevented) return;
-    // 行の外の DOM（行の中のメニュー・ポップオーバーが portal で開いた面）からの押下は、React の木を伝って届くので除く
-    if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return;
-    if (event.target instanceof Element && event.target.closest(interactive)) return;
-    const anchor = event.currentTarget.querySelector<HTMLElement>(
-      '[data-slot="data-table-row-link"]'
-    );
+    const anchor = rowLinkFor(event);
     if (!anchor) return;
-    if (window.getSelection()?.toString()) return;
     // 修飾キー（新しいタブで開く）もそのまま渡す
     anchor.dispatchEvent(
       new window.MouseEvent('click', {
@@ -111,6 +106,14 @@ export function DataTableRow({
       })
     );
   };
+  // 中ボタンは click が来ないので auxclick で拾う。転送した click では新しいタブにならないので、行き先を開く
+  const handleAuxClick = (event: MouseEvent<HTMLTableRowElement>) => {
+    onAuxClick?.(event);
+    if (event.button !== 1) return;
+    const href = rowLinkFor(event)?.getAttribute('href');
+    if (href == null) return;
+    window.open(new URL(href, document.baseURI).href, '_blank', 'noopener,noreferrer');
+  };
   return (
     <TableRow
       data-slot="data-table-row"
@@ -118,7 +121,18 @@ export function DataTableRow({
       data-status={status}
       className={row({ statusIndicator, className })}
       onClick={handleClick}
+      onAuxClick={handleAuxClick}
       {...props}
     />
   );
+}
+
+// 行を押したことにする押下なら、行のリンクの要素を返す
+function rowLinkFor(event: MouseEvent<HTMLTableRowElement>) {
+  if (event.defaultPrevented) return null;
+  // 行の外の DOM（行の中のメニュー・ポップオーバーが portal で開いた面）からの押下は、React の木を伝って届くので除く
+  if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return null;
+  if (event.target instanceof Element && event.target.closest(interactive)) return null;
+  if (window.getSelection()?.toString()) return null;
+  return event.currentTarget.querySelector<HTMLElement>('[data-slot="data-table-row-link"]');
 }

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { Fragment, type MouseEvent, useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, spyOn, userEvent, within } from 'storybook/test';
 
 import { DataTable, type DataTableProps } from './DataTable';
 import { DataTableEmpty } from './DataTableEmpty';
@@ -746,6 +746,30 @@ export const RowLinkBehavior: Story = {
     await userEvent.click(canvas.getByText('そらいろ書房（リンクのない行）'));
     await expect(went).toHaveBeenCalledTimes(2);
     await expect(canvas.getAllByRole('link')).toHaveLength(3);
+    // 中ボタン（ホイール）で行を押すと、行のリンクの行き先を新しいタブで開く
+    const open = spyOn(window, 'open').mockImplementation(() => null);
+    try {
+      await userEvent.pointer({
+        keys: '[MouseMiddle]',
+        target: canvas.getByText('港町ベーカリー'),
+      });
+      await expect(open).toHaveBeenCalledTimes(1);
+      await expect(open).toHaveBeenLastCalledWith(
+        new URL('#/orders/A-1026', document.baseURI).href,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      // リンクのない行は開かない。左ボタンの押下は新しいタブにしない
+      await userEvent.pointer({
+        keys: '[MouseMiddle]',
+        target: canvas.getByText('そらいろ書房（リンクのない行）'),
+      });
+      await userEvent.click(canvas.getByText('港町ベーカリー'));
+      await expect(open).toHaveBeenCalledTimes(1);
+      await expect(went).toHaveBeenCalledTimes(3);
+    } finally {
+      open.mockRestore();
+    }
   },
 };
 
