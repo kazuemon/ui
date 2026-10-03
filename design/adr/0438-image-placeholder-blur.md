@@ -22,13 +22,19 @@ Image の仮画像（placeholder）を、どれだけぼかして敷くかを決
 
 ## 決定
 
-**ぼかしは 8px を既定にします（B）。** `placeholderBlur` で `none`・`sm`・`md`・`lg`（0・8・16・32px）から選べます。既定は `sm` です。
+**ぼかしは 8px を既定にします（B）。** `placeholderBlur` で `none`・`sm`・`md`・`lg`（0・8・12・16px）から選べます。既定は `sm` です。
+
+段の値は、はじめ比較の C・D にならって 0・8・16・32px にしましたが、レビューで Tailwind の `blur-sm`・`blur-md`・`blur-lg` の値（8・12・16px）にそろえました。既定の `sm`（8px）は変わりません。
 
 ## 理由
 
 ユーザーの返事の原文です。
 
 > 493 選べると良さそうですが、デフォルトは B ですかね。
+
+段の値を Tailwind にそろえたときの、レビューでの返事の原文です。
+
+> 4984-4 は B で揃えてしまって OK。他はお勧めの通り
 
 ## 却下した案と理由
 
@@ -38,6 +44,7 @@ Image の仮画像（placeholder）を、どれだけぼかして敷くかを決
 
 - `src/components/image/Image.tsx`: `placeholderBlur`（既定 `sm`）を持ちます
 - 比べるために置いた 1 つのトークンは、実装のコミット `e46af66` で段ごとのトークン（`--image-placeholder-blur-sm`・`-md`・`-lg`）に畳みました
+- レビューで、段のトークンの値を Tailwind の blur の段（8・12・16px）にそろえました。`md`・`lg` は、比較の C・D より弱くなります
 - 比較のストーリーと、その見本の画像（`axis-image-samples.ts`）は消しました
 
 ## 原則への反映

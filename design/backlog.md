@@ -494,7 +494,6 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - `placeholder` の名前は、props.md の語彙の意味（空のときに例として出す文字）とぶつかります。仮画像を指す名前にするかは決めていません
 - 仮画像の上に、読み込み中の光を流すかは決めていません
-- `placeholderBlur` の段の値（8・16・32px）は、Tailwind の `blur-md`・`blur-lg` の値と違います
 
 ### Sortable
 
