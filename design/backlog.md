@@ -158,6 +158,7 @@
 - Navbar のメニューを開いたとき、actions（Contact などのボタン）をメニューの中にも出すかは決めていません
 - **貼り付けた（sticky）Navbar があるページで、アンカーリンクで移った見出しが帯の下に隠れます（2026-09-23、ドキュメントサイトで気づきました）。** 見出しに `scroll-margin-top`（Navbar の高さ + 下の線の太さ。`--navbar-height` + `--border-width-thin`）を付けるのは、いまは使う側の責任です（`apps/docs/app/globals.css` で対応）。見出しはライブラリのコンポーネントではなく、必要なオフセットは使う側の構成（sticky にするか、高さ）次第なので、いまはアプリ側に留めています。2つ目の消費者が同じ対応をするときは、レシピか公開のトークンにまとめるかを検討します
 - ヒーロー画像に Navbar を重ねる（`transparent-until-scroll`）には、ページ側で帯の高さを打ち消す必要があります（ストーリーでは `-mb-(--navbar-height)`）。部品で口を持つかは決めていません
+- 文字を白くする透かし（`transparentVariant` の scrim・text-shadow）で、白い文字に戻すのは入力欄と塗りのあるボタンだけです。自分の面を持つほかの部品（SegmentedControl・Tag など）を帯に置くと、白い面に白い文字が載ります（[ADR-0455](./adr/0455-navbar-transparent-top.md)）
 
 ### Tabs
 
