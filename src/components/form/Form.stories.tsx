@@ -654,13 +654,14 @@ export const FormErrorText: Story = {
 };
 
 // 送り直しても前のエラーを消さないアプリ。送っているあいだは、前のエラーのお知らせへフォーカスを移さない
-function FormErrorTextKeptForm() {
+function FormErrorTextKeptForm({ withSummary = false }: { withSummary?: boolean }) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string>();
   const [count, setCount] = useState(0);
   return (
     <Form
       formErrorText={formError}
+      showErrorSummary={withSummary}
       submitting={submitting}
       onSubmit={(event) => {
         event.preventDefault();
@@ -674,6 +675,14 @@ function FormErrorTextKeptForm() {
       className="flex max-w-sm flex-col gap-5"
     >
       <TextField name="email" label="メールアドレス" defaultValue="kazuemon@example.com" />
+      {withSummary && (
+        <TextField
+          name="displayName"
+          label="表示名"
+          autoComplete="off"
+          errorText={count > 0 ? '表示名を入力してください' : undefined}
+        />
+      )}
       <Button type="submit" color="primary" className="self-start">
         登録する
       </Button>
@@ -694,6 +703,33 @@ export const FormErrorTextResubmit: Story = {
     const panel = first.closest('[data-slot="form-error-summary"]');
     await waitFor(() => expect(panel).toHaveFocus());
     // 送り直す: 送っているあいだは、前のエラーへフォーカスを移さない
+    await userEvent.click(button);
+    await expect(panel).not.toHaveFocus();
+    await canvas.findByText('通信できませんでした（2 回目）', undefined, { timeout: 3000 });
+    await waitFor(() =>
+      expect(
+        canvas
+          .getByText('通信できませんでした（2 回目）')
+          .closest('[data-slot="form-error-summary"]')
+      ).toHaveFocus()
+    );
+  },
+};
+
+// 欄のエラーの一覧も残したまま送り直す: 送っているあいだは、一覧を含むお知らせへフォーカスを移さない
+export const FormErrorTextResubmitWithSummary: Story = {
+  name: 'どの欄にも結び付かないエラー: 一覧を残したまま送り直す',
+  parameters: { controls: { disable: true } },
+  render: () => <FormErrorTextKeptForm withSummary />,
+  play: async ({ canvas }) => {
+    const button = canvas.getByRole('button', { name: '登録する' });
+    await userEvent.click(button);
+    const first = await canvas.findByText('通信できませんでした（1 回目）', undefined, {
+      timeout: 3000,
+    });
+    const panel = first.closest('[data-slot="form-error-summary"]');
+    await waitFor(() => expect(panel).toHaveFocus());
+    await canvas.findByRole('link', { name: /表示名を入力してください/ });
     await userEvent.click(button);
     await expect(panel).not.toHaveFocus();
     await canvas.findByText('通信できませんでした（2 回目）', undefined, { timeout: 3000 });

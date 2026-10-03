@@ -251,8 +251,9 @@ export function Form({
     const entries = collectErrors(form);
     const summaryShown = errorSummaryRef.current && entries.length > 0;
     setSummary(summaryShown ? { entries } : null);
-    // 送り始めて submitting にした描画では、前の送信の formErrorText へは移さない（送り終えたときに移す）
-    if (summaryShown || (formErrorRef.current && !submittingRef.current)) {
+    // 送り始めて submitting にした描画では、前の送信のエラー（formErrorText・一覧・欄）へは移さない（送り終えたときに移す）
+    if (submittingRef.current) return;
+    if (summaryShown || formErrorRef.current) {
       setPanelFocus(focusCount);
       return;
     }
