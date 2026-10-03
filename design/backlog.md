@@ -539,6 +539,13 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - 読み取り専用のカーソルは矢印（`default`）、Form の送信中は禁止の形にしました。Radio の方針（読み取り専用はカーソルを禁止の形にしない）に合わせましたが、この部品で決めた記録はありません
 - 項目を並べ替えたとき（溝の大きさが変わらないとき）に下地を置き直すことは、play で確かめられていません。外された項目の大きさの見張りも解いていないので、項目が何度も入れ替わる使い方で溜まらないかは見ていません
 
+### RadioGroup・CheckboxGroup・Divider・Gallery（軸 408〜411）
+
+2026-10-01 に決めました。決定は [ADR-0390](./adr/0390-choice-group-horizontal.md)〜[ADR-0396](./adr/0396-gallery-loading.md) です。
+
+- RadioGroup・CheckboxGroup の横並びで、列の数を指定する `columns`（案: `columns?: 2 | 3 | 4`）を足すかは決めていません。`itemWidth="equal"` の列の数は、いまは入れ物の幅で決まります（[ADR-0392](./adr/0392-choice-group-item-width.md)）
+- ラベル付きの Divider で、ラベルを左に寄せる形は決めていません。いまは真ん中だけです（[ADR-0393](./adr/0393-divider-label.md)）
+
 ## レシピの案
 
 - レシピは README の一覧に載せず、要るときに `src/recipes/` へ直接足します（2026-09-20）。いまの案:

@@ -804,6 +804,12 @@
   --color-choice-frame-notch-bg: var(--color-surface);
   --choice-frame-pad-y: var(--spacing);
   --choice-frame-notch-gap: calc(var(--spacing) * 1.5);
+  /* グループの選択肢を横に並べる（RadioGroup・CheckboxGroup の direction="horizontal"）— 軸 408
+     既定は選択肢ごとの文字の幅のまま、折り返さずに並べる。折り返し（wrap）と同じ幅の列（itemWidth="equal"）を選べる
+     group-gap-x: 横に並んだ選択肢どうしの間。行の上下にはすでに余白があるので、折り返した行の間は足さない
+     group-column-min: 同じ幅の列で折り返すときの、1 列のいちばん狭い幅 */
+  --choice-group-gap-x: calc(var(--spacing) * 6);
+  --choice-group-column-min: calc(var(--spacing) * 40);
 
   /* ── 小物（Tag・Badge・Chip）の大きさ ── sm・md・lg・inherit の 1 本の軸（ADR-0259）
      値は src/internal/small-parts-size.ts に持ち、Tag・Badge・Chip の tv の size 変化が --tag-*・--badge-*・--chip-* を差し替える。

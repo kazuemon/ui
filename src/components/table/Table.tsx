@@ -181,10 +181,11 @@ export interface TableHeaderProps extends Omit<ComponentProps<'th'>, 'align'> {
    */
   verticalAlign?: TableVerticalAlign;
   /**
-   * 見出しがどちらの向きのセルを指すか。見出しの行では col、行の頭では row にします
+   * 見出しがどちらの向きのセルを指すか。見出しの行では col、行の頭では row にします。
+   * いくつかの列をまとめる見出し（colSpan を付けた上の段）は colgroup、グループに分けた行の見出し（tbody ごとの見出しの行）は rowgroup にします
    * @default 'col'
    */
-  scope?: 'col' | 'row';
+  scope?: 'col' | 'row' | 'colgroup' | 'rowgroup';
   /** 見出しのセルの中身 */
   children?: ReactNode;
   /** 見出しのセルの要素（th）に付きます */
