@@ -64,7 +64,8 @@ const callout = tv({
           // 帯の上下の余白: 囲みの余白（--callout-row-band: 0）か、開閉の行と同じく部品の高さの帯にする余白（1）
           //   帯と中身のあいだは、帯にするときだけ帯の上下と同じだけ空ける
           '[--callout-row-pad-y:calc(var(--spacing-control-x)+var(--callout-row-band)*(max(var(--spacing),(var(--spacing-control)-var(--leading-body))/2)-var(--spacing-control-x)))]',
-          '[--callout-panel-gap:calc(var(--callout-row-band)*var(--callout-row-pad-y))]',
+          // 帯と中身のあいだ: 帯の上下と同じだけ空けるか（--callout-row-gap。0・1、既定は --callout-row-band と同じ）
+          '[--callout-panel-gap:calc(var(--callout-row-gap,var(--callout-row-band))*var(--callout-row-pad-y))]',
           '[--callout-panel-inset:0px] has-[[data-slot=callout-trigger]>[data-slot=notice-icon]]:[--callout-panel-inset:calc(var(--spacing-icon)+var(--spacing-control-x)-var(--spacing))]',
         ],
       },
