@@ -79,13 +79,13 @@ export interface DataTableRowProps extends TableRowProps {
   status?: DataTableRowStatus;
 }
 
+// 行からリンクへ転送した click。行へ戻ってきたときに、行の onClick をもう一度呼ばないために覚える
+const forwardedClicks = new WeakSet<Event>();
+
 /**
  * 本文の行（tr）。載せると淡く塗り、選んだ行には面を敷きます。
  * 中に DataTableRowLink を置くと、行のどこを押してもそのリンクで移ります（中ボタンでは新しいタブで開きます）
  */
-// 行からリンクへ転送した click。行へ戻ってきたときに、行の onClick をもう一度呼ばないために覚える
-const forwardedClicks = new WeakSet<Event>();
-
 export function DataTableRow({
   selected,
   status,
