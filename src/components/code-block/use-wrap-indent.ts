@@ -6,11 +6,12 @@ import { type RefObject, useLayoutEffect } from 'react';
 // 行頭の空白の桁数を数え、行（.line）の --cb-line-indent に文字の数（ch）で書く。下げ方は CodeBlock の wrap のクラス
 // 字下げのない行は 0 なので、続きの行は行の頭にそろう
 
-/** 行頭の空白が何桁ぶんか。タブは次のタブ位置まで進める */
+/** 行頭の空白が何桁ぶんか。タブは次のタブ位置まで進め、全角の空白（U+3000）は 2 桁に数える */
 export function leadingColumns(text: string, tabSize: number) {
   let columns = 0;
   for (const char of text) {
     if (char === ' ') columns += 1;
+    else if (char === '\u3000') columns += 2;
     else if (char === '\t') columns += tabSize - (columns % tabSize);
     else break;
   }
