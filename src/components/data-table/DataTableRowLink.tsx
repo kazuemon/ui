@@ -37,9 +37,10 @@ export interface DataTableRowLinkProps extends Omit<
 export function DataTableRowLink({ className, ...props }: DataTableRowLinkProps) {
   return (
     <Link
-      data-slot="data-table-row-link"
       className={[textLinkSizeReset, rowHover, className].filter(Boolean).join(' ')}
       {...props}
+      // 行の押下が探す印。使う側の data-slot で上書きさせない
+      data-slot="data-table-row-link"
       variant="text"
     />
   );

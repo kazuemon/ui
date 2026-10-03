@@ -123,7 +123,7 @@ export function DataTableExpandRow({
 }: DataTableExpandRowProps) {
   const s = expandRow({ variant });
   return (
-    <tr data-slot="data-table-expand-row" data-variant={variant} hidden={!open} {...props}>
+    <tr data-slot="data-table-expand-row" data-variant={variant} {...props} hidden={!open}>
       <td colSpan={columns} className={s.cell()}>
         <div className={s.content()}>{children}</div>
       </td>
