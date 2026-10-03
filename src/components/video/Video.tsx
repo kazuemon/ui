@@ -17,7 +17,7 @@ import { toMediaSize } from '../../internal/media-size';
 import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
-import { AspectRatio } from '../aspect-ratio/AspectRatio';
+import { AspectRatio, type MediaFit } from '../aspect-ratio/AspectRatio';
 import { figureCaptionClass, figureClass } from '../figure/Figure';
 import { VideoBrokenIcon } from './video-icons';
 
@@ -102,8 +102,8 @@ const styles = tv({
 export type VideoRadius = NonNullable<VariantProps<typeof styles>['radius']>;
 /** 再生前に重ねる大きな再生ボタンの見た目。raised は円形・primary の塗り・浮いた影、flat は白の半透明・影なし */
 export type VideoPlayButtonVariant = NonNullable<VariantProps<typeof styles>['playButtonVariant']>;
-/** 動画の収め方。cover は枠に合わせて切り取り、contain は切り取らず収めて余白を残します */
-export type VideoFit = 'cover' | 'contain';
+/** 動画の収め方。MediaFit と同じです */
+export type VideoFit = MediaFit;
 
 export interface VideoProps extends Omit<
   ComponentProps<'video'>,
@@ -123,7 +123,7 @@ export interface VideoProps extends Omit<
    * 余白ができたところは面の色（読み込み中と同じ塗り）で埋めます。切り取ると困る操作の録画・デモは contain、
    * それ以外は cover など、場面によって選び方が変わるため、既定値は持ちません。必ずどちらかを渡します
    */
-  fit: VideoFit;
+  fit: MediaFit;
   /**
    * ブラウザ標準の再生コントロール（再生・シーク・音量・全画面・字幕）を出します。
    * false にすると、大きな再生ボタンを面に重ね、自動再生・ループ・音なしの短い動画（GIF の代わり）にも使えます。
