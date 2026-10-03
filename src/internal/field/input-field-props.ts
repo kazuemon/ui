@@ -37,7 +37,8 @@ export interface InputFieldProps extends FieldMarkProps, FieldLabelLayoutProps {
   /**
    * 本体の大きさ。sm は表の行や小さな面の中、Button の size="sm" の横に置く、一段小さい欄です。
    * 高さ・文字・左右の余白・アイコンは Button の sm と同じで、指で押す画面でも小さいままです。指で押すことが多い画面の主な欄には md を使います。
-   * 文字が 16px より小さいので、iPhone の Safari ではフォーカスしたときに画面が拡大されます
+   * 文字が 16px より小さいので、iPhone の Safari ではフォーカスしたときに画面が拡大されます。
+   * prefix・suffix に置いたボタンも、欄の段に合わせて小さくなります
    * @default 'md'
    */
   size?: FieldSize;

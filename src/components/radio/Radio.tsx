@@ -49,7 +49,7 @@ export interface RadioProps extends Omit<
   caption?: ReactNode;
   /**
    * 横の文字と同じ行の右端に置くもの（値段など）。RadioGroup の frame="card" で使います。
-   * 読み上げでは選択肢の名前に入らないので、選ぶのに要る情報は label か caption にも書きます
+   * 読み上げでは選択肢の名前には入らず、説明（caption の前）として読みます
    */
   labelAside?: ReactNode;
   /** この選択肢の値。RadioGroup の value と突き合わせ、選ばれているかが決まります */
@@ -95,13 +95,17 @@ export function Radio({
 }: RadioProps) {
   const group = useContext(ChoiceGroupContext);
   const s = choiceStyles({ color: group?.color });
-  const card =
-    group?.frame === 'card'
-      ? radioCard({ color: group?.color, selectedIndicator: group?.selectedIndicator })
-      : undefined;
   // Form の送信中と読み取り専用（軸 177）は、押せない丸と同じ見た目にして選び直しを止める
   // 読み取り専用はグループ（RadioGroup の readOnly）からも来る
   const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
+  const card =
+    group?.frame === 'card'
+      ? radioCard({
+          color: group?.color,
+          selectedIndicator: group?.selectedIndicator,
+          readOnly: locked.readOnlyLook,
+        })
+      : undefined;
   return (
     <BaseField.Item
       disabled={disabled}
@@ -133,10 +137,15 @@ export function Radio({
       >
         {label}
       </BaseField.Label>
+      {/* 値段などは選ぶときの材料なので、説明として読み上げる（caption の前に読む） */}
       {labelAside != null && (
-        <span data-slot="radio-label-aside" className={card?.aside() ?? radioCard().aside()}>
+        <BaseField.Description
+          render={<span />}
+          data-slot="radio-label-aside"
+          className={card?.aside() ?? radioCard().aside()}
+        >
           {labelAside}
-        </span>
+        </BaseField.Description>
       )}
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
     </BaseField.Item>

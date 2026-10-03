@@ -4,6 +4,7 @@ import { expect, userEvent } from 'storybook/test';
 
 import { Radio, RadioGroup, RadioGroupControl } from './Radio';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Link } from '../link/Link';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
 
@@ -259,6 +260,60 @@ export const CardClick: Story = {
     await expect(hit?.tagName).toBe('LABEL');
     await userEvent.click(hit as HTMLElement);
     await expect(canvas.getByRole('radio', { name: 'フリー' })).toBeChecked();
+    // 値段は名前に入らず、説明として読む（caption の前）
+    await expect(canvas.getByRole('radio', { name: 'スタンダード' })).toHaveAccessibleDescription(
+      '月 500 円 記事 100 本まで'
+    );
+  },
+};
+
+export const CardWithLink: Story = {
+  name: 'カードの中のリンク',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '説明（`caption`）の中にリンクやボタンを置くと、カードの押せる範囲より上に出るので、マウスでもそのまま押せます。カードのほかの場所を押すと選ばれます。読み取り専用のカードは、マウスを載せても塗りを変えません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap gap-8">
+      <div className="w-72">
+        <RadioGroup label="プラン" frame="card" defaultValue="free">
+          <Radio value="free" label="フリー" caption="個人の試用に" labelAside="0 円" />
+          <Radio
+            value="standard"
+            label="スタンダード"
+            caption={
+              <>
+                記事 100 本まで。<Link href="#compare">詳しい比較</Link>
+              </>
+            }
+            labelAside="月 500 円"
+          />
+        </RadioGroup>
+      </div>
+      <div className="w-72">
+        <RadioGroup label="プラン（読み取り専用）" frame="card" readOnly defaultValue="free">
+          <Radio value="free" label="フリー" caption="個人の試用に" labelAside="0 円" />
+        </RadioGroup>
+      </div>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // リンクの上にあるのはリンク（押せる範囲の広がりに覆われない）
+    const link = canvas.getByRole('link', { name: '詳しい比較' });
+    // 折り返したときは外枠の真ん中が文字の外になるので、1 行目の真ん中で確かめる
+    const rect = link.getClientRects()[0];
+    const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    await expect(link.contains(hit)).toBe(true);
+    await expect(canvas.getByRole('radio', { name: 'スタンダード' })).not.toBeChecked();
+    // 読み取り専用のカードには、載せたときの塗りを付けない
+    const readOnlyGroup = canvas.getByRole('radiogroup', { name: 'プラン（読み取り専用）' });
+    const card = readOnlyGroup.querySelector<HTMLElement>('[data-radio-card]')!;
+    await expect(card.className).not.toContain('hover:');
   },
 };
 

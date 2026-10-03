@@ -181,7 +181,8 @@ export type RadioGroupFrame = 'none' | 'card';
  * カードの形の選択肢（RadioGroup の frame="card" — 軸 524）
  * カード（Card）と同じ白い面・細い輪郭・角。選択肢 1 つが 1 枚で、カード全体が押せる範囲（原則17）
  *   押せる範囲: 横の文字の ::after をカードいっぱいに広げる（文字を押すと選ばれるので、カードのどこを押しても選ばれる）
- *   hover: 押せるカードと同じ淡い塗り（--card-fill-hover）
+ *   hover: 押せるカードと同じ淡い塗り（--card-fill-hover）。読み取り専用のときは塗らない（原則 13）
+ *   中に置いたリンク・ボタンは、押せる範囲の広がりより上に出し、マウスでも押せるようにする
  *   選んでいる: 輪郭の上に Card の選んでいる線（--card-selected-line-width）を重ねる（寸法は変えない）。selectedIndicator="fill" では面も色（color）の淡い面にする
  *   フォーカス: キーボードのとき、丸ではなくカードの外に線を引く（押せる範囲の外形に出す）
  *   押せない: 面は白のまま、hover しない。横の文字は丸と一緒にグレー
@@ -194,10 +195,9 @@ export const radioCard = tv({
       'relative grid-cols-[auto_minmax(0,1fr)_auto] content-start rounded-card p-(--card-padding)!',
       'border-(length:--border-width-thin) border-(color:--color-surface-line)',
       'bg-(color:--radio-card-fill) [--radio-card-fill:var(--color-surface)]',
-      'hover:not-has-data-disabled:[--radio-card-fill:var(--card-fill-hover)]',
-      // 選んでいる面（--radio-card-selected-fill）の上に、hover では線の色を少し混ぜる
       'has-data-checked:[--radio-card-fill:var(--radio-card-selected-fill)]',
-      'has-data-checked:hover:not-has-data-disabled:[--radio-card-fill:color-mix(in_oklab,var(--radio-card-selected-fill),var(--radio-card-line)_var(--card-selected-hover-mix))]',
+      // 中に置いたリンク・ボタン（丸を除く）は、横の文字の広がり（label の ::after）より上に出す
+      '[&_:is(a,button):not([role=radio])]:relative [&_:is(a,button):not([role=radio])]:z-2',
       "after:pointer-events-none after:absolute after:-inset-(--border-width-thin) after:z-1 after:rounded-card after:border-(color:--radio-card-line) after:content-['']",
       'after:border-0 has-data-checked:after:border-(length:--card-selected-line-width)',
       'has-data-disabled:has-data-checked:after:opacity-(--disabled-opacity)',
@@ -211,6 +211,16 @@ export const radioCard = tv({
       'col-start-3 row-start-1 ps-(--choice-gap) text-(length:--text-control) leading-(--leading-control) whitespace-nowrap text-fg peer-data-disabled/box:text-(color:--color-on-field-disabled)',
   },
   variants: {
+    // 読み取り専用のカードは、載せても塗りを変えない
+    readOnly: {
+      false: {
+        item: [
+          'hover:not-has-data-disabled:[--radio-card-fill:var(--card-fill-hover)]',
+          // 選んでいる面（--radio-card-selected-fill）の上に、hover では線の色を少し混ぜる
+          'has-data-checked:hover:not-has-data-disabled:[--radio-card-fill:color-mix(in_oklab,var(--radio-card-selected-fill),var(--radio-card-line)_var(--card-selected-hover-mix))]',
+        ],
+      },
+    },
     color: {
       primary: {
         item: '[--radio-card-line:var(--color-primary)] [--radio-card-tint:var(--color-primary-subtle)]',
@@ -228,7 +238,7 @@ export const radioCard = tv({
       fill: { item: '[--radio-card-selected-fill:var(--radio-card-tint)]' },
     },
   },
-  defaultVariants: { color: 'neutral', selectedIndicator: 'line' },
+  defaultVariants: { color: 'neutral', selectedIndicator: 'line', readOnly: false },
 });
 
 /** カードの形の選択肢の、選んでいる見た目の形。Card の selectedIndicator と同じ値 */
