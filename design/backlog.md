@@ -853,5 +853,5 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `narrowPresentation="menu"`（[ADR-0364](./adr/0364-sidebar-narrow-menu.md)）では、件数は札ではなく、文字の後ろの「（n）」で出します。当面はこのままにします
 - Menu の項目にも、Sidebar の行と同じように件数（数字の札）や点を出せる口（MenuItem・MenuLinkItem・MenuSubmenu に Sidebar と同じ `badge` など）を作ります。できたら、`narrowPresentation="menu"` の件数もそれで出します
 - `SidebarLayout` の `resizable` で変えた幅は、部品の中では覚えません。使う側が `onWidthChange` で保存します
-- 子を持つ項目をリンクにする形（F96）は、将来見直すかもしれません。今は行全体で開け閉めし、まとめの行のページが要るときはまとめ方を変えます（[ADR-0469](./adr/0469-sidebar-parent-link.md)）。試作は `02b88e3` と ADR-0469 の画像にあります
+- 子を持つ項目をリンクにする形（F96）は、将来見直すかもしれません。今は行全体で開け閉めし、まとめの行のページが要るときはまとめ方を変えます（[ADR-0469](./adr/0469-sidebar-parent-link.md)）。試作は `0ebd6bf` と ADR-0469 の画像にあります
 - 畳んだ列の横に出す面は、マウスが行と面の外に `closeDelay` のあいだ出ると閉じます。この見張りは、押して開いた面にも効き、ページのほかの Menu の上も「中」と数えます。どう開いたか（載せた・押した・キーボード）で見張るかを分けるかは、ブラウザで動きを確かめてから決めます

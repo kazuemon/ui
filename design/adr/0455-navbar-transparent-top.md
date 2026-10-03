@@ -10,7 +10,7 @@ Navbar をヒーロー画像に重ね、いちばん上では透かしてスク�
 
 ## 候補
 
-比較は、決めた時点のコミット `6e91044` の比較のストーリー（`design/stories/axis-504-navbar-transparent-top.stories.tsx`）です。列は「明るい画像」「中間の色の画像」「暗い画像」「行き先に hover」「スクロールしたあと」です。
+比較は、決めた時点のコミット `a294709` の比較のストーリー（`design/stories/axis-504-navbar-transparent-top.stories.tsx`）です。列は「明るい画像」「中間の色の画像」「暗い画像」「行き先に hover」「スクロールしたあと」です。
 
 | 案                         | 面                              | 文字                   |
 | -------------------------- | ------------------------------- | ---------------------- |
@@ -44,7 +44,7 @@ Navbar をヒーロー画像に重ね、いちばん上では透かしてスク�
 ## 影響
 
 - `src/components/navbar/Navbar.tsx`: `stickyBackdrop` に `transparent-until-scroll` を足し、`transparentVariant`（`plain` が既定・`scrim`・`frosted`・`text-shadow`）を持ちます
-- `design/tokens.css`: 部品のトークン（`--navbar-scrim`・`--navbar-frosted-*`・`--navbar-on-image-fg` など）を足しました。比べるためだけの `--navbar-top-*` は、実装のコミット `57b7885` で畳んで消しました
+- `design/tokens.css`: 部品のトークン（`--navbar-scrim`・`--navbar-frosted-*`・`--navbar-on-image-fg` など）を足しました。比べるためだけの `--navbar-top-*` は、実装のコミット `e19502e` で畳んで消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -55,4 +55,4 @@ Navbar をヒーロー画像に重ね、いちばん上では透かしてスク�
 
 ![Navbar をいちばん上で透かすときの比較。現行版・A・B・C・D・E を、明るい画像・中間の色の画像・暗い画像・行き先に hover・スクロールしたあとの 5 列で並べたもの。A・C・D・E に採用の印。スクロールしたあとの列は、面が戻る途中の見た目](./assets/0455-navbar-transparent-top.png)
 
-決めた時点のコミットは、比較が `6e91044`、実装が `57b7885` です。`git checkout 6e91044 && pnpm storybook` で、比較のストーリー（`Design Review/504 いちばん上で透ける帯`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `a294709`、実装が `e19502e` です。`git checkout a294709 && pnpm storybook` で、比較のストーリー（`Design Review/504 いちばん上で透ける帯`）を決めたときの部品のまま開けます。

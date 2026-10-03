@@ -10,7 +10,7 @@ Navbar を貼り付けた（`sticky`）とき、読み進めるあいだは帯�
 
 ## 候補
 
-比較は、決めた時点のコミット `6e91044` の比較のストーリー（`design/stories/axis-503-navbar-hide-on-scroll.stories.tsx`）です。列は「広い帯」「狭い帯」で、枠の中をスクロールするか、ボタンで「下へ送って、少し戻す」を試せます。止めた画像では動きが見えないので、各案の動きを表にします。
+比較は、決めた時点のコミット `a294709` の比較のストーリー（`design/stories/axis-503-navbar-hide-on-scroll.stories.tsx`）です。列は「広い帯」「狭い帯」で、枠の中をスクロールするか、ボタンで「下へ送って、少し戻す」を試せます。止めた画像では動きが見えないので、各案の動きを表にします。
 
 | 案                               | 隠れるとき                                                                                                            | 戻るとき                                           | 濃さ         |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------ |
@@ -42,7 +42,7 @@ Navbar を貼り付けた（`sticky`）とき、読み進めるあいだは帯�
 
 - `src/components/navbar/Navbar.tsx`: `stickyBehavior`（`always` が既定・`hide-on-scroll`）を持ちます
 - `src/components/navbar/use-navbar-scroll.ts`: スクロールの量を帯の押し上げに写し、止まったら近いほうへ寄せます
-- `design/tokens.css`: 影まで見えなくなるよう余分に押し上げる幅 `--navbar-hide-shadow-room` だけを残します。比べるためだけの動きのトークン（`--navbar-hide-*`・`--navbar-show-*`・`--navbar-hide-opacity`・`--navbar-hide-follow`）は、実装のコミット `57b7885` で畳んで消しました
+- `design/tokens.css`: 影まで見えなくなるよう余分に押し上げる幅 `--navbar-hide-shadow-room` だけを残します。比べるためだけの動きのトークン（`--navbar-hide-*`・`--navbar-show-*`・`--navbar-hide-opacity`・`--navbar-hide-follow`）は、実装のコミット `e19502e` で畳んで消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -53,4 +53,4 @@ Navbar を貼り付けた（`sticky`）とき、読み進めるあいだは帯�
 
 ![Navbar をスクロールで隠すときの比較。現行版・A・B・C・D を、広い帯・狭い帯の 2 列で並べたもの。D に採用の印](./assets/0454-navbar-hide-on-scroll.png)
 
-決めた時点のコミットは、比較が `6e91044`、実装が `57b7885` です。`git checkout 6e91044 && pnpm storybook` で、比較のストーリー（`Design Review/503 スクロールで隠す帯`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `a294709`、実装が `e19502e` です。`git checkout a294709 && pnpm storybook` で、比較のストーリー（`Design Review/503 スクロールで隠す帯`）を決めたときの部品のまま開けます。
