@@ -10,7 +10,7 @@ DataTableRow の status（muted・warning・danger）を、行でどう見せる
 
 ## 候補
 
-比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-424-data-table-row-status.stories.tsx`）です。列は「通常・状態の行に hover・選んだ行・framed」です。
+比較は、決めた時点のコミット `63a2455` の比較のストーリー（`design/stories/axis-424-data-table-row-status.stories.tsx`）です。列は「通常・状態の行に hover・選んだ行・framed」です。
 
 | 案                | 見た目                                           |
 | ----------------- | ------------------------------------------------ |
@@ -51,4 +51,4 @@ D（文字の色だけ）と現行版（見た目なし）は、選ばれませ�
 
 ![DataTable の行の状態（現行版・A・B・C・D を、通常・hover・選んだ行・framed の 4 列で並べたもの。A・B・C に採用の印）](./assets/0416-data-table-row-status.png)
 
-決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/424 データの表の行の状態`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `63a2455`（比較）・`d42626c`（実装）です。`git checkout 63a2455 && pnpm storybook` で、比較のストーリー（`Design Review/424 データの表の行の状態`）を決めたときの部品のまま開けます。

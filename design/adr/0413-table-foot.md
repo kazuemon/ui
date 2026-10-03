@@ -10,7 +10,7 @@ Table に足した合計の行（TableFoot）に、本文の行と区別する�
 
 ## 候補
 
-比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-421-table-foot.stories.tsx`）です。列は「lines（既定）・framed・banded・合計が 3 行」です。
+比較は、決めた時点のコミット `63a2455` の比較のストーリー（`design/stories/axis-421-table-foot.stories.tsx`）です。列は「lines（既定）・framed・banded・合計が 3 行」です。
 
 | 案                | 見た目                              |
 | ----------------- | ----------------------------------- |
@@ -52,4 +52,4 @@ A（細い線）と現行版（見た目なし）は、選ばれませんでし�
 
 ![Table の合計の行（現行版・A・B・C・D を、lines・framed・banded・合計が 3 行の 4 列で並べたもの。B・C・D に採用の印）](./assets/0413-table-foot.png)
 
-決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/421 表の合計の行`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `63a2455`（比較）・`d42626c`（実装）です。`git checkout 63a2455 && pnpm storybook` で、比較のストーリー（`Design Review/421 表の合計の行`）を決めたときの部品のまま開けます。

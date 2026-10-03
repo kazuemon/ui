@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-425-data-table-refreshing.stories.tsx`）です。列は「読み直し中の lines・framed・banded・押して試す」です。
+比較は、決めた時点のコミット `63a2455` の比較のストーリー（`design/stories/axis-425-data-table-refreshing.stories.tsx`）です。列は「読み直し中の lines・framed・banded・押して試す」です。
 
 | 案                | 見た目                                    |
 | ----------------- | ----------------------------------------- |
@@ -50,4 +50,4 @@ C（線と本文の薄さの両方）は選ばれませんでした。線を足�
 
 ![DataTable の読み直し（現行版・A・B・C を、lines・framed・banded・押して試すの 4 列で並べたもの。A・B に採用の印）](./assets/0417-data-table-refreshing.png)
 
-決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/425 データの表の読み直し`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `63a2455`（比較）・`d42626c`（実装）です。`git checkout 63a2455 && pnpm storybook` で、比較のストーリー（`Design Review/425 データの表の読み直し`）を決めたときの部品のまま開けます。

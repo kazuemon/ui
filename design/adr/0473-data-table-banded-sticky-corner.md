@@ -12,7 +12,7 @@ DataTable の `banded`（丸い見出しの帯）に `maxHeight` を渡してス
 
 ## 候補
 
-比較は、決めた時点のコミット `18f3907` の比較のストーリー（`design/stories/axis-428-data-table-banded-sticky-corner.stories.tsx`）です。列は「スクロールしていない・少しスクロール・区切りの線が角を通る・スクロールした」です。
+比較は、決めた時点のコミット `2ffbd89` の比較のストーリー（`design/stories/axis-428-data-table-banded-sticky-corner.stories.tsx`）です。列は「スクロールしていない・少しスクロール・区切りの線が角を通る・スクロールした」です。
 
 | 案          | 帯の下の角                      | 角の外 | 影                                 |
 | ----------- | ------------------------------- | ------ | ---------------------------------- |
@@ -64,4 +64,4 @@ DataTable の `banded`（丸い見出しの帯）に `maxHeight` を渡してス
 
 ![banded の貼り付いた見出しの帯の角と影の比較。現行版・A〜E を、スクロールしていない・少しスクロール・区切りの線が角を通る・スクロールしたの 4 列で並べたもの。C に採用の印](./assets/0473-data-table-banded-sticky-corner.png)
 
-決めた時点のコミットは `18f3907`（比較）・`3cfe07b`（実装）です。`git checkout 18f3907 && pnpm storybook` で、比較のストーリー（`Design Review/428 貼り付いた帯の見出しの角と影`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `2ffbd89`（比較）・`d34e4cd`（実装）です。`git checkout 2ffbd89 && pnpm storybook` で、比較のストーリー（`Design Review/428 貼り付いた帯の見出しの角と影`）を決めたときの部品のまま開けます。
