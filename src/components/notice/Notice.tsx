@@ -202,7 +202,7 @@ export function Notice({
               'flex flex-wrap items-center gap-2 [&_a]:font-bold [&>a:not(.inline-flex)]:-my-0.5',
               // 文の右では、ボタンが行より高い分を上下の余白へはみ出させる。下へ回ったときは bottom と同じ
               end && !wrapped
-                ? 'flex-none -my-[calc((var(--spacing-control)_-_var(--leading-control))_/_2)]'
+                ? 'max-w-[calc(100%_-_var(--notice-actions-gap))] flex-none -my-[calc((var(--spacing-control)_-_var(--leading-control))_/_2)]'
                 : 'mt-1',
             ].join(' ')}
           >
