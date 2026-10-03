@@ -40,7 +40,7 @@ import { tv } from '../../internal/tv';
 //   押せないときは、色を指定していても押せないグレーのボタンと同じ見た目にする（原則7）。Button に color="neutral" を渡して描く
 // 下線のリンク（variant="underline" — 軸 174）: いちばん軽い押すもの。塗りも枠線もなく、文字に淡い下線だけが付く
 //   ボタンの見た目のリンクと同じく、見た目は Button（variant="underline"）に任せる（原則18）
-//   寸法・角丸はボタンと同じで、形ではリンクと見分けられないので、↗ はボタンの見た目のリンクと同じくいつも付ける
+//   寸法・角丸はボタンと同じ。↗ はボタンの見た目のリンクと同じく、既定では新しいタブで開くときだけ付ける
 //   キャプション（caption）はこの見た目のときだけ使える。↗・新しいタブの名前・押せないリンクの作り方は Button のリンクの道と同じ
 // 幅いっぱいに広げた枠線のリンクの中身（contentAlign — design/adr/0046）。既定は center
 //   center: 文字とアイコンをまとめて中央（ボタンと同じ寄せ方）
@@ -52,16 +52,20 @@ import { tv } from '../../internal/tv';
 //     between: 前のアイコンは左端、文字はそのすぐ後ろ（8px）
 //     center-end: 既定は文字と一緒に中央へ動く。leadIconPlacement="start" で左端に残す（--link-lead-icon-follow の 1 と 0 — 後半の軸 35）
 //   最初・最後のアイコンを見分けるときは、Fragment（<>…</>）を開いて中の子を見る
-// render（design/adr/0046）: Base UI の部品と同じ。Next.js の Link などを渡すと、その要素に Link の見た目を重ねる
+// render（design/adr/0046）: ルーターのリンク（Next.js・TanStack Router の Link など）を渡す口。その要素に Link の見た目を重ねる
+//   Link はいつもリンクとして描く（渡した要素、なければ <a>）。href を持たないルーターのリンク（to）もリンクとして扱う
+//   href・target・rel は、いつも描く要素に渡す。リンクでない要素（button など）を渡す使い方は想定しない
 // 新しいタブで開く（target="_blank"）とき（design/adr/0046）: 読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
 //   名前を付けていないリンクは、中の読み上げだけの文（NewTabNote）が名前に入る
 //   名前を aria-label・aria-labelledby で付けたリンクは、中の文が名前に入らないので、名前そのものに足す（link-parts の newTabNaming）
 //     aria-label は名前の後ろに文を足し、aria-labelledby は並びの後ろに中の文の id を足す
-//   ↗ は、新しいタブで開くときだけ部品が付ける（同じタブで開くリンクには付けない）
+//   ↗ は、既定では新しいタブで開くときだけ部品が付ける（同じタブで開くリンクには付けない。ボタンの見た目・下線のリンクも同じ）
+//   newTabIcon を渡したときはそれに従う。true は同じタブでも付け、false は新しいタブでも付けない（4 つの見た目すべて）
+//     利用者が自分でアイコンを置いたときに足さない規則は、newTabIcon={true} でも変わらない
 //   文字のリンク: 文字の後ろに、文字より少し小さく（--link-external-icon-size。既定 0.85em）下寄せで付け、下線を ↗ の右端まで続ける。利用者が最後に ArrowUpRightIcon を置いたときは足さない
 //   枠線のリンク: 利用者がアイコン（最後の子の要素。› でも ↗ でも）を置いたときは、それを使う。アイコンがなければ ↗ を付ける
 //     アイコンだけのリンク（aria-label か aria-labelledby があり、子が要素1つだけ）も、そのアイコンを使い ↗ を付けない（後半の軸 35）
-//   読み上げの文は、アイコンにかかわらず、新しいタブで開くリンクすべてに足す
+//   読み上げの文と rel は、アイコン（newTabIcon を含む）にかかわらず、新しいタブで開くリンクすべてに足す
 // 押せないとき（disabled — design/adr/0046）: href のない <a>。Tab で止まらず、押しても何もしない。hover と押下は data-disabled で止める
 //   文字のリンク: ただの文字と同じ見た目。下線・↗ を付けず、色は周りの文字を受け継ぐ（color: inherit）。カーソルも周りの文字と同じ（auto）
 //     読み上げでもただの文字にする。role・aria-disabled を付けない（href のない <a> は HTML-AAM では generic になり、リンクと読まれない）
@@ -155,7 +159,7 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
    * underline は塗りも枠線もなく文字に淡い下線だけが付く、いちばん軽い見た目です。
    * 画面内で最も進めたい移動は button、密度の高い並び（More、SNS の一覧）は outline、
    * いちばん軽く見せたいもの（カードの右上の操作、表の行末）は underline にします（原則5・原則7）。
-   * button と underline は Button と同じ見た目・同じ寸法で描き、右上向きの矢印（↗）が付いてボタンと見分けられます。
+   * button と underline は Button と同じ見た目・同じ寸法で描きます。新しいタブで開くときは、最後に右上向きの矢印（↗）が付きます。
    * 押せないとき（disabled）は、色を指定していても押せないグレーのボタンと同じ見た目になります（原則7）
    * @default 'text'
    */
@@ -182,11 +186,19 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
    */
   leadIconPlacement?: 'with-label' | 'start';
   /**
-   * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に Link の見た目を重ねる。
-   * href などは渡す要素に書く（例: `render={<NextLink href="/works" />}`）。ラベルは Link の children に書く
-   * 渡さないときは `<a>` を描く（href は Link に書く）
+   * 描く要素。ルーターのリンク（Next.js・TanStack Router の Link など）を渡すと、その要素に Link の見た目を重ねます。
+   * 行き先は渡す要素に書き（例: `render={<NextLink href="/works" />}`・`render={<RouterLink to="/works" />}`）、ラベルは Link の children に書きます。
+   * 渡さないときは `<a>` を描きます（href は Link に書きます）
    */
   render?: ReactElement;
+  /**
+   * 最後に右上向きの矢印（↗）を付けるか。渡さないときは、新しいタブで開くとき（target="_blank"）だけ付きます。
+   * true にすると同じタブで開くリンクにも付き、false にすると新しいタブで開くリンクにも付きません。
+   * 「新しいタブで開きます」の読み上げは、この値にかかわらず新しいタブで開くときに付きます。
+   * 最後に自分でアイコンを置いたときは、true でも足しません
+   * @default 新しいタブで開くときは true
+   */
+  newTabIcon?: boolean;
   /**
    * アイコンだけのリンク（読み上げの名前を aria-label か aria-labelledby で付け、子がアイコン 1 つだけのリンク）の形。
    * square は部品の角の正方形、circle は丸です。どちらも部品の高さの正方形になり、左右の余白は文字のリンクの分だけ広がりません。
@@ -269,10 +281,11 @@ function ButtonLookLink(props: LinkProps) {
     disabled,
     caption,
     shape = 'square',
+    newTabIcon,
     ref,
     children,
     type: _type,
-    ...anchor
+    ...rest
   } = props;
   return (
     <ButtonLink
@@ -284,8 +297,9 @@ function ButtonLookLink(props: LinkProps) {
       iconOnly={isIconOnly(props)}
       shape={shape}
       render={render ?? <a />}
+      newTabIcon={newTabIcon}
       ref={ref}
-      {...anchor}
+      {...rest}
     >
       {children}
     </ButtonLink>
@@ -304,6 +318,7 @@ function PlainLink(all: LinkProps) {
     disabled,
     caption: _caption,
     shape = 'circle',
+    newTabIcon,
     ref,
     children,
     ...props
@@ -313,17 +328,19 @@ function PlainLink(all: LinkProps) {
   const align = outline ? (contentAlign ?? 'center') : undefined;
   const blank = props.target === '_blank' || opensNewTab(render);
   const newTab = blank && !disabled;
-  // 新しいタブで開くときの ↗。読み上げの文は、押せないときは足さない（開かないため）
+  // ↗ を付けるか。既定は新しいタブで開くときだけ、newTabIcon を渡したときはそれ
+  const arrow = newTabIcon ?? blank;
+  // ↗。読み上げの文は、押せないときは足さない（開かないため）
   //   文字のリンク: 利用者が最後に ArrowUpRightIcon を置いたとき以外は、部品が文字より少し小さく付ける
   //     押せないときは付けない（ただの文字と同じ見た目にする。ただの文字に ↗ はない）
   //   枠線のリンク: 最後の子が要素（アイコン）なら、それを使う（› でも ↗ でも足さない）。アイコンがなければ、部品が付ける
   //     アイコンの見分け方は contentAlign の between・center-end と同じ（splitTrailing）。押せないときも残す
   const userArrow = endsWithElement(children, ArrowUpRightIcon);
-  const textArrow = !outline && newTab && !userArrow;
+  const textArrow = !outline && arrow && !disabled && !userArrow;
   // アイコンだけのリンク: そのアイコンを使い、↗ を足さない。形と余白はアイコンだけのボタンと同じ（shape）
   const iconOnly = outline && isIconOnly(all);
   const outlineArrow =
-    outline && blank && !userArrow && !iconOnly && splitTrailing(children).trailing === null;
+    outline && arrow && !userArrow && !iconOnly && splitTrailing(children).trailing === null;
   // 部品が付ける ↗ も最後のアイコンとして扱い、between・center-end では右端に置く
   const items = outlineArrow
     ? [...flattenChildren(children), <ArrowUpRightIcon key="new-tab-arrow" />]
@@ -381,12 +398,8 @@ function PlainLink(all: LinkProps) {
     );
   }
   // 押せないとき: 文字のリンクはただの文字（role・aria-disabled なし）、枠線のリンクは「リンク、利用不可」
-  const own = disabled
-    ? {
-        ...withoutNavigation(props),
-        ...(outline ? disabledLinkProps : disabledTextLinkProps),
-      }
-    : props;
+  const disabledProps = outline ? disabledLinkProps : disabledTextLinkProps;
+  const own = disabled ? { ...withoutNavigation(props), ...disabledProps } : props;
   // 新しいタブで開くときの名前と、読み上げだけの文。名前を aria-label・aria-labelledby で付けたときは、名前そのものに足す
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   return useRender({

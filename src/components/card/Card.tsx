@@ -11,7 +11,13 @@ import {
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
-import { newTabNaming, opensNewTab, renderPropOf } from '../../internal/link-parts';
+import {
+  newTabNaming,
+  opensNewTab,
+  resolveLink,
+  warnOnce,
+  withoutLinkAttributes,
+} from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
 import { Image, type ImageProps } from '../image/Image';
 
@@ -20,7 +26,9 @@ import { Image, type ImageProps } from '../image/Image';
 //   角はカードの角（ADR-0016）。画像は 16:9（ADR-0017）
 //   型は 2 つ（ADR-0014）: default は画像をカードの端まで届かせ、nested は画像を内側に収める（周りの余白 --card-nested-inset）
 //     nested の画像の角は、外の角から余白を引いた同心の角（原則5）。中身の余白は、画像の周りの余白を引いた分を足し、文字の位置を default とそろえる
-//   押せるカード（href か、href を持つ render）は、カード全体が 1 つのリンクになる。押せる範囲は見た目の範囲（原則7）
+//   押せるカード（リンクのカード）は、カード全体が 1 つのリンクになる。押せる範囲は見た目の範囲（原則7）
+//     リンクにするかは link で決める。既定は href があるか。render に渡した要素の props（href・to）は読まない（link-parts の resolveLink）
+//     link={false} のときは、href・target・rel を描く要素に渡さない
 //     浮いた押すもの（原則1・3、ADR-0169）: ボタンと同じ薄い影を付け、hover で落ち影を消して面を淡く塗り（--card-fill-hover）、
 //     押すと沈む（影は hover のまま）。輪郭は hover でも変えない
 //     hover で画像を少し大きくする動き（--card-hover-media-scale）は、imageZoom を渡したときだけ（既定はなし）
@@ -74,6 +82,11 @@ const styles = tv({
   defaultVariants: { variant: 'default', interactive: false },
 });
 
+/** 値が undefined の属性を除く */
+function definedOnly(props: Record<string, string | undefined>) {
+  return Object.fromEntries(Object.entries(props).filter(([, value]) => value !== undefined));
+}
+
 export type CardVariant = 'default' | 'nested';
 
 const CardContext = createContext<CardVariant>('default');
@@ -86,6 +99,13 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
   variant?: CardVariant;
   /** 渡すと、カード全体が 1 つのリンクになります。一覧（記事・作品）のカードに使います */
   href?: string;
+  /**
+   * カード全体をリンクとして描くか。渡さないときは、href があればリンクにします。
+   * render にルーターのリンク（Next.js・TanStack Router の Link など）を渡すときは、`link` を付けます（`<Card link render={<NextLink href="/works/1" />}>`）。
+   * render に渡した要素の href は見ません。
+   * false にすると、href を渡していてもリンクにせず、ただのカード（div）として描きます
+   */
+  link?: boolean;
   /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
   target?: string;
   /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
@@ -96,22 +116,24 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color'> {
    */
   imageZoom?: boolean;
   /**
-   * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素にカードの見た目を重ねます（例: `render={<NextLink href="/works/1" />}`）。
-   * article・li などにするときも使います
+   * 描く要素（Base UI の render と同じ）。article・li などにするときに使います。
+   * Next.js の Link などを渡してカード全体をリンクにするときは、`link` も付けます（例: `<Card link render={<NextLink href="/works/1" />}>`）
    */
   render?: ReactElement;
   /** カードの中身。CardImage と CardBody を並べます */
   children?: ReactNode;
-  /** いちばん外の要素（href を渡したときは a）に付きます */
+  /** いちばん外の要素（リンクのときは a）に付きます */
   className?: string;
 }
 
 /**
- * 画像と文をまとめて見せる面。href を渡すと、カード全体が 1 つのリンクになります
+ * 画像と文をまとめて見せる面。href を渡すと、カード全体が 1 つのリンクになります。
+ * ルーターのリンクを render に渡すときは link を付けます
  */
 export function Card({
   variant = 'default',
   href,
+  link: linkProp,
   target,
   rel,
   imageZoom = false,
@@ -120,17 +142,23 @@ export function Card({
   children,
   ...props
 }: CardProps) {
-  const interactive = href != null || renderPropOf(render, 'href') != null;
-  const newTab = target === '_blank' || opensNewTab(render);
+  const link = resolveLink(linkProp, href);
+  if (link && href == null && render == null)
+    warnOnce('Card: link を付けたカードには、href か、リンクの要素（render）を渡します');
+  const interactive = link;
+  const newTab = link && (target === '_blank' || opensNewTab(render));
   const noteId = useId();
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const s = styles({ variant, interactive });
   const element = useRender({
     render,
-    defaultTagName: href != null ? 'a' : 'div',
+    defaultTagName: link ? 'a' : 'div',
     props: {
-      ...props,
-      ...(href != null && { href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel }),
+      // link={false} のときは、リンクだけの属性（download など）も描く要素に渡さない
+      ...(link ? props : withoutLinkAttributes(props)),
+      // 渡していない属性は置かない（undefined を置くと、渡した要素が自分で付ける href などを消すため）
+      ...(link &&
+        definedOnly({ href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel })),
       ...naming?.props,
       'data-slot': 'card',
       'data-variant': variant,

@@ -365,9 +365,15 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
   /**
    * 描く要素（Base UI の render と同じ）。`<a href>` や Next.js の Link を渡すと、Button と同じ見た目のリンクになる。
    * href・target は渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは children に書く。
-   * リンクのときは、右上向きの矢印（↗）を必ず最後に付ける。disabled は押せないリンクになる（design/adr/0046）
+   * 新しいタブで開くリンクには、右上向きの矢印（↗）を最後に付ける。disabled は押せないリンクになる（design/adr/0046）
    */
   render: ReactElement;
+  /**
+   * 最後に右上向きの矢印（↗）を付けるか。渡さないときは、新しいタブで開くときだけ付ける。Link が渡す
+   * 「新しいタブで開きます」の読み上げと rel は、この値にかかわらず新しいタブで開くときに付ける
+   * @default 新しいタブで開くときは true
+   */
+  newTabIcon?: boolean;
   /**
    * 押せないリンクにする。href のない `<a role="link" aria-disabled="true">` になり、Tab で止まらず、押しても何もしない。
    * 見た目は押せないボタンと同じ（design/adr/0046）
@@ -410,12 +416,14 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
  * ボタンの見た目のリンク（Link の variant="button"・"underline" — design/adr/0046）。公開しない
  * 利用者は Link で作る（`<Link variant="button">`）。Link がこの部品を描く
  * 見た目は Button と同じで、要素だけが渡した要素（<a>）になる。キーボードではリンクのまま（Enter で移り、Space では移らない）
- * 右上向きの矢印（↗）を必ず最後に付け、ボタンと見分ける。飾りなので読み上げない（aria-hidden）
+ * 新しいタブで開く（target="_blank"）リンクには、右上向きの矢印（↗）を最後に付ける。同じタブで開くリンクには付けない。飾りなので読み上げない（aria-hidden）
+ *   newTabIcon を渡したときはそれに従う（同じタブでも付ける・新しいタブでも付けない）
  *   利用者が最後に ArrowUpRightIcon を置いたときは、足さない（2つにならない）。ほかのアイコンは、その後ろに ↗ が付く
+ *   押せないときも残す（枠線のリンクと同じ）
  * 新しいタブで開く（渡した要素の target="_blank"）ときは、読み上げに「新しいタブで開きます」を足し、rel="noopener noreferrer" を付ける
  *   名前を aria-label・aria-labelledby で付けたときは、名前そのものに足す（Link と同じ。link-parts の newTabNaming）
  * 押せないとき（disabled）: 渡した要素は描かず、href のない <a role="link" aria-disabled="true"> にする。読み上げでは「リンク、利用不可」
- *   見た目は <Button disabled> と同じ（data-disabled）。↗ は残す。Tab では止まらず、押しても何もしない（onClick も呼ばない）
+ *   見た目は <Button disabled> と同じ（data-disabled）。Tab では止まらず、押しても何もしない（onClick も呼ばない）
  * リンクは送信中を持たない。loading・loadingIndicator・inlineSpinner・type は型で止める。型を外して渡されたときは、無視して開発時に警告する
  * キャプション（caption）はボタンと同じく、リンクの下に出し、リンクの説明（aria-describedby）につなぐ（包みは withCaption）
  */
@@ -434,6 +442,7 @@ export function ButtonLink({
   ref,
   iconOnly = false,
   shape = 'square',
+  newTabIcon,
   ...props
 }: ButtonLinkProps) {
   if (loading !== undefined || loadingIndicator !== undefined || inlineSpinner !== undefined)
@@ -445,7 +454,8 @@ export function ButtonLink({
   const noteId = useId();
   // 新しいタブで開くかは、渡した要素（render）と、部品に渡された props の両方で見る
   // （Link の variant="button" は、href・target を props で受けて、ここに渡す）
-  const newTab = !disabled && (opensNewTab(render) || props.target === '_blank');
+  const blank = opensNewTab(render) || props.target === '_blank';
+  const newTab = blank && !disabled;
   // 新しいタブで開くときの名前と、読み上げだけの文（Link と同じ）
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   // 説明は、渡された説明（部品の props と渡した要素の両方）→ キャプションの順
@@ -464,7 +474,8 @@ export function ButtonLink({
     props: {
       ...(disabled ? { ...withoutNavigation(props), ...disabledLinkProps } : props),
       ...overrides,
-      rel: newTab ? 'noopener noreferrer' : undefined,
+      // 利用者が rel を書いたときは、それを使う（押せないときは移らないので付けない）
+      rel: disabled ? undefined : newTab ? (props.rel ?? 'noopener noreferrer') : props.rel,
       'data-icon-only': iconOnly ? shape : undefined,
       // キャプションがあるときは、className は包みに付ける
       className: button({
@@ -475,8 +486,10 @@ export function ButtonLink({
       children: (
         <>
           {children}
-          {/* アイコンだけのリンクには ↗ を足さない（正方形に 2 つのアイコンは入らない。枠線のリンクと同じ） */}
-          {!iconOnly && !endsWithElement(children, ArrowUpRightIcon) && <ArrowUpRightIcon />}
+          {/* ↗ は既定では新しいタブで開くときだけ（newTabIcon で上書き）。アイコンだけのリンクには足さない（正方形に 2 つのアイコンは入らない。枠線のリンクと同じ） */}
+          {(newTabIcon ?? blank) && !iconOnly && !endsWithElement(children, ArrowUpRightIcon) && (
+            <ArrowUpRightIcon />
+          )}
           {/* sr-only は絶対配置なので、位置の基準（relative）を持つ要素の中に置く（Button は relative） */}
           {naming?.note}
         </>

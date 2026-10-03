@@ -167,20 +167,29 @@ export function disabledAnchor(render: ReactElement | undefined): ReactElement {
   return createElement('a', kept);
 }
 
-const NAVIGATION = new Set([
-  'href',
-  'target',
-  'rel',
-  'download',
-  'ping',
-  'hrefLang',
-  'referrerPolicy',
-  'onClick',
-]);
+// リンクだけの属性（移る先と開き方）
+const LINK_ATTRIBUTES = ['href', 'target', 'rel', 'download', 'ping', 'hrefLang', 'referrerPolicy'];
+const NAVIGATION = new Set([...LINK_ATTRIBUTES, 'onClick']);
+const LINK_ONLY = new Set(LINK_ATTRIBUTES);
 
 /** 部品に渡された props から、移る先と押したときの動き（href・target・onClick など）を外す */
 export function withoutNavigation(props: object): Record<string, unknown> {
   return Object.fromEntries(Object.entries(props).filter(([key]) => !NAVIGATION.has(key)));
+}
+
+/** 部品に渡された props から、リンクだけの属性（href・target・rel など）を外す。onClick は残す（Card の link={false} のとき） */
+export function withoutLinkAttributes(props: object): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(props).filter(([key]) => !LINK_ONLY.has(key)));
+}
+
+// ── リンクとして描くか（Card の link）────────────────
+// href の有無だけで決め、link を渡したときはそれに従う
+// render に渡した要素の props（href・to）は読まない。ルーターのリンクは href を持たない（to など）ことがあり、
+//   サーバーコンポーネントから渡すと読めないため（design/props.md の「渡し方」）。render でリンクを描くときは link を付ける
+
+/** リンクとして描くか。link を渡したときはそれ、渡さないときは href があるか */
+export function resolveLink(link: boolean | undefined, href: unknown): boolean {
+  return link ?? href != null;
 }
 
 const warned = new Set<string>();

@@ -31,11 +31,12 @@ const meta = {
           '- `outline` は枠線の pill です。「More」や SNS のアカウント一覧のように、並べて置くリンクに使います。寸法は枠線のボタンと同じです。',
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
-          '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
+          '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。↗ を出すかは `newTabIcon` で上書きできます。',
+          '- Next.js・TanStack Router の `Link` は `render` に渡します。`href` がなく `to` だけのリンクも、そのままリンクとして扱います。',
           '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`circle`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
           '- `underline` は塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目です。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
-          '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。ボタンと見分けられるよう、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
+          '- `button` と `underline` の見た目は Button と同じものを使うので、ボタンと並べてもずれません。新しいタブで開くときは、最後に ↗ が付きます。押せないときは、色を指定していても押せないグレーのボタンと同じ見た目です。',
         ].join('\n'),
       },
       // Show code: 引数を使わない render も、Storybook が作るコード（dynamic）を出す。既定では story の定義がそのまま出る
@@ -73,6 +74,10 @@ const meta = {
     },
     target: { control: 'inline-radio', options: ['_self', '_blank'] },
     disabled: { control: 'boolean' },
+    newTabIcon: {
+      control: 'boolean',
+      table: { defaultValue: { summary: '新しいタブで開くときは true' } },
+    },
     render: { control: false },
   },
 } satisfies Meta<typeof Link>;
@@ -181,6 +186,7 @@ export const NewTab: Story = {
           '',
           '- アイコンだけのリンクは、名前を `aria-label` で付けます（svg の title や見えない文字では付けません）。そのときは ↗ を足さず、名前の後ろに「（新しいタブで開きます）」を足します。',
           '- `aria-labelledby` で名前を付けたときも、並びの後ろに「（新しいタブで開きます）」を足します。',
+          '- ↗ を出すかは `newTabIcon` で上書きできます（下の「↗ を出すか」）。',
         ].join('\n'),
       },
     },
@@ -393,7 +399,7 @@ export const ButtonLook: Story = {
         story: [
           '`variant="button"` は、ボタンと同じ見た目（塗り）のリンクです。画面内で最も進めたい移動に使います。見た目は Button のものをそのまま使うので、ボタンと並べてもずれません。',
           '',
-          '- 最後に右上向きの矢印（↗）が付き、ボタンと見分けられます。',
+          '- `target="_blank"` のときは、最後に右上向きの矢印（↗）が付きます。同じタブで開くときは付きません。',
           '- `caption` で、リンクの下に補足を出せます（「外部のサイトに移動します」など）。読み上げではリンクの説明になります。',
           '- `target="_blank"` のときは、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
           '- `disabled` のときは、色を指定していても押せないグレーのボタンと同じ見た目です（原則7）。Tab では止まらず、押しても何もしません。',
@@ -440,7 +446,7 @@ export const UnderlineLook: Story = {
           '`variant="underline"` は、塗りも枠線もなく、文字に淡い下線だけが付く、いちばん軽い見た目のリンクです。操作がいくつも並ぶ場所（カードの右上、表の行末）に使います。',
           '',
           '- 寸法・左右の余白・角丸は枠線のボタンと同じで、押せる範囲は部品の大きさのままです。hover では部品の大きさに淡い塗りが出ます。',
-          '- 最後に右上向きの矢印（↗）が付き、同じ見た目のボタンと見分けられます。',
+          '- `target="_blank"` のときは、最後に右上向きの矢印（↗）が付きます。同じタブで開くときは付きません。',
           '- 文章の中に置くリンクは、これではなく文字のリンク（`text`）を使います。',
         ].join('\n'),
       },
@@ -473,9 +479,11 @@ export const UnderlineLook: Story = {
     </div>
   ),
   play: async ({ canvas }) => {
-    // 下線のリンクにも ↗ が付き、同じ見た目のボタンと見分けられる
+    // ↗ は新しいタブで開くときだけ付く
     const link = canvas.getByRole('link', { name: '一覧' });
-    await expect(link.querySelectorAll('svg')).toHaveLength(1);
+    await expect(link.querySelectorAll('svg')).toHaveLength(0);
+    const external = canvas.getByRole('link', { name: /外部のサイト/ });
+    await expect(external.querySelectorAll('svg')).toHaveLength(1);
     await expect(getComputedStyle(link).textDecorationLine).toBe('underline');
     // 押せないリンクは、押せないグレーのボタンと同じで下線が外れる
     const off = canvas.getByRole('link', { name: '公開前' });
@@ -490,9 +498,27 @@ export const RenderElement: Story = {
     controls: { disable: true },
     docs: {
       description: {
-        story:
-          '`render` に Next.js の `Link` などを渡すと、その要素に Link の見た目を重ねます。`href` などは渡す要素に書き（例: `render={<NextLink href="/works" />}`）、ラベルは `children` に書きます。',
+        story: [
+          '`render` にルーターのリンク（Next.js・TanStack Router の `Link` など）を渡すと、その要素に Link の見た目を重ねます。行き先（`href`・`to`）は渡す要素に書き、ラベルは `children` に書きます。',
+          '',
+          '- `href` を持たないリンク（TanStack Router の `to` など）も、そのままリンクとして扱います。',
+          '- `target="_blank"` は渡す要素に書きます。↗ と「新しいタブで開きます」が付きます。',
+        ].join('\n'),
       },
+      source: sourceCode(`
+        import { Link as RouterLink } from '@tanstack/react-router';
+
+        <Link color="primary" render={<RouterLink to="/works" />}>
+          作品の一覧
+        </Link>
+        <Link variant="button" render={<RouterLink to="/works" />}>
+          作品を見る
+        </Link>
+        <Link variant="outline" render={<RouterLink to="/works" />}>
+          More
+          <CaretRightIcon />
+        </Link>
+      `),
     },
   },
   render: () => (
@@ -500,10 +526,103 @@ export const RenderElement: Story = {
       <Link color="primary" render={<RouterLink to="#works" />}>
         作品の一覧
       </Link>
+      <Link variant="button" render={<RouterLink to="#works" />}>
+        作品を見る
+      </Link>
       <Link variant="outline" render={<RouterLink to="#works" />}>
         More
         <CaretRightIcon />
       </Link>
+      <Link variant="outline" render={<RouterLink to="https://example.com" target="_blank" />}>
+        外部のサイト
+      </Link>
     </div>
   ),
+  play: async ({ canvas }) => {
+    // to だけのルーターのリンクも、リンクとして描く
+    const text = canvas.getByRole('link', { name: '作品の一覧' });
+    await expect(text).toHaveAttribute('href', '#works');
+    const button = canvas.getByRole('link', { name: '作品を見る' });
+    await expect(button.querySelectorAll('svg')).toHaveLength(0);
+    // 渡した要素の target="_blank" で、↗ と読み上げの文と rel が付く
+    const external = canvas.getByRole('link', { name: /外部のサイト.*新しいタブで開きます/ });
+    await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(external.querySelectorAll('svg')).toHaveLength(1);
+  },
+};
+
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const NewTabIcon: Story = {
+  name: '↗ を出すか',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: [
+          '↗ は、既定では新しいタブで開くとき（`target="_blank"`）だけ付きます。`newTabIcon` で上書きできます。文字・枠線・ボタンの見た目・下線のリンクのどれでも効きます。',
+          '',
+          '- `newTabIcon` を付けると、同じタブで開くリンクにも ↗ が付きます。サイトの外へ移ることを見せたいときに使います。',
+          '- `newTabIcon={false}` にすると、新しいタブで開くリンクにも ↗ が付きません。読み上げの「新しいタブで開きます」と `rel="noopener noreferrer"` はそのまま付きます。',
+          '- 最後に自分でアイコンを置いたときは、`newTabIcon` を付けても ↗ を足しません。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-4">
+      <p className="leading-7 text-fg">
+        同じタブで開く
+        <Link color="primary" href="https://example.com" newTabIcon>
+          外部のサイト
+        </Link>
+        にも ↗ を付け、新しいタブで開く
+        <Link color="primary" href="https://example.com" target="_blank" newTabIcon={false}>
+          リポジトリ
+        </Link>
+        には付けません。
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link variant="outline" href="https://example.com" newTabIcon>
+          GitHub
+        </Link>
+        <Link variant="outline" href="https://example.com" target="_blank" newTabIcon={false}>
+          Zenn
+        </Link>
+        <Link variant="button" color="primary" href="https://example.com" newTabIcon>
+          作品を見る
+        </Link>
+        <Link
+          variant="button"
+          color="primary"
+          href="https://example.com"
+          target="_blank"
+          newTabIcon={false}
+        >
+          くわしく見る
+        </Link>
+        <Link variant="underline" href="https://example.com" newTabIcon>
+          一覧
+        </Link>
+        <Link variant="underline" href="https://example.com" target="_blank" newTabIcon={false}>
+          外部のサイトへ
+        </Link>
+      </div>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 同じタブでも ↗ が付く。読み上げの文と rel は付かない
+    for (const name of ['外部のサイト', 'GitHub', '作品を見る', '一覧']) {
+      const link = canvas.getByRole('link', { name });
+      await expect(link.querySelectorAll('svg')).toHaveLength(1);
+      await expect(link).not.toHaveAttribute('rel');
+    }
+    // 新しいタブでも ↗ が付かない。読み上げの文と rel は残る
+    for (const name of ['リポジトリ', 'Zenn', 'くわしく見る', '外部のサイトへ']) {
+      const link = canvas.getByRole('link', {
+        name: new RegExp(`^${name}\\s?（新しいタブで開きます）$`),
+      });
+      await expect(link.querySelectorAll('svg')).toHaveLength(0);
+      await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  },
 };

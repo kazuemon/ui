@@ -91,6 +91,7 @@
 | `renderPage`                         | 番号ごとに要素を作る（Pagination）。`href` が `(page) => string` なのと対                                                                                                                                             | `(page) => ReactElement`                                    |
 | `as`                                 | 決まったタグ名の中から選ぶ。`render` との使い分けは未決                                                                                                                                                               | タグ名の列挙                                                |
 | `href`                               | リンクにする                                                                                                                                                                                                          |                                                             |
+| `link`                               | リンクとして描くか（Card）。既定は `href` があるか。`render` にルーターのリンクを渡すときに付けます。Link はいつもリンクなので持ちません                                                                              |                                                             |
 | `container` / `portalContainer`      | 浮かぶものを描く場所。Portal は `container`、Dialog などの部品と ThemeProvider は `portalContainer`（Container 部品と紛れないように）                                                                                 |                                                             |
 | `detent` / `sheetDetent`             | シートの高さ。本体がシートの Drawer は `detent`、シートにもなる Select・Combobox は `sheet` の接頭辞                                                                                                                  |                                                             |
 
@@ -127,6 +128,8 @@ Stat の増減の良し悪しは `trend` です。値の意味（増えたこと
 見た目の要素を出すかどうかは、既定と逆の語で書きます。既定で出るものは `hideOutline`・`hideCloseButton`・`hideSuccessMark`・`hideValue`・`hideTrack`、既定で出ないものは `showArrow`・`showDivider`・`showColumnDivider`・`showPageInput` です。書いてあれば既定と違う、と読めます。
 
 どのアイコンかが名前から分かるようにします。`hideCaretOnDisabled`（押せないときの ▼）、`hideSearchIcon`（虫眼鏡）のように、部位の名前を入れます。
+
+既定がほかの props で変わるもの（Link の `newTabIcon` は、新しいタブで開くときだけ ↗ を出す）は、どちらの向きにも渡すので、`hide`・`show` を付けない名前にします。
 
 3 つ以上の値を持つもの（Combobox の ▼ の `always`・`never`・`empty-only`）と、動きの切り替え（`closeOnClick`・`keepMounted`・`ellipsisMenu`）は真偽値の規則の対象外です。
 
