@@ -257,8 +257,8 @@ export const CardClick: Story = {
       aside.left + aside.width / 2,
       aside.top + aside.height / 2
     );
-    await expect(hit?.tagName).toBe('LABEL');
-    await userEvent.click(hit as HTMLElement);
+    await expect(hit).toBeInstanceOf(HTMLLabelElement);
+    if (hit instanceof HTMLElement) await userEvent.click(hit);
     await expect(canvas.getByRole('radio', { name: 'フリー' })).toBeChecked();
     // 値段は名前に入らず、説明として読む（caption の前）
     await expect(canvas.getByRole('radio', { name: 'スタンダード' })).toHaveAccessibleDescription(
