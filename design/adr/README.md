@@ -467,3 +467,4 @@
 | [0411](./0411-text-status-color.md)                      | Text の color は色だけを変える。アイコンも読み上げも付けない                                                                                                     | Accepted                                     |
 | [0412](./0412-link-underline-hover.md)                   | Link の underline="hover" は、載せたときに always の hover と同じ濃い下線を引く                                                                                  | Accepted                                     |
 | [0471](./0471-link-prop-new-tab-icon.md)                 | リンクにするかは link で決め（Card）、Link はいつもリンク。↗ はどの見た目でも新しいタブで開くときだけ付け、newTabIcon で上書きできる                             | Accepted                                     |
+| [0472](./0472-callout-collapsible-row.md)                | 畳める Callout の題の行は、塗りを題の上下にそろえる形が既定。開いた帯の下に線を引く形も選べる                                                                    | Accepted                                     |
