@@ -12,7 +12,7 @@ const meta = {
   title: 'Design Review/428 貼り付いた帯の見出しの角と影',
   id: 'design-review-428-data-table-banded-sticky-corner',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -170,6 +170,12 @@ export const Compare: Story = {
       columns={columns}
       renderCell={(column) => <ScrolledTable scroll={column.preview as Scroll} />}
     >
+      <p>
+        決定:
+        C（スクロールした分だけ帯の下の角を四角にし、影と歩調を合わせる）を既定にする。選べる形は作らない。止まっているときは今の丸い帯のまま。ユーザーの返事「角丸で下のコンテンツが見えるのは、下側は見えてて大丈夫です」「角について、確かに線が見えているのですが、ScrollArea
+        の上影との兼ね合いに違和感があるのかもしれません」「428 は C
+        がよさそうです！」候補の見た目は、トークンを畳む前のこのコミットで比べられます。
+      </p>
       <p>
         banded の表を maxHeight
         でスクロールしたとき、上に貼り付いた丸い帯の見出しの、下の角と影の形を選びます。
