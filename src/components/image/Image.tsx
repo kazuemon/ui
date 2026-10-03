@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type ReactElement,
   type SyntheticEvent,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -13,6 +14,7 @@ import {
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { ImagePlaceholderAnimationContext } from '../../internal/image-placeholder-context';
 import { toMediaSize } from '../../internal/media-size';
 import { figureImageStyles } from '../../internal/reading/blocks';
 import { tv } from '../../internal/tv';
@@ -45,9 +47,9 @@ const styles = tv({
       'group-data-natural/image:relative group-data-natural/image:h-auto',
     ],
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
+    // 動きは、単体では面ごとの光（sweep）。Gallery に並べたときは、Gallery が決める（軸 411）
     placeholder: [
       skeletonSurface,
-      skeletonMotion.sweep,
       'absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-(--image-radius) p-4 text-fg-subtle',
       // 失敗した面は動かさない
       'group-data-[status=error]/image:animate-none group-data-[status=error]/image:after:hidden',
@@ -60,6 +62,11 @@ const styles = tv({
     errorTextClamp: 'line-clamp-2',
   },
   variants: {
+    animation: {
+      sweep: { placeholder: skeletonMotion.sweep },
+      'sweep-viewport': { placeholder: skeletonMotion['sweep-viewport'] },
+      pulse: { placeholder: skeletonMotion.pulse },
+    },
     outline: {
       true: { image: figureImageStyles.outline },
       false: {},
@@ -73,7 +80,7 @@ const styles = tv({
       none: { frame: '[--image-radius:0px]' },
     },
   },
-  defaultVariants: { outline: true, radius: 'card' },
+  defaultVariants: { animation: 'sweep', outline: true, radius: 'card' },
 });
 
 /** 画像の角 */
@@ -155,7 +162,8 @@ export function Image({
   const sized = ratio == null && width != null && height != null;
   // 寸法がなく、読み込み中でも失敗でもないとき（読み込めた・スクリプトが動かない）は、画像本来の比の高さで描く
   const natural = ratio == null && !sized && status !== 'loading' && status !== 'error';
-  const s = styles({ outline: !hideOutline, radius });
+  const animation = useContext(ImagePlaceholderAnimationContext) ?? 'sweep';
+  const s = styles({ animation, outline: !hideOutline, radius });
   const image = useRender({
     render,
     defaultTagName: 'img',

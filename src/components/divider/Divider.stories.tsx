@@ -13,12 +13,15 @@ const meta = {
     docs: {
       description: {
         component: [
-          '文章の話題の切れ目に置く区切り線です。Markdown の `---` と同じ `<hr>` を出します。',
+          '文章の話題の切れ目や、横に並べたもののあいだに置く区切り線です。横の線は Markdown の `---` と同じ `<hr>` を出します。',
           '',
           '- `variant` は見た目です。`full`（既定）は幅いっぱいの細い線、`short` は中央の短い細い線、`accent` は中央の色のある短い太い線です。',
           '- `color` は `accent` の線の色です。`brand`（既定、水色）・`primary`・`secondary` から選びます。ほかの色は `style` で `--divider-accent` を上書きします。',
+          '- 線は置いた場所の幅いっぱいに伸びます。左右を空けたいときは、置く側の余白か `className` で空けます。',
+          '- `label` を渡すと、細い線のあいだに文字（「または」など）を置きます。文字は読み上げでもそのまま読まれます。`labelSize` は文字の大きさで、`xs`（既定）はキャプションと同じ小さく淡い文字、`sm` はラベルと同じ大きさで、`xs` より一段濃い文字です。',
+          '- `orientation="vertical"` は、周りの文字の高さの縦の線です。ツールバーやリンクの並びなど、横に並べたもののあいだに置きます。左右の間は並べる側で決めます。',
           '- 上下の余白は持ちません。置く側で決めます。',
-          '- 飾りとして置くときは `decorative` を付けると、読み上げで区切りと伝えません。',
+          '- 飾りとして置くときは `decorative` を付けると、読み上げで区切りと伝えません。`label` のある線は、もともと区切りと伝えず文字だけを読むので、付けなくてかまいません。',
         ].join('\n'),
       },
     },
@@ -65,6 +68,19 @@ export const Variants: Story = {
       <Specimen label="accent・secondary">
         <Divider variant="accent" color="secondary" />
       </Specimen>
+      <Specimen label="label（labelSize xs・既定）">
+        <Divider label="または" />
+      </Specimen>
+      <Specimen label="label（labelSize sm）">
+        <Divider label="または" labelSize="sm" />
+      </Specimen>
+      <Specimen label="orientation vertical">
+        <div className="flex items-center gap-3 text-fg">
+          <span>利用規約</span>
+          <Divider orientation="vertical" />
+          <span>プライバシー</span>
+        </div>
+      </Specimen>
     </Gallery>
   ),
 };
@@ -72,6 +88,62 @@ export const Variants: Story = {
 export const Accessibility: Story = {
   name: '読み上げ',
   play: async ({ canvas }) => {
+    await expect(canvas.getByRole('separator')).toBeInTheDocument();
+  },
+};
+
+export const LabelAndVertical: Story = {
+  name: 'ラベルと縦の線の読み上げ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'ラベルのある線は区切りと伝えず、文字だけを読みます。縦の線は、縦向きの区切りと伝えます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xl flex-col gap-6">
+      <Divider label="または" />
+      <div className="flex items-center gap-3 text-fg">
+        <span>利用規約</span>
+        <Divider orientation="vertical" />
+        <span>プライバシー</span>
+      </div>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByText('または')).toBeVisible();
+    const separators = canvas.getAllByRole('separator');
+    await expect(separators).toHaveLength(1);
+    await expect(separators[0]).toHaveAttribute('aria-orientation', 'vertical');
+  },
+};
+
+export const LabelEdgeCases: Story = {
+  name: 'ラベルの端の場合',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '空白のない長いラベルも、置いた幅の中で折り返します。空の文字を渡したときは、ラベルのない線として描きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex w-40 flex-col gap-4" data-testid="narrow">
+      <Divider label="https://example.com/very-long-path-without-spaces" />
+      <Divider label="" />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const narrow = canvas.getByTestId('narrow');
+    // はみ出さない
+    for (const divider of narrow.querySelectorAll<HTMLElement>('[data-slot="divider"]'))
+      await expect(divider.scrollWidth).toBeLessThanOrEqual(narrow.clientWidth);
+    // 空のラベルは区切りの役割を持つ線
     await expect(canvas.getByRole('separator')).toBeInTheDocument();
   },
 };
