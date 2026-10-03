@@ -31,7 +31,7 @@ const meta = {
           '- `outline` は枠線の pill です。「More」や SNS のアカウント一覧のように、並べて置くリンクに使います。寸法は枠線のボタンと同じです。',
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
-          '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。',
+          '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。↗ を出すかは `newTabIcon` で上書きできます。',
           '- Next.js・TanStack Router の `Link` は `render` に渡します。`href` がなく `to` だけのリンクも、そのままリンクとして扱います。',
           '- アイコンだけのリンク（`aria-label` を付け、子がアイコン 1 つだけ）は、部品の高さの正方形になります。形は `shape` で選び、枠線のリンクは丸（`circle`）、ボタンの見た目のリンクは正方形（`square`）が既定です。',
           '- `button` はボタンと同じ見た目（塗り）です。画面内で最も進めたい移動に使います。押せる範囲を広くしたいときも、文字のリンクを広げずにこれを使います。',
@@ -52,7 +52,6 @@ const meta = {
     contentAlign: 'center',
     target: '_self',
     disabled: false,
-    link: true,
   },
   argTypes: {
     children: { control: 'text' },
@@ -75,7 +74,10 @@ const meta = {
     },
     target: { control: 'inline-radio', options: ['_self', '_blank'] },
     disabled: { control: 'boolean' },
-    link: { control: 'boolean' },
+    newTabIcon: {
+      control: 'boolean',
+      table: { defaultValue: { summary: '新しいタブで開くときは true' } },
+    },
     render: { control: false },
   },
 } satisfies Meta<typeof Link>;
@@ -184,6 +186,7 @@ export const NewTab: Story = {
           '',
           '- アイコンだけのリンクは、名前を `aria-label` で付けます（svg の title や見えない文字では付けません）。そのときは ↗ を足さず、名前の後ろに「（新しいタブで開きます）」を足します。',
           '- `aria-labelledby` で名前を付けたときも、並びの後ろに「（新しいタブで開きます）」を足します。',
+          '- ↗ を出すかは `newTabIcon` で上書きできます（下の「↗ を出すか」）。',
         ].join('\n'),
       },
     },
@@ -500,7 +503,6 @@ export const RenderElement: Story = {
           '',
           '- `href` を持たないリンク（TanStack Router の `to` など）も、そのままリンクとして扱います。',
           '- `target="_blank"` は渡す要素に書きます。↗ と「新しいタブで開きます」が付きます。',
-          '- 渡す要素がリンクでないとき（`button` など）は `link={false}` を付けます。見た目だけを重ね、↗ や「新しいタブで開きます」を付けません。',
         ].join('\n'),
       },
       source: sourceCode(`
@@ -549,49 +551,78 @@ export const RenderElement: Story = {
   },
 };
 
-export const LinkOrNot: Story = {
-  name: 'リンクとして描くか',
+// Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
+export const NewTabIcon: Story = {
+  name: '↗ を出すか',
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
-        story:
-          '`link` は、リンクとして描くかです。既定は `true` です。`link={false}` にすると見た目だけを重ね、`href`・`target`・`rel` を描く要素に渡さず、↗ と「新しいタブで開きます」も付けません。`render` がないときは `span` を描きます。',
+        story: [
+          '↗ は、既定では新しいタブで開くとき（`target="_blank"`）だけ付きます。`newTabIcon` で上書きできます。文字・枠線・ボタンの見た目・下線のリンクのどれでも効きます。',
+          '',
+          '- `newTabIcon` を付けると、同じタブで開くリンクにも ↗ が付きます。サイトの外へ移ることを見せたいときに使います。',
+          '- `newTabIcon={false}` にすると、新しいタブで開くリンクにも ↗ が付きません。読み上げの「新しいタブで開きます」と `rel="noopener noreferrer"` はそのまま付きます。',
+          '- 最後に自分でアイコンを置いたときは、`newTabIcon` を付けても ↗ を足しません。',
+        ].join('\n'),
       },
     },
   },
   render: () => (
-    <div className="flex flex-wrap items-center gap-4">
-      <Link href="#guide">href だけ</Link>
-      <Link render={<RouterLink to="#guide" />}>render だけ</Link>
-      <Link href="https://example.com" target="_blank" link={false}>
-        href と link=false
-      </Link>
-      <Link variant="button" href="https://example.com" target="_blank" link={false}>
-        ボタンの見た目で link=false
-      </Link>
+    <div className="flex flex-col gap-4">
+      <p className="leading-7 text-fg">
+        同じタブで開く
+        <Link color="primary" href="https://example.com" newTabIcon>
+          外部のサイト
+        </Link>
+        にも ↗ を付け、新しいタブで開く
+        <Link color="primary" href="https://example.com" target="_blank" newTabIcon={false}>
+          リポジトリ
+        </Link>
+        には付けません。
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link variant="outline" href="https://example.com" newTabIcon>
+          GitHub
+        </Link>
+        <Link variant="outline" href="https://example.com" target="_blank" newTabIcon={false}>
+          Zenn
+        </Link>
+        <Link variant="button" color="primary" href="https://example.com" newTabIcon>
+          作品を見る
+        </Link>
+        <Link
+          variant="button"
+          color="primary"
+          href="https://example.com"
+          target="_blank"
+          newTabIcon={false}
+        >
+          くわしく見る
+        </Link>
+        <Link variant="underline" href="https://example.com" newTabIcon>
+          一覧
+        </Link>
+        <Link variant="underline" href="https://example.com" target="_blank" newTabIcon={false}>
+          外部のサイトへ
+        </Link>
+      </div>
     </div>
   ),
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole('link', { name: 'href だけ' })).toHaveAttribute('href', '#guide');
-    await expect(canvas.getByRole('link', { name: 'render だけ' })).toHaveAttribute(
-      'href',
-      '#guide'
-    );
-    // link={false}: span で描き、href・target・rel・↗・読み上げの文を付けない
-    for (const name of ['href と link=false', 'ボタンの見た目で link=false']) {
-      const host = canvas.getByText(name);
-      await expect(host.tagName).toBe('SPAN');
-      await expect(host).not.toHaveAttribute('href');
-      await expect(host).not.toHaveAttribute('target');
-      await expect(host).not.toHaveAttribute('rel');
-      await expect(host.querySelectorAll('svg')).toHaveLength(0);
-      await expect(host.textContent).not.toContain('新しいタブで開きます');
+    // 同じタブでも ↗ が付く。読み上げの文と rel は付かない
+    for (const name of ['外部のサイト', 'GitHub', '作品を見る', '一覧']) {
+      const link = canvas.getByRole('link', { name });
+      await expect(link.querySelectorAll('svg')).toHaveLength(1);
+      await expect(link).not.toHaveAttribute('rel');
     }
-    // 見た目は文字のリンクのまま（下線）
-    await expect(getComputedStyle(canvas.getByText('href と link=false')).textDecorationLine).toBe(
-      'underline'
-    );
-    await expect(canvas.getAllByRole('link')).toHaveLength(2);
+    // 新しいタブでも ↗ が付かない。読み上げの文と rel は残る
+    for (const name of ['リポジトリ', 'Zenn', 'くわしく見る', '外部のサイトへ']) {
+      const link = canvas.getByRole('link', {
+        name: new RegExp(`^${name}\\s?（新しいタブで開きます）$`),
+      });
+      await expect(link.querySelectorAll('svg')).toHaveLength(0);
+      await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
   },
 };

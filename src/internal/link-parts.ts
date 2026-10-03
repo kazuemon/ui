@@ -140,15 +140,6 @@ export const disabledLinkProps = {
   'data-disabled': '',
 } as const;
 
-/**
- * リンクとして描かない（link={false}）ものが押せないときに付ける属性。渡した要素（render）のまま、role は付けない
- * 読み上げで利用不可と伝わるのは、渡した要素が押せるもの（button など）のとき
- */
-export const disabledNonLinkProps = {
-  'aria-disabled': 'true',
-  'data-disabled': '',
-} as const;
-
 /** 押せない文字のリンクに付ける属性。見た目の切り替えだけで、読み上げではただの文字 */
 export const disabledTextLinkProps = {
   'data-disabled': '',
@@ -186,12 +177,12 @@ export function withoutNavigation(props: object): Record<string, unknown> {
   return Object.fromEntries(Object.entries(props).filter(([key]) => !NAVIGATION.has(key)));
 }
 
-/** 部品に渡された props から、リンクだけの属性（href・target・rel など）を外す。onClick は残す（link={false} のとき） */
+/** 部品に渡された props から、リンクだけの属性（href・target・rel など）を外す。onClick は残す（Card の link={false} のとき） */
 export function withoutLinkAttributes(props: object): Record<string, unknown> {
   return Object.fromEntries(Object.entries(props).filter(([key]) => !LINK_ONLY.has(key)));
 }
 
-// ── リンクとして描くか（link）────────────────
+// ── リンクとして描くか（Card の link）────────────────
 // href の有無だけで決め、link を渡したときはそれに従う
 // render に渡した要素の props（href・to）は読まない。ルーターのリンクは href を持たない（to など）ことがあり、
 //   サーバーコンポーネントから渡すと読めないため（design/props.md の「渡し方」）。render でリンクを描くときは link を付ける
