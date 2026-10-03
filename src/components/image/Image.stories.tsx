@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ComponentProps, ReactNode } from 'react';
-import { expect, waitFor } from 'storybook/test';
+import { type ComponentProps, type ReactNode, useState } from 'react';
+import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Heading } from '../heading/Heading';
 import { Tag } from '../tag/Tag';
@@ -292,4 +292,46 @@ export const PlaceholderBlur: Story = {
       ))}
     </Gallery>
   ),
+};
+
+function LateFallback() {
+  const [fallback, setFallback] = useState<string>();
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <Image src={broken} fallbackSrc={fallback} alt="あとから代わりを渡す絵" ratio="16 / 9" />
+      <button type="button" onClick={() => setFallback(landscape)}>
+        代わりの画像を渡す
+      </button>
+    </div>
+  );
+}
+
+export const FallbackCases: Story = {
+  name: '代わりの画像に替わる場合',
+  decorators: [narrow],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`srcSet` だけを渡した画像が読めなかったときも、`fallbackSrc` に替えます。読めなかったあとで `fallbackSrc` を渡しても替わります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-6">
+      <Image srcSet={`${broken} 1x`} fallbackSrc={landscape} alt="srcSet だけの絵" ratio="16 / 9" />
+      <LateFallback />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const only = canvas.getByAltText('srcSet だけの絵');
+    await waitFor(() => expect(only).toHaveAttribute('src', landscape));
+    const late = canvas.getByAltText('あとから代わりを渡す絵');
+    await waitFor(() =>
+      expect(late.closest('[data-status]')).toHaveAttribute('data-status', 'error')
+    );
+    await userEvent.click(canvas.getByRole('button', { name: '代わりの画像を渡す' }));
+    await waitFor(() => expect(late).toHaveAttribute('src', landscape));
+  },
 };

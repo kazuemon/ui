@@ -187,10 +187,12 @@ export function Image({
   ...imageProps
 }: ImageProps) {
   const renderProps = (render?.props ?? {}) as { src?: unknown; width?: unknown; height?: unknown };
-  // 読み込めなかった src。今の src と同じなら代わりの画像に替える（src が変われば、また src から読む）
+  // 読み込めなかった画像の候補（src、なければ srcSet）。今の候補と同じなら代わりの画像に替える（候補が変われば、また候補から読む）
+  //   fallbackSrc がなくても覚えておくので、あとから fallbackSrc を渡しても替わる
+  const imageSource = imageProps.src ?? imageProps.srcSet;
   const [failedSrc, setFailedSrc] = useState<string>();
   const useFallback =
-    !render && fallbackSrc != null && imageProps.src != null && failedSrc === imageProps.src;
+    !render && fallbackSrc != null && imageSource != null && failedSrc === imageSource;
   // srcSet・sizes があると src より先に使われ、代わりの画像に替わらないので外す
   const props = useFallback
     ? { ...imageProps, src: fallbackSrc, srcSet: undefined, sizes: undefined }
@@ -214,8 +216,8 @@ export function Image({
 
   // 失敗したら、描く前に代わりの画像に替える（失敗の面を一瞬も出さない）
   useIsomorphicLayoutEffect(() => {
-    if (status !== 'error' || render || fallbackSrc == null || useFallback) return;
-    if (imageProps.src != null) setFailedSrc(imageProps.src);
+    if (status !== 'error' || render || useFallback) return;
+    if (imageSource != null) setFailedSrc(imageSource);
   }, [status]);
 
   const sized = ratio == null && width != null && height != null;
