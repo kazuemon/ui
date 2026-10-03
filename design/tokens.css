@@ -1449,6 +1449,12 @@
   --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
+  /* 日ごとの印（renderDayContent）。日のボタンの下の中央に置き、印を持つ日がある月はすべての日の数字を上へずらす */
+  --calendar-day-content-bottom: calc(var(--spacing) * 1.75);
+  --calendar-day-content-text: 10px;
+  --calendar-day-number-shift: calc(var(--spacing) * -2.25);
+  /* 印を持つ日がある月で、今日の下線を引く、数字の行の下からの位置（数字と印のあいだ） */
+  --calendar-today-mark-offset: calc(var(--spacing) * -0.75);
   /* ── END calendar */
 
   /* ── Avatar — 軸 140・141 ── BEGIN avatar */

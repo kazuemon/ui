@@ -308,6 +308,8 @@ export {
   type ListAs,
   type ListCheckedVariant,
   ListItem,
+  type ListItemColor,
+  type ListItemStatus,
   type ListItemProps,
   type ListMarkerType,
   type ListProps,

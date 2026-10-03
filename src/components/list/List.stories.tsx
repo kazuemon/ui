@@ -1,9 +1,11 @@
+import { CheckIcon, RocketLaunchIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { createRef, useState } from 'react';
 import { expect, userEvent } from 'storybook/test';
 
 import { List, ListItem } from './List';
 import { Code } from '../code/Code';
+import { Tag } from '../tag/Tag';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
 const meta = {
@@ -19,8 +21,11 @@ const meta = {
           '- `as` は `ul`（既定、箇条書き）と `ol`（番号付き）です。`start` で最初の番号を決め、`reversed` で大きい順に振ります。',
           '- `markerType` は箇条書きの印です。`dash`（既定）は薄いグレーの短い線、`dot` は濃紺の丸です。入れ子のリストは外側の印を引き継ぎます。',
           '- 番号は薄いグレーで右揃えです。10 以上の番号でも「.」の位置がそろいます。',
-          '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
+          '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。チェックリストの項目は頭を箱が使うので、`status`・`icon` は効きません。`trailing` は効きます。',
           '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
+          '- `ListItem` の `status`（`success`・`warning`・`danger`）で、印を状態の色と形のアイコンにします。`icon` で好きなアイコンを印にできます。印は読み上げないので、状態は文でも伝えます。',
+          '- 印のアイコンは文字の 1.25 倍の大きさです。`ListItem` の `iconColor` でアイコンの色を、`color` で文の色を、Tag の `color` と同じ色から選びます。書かないときはどちらも文字の色で、`status` のアイコンは状態の色です。',
+          '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグ・ボタンなどを置きます。右端に寄せ、1 行目の高さの中で縦の中央にそろえます。文字の大きさや色は、置くものに付けます。',
         ].join('\n'),
       },
     },
@@ -101,6 +106,54 @@ export const Kinds: Story = {
   ),
 };
 
+export const StatusAndTrailing: Story = {
+  tags: ['visual'],
+  name: '状態・アイコン・末尾',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="status">
+        <List>
+          <ListItem status="success">型を確かめる: 通った</ListItem>
+          <ListItem status="warning">書式: 2 件の警告</ListItem>
+          <ListItem status="danger">テスト: 3 件の失敗</ListItem>
+          <ListItem>配布物を作る: まだ</ListItem>
+        </List>
+      </Specimen>
+      <Specimen label="icon・iconColor・color">
+        <List>
+          <ListItem icon={<CheckIcon />} iconColor="success">
+            部品をすべて使える
+          </ListItem>
+          <ListItem icon={<CheckIcon />} iconColor="success">
+            ドキュメントの見本
+          </ListItem>
+          <ListItem icon={<RocketLaunchIcon />}>はじめの設定を手伝う</ListItem>
+          <ListItem icon={<RocketLaunchIcon />} color="primary">
+            文もアイコンも primary
+          </ListItem>
+          <ListItem status="danger" iconColor="neutral" color="danger">
+            status に iconColor を重ねる
+          </ListItem>
+        </List>
+      </Specimen>
+      <Specimen label="trailing（折り返す文・タグ）">
+        <List>
+          <ListItem trailing={<span className="text-fg-subtle">9/30</span>}>
+            カレンダーに日ごとの印を足した
+          </ListItem>
+          <ListItem trailing={<span className="text-fg-subtle">10/1</span>}>
+            フォームのどの欄にも結び付かないエラーを出せるようにした
+          </ListItem>
+          <ListItem status="success" trailing={<Tag color="success">公開</Tag>}>
+            はじめての記事
+          </ListItem>
+        </List>
+      </Specimen>
+    </Gallery>
+  ),
+};
+
 export const Densities: Story = {
   tags: ['visual'],
   name: '密度',
@@ -171,5 +224,121 @@ export const Reversed: Story = {
     const list = canvas.getByRole('list');
     await expect(list).toHaveAttribute('reversed');
     await expect(reversedRef.current).toBe(list);
+  },
+};
+
+export const IconAndTextColor: Story = {
+  name: 'アイコンと文の色',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List>
+      <ListItem status="success">状態の色</ListItem>
+      <ListItem status="success" iconColor="danger">
+        iconColor が勝つ
+      </ListItem>
+      <ListItem icon={<CheckIcon />} color="info">
+        文の色をアイコンも継ぐ
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvas }) => {
+    const items = canvas.getAllByRole('listitem');
+    const iconColor = (li: HTMLElement) =>
+      getComputedStyle(li.querySelector('[data-slot="list-item-icon"]')!).color;
+    const fg = (name: string) => {
+      const probe = document.createElement('span');
+      probe.style.color = `var(--color-${name})`;
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    };
+    await expect(iconColor(items[0])).toBe(fg('fg-success'));
+    await expect(iconColor(items[1])).toBe(fg('fg-danger'));
+    await expect(getComputedStyle(items[2]).color).toBe(fg('fg-info'));
+    await expect(iconColor(items[2])).toBe(fg('fg-info'));
+  },
+};
+
+export const NestedWithTrailing: Story = {
+  name: '末尾のある項目の入れ子',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List>
+      <ListItem trailing="3 件">
+        親の項目
+        <List>
+          <ListItem>子の項目</ListItem>
+        </List>
+      </ListItem>
+      <ListItem>
+        末尾のない親
+        <List>
+          <ListItem>子の項目</ListItem>
+        </List>
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvasElement }) => {
+    // 末尾があってもなくても、入れ子のリストと親の項目の文の間は同じ
+    const nested = canvasElement.querySelectorAll('li ul');
+    await expect(nested).toHaveLength(2);
+    await expect(getComputedStyle(nested[0]).marginTop).toBe(getComputedStyle(nested[1]).marginTop);
+    await expect(getComputedStyle(nested[0]).marginTop).not.toBe('0px');
+  },
+};
+
+export const CheckedWithTrailing: Story = {
+  name: 'チェックリストの項目の末尾',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List task>
+      <ListItem checked trailing={<span className="text-fg-subtle">9/30</span>}>
+        原稿を書く
+      </ListItem>
+      <ListItem checked={false} status="danger" trailing="10/3">
+        見直す
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const items = canvas.getAllByRole('listitem');
+    // 末尾の枠は、チェックリストの項目でも右端に出る
+    const trailing = canvasElement.querySelectorAll('[data-slot="list-item-trailing"]');
+    await expect(trailing).toHaveLength(2);
+    await expect(trailing[1]).toHaveTextContent('10/3');
+    const item = items[1].getBoundingClientRect();
+    await expect(Math.round(trailing[1].getBoundingClientRect().right)).toBe(
+      Math.round(item.right)
+    );
+    // 頭は箱が使うので、状態のアイコンは出さない
+    await expect(canvas.getAllByRole('checkbox')).toHaveLength(2);
+    await expect(canvasElement.querySelector('[data-slot="list-item-icon"]')).toBeNull();
+  },
+};
+
+// icon に描かれない値（showIcon && <Icon /> の false など）を渡したときは、書かなかったのと同じ印になる
+export const IconFalse: Story = {
+  name: '描かれない icon',
+  parameters: { controls: { disable: true } },
+  render: () => {
+    const showIcon = false as boolean;
+    return (
+      <List>
+        <ListItem icon={showIcon && <RocketLaunchIcon />}>箇条書きの印のまま</ListItem>
+        <ListItem icon={showIcon && <RocketLaunchIcon />} status="success">
+          状態のアイコン
+        </ListItem>
+      </List>
+    );
+  },
+  play: async ({ canvas, canvasElement }) => {
+    const items = canvas.getAllByRole('listitem');
+    // 印を消して空の枠を出さない
+    await expect(items[0].querySelector('[data-slot="list-item-icon"]')).toBeNull();
+    await expect(getComputedStyle(items[0]).display).toBe('list-item');
+    await expect(canvasElement.querySelectorAll('[data-slot="list-item-icon"] svg')).toHaveLength(
+      1
+    );
   },
 };
