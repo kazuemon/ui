@@ -10,7 +10,7 @@ ListItem に足した、印をアイコンにする `icon` と、結果を並べ
 
 ## 候補
 
-比較は、決めた時点のコミット `7a0fdde` の比較のストーリー（`design/stories/axis-474-list-status-icon.stories.tsx`）です。列は「状態」「折り返す」「自分のアイコン」です。
+比較は、決めた時点のコミット `28921b4` の比較のストーリー（`design/stories/axis-474-list-status-icon.stories.tsx`）です。列は「状態」「折り返す」「自分のアイコン」です。
 
 | 案        | 印の大きさ・色                             |
 | --------- | ------------------------------------------ |
@@ -46,4 +46,4 @@ A・C・D の 16px は、文字を大きくしたときにアイコンが追従�
 
 ![List の status・icon の印のアイコンの比較。現行版・A・B・C・D を、状態・折り返す・自分のアイコンの 3 列で並べたもの。B に採用の印](./assets/0450-list-status-icon.png)
 
-決めた時点のコミットは、比較が `7a0fdde`、実装が `9e69bfa` です。`git checkout 7a0fdde && pnpm storybook` で、比較のストーリー（`None`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `28921b4`、実装が `1a1df19` です。`git checkout 28921b4 && pnpm storybook` で、比較のストーリー（`None`）を決めたときの部品のまま開けます。

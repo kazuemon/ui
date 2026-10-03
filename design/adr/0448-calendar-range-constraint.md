@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `7a0fdde` の比較のストーリー（`design/stories/axis-472-calendar-range-constraint.stories.tsx`）です。列は「長さの制約」「押せない日をまたがない」「両方・丸い日・primary」です。
+比較は、決めた時点のコミット `28921b4` の比較のストーリー（`design/stories/axis-472-calendar-range-constraint.stories.tsx`）です。列は「長さの制約」「押せない日をまたがない」「両方・丸い日・primary」です。
 
 | 案        | 制約で選べない日                         |
 | --------- | ---------------------------------------- |
@@ -45,4 +45,4 @@
 
 ![Calendar の期間の制約で選べない日の比較。現行版・A・B を、長さの制約・押せない日をまたがない・両方の 3 列で並べたもの。B に採用の印](./assets/0448-calendar-range-constraint.png)
 
-決めた時点のコミットは、比較が `7a0fdde`、実装が `9e69bfa` です。`git checkout 7a0fdde && pnpm storybook` で、比較のストーリー（`None`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `28921b4`、実装が `1a1df19` です。`git checkout 28921b4 && pnpm storybook` で、比較のストーリー（`None`）を決めたときの部品のまま開けます。
