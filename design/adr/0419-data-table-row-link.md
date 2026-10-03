@@ -41,6 +41,8 @@
 - `src/components/data-table/DataTableRowLink.tsx`: 文字のリンク。`color` の既定は `neutral`
 - `src/components/data-table/DataTableRow.tsx`: `href`・`link` をやめ、`DataTableRowLink` を置いた行だけ、押せる範囲を行全体に広げます
 - `design/tokens.css`: 比べるための切り替えのトークンを畳みました
+- のちに、行のリンクの行を中ボタン（ホイール）で押したときは、行き先を新しいタブで開くようにしました（リンクの文字を中ボタンで押したときと同じ）
+- のちに、行の中のボタンなどを押している間と、押して開いたメニューなどが開いている間（`data-popup-open`）は、行を押したことにせず、塗りも濃くしないようにしました
 - 比較のストーリーは消しました
 
 ## 原則への反映
