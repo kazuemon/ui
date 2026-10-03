@@ -58,7 +58,8 @@ export interface FormProps extends ComponentProps<'form'> {
    * フォームの上に危険のお知らせとして出します。showErrorSummary のときは、エラーの一覧と一緒に出します。
    * 送信したとき（submitting を false に戻したときも）に渡されていれば、このお知らせへフォーカスを移します。
    * サーバーから返ってきたときは、errors と同じく submitting を false にするのと同じ描画で渡してください。
-   * 送り始めて submitting を true にしているあいだは、前の送信のお知らせへはフォーカスを移しません
+   * 送り始めて submitting を true にしているあいだは、前の送信のお知らせへはフォーカスを移しません。
+   * フォーカスを移さないとき（送っているあいだに別の欄へ移ったときや、送信なしに渡したとき）は、文を割り込みで読み上げます
    */
   formErrorText?: ReactNode;
   /**
@@ -226,12 +227,35 @@ export function Form({
   // 欄の行が、同じ描画で「送信で出た」と分かるように、描画の中で決める（アプリがエラーを渡すのと submitting を false にするのが同じ描画のとき）
   // 送っているあいだに別の欄へ移っていたら増やさない。フォーカスを奪わず、行は polite で知らせる
   const [settle, setSettle] = useState({ submitting, count: 0 });
+  // 同じ描画の続き（formErrorText を割り込みで知らせるか）が、増やしたあとの回数で決められるように、ここで数える
+  let settleCount = settle.count;
   if (settle.submitting !== submitting) {
     const stayed = !submitting && focusStayedAt(origin);
-    setSettle({ submitting, count: stayed ? settle.count + 1 : settle.count });
+    settleCount = stayed ? settle.count + 1 : settle.count;
+    setSettle({ submitting, count: settleCount });
     if (!submitting) setOrigin(null);
   }
-  const focusCount = submitCount + settle.count;
+  const focusCount = submitCount + settleCount;
+
+  // formErrorText が出たとき（文が変わったとき）に、フォーカスを移さないなら、割り込み（alert）で知らせる
+  // 送っているあいだに別の欄へ移っていたときや、送信なしにアプリが渡したとき。移すときは移った先で読まれるので、二重に読ませない
+  // 文字列でない中身（要素）は描くたびに別物になるので、出たか消えたかだけを比べる
+  const formErrorKey =
+    typeof formErrorText === 'string' || typeof formErrorText === 'number'
+      ? formErrorText
+      : hasFormError;
+  const [formErrorLive, setFormErrorLive] = useState({
+    key: formErrorKey,
+    focusCount,
+    live: false,
+  });
+  if (formErrorLive.key !== formErrorKey || formErrorLive.focusCount !== focusCount) {
+    // この描画でフォーカスを移す（回数が増え、送っているあいだではない）か
+    const moves = formErrorLive.focusCount !== focusCount && !submitting;
+    const live =
+      formErrorLive.key !== formErrorKey ? hasFormError && !moves : formErrorLive.live && !moves;
+    setFormErrorLive({ key: formErrorKey, focusCount, live });
+  }
 
   // 送信なしに submitting になったとき（アプリが直に切り替えたとき）は、最初の送信のボタンに印を出す
   // 送り終えたら忘れる。次に送信なしで submitting になったとき、前に押したボタンに出さないため
@@ -346,7 +370,10 @@ export function Form({
             >
               {hasFormError && (
                 <Notice status="danger" live={false}>
-                  <span id={formErrorId}>{formErrorText}</span>
+                  {/* フォーカスを移さないときだけ、文を割り込みで知らせる（お知らせ全体を箱に入れると、移したときと二重に読まれる） */}
+                  <span id={formErrorId} role={formErrorLive.live ? 'alert' : undefined}>
+                    {formErrorText}
+                  </span>
                 </Notice>
               )}
               {summary && (

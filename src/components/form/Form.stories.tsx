@@ -650,6 +650,34 @@ export const FormErrorText: Story = {
     await expect(panel).toHaveAccessibleName(
       '通信できませんでした。時間をおいて、もう一度送ってください。'
     );
+    // フォーカスを移したので、割り込みでは読ませない（二重に読ませない）
+    await expect(canvas.queryByRole('alert')).toBeNull();
+  },
+};
+
+export const FormErrorTextMoved: Story = {
+  name: 'どの欄にも結び付かないエラー: 送っているあいだに別の欄へ移ったとき',
+  parameters: {
+    controls: { exclude: ['submitting'] },
+    docs: {
+      description: {
+        story:
+          '送っているあいだに別の欄へ移っていたときは、フォーカスを奪わず、お知らせの文を割り込みで読み上げます。',
+      },
+    },
+  },
+  render: (args) => <FormErrorTextForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const other = canvas.getByLabelText('表示名');
+    await userEvent.tab({ shift: true });
+    await expect(other).toHaveFocus();
+    const alert = await canvas.findByRole('alert', undefined, { timeout: 3000 });
+    await expect(alert).toHaveTextContent(
+      '通信できませんでした。時間をおいて、もう一度送ってください。'
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await expect(other).toHaveFocus();
   },
 };
 
