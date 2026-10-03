@@ -25,7 +25,11 @@ import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
 
-export type { ChoiceColor } from '../../internal/choice/choice-styles';
+export type {
+  ChoiceColor,
+  ChoiceGroupDirection,
+  ChoiceGroupItemWidth,
+} from '../../internal/choice/choice-styles';
 
 // 1つだけ置くチェックボックスの行。上下の行が行の余白（--choice-row-pad-y — design/adr/0101）。最後の3行がエラー・警告・情報の行
 //   下の行は、最後の3行に置く（位置を決めないと、上の余白の空いた行に入ってしまう）

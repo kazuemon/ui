@@ -30,7 +30,8 @@ const meta = {
         component: [
           '画像を並べ、押すと画面いっぱいに拡大して、前後に送って見られる部品です。作品のページの画像や、記事の図をまとめて見せるのに使います。1 枚だけなら ImageZoom を使います。',
           '',
-          '- `items` に画像を渡します。`src`・`alt`・`width`・`height`・`render` は Image と同じです。`zoomSrc` を渡すと、拡大したときだけ大きな画像を読み込みます。',
+          "- `items` に画像を渡します。`src`・`alt`・`width`・`height`・`render` は Image と同じです。`zoomSrc` を渡すと、拡大したときだけ大きな画像を読み込みます。枚数が多いときは、画像ごとに `loading: 'lazy'` を渡すと、見えるところまで来てから読み込みます（`decoding`・`fetchPriority` も渡せます）。",
+          '- 読み込むまでの面の動きは `loadingAnimation` で選びます。既定の `sweep-viewport` は並び全体をまたぐ 1 本の光、`pulse` は面の明滅です。',
           "- 並べた画像は、同じ比（`ratio`、既定は 4 / 3）に切り取ってそろえます。`ratio` には `16 / 9` のような数か `'16 / 9'` の文字を渡せます（Image と同じ）。拡大すると全体が見えます。",
           '- `columns` で列の数を決めます（既定は 3）。入れ物が狭いとき（28rem 未満）は 2 列にまとめます。画像のあいだは `gap` で、Stack と同じ段から選びます。',
           '- 画像ごとの `caption` は、拡大したときに画像の下に出します。並びの下に全体のキャプションを出すときは、Gallery の `caption` に渡します。',
@@ -61,6 +62,7 @@ const meta = {
       table: { defaultValue: { summary: "'sm'" } },
     },
     slideMotion: { control: 'inline-radio', options: ['shift', 'slide'] },
+    loadingAnimation: { control: 'inline-radio', options: ['sweep-viewport', 'pulse'] },
     controlsPosition: { control: 'inline-radio', options: ['bottom', 'sides', 'overlay'] },
     indicator: { control: 'inline-radio', options: ['dots', 'count', 'none'] },
     caption: { control: 'text' },
@@ -567,4 +569,37 @@ export const Motions: Story = {
       </Specimen>
     </SpecimenGallery>
   ),
+};
+
+export const LoadingAttributes: Story = {
+  name: '読み込みの指定',
+  decorators: [wide],
+  args: {
+    items: galleryImages
+      .slice(0, 3)
+      .map((image, i) =>
+        i === 0
+          ? { ...image, fetchPriority: 'high' as const }
+          : { ...image, loading: 'lazy' as const, decoding: 'async' as const }
+      ),
+    loadingAnimation: 'pulse',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "画像ごとの `loading`・`decoding`・`fetchPriority` は、そのまま img の属性になります。先頭の画像は `fetchPriority: 'high'`、残りは `loading: 'lazy'` にしています。",
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const images = canvasElement.querySelectorAll<HTMLImageElement>(
+      '[data-slot="gallery-list"] img'
+    );
+    await expect(images).toHaveLength(3);
+    await expect(images[0]).toHaveAttribute('fetchpriority', 'high');
+    await expect(images[0]).not.toHaveAttribute('loading');
+    await expect(images[1]).toHaveAttribute('loading', 'lazy');
+    await expect(images[2]).toHaveAttribute('decoding', 'async');
+  },
 };

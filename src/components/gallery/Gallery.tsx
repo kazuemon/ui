@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { ImagePlaceholderAnimationContext } from '../../internal/image-placeholder-context';
 import { MagnifyingGlassPlusIcon } from '../../internal/image-zoom/image-zoom-icons';
 import {
   type ImageZoomCaptionMotion,
@@ -43,6 +44,7 @@ export type { GalleryIndicator } from './GalleryControls';
 //   送るときの動きは --gallery-slide-*（軸 290）。slideMotion の shift（既定）は少し滑り、slide は幅いっぱいに滑る
 //   前後のボタンの置き場所は controlsPosition（軸 291）: bottom（既定）・sides・overlay。位置の示しは indicator（dots（既定。Carousel と同じ）・count・none）
 //   閉じると、そのとき見ている画像の位置へ戻る
+// 読み込むまでの面は Image と同じ Skeleton の面。動きは loadingAnimation（軸 411）: sweep-viewport（既定）は並び全体をまたぐ 1 本の光、pulse は明滅
 //   送った先の画像がページの見えるところにないときは、元の位置へ戻らずに、その場で消える（fade）
 
 const styles = tv({
@@ -97,13 +99,25 @@ const controlsPositionTokens: Record<GalleryControlsPosition, string> = {
 const reserveTokens =
   '[--image-zoom-reserve-bottom:calc((var(--spacing-control)+var(--image-zoom-close-inset)*2)*var(--gallery-nav-bar))] [--image-zoom-reserve-x:calc((var(--spacing-control)+var(--image-zoom-close-inset)*2)*(1-var(--gallery-nav-bar))*var(--gallery-nav-space-x))]';
 
+/** 並べた画像を読み込むまでの面の動き。sweep-viewport は並び全体をまたぐ光、pulse は面の明滅 */
+export type GalleryLoadingAnimation = 'sweep-viewport' | 'pulse';
+
 /** 並べる列の数。入れ物が狭いときは 2 列にまとめます */
 export type GalleryColumns = 1 | 2 | 3 | 4;
 
 /** 並べる画像 1 枚 */
 export interface GalleryItem extends Pick<
   ImageProps,
-  'src' | 'alt' | 'width' | 'height' | 'srcSet' | 'sizes' | 'render'
+  | 'src'
+  | 'alt'
+  | 'width'
+  | 'height'
+  | 'srcSet'
+  | 'sizes'
+  | 'loading'
+  | 'decoding'
+  | 'fetchPriority'
+  | 'render'
 > {
   /** 拡大したときに読み込む、大きな画像の URL。書かないときは、並べた画像をそのまま拡大します */
   zoomSrc?: string;
@@ -112,7 +126,11 @@ export interface GalleryItem extends Pick<
 }
 
 export interface GalleryProps extends Omit<ComponentProps<'div'>, 'children'> {
-  /** 並べる画像。`src`・`alt`・`width`・`height`・`render` は Image と同じです */
+  /**
+   * 並べる画像。`src`・`alt`・`width`・`height`・`render` は Image と同じです。
+   * 枚数が多いときは、画面の外の画像に `loading: 'lazy'` を渡すと、見えるところまで来てから読み込みます
+   * （`decoding`・`fetchPriority` も img の属性として渡せます）
+   */
   items: GalleryItem[];
   /**
    * 並べる列の数。入れ物が狭いとき（28rem 未満）は 2 列にまとめます
@@ -130,6 +148,13 @@ export interface GalleryProps extends Omit<ComponentProps<'div'>, 'children'> {
    * @default 4 / 3
    */
   ratio?: number | string;
+  /**
+   * 並べた画像を読み込むまでの面の動き。sweep-viewport は画面を基準にした光が並び全体をまたいで通り、
+   * 枚数が多くても面ごとにばらばらに光りません。pulse は光を通さず、面の濃さをゆっくり明滅させます。
+   * 動きを減らす設定では、どちらもその場の明滅にします
+   * @default 'sweep-viewport'
+   */
+  loadingAnimation?: GalleryLoadingAnimation;
   /** 並びの下に出すキャプション。渡すと、全体を figure で包みます */
   caption?: ReactNode;
   /** 拡大しているか（制御） */
@@ -298,6 +323,7 @@ export function Gallery({
   columns,
   gap,
   ratio = 'var(--gallery-ratio)',
+  loadingAnimation = 'sweep-viewport',
   caption,
   open: openProp,
   defaultOpen = false,
@@ -393,48 +419,50 @@ export function Gallery({
   const t = zoomTriggerStyles({ showZoomIcon });
 
   const list = (
-    <ul data-slot="gallery-list" className={s.list()}>
-      {items.map(({ zoomSrc: _zoomSrc, caption: _caption, ...image }, i) => (
-        <li key={i} data-slot="gallery-item" className={s.item()}>
-          <button
-            ref={(el) => {
-              triggers.current[i] = el;
-            }}
-            type="button"
-            data-slot="gallery-trigger"
-            aria-haspopup="dialog"
-            aria-expanded={open && index === i}
-            disabled={failed[i]}
-            onClick={(event) => {
-              if (event.currentTarget.querySelector('[data-slot="image"][data-status="error"]')) {
-                return;
-              }
-              changeIndex(i, 1);
-              setAnnouncement('');
-              changeOpen(true);
-            }}
-            className={t.trigger({ className: s.trigger() })}
-          >
-            <Image
-              {...image}
-              ratio={ratio}
-              frameProps={{ className: s.frame() }}
-              onLoad={(event: SyntheticEvent<HTMLImageElement>) => {
-                const loaded = event.currentTarget.currentSrc || event.currentTarget.src;
-                setLoadedSrcs((prev) => (prev[i] === loaded ? prev : { ...prev, [i]: loaded }));
-                setFailed((prev) => (prev[i] ? { ...prev, [i]: false } : prev));
+    <ImagePlaceholderAnimationContext.Provider value={loadingAnimation}>
+      <ul data-slot="gallery-list" className={s.list()}>
+        {items.map(({ zoomSrc: _zoomSrc, caption: _caption, ...image }, i) => (
+          <li key={i} data-slot="gallery-item" className={s.item()}>
+            <button
+              ref={(el) => {
+                triggers.current[i] = el;
               }}
-              onError={() => setFailed((prev) => ({ ...prev, [i]: true }))}
-            />
-            <span aria-hidden className={t.cue()}>
-              <MagnifyingGlassPlusIcon className={t.cueIcon()} />
-            </span>
-            {/* 画像の代わりの文に続けて読む（「空と山の絵 拡大する」） */}
-            <span className="sr-only">{zoomName}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
+              type="button"
+              data-slot="gallery-trigger"
+              aria-haspopup="dialog"
+              aria-expanded={open && index === i}
+              disabled={failed[i]}
+              onClick={(event) => {
+                if (event.currentTarget.querySelector('[data-slot="image"][data-status="error"]')) {
+                  return;
+                }
+                changeIndex(i, 1);
+                setAnnouncement('');
+                changeOpen(true);
+              }}
+              className={t.trigger({ className: s.trigger() })}
+            >
+              <Image
+                {...image}
+                ratio={ratio}
+                frameProps={{ className: s.frame() }}
+                onLoad={(event: SyntheticEvent<HTMLImageElement>) => {
+                  const loaded = event.currentTarget.currentSrc || event.currentTarget.src;
+                  setLoadedSrcs((prev) => (prev[i] === loaded ? prev : { ...prev, [i]: loaded }));
+                  setFailed((prev) => (prev[i] ? { ...prev, [i]: false } : prev));
+                }}
+                onError={() => setFailed((prev) => ({ ...prev, [i]: true }))}
+              />
+              <span aria-hidden className={t.cue()}>
+                <MagnifyingGlassPlusIcon className={t.cueIcon()} />
+              </span>
+              {/* 画像の代わりの文に続けて読む（「空と山の絵 拡大する」） */}
+              <span className="sr-only">{zoomName}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </ImagePlaceholderAnimationContext.Provider>
   );
 
   const viewer = (
