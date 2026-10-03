@@ -46,6 +46,7 @@ TextField・MaskField の `size` はこれまで input の文字数を表して�
 - `src/internal/field/field-styles.ts`・`src/internal/field/input-field-props.ts`: 入力欄の `size`（`md` | `sm`）。prefix・suffix の塊の余白、▼・×・回る印も sm の値になります
 - `src/components/text-field/TextField.tsx`: `size` が文字数から大きさの段に変わります
 - ラベルとキャプションの大きさ、浮かぶ選択肢の一覧（md のまま）は変えません
+- prefix・suffix に置いたボタンも、欄の段に合わせて小さくなります（md のボタンを置いても sm の欄では sm の大きさ）。欄の中では欄の段にそろえるのが自然なので、このままにし、`size` の JSDoc に書きました（レビューで「お勧めで」）
 
 ## 原則への反映
 
