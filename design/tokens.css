@@ -2161,6 +2161,7 @@
      grip-*: ふだんから見せる小さな縦のつまみ（Sidebar の resizeHandle="grip"）の色と大きさ */
   --resize-handle-hit: calc(var(--spacing) * 2); /* 8px */
   --resize-handle-line-width: var(--border-width-thick);
+  --resize-handle-line-inset: 0; /* 線の上下の空き。表の列はセルの上下の余白の分だけ空ける */
   --resize-handle-rest: transparent;
   --resize-handle-hover: var(--color-line-strong);
   --resize-handle-active: var(--color-line-strong);

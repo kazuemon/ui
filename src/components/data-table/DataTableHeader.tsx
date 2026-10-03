@@ -56,7 +56,7 @@ export interface DataTableHeaderProps extends TableHeaderProps {
   minWidth?: number | string;
   /**
    * 見出しの右の端（列の境）のつまみをドラッグして、列の幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で 16px ずつ。
-   * ダブルクリックで defaultWidth（なければ中身に合わせた幅）に戻ります
+   * ダブルクリックで defaultWidth（なければ中身に合わせた幅）に戻ります。最後の列は表の端で残りの幅を受け持つので、つまみを出しません
    * @default false
    */
   resizable?: boolean;
@@ -71,6 +71,12 @@ export interface DataTableHeaderProps extends TableHeaderProps {
    * @default '列の幅'
    */
   resizeName?: string;
+  /**
+   * resizable のつまみに、ふだんから淡い線を出すか。既定では、幅を変えられる列（つまみのある列）に出します。
+   * false にしても、載せる・動かす・フォーカスしたときは線が出ます。列の境に縦の線を引いた表など、幅を変えられることが見た目で分かるときに使います
+   * @default resizable
+   */
+  showResizeLine?: boolean;
 }
 
 // resizable で、minWidth が数でないときの、いちばん狭い幅（px）
@@ -87,6 +93,7 @@ export function DataTableHeader({
   onWidthChange,
   maxWidth,
   resizeName = '列の幅',
+  showResizeLine = resizable,
   align,
   children,
   style: styleProp,
@@ -120,9 +127,13 @@ export function DataTableHeader({
       max={maxWidth}
       edge="end"
       slot="data-table-resize-handle"
-      // 最後の列は、表の外へはみ出さない（枠に横のスクロールを生まない）よう、セルの内側に置く
-      // 表の列の境は線が薄いか無く、幅を変えられることに気づけないので、ふだんから淡い線を出す（Sidebar・Inspector は載せたときだけ）
-      className="inset-y-0 -end-[calc(var(--resize-handle-hit)/2)] [--resize-handle-rest:var(--color-line)] [th:last-child>&]:end-0"
+      // 最後の列は表の端で、残りの幅を受け持つので、つまみを出さない（読み上げとキーボードからも外れる）
+      // 表の列の境は線が薄いか無く、幅を変えられることに気づけないので、ふだんから淡い線を出す（Sidebar・Inspector は載せたときだけ）。
+      // 線はセルの上下の余白の分だけ短くし、見出しの文字の行にそろえる（つかめる範囲はセルの高さいっぱい）
+      className={[
+        'inset-y-0 -end-[calc(var(--resize-handle-hit)/2)] [--resize-handle-line-inset:calc(var(--spacing)*3)] [th:last-child>&]:hidden',
+        showResizeLine ? '[--resize-handle-rest:var(--color-line)]' : '',
+      ].join(' ')}
       onWidthChange={setWidth}
       onReset={() => {
         if (!controlledWidth) setWidthState(defaultWidth);

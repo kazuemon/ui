@@ -164,7 +164,7 @@ const meta = {
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
           '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
-          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
+          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります（`showResizeLine={false}` でふだんの線を消せます）。最後の列は表の端なので、つまみを出しません。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
           '- セルと行の見出しのない列には、`TableHead`・`TableBody`・`TableRow`・`TableCell` をそのまま使います。',
         ].join('\n'),
       },
@@ -446,9 +446,7 @@ export const ResizableColumns: Story = {
             <DataTableHeader resizable resizeName="お店の列の幅">
               お店
             </DataTableHeader>
-            <DataTableHeader align="end" resizable resizeName="金額の列の幅">
-              金額
-            </DataTableHeader>
+            <DataTableHeader align="end">金額</DataTableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -467,8 +465,71 @@ export const ResizableColumns: Story = {
     const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
     await expect(handle).toHaveAttribute('aria-valuenow', '128');
     // 表の列のつまみは、ふだんから線を見せる
-    const line = getComputedStyle(handle, '::before').backgroundColor;
-    await expect(line).not.toBe('rgba(0, 0, 0, 0)');
+    const line = getComputedStyle(handle, '::before');
+    await expect(line.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    // 線は上下に空きを取り、見出しの上下の線に付かない
+    await expect(parseFloat(line.top)).toBeGreaterThan(0);
+    await expect(parseFloat(line.bottom)).toBeGreaterThan(0);
+  },
+};
+
+export const ResizableColumnsDivided: Story = {
+  tags: ['visual'],
+  name: '列の幅を変える（列の境に線を引いた表）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '列の境に線を引いた表（`showColumnDivider`）のように、幅を変えられることが見た目で分かるときは、`showResizeLine={false}` でつまみのふだんの線を消せます。載せる・動かす・フォーカスしたときは線が出ます。',
+      },
+      source: {
+        code: [
+          '<DataTable accessibleName="注文" showColumnDivider>',
+          '  …',
+          '  <DataTableHeader resizable showResizeLine={false} resizeName="お店の列の幅">',
+          '    お店',
+          '  </DataTableHeader>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文" showColumnDivider>
+        <TableHead>
+          <TableRow>
+            <DataTableHeader
+              resizable
+              showResizeLine={false}
+              defaultWidth={128}
+              resizeName="注文番号の列の幅"
+            >
+              注文番号
+            </DataTableHeader>
+            <DataTableHeader resizable showResizeLine={false} resizeName="お店の列の幅">
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end">金額</DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 3).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
+    // showResizeLine={false} では、ふだんの線を出さない
+    await expect(getComputedStyle(handle, '::before').backgroundColor).toBe('rgba(0, 0, 0, 0)');
   },
 };
 
@@ -536,12 +597,8 @@ export const ResizableColumnsControlled: Story = {
     await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
     await userEvent.keyboard('{Home}');
     await expect(handle).toHaveAttribute('aria-valuenow', '48');
-    // 最後の列のつまみは、表の外へはみ出さない（枠に横のスクロールを生まない）
-    const last = canvas.getByRole('separator', { name: '金額の列の幅' });
-    const cell = last.closest('th')!;
-    await expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
-      cell.getBoundingClientRect().right + 0.5
-    );
+    // 最後の列は表の端なので、resizable でもつまみを出さない（読み上げにも出ない）
+    await expect(canvas.queryByRole('separator', { name: '金額の列の幅' })).toBeNull();
     const scroller = canvas.getByRole('region', { name: '注文' });
     await expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth);
   },
