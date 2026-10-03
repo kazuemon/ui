@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { MenuItem } from '../components/menu/MenuItem';
 import { Sortable, SortableHandle, SortableItem } from '../components/sortable/Sortable';
@@ -25,15 +25,32 @@ export function SortableTwoLists({ defaultItems: items }: { defaultItems: Item[]
     later: items.slice(2).map((item) => item.id),
   }));
   const labelOf = (id: string) => items.find((item) => item.id === id)?.label;
+  const rootRef = useRef<HTMLDivElement>(null);
+  // 移した項目。移す先に描かれたら、その項目のつまみ（なければ ︙ のボタン）へフォーカスを移す
+  //   ︙ のボタンは元のリストと一緒に消えるので、そのままではフォーカスがページの先頭に戻ってしまう
+  const movedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const movedId = movedRef.current;
+    if (movedId == null) return;
+    movedRef.current = null;
+    const item = rootRef.current?.querySelector(`[data-value="${CSS.escape(movedId)}"]`);
+    const target = item?.querySelector<HTMLElement>(
+      '[data-slot=sortable-handle], [data-slot=sortable-actions] button'
+    );
+    // メニューが閉じて元のボタンへフォーカスを戻そうとするのを待ってから移す
+    requestAnimationFrame(() => target?.focus());
+  });
   // 移す先の末尾に足す
-  const moveToList = (id: string, from: ListId, to: ListId) =>
+  const moveToList = (id: string, from: ListId, to: ListId) => {
     setOrders((current) => ({
       ...current,
       [from]: current[from].filter((other) => other !== id),
       [to]: [...current[to], id],
     }));
+    movedRef.current = id;
+  };
   return (
-    <div className="flex flex-wrap gap-8">
+    <div ref={rootRef} className="flex flex-wrap gap-8">
       {lists.map((list) => (
         <section key={list.id} className="flex w-64 flex-col gap-2">
           <h3 className="text-sm font-bold">{list.label}</h3>

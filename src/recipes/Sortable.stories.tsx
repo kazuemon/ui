@@ -151,6 +151,7 @@ export const MoveBetweenLists: Story = {
           '',
           '- 両方のリストの並びを親で持ちます。',
           '- `SortableItem` の `menu` に「〜へ移動」の `MenuItem` を渡すと、︙ のメニューの既定の項目（上へ・下へ・先頭へ・末尾へ）のあとに並びます。押したら、元のリストから消し、移す先の末尾に足します。',
+          '- ︙ のボタンは元のリストと一緒に消えるので、移したあとは、移す先の項目のつまみへフォーカスを移します。',
           '- ポインタで引いてリストをまたぐときは、dnd-kit の `DragDropProvider` で両方のリストを包み、`onDragOver` で同じように両方の並びを更新します。',
         ].join('\n'),
       },
@@ -169,5 +170,10 @@ export const MoveBetweenLists: Story = {
     await userEvent.click(within(menu).getByRole('menuitem', { name: 'あとでへ移動' }));
     await waitFor(() => expect(labelsOf('今日')).toEqual(['見直しを頼む']));
     await expect(labelsOf('あとで')).toEqual(['見出しの画像を作る', '公開する', '下書きを書く']);
+    // 移す先の項目のつまみへフォーカスが移る
+    const later = within(canvas.getByRole('list', { name: 'あとで' }));
+    await waitFor(() =>
+      expect(later.getByRole('button', { name: '下書きを書くを並べ替え' })).toHaveFocus()
+    );
   },
 };
