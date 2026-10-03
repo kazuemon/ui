@@ -281,3 +281,32 @@ export const Composed: Story = {
     await expect(canvas.getByRole('radio', { name: '午前' })).toHaveAccessibleDescription('');
   },
 };
+
+export const HorizontalNarrow: Story = {
+  name: '横並び（狭い入れ物）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '折り返さない横並びは、狭い入れ物でも選択肢を縮めず、文字を 1 行のまま並べます。入りきらない分ははみ出すので、狭いときは `wrap` か縦の並びにします。',
+      },
+    },
+  },
+  render: () => (
+    <div className="w-48 overflow-x-auto">
+      <RadioGroup label="届け方" defaultValue="home" direction="horizontal">
+        <Radio value="home" label="自宅に届ける" />
+        <Radio value="store" label="近くの店で受け取る" />
+      </RadioGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 選択肢の文字は改行されない（1 行の高さのまま）
+    for (const name of ['自宅に届ける', '近くの店で受け取る']) {
+      const label = canvas.getByText(name);
+      const lineHeight = parseFloat(getComputedStyle(label).lineHeight);
+      await expect(label.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5);
+    }
+  },
+};

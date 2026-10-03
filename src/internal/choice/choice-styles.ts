@@ -155,6 +155,8 @@ export const choiceGroupList = tv({
   compoundVariants: [
     { direction: 'horizontal', itemWidth: 'fit', class: 'flex flex-row' },
     { direction: 'horizontal', itemWidth: 'fit', wrap: true, class: 'flex-wrap' },
+    // 折り返さないときは、選択肢を縮めない（縮めるとラベルや説明文が中で改行される。入りきらないときは、はみ出す）
+    { direction: 'horizontal', itemWidth: 'fit', wrap: false, class: '[&>*]:shrink-0' },
     {
       direction: 'horizontal',
       itemWidth: 'equal',
