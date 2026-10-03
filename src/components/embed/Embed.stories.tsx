@@ -30,7 +30,7 @@ const meta = {
           '- `src` は各サービスの埋め込みコード・oEmbed から得た iframe の URL をそのまま渡します。id からの組み立ては行いません。',
           '- `provider` は既定の比率・アイコン・allow 属性を決めます（`youtube`・`vimeo` は 16:9、`x` は 4:5、`codepen` は 3:2、`custom` は 16:9）。`ratio` で上書きできます。',
           '- `title` は iframe の読み上げの名前になり、children を渡さないときは面にも文字で出します。',
-          '- `caption` を渡すと、Figure と同じように下に中央寄せで出ます。',
+          '- `caption` を渡すと、Figure と同じように下に中央寄せで出ます。そのときだけ `figure` で包み、`figureProps` はその `figure` に付きます。',
         ].join('\n'),
       },
     },
@@ -132,8 +132,15 @@ export const WithCaption: Story = {
       src={demo('codepen', '#f5e9d0')}
       title="ボタンの見た目のデモ"
       caption="図 1. ボタンのホバーの見た目"
+      figureProps={{ id: 'figure' }}
     />
   ),
+  play: async ({ canvasElement }) => {
+    // キャプションがあるときは figure で包み、figureProps は figure に付く
+    const figure = canvasElement.querySelector('figure');
+    await expect(figure).toHaveAttribute('id', 'figure');
+    await expect(figure?.querySelector('figcaption')).not.toBeNull();
+  },
 };
 
 // クリックで読み込む一連の流れ（clickToLoad）。data: URL なので、実際に外部へは通信しない
@@ -152,6 +159,8 @@ export const ClickToLoad: Story = {
     const canvas = within(canvasElement);
     const frame = canvasElement.querySelector('[data-slot="embed"]')!;
     await expect(frame).toHaveAttribute('data-status', 'idle');
+    // キャプションがないときは figure で包まない
+    await expect(canvasElement.querySelector('figure')).toBeNull();
     await expect(canvasElement.querySelector('iframe')).toBeNull();
     await userEvent.click(canvas.getByRole('button', { name: /読み込む/ }));
     await waitFor(() => expect(frame).toHaveAttribute('data-status', 'loaded'));

@@ -672,6 +672,24 @@
   --card-gap: calc(var(--spacing) * 1);
   --card-hover-media-scale: 1.04;
   --card-fill-hover: color-mix(in oklab, var(--color-field) 50%, var(--color-surface));
+  /* 詰めた余白（size="sm"）— 軸 412。md は上の padding・nested-inset。縦の間（gap）は md と同じ
+     padding-sm: 中身の余白。nested-inset-sm: 入れ子の型の、画像の周りの余白 */
+  --card-padding-sm: calc(var(--spacing) * 3);
+  --card-nested-inset-sm: calc(var(--spacing) * 1.5);
+  /* 選んでいる見た目（selected）— 軸 413。線と面の色は color（primary・secondary・neutral）から部品が作る
+     selected-line-width: 輪郭の上に重ねる線の太さ。寸法は変えない
+     selected-hover-mix: 塗った面（selectedIndicator="fill"）の hover で、線の色を面に混ぜる割合 */
+  --card-selected-line-width: var(--border-width-thick);
+  --card-selected-hover-mix: 6%;
+  /* 頭の帯（CardHeader）— 軸 414。塗り（variant）と下の線（hideDivider）は部品が決める
+     header-padding-y: 帯の上下の余白。header-gap: 帯の中の並びの間 */
+  --card-header-padding-y: calc(var(--spacing) * 3);
+  --card-header-gap: calc(var(--spacing) * 3);
+  /* 強調の形（variant="emphasis"）— 軸 415。面・輪郭・hover の塗りは default のまま、輪郭の外に淡い輪を足す
+     輪の色は color の色（primary が既定）を部品が halo-mix で薄めて作る
+     emphasis-halo・emphasis-halo-mix: 輪の幅と濃さ。Timeline の強調の輪と同じ値 */
+  --card-emphasis-halo: var(--timeline-emphasis-halo);
+  --card-emphasis-halo-mix: var(--timeline-emphasis-halo-mix);
   /* ── END card */
 
   /* ── LinkCard — ADR-115〜117 で決定（ADR-0143〜0145） ── BEGIN link-card */
@@ -1189,6 +1207,10 @@
   --collapsible-duration: var(--duration-normal);
   --collapsible-ease: var(--ease-sheet);
   --collapsible-start-opacity: 0;
+  /* 枠付きのカードの形（variant="card"）— 軸 416。角・輪郭・面はカードと同じで、部品が決める
+     開いた行は塗らない（openFilled で open-filled と同じグレーを敷ける）
+     card-gap: 続けて置いたときの間 */
+  --collapsible-card-gap: calc(var(--spacing) * 2);
   /* ── END collapsible */
 
   /* ── Callout の畳める形 — 軸 443（ADR-0410）・446（ADR-0472） ── BEGIN callout */

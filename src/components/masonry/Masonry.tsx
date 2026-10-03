@@ -15,6 +15,12 @@ import {
   useState,
 } from 'react';
 
+import {
+  columnsClasses,
+  columnVars,
+  type GridColumns,
+  isListElement,
+} from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
 // 縦横の比率が違う子を、列に振り分けて隙間なく積む枠 — 軸 294〜296
@@ -40,9 +46,14 @@ const masonry = tv({
     // items-start: グリッドの既定（stretch）で子を引き伸ばすと、測る前のふつうのグリッド（grid-auto-rows: auto）
     // のときに、同じ行の子がいちばん高い子に合わせて伸びてしまい、ResizeObserver が伸びた高さを測ってしまう
     'grid items-start gap-(--masonry-gap)',
-    '[grid-template-columns:repeat(auto-fill,minmax(var(--masonry-column-width),1fr))]',
   ],
   variants: {
+    // columns を渡すと、Grid と同じ段ごとの列の数（src/internal/breakpoints.ts）。minmax(0, 1fr) で、長い URL などの
+    // 縮まない中身があっても列の幅を等しく保つ
+    layout: {
+      fill: '[grid-template-columns:repeat(auto-fill,minmax(var(--masonry-column-width),1fr))]',
+      fixed: [...columnsClasses, '[grid-template-columns:repeat(var(--columns),minmax(0,1fr))]'],
+    },
     gap: {
       none: '[--masonry-gap:0px]',
       xs: '[--masonry-gap:var(--stack-gap-xs)]',
@@ -52,7 +63,7 @@ const masonry = tv({
       xl: '[--masonry-gap:var(--stack-gap-xl)]',
     },
   },
-  defaultVariants: { gap: 'md' },
+  defaultVariants: { layout: 'fill', gap: 'md' },
 });
 
 type TokenStyle = CSSProperties & Record<`--${string}`, string>;
@@ -65,14 +76,21 @@ export interface MasonryProps extends ComponentProps<'div'> {
    * @default 240
    */
   minColumnWidth?: number;
-  /** 列の数を固定します。渡すと minColumnWidth を無視し、入れ物の幅によらず同じ列数になります */
-  columns?: number;
+  /**
+   * 列の数。渡すと minColumnWidth を無視し、入れ物の幅によらず決まった列の数になります。
+   * 数を渡すとどの画面の幅でも同じ（`columns={3}`）、画面の幅の段ごとの数を渡すと画面の幅で変わります（`columns={{ base: 1, md: 2, lg: 3 }}`）。
+   * 段は Grid の columns と同じで、渡していない段は 1 つ下の段の数を使います（base もないときは 1 列）
+   */
+  columns?: GridColumns;
   /**
    * 子の間隔。Stack の gap と同じ段です（none は 0、xs は 4px、sm は 8px、md は 16px、lg は 24px、xl は 40px）
    * @default 'md'
    */
   gap?: MasonryGap;
-  /** 描く要素（Base UI の render と同じ）。ul などにするときは `render={<ul />}` を渡します */
+  /**
+   * 描く要素（Base UI の render と同じ）。ul・ol にするときは `render={<ul />}` を渡します。子は li で包みます。
+   * ul・ol は要素を直接渡します。ul・ol を中で描く自作の部品を渡しても一覧とはみなさず、子を li で包みません
+   */
   render?: ReactElement;
   /** 並べる子。縦横の比率が違っても、渡した順のまま隙間なく積みます */
   children?: ReactNode;
@@ -84,14 +102,17 @@ export interface MasonryProps extends ComponentProps<'div'> {
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 interface MasonryItemProps {
+  /** 子を包む要素。ul・ol のときは li */
+  as: 'div' | 'li';
   measured: boolean;
   span: number | undefined;
   onResize: (height: number) => void;
   children: ReactNode;
 }
 
-function MasonryItem({ measured, span, onResize, children }: MasonryItemProps) {
-  const ref = useRef<HTMLDivElement>(null);
+function MasonryItem({ as: Tag, measured, span, onResize, children }: MasonryItemProps) {
+  // div と li のどちらでも受けられる型にする（高さを測るだけ）
+  const ref = useRef<HTMLDivElement & HTMLLIElement>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -106,13 +127,13 @@ function MasonryItem({ measured, span, onResize, children }: MasonryItemProps) {
   }, []);
 
   return (
-    <div
+    <Tag
       ref={ref}
       data-slot="masonry-item"
       style={measured && span != null ? { gridRowEnd: `span ${span}` } : undefined}
     >
       {children}
-    </div>
+    </Tag>
   );
 }
 
@@ -158,6 +179,7 @@ export function Masonry({
     setGapPx(parseFloat(getComputedStyle(el).columnGap) || 0);
   }, [gap]);
 
+  const itemTag = isListElement(render) ? 'li' : 'div';
   const measured =
     items.length > 0 && heights.length === items.length && heights.every((h) => h != null);
 
@@ -169,16 +191,17 @@ export function Masonry({
       ...props,
       'data-slot': 'masonry',
       'data-measured': measured || undefined,
-      className: masonry({ gap, className }),
+      className: masonry({ layout: columns == null ? 'fill' : 'fixed', gap, className }),
       style: {
         ...style,
         '--masonry-column-width': `${minColumnWidth}px`,
-        ...(columns != null && { gridTemplateColumns: `repeat(${columns}, 1fr)` }),
+        ...columnVars(columns),
         gridAutoRows: measured ? 'var(--masonry-row-unit)' : 'auto',
         ...(measured && { rowGap: 0 }),
       } satisfies TokenStyle,
       children: items.map((child, i) => (
         <MasonryItem
+          as={itemTag}
           key={isValidElement(child) && child.key != null ? child.key : i}
           measured={measured}
           span={

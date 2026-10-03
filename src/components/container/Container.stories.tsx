@@ -23,6 +23,7 @@ const meta = {
           '',
           '- `size` は中身の幅の上限です。記事のような読みものは `prose`、カードの一覧や設定の画面は `default`（既定）、表や画像を大きく並べる画面は `wide`、上限なしは `full` です。',
           '- 画面が上限より狭いときは、画面の幅から左右の余白を引いた幅になります。左右の余白は、置いた場所の幅に合わせて 16〜48px のあいだで変わります。入力方式では変わりません。',
+          '- 外の枠がすでに余白を持っているときは、`hideGutter` で左右の余白を消します。',
           '- `py` は上下の余白です。`none`（既定）・`xs`・`sm`・`md`・`lg`・`xl` から選び、値は Stack の間隔と同じ段です。中を並べる間隔は Stack を子に入れて決めます。',
           '- `reading` を渡すと、中が読みものになります。読む文字は、指で操作しているときもマウスと同じ大きさになります。Markdown を変換した HTML を入れるときは、代わりに Prose を使います。',
           '- 背景の大きな文字などの飾りは、Container の外側に置きます。Container は幅と余白だけを持ち、色や線を持ちません。',
@@ -172,5 +173,26 @@ export const Reading: Story = {
   ),
   play: async ({ canvas }) => {
     await expect(canvas.getByTestId('reading')).toHaveAttribute('data-reading', '');
+  },
+};
+
+export const HideGutter: Story = {
+  name: '左右の余白を消す',
+  render: () => (
+    <div className="flex flex-col gap-2">
+      <Container data-testid="default">
+        <Text>本文</Text>
+      </Container>
+      <Container hideGutter size="prose" data-testid="hidden">
+        <Text>本文</Text>
+      </Container>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const def = getComputedStyle(canvas.getByTestId('default'));
+    await expect(parseFloat(def.paddingLeft)).toBeGreaterThan(0);
+    const hidden = getComputedStyle(canvas.getByTestId('hidden'));
+    await expect(hidden.paddingLeft).toBe('0px');
+    await expect(hidden.paddingRight).toBe('0px');
   },
 };

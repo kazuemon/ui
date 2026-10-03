@@ -132,7 +132,7 @@
 
 ### Card
 
-2026-09-19 に作りました。決定は [ADR-0169](./adr/0169-pressable-card-shadow-hover.md) です（[ADR-0129](./adr/0129-card-press.md) を置き換えた）。
+2026-09-19 に作りました。決定は [ADR-0169](./adr/0169-pressable-card-shadow-hover.md) です（[ADR-0129](./adr/0129-card-press.md) を置き換えた）。詰めた余白・選んでいる見た目・頭の帯は [ADR-0402](./adr/0402-card-size.md)〜[0406](./adr/0406-card-header-nested.md)、強調の形は [ADR-0470](./adr/0470-card-emphasis.md) です。
 
 - Card の中にほかのリンクやボタンを置く形（題だけをリンクにして、カード全体を押せるように広げる）は用意していません
 - **入れ子の型（`variant="nested"`）の余白が、上下左右でそろっていません（2026-09-22、見本のブログで気づきました）。** 画像から文までが上で 8px、文の下と左が 16px です。文の余白を「カードの余白（16px）− 画像の周りの余白（8px）」にして、下と左には外側の 8px が足され、上だけは画像が挟まるので足されないためです（[ADR-0014](./adr/0014-nested-card-inset.md) は余白の大きさだけを決めました）。案は 2 つです
@@ -672,8 +672,9 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 ### Accordion
 
-2026-09-19 に作りました。決定は [ADR-0122](./adr/0122-accordion.md) です。
+2026-09-19 に作りました。決定は [ADR-0122](./adr/0122-accordion.md)、card の形は [ADR-0407](./adr/0407-collapsible-card.md) です。
 
+- Collapsible・Accordion の card の項目の間隔（8px）を、密度で変えるかは決めていません（軸 416）
 - 入れ子の Accordion（Accordion の中に Accordion）は確かめていません
 
 ### AlertDialog

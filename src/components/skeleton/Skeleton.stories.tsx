@@ -23,8 +23,8 @@ const meta = {
           '- `block` の幅は幅いっぱい、高さは `className`（`h-40`・`h-control` など）で決めます。`radius` は代わりに置くものの角に合わせます。ボタンと入力欄は `control`（既定）、画像とカードは `card`、タグとトグルは `pill` です。',
           '- `text` は、周りの文字の大きさと行の高さを受け継ぎます。`className` に `text-body` などを付けるか、Text の中に置きます。`lines` で行の数を決め、2 行以上のときは最後の行が短くなります。',
           '- 読み上げには出しません。包む要素に `aria-busy` を付け、読み込み中であることは VisuallyHidden の文で知らせます。',
-          '- `animation` で動きを選びます。`sweep`（既定）は面ごとに縦の光の帯が通ります。`sweep-viewport` は画面を基準にした光で、カードの一覧のように同じ形の面が並ぶ場所で、1 本の光が面をまたいで横切ります。`pulse` は光を出さず、面の濃さをゆっくり明滅させます。',
-          '- 動きを減らす設定では、どの動きもその場の明滅に置き換えます。',
+          '- `animation` で動きを選びます。`sweep`（既定）は面ごとに縦の光の帯が通ります。`sweep-viewport` は画面を基準にした光で、カードの一覧のように同じ形の面が並ぶ場所で、1 本の光が面をまたいで横切ります。`pulse` は光を出さず、面の濃さをゆっくり明滅させます。`none` は動かさず、面の塗りだけを置きます。',
+          '- 動きを減らす設定では、どの動きもその場の明滅に置き換えます（`none` は動かしません）。',
         ].join('\n'),
       },
     },
@@ -39,7 +39,10 @@ const meta = {
   argTypes: {
     variant: { control: 'inline-radio', options: ['block', 'text', 'circle'] },
     radius: { control: 'inline-radio', options: ['control', 'card', 'pill', 'none'] },
-    animation: { control: 'inline-radio', options: ['sweep', 'sweep-viewport', 'pulse'] },
+    animation: {
+      control: 'inline-radio',
+      options: ['sweep', 'sweep-viewport', 'pulse', 'none'],
+    },
     lines: { control: { type: 'number', min: 1, max: 6 } },
   },
   decorators: [
@@ -118,6 +121,7 @@ const animations = [
   ['sweep', '面ごとに光が通る（既定）'],
   ['sweep-viewport', '画面を基準にした光が、並んだ面をまたいで通る'],
   ['pulse', '面の濃さがゆっくり明滅する'],
+  ['none', '動かさない'],
 ] as const;
 
 export const Animations: Story = {
@@ -153,7 +157,7 @@ export const Animations: Story = {
   ),
   play: async ({ canvasElement }) => {
     const sections = canvasElement.querySelectorAll('section');
-    const [sweep, viewport, pulse] = [...sections].map((section) =>
+    const [sweep, viewport, pulse, none] = [...sections].map((section) =>
       section.querySelector<HTMLElement>('[data-slot="skeleton"]')!
     );
     const after = (element: HTMLElement) => getComputedStyle(element, '::after');
@@ -163,6 +167,12 @@ export const Animations: Story = {
     await expect(after(viewport).backgroundAttachment).toBe('fixed');
     await expect(getComputedStyle(pulse).animationName).toBe('pulse');
     await expect(after(pulse).backgroundImage).toBe('none');
+    await expect(getComputedStyle(none).animationName).toBe('none');
+    await expect(after(none).backgroundImage).toBe('none');
+    const noneBar = none.parentElement!.querySelectorAll('[data-slot="skeleton"]')[1];
+    await expect(getComputedStyle(noneBar.querySelector('span > span')!).animationName).toBe(
+      'none'
+    );
   },
 };
 

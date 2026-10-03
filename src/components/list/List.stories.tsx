@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 import { expect, userEvent } from 'storybook/test';
 
 import { List, ListItem } from './List';
@@ -16,7 +16,7 @@ const meta = {
         component: [
           '記事の中の箇条書き・番号付きリスト・チェックリストです。Markdown を変換した HTML と同じ要素（`ul`・`ol`・`li`、チェックリストは `li.task-list-item` の中の押せない `input`）を出します。',
           '',
-          '- `as` は `ul`（既定、箇条書き）と `ol`（番号付き）です。`start` で最初の番号を決めます。',
+          '- `as` は `ul`（既定、箇条書き）と `ol`（番号付き）です。`start` で最初の番号を決め、`reversed` で大きい順に振ります。',
           '- `markerType` は箇条書きの印です。`dash`（既定）は薄いグレーの短い線、`dot` は濃紺の丸です。入れ子のリストは外側の印を引き継ぎます。',
           '- 番号は薄いグレーで右揃えです。10 以上の番号でも「.」の位置がそろいます。',
           '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
@@ -152,5 +152,24 @@ export const CheckedFollows: Story = {
     await expect(box).not.toBeChecked();
     await userEvent.click(canvas.getByRole('button', { name: '済みにする' }));
     await expect(box).toBeChecked();
+  },
+};
+
+const reversedRef = createRef<HTMLUListElement | HTMLOListElement>();
+
+export const Reversed: Story = {
+  tags: ['visual'],
+  name: '大きい順の番号と ref',
+  render: () => (
+    <List as="ol" reversed ref={reversedRef}>
+      <ListItem>3 つ目</ListItem>
+      <ListItem>2 つ目</ListItem>
+      <ListItem>1 つ目</ListItem>
+    </List>
+  ),
+  play: async ({ canvas }) => {
+    const list = canvas.getByRole('list');
+    await expect(list).toHaveAttribute('reversed');
+    await expect(reversedRef.current).toBe(list);
   },
 };

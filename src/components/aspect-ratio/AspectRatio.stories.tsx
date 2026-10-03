@@ -19,15 +19,23 @@ const meta = {
           '幅に合わせて、決まった比の高さを取る枠です。画像・動画・埋め込みの比をそろえます。',
           '',
           "- `ratio`（既定は `16 / 9`）: 幅に対する高さの比です。`4 / 3` のような数か、`'4 / 3'` の文字で書きます。",
-          '- 中身は枠いっぱいに広げます。画像と動画は、はみ出た分を切ります。',
+          '- 最初の子を枠いっぱいに広げます。画像と動画は、はみ出た分を切ります。切らずに収めるときは `fit="contain"` にします。',
+          '- 2 つ目からの子（画像に重ねる印など）は広げません。置き方は子の側で決めます。',
           '- 読み込む前から高さが決まるので、読み込んだときに下の内容が跳びません。',
           '- 角や輪郭は付けません。画像の見た目は Image と Figure が持ちます。',
         ].join('\n'),
       },
     },
   },
-  args: { ratio: 16 / 9 },
-  argTypes: { ratio: { control: 'number' } },
+  args: { ratio: 16 / 9, fit: 'cover' },
+  argTypes: {
+    ratio: { control: 'number' },
+    fit: {
+      control: 'inline-radio',
+      options: ['cover', 'contain'],
+      table: { defaultValue: { summary: "'cover'" } },
+    },
+  },
 } satisfies Meta<typeof AspectRatio>;
 
 export default meta;
@@ -79,5 +87,34 @@ export const Ratios: Story = {
     await expect(Math.round((wide.width / wide.height) * 100)).toBe(178);
     await expect(Math.round(square.width)).toBe(Math.round(square.height));
     await expect(within(canvasElement).getAllByRole('heading')).toHaveLength(3);
+  },
+};
+
+export const Fit: Story = {
+  name: '収め方と重ねる子',
+  render: () => (
+    <div className="flex max-w-md flex-col gap-4">
+      <AspectRatio ratio={1} data-testid="cover">
+        <img src={landscape} alt="" />
+        <span className="absolute top-2 left-2">
+          <Tag>New</Tag>
+        </span>
+      </AspectRatio>
+      <AspectRatio ratio={1} fit="contain" data-testid="contain">
+        <img src={landscape} alt="" />
+      </AspectRatio>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const cover = canvas.getByTestId('cover');
+    const [image, badge] = cover.children;
+    await expect(getComputedStyle(image).objectFit).toBe('cover');
+    await expect(image.getBoundingClientRect().height).toBe(cover.getBoundingClientRect().height);
+    // 2 つ目からの子は広げない
+    await expect(badge.getBoundingClientRect().height).toBeLessThan(
+      cover.getBoundingClientRect().height / 2
+    );
+    const contain = canvas.getByTestId('contain');
+    await expect(getComputedStyle(contain.children[0]).objectFit).toBe('contain');
   },
 };

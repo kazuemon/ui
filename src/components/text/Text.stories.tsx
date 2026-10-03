@@ -22,6 +22,7 @@ const meta = {
           '- `variant` は見た目です。`body`（既定）は本文、`muted` は補足、`subtle` は目立たせない文、`label` は欄のラベルと同じ大きさ・太さ・色、`caption` は欄のキャプションと同じ大きさ・色です。',
           '- `color` は意味の色です。`info`・`success`・`warning`・`danger` から選び、文字を状態の色にします。期日を過ぎた、保存した、のような短い文に使います。色だけを変え、形（アイコン）は添えず、読み上げも変えません。色のほかに形や読み上げで状態を伝えたいときは、Notice などのお知らせの部品を使います。',
           '- `weight` は太さです。`normal`・`medium`・`bold` から選びます。書かないと、`variant` と要素の既定の太さのままです。',
+          '- `lines` は最大の行数です。超えた分は最後に三点を付けて切ります（`LinkCard` の `titleLines` と同じ）。書かないと切りません。',
           '- `as` で要素を選びます。段落は `p`（既定）、文の中の一部は `span`、ほかの部品を含むときは `div` です。強調は `strong`、強勢は `em`、打ち消しは `del` で、記事の本文と同じ飾りが付きます。',
           '- 本文は、マウスで操作しているときは 16px、指で操作しているときは部品の文字と同じ 14px です。記事の中（`data-reading` を付けた要素）では、指でも 16px です。',
           '- 文字のリンクは大きさを持たないので、`Text` の中に置くと本文と同じ大きさになります。',
@@ -44,6 +45,7 @@ const meta = {
     variant: { control: 'inline-radio', options: ['body', 'muted', 'subtle', 'label', 'caption'] },
     weight: { control: 'inline-radio', options: ['normal', 'medium', 'bold'] },
     as: { control: 'inline-radio', options: ['p', 'span', 'div', 'strong', 'em', 'del'] },
+    lines: { control: 'number' },
   },
 } satisfies Meta<typeof Text>;
 
@@ -185,5 +187,26 @@ export const StatusColors: Story = {
     await expect(getComputedStyle(danger).color).not.toBe(
       getComputedStyle(canvas.getByText('保存しました')).color
     );
+  },
+};
+
+export const Lines: Story = {
+  name: '行数で切る',
+  render: (args) => (
+    <div className="flex w-64 flex-col gap-4">
+      <Text {...args} data-testid="full" />
+      <Text {...args} lines={2} data-testid="clamped" style={{ color: 'inherit' }} />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const full = canvas.getByTestId('full');
+    const clamped = canvas.getByTestId('clamped');
+    await expect(getComputedStyle(full).webkitLineClamp).toBe('none');
+    await expect(getComputedStyle(clamped).webkitLineClamp).toBe('2');
+    // 2 行ぶんの高さで切れる。使う側の style も残る
+    const lineHeight = parseFloat(getComputedStyle(clamped).lineHeight);
+    await expect(clamped.getBoundingClientRect().height).toBeCloseTo(lineHeight * 2, 0);
+    await expect(full.getBoundingClientRect().height).toBeGreaterThan(lineHeight * 2);
+    await expect(clamped.style.color).toBe('inherit');
   },
 };

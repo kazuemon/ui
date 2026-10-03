@@ -20,13 +20,13 @@ const meta = {
         component: [
           '子を縦・横に一定の間隔で並べる部品です。間隔を段で選ぶので、画面のあちこちで間隔がそろいます。1 か所だけの間隔なら、Tailwind の `flex gap-4` で足ります。',
           '',
-          '- `direction` は並べる向きです。縦（`vertical`）が既定で、横は `horizontal` です。',
+          "- `direction` は並べる向きです。縦（`vertical`）が既定で、横は `horizontal` です。画面の幅の段ごとの向き（`direction={{ base: 'vertical', md: 'horizontal' }}`）も渡せます（`Grid` の `columns` と同じ段）。",
           '- `gap` は間隔の段です（`none`・`xs`・`sm`・`md`・`lg`・`xl`）。既定は `md` です。入力方式では変わりません。',
           '- `align` は並べる向きと交わる向きの揃えです。既定は縦横とも伸ばします（`stretch`）。横で高さの違う子を上下の中央に揃えるときは `align="center"` を渡します。',
           '- `justify` は並べる向きの揃えです。`between` は両端に寄せます。',
           '- `wrap` は、入りきらないときに次の行へ折り返します（既定）。横に並べるときだけ効き、縦では無視されます。折り返したくないときは `wrap={false}` を渡します。',
           '- `showDivider` は、子の間に細い区切り線を入れます。話題の切れ目には Divider を置きます。',
-          '- `ul`・`section` にするときは `render={<ul />}` を渡します。',
+          '- `ul`・`section` にするときは `render={<ul />}` を渡します。`ul`・`ol` では子を `li` にします。区切り線は 2 つ目からの `li` の枠線になります。`ul`・`ol` は要素を直接渡します（`ul` を中で描く自作の部品を渡すと、一覧とはみなされません）。',
         ].join('\n'),
       },
     },
@@ -171,6 +171,43 @@ export const Layouts: Story = {
   ),
 };
 
+// ul で描いたときの区切り線（li の枠線）が、div で描いたときの線と同じ見た目か
+export const ListDividers: Story = {
+  tags: ['visual'],
+  name: 'ul の区切り線',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-6">
+      {(['vertical', 'horizontal'] as const).map((direction) => (
+        <div key={direction} className="flex items-start gap-8">
+          <div className="flex flex-col gap-2">
+            <span className={labelClass}>div</span>
+            <Stack direction={direction} showDivider className="w-64">
+              <Text>1 つ目</Text>
+              <Text>2 つ目</Text>
+              <Text>3 つ目</Text>
+            </Stack>
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className={labelClass}>ul</span>
+            <Stack direction={direction} showDivider render={<ul />} className="w-64">
+              <li>
+                <Text>1 つ目</Text>
+              </li>
+              <li>
+                <Text>2 つ目</Text>
+              </li>
+              <li>
+                <Text>3 つ目</Text>
+              </li>
+            </Stack>
+          </div>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
 // props の確かめ
 export const Props: Story = {
   name: 'props',
@@ -196,6 +233,22 @@ export const Props: Story = {
           <span>c</span>
         </>
       </Stack>
+      <Stack data-testid="list" showDivider render={<ul />}>
+        <li>a</li>
+        <li>b</li>
+      </Stack>
+      <Stack data-testid="list-row" direction="horizontal" showDivider render={<ol />}>
+        <li>a</li>
+        <li>b</li>
+      </Stack>
+      <Stack data-testid="responsive" direction={{ base: 'horizontal', xl: 'vertical' }}>
+        <span>a</span>
+        <span>b</span>
+      </Stack>
+      <Stack data-testid="no-base" direction={{ base: undefined, xl: 'horizontal' }}>
+        <span>a</span>
+        <span>b</span>
+      </Stack>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -217,5 +270,28 @@ export const Props: Story = {
     const seps = canvas.getAllByRole('separator');
     await expect(seps).toHaveLength(2);
     await expect(seps[0]).toHaveAttribute('aria-orientation', 'horizontal');
+    // ul・ol では li の間に div を差し込まず、2 つ目からの li の枠線にする
+    const list = canvas.getByTestId('list');
+    for (const child of list.children) await expect(child.tagName).toBe('LI');
+    const [first, second] = list.children;
+    await expect(getComputedStyle(first).borderTopWidth).toBe('0px');
+    await expect(getComputedStyle(second).borderTopWidth).toBe('1px');
+    await expect(getComputedStyle(second).paddingTop).toBe('16px');
+    await expect(getComputedStyle(second).borderLeftWidth).toBe('0px');
+    const listRow = canvas.getByTestId('list-row').children[1];
+    await expect(getComputedStyle(listRow).borderLeftWidth).toBe('1px');
+    await expect(getComputedStyle(listRow).paddingLeft).toBe('16px');
+    await expect(getComputedStyle(listRow).borderTopWidth).toBe('0px');
+    // 段ごとの向き: いちばん狭い画面から横、xl（80rem）から上で縦
+    const responsive = canvas.getByTestId('responsive');
+    const wide = window.matchMedia('(width >= 80rem)').matches;
+    await expect(getComputedStyle(responsive).flexDirection).toBe(wide ? 'column' : 'row');
+    await expect(getComputedStyle(responsive).flexWrap).toBe(wide ? 'nowrap' : 'wrap');
+    // base を渡していない段は縦（区切り線の向きを決める --stack-vertical も置く）
+    const noBase = canvas.getByTestId('no-base');
+    await expect(getComputedStyle(noBase).flexDirection).toBe(wide ? 'row' : 'column');
+    await expect(getComputedStyle(noBase).getPropertyValue('--stack-vertical').trim()).toBe(
+      wide ? '0' : '1'
+    );
   },
 };

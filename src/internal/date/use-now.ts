@@ -2,48 +2,78 @@
 
 import { useSyncExternalStore } from 'react';
 
-// 相対の書き方（RelativeTime）の「今」。ブラウザでだけ読み、1 分ごとに進める
+// 相対の書き方（RelativeTime）の「今」。ブラウザでだけ読み、決まった間隔（既定 1 分）ごとに進める
 // サーバーと hydration の最初の描画では null を返し、サーバーの HTML と同じ文字（ふつうの日付）を描く
 // hydration のあとに React が今の時刻で描き直すので、食い違いの警告は出ない
+// 間隔ごとに 1 つのタイマーを、同じ間隔の部品で共有する
 
-const TICK = 60_000;
+export const DEFAULT_UPDATE_INTERVAL = 60_000;
 
-let current: number | null = null;
-let timer: ReturnType<typeof setInterval> | undefined;
-const listeners = new Set<() => void>();
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  if (timer === undefined) {
-    current = Date.now();
-    timer = setInterval(() => {
-      current = Date.now();
-      for (const l of listeners) l();
-    }, TICK);
-  }
-  return () => {
-    listeners.delete(listener);
-    if (listeners.size === 0 && timer !== undefined) {
-      clearInterval(timer);
-      timer = undefined;
-    }
-  };
+interface Clock {
+  current: number | null;
+  timer: ReturnType<typeof setInterval> | undefined;
+  listeners: Set<() => void>;
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => number;
 }
 
-function getSnapshot() {
-  current ??= Date.now();
-  return current;
+const clocks = new Map<number, Clock>();
+
+function clockFor(interval: number): Clock {
+  const existing = clocks.get(interval);
+  if (existing) return existing;
+  const clock: Clock = {
+    current: null,
+    timer: undefined,
+    listeners: new Set(),
+    subscribe(listener) {
+      clock.listeners.add(listener);
+      if (clock.timer === undefined) {
+        clock.current = Date.now();
+        clock.timer = setInterval(() => {
+          clock.current = Date.now();
+          for (const l of clock.listeners) l();
+        }, interval);
+      }
+      return () => {
+        clock.listeners.delete(listener);
+        if (clock.listeners.size === 0 && clock.timer !== undefined) {
+          clearInterval(clock.timer);
+          clock.timer = undefined;
+          // 聞く人がいなくなった時計は捨てる（間隔ごとに増え続けないように）
+          if (clocks.get(interval) === clock) clocks.delete(interval);
+        }
+      };
+    },
+    getSnapshot() {
+      clock.current ??= Date.now();
+      return clock.current;
+    },
+  };
+  clocks.set(interval, clock);
+  return clock;
 }
 
 const getServerSnapshot = () => null;
 const subscribeNone = () => () => {};
 const getNone = () => null;
 
-/** enabled のときだけ、ブラウザの今の時刻（ミリ秒）を返す。サーバーと hydration の最初の描画では null */
-export function useNow(enabled: boolean): number | null {
+/**
+ * enabled のときだけ、ブラウザの今の時刻（ミリ秒）を返し、interval（ミリ秒）ごとに進める。
+ * サーバーと hydration の最初の描画では null
+ */
+export function useNow(
+  enabled: boolean,
+  interval: number = DEFAULT_UPDATE_INTERVAL
+): number | null {
+  // 0 以下や数でない間隔は、タイマーが詰まって回るので既定に戻す
+  const safeInterval =
+    Number.isFinite(interval) && interval > 0 ? interval : DEFAULT_UPDATE_INTERVAL;
+  // サーバーでは購読しないので、時計を作らない（作ると聞く人のないまま残る）
+  const clock = enabled && typeof window !== 'undefined' ? clockFor(safeInterval) : null;
   return useSyncExternalStore(
-    enabled ? subscribe : subscribeNone,
-    enabled ? getSnapshot : getNone,
+    clock ? clock.subscribe : subscribeNone,
+    clock ? clock.getSnapshot : getNone,
     getServerSnapshot
   );
 }

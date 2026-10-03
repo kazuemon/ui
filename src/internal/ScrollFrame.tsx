@@ -36,6 +36,10 @@ export interface ScrollFrameProps {
   viewportProps?: ComponentProps<'div'>;
   /** 枠（いちばん外の要素）の ref */
   ref?: Ref<HTMLDivElement>;
+  /** 枠（いちばん外の要素）の id */
+  id?: string;
+  /** 枠（いちばん外の要素）の style */
+  style?: CSSProperties;
   /** 中身を包む要素の style。Base UI の既定（min-width: fit-content）を変えるときに使う */
   contentStyle?: CSSProperties;
   /**
@@ -86,6 +90,8 @@ export function ScrollFrame({
   contentProps,
   viewportProps,
   ref,
+  id,
+  style,
   contentStyle,
   focusable = true,
   edgeShadow = true,
@@ -119,7 +125,13 @@ export function ScrollFrame({
   // 内部の ref（影の計算）と、使う側が渡した ref をつなぐ（ADR-0250）
   const viewportRef = useMergedRefs(setViewport, ownViewportRef);
   return (
-    <BaseScrollArea.Root ref={ref} data-slot={slot} className={styles.root({ className })}>
+    <BaseScrollArea.Root
+      ref={ref}
+      id={id}
+      style={style}
+      data-slot={slot}
+      className={styles.root({ className })}
+    >
       <BaseScrollArea.Viewport
         {...viewportRest}
         ref={viewportRef}
