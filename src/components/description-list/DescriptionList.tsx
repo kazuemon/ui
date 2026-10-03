@@ -1,7 +1,14 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { columnsClasses, columnVars, type GridColumns } from '../../internal/breakpoints';
+import {
+  breakpoints,
+  byBreakpoint,
+  columnsClasses,
+  columnVars,
+  type GridBreakpoint,
+  type GridColumns,
+} from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
 // 用語と説明の組（dl・dt・dd）。経歴・技術・メタ情報のような「名前と値」の並び
@@ -13,8 +20,10 @@ import { tv } from '../../internal/tv';
 //   --description-leader-*: 用語の右から説明までをつなぐ薄い線（divider="leader-dotted"・"leader-solid"）
 //   props は既定と違うときだけ、根の要素でトークンを上書きする（中の要素へは継承で届く）
 //   columns: 組を Grid と同じ段ごとの列に並べる（src/internal/breakpoints.ts）。列のあいだは Grid の既定と同じ間隔
-//     行のあいだの線は、1 列のときは 2 つ目からの組の上に引く。列に並べると 1 行目の組がどれかを CSS で選べないので、
-//     すべての組の上に線を引いて線の太さだけ上へずらし、1 行目の線は外枠に重ねる（framed）か、根で切り落とす（line）
+//     行のあいだの線は、1 列のときは 2 つ目からの組の上に引く。列に並べると、2 行目からの組の上に線を引き、
+//     線の太さだけ上へずらす（前の行の下の余白に重ねて、行の高さを線の有無で変えない）。1 行目の組は、渡した段ごとの
+//     列の数だけ前から選んで線を外す（firstRowClasses）。根を切り取らないので、値に置いたリンクのフォーカスの線が切れない。
+//     framed は 1 行目の組にも線を引き、外枠の上の線に重ねる
 
 const leaderRoot = [
   '[--description-column-gap:var(--description-leader-gap)]',
@@ -28,15 +37,17 @@ const descriptionList = tv({
       'flex min-w-0 flex-col gap-(--description-item-gap) rounded-control',
       '[border-width:var(--description-frame-width)] [border-color:var(--color-description-line)]',
       // 列に並べるときだけ使う値。入れ子の DescriptionList が外の値を受け継がないよう、自分の要素で決め直す
-      '[--description-divider-shift:0px] [--description-first-divider-width:0px]',
+      '[--description-divider-shift:0px] [--description-first-divider-width:0px] [--description-first-row:0]',
     ],
     item: [
       'flex min-w-0 gap-x-(--description-column-gap) gap-y-(--description-row-gap)',
       '[flex-direction:var(--description-direction)] [align-items:var(--description-item-align)]',
       'px-(--description-pad-x) py-(--description-pad-y)',
-      '[border-top-width:var(--description-divider-width)] [border-top-color:var(--color-description-line)]',
+      // --description-first-row は、列に並べたときの 1 行目の組だけ 1（firstRowClasses）
+      '[border-top-width:calc(var(--description-divider-width)*(1-var(--description-first-row)))]',
+      '[border-top-color:var(--color-description-line)]',
       'first:[border-top-width:var(--description-first-divider-width)]',
-      'mt-[calc(var(--description-divider-shift)*-1)]',
+      'mt-[calc(var(--description-divider-shift)*(var(--description-first-row)-1))]',
     ],
     term: [
       '[display:var(--description-term-display)] w-(--description-term-width) shrink-0',
@@ -59,7 +70,7 @@ const descriptionList = tv({
         root: [
           'grid [grid-template-columns:repeat(var(--columns),minmax(0,1fr))] gap-x-(--stack-gap-md)',
           ...columnsClasses,
-          '[--description-divider-shift:var(--description-divider-width)] [--description-first-divider-width:var(--description-divider-width)]',
+          '[--description-divider-shift:var(--description-divider-width)]',
         ],
       },
     },
@@ -108,11 +119,11 @@ const descriptionList = tv({
     },
   },
   compoundVariants: [
-    // 列に並べて行のあいだに線を引くとき、1 行目の組の上の線を根で切り落とす（左右と下は切らない）
+    // 外枠があるときは、1 行目の組の線を外枠の上の線に重ねる（1 行目を選ばない）
     {
       columns: true,
-      divider: 'line',
-      class: { root: '[clip-path:inset(0_-100vmax_-100vmax_-100vmax)]' },
+      divider: 'framed',
+      class: { root: '[--description-first-divider-width:var(--description-divider-width)]' },
     },
     // 縦に並べたときは、用語と説明が上下なので線でつなげない
     {
@@ -134,6 +145,95 @@ const descriptionList = tv({
     termStyle: 'default',
   },
 });
+
+// 列に並べたときの 1 行目の組（前から列の数だけ）を、渡した段ごとに選ぶクラス。n 列のクラスは配列の n - 1 番目。
+// 段の中で 1 行目を 1、それより後ろを 0 にし直すので、狭い段より列が少ない段でも、狭い段の選び方が残らない。
+// Tailwind がクラスを見つけられるよう、列の数ごとに書き出す（13 列からは 12 列として扱う）
+const FIRST_ROW_MAX = 12;
+const firstRowClasses: Record<GridBreakpoint, readonly string[]> = {
+  base: [
+    '[&>:nth-child(-n+1)]:[--description-first-row:1] [&>:nth-child(n+2)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+2)]:[--description-first-row:1] [&>:nth-child(n+3)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+3)]:[--description-first-row:1] [&>:nth-child(n+4)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+4)]:[--description-first-row:1] [&>:nth-child(n+5)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+5)]:[--description-first-row:1] [&>:nth-child(n+6)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+6)]:[--description-first-row:1] [&>:nth-child(n+7)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+7)]:[--description-first-row:1] [&>:nth-child(n+8)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+8)]:[--description-first-row:1] [&>:nth-child(n+9)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+9)]:[--description-first-row:1] [&>:nth-child(n+10)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+10)]:[--description-first-row:1] [&>:nth-child(n+11)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+11)]:[--description-first-row:1] [&>:nth-child(n+12)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+12)]:[--description-first-row:1] [&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  sm: [
+    'sm:[&>:nth-child(-n+1)]:[--description-first-row:1] sm:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+2)]:[--description-first-row:1] sm:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+3)]:[--description-first-row:1] sm:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+4)]:[--description-first-row:1] sm:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+5)]:[--description-first-row:1] sm:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+6)]:[--description-first-row:1] sm:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+7)]:[--description-first-row:1] sm:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+8)]:[--description-first-row:1] sm:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+9)]:[--description-first-row:1] sm:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+10)]:[--description-first-row:1] sm:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+11)]:[--description-first-row:1] sm:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+12)]:[--description-first-row:1] sm:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  md: [
+    'md:[&>:nth-child(-n+1)]:[--description-first-row:1] md:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+2)]:[--description-first-row:1] md:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+3)]:[--description-first-row:1] md:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+4)]:[--description-first-row:1] md:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+5)]:[--description-first-row:1] md:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+6)]:[--description-first-row:1] md:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+7)]:[--description-first-row:1] md:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+8)]:[--description-first-row:1] md:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+9)]:[--description-first-row:1] md:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+10)]:[--description-first-row:1] md:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+11)]:[--description-first-row:1] md:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+12)]:[--description-first-row:1] md:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  lg: [
+    'lg:[&>:nth-child(-n+1)]:[--description-first-row:1] lg:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+2)]:[--description-first-row:1] lg:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+3)]:[--description-first-row:1] lg:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+4)]:[--description-first-row:1] lg:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+5)]:[--description-first-row:1] lg:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+6)]:[--description-first-row:1] lg:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+7)]:[--description-first-row:1] lg:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+8)]:[--description-first-row:1] lg:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+9)]:[--description-first-row:1] lg:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+10)]:[--description-first-row:1] lg:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+11)]:[--description-first-row:1] lg:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+12)]:[--description-first-row:1] lg:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  xl: [
+    'xl:[&>:nth-child(-n+1)]:[--description-first-row:1] xl:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+2)]:[--description-first-row:1] xl:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+3)]:[--description-first-row:1] xl:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+4)]:[--description-first-row:1] xl:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+5)]:[--description-first-row:1] xl:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+6)]:[--description-first-row:1] xl:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+7)]:[--description-first-row:1] xl:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+8)]:[--description-first-row:1] xl:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+9)]:[--description-first-row:1] xl:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+10)]:[--description-first-row:1] xl:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+11)]:[--description-first-row:1] xl:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+12)]:[--description-first-row:1] xl:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+};
+
+function firstRow(columns: GridColumns | undefined) {
+  if (columns == null) return undefined;
+  const byBp = byBreakpoint(columns);
+  // base を渡していないときは、いちばん狭い画面では 1 列
+  const counts = { ...byBp, base: byBp.base ?? 1 };
+  return breakpoints.flatMap((bp) => {
+    const n = counts[bp];
+    if (n == null) return [];
+    return [firstRowClasses[bp][Math.min(Math.max(Math.trunc(n), 1), FIRST_ROW_MAX) - 1]];
+  });
+}
 
 type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
@@ -214,7 +314,7 @@ export function DescriptionList({
   return (
     <dl
       data-slot="description-list"
-      className={styles.root({ className })}
+      className={styles.root({ className: [divider !== 'framed' && firstRow(columns), className] })}
       style={Object.keys(tokens).length > 0 ? { ...tokens, ...style } : style}
       {...props}
     />

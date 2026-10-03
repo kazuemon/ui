@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, userEvent } from 'storybook/test';
 
 import { DescriptionItem, DescriptionList } from './DescriptionList';
 import { Link } from '../link/Link';
@@ -164,6 +164,63 @@ export const Columns: Story = {
     // 1 行目の 2 つの組は同じ高さに並ぶ
     const items = list.querySelectorAll('[data-slot="description-item"]');
     await expect(items[0].getBoundingClientRect().top).toBe(items[1].getBoundingClientRect().top);
+  },
+};
+
+export const ColumnsWithLinks: Story = {
+  name: '列に並べた値のリンク',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '列に並べて線を引いたときも、説明に置いたリンクのフォーカスの線は欠けずに出ます。列の数は画面の幅の段ごとに変えられます（`columns={{ base: 3, sm: 2 }}`）。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-[640px] max-w-none p-4">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <DescriptionList divider="line" columns={{ base: 3, sm: 2 }} data-testid="list">
+      <DescriptionItem term="サイト">
+        <Link href="https://example.com">example.com</Link>
+      </DescriptionItem>
+      <DescriptionItem term="リポジトリ">
+        <Link href="https://example.com">github.com/kazuemon/ui</Link>
+      </DescriptionItem>
+      <DescriptionItem term="拠点">東京</DescriptionItem>
+      <DescriptionItem term="言語">日本語・英語</DescriptionItem>
+    </DescriptionList>
+  ),
+  play: async ({ canvas }) => {
+    const list = canvas.getByTestId('list');
+    const link = canvas.getByRole('link', { name: 'example.com' });
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    const linkStyle = getComputedStyle(link);
+    await expect(linkStyle.outlineStyle).toBe('solid');
+    // フォーカスの線（outline）の上端が、祖先の clip-path・overflow で切り取られない
+    for (let el: HTMLElement | null = link.parentElement; el; el = el.parentElement) {
+      const style = getComputedStyle(el);
+      await expect(style.clipPath).toBe('none');
+      await expect(style.overflowY).toBe('visible');
+      if (el === list) break;
+    }
+    const ringTop =
+      link.getBoundingClientRect().top -
+      parseFloat(linkStyle.outlineOffset) -
+      parseFloat(linkStyle.outlineWidth);
+    await expect(ringTop).toBeGreaterThanOrEqual(0);
+    // 1 行目の組（いまの画面の幅での列の数だけ）には上の線がなく、2 行目からの組にはある
+    const columns = window.matchMedia('(min-width: 40rem)').matches ? 2 : 3;
+    const items = list.querySelectorAll('[data-slot="description-item"]');
+    for (const [i, item] of [...items].entries()) {
+      await expect(getComputedStyle(item).borderTopWidth).toBe(i < columns ? '0px' : '1px');
+    }
   },
 };
 
