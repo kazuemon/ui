@@ -1,0 +1,8 @@
+:root {
+  /* 送信中（loading）の既定の印（overlay）では、ラベルを 55% に薄くして回る円を重ねる — adr/0034 */
+  --loading-label-opacity: 0.55;
+
+  /* 押せない枠線のグレーのボタンと枠線のリンク: 薄くせず、枠線と文字をグレーにする — adr/0029 */
+  --color-outline-neutral-disabled-line: var(--color-line);
+  --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
+}

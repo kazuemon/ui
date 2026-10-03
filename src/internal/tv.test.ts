@@ -20,7 +20,7 @@ const NAMESPACES = [
 const KNOWN = /^(xs|sm|md|lg|xl|[2-4]xl)$/;
 
 function themeNames() {
-  const theme = tokens.slice(0, tokens.lastIndexOf(':root {')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const theme = tokens.replace(/\/\*[\s\S]*?\*\//g, '');
   const names: Record<string, Set<string>> = {};
   for (const [, namespace, key] of theme.matchAll(
     new RegExp(`--(${NAMESPACES.join('|')})-([a-z0-9-]+)\\s*:`, 'g')

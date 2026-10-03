@@ -1,0 +1,22 @@
+:root {
+  /* シート（画面の下から出る面。Select のシート・Drawer・狭い画面の Dialog と Popover）— adr/0037・ADR-0102
+     面・輪郭は浮かぶ面と同じ。上の角はカードの角。影は --shadow-sheet、後ろの画面は --color-backdrop
+     edge-shadow: 中身が長いとき、続きがある側の端に付ける内側の影（スクロールした量に合わせて濃くなる）
+     padding-x: 見出しと中身の左右の余白。Select のシートの見出し（ラベルが選択肢の文字とそろう位置）と同じ
+     max-height: 高さの上限（画面の高さに対する割合）。Drawer の左右の向きの幅は side-width */
+  --color-sheet-edge-shadow: rgb(from var(--color-shadow) r g b / 0.1);
+  --sheet-padding-x: var(--spacing-control-x);
+  /* 右上の × と、面の端との間と、× の角（Select のシートで、部品の角から浮かぶ選択肢の余白を引いた同心の角） */
+  --sheet-close-inset: var(--spacing);
+  --sheet-close-radius: calc(var(--radius-control) - var(--spacing));
+  --sheet-max-height: 85%;
+  /* 閉じる向きと反対へ引いたときに、面の外側に伸ばしておく面の長さ（隙間を見せない） */
+  --sheet-bleed: calc(var(--spacing) * 12);
+  --sheet-side-width: min(calc(var(--spacing) * 90), calc(100vw - var(--spacing) * 12));
+  /* 横から出すときの影 — ADR-0108。下から出すシートと同じく、影を開く向き（画面の内側）に向ける
+     left は左から出すパネル、right は右から出すパネル */
+  --shadow-sheet-left: 8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* 上から出すシート（Drawer の side="top"）の影。下から出すシートの影を下へ向けたもの */
+  --shadow-sheet-top: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+}

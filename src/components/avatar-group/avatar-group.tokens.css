@@ -1,0 +1,12 @@
+:root {
+  /* ── AvatarGroup — 軸 0315 ── BEGIN avatar-group */
+  /* Avatar を重ねて並べる。src/components/avatar-group。新しい部品ではなく Avatar の組み合わせ
+     overlap-*: 隣のアバターと重ねる量の 3 段（--avatar-size に対する割合。--avatar-icon-scale と同じ、単位を持たない比）。
+       md（現行 30%）が既定。sm（18%）・lg（45%）は overlap props で選べる（ADR-0315）
+     ring-width: 重なる境目を置いた面の色（--color-surface）で区切る縁の太さ。Badge が数を相手に重ねる縁（--badge-ring-width）と同じ太さ。
+       太くする案・線に近づける案も比べたが、どちらも採らず現行のまま（ADR-0315） */
+  --avatar-group-overlap-sm: 0.18;
+  --avatar-group-overlap-md: 0.3;
+  --avatar-group-overlap-lg: 0.45;
+  --avatar-group-ring-width: var(--border-width-thick);
+}

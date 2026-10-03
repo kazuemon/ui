@@ -1,0 +1,34 @@
+:root {
+  /* ── Pager — 軸 145 ── BEGIN pager */
+  /* 記事の前後へ移るナビ。src/components/pager
+     前と次の 2 つの行き先を横に並べ、狭いときは縦に積む。影は付けない（原則1: ページと同じレイヤー）
+     見た目は 2 つ（軸 145）。既定は押せるカード（card）で、矢印付きの文字のリンク（text）も選べる
+     gap: 2 つの行き先の間（縦に積んだときも同じ）。item-gap: 矢印と文字の間。label-gap: 小さい見出しと題の間
+     press-depth: 押して沈む深さ（平らな要素と同じ — 原則3）
+     label-display: 「前の記事」の小さい見出しを出すか（none で出さない。既定を出すかは未決）
+     押せるカード（card）: 押せるカードと同じ面。地と同じ白なので細い輪郭で面を見せ、ボタンと同じ薄い影で浮かせる。hover で落ち影を消して面を淡く塗る
+       card-padding-*: 面の余白。card-radius: 角（カードの角 — 原則5）。card-line-width・card-line: 輪郭（hover でも変えない）
+       card-fill・card-fill-hover・card-fill-press: 面の塗り。押せるカードと同じ（ADR-0169）。--flat-bg に入れて動かす（ADR-0112）
+       影はボタンと同じ（--shadow-raised。hover で落ち影を消す）
+     文字のリンク（text）: 面も枠線も持たず、矢印と題だけ。押せる範囲は矢印と文字の幅だけにする（原則7）
+       text-radius: フォーカスの線が沿う角。text-underline・text-underline-hover: 題の下線（文字のリンクと同じ色）
+       text-underline-duration・text-underline-ease: 下線の色が変わる速さ（文字のリンクと同じ） */
+  --pager-gap: calc(var(--spacing) * 3);
+  --pager-item-gap: calc(var(--spacing) * 2);
+  --pager-label-gap: calc(var(--spacing) * 1);
+  --pager-label-display: block;
+  --pager-press-depth: var(--press-depth);
+  --pager-card-padding-block: calc(var(--spacing) * 3);
+  --pager-card-padding-inline: calc(var(--spacing) * 4);
+  --pager-card-radius: var(--radius-card);
+  --pager-card-line-width: var(--border-width-thin);
+  --pager-card-line: var(--color-surface-line);
+  --pager-card-fill: var(--color-surface);
+  --pager-card-fill-hover: var(--card-fill-hover);
+  --pager-card-fill-press: var(--card-fill-hover);
+  --pager-text-radius: var(--radius-control);
+  --pager-text-underline: var(--color-link-underline);
+  --pager-text-underline-hover: var(--color-link-underline-hover);
+  --pager-text-underline-duration: var(--link-underline-duration);
+  --pager-text-underline-ease: var(--link-underline-ease);
+}

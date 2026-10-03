@@ -1,0 +1,9 @@
+:root {
+  /* TimePicker — 欄の右端のボタンで、時刻の一覧を開く。面と項目は Select の浮かぶ選択肢と同じ（ADR-0036・0053）
+     面は欄の右端にそろえ、欄より狭いときは欄の幅まで広げる。開いたときは選んでいる時刻（なければいまの時刻の近く）を一覧の中央へ送る
+     列の形（variant="columns"）の見出し・列のあいだの線・「完了」・選んだら閉じるかは props（showColumnHeading・hideColumnDivider・showDoneButton・closeOnSelect）
+     max-rows: 一覧の高さの上限（項目の数）。最後の項目を半分だけ見せ、続きがあることを示す
+     popup-padding: 一覧の内側の余白（列の見出し・「完了」の行も同じ）。Select の浮かぶ選択肢にそろえる */
+  --time-picker-max-rows: 7.5;
+  --time-picker-popup-padding: var(--select-popup-padding);
+}

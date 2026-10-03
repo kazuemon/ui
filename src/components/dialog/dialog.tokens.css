@@ -1,0 +1,10 @@
+:root {
+  /* Dialog — ADR-0104
+     中央に浮かべる。部品（ボタン）を包むので、角はカードの角（原則5）。面・輪郭・影は浮かぶ面と同じ
+     width: 既定の幅（size="md"）。width-sm・width-lg は size="sm"・"lg"。段の違いがはっきり分かるよう差を大きくとる。画面が狭いときは左右に margin を残して縮む */
+  --dialog-width-sm: calc(var(--spacing) * 90); /* 360px */
+  --dialog-width: calc(var(--spacing) * 120); /* 480px */
+  --dialog-width-lg: calc(var(--spacing) * 200); /* 800px */
+  --dialog-padding: calc(var(--spacing) * 6);
+  --dialog-margin: calc(var(--spacing) * 4);
+}

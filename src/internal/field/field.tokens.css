@@ -1,0 +1,30 @@
+:root {
+  /* エラーの欄（TextField・Select の本体）にフォーカスしたときだけ、赤い枠線の外にボタンと同じ離した線を引く — ADR-0071 の M
+     赤い枠線と線のあいだ（線を離した幅）を、--color-focus-ring-inner で埋める。suffix のボタンにフォーカスしているあいだは、ほかの線と同じく消す */
+  --field-invalid-focus-ring-inner-width: var(--focus-ring-offset);
+
+  /* 入力欄のプレースホルダー（TextField・Textarea の placeholder、Select の未選択の文字）— 軸 153（ADR-0171）
+     入力欄の塗りと hover の塗りの上でも文字の基準（4.5:1）を満たす、いちばん淡いグレー。キャプションのグレー（fg-subtle）では
+     塗りの上で 4.1:1 に下がるため、一段淡いグレー（fg-muted）を 45% 混ぜる。値との見分けは、書き方（「例: 」を付けるなど）でも付ける */
+  --field-placeholder: color-mix(in oklab, var(--color-fg-muted) 45%, var(--color-fg-subtle));
+
+  /* 入力欄のエラー・警告の行（本体の下）— adr/0041
+     アイコン＋文。エラーは丸の「!」と --color-fg-danger（白地 6.71）、警告は三角と --color-fg-warning（白地 5.09）
+     アイコンは文と並ぶので線は Regular（adr/0018）。大きさはキャプションの行の高さ（--leading-caption）と同じで、1行目の中央にそろう
+     キャプションはエラー・警告のあいだも消さない。並びは部品の captionPlacement で決める */
+  --field-message-gap: var(--spacing);
+  /* ラベルを本体の左に置くとき（軸 385）、ラベルの列と本体の列の間 */
+  --field-label-gap: calc(var(--spacing) * 3); /* 12px */
+  /* 行が出る・消えるときの動き — adr/0044
+     行の高さと濃さを、押下と同じ緩急（--ease-press）でこの長さで動かす。キャプションと本体は動かず、下の内容が滑る
+     動きを減らす設定では動かさない（すぐ切り替える） */
+  --duration-field-message: var(--duration-normal);
+  /* 入力欄の prefix・suffix（原則8）の形 — adr/0035
+     色はグレー（--color-field-addon — adr/0024）。既定は文字もボタンも本体の端に接する（A）。
+     部品の addonShape="floating" で、内側に浮かせる形（B）も選べる（--field-addon-floating-inset）
+     inset: 本体の内側からの距離。-枠線の太さで本体の端に接し、本体の枠線（フォーカス・エラー）の色を同じ場所に描く
+     round-inner: 入力側の角を丸めるか（0 か 1）。外側の角は本体の角丸と同心にする */
+  --field-addon-inset: calc(-1 * var(--field-border-width));
+  --field-addon-round-inner: 0;
+  --field-addon-floating-inset: var(--spacing);
+}

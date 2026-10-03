@@ -1,0 +1,13 @@
+:root {
+  /* ── 回る円（Spinner。src/components/loading/Loading.tsx）— 軸 434 ── BEGIN spinner */
+  /* size="control"・"text" は部品の中の文字・周りの文字に合わせる（線は viewBox 16 に対して 2）
+     size-{sm,md,lg}: 密度で変わらない段。stroke-{sm,md,lg}: 段ごとの線の太さ（viewBox 16 に対する幅）。大きい段でも線は 2〜2.5px に保つ
+     track-opacity: 薄い輪の濃さ（hideTrack で輪を出さず、弧だけにできる） */
+  --spinner-size-sm: calc(var(--spacing) * 4); /* 16px */
+  --spinner-size-md: calc(var(--spacing) * 6); /* 24px */
+  --spinner-size-lg: calc(var(--spacing) * 10); /* 40px */
+  --spinner-stroke-sm: 2; /* 2px */
+  --spinner-stroke-md: 1.67; /* 2.5px */
+  --spinner-stroke-lg: 1; /* 2.5px */
+  --spinner-track-opacity: 0.3;
+}

@@ -1,0 +1,25 @@
+:root {
+  /* ── Inspector — ADR-0320〜0325 ── BEGIN inspector */
+  /* 決まった領域の中だけで開閉する、常駐のパネル。src/components/inspector
+     Drawer から裏を止める動きと画面の最上層を抜いたもの。見出し（題・説明・右上の ×）と続きの印はシートと共有する（--sheet-*）
+     押しのける形（variant="push"、既定 — ADR-0320）は、ページと同じレイヤー。影を付けず、白い面と本文との境の細い線（--color-line）で分ける（ADR-0323）
+     width: パネルの既定の幅。Drawer の横のパネルと同じ 360px（ADR-0324）。部品の width で上書きできる。
+       重なる形では、領域の幅から overlay-gap を残して縮む
+     重なる形（variant="overlay"）: 領域の中で本文の上に重なる面
+       overlay-shadow-left・overlay-shadow-right: 左から・右から出すときの影。Drawer の横のパネルと同じで、本文の側へ向ける（ADR-0321）。
+         輪郭も Drawer と同じく本文の側に細い線（--color-surface-line）
+       端の形（overlayEdge — ADR-0322）: flush（既定）は領域の端に着け、角を丸めない
+         floating-inset・floating-radius: floating のときの、領域の端からの離れと 4 つの角。輪郭は一周させる
+       overlay-gap: 狭い領域で、パネルの横に残す本文の幅
+     開閉の動き（motion="slide"、既定 — ADR-0325）: 出てくる元の側から滑る（原則14）。長さと緩急は Drawer・シートと同じで、閉じるほうを短くする。
+       motion="none" と、動きを減らす設定では動かさない */
+  --inspector-width: calc(var(--spacing) * 90); /* 360px */
+  --inspector-overlay-shadow-left: var(--shadow-sheet-left);
+  --inspector-overlay-shadow-right: var(--shadow-sheet-right);
+  --inspector-floating-inset: calc(var(--spacing) * 2); /* 8px */
+  --inspector-floating-radius: var(--radius-card);
+  --inspector-overlay-gap: calc(var(--spacing) * 12);
+  --inspector-duration-in: var(--duration-sheet);
+  --inspector-duration-out: var(--duration-normal);
+  --inspector-ease: var(--ease-sheet);
+}

@@ -1,0 +1,7 @@
+:root {
+  /* ── NumberField ── BEGIN number-field */
+  /* 増減ボタン（軸 169）。縦積み（stepper="stacked"）の塊の幅と、▲▼ の大きさ
+     高さは本体（--spacing-control）を 2 つに割る。▲▼ は半分の高さに収まる大きさ */
+  --number-field-stepper-width: calc(var(--spacing) * 8); /* 32px */
+  --number-field-stepper-icon: calc(var(--spacing) * 3.5); /* 14px */
+}

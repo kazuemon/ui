@@ -1,0 +1,29 @@
+:root {
+  /* ── DateField・TimeField ── BEGIN date-field */
+  /* 区切り（年・月・日・時・分）の見た目（軸 172）
+     --date-segment-pad-x         区切りの左右の余白。いま打っている区切りの塗りはこの幅だけ文字の外へ広がる
+                                  （先頭の区切りの分は本体の内側の余白から引き、値の文字の先頭を TextField とそろえる）
+     --date-segment-gap           区切りと区切り記号（/ :）のあいだ。塗りが記号にかからないよう、塗りの外に空ける
+     --date-segment-radius        塗りの角丸
+     --date-segment-focus-bg      いま打っている区切りの塗り。既定（color="neutral"）は prefix・suffix のグレーに本文の色を 8% 混ぜたもの
+     --date-segment-focus-bg-primary・-secondary
+                                  color を指定した欄の塗り。その色を欄の塗りに 16% 混ぜる。部品が --date-segment-focus-bg に置く
+     --date-segment-focus-fg      その上の値の文字
+     --date-segment-focus-placeholder  その上の見本の文字（空の区切り） */
+  --date-segment-pad-x: calc(var(--spacing) * 0.5);
+  --date-segment-gap: calc(var(--spacing) * 0.5);
+  --date-segment-radius: var(--radius-sm);
+  --date-segment-focus-bg: color-mix(in oklab, var(--color-field-addon), var(--color-fg) 8%);
+  --date-segment-focus-bg-primary: color-mix(
+    in oklab,
+    var(--color-primary) 16%,
+    var(--color-field)
+  );
+  --date-segment-focus-bg-secondary: color-mix(
+    in oklab,
+    var(--color-secondary) 16%,
+    var(--color-field)
+  );
+  --date-segment-focus-fg: var(--color-fg);
+  --date-segment-focus-placeholder: var(--field-placeholder);
+}

@@ -1,0 +1,12 @@
+:root {
+  /* ── 小物（Tag・Badge・Chip）の大きさ ── sm・md・lg・inherit の 1 本の軸（ADR-0259）
+     値は src/internal/small-parts-size.ts に持ち、Tag・Badge・Chip の tv の size 変化が --tag-*・--badge-*・--chip-* を差し替える。
+     ここには、大きさ以外で部品のトークンとして残るものだけを置く（Badge の重ねる縁・内側の寄せなど） */
+
+  /* Tag・Chip の先頭のアイコン・アバター — adr/0399・0400。src/internal/small-parts-leading.ts
+     icon-gap: アイコンと文字の間。avatar-inset: アバターの上下と左の余白（部品の外の縁から）。
+     アバターは高さから上下の余白を引いた大きさ。avatar-gap: アバターと文字の間（顔と文字が詰まって見えないよう、アイコンより広い） */
+  --small-parts-icon-gap: calc(var(--spacing) * 1);
+  --small-parts-avatar-inset: calc(var(--spacing) * 1);
+  --small-parts-avatar-gap: calc(var(--spacing) * 1.5);
+}

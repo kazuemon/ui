@@ -1,0 +1,5 @@
+:root {
+  /* ── SearchField ── BEGIN search-field */
+  /* 本体の内側に置いた虫眼鏡（icon="inline"）と、打った文字のあいだ */
+  --search-field-icon-gap: calc(var(--spacing) * 2);
+}

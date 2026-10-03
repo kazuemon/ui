@@ -2,6 +2,7 @@
    フォントのファイルは読まない（fonts.css・ibm-plex-sans-jp.css。使う側が選んで読む） */
 
 @import '../../design/tokens.css';
+@import './component-tokens.css';
 
 @theme {
   --font-sans:

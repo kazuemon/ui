@@ -8,7 +8,7 @@
 2. [`design/props.md`](./design/props.md): props の名前と渡し方
 3. [`design/adr/README.md`](./design/adr/README.md): 決定の索引。個別の ADR は、関わる軸のものだけ読む
 4. [`design/backlog.md`](./design/backlog.md): 決めていないこと・作っていないこと
-5. [`design/tokens.css`](./design/tokens.css): 値。principles と ADR は役割トークン名で参照し、値はここにだけ書く
+5. [`design/tokens.css`](./design/tokens.css): 公開の値（値・尺度・役割）。principles と ADR は役割トークン名で参照する。部品の中だけの値は、部品のフォルダの `<name>.tokens.css` にある（作る部品のものだけ読む）
 
 principles.md は毎回読み直さなくてよいよう短くしてあります。数値やトークン名は tokens.css と ADR にあります。
 
@@ -18,7 +18,8 @@ principles.md は毎回読み直さなくてよいよう短くしてあります
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `design/principles.md`                 | 原則（考えと現れ方）                                                                                                                                                   |
 | `design/props.md`                      | props の名前と渡し方の決まり。語彙表と、色・variant・文字・イベント・渡し方・JSDoc の規則                                                                              |
-| `design/tokens.css`                    | 現行版の値。`@theme` は公開（値・尺度・役割。Tailwind のクラスになる）、`:root` は部品の中だけ（ADR-0076）                                                             |
+| `design/tokens.css`                    | 公開の値。`@theme`（値・尺度・役割。Tailwind のクラスになる）と、密度で変わる `@theme reference`（ADR-0076）                                                           |
+| `**/<name>.tokens.css`                 | 部品の層の値（`:root`。部品の中だけで使う）とキーフレーム。使う部品のフォルダに置き、`src/styles/component-tokens.css` が全部を読む                                    |
 | `design/adr/NNNN-*.md`                 | 決定の記録。1 決定 1 本。比較画像は `design/adr/assets/`                                                                                                               |
 | `design/roadmap.md`                    | 作りたい部品・機能の一覧と進み具合（チェックボックス）                                                                                                                 |
 | `design/backlog.md`                    | 未決事項。決まったら ADR を書いて消す                                                                                                                                  |
@@ -62,7 +63,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
 2. `templates/component/` を `src/components/<kebab-name>/` に写し、`Example` を部品の名前に置き換える。新しいファイルを作ったら `src/styles/globals.css` を touch する
 3. 部品を書く
    - 振る舞い（キーボード・読み上げ・開閉）は、Base UI にある部品を土台にする
-   - 見た目は `tv`（`src/internal/tv`）で書く。トークンは、役割（`@theme`）にあるものを先に使う。部品のトークン（`:root`）は、役割にない値か、部品の中で状態ごとに差し替える値のときだけ足し、生の値は尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`）を指す。`@theme` に名前を足したら `twMergeConfig` にも足す（`tv.test.ts` が確かめる）
+   - 見た目は `tv`（`src/internal/tv`）で書く。トークンは、役割（`@theme`）にあるものを先に使う。部品のトークンは、役割にない値か、部品の中で状態ごとに差し替える値のときだけ、部品のフォルダの `<name>.tokens.css` の `:root` に足し（新しいファイルは `src/styles/component-tokens.css` に `@import` を足す。`component-tokens.test.ts` が確かめる）、役割を指すだけの別名は作らない。生の値は尺度（`--spacing`・`--radius-*`・`--border-width-*`・`--duration-*`）を指す。`@theme` に名前を足したら `twMergeConfig` にも足す（`tv.test.ts` が確かめる）
    - 寸法は密度のトークン（`--spacing-control` など）で書く。フォーカスの線は `focusRing`、ラベル・キャプション・エラーの行は `internal/field` の `Field`、Form の送信中は `useFormSubmittingLock`・`useChoiceLock` を使う
    - props の説明と既定値（`@default`）は JSDoc に書く
    - props の名前と渡し方は `design/props.md` の語彙に寄せる。語彙にない名前が要るときはいちばん近い語に寄せ、別の語が適していそうならユーザーに確かめる
@@ -83,8 +84,8 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
 
 - 1 軸につき 1 本のストーリーを `design/stories/axis-NN-*.stories.tsx` に置く。Storybook では `Design Review/NN 軸の名前` に並ぶ
 - 現行版と候補を行に、状態（通常・フォーカス中など）を列に並べる
-- 候補は `design/tokens.css` への上書き（CSS 変数）だけで作る。部品のコードは候補ごとに分けない。今のトークンで表せない案が要るときは、先に部品をトークンで表せる形に直す
-- 全案（現行版を含む）で軸の値を明示する。比べるためだけに足した切り替えのトークン（0・1 の切り替えや、採らなかった形のための値）は、決まったら部品で決まった値に畳み、tokens.css から消す。決めたときの比較は、比較画像と ADR のコミットで再現する
+- 候補はトークン（CSS 変数）の上書きだけで作る。部品のコードは候補ごとに分けない。今のトークンで表せない案が要るときは、先に部品をトークンで表せる形に直す
+- 全案（現行版を含む）で軸の値を明示する。比べるためだけに足した切り替えのトークン（0・1 の切り替えや、採らなかった形のための値）は、決まったら部品で決まった値に畳み、トークンのファイルから消す。決めたときの比較は、比較画像と ADR のコミットで再現する
 - トークンの足し方は「部品を作る」と同じ
 - 操作しないと出ない状態（hover、フォーカス）は `storybook-addon-pseudo-states` で固定する
 - 密度はツールバーの「密度」で固定して比べる。密度の差は実機で指で押して詰める
@@ -94,7 +95,7 @@ CI（`.github/workflows/ci.yml`）は、PR と main への push で typecheck・
 決まったあとに更新するもの（この順で、コミットの前にまとめて 1 回）:
 
 1. ADR を書く。1 決定 1 本。前の決定を覆したら古い ADR を Superseded にする。「原則への反映」に、原則の文を書き換えたか、反映なしかを書く
-2. tokens.css を更新する
+2. トークン（`design/tokens.css`・部品の `<name>.tokens.css`）を更新する
 3. principles.md を更新する。決定で原則が変わるなら、例外を足すのではなく原則の文を書き換える。書式は下の「principles.md の書き方」
 4. backlog.md から決まったものを消し、新しく分かった未決事項を足す
 5. ADR の索引（`design/adr/README.md`）に行を足す

@@ -1,0 +1,7 @@
+:root {
+  /* Badge（数と小さな状態の点）の形 — ADR-0061 で A 案（16px の濃い塗り、重ねるときは縁 2px）に決めた */
+  /* 重ねるときの縁（置く面の色 --color-surface）の太さ */
+  --badge-ring-width: var(--border-width-thick);
+  /* 重ねるとき、相手の右上の角から Badge の中心を内側へ寄せる量 */
+  --badge-overlay-inset: var(--spacing);
+}

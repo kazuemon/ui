@@ -1,0 +1,36 @@
+:root {
+  /* ── Navbar — 軸 104・105 ── BEGIN navbar */
+  /* ページの上の帯。ロゴ・行き先・操作を 1 行に並べる。src/components/navbar
+     height: 帯の高さ。入力方式では変えない（原則11: 部品の高さは指で押せる大きさのまま）
+     gap: ロゴ・行き先・操作のあいだ。item-gap: 行き先どうしのあいだ
+     current-bar: いまいるページの下の線の太さ（currentIndicator="underline" — 軸 104 の C）
+     貼り付けた（sticky）ときの境目と面 — 軸 105
+       sticky-shadow: stickyEdge="shadow" の、下へ落とす淡い影（線の代わり）
+       backdrop-bg・backdrop-blur: stickyBackdrop="blur" の、透ける面と後ろのぼかし */
+  --navbar-height: calc(var(--spacing) * 16);
+  --navbar-gap: calc(var(--spacing) * 6);
+  --navbar-item-gap: var(--spacing);
+  --navbar-current-bar: calc(var(--spacing) / 2);
+  --navbar-sticky-shadow: 0 4px 16px rgb(from var(--color-shadow) r g b / 0.08);
+  --navbar-backdrop-bg: color-mix(in oklab, var(--color-bg) 80%, transparent);
+  --navbar-backdrop-blur: calc(var(--spacing) * 3);
+  /* スクロールで隠す（stickyBehavior="hide-on-scroll"。軸 503）
+       スクロールの量に合わせて帯を押し上げ、止まったら近い方へ寄せる（寄せる動きは --duration-normal・--ease-press）
+       hide-shadow-room: 隠すとき、影まで見えなくなるよう余分に押し上げる幅 */
+  --navbar-hide-shadow-room: calc(var(--spacing) * 4);
+  /* いちばん上では透かす（stickyBackdrop="transparent-until-scroll"）ときの、文字の守り方（transparentVariant。軸 504）
+       scrim: 上から下へ薄れる暗い幕（scrim）。frosted-bg・frosted-blur: 淡いすりガラス（frosted）の面と後ろのぼかし
+       on-image-fg: 画像の上で白くした文字（scrim・text-shadow）。scrim-fg-muted・text-shadow-fg-muted: そのときの淡い文字
+       text-shadow: 白くした文字の後ろの淡い影（text-shadow）
+       on-image-focus-ring: 白くした文字のあいだの、帯の中のフォーカスの線（本文の色の線は暗い画像の上で見えないため）
+       backdrop-duration: 透けた面から不透明な面へ移る長さ */
+  --navbar-scrim: linear-gradient(to bottom, oklch(0 0 0 / 0.45), transparent);
+  --navbar-frosted-bg: color-mix(in oklab, var(--color-bg) 40%, transparent);
+  --navbar-frosted-blur: calc(var(--spacing) * 3);
+  --navbar-on-image-fg: oklch(1 0 0);
+  --navbar-scrim-fg-muted: oklch(1 0 0 / 0.8);
+  --navbar-text-shadow-fg-muted: oklch(1 0 0 / 0.85);
+  --navbar-text-shadow: 0 1px 3px oklch(0 0 0 / 0.4);
+  --navbar-on-image-focus-ring: var(--navbar-on-image-fg);
+  --navbar-backdrop-duration: var(--duration-normal);
+}

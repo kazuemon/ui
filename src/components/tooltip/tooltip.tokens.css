@@ -1,0 +1,13 @@
+:root {
+  /* Tooltip — ADR-0106
+     面は重なるレイヤーなので浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（shadow={false} で外せる）
+     文字は部品のキャプションと同じ大きさ。出るまでの時間と長押しの時間は、部品の props（delay・longPressDelay）で持つ */
+  --tooltip-padding-x: calc(var(--spacing) * 2);
+  --tooltip-padding-y: var(--spacing);
+  --tooltip-max-width: calc(var(--spacing) * 60);
+  --tooltip-offset: calc(var(--spacing) * 2);
+  /* 本体を指す矢印（showArrow — 軸 462）。回す前の四角の一辺。面の端から半分はみ出す */
+  --tooltip-arrow-size: calc(var(--spacing) * 2); /* 8px */
+  /* Tooltip は小さいので、ほかの浮かぶ面より影を小さく淡くする */
+  --shadow-tooltip: 0 2px 8px rgb(from var(--color-shadow) r g b / 0.08);
+}

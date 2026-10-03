@@ -1,0 +1,8 @@
+:root {
+  /* フォーカスの色を部品の色に従わせる — ADR-0071 の M
+     色を持つ部品（Select・ボタン・リンク・トグル・チェックボックス・ラジオ）は、入力欄の枠線と線を部品の色にする
+       部品は color ごとに自分の色を --color-own-focus に置く（青 --color-primary、ピンク --color-fg-secondary、
+       赤いボタン --color-fg-danger）。色を指定しない部品と TextField は置かないので、1色（--color-focus・--color-focus-ring）のまま
+     1 と 0 は、部品が srgb で混ぜて色を決める。お知らせの中は未設定（initial）にし、混ぜずに線の色をそのまま使う（adr/0043） */
+  --focus-follow-color: 1;
+}

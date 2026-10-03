@@ -1,0 +1,17 @@
+:root {
+  /* Combobox の欄の中のチップ（複数選ぶとき）。ADR-0217・0259
+     大きさは chipSize（sm・md・lg）を Chip の size にそのまま渡す。--combobox-chip-height は
+     打つ欄の高さをチップにそろえるためだけの変数で、値は部品が chipSize から計算して置く（tokens.css には持たない）
+     最大幅は既定では決めない（欄の幅まで）。切りたいときは Combobox の chipMaxWidth prop で渡す */
+  /* Chip の見た目。src/components/chip/。ADR-0219
+     白い面に、文字の色を薄めた細い縁。グレーの欄の上でも、ページの上でも輪郭が見える
+     読み取り専用は縁をなくし、入力欄の付属部分と同じグレーの面にする。押せないときは縁を薄い線の色にする
+     bg・fg のほか、disabled-*・readonly-* の残りは未設定が既定（ふだんの値に従う） */
+  --chip-bg: var(--color-surface);
+  --chip-border-width: var(--border-width-thin);
+  --chip-border-style: solid;
+  --chip-border-color: color-mix(in oklab, currentColor 45%, transparent);
+  --chip-disabled-border-color: var(--color-line);
+  --chip-readonly-bg: var(--color-field-addon);
+  --chip-readonly-border-color: transparent;
+}

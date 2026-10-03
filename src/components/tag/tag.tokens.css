@@ -1,0 +1,9 @@
+:root {
+  /* Tag の形（variant）— adr/0398。src/components/tag/
+     縁はどの形でも同じ幅で引き（soft・solid は透明）、左右の余白から縁の幅を引く。形を変えても寸法は変わらない
+     outline・dashed は面を塗らず、縁は文字の色を薄めた色（Chip の縁と同じ作り）。dashed は実線と見分けられるよう少し濃い
+     surface は白い面に、文字の色そのままの縁 */
+  --tag-border-width: var(--border-width-thin);
+  --tag-outline-border-mix: 45%;
+  --tag-dashed-border-mix: 60%;
+}

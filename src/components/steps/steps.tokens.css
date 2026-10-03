@@ -1,0 +1,22 @@
+:root {
+  /* ── Steps — ADR-0172・0181 ── BEGIN steps */
+  /* 記事の中の番号付きの手順。src/components/steps
+     読みもの。ページと同じレイヤーなので影を付けず、押せない（原則1・19）
+     gap: 段と段のあいだ。title-gap: 題と本文のあいだ
+     marker-*: 番号の印（ADR-0181）。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
+       印の種類（グレーの丸・輪郭・数字だけ・Primary の丸）は部品の marker で選ぶ。marker-text は丸の中の数字、
+       marker-number-text は丸を置かないときの数字の大きさ
+     line-*: 段をつなぐ縦の線。印の中心の下から次の段の印の上まで。line-gap は印と線の端のあいだ
+       線の種類（実線・点線・なし）は部品の line で選ぶ。line-dotted-* は点線のときの太さと印とのあいだ */
+  --steps-gap: calc(var(--spacing) * 8);
+  --steps-title-gap: calc(var(--spacing) * 1);
+  --steps-marker-size: calc(var(--spacing) * 7);
+  --steps-marker-gap: calc(var(--spacing) * 3);
+  --steps-marker-text: 14px;
+  --steps-marker-number-text: 20px;
+  --steps-line-width: var(--border-width-thin);
+  --steps-line-gap: calc(var(--spacing) * 1);
+  --steps-line-dotted-width: var(--border-width-thick);
+  --steps-line-dotted-gap: calc(var(--spacing) * 1.5);
+  --color-steps-line: var(--color-line);
+}

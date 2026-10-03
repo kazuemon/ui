@@ -74,8 +74,8 @@ export default mergeConfig(
             name: 'unit',
             include: ['src/**/*.test.ts'],
             environment: 'node',
-            // Vitest は既定で CSS を空にするので、tokens.css の中身（?raw）を読むテストのために通す
-            css: { include: [/design\/tokens\.css/] },
+            // Vitest は既定で CSS を空にするので、トークンの CSS の中身（?raw）を読むテストのために通す
+            css: { include: [/tokens\.css/] },
           },
         },
       ],
