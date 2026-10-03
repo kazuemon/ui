@@ -197,7 +197,7 @@ const inner = tv({
 });
 
 // アイコンの丸。点と同じく列の中央に置き、強調の輪も点と同じ形で付ける
-//   色は点の種類の色（--tl-marker-*）から作る。面を持たない形（outline・plain）は、地の色で線を隠す
+//   色は点の種類の色（--tl-marker-*）から作る。outline は地の色の丸、plain は丸を持たない（線は印の手前で切れるので、隠す面は要らない）
 const iconMarker = tv({
   base: [
     'absolute start-[calc(var(--tl-gutter)+(var(--tl-axis)-var(--tl-own))/2)] top-(--tl-marker-top)',
@@ -211,7 +211,7 @@ const iconMarker = tv({
       soft: 'bg-(--tl-marker-subtle) text-(--tl-marker-fg) [&_svg]:size-(--timeline-icon-size-lg)',
       outline:
         'bg-bg text-(--tl-marker-fg) [--tl-icon-ring:var(--timeline-marker-ring)] [&_svg]:size-(--timeline-icon-size-lg)',
-      plain: 'bg-bg text-(--tl-marker-fg) [&_svg]:size-(--timeline-icon-plain-size)',
+      plain: 'text-(--tl-marker-fg) [&_svg]:size-(--timeline-icon-plain-size)',
     },
   },
 });

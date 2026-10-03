@@ -391,6 +391,15 @@ export const IconVariants: Story = {
       ))}
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    // plain は丸を持たない。地の色と違う面に置いても、丸が見えない
+    const plain = canvasElement.querySelectorAll(
+      '[data-slot="timeline-icon"][data-variant="plain"]'
+    );
+    await expect(plain.length).toBeGreaterThan(0);
+    for (const icon of plain)
+      await expect(getComputedStyle(icon).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  },
 };
 
 export const WarningColor: Story = {
