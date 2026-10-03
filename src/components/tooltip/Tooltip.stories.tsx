@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { FormEvent } from 'react';
+import type { ComponentProps, FormEvent } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
@@ -238,6 +238,15 @@ export const DisabledTrigger: Story = {
 
 const onCheckSubmit = fn((event: FormEvent) => event.preventDefault());
 
+// 子を受け取らない自作の部品（受け取った props を外側の要素に渡し、中にボタンを持つ）
+function CheckToolbar(props: ComponentProps<'div'>) {
+  return (
+    <div role="toolbar" aria-label="自作の部品" className="flex gap-2" {...props}>
+      <Button disabled>自作の部品の中</Button>
+    </div>
+  );
+}
+
 export const DisabledTriggerCheck: Story = {
   name: '押せないボタンの本体（確かめ）',
   tags: ['!autodocs'],
@@ -259,6 +268,10 @@ export const DisabledTriggerCheck: Story = {
           <Button disabled>入れ物の中</Button>
         </div>
       </Tooltip>
+      {/* 子を受け取らない自作の部品を本体にしたときも、中のボタンには効かない */}
+      <Tooltip {...args} content="自作の部品の補足">
+        <CheckToolbar />
+      </Tooltip>
       {/* Tooltip を重ねたとき、本体のボタンは外の Tooltip の本体でもある */}
       <Tooltip {...args} content="外の Tooltip">
         <Tooltip {...args} disabled>
@@ -276,6 +289,7 @@ export const DisabledTriggerCheck: Story = {
     await expect(submit).not.toBeDisabled();
     await expect(submit).toHaveAttribute('aria-disabled', 'true');
     await expect(canvas.getByRole('button', { name: '入れ物の中' })).toBeDisabled();
+    await expect(canvas.getByRole('button', { name: '自作の部品の中' })).toBeDisabled();
     // 重ねた Tooltip の本体は、外の Tooltip のためにフォーカスできる形のまま
     await expect(canvas.getByRole('button', { name: '重ねた本体' })).not.toBeDisabled();
     // フォーカスできる押せない送信のボタン: 押しても、Enter・Space でも、入力欄で Enter を押しても送らない

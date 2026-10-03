@@ -27,7 +27,7 @@ import {
   withRenderOverrides,
 } from '../../internal/link-parts';
 import { type LoadingIndicator, LoadingBar, Spinner } from '../loading/Loading';
-import { TooltipTriggerContext } from '../../internal/tooltip-trigger-context';
+import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { tv } from '../../internal/tv';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
@@ -568,8 +568,9 @@ function NativeButton({
   children,
   ref,
   'aria-describedby': ariaDescribedBy,
+  [TOOLTIP_TRIGGER]: tooltipTrigger,
   ...props
-}: ButtonProps | ButtonIconOnlyProps) {
+}: (ButtonProps | ButtonIconOnlyProps) & TooltipTriggerMarkProps) {
   if (iconOnly && !props['aria-label'] && !props['aria-labelledby'])
     warnOnce('Button: アイコンだけのボタン（iconOnly）には aria-label で読み上げの名前を付けます');
   const captionId = useId();
@@ -591,8 +592,8 @@ function NativeButton({
   // フォーカスできる押せないボタン（focusableWhenDisabled）: disabled 属性を付けず、aria-disabled と data-disabled で描く
   //   見た目は押せないボタンと同じ（data-disabled: は disabled: と同じ指定）。押しても何もしない
   //   Tooltip の本体のときは既定でこの形にする（押せない理由を Tooltip で出せるように）。明示した値はそちらを優先する
-  const inTooltip = use(TooltipTriggerContext);
-  const focusableWhenDisabled = focusableWhenDisabledProp ?? inTooltip;
+  //   Tooltip の本体かは、Tooltip が本体の要素にだけ足す印で見る（入れ物や自作の部品の中のボタンには届かない）
+  const focusableWhenDisabled = focusableWhenDisabledProp ?? tooltipTrigger !== undefined;
   const softDisabled = disabled === true && focusableWhenDisabled;
   const marked = loading ?? (formBusy && self !== null && form.submitter === self);
   // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない
@@ -625,36 +626,33 @@ function NativeButton({
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       })}
     >
-      {/* 自分の中には「Tooltip の本体」を配らない（本体そのものとして描くボタンにだけ効かせる） */}
-      <TooltipTriggerContext value={false}>
-        {inline && <Spinner className="text-(color:--button-ink)" />}
-        {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
-        {loading === undefined && !submit ? (
-          children
-        ) : (
-          <span
-            className={[
-              'inline-flex items-center gap-2 [transition:opacity_var(--duration-loading)_var(--ease-press)] motion-reduce:[transition:none]',
-              overlay && 'opacity-(--loading-label-opacity)',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            {children}
-          </span>
-        )}
-        {overlay && (
-          <span
-            aria-hidden
-            className="absolute inset-0 flex animate-loading-in items-center justify-center"
-          >
-            <Spinner className="text-(color:--button-ink)" />
-          </span>
-        )}
-        {marked && loadingIndicator === 'bar' && (
-          <LoadingBar className="bg-(color:--button-accent)" />
-        )}
-      </TooltipTriggerContext>
+      {inline && <Spinner className="text-(color:--button-ink)" />}
+      {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
+      {loading === undefined && !submit ? (
+        children
+      ) : (
+        <span
+          className={[
+            'inline-flex items-center gap-2 [transition:opacity_var(--duration-loading)_var(--ease-press)] motion-reduce:[transition:none]',
+            overlay && 'opacity-(--loading-label-opacity)',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {children}
+        </span>
+      )}
+      {overlay && (
+        <span
+          aria-hidden
+          className="absolute inset-0 flex animate-loading-in items-center justify-center"
+        >
+          <Spinner className="text-(color:--button-ink)" />
+        </span>
+      )}
+      {marked && loadingIndicator === 'bar' && (
+        <LoadingBar className="bg-(color:--button-accent)" />
+      )}
     </button>
   );
   return withCaption(element, caption, className, captionId);

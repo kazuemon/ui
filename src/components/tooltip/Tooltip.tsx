@@ -2,7 +2,6 @@
 
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 import {
-  cloneElement,
   createContext,
   type ReactElement,
   type ReactNode,
@@ -16,7 +15,7 @@ import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
-import { TooltipTriggerContext } from '../../internal/tooltip-trigger-context';
+import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
@@ -190,26 +189,16 @@ export function Tooltip({
   popupProps,
   positionerProps,
   className,
-}: TooltipProps) {
+  [TOOLTIP_TRIGGER]: outerTriggerMark,
+}: TooltipProps & TooltipTriggerMarkProps) {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   // 待ち時間は、Tooltip ごとの delay、包む TooltipProvider の delay、既定の順に決める
   const providerDelay = use(TooltipDelayContext);
   const delay = delayProp ?? providerDelay ?? DEFAULT_DELAY;
   const portalContainer = usePortalContainer(container);
-  // 外の Tooltip の本体の中にいるか（自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
-  const inOuterTrigger = use(TooltipTriggerContext);
-  // 本体の要素の子には「Tooltip の本体」を配らない（入れ物を本体にしたとき、中のボタンまで変えない）
-  //   子を持たない要素（input など）と、Tooltip を重ねたとき（中の Tooltip の本体が、外の Tooltip の本体でもある）は、そのまま渡す
-  const triggerChildren = (children.props as { children?: ReactNode }).children;
-  const triggerElement =
-    triggerChildren === undefined || children.type === Tooltip
-      ? children
-      : cloneElement(
-          children as ReactElement<{ children?: ReactNode }>,
-          undefined,
-          <TooltipTriggerContext value={false}>{triggerChildren}</TooltipTriggerContext>
-        );
+  // 外の Tooltip の本体か（Tooltip を重ねたとき。自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
+  const inOuterTrigger = outerTriggerMark !== undefined;
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {
     className: positionerClassName,
@@ -263,43 +252,43 @@ export function Tooltip({
       }}
       onOpenChangeComplete={onOpenChangeComplete}
     >
-      {/* 本体の中の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように）
-          Tooltip を止めているとき（disabled）は出す理由がないので配らない。外の Tooltip の本体の中なら、その値を引き継ぐ */}
-      <TooltipTriggerContext value={!disabled || inOuterTrigger}>
-        <BaseTooltip.Trigger
-          ref={anchorRef}
-          render={triggerElement}
-          delay={delay}
-          style={{ WebkitTouchCallout: 'none' }}
-          onPointerDown={(event) => {
-            if (event.pointerType !== 'touch' || disabled) return;
+      {/* 本体の要素そのものに印を足す。本体の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように）
+          印は本体の要素にしか届かないので、入れ物や自作の部品の中のボタンには効かない
+          Tooltip を止めているとき（disabled）は出す理由がないので足さない。外の Tooltip の本体なら、その印を引き継ぐ */}
+      <BaseTooltip.Trigger
+        ref={anchorRef}
+        render={children}
+        {...{ [TOOLTIP_TRIGGER]: !disabled || inOuterTrigger ? '' : undefined }}
+        delay={delay}
+        style={{ WebkitTouchCallout: 'none' }}
+        onPointerDown={(event) => {
+          if (event.pointerType !== 'touch' || disabled) return;
+          cancelPress();
+          const timer = window.setTimeout(() => {
+            press.current = null;
+            setLongPressed(true);
+            changeOpen(true);
+          }, longPressDelay);
+          press.current = { x: event.clientX, y: event.clientY, timer };
+        }}
+        onPointerMove={(event) => {
+          const start = press.current;
+          if (!start) return;
+          if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > LONG_PRESS_SLOP) {
             cancelPress();
-            const timer = window.setTimeout(() => {
-              press.current = null;
-              setLongPressed(true);
-              changeOpen(true);
-            }, longPressDelay);
-            press.current = { x: event.clientX, y: event.clientY, timer };
-          }}
-          onPointerMove={(event) => {
-            const start = press.current;
-            if (!start) return;
-            if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > LONG_PRESS_SLOP) {
-              cancelPress();
-            }
-          }}
-          onPointerUp={cancelPress}
-          onPointerCancel={cancelPress}
-          onContextMenu={(event) => {
-            if (longPressed || press.current) event.preventDefault();
-          }}
-          onClickCapture={(event) => {
-            if (!longPressed) return;
-            event.preventDefault();
-            event.stopPropagation();
-          }}
-        />
-      </TooltipTriggerContext>
+          }
+        }}
+        onPointerUp={cancelPress}
+        onPointerCancel={cancelPress}
+        onContextMenu={(event) => {
+          if (longPressed || press.current) event.preventDefault();
+        }}
+        onClickCapture={(event) => {
+          if (!longPressed) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      />
       <BaseTooltip.Portal container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）

@@ -42,7 +42,7 @@
 
 ## 影響
 
-- `src/internal/tooltip-trigger-context.ts`: Tooltip の本体であることを Button に伝える文脈を足しました
+- `src/internal/tooltip-trigger.ts`: Tooltip の本体であることを Button に伝える印を足しました。Tooltip が本体の要素そのものにだけ足す props なので、入れ物や自作の部品を本体にしたときの中のボタンには届きません（はじめは React の文脈で配っていましたが、子を受け取らない自作の部品の中まで届いたため、印の props に替えました）
 - `src/components/button/Button.tsx`: `focusableWhenDisabled` の既定は「Tooltip の本体なら true、それ以外は false」です
 - 比較のストーリーは消しました
 
