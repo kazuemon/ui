@@ -3,6 +3,7 @@
 import { Form as BaseForm } from '@base-ui/react/form';
 import {
   type ComponentProps,
+  type ReactNode,
   useCallback,
   useEffect,
   useId,
@@ -52,6 +53,15 @@ export interface FormProps extends ComponentProps<'form'> {
    * submitting を false にするのと同じ描画で渡してください（下の submitting の説明と同じ理由です）
    */
   errors?: FormErrors;
+  /**
+   * どの欄にも結び付かないエラーの文です（「通信できませんでした」「このメールアドレスはすでに登録されています」など）。
+   * フォームの上に危険のお知らせとして出します。showErrorSummary のときは、エラーの一覧と一緒に出します。
+   * 送信したとき（submitting を false に戻したときも）に渡されていれば、このお知らせへフォーカスを移します。
+   * サーバーから返ってきたときは、errors と同じく submitting を false にするのと同じ描画で渡してください。
+   * 送り始めて submitting を true にしているあいだは、前の送信のお知らせへはフォーカスを移しません。
+   * フォーカスを移さないとき（送っているあいだに別の欄へ移ったときや、送信なしに渡したとき）は、文を割り込みで読み上げます
+   */
+  formErrorText?: ReactNode;
   /**
    * 送信したとき（Base UI の検証を通ったとき）に、欄の名前と値の組を1つのオブジェクトにして呼びます（design/adr/0255・0243）。
    * 渡すと、ブラウザの既定の送信（ページ遷移）は起きません。onSubmit（下の、DOM のイベントを受け取るもの）と両方渡したときは、
@@ -129,6 +139,7 @@ export function Form({
   requiredMark,
   optionalMark,
   errors,
+  formErrorText,
   onFormSubmit,
   validationMode,
   onSubmit,
@@ -139,12 +150,20 @@ export function Form({
   const formRef = useRef<HTMLFormElement | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const formErrorId = useId();
   const [submitCount, setSubmitCount] = useState(0);
-  // エラーの一覧。focus は、一覧へフォーカスを移した送信の回数（送信のたびに移す。中身が変わっただけでは移さない）
-  const [summary, setSummary] = useState<{ entries: ErrorEntry[]; focus: number } | null>(null);
+  // エラーの一覧
+  const [summary, setSummary] = useState<{ entries: ErrorEntry[] } | null>(null);
+  // フォームの上のお知らせ（エラーの一覧・formErrorText）へフォーカスを移した送信の回数（送信のたびに移す。中身が変わっただけでは移さない）
+  const [panelFocus, setPanelFocus] = useState(0);
   const errorSummaryRef = useRef(showErrorSummary);
+  const hasFormError = formErrorText != null && formErrorText !== false && formErrorText !== '';
+  const formErrorRef = useRef(hasFormError);
+  const submittingRef = useRef(submitting);
   useLayoutEffect(() => {
     errorSummaryRef.current = showErrorSummary;
+    formErrorRef.current = hasFormError;
+    submittingRef.current = submitting;
   });
   const setRefs = useCallback(
     (node: HTMLFormElement | null) => {
@@ -208,12 +227,35 @@ export function Form({
   // 欄の行が、同じ描画で「送信で出た」と分かるように、描画の中で決める（アプリがエラーを渡すのと submitting を false にするのが同じ描画のとき）
   // 送っているあいだに別の欄へ移っていたら増やさない。フォーカスを奪わず、行は polite で知らせる
   const [settle, setSettle] = useState({ submitting, count: 0 });
+  // 同じ描画の続き（formErrorText を割り込みで知らせるか）が、増やしたあとの回数で決められるように、ここで数える
+  let settleCount = settle.count;
   if (settle.submitting !== submitting) {
     const stayed = !submitting && focusStayedAt(origin);
-    setSettle({ submitting, count: stayed ? settle.count + 1 : settle.count });
+    settleCount = stayed ? settle.count + 1 : settle.count;
+    setSettle({ submitting, count: settleCount });
     if (!submitting) setOrigin(null);
   }
-  const focusCount = submitCount + settle.count;
+  const focusCount = submitCount + settleCount;
+
+  // formErrorText が出たとき（文が変わったとき）に、フォーカスを移さないなら、割り込み（alert）で知らせる
+  // 送っているあいだに別の欄へ移っていたときや、送信なしにアプリが渡したとき。移すときは移った先で読まれるので、二重に読ませない
+  // 文字列でない中身（要素）は描くたびに別物になるので、出たか消えたかだけを比べる
+  const formErrorKey =
+    typeof formErrorText === 'string' || typeof formErrorText === 'number'
+      ? formErrorText
+      : hasFormError;
+  const [formErrorLive, setFormErrorLive] = useState({
+    key: formErrorKey,
+    focusCount,
+    live: false,
+  });
+  if (formErrorLive.key !== formErrorKey || formErrorLive.focusCount !== focusCount) {
+    // この描画でフォーカスを移す（回数が増え、送っているあいだではない）か
+    const moves = formErrorLive.focusCount !== focusCount && !submitting;
+    const live =
+      formErrorLive.key !== formErrorKey ? hasFormError && !moves : formErrorLive.live && !moves;
+    setFormErrorLive({ key: formErrorKey, focusCount, live });
+  }
 
   // 送信なしに submitting になったとき（アプリが直に切り替えたとき）は、最初の送信のボタンに印を出す
   // 送り終えたら忘れる。次に送信なしで submitting になったとき、前に押したボタンに出さないため
@@ -225,23 +267,26 @@ export function Form({
     wasSubmitting.current = submitting;
   }, [submitting, submitter]);
 
-  // 送信で出たエラー（送信中が終わったときに出たエラーも）が描かれたあと: 最初のエラーの欄か、エラーの一覧へフォーカスを移す
+  // 送信で出たエラー（送信中が終わったときに出たエラーも）が描かれたあと: 最初のエラーの欄か、フォームの上のお知らせへフォーカスを移す
+  // どの欄にも結び付かないエラー（formErrorText）があるときは、欄より先にお知らせへ移す
   useLayoutEffect(() => {
     const form = formRef.current;
     if (!focusCount || !form) return;
     const entries = collectErrors(form);
-    if (errorSummaryRef.current) {
-      setSummary(entries.length ? { entries, focus: focusCount } : null);
+    const summaryShown = errorSummaryRef.current && entries.length > 0;
+    setSummary(summaryShown ? { entries } : null);
+    // 送り始めて submitting にした描画では、前の送信のエラー（formErrorText・一覧・欄）へは移さない（送り終えたときに移す）
+    if (submittingRef.current) return;
+    if (summaryShown || formErrorRef.current) {
+      setPanelFocus(focusCount);
       return;
     }
-    setSummary(null);
     if (entries[0]) focusField(form, entries[0].messageId, true);
   }, [focusCount]);
 
-  const summaryFocus = summary?.focus;
   useLayoutEffect(() => {
-    if (summaryFocus) summaryRef.current?.focus();
-  }, [summaryFocus]);
+    if (panelFocus) summaryRef.current?.focus();
+  }, [panelFocus]);
 
   // 一覧を出しているあいだは、欄のエラーの変化に合わせて一覧を直す。直した欄は一覧から消え、なくなると一覧を閉じる
   const summaryShown = summary !== null;
@@ -252,7 +297,7 @@ export function Form({
       const entries = collectErrors(form);
       setSummary((current) => {
         if (!current || sameEntries(current.entries, entries)) return current;
-        return entries.length ? { ...current, entries } : null;
+        return entries.length ? { entries } : null;
       });
     });
     observer.observe(form, {
@@ -306,44 +351,57 @@ export function Form({
             />
           )}
         >
-          {summary && (
-            // エラーの一覧（GOV.UK の error summary の形）。危険のお知らせ（design/adr/0043）で描く
-            // フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない。移ると「題、グループ」と中身が読まれる
+          {(summary || hasFormError) && (
+            // フォームの上のお知らせ。どの欄にも結び付かないエラー（formErrorText）と、エラーの一覧（GOV.UK の error summary の形）
+            // どちらも危険のお知らせ（design/adr/0043）で描く。フォーカスを移して読ませるので、お知らせの role の箱（alert）は使わない
+            // 移ると「題、グループ」と中身が読まれる
+            // 両方あるときは、どの欄にも結び付かないエラーを別のお知らせにして一覧の上に置く。間は欄の中の行の間と同じ
             <div
               ref={summaryRef}
               tabIndex={-1}
               role="group"
-              aria-labelledby={titleId}
+              aria-labelledby={summary ? titleId : formErrorId}
               data-slot="form-error-summary"
               className={[
-                'rounded-control',
+                'flex flex-col gap-(--spacing-field-gap) rounded-control',
                 ...focusRing,
                 '[transition:outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
               ].join(' ')}
             >
-              <Notice
-                status="danger"
-                live={false}
-                title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
-              >
-                {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
-                題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
-                <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">
-                  {summary.entries.map((entry) => (
-                    <li key={entry.messageId}>
-                      <Link
-                        href={entry.controlId ? `#${entry.controlId}` : '#'}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          if (formRef.current) focusField(formRef.current, entry.messageId, false);
-                        }}
-                      >
-                        {entryText(entry)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </Notice>
+              {hasFormError && (
+                <Notice status="danger" live={false}>
+                  {/* フォーカスを移さないときだけ、文を割り込みで知らせる（お知らせ全体を箱に入れると、移したときと二重に読まれる） */}
+                  <span id={formErrorId} role={formErrorLive.live ? 'alert' : undefined}>
+                    {formErrorText}
+                  </span>
+                </Notice>
+              )}
+              {summary && (
+                <Notice
+                  status="danger"
+                  live={false}
+                  title={<span id={titleId}>{errorSummaryTitle(summary.entries.length)}</span>}
+                >
+                  {/* 項目の間は、欄の中の行の間と同じ --spacing-field-gap（指用 8px・マウス用 6px — design/adr/0044 の追記）
+                  題と最初の項目の間も同じにする（お知らせの題と本文の間 2px に、差の分を足す）。題が最初の項目にだけ寄って見えないように */}
+                  <ul className="mt-[calc(var(--spacing-field-gap)-var(--spacing)*0.5)] flex flex-col gap-(--spacing-field-gap)">
+                    {summary.entries.map((entry) => (
+                      <li key={entry.messageId}>
+                        <Link
+                          href={entry.controlId ? `#${entry.controlId}` : '#'}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (formRef.current)
+                              focusField(formRef.current, entry.messageId, false);
+                          }}
+                        >
+                          {entryText(entry)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </Notice>
+              )}
             </div>
           )}
           {children}

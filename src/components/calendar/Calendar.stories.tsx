@@ -37,6 +37,9 @@ const meta = {
           '- 前後の月の日は灰色で見せます。`hideOutsideDays` で隠します。表はいつも 6 週で、月を送っても高さが変わりません。',
           '- 月を送ると、すぐに切り替わります。`monthTransition="fade"` で、その場でふわっと入れ替わります。',
           '- `min`・`max` で選べる期間を区切ります。区切りの外の月へは送れません。日ごとに押せなくするときは `isDateDisabled` を使います。',
+          '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなり、取り消し線が付きます（もとから押せない日には付きません）。`minRangeDays` で近い日が押せなくなったときは、選んだ始まりの日をもう一度押すと始まりが外れ、選び直せます。',
+          '- `renderDayContent` で、日ごとの印（空きの点、値段など）を日の数字に添えます。印そのものは読み上げられないので、同じ意味の文を `getDayContentLabel` で返します。文は日のボタンの読み上げで、日付のあとに読まれます。',
+          '- 週の始まりの曜日を `locale` と別に決めるときは `weekStartsOn`（0 が日曜）を使います。',
           '- 曜日と月の名前、週の始まりの曜日は `locale` に従います。今日は `timeZone` での今日です。どちらも ThemeProvider で決められます。',
           '- 矢印キーで日を、Page Up・Page Down で月を、Shift を足すと年を送ります。',
           '- 日は指で押せる大きさの正方形です。入れ物が狭いときは、正方形のまま小さくなります。',
@@ -146,6 +149,57 @@ export const Limits: Story = {
   },
 };
 
+// 期間の長さの制約。始まりを選んだあと、選べない日は押せない日と同じ色に取り消し線を引く。もとから押せない日（満室）は線を引かない
+const fullDays = new Set(['2026-09-14', '2026-09-15', '2026-09-24']);
+export const RangeConstraints: Story = {
+  tags: ['visual'],
+  name: '期間の長さの制約',
+  render: () => (
+    <Gallery>
+      <Specimen label="3〜7 日（10 日を始まりに選んだところ）">
+        <Calendar
+          mode="range"
+          today={today}
+          minRangeDays={3}
+          maxRangeDays={7}
+          defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+        />
+      </Specimen>
+      <Specimen label="満室の日をまたがない（14・15・24 日は満室）">
+        <Calendar
+          mode="range"
+          today={today}
+          isDateDisabled={(date) => fullDays.has(date.toString())}
+          excludeDisabled
+          defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+        />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+// 押せない日が遠く（2 年より先）にあっても、またぐ終わりの日は押せない
+const farFull = Temporal.PlainDate.from('2028-09-10');
+export const RangeExcludeFar: Story = {
+  name: '遠くの押せない日をまたがない',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Calendar
+      mode="range"
+      today={today}
+      isDateDisabled={(date) => date.equals(farFull)}
+      excludeDisabled
+      defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+      defaultMonth={Temporal.PlainYearMonth.from('2028-09')}
+    />
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('button', { name: /^2028年9月9日/ })).toBeEnabled();
+    await expect(canvas.getByRole('button', { name: /^2028年9月10日/ })).toBeDisabled();
+    await expect(canvas.getByRole('button', { name: /^2028年9月11日/ })).toBeDisabled();
+  },
+};
+
 export const Options: Story = {
   tags: ['visual'],
   name: '形と置き方',
@@ -194,6 +248,44 @@ export const Holidays: Story = {
   },
 };
 
+// 最短の日数があるとき、始まりの日をもう一度押すと始まりが外れ、近い日を新しい始まりに選べる
+function MinRangeExample() {
+  const [value, setValue] = useState<CalendarRange | null>(null);
+  return (
+    <Calendar mode="range" today={today} minRangeDays={3} value={value} onValueChange={setValue} />
+  );
+}
+
+export const RangeMinRestart: Story = {
+  name: '最短の日数と始まりの選び直し',
+  parameters: { controls: { disable: true } },
+  render: () => <MinRangeExample />,
+  play: async ({ canvas }) => {
+    const day = (n: number, weekday: string) =>
+      canvas.getByRole('button', { name: new RegExp(`^2026年9月${n}日${weekday}`) });
+    await userEvent.click(day(10, '木曜日'));
+    await expect(day(10, '木曜日')).toHaveAccessibleName('2026年9月10日木曜日 選択中');
+    // 始まりから 3 日に満たない日は押せない
+    await expect(day(11, '金曜日')).toBeDisabled();
+    // 始まりを押し直すと外れ、近い日を新しい始まりに選べる
+    await userEvent.click(day(10, '木曜日'));
+    await expect(day(10, '木曜日')).toHaveAccessibleName('2026年9月10日木曜日');
+    await expect(day(11, '金曜日')).toBeEnabled();
+    await userEvent.click(day(11, '金曜日'));
+    await expect(day(11, '金曜日')).toHaveAccessibleName('2026年9月11日金曜日 選択中');
+    // キーボードでも同じ（Enter で外し、Space で選び直す）
+    day(11, '金曜日').focus();
+    await userEvent.keyboard('{Enter}');
+    await expect(day(11, '金曜日')).toHaveAccessibleName('2026年9月11日金曜日');
+    await expect(day(12, '土曜日')).toBeEnabled();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(day(12, '土曜日')).toHaveFocus();
+    await userEvent.keyboard(' ');
+    await expect(day(12, '土曜日')).toHaveAccessibleName('2026年9月12日土曜日 選択中');
+    await expect(day(13, '日曜日')).toBeDisabled();
+  },
+};
+
 // 期間の始まりを選んだあと、マウスを載せた日まで薄い帯が出る
 export const RangeInProgress: Story = {
   name: '期間を選んでいる途中',
@@ -217,6 +309,72 @@ export const RangeInProgress: Story = {
 export const MonthTransition: Story = {
   name: '月を送る動き',
   args: { monthTransition: 'fade', defaultValue: Temporal.PlainDate.from('2026-09-24') },
+};
+
+// 見本の日ごとの印: 空きのある日に点、残りわずかな日に「残 n」
+const openDays = new Set([3, 4, 8, 10, 11, 12, 15, 17, 22, 24, 25, 29]);
+const fewLeft: Record<number, number> = { 5: 2, 9: 1, 16: 3, 19: 2, 23: 1, 26: 2 };
+const dotContent = (date: Temporal.PlainDate) =>
+  date.month === 9 && openDays.has(date.day) ? (
+    <span className="size-1.5 rounded-full bg-current" />
+  ) : null;
+const textContent = (date: Temporal.PlainDate) =>
+  date.month === 9 && fewLeft[date.day] ? `残${fewLeft[date.day]}` : null;
+// 印の意味を読み上げの文で返す
+const dotLabel = (date: Temporal.PlainDate) =>
+  date.month === 9 && openDays.has(date.day) ? '空きあり' : undefined;
+const textLabel = (date: Temporal.PlainDate) =>
+  date.month === 9 && fewLeft[date.day] ? `残り${fewLeft[date.day]}席` : undefined;
+
+export const DayContent: Story = {
+  tags: ['visual'],
+  name: '日ごとの印',
+  render: (args) => (
+    <Gallery columnWidth="20rem">
+      <Specimen label="点の印">
+        <Calendar
+          {...(args as CalendarSingleProps)}
+          renderDayContent={dotContent}
+          getDayContentLabel={dotLabel}
+        />
+      </Specimen>
+      <Specimen label="文字の印・選んだ日">
+        <Calendar
+          {...(args as CalendarSingleProps)}
+          defaultValue={Temporal.PlainDate.from('2026-09-16')}
+          renderDayContent={textContent}
+          getDayContentLabel={textLabel}
+        />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvas }) => {
+    // 印の意味は、日のボタンの読み上げで日付のあとに読まれる
+    await expect(
+      canvas.getByRole('button', { name: '2026年9月3日木曜日 空きあり' })
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('button', { name: '2026年9月16日水曜日 残り3席 選択中' })
+    ).toBeInTheDocument();
+  },
+};
+
+// 前後の月の日にだけ印があるとき、この月の日の数字はずらさない（印は前後の月の日に出す）
+export const DayContentOutside: Story = {
+  name: '前後の月の日の印',
+  render: (args) => (
+    <Calendar
+      {...(args as CalendarSingleProps)}
+      renderDayContent={(date) =>
+        date.month === 10 ? <span className="size-1.5 rounded-full bg-current" /> : null
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const outside = canvasElement.querySelector('td[data-day="2026-10-01"] button');
+    await expect(outside?.querySelectorAll(':scope > span')).toHaveLength(2);
+    await expect(canvasElement.querySelector('[data-has-content]')).toBeNull();
+  },
 };
 
 export const Densities: Story = {

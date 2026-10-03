@@ -1468,6 +1468,12 @@
   --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
+  /* 日ごとの印（renderDayContent）。日のボタンの下の中央に置き、印を持つ日がある月はすべての日の数字を上へずらす */
+  --calendar-day-content-bottom: calc(var(--spacing) * 1.75);
+  --calendar-day-content-text: 10px;
+  --calendar-day-number-shift: calc(var(--spacing) * -2.25);
+  /* 印を持つ日がある月で、今日の下線を引く、数字の行の下からの位置（数字と印のあいだ） */
+  --calendar-today-mark-offset: calc(var(--spacing) * -0.75);
   /* ── END calendar */
 
   /* ── Avatar — 軸 140・141 ── BEGIN avatar */
@@ -2229,6 +2235,7 @@
      item-radius・item-py・item-gap: 項目の角・上下の余白・中身どうしのあいだ。高さは部品の高さ（--spacing-control）から
      handle-width・handle-radius: つまみの幅と角。項目の端に接した塊で、高さは項目いっぱい
      lifted-*: 持ち上げた項目（dragging）— ADR-0338。面は白、影は重なる面より濃く近い影と細い輪郭、大きさは少しだけ大きく
+       表の行（SortableTableBody）は幅いっぱいに並ぶので、表の形によらず面と影だけを使い、大きくしない
      source-line-*: 入る場所（dragSource）の内側の点線 — ADR-0339。dragSourceVariant="filled" では、下に入力欄の塗りを敷く
      move-duration・move-ease: 並べ替えの動きの長さと緩急 — ADR-0341。motion="none" と、動きを減らす設定では動かさない
        レシピ（dnd-kit）の周りがずれる動き・離したときに収まる動きも、同じ長さと緩急にそろえる */
@@ -2247,6 +2254,12 @@
   --sortable-source-line-color: var(--color-line-strong);
   --sortable-move-duration: var(--duration-slow);
   --sortable-move-ease: var(--ease-sheet);
+  /* separator-*: 動かさない行（SortableSeparator）。見出しの文字だけで、上の空きで分ける。gap は showDivider の線と文字のあいだ、
+     divider-pt は線を引いたときの上の空き（線が分かれ目を示すぶん詰める） */
+  --sortable-separator-gap: calc(var(--spacing) * 3); /* 12px */
+  --sortable-separator-pt: calc(var(--spacing) * 3); /* 12px */
+  --sortable-separator-divider-pt: calc(var(--spacing) * 2); /* 8px */
+  --sortable-separator-pb: calc(var(--spacing) * 1); /* 4px */
   /* ── END sortable */
 
   /* ── Dropzone — ADR-0329〜0334 ── BEGIN dropzone */
