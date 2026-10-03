@@ -339,6 +339,9 @@ export const StickyHeader: Story = {
       await expect(bar).not.toBeNull();
       await expect(bar!.getBoundingClientRect().top).toBeGreaterThanOrEqual(head.bottom - 0.5);
     }
+    // banded の見出しのセルは塗らない（帯の角丸の外には、下を通る行が見える）。帯は ::before の面
+    const bandedHeader = frames[2].querySelector('thead th')!;
+    await expect(getComputedStyle(bandedHeader).backgroundColor).toBe('rgba(0, 0, 0, 0)');
   },
 };
 

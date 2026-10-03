@@ -20,8 +20,8 @@ import { useStickyHeadHeight } from './use-sticky-head-height';
 //     見出しの下に影を落とす（原則1: ページの一部でも、スクロールした内容が下を通るようになったら重なり）。
 //     影の濃さは ScrollFrame が書く --cue-top（スクロールした量）に合わせる。枠の上の端の影は見出しに重なるので出さない
 //   見出しの影は、ScrollArea の上の端の影と同じ色・高さ。枠（framed）の角丸は見出しの面の上の角で切れ、影は見出しの下の辺から落ちるので角にかからない
-//   banded の丸い帯は th の ::before に描き、th そのものは地の色の四角にする。貼り付いたとき、帯の角丸の外に下を通る行が透けず、
-//     影は帯の下の辺（四角い th の下）から、ほかの見た目と同じ形で落ちる
+//   banded の丸い帯は th の ::before に描く。th そのものは塗らないので、貼り付いたとき帯の角丸の外には下を通る行が見える（帯の面は行を隠す）。
+//     影は th の下の辺（帯の下の辺）から、ほかの見た目と同じ形で落ちる
 //   縦のつまみの溝は、貼り付いた見出しの行の下から始める（見出しに重ねない）。見出しの行の高さは use-sticky-head-height が測る
 //   セルの縦の寄せの既定は middle（選択の箱や行の操作と、文字の行をそろえる）
 //   選んだ行の面は color（選択の箱と同じ色）の淡い面。色を持たないときは Select の選んだ項目と同じグレー（原則6）
@@ -42,7 +42,7 @@ const dataTable = tv({
       // 右寄せの列（数字）は折り返さない。「3,200 円」が 2 行に割れると、桁がそろわない
       '[&_td[align=right]]:whitespace-nowrap',
       // 見出しの行は、縦にスクロールする枠の上に貼り付く（枠の高さに上限がないときは動かない）
-      //   下を通る本文を隠すため、見出しには面を置く（lines は地と同じ白、framed・banded はグレーの面）
+      //   下を通る本文を隠すため、見出しには面を置く（lines は地と同じ白、framed・banded はグレーの面。banded の帯の角の外は塗らない）
       '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
       // 貼り付いた見出しの下の影。スクロールした量（--cue-top）に合わせて濃くする
       "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
@@ -70,7 +70,7 @@ const dataTable = tv({
       framed: { frame: tableStyles.framedFrame, table: tableStyles.framed },
       banded: {
         table: [
-          '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3 [&_thead_th]:bg-bg',
+          '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3',
           "[&_thead_th]:before:pointer-events-none [&_thead_th]:before:absolute [&_thead_th]:before:inset-0 [&_thead_th]:before:-z-1 [&_thead_th]:before:bg-field [&_thead_th]:before:content-['']",
           '[&_thead_th:first-child]:before:rounded-s-control [&_thead_th:last-child]:before:rounded-e-control',
         ],
