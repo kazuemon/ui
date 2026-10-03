@@ -19,6 +19,7 @@ const text = tv({
     size: textStyles.size,
     variant: { ...textStyles.variant, ...textStyles.fieldVariant },
     weight: textStyles.weight,
+    color: textStyles.color,
     clamp: { true: 'line-clamp-(--text-lines)', false: '' },
     as: {
       p: '',
@@ -40,8 +41,10 @@ export type TextSize = NonNullable<VariantProps<typeof text>['size']>;
 export type TextVariant = NonNullable<VariantProps<typeof text>['variant']>;
 /** 文字の太さ */
 export type TextWeight = NonNullable<VariantProps<typeof text>['weight']>;
+/** 意味の色 */
+export type TextColor = NonNullable<VariantProps<typeof text>['color']>;
 
-export interface TextProps extends ComponentProps<'p'> {
+export interface TextProps extends Omit<ComponentProps<'p'>, 'color'> {
   /**
    * 描く要素。段落は p、文の中の一部は span、ほかの部品を含むときは div にします。
    * strong・em・del は、文の中の強調・強勢・打ち消しです（記事の本文と同じ飾りが付きます）
@@ -66,6 +69,11 @@ export interface TextProps extends ComponentProps<'p'> {
    */
   weight?: TextWeight;
   /**
+   * 意味の色。期日を過ぎた・保存した・注意が要るといった文字を、状態の色にします。色だけを変え、形（アイコン）は添えず、読み上げも変えません。
+   * 色は白地の状態の色で、warning はオリーブです。書かないときは variant の濃さのままです。色を付けた文字は、variant の濃さより色が勝ちます
+   */
+  color?: TextColor;
+  /**
    * 最大の行数。超えた分は最後に三点を付けて切ります（LinkCard の titleLines と同じ）。書かないと切りません
    */
   lines?: number;
@@ -83,6 +91,7 @@ export function Text({
   size,
   variant,
   weight,
+  color,
   lines,
   className,
   style,
@@ -92,7 +101,8 @@ export function Text({
   const Tag = as as 'p';
   return (
     <Tag
-      className={text({ size, variant, weight, as, clamp: lines != null, className })}
+      className={text({ size, variant, weight, color, as, clamp: lines != null, className })}
+      data-color={color}
       style={
         lines != null
           ? ({ '--text-lines': String(lines), ...style } as CSSProperties &

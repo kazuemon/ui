@@ -30,6 +30,7 @@ export function NoticeIcon({
   return (
     <span
       aria-hidden="true"
+      data-slot="notice-icon"
       className="mt-(--notice-icon-offset) flex shrink-0 text-(color:--notice-icon-color) [&_svg]:size-(--spacing-icon)"
     >
       {shown}

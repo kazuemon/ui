@@ -4,6 +4,7 @@ import { expect } from 'storybook/test';
 
 import { CaretRightIcon, InfoIcon } from '../../internal/icons';
 import { Link } from './Link';
+import { Text } from '../text/Text';
 import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
@@ -29,7 +30,8 @@ const meta = {
           '',
           '- `variant="text"`（既定）は、文章の中に置く文字のリンクです。大きさは周りの文字のままです。',
           '- `outline` は枠線の pill です。「More」や SNS のアカウント一覧のように、並べて置くリンクに使います。寸法は枠線のボタンと同じです。',
-          '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
+          '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。`inherit` は周りの文字の色をそのまま使います。',
+          '- 文字のリンクの下線は `underline` で選びます。`always`（既定）はいつも淡い下線、`hover` は載せたときだけ下線を引きます。文章の中のリンクは `always` のままにします。',
           '- キーボードでは、リンクのまま Enter で移ります。Space では移りません（ボタンの見た目のときも同じです）。',
           '- `target="_blank"` のときは ↗ を付け、読み上げに「新しいタブで開きます」を足し、`rel="noopener noreferrer"` を付けます。↗ を出すかは `newTabIcon` で上書きできます。',
           '- Next.js・TanStack Router の `Link` は `render` に渡します。`href` がなく `to` だけのリンクも、そのままリンクとして扱います。',
@@ -624,5 +626,33 @@ export const NewTabIcon: Story = {
       await expect(link.querySelectorAll('svg')).toHaveLength(0);
       await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     }
+  },
+};
+
+export const UnderlineAndInherit: Story = {
+  name: '下線の出し方と周りの色',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-3">
+      <Text>
+        <Link href="#always">いつも下線</Link>・
+        <Link href="#hover" underline="hover">
+          載せたときだけ下線
+        </Link>
+      </Text>
+      <Text color="danger">
+        期日を過ぎています。
+        <Link href="#inherit" color="inherit">
+          延長を申し込む
+        </Link>
+      </Text>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const hoverOnly = canvas.getByRole('link', { name: '載せたときだけ下線' });
+    await expect(getComputedStyle(hoverOnly).textDecorationColor).toBe('rgba(0, 0, 0, 0)');
+    const inherit = canvas.getByRole('link', { name: '延長を申し込む' });
+    const around = canvas.getByText(/期日を過ぎています/);
+    await expect(getComputedStyle(inherit).color).toBe(getComputedStyle(around).color);
   },
 };

@@ -33,7 +33,7 @@ const meta = {
           '- 画像の枠は幅いっぱいに取ります。`ratio` も `width`・`height` もないときは、読み込み中と失敗したときは 16:9 の枠を取り、読み込めたら画像本来の比の高さに変わります（このとき下の内容が動きます。動かしたくないときは `width`・`height` か `ratio` を書きます）。角はカードと同じ角です。',
           '- 読み込むまでは読み込み中の面を置き、読み込みに失敗したときは「読み込みに失敗しました」を出します（`errorText` で変えられます）。画像の props は Image と同じです。',
           '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。写真のように縁がはっきりした画像では `hideOutline` で外せます。',
-          '- `caption` は画像の下の中央に小さく出します。`alt` と同じ文にはしません。',
+          '- `caption` は画像の下に小さく出します。`alt` と同じ文にはしません。寄せは中央が既定で、`captionAlign` で左（`start`）・右（`end`）にできます。',
         ].join('\n'),
       },
     },
@@ -42,6 +42,7 @@ const meta = {
   argTypes: {
     src: { control: false },
     caption: { control: 'text' },
+    captionAlign: { control: 'inline-radio', options: ['center', 'start', 'end'] },
     hideOutline: { control: 'boolean' },
   },
   decorators: [
@@ -152,5 +153,30 @@ export const Accessibility: Story = {
   play: async ({ canvas }) => {
     const image = canvas.getByRole('img', { name: '空と山の絵' });
     await expect(image.closest('figure')).toContainElement(canvas.getByText('図 1. 空と山'));
+  },
+};
+
+export const CaptionAlign: Story = {
+  name: 'キャプションの寄せ',
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <div className="flex max-w-md flex-col gap-6">
+      {(['center', 'start', 'end'] as const).map((align) => (
+        <Figure
+          key={align}
+          {...args}
+          captionAlign={align}
+          caption={`キャプションの寄せ（${align}）`}
+        />
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const captions = [...canvasElement.querySelectorAll('figcaption')];
+    await expect(captions.map((caption) => getComputedStyle(caption).textAlign)).toEqual([
+      'center',
+      'start',
+      'end',
+    ]);
   },
 };

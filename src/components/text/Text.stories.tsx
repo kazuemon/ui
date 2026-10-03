@@ -20,6 +20,7 @@ const meta = {
           '- `size` は `md`（既定、本文）・`sm`（日付や注記）・`xs`（キャプションと同じ大きさ）と、見出しと同じ段の `lg`〜`5xl` です。Heading の `size` と同じ名前です。',
           '- `lg`〜`5xl` は、料金の「¥980」のように、見出しではない大きな文字に使います。太さは `weight` で選びます。',
           '- `variant` は見た目です。`body`（既定）は本文、`muted` は補足、`subtle` は目立たせない文、`label` は欄のラベルと同じ大きさ・太さ・色、`caption` は欄のキャプションと同じ大きさ・色です。',
+          '- `color` は意味の色です。`info`・`success`・`warning`・`danger` から選び、文字を状態の色にします。期日を過ぎた、保存した、のような短い文に使います。色だけを変え、形（アイコン）は添えず、読み上げも変えません。色のほかに形や読み上げで状態を伝えたいときは、Notice などのお知らせの部品を使います。',
           '- `weight` は太さです。`normal`・`medium`・`bold` から選びます。書かないと、`variant` と要素の既定の太さのままです。',
           '- `lines` は最大の行数です。超えた分は最後に三点を付けて切ります（`LinkCard` の `titleLines` と同じ）。書かないと切りません。',
           '- `as` で要素を選びます。段落は `p`（既定）、文の中の一部は `span`、ほかの部品を含むときは `div` です。強調は `strong`、強勢は `em`、打ち消しは `del` で、記事の本文と同じ飾りが付きます。',
@@ -162,6 +163,30 @@ export const Accessibility: Story = {
     await expect(getComputedStyle(del).textDecorationLine).toBe('line-through');
     await expect(getComputedStyle(canvas.getByText('強調')).fontWeight).toBe('700');
     await expect(getComputedStyle(canvas.getByText('強勢')).fontStyle).toBe('italic');
+  },
+};
+
+export const StatusColors: Story = {
+  name: '意味の色',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-2">
+      <Text color="danger">期日を 2 日過ぎています</Text>
+      <Text color="warning">残りの容量が少なくなっています</Text>
+      <Text color="success">保存しました</Text>
+      <Text color="info" size="sm">
+        次の更新は 10 月 5 日です
+      </Text>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const danger = canvas.getByText('期日を 2 日過ぎています');
+    await expect(danger).toHaveAttribute('data-color', 'danger');
+    // 色だけ。形（アイコン）は添えない
+    await expect(danger.querySelector('svg')).toBeNull();
+    await expect(getComputedStyle(danger).color).not.toBe(
+      getComputedStyle(canvas.getByText('保存しました')).color
+    );
   },
 };
 

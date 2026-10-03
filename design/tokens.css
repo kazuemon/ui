@@ -1240,6 +1240,14 @@
   --collapsible-card-gap: calc(var(--spacing) * 2);
   /* ── END collapsible */
 
+  /* ── Callout の畳める形 — 軸 443（ADR-0410）・446（ADR-0472） ── BEGIN callout */
+  /* 畳める囲み（collapsible）の題の行。src/components/callout/Callout.tsx
+     row-fill-hover-mix: hover の塗り（囲みの文字の色を混ぜる割合）
+     row-rule-mix: showDivider の帯の下の線の色（囲みの文字の色を混ぜる割合） */
+  --callout-row-fill-hover-mix: 6%;
+  --callout-row-rule-mix: 16%;
+  /* ── END callout */
+
   /* ── Transition — 軸 92 ── BEGIN transition */
   /* 利用者の中身に付ける出入りの動き。src/components/transition
      長さと緩急は出るとき（enter）と消えるとき（exit）で分ける。既定は浮かぶ面と同じ（--popup-*）

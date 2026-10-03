@@ -28,6 +28,8 @@ const meta = {
           '- `count` を渡すと数、渡さないと点になります。`max` を超える数は「99+」のように出します。',
           '- 点は色だけで意味を伝えないよう、隣に文字を置くか、`accessibleName` で読み上げの文を付けます。',
           '- `children` で相手を包むと、その右上の角に重ねます。重ねるときは Badge に `aria-hidden` を付け、相手の名前に数を含めます。',
+          '- 重ねる角は `placement` です。`top-end`（既定）は右上、`bottom-end` は右下です。アバターの在席の点のように、右下に置く慣習があるものに使います。',
+          '- 数が 0 のときは出しません。件数をいつも見せたい場所では `showZero` で「0」を出します。',
           '- 重ねる相手が Avatar のような丸い形のときは `overlap="circular"` にします。Badge の中心を相手の円周上（右上 45°）に置き、円からはみ出しません。既定（`square`）は四角い相手向けです。',
           '- 文字の横やボタンの中に置くときは、`accessibleName` で数の意味を読み上げます。',
         ].join('\n'),
@@ -264,6 +266,42 @@ export const OverlapShape: Story = {
       </Specimen>
     </Row>
   ),
+};
+
+export const PlacementAndZero: Story = {
+  tags: ['visual'],
+  name: '右下に重ねる・0 を出す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Row>
+      <Specimen label="bottom-end・square">
+        <div>
+          <Badge color="success" placement="bottom-end" aria-hidden="true">
+            <Avatar />
+          </Badge>
+        </div>
+      </Specimen>
+      <Specimen label="bottom-end・circular">
+        <div>
+          <Badge color="success" placement="bottom-end" overlap="circular" aria-hidden="true">
+            <Avatar />
+          </Badge>
+        </div>
+      </Specimen>
+      <Specimen label="0（showZero）">
+        <div>
+          <Badge count={0} showZero />
+        </div>
+      </Specimen>
+      <Specimen label="0（既定）">
+        <Badge count={0} data-testid="zero-hidden" />
+      </Specimen>
+    </Row>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByText('0')).toBeVisible();
+    await expect(canvas.queryByTestId('zero-hidden')).toBeNull();
+  },
 };
 
 // Show code: accessibleName の関数が () => {} に省かれるので、写して使えるコードを source.code に手で書く
