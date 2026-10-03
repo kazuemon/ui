@@ -481,12 +481,17 @@ export {
   TableCell,
   type TableCellAlign,
   type TableCellProps,
+  TableFoot,
+  type TableFootProps,
+  type TableFootVariant,
   TableHead,
   TableHeader,
   type TableHeaderProps,
   type TableProps,
   TableRow,
   type TableRowProps,
+  type TableSize,
+  type TableTextSize,
   type TableVariant,
   type TableVerticalAlign,
 } from './components/table/Table';
@@ -494,6 +499,7 @@ export {
   DataTable,
   type DataTableProps,
   type DataTableSortIndicator,
+  type DataTableStatusIndicator,
 } from './components/data-table/DataTable';
 export { DataTableEmpty, type DataTableEmptyProps } from './components/data-table/DataTableEmpty';
 export {
@@ -505,7 +511,22 @@ export {
   DataTableLoading,
   type DataTableLoadingProps,
 } from './components/data-table/DataTableLoading';
-export { DataTableRow, type DataTableRowProps } from './components/data-table/DataTableRow';
+export {
+  DataTableExpandCell,
+  type DataTableExpandCellProps,
+  DataTableExpandRow,
+  type DataTableExpandRowProps,
+  type DataTableExpandRowVariant,
+} from './components/data-table/DataTableExpand';
+export {
+  DataTableRow,
+  type DataTableRowProps,
+  type DataTableRowStatus,
+} from './components/data-table/DataTableRow';
+export {
+  DataTableRowLink,
+  type DataTableRowLinkProps,
+} from './components/data-table/DataTableRowLink';
 export {
   DataTableSelectCell,
   type DataTableSelectCellProps,
