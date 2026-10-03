@@ -12,7 +12,10 @@ import { tv } from '../../internal/tv';
 export type LoadingIndicator = 'spinner' | 'bar';
 
 interface IndicatorProps {
-  /** 色と置き方。回る円の大きさの既定は --spacing-icon */
+  /**
+   * 色と置き方。いちばん外の要素に付きます（Spinner は、accessibleName がなければ円の svg、あれば読み上げの箱の span）。
+   * 回る円の大きさは Spinner の size で選びます
+   */
   className?: string;
 }
 

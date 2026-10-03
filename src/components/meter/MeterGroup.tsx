@@ -61,7 +61,8 @@ export interface MeterGroupProps extends Omit<ComponentProps<'div'>, 'color' | '
   /** 内訳。左から順に塗ります */
   items: MeterGroupItem[];
   /**
-   * 範囲の上端。内訳の合計がこれより小さいと、残りは地のままです
+   * 範囲の上端。内訳の合計がこれより小さいと、残りは地のままです。
+   * 内訳の合計は max 以下で渡します。超えたときは、合計の数字を max で止めます（超えた分の見せ方は持ちません）
    * @default 100
    */
   max?: number;

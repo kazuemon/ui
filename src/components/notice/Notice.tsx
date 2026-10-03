@@ -70,7 +70,8 @@ export interface NoticeProps extends Omit<
    */
   actionsPlacement?: 'bottom' | 'end';
   /**
-   * actionsPlacement="end" のとき、文の列が狭くなったら操作を本文の下に回すか。bottom で回し、end で回さず右に置き続けます
+   * actionsPlacement="end" のとき、文の列が狭くなったら操作を本文の下に回すか。bottom で回し、end で回さず右に置き続けます。
+   * 回すかは描いたあとに幅を測って決めるので、サーバーで描いたときは、狭い画面で表示した直後に一度だけ操作が下へ移ります
    * @default 'bottom'
    */
   narrowActionsPlacement?: 'bottom' | 'end';
