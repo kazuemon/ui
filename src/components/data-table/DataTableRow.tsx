@@ -16,6 +16,7 @@ import { DataTableContext } from './data-table-context';
 //   行そのものに行き先は持たせない（リンクに見えない行が暗黙に移らないように）
 //   キーボードと読み上げは DataTableRowLink（本物の a）で移る。行そのものはフォーカスに止まらない
 //   押したときは、載せたときのグレーに本文の色を少し混ぜる（選んだ行に載せたときと同じ混ぜ方）
+//   行の中のボタン・箱・リンク（interactive）を押している間は、行を押したことにならないので濃くしない
 //   行の中のボタン・箱・リンクを押したときと、文字を選んだときは移らない
 //   中ボタン（ホイール）で押したときは、行のリンクの行き先を新しいタブで開く（リンクの文字を中ボタンで押したときと同じ）
 const row = tv({
@@ -25,7 +26,8 @@ const row = tv({
     'data-[status=muted]:text-fg-subtle',
     // リンクのある行
     'has-[[data-slot=data-table-row-link]]:cursor-pointer',
-    'has-[[data-slot=data-table-row-link]]:active:[--data-table-row-bg:color-mix(in_oklab,var(--data-table-row-hover),var(--color-fg)_var(--data-table-row-selected-hover-mix))]',
+    // 行の中の操作を押している間は濃くしない。:is(…) は下の interactive と同じ並び（行のリンクの a は除かない）
+    'has-[[data-slot=data-table-row-link]]:active:not-has-[:is(a:not([data-slot=data-table-row-link]),button,input,select,textarea,label,summary,[contenteditable],[role=checkbox],[role=button],[role=switch],[role=radio],[role=combobox],[role=menuitem],[role=option]):active]:[--data-table-row-bg:color-mix(in_oklab,var(--data-table-row-hover),var(--color-fg)_var(--data-table-row-selected-hover-mix))]',
     'has-[[data-slot=data-table-row-link]:focus-visible]:[--data-table-row-bg:var(--data-table-row-hover)]',
     // 選んだ行
     'data-selected:[--data-table-row-bg:var(--data-table-row-selected)]',
@@ -62,7 +64,7 @@ const row = tv({
 /** 行の状態。muted は済んだ・取り消した行、warning・danger は気をつける行 */
 export type DataTableRowStatus = 'muted' | 'warning' | 'danger';
 
-// 押しても行を押したことにしないもの（行の中の操作）
+// 押しても行を押したことにしないもの（行の中の操作）。上の row の押下の除外と同じ並び
 const interactive =
   'a, button, input, select, textarea, label, summary, [contenteditable], [role="checkbox"], [role="button"], [role="switch"], [role="radio"], [role="combobox"], [role="menuitem"], [role="option"]';
 

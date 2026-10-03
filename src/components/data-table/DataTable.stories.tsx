@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react';
+import { DotsThreeVerticalIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { Fragment, type MouseEvent, useState } from 'react';
+import { addons } from 'storybook/preview-api';
 import { expect, fn, spyOn, userEvent, within } from 'storybook/test';
 
 import { DataTable, type DataTableProps } from './DataTable';
@@ -15,7 +16,10 @@ import { DataTableLoading } from './DataTableLoading';
 import { DataTableRow, type DataTableRowStatus } from './DataTableRow';
 import { DataTableRowLink } from './DataTableRowLink';
 import { DataTableSelectCell, DataTableSelectHeader } from './DataTableSelect';
+import { Button } from '../button/Button';
 import { Icon } from '../icon/Icon';
+import { Menu } from '../menu/Menu';
+import { MenuItem } from '../menu/MenuItem';
 import { StatusPanel } from '../status-panel/StatusPanel';
 import { TableBody, TableCell, TableHead, TableRow } from '../table/Table';
 import { Tag } from '../tag/Tag';
@@ -639,9 +643,12 @@ const linkTarget = '[data-slot="data-table-row"]:nth-child(2)';
 function LinkTable({
   color,
   onGo,
+  withMenu,
 }: {
   color?: 'neutral' | 'primary';
   onGo?: (href: string) => void;
+  /** 行の端に、メニューを開く ︙ のボタンを置く */
+  withMenu?: boolean;
 }) {
   // 見本なので移らず、押した行き先を知らせる
   const go = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -655,6 +662,11 @@ function LinkTable({
           <DataTableHeader>注文番号</DataTableHeader>
           <DataTableHeader>お店</DataTableHeader>
           <DataTableHeader align="end">金額</DataTableHeader>
+          {withMenu && (
+            <DataTableHeader>
+              <span className="sr-only">操作</span>
+            </DataTableHeader>
+          )}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -667,12 +679,28 @@ function LinkTable({
             </TableCell>
             <TableCell>{order.shop}</TableCell>
             <TableCell align="end">{yen(order.amount)}</TableCell>
+            {withMenu && (
+              <TableCell align="end">
+                <Menu
+                  title={`${order.id} の操作`}
+                  trigger={
+                    <Button iconOnly variant="outline" aria-label={`${order.id} の操作`}>
+                      <DotsThreeVerticalIcon />
+                    </Button>
+                  }
+                >
+                  <MenuItem>複製する</MenuItem>
+                  <MenuItem status="danger">取り消す</MenuItem>
+                </Menu>
+              </TableCell>
+            )}
           </DataTableRow>
         ))}
         <DataTableRow>
           <TableCell>{orders[3].id}</TableCell>
           <TableCell>{orders[3].shop}（リンクのない行）</TableCell>
           <TableCell align="end">{yen(orders[3].amount)}</TableCell>
+          {withMenu && <TableCell />}
         </DataTableRow>
       </TableBody>
     </DataTable>
@@ -770,6 +798,64 @@ export const RowLinkBehavior: Story = {
     } finally {
       open.mockRestore();
     }
+  },
+};
+
+const menuButton = `${linkTarget} button`;
+
+export const RowLinkWithMenu: Story = {
+  tags: ['visual'],
+  name: '行のリンクと行の中のメニュー',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行のリンクのある行に、メニューを開くボタンなどの操作を置けます。行の中の操作を押しても行のリンクでは移らず、押している間も行は濃くなりません。',
+      },
+    },
+    pseudo: {
+      rootSelector: 'body',
+      hover: [
+        `[data-preview="active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${linkTarget}`,
+      ],
+      active: [
+        `[data-preview="active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${menuButton}`,
+      ],
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="30rem">
+      <Specimen label="通常">
+        <LinkTable withMenu />
+      </Specimen>
+      <Specimen label="行を押下（2 行目）">
+        <div data-preview="active">
+          <LinkTable withMenu />
+        </div>
+      </Specimen>
+      <Specimen label="︙ を押下（2 行目）">
+        <div data-preview="button-active">
+          <LinkTable withMenu />
+        </div>
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    // 状態を固定するアドオンが :active を書き換えるのは「描き終わった」の合図のあと。Vitest では出ないので出す
+    addons.getChannel().emit('storyRendered');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const at = (state: string) =>
+      canvasElement.querySelector<HTMLElement>(`[data-preview="${state}"] ${linkTarget}`)!;
+    const bg = (element: Element) => getComputedStyle(element).backgroundColor;
+    // 行を押すと濃くなる。︙ を押している間は、載せたときの塗りのまま
+    const pressed = bg(at('active'));
+    const buttonPressed = bg(at('button-active'));
+    await expect(buttonPressed).not.toBe(pressed);
+    await expect(buttonPressed).not.toBe(bg(canvasElement.querySelector(linkTarget)!));
   },
 };
 
