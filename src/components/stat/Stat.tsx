@@ -204,9 +204,10 @@ export function Stat({
   return (
     <dl
       data-slot="stat"
-      aria-busy={loading || undefined}
       className={styles.root({ className })}
       {...props}
+      // 読み込み中は、使う側が aria-busy を渡していても true にする
+      aria-busy={loading || props['aria-busy']}
     >
       <dt className={styles.label()}>{label}</dt>
       <dd className={styles.body()}>
