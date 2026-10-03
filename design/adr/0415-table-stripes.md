@@ -10,7 +10,7 @@ Table に足した縞（showStripes）で、縞のときに行のあいだの線
 
 ## 候補
 
-比較は、決めた時点のコミット `0fc325e` の比較のストーリー（`design/stories/axis-423-table-stripes.stories.tsx`）です。列は「lines（既定）・framed・banded」です。
+比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-423-table-stripes.stories.tsx`）です。列は「lines（既定）・framed・banded」です。
 
 | 案                | 見た目                                             |
 | ----------------- | -------------------------------------------------- |
@@ -49,4 +49,4 @@ Table に足した縞（showStripes）で、縞のときに行のあいだの線
 
 ![Table の縞（現行版・A・B を、lines・framed・banded の 3 列で並べたもの。A・B に採用の印）](./assets/0415-table-stripes.png)
 
-決めた時点のコミットは `0fc325e`（比較）・`781f2fe`（実装）です。`git checkout 0fc325e && pnpm storybook` で、比較のストーリー（`Design Review/423 表の縞`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/423 表の縞`）を決めたときの部品のまま開けます。

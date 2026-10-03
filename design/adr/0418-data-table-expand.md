@@ -10,7 +10,7 @@ DataTableExpandRow（行を開いたときに下に出る補足の行）と、�
 
 ## 候補
 
-比較は、決めた時点のコミット `0fc325e` の比較のストーリー（`design/stories/axis-426-data-table-expand.stories.tsx`）です。列は「開いている・親の行に hover・ボタンにフォーカス・framed」です。
+比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-426-data-table-expand.stories.tsx`）です。列は「開いている・親の行に hover・ボタンにフォーカス・framed」です。
 
 | 案                | 見た目                                           |
 | ----------------- | ------------------------------------------------ |
@@ -50,4 +50,4 @@ A（開いた行だけに面）と現行版（線あり・字下げなし）は�
 
 ![DataTable の開いた行（現行版・A・B・C を、開いている・hover・フォーカス・framed の 4 列で並べたもの。B・C に採用の印）](./assets/0418-data-table-expand.png)
 
-決めた時点のコミットは `0fc325e`（比較）・`781f2fe`（実装）です。`git checkout 0fc325e && pnpm storybook` で、比較のストーリー（`Design Review/426 データの表の開いた行`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/426 データの表の開いた行`）を決めたときの部品のまま開けます。

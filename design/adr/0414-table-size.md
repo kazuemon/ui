@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `0fc325e` の比較のストーリー（`design/stories/axis-422-table-size.stories.tsx`）です。列は「md（基準）・sm の lines・sm の framed」です。
+比較は、決めた時点のコミット `e248992` の比較のストーリー（`design/stories/axis-422-table-size.stories.tsx`）です。列は「md（基準）・sm の lines・sm の framed」です。
 
 | 案        | 見た目                                      |
 | --------- | ------------------------------------------- |
@@ -50,4 +50,4 @@ B（文字も一段小さく）と C（上下左右を少し詰める）は、�
 
 ![Table の詰めた余白（現行版・A・B・C を、md・sm の lines・sm の framed の 3 列で並べたもの。A に採用の印）](./assets/0414-table-size.png)
 
-決めた時点のコミットは `0fc325e`（比較）・`781f2fe`（実装）です。`git checkout 0fc325e && pnpm storybook` で、比較のストーリー（`Design Review/422 表の詰めた余白`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `e248992`（比較）・`88d46a8`（実装）です。`git checkout e248992 && pnpm storybook` で、比較のストーリー（`Design Review/422 表の詰めた余白`）を決めたときの部品のまま開けます。
