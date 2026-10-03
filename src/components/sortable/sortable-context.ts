@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext } from 'react';
+import { createContext, type ReactNode } from 'react';
 
 import type { SortableDragSourceVariant, SortableGrabArea, SortableVariant } from './Sortable';
 
@@ -31,6 +31,8 @@ export interface ListContextValue {
   labels: MoveLabels;
   /** いまの並び（移動の操作を押せるかを決める） */
   order: readonly string[];
+  /** ︙ のメニューに、既定の移動の項目（上へ・下へ・先頭へ・末尾へ）を出さない */
+  hideMoveItems: boolean;
   /** 項目を to（0 から数える）へ動かし、onValueChange で知らせて、何番目に移ったかを読み上げる */
   moveTo: (item: string, to: number) => void;
   /** 動かしたのがこの項目なら true を返し、覚えていた項目を忘れる。描き直したあと、つまみにフォーカスを戻すのに使う */
@@ -45,6 +47,10 @@ export interface ItemContextValue {
   locked: boolean;
   /** 項目の読み上げの名前。つまみと移動のボタンの名前に入れる */
   name: string | undefined;
+  /** ︙ のメニューに足す項目（SortableItem の menu）。既定の移動の項目のあとに並べる */
+  menu: ReactNode;
+  /** 表の行（tr）として描く。つまみと移動の操作は、置かれたセルの中に並ぶ */
+  row: boolean;
 }
 
 export const ItemContext = createContext<ItemContextValue | null>(null);

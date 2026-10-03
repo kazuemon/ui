@@ -242,6 +242,8 @@ const meta = {
           '',
           '- 既定では、エラーのある最初の欄へフォーカスを移し、入力した文字を選びます。その欄の名前と説明（キャプション → エラー）が読まれます。',
           '- `showErrorSummary` を付けると、フォームの上にエラーの一覧（題と、各欄へのリンク）を出し、一覧へフォーカスを移します。長いフォームに向きます。欄を直すと一覧から消え、なくなると一覧を閉じます。',
+          '- どの欄にも結び付かないエラー（「通信できませんでした」などのサーバーのエラー）は `formErrorText` に渡します。フォームの上に危険のお知らせとして出し、送信したあとはそこへフォーカスを移します。エラーの一覧と両方あるときは、一覧の上に別のお知らせとして並べます。',
+          '- 「このメールアドレスはすでに登録されています」のように、欄の値が原因のサーバーのエラーは、その欄のエラー（`errors`）にも、フォームのエラー（`formErrorText`）にもできます。直す場所が欄にあるなら欄のエラーに、サインインへ案内するなどフォームの外の行動を促すならフォームのエラーにします。',
           '- 警告は送信を止めないので、フォーカスの移る先にも一覧にも入りません。',
           '- 送信で出た行は読み上げで知らせません（フォーカスの移った先で読むため）。欄を離れたときなど、あとから出た行は知らせます。',
           '- `submitting` を `true` から `false` に戻した描画でエラーの行があれば、送信したときと同じくフォーカスを移します（サーバーから返ってきたエラー）。送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます。',
@@ -591,6 +593,209 @@ export const ServerErrorMoved: Story = {
       'aria-live',
       'polite'
     );
+  },
+};
+
+// 送ると 1 秒後に、どの欄にも結び付かないサーバーのエラーが返るフォーム
+function FormErrorTextForm(props: Omit<FormProps, 'onSubmit' | 'children'>) {
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string>();
+  return (
+    <Form
+      formErrorText={formError}
+      {...props}
+      submitting={submitting}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setFormError(undefined);
+        setSubmitting(true);
+        setTimeout(() => {
+          // エラーを渡すのと submitting を false にするのは、同じ描画で行う
+          setFormError('通信できませんでした。時間をおいて、もう一度送ってください。');
+          setSubmitting(false);
+        }, 1000);
+      }}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      <TextField name="email" label="メールアドレス" defaultValue="kazuemon@example.com" />
+      <TextField name="displayName" label="表示名" defaultValue="かずえもん" autoComplete="off" />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  );
+}
+
+export const FormErrorText: Story = {
+  name: 'どの欄にも結び付かないエラー',
+  parameters: {
+    controls: { exclude: ['submitting'] },
+    docs: {
+      description: {
+        story:
+          '送ると 1 秒ほど送っていて、サーバーのエラー（通信できなかった）が返ります。`formErrorText` に渡すと、フォームの上に危険のお知らせとして出し、そこへフォーカスを移します。',
+      },
+    },
+  },
+  render: (args) => <FormErrorTextForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const text = await canvas.findByText(
+      '通信できませんでした。時間をおいて、もう一度送ってください。',
+      undefined,
+      { timeout: 3000 }
+    );
+    const panel = text.closest('[data-slot="form-error-summary"]');
+    await waitFor(() => expect(panel).toHaveFocus());
+    await expect(panel).toHaveAccessibleName(
+      '通信できませんでした。時間をおいて、もう一度送ってください。'
+    );
+    // フォーカスを移したので、割り込みでは読ませない（二重に読ませない）
+    await expect(canvas.queryByRole('alert')).toBeNull();
+  },
+};
+
+export const FormErrorTextMoved: Story = {
+  name: 'どの欄にも結び付かないエラー: 送っているあいだに別の欄へ移ったとき',
+  parameters: {
+    controls: { exclude: ['submitting'] },
+    docs: {
+      description: {
+        story:
+          '送っているあいだに別の欄へ移っていたときは、フォーカスを奪わず、お知らせの文を割り込みで読み上げます。',
+      },
+    },
+  },
+  render: (args) => <FormErrorTextForm key={String(args.showErrorSummary)} {...args} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    const other = canvas.getByLabelText('表示名');
+    await userEvent.tab({ shift: true });
+    await expect(other).toHaveFocus();
+    const alert = await canvas.findByRole('alert', undefined, { timeout: 3000 });
+    await expect(alert).toHaveTextContent(
+      '通信できませんでした。時間をおいて、もう一度送ってください。'
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await expect(other).toHaveFocus();
+  },
+};
+
+// 送り直しても前のエラーを消さないアプリ。送っているあいだは、前のエラーのお知らせへフォーカスを移さない
+function FormErrorTextKeptForm({ withSummary = false }: { withSummary?: boolean }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string>();
+  const [count, setCount] = useState(0);
+  return (
+    <Form
+      formErrorText={formError}
+      showErrorSummary={withSummary}
+      submitting={submitting}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        setTimeout(() => {
+          setFormError(`通信できませんでした（${count + 1} 回目）`);
+          setCount(count + 1);
+          setSubmitting(false);
+        }, 300);
+      }}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      <TextField name="email" label="メールアドレス" defaultValue="kazuemon@example.com" />
+      {withSummary && (
+        <TextField
+          name="displayName"
+          label="表示名"
+          autoComplete="off"
+          errorText={count > 0 ? '表示名を入力してください' : undefined}
+        />
+      )}
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  );
+}
+
+export const FormErrorTextResubmit: Story = {
+  name: 'どの欄にも結び付かないエラー: 送り直す',
+  parameters: { controls: { disable: true } },
+  render: () => <FormErrorTextKeptForm />,
+  play: async ({ canvas }) => {
+    const button = canvas.getByRole('button', { name: '登録する' });
+    await userEvent.click(button);
+    const first = await canvas.findByText('通信できませんでした（1 回目）', undefined, {
+      timeout: 3000,
+    });
+    const panel = first.closest('[data-slot="form-error-summary"]');
+    await waitFor(() => expect(panel).toHaveFocus());
+    // 送り直す: 送っているあいだは、前のエラーへフォーカスを移さない
+    await userEvent.click(button);
+    await expect(panel).not.toHaveFocus();
+    await canvas.findByText('通信できませんでした（2 回目）', undefined, { timeout: 3000 });
+    await waitFor(() =>
+      expect(
+        canvas
+          .getByText('通信できませんでした（2 回目）')
+          .closest('[data-slot="form-error-summary"]')
+      ).toHaveFocus()
+    );
+  },
+};
+
+// 欄のエラーの一覧も残したまま送り直す: 送っているあいだは、一覧を含むお知らせへフォーカスを移さない
+export const FormErrorTextResubmitWithSummary: Story = {
+  name: 'どの欄にも結び付かないエラー: 一覧を残したまま送り直す',
+  parameters: { controls: { disable: true } },
+  render: () => <FormErrorTextKeptForm withSummary />,
+  play: async ({ canvas }) => {
+    const button = canvas.getByRole('button', { name: '登録する' });
+    await userEvent.click(button);
+    const first = await canvas.findByText('通信できませんでした（1 回目）', undefined, {
+      timeout: 3000,
+    });
+    const panel = first.closest('[data-slot="form-error-summary"]');
+    await waitFor(() => expect(panel).toHaveFocus());
+    await canvas.findByRole('link', { name: /表示名を入力してください/ });
+    await userEvent.click(button);
+    await expect(panel).not.toHaveFocus();
+    await canvas.findByText('通信できませんでした（2 回目）', undefined, { timeout: 3000 });
+    await waitFor(() =>
+      expect(
+        canvas
+          .getByText('通信できませんでした（2 回目）')
+          .closest('[data-slot="form-error-summary"]')
+      ).toHaveFocus()
+    );
+  },
+};
+
+// 一覧と両方あるとき: どの欄にも結び付かないエラーを、一覧の上に別のお知らせとして並べる
+export const FormErrorTextWithSummary: Story = {
+  name: 'どの欄にも結び付かないエラーと、エラーの一覧',
+  tags: ['visual'],
+  args: { showErrorSummary: true },
+  render: (args) => (
+    <Form
+      {...args}
+      formErrorText="通信できませんでした。時間をおいて、もう一度送ってください。"
+      errors={{ email: 'メールアドレスを入力してください' }}
+      onSubmit={(event) => event.preventDefault()}
+      className="flex max-w-sm flex-col gap-5"
+    >
+      <TextField name="email" label="メールアドレス" />
+      <TextField name="displayName" label="表示名" defaultValue="かずえもん" autoComplete="off" />
+      <Button type="submit" color="primary" className="self-start">
+        登録する
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '登録する' }));
+    await canvas.findByRole('link', { name: /メールアドレスを入力してください/ });
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) active.blur();
   },
 };
 
