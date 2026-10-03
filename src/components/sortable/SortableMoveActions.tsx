@@ -105,27 +105,34 @@ export function useSortableItemActions(): SortableItemActionsValue {
 function MoveMenuItems({
   list,
   item,
+  locked,
   menu,
 }: {
   list: ListContextValue;
   item: string;
+  /** 動かさない項目か。メニューが開けても、移す項目は押せないままにする */
+  locked: boolean;
   menu: ReactNode;
 }) {
-  const { index, total, moveUp, moveDown, moveFirst, moveLast } = itemActions(list, item, false);
+  const { index, total, disabled, moveUp, moveDown, moveFirst, moveLast } = itemActions(
+    list,
+    item,
+    locked
+  );
   const last = total - 1;
   if (list.hideMoveItems) return menu;
   return (
     <>
-      <MenuItem disabled={index <= 0} onClick={moveUp}>
+      <MenuItem disabled={disabled || index <= 0} onClick={moveUp}>
         {list.labels.up}
       </MenuItem>
-      <MenuItem disabled={index >= last} onClick={moveDown}>
+      <MenuItem disabled={disabled || index >= last} onClick={moveDown}>
         {list.labels.down}
       </MenuItem>
-      <MenuItem disabled={index <= 0} onClick={moveFirst}>
+      <MenuItem disabled={disabled || index <= 0} onClick={moveFirst}>
         {list.labels.first}
       </MenuItem>
-      <MenuItem disabled={index >= last} onClick={moveLast}>
+      <MenuItem disabled={disabled || index >= last} onClick={moveLast}>
         {list.labels.last}
       </MenuItem>
       {menu != null && (
@@ -163,7 +170,7 @@ export function ItemMoveActions({ className }: { className?: string }) {
             </button>
           }
         >
-          <MoveMenuItems list={list} item={item.value} menu={item.menu} />
+          <MoveMenuItems list={list} item={item.value} locked={item.locked} menu={item.menu} />
         </Menu>
       </div>
     );
