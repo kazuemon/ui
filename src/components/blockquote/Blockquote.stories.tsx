@@ -38,7 +38,7 @@ const meta = {
           '- `variant` は見た目です。`line`（既定）は左に線、`surface` は入力欄と同じグレーの面です。',
           '- `color` は線とアイコンの色です。`neutral`（既定）はグレー、`brand` は水色、`primary`・`secondary` は利用者が選ぶ色です。`surface` では面の色は変わりません。',
           '- `icon` に引用符などのアイコンを渡すと、1 行目の左に置きます。文と並ぶので、線の細い形を使います。',
-          '- `source` に出典を渡すと、引用の下に小さく出します。URL は `cite` 属性に渡します。',
+          '- `source` に出典を渡すと、引用の下に小さく出します。URL は `cite` 属性に渡します。出典があるときは全体を `figure` で包み、`figureProps` はその `figure` に付きます。`className` は、出典の有無によらず `blockquote` に付きます。',
         ].join('\n'),
       },
     },
@@ -120,10 +120,17 @@ export const Densities: Story = {
 
 export const Accessibility: Story = {
   name: '出典',
-  args: { cite: 'https://github.com/kazuemon/ui' },
+  args: {
+    cite: 'https://github.com/kazuemon/ui',
+    className: 'quote-class',
+    figureProps: { className: 'figure-class' },
+  },
   play: async ({ canvas, canvasElement }) => {
     const blockquote = canvasElement.querySelector('blockquote');
     await expect(blockquote).toHaveAttribute('cite', 'https://github.com/kazuemon/ui');
+    // className は出典があっても blockquote に、figureProps は外側の figure に付く
+    await expect(blockquote).toHaveClass('quote-class');
+    await expect(canvasElement.querySelector('figure')).toHaveClass('figure-class');
     await expect(canvas.getByText('— @kazuemon/ui の README').tagName).toBe('FIGCAPTION');
   },
 };

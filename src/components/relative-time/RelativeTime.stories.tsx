@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { useState } from 'react';
+import { expect, waitFor } from 'storybook/test';
 
 import { RelativeTime } from './RelativeTime';
 import { Text } from '../text/Text';
@@ -22,7 +23,9 @@ const meta = {
           '- 今の時刻はブラウザで読み、1 分ごとに書き直します。サーバーで描いた HTML と、最初の描画（hydration）ではふつうの日付を書き、そのあとで相対に書き直します。サーバーとブラウザで時刻がずれても、食い違いは起きません。',
           '- `now` を渡すと、その時刻を基準にして、サーバーでも最初から相対で書きます。書き直しはしません。',
           '- 静的に書き出すページでは、HTML に書いた相対の文字がすぐ古くなります。記事の日付のように変わらない日付には Time を使います。',
-          '- 45 秒に満たない隔たりは「今」、そのあとは分・時間・日・か月・年で書きます。',
+          '- 45 秒に満たない隔たりは「今」、そのあとは分・時間・日・か月・年で書きます。`formatStyle`（`long`・`short`・`narrow`）で書き方の長さを選べます。',
+          '- `threshold`（ミリ秒）を渡すと、今からそれより離れた日時は相対にせず、ふつうの日付で書きます。ふつうの日付の書き方は Time と同じく `withTime`・`dateStyle`・`timeStyle`・`format` で選びます。',
+          '- 書き直す間隔は `updateInterval`（ミリ秒、既定は 1 分）で変えられます。',
           '- 「昨日」「今月」のような言い回しの境界は、`timeZone` の暦で日付が変わったかどうかで決まります。',
           '- 言語とタイムゾーン（`title` のふつうの日付と、上の境界に使います）は Time と同じく、ThemeProvider でまとめて変えられます。',
         ].join('\n'),
@@ -33,6 +36,14 @@ const meta = {
   argTypes: {
     dateTime: { control: 'text' },
     withTime: { control: 'boolean' },
+    formatStyle: {
+      control: 'inline-radio',
+      options: ['long', 'short', 'narrow'],
+      table: { defaultValue: { summary: "'long'" } },
+    },
+    threshold: { control: 'number' },
+    updateInterval: { control: 'number', table: { defaultValue: { summary: '60000' } } },
+    dateStyle: { control: 'inline-radio', options: [undefined, 'full', 'long', 'medium', 'short'] },
     size: {
       control: 'inline-radio',
       options: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'],
@@ -100,6 +111,48 @@ export const WithNow: Story = {
   },
 };
 
+export const Options: Story = {
+  name: '書き方の長さと、日付に替えるしきい値',
+  render: () => (
+    <div className="flex flex-col gap-2">
+      <Text>
+        <RelativeTime
+          dateTime="2026-09-18T11:57:00+09:00"
+          now={now}
+          locale="en-US"
+          formatStyle="short"
+          data-testid="short"
+        />
+      </Text>
+      <Text>
+        <RelativeTime
+          dateTime="2026-09-15"
+          now={now}
+          threshold={7 * 24 * 60 * 60 * 1000}
+          data-testid="within"
+        />
+      </Text>
+      <Text>
+        <RelativeTime
+          dateTime="2026-08-01"
+          now={now}
+          threshold={7 * 24 * 60 * 60 * 1000}
+          dateStyle="long"
+          data-testid="beyond"
+        />
+      </Text>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByTestId('short')).toHaveTextContent('3 min. ago');
+    await expect(canvas.getByTestId('within')).toHaveTextContent('3 日前');
+    // しきい値より離れた日時は、ふつうの日付（dateStyle で書き方を選ぶ）
+    const beyond = canvas.getByTestId('beyond');
+    await expect(beyond).toHaveTextContent('2026年8月1日');
+    await expect(beyond).toHaveAttribute('title', '2026年8月1日');
+  },
+};
+
 export const Provider: Story = {
   name: '境界を timeZone で計算する',
   parameters: {
@@ -153,5 +206,27 @@ export const AfterMount: Story = {
     const el = await canvas.findByText(/年前/);
     await expect(el).toHaveAttribute('datetime', '2020-01-01');
     await expect(el).toHaveAttribute('title', '2020/01/01');
+  },
+};
+
+// 書き直す間隔。1 秒ごとに読み直すので、44 秒前の「今」が、数秒のうちに「1 分前」へ変わる
+function UpdateIntervalSample() {
+  const [dateTime] = useState(() => new Date(Date.now() - 44_000).toISOString());
+  return (
+    <Text>
+      <RelativeTime dateTime={dateTime} updateInterval={1000} data-testid="ticking" />
+    </Text>
+  );
+}
+
+export const UpdateInterval: Story = {
+  name: '書き直す間隔',
+  args: { dateTime: '2020-01-01' },
+  parameters: { controls: { disable: true } },
+  render: () => <UpdateIntervalSample />,
+  play: async ({ canvas }) => {
+    const el = canvas.getByTestId('ticking');
+    await waitFor(() => expect(el).toHaveTextContent('今'));
+    await waitFor(() => expect(el).toHaveTextContent('1 分前'), { timeout: 5000 });
   },
 };

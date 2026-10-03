@@ -26,6 +26,8 @@ const skeleton = tv({
       sweep: { bar: skeletonMotion.sweep },
       'sweep-viewport': { bar: skeletonMotion['sweep-viewport'] },
       pulse: { bar: skeletonMotion.pulse },
+      // 止める。面の塗りだけを置き、動きを減らす設定の明滅も付けない
+      none: { bar: 'motion-reduce:animate-none' },
     },
     radius: {
       control: {},
@@ -41,6 +43,11 @@ const skeleton = tv({
       animation,
       class: { root: skeletonMotion[animation] },
     })),
+    {
+      variant: ['block', 'circle'],
+      animation: 'none',
+      class: { root: 'motion-reduce:animate-none' },
+    },
     { variant: 'block', radius: 'control', class: { root: 'rounded-control' } },
     { variant: 'block', radius: 'card', class: { root: 'rounded-card' } },
     { variant: 'block', radius: 'pill', class: { root: 'rounded-pill' } },
@@ -50,8 +57,12 @@ const skeleton = tv({
 
 /** 何の代わりに置くか（block は面、text は文字の行、circle は丸） */
 export type SkeletonVariant = NonNullable<VariantProps<typeof skeleton>['variant']>;
+/** block の角（control・card・pill・none） */
+export type SkeletonRadius = NonNullable<VariantProps<typeof skeleton>['radius']>;
+/** 動き（sweep・sweep-viewport・pulse・none） */
+export type SkeletonAnimation = NonNullable<VariantProps<typeof skeleton>['animation']>;
 
-export interface SkeletonProps extends ComponentProps<'span'>, VariantProps<typeof skeleton> {
+export interface SkeletonProps extends ComponentProps<'span'> {
   /**
    * 何の代わりに置くか。block は面（画像・ボタン・入力欄の代わり）、text は文字の行、circle は丸（顔の画像の代わり）です。
    * block の幅は既定で幅いっぱい、高さは className（h-40・h-control など）で決めます。circle の大きさの既定は部品の高さです
@@ -62,16 +73,17 @@ export interface SkeletonProps extends ComponentProps<'span'>, VariantProps<type
    * block の角。代わりに置くものの角に合わせます。control はボタン・入力欄、card は画像・カード、pill はタグ・トグルです
    * @default 'control'
    */
-  radius?: VariantProps<typeof skeleton>['radius'];
+  radius?: SkeletonRadius;
   /**
    * 動き。どれも、動きを減らす設定ではその場の明滅に置き換わります
    * - sweep: 縦の光の帯が、面ごとに左から右へ通ります。ふだんはこれを使います
    * - sweep-viewport: 光の帯を画面を基準にして通します。カードの一覧のように同じ形の面が並ぶ場所で、1 本の光が面をまたいで横切ります。
    *   帯の幅は画面の幅に合わせて決まります。transform の付いた要素の中や iOS の Safari では、面ごとに通る光になります
    * - pulse: 光の帯を出さず、面の濃さをゆっくり明滅させます。小さな面がひとつだけのときや、動きを控えたい画面で使います
+   * - none: 動かさず、面の塗りだけを置きます。読み込みを待っていない場所取り（まだ中身がない枠）に使います
    * @default 'sweep'
    */
-  animation?: VariantProps<typeof skeleton>['animation'];
+  animation?: SkeletonAnimation;
   /**
    * text の行の数。2 行以上のときは、最後の行を短くします
    * @default 1

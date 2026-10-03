@@ -85,6 +85,34 @@ export const collapsibleStyles = tv({
         ],
         trigger: ['rounded-none', focusInside],
       },
+      // 1 つずつカードと同じ角・白い面・細い輪郭で囲む。行の hover は plain と同じ淡いグレーで、面の角で切る
+      //   開いた行は塗らない（openFilled で open-filled と同じグレーを敷く）
+      //   フォーカスの線は、面の角で切れないよう線の内側に描く。続けて置いた面は --collapsible-card-gap だけ離す
+      card: {
+        root: [
+          '[--collapsible-fill-hover:var(--color-field)] [--collapsible-fill-open-hover:var(--color-field)] [--collapsible-fill-open:transparent] [--collapsible-fill:transparent]',
+          'overflow-hidden rounded-card bg-surface',
+          'border-(length:--border-width-thin) border-(color:--color-surface-line)',
+          '[[data-slot=collapsible]+&]:mt-(--collapsible-card-gap)',
+        ],
+        // 行の角は囲みの内側の同心の角。開いているあいだは、中身とつながる側の角を丸めない
+        //   行を中身の上に置くときは下の角、下に置くとき（triggerPlacement="bottom"）は上の角（下の compoundVariants）
+        trigger: [
+          'rounded-[calc(var(--radius-card)-var(--border-width-thin))]',
+          'data-panel-open:rounded-b-none',
+          focusInside,
+        ],
+      },
+    },
+    // 開いている行を、open-filled と同じ入力欄のグレーで塗る（card のときだけ効く）
+    openFilled: {
+      true: {},
+      false: {},
+    },
+    // 行を置く場所。top は中身の上、bottom は中身の下（Collapsible の triggerPlacement）
+    triggerPlacement: {
+      top: {},
+      bottom: {},
     },
     indicator: {
       // 題の右。閉じているとき ▼、開くと 180° 回って ▲（Select の ▼ と同じ位置と向き）
@@ -98,5 +126,28 @@ export const collapsibleStyles = tv({
       },
     },
   },
-  defaultVariants: { variant: 'plain', indicator: 'end' },
+  compoundVariants: [
+    {
+      variant: 'card',
+      openFilled: true,
+      class: {
+        root: '[--collapsible-fill-open-hover:var(--color-field-hover)] [--collapsible-fill-open:var(--color-field)]',
+      },
+    },
+    // 行を中身の下に置くカードの形。開いているあいだは、上の中身とつながるよう上の角を丸めず、下の角を丸める
+    {
+      variant: 'card',
+      triggerPlacement: 'bottom',
+      class: {
+        trigger:
+          'data-panel-open:rounded-t-none data-panel-open:rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]',
+      },
+    },
+  ],
+  defaultVariants: {
+    variant: 'plain',
+    indicator: 'end',
+    openFilled: false,
+    triggerPlacement: 'top',
+  },
 });

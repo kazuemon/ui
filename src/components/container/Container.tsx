@@ -33,8 +33,13 @@ const container = tv({
       lg: 'py-(--stack-gap-lg)',
       xl: 'py-(--stack-gap-xl)',
     },
+    // 左右の余白を消す。幅の上限も中身の幅だけになる（外の枠がすでに余白を持っているとき）
+    gutter: {
+      true: '',
+      false: '[--container-gutter:0px]',
+    },
   },
-  defaultVariants: { size: 'default', py: 'none' },
+  defaultVariants: { size: 'default', py: 'none', gutter: true },
 });
 
 export type ContainerSize = 'prose' | 'default' | 'wide' | 'full';
@@ -53,6 +58,11 @@ export interface ContainerProps extends ComponentProps<'div'> {
    * @default 'none'
    */
   py?: ContainerPadding;
+  /**
+   * 左右の余白を消します。外の枠（カード・サイドバーの横など）がすでに余白を持っているときに使います
+   * @default false
+   */
+  hideGutter?: boolean;
   /**
    * 中を読みものにします。読む文字は、指で操作しているときもマウスと同じ大きさになります（記事・ドキュメントの本文）。
    * Markdown を変換した HTML を入れるときは、Prose が同じことをします
@@ -73,6 +83,7 @@ export interface ContainerProps extends ComponentProps<'div'> {
 export function Container({
   size,
   py,
+  hideGutter = false,
   reading = false,
   className,
   render,
@@ -85,7 +96,7 @@ export function Container({
       ...props,
       'data-slot': 'container',
       'data-reading': reading ? '' : undefined,
-      className: container({ size, py, className }),
+      className: container({ size, py, gutter: !hideGutter, className }),
     },
   });
 }

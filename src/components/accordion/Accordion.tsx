@@ -24,6 +24,7 @@ const accordionStyles = tv({
       plain: {},
       'open-filled': {},
       filled: { root: 'gap-(--collapsible-row-gap)' },
+      card: { root: 'gap-(--collapsible-card-gap)' },
       divided: {
         item: [
           '[[data-slot=accordion-item]+&]:-mt-(--border-width-thin)',
@@ -39,12 +40,14 @@ export type AccordionIndicator = CollapsibleIndicator;
 
 interface AccordionContextValue {
   variant: AccordionVariant;
+  openFilled: boolean;
   indicator: AccordionIndicator;
   headingLevel: 2 | 3 | 4 | 5 | 6;
 }
 
 const AccordionContext = createContext<AccordionContextValue>({
   variant: 'divided',
+  openFilled: false,
   indicator: 'end',
   headingLevel: 3,
 });
@@ -56,14 +59,20 @@ export interface AccordionProps extends Omit<
   /** 並べる項目。AccordionItem を間をあけずに続けて置きます */
   children?: ReactNode;
   /**
-   * 項目の見た目。Collapsible と同じ 4 つです。どれも行全体を押せます
+   * 項目の見た目。Collapsible と同じ 5 つです。どれも行全体を押せます
    * - divided: 項目のあいだと一覧の上下に区切り線を引きます。FAQ のように、問いを続けて並べる一覧の形です
    * - plain: 塗りも線もなし。マウスを載せたときだけ淡いグレーを敷きます。項目が 2〜3 個で、周りに見出しや余白があるときに使います
    * - open-filled: 開いている項目をグレーで塗ります。どれが開いているかを見せたいときに使います
    * - filled: いつもグレーで塗り、項目のあいだを少し離します。周りに線や囲みが少なく、押せると気づきにくい場所で使います
+   * - card: 項目を 1 つずつ細い輪郭の面で囲み、あいだを少し離します。ページの地の上に、項目をまとまりとして並べるときに使います
    * @default 'divided'
    */
   variant?: AccordionVariant;
+  /**
+   * variant="card" のとき、開いている項目の行を open-filled と同じグレーで塗ります。どれが開いているかを遠目にも見せたいときに使います
+   * @default false
+   */
+  openFilled?: boolean;
   /**
    * 開閉の印の位置。見た目（variant）とは別に選べます
    * - end: 題の右。閉じているときは下向きで、開くと上を向きます
@@ -114,6 +123,7 @@ export interface AccordionProps extends Omit<
 export function Accordion({
   children,
   variant = 'divided',
+  openFilled = false,
   indicator = 'end',
   multiple = false,
   value,
@@ -128,7 +138,7 @@ export function Accordion({
 }: AccordionProps) {
   const styles = accordionStyles({ variant });
   return (
-    <AccordionContext.Provider value={{ variant, indicator, headingLevel }}>
+    <AccordionContext.Provider value={{ variant, openFilled, indicator, headingLevel }}>
       <BaseAccordion.Root
         {...props}
         data-slot="accordion"
@@ -187,8 +197,8 @@ export function AccordionItem({
   ...props
 }: AccordionItemProps) {
   const { className: panelClassName, ...panelRest } = panelProps ?? {};
-  const { variant, indicator, headingLevel } = useContext(AccordionContext);
-  const styles = collapsibleStyles({ variant, indicator });
+  const { variant, openFilled, indicator, headingLevel } = useContext(AccordionContext);
+  const styles = collapsibleStyles({ variant, indicator, openFilled });
   const own = accordionStyles({ variant });
   const Heading = `h${headingLevel}` as const;
   return (

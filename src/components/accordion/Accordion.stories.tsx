@@ -46,7 +46,7 @@ const meta = {
           '',
           '- `Accordion` の中に `AccordionItem` を間をあけずに並べます。項目ごとに `title`（題）と中身を渡します。',
           '- 既定では 1 つ開くとほかは閉じます。いくつも同時に開けるようにするときは `multiple` を付けます。',
-          '- 見た目は `variant` で選びます。既定は区切り線で区切る `divided` で、ほかに塗りなしの `plain`、開いている項目を塗る `open-filled`、いつも塗る `filled` があります。行と中身の見た目は Collapsible と同じです。',
+          '- 見た目は `variant` で選びます。既定は区切り線で区切る `divided` で、ほかに塗りなしの `plain`、開いている項目を塗る `open-filled`、いつも塗る `filled`、項目を 1 つずつ細い輪郭の面で囲む `card` があります。`card` は開いた行を塗らず、`openFilled` を付けると淡いグレーで塗ります。行と中身の見た目は Collapsible と同じです。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。',
           '- はじめに開いておく項目は、`AccordionItem` の `value` を `defaultValue` に並べて指します。使う側で持つときは `value` と `onValueChange` を使います。',
           '- 題は見出し（既定は h3）で包みます。ページの見出しの並びに合わせて `headingLevel` を変えます。',
@@ -66,9 +66,10 @@ const meta = {
   argTypes: {
     variant: {
       control: 'inline-radio',
-      options: ['divided', 'plain', 'open-filled', 'filled'],
+      options: ['divided', 'plain', 'open-filled', 'filled', 'card'],
       table: { defaultValue: { summary: 'divided' } },
     },
+    openFilled: { table: { defaultValue: { summary: 'false' } } },
     indicator: {
       control: 'inline-radio',
       options: ['end', 'start'],
@@ -183,6 +184,31 @@ export const VariantsStart: Story = {
     },
   },
   render: () => <VariantGrid indicator="start" />,
+};
+
+export const CardVariant: Story = {
+  tags: ['visual'],
+  name: 'カードの形',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`variant="card"` は、項目を 1 つずつカードと同じ角・白い面・細い輪郭で囲み、あいだを少し離します。開いた行は塗らず、`openFilled` を付けると淡いグレーで塗ります。',
+      },
+    },
+  },
+  render: () => (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8">
+      {[false, true].map((openFilled) => (
+        <div key={String(openFilled)} className="flex flex-col gap-2">
+          <p className="text-xs text-fg-subtle">{openFilled ? 'openFilled' : '既定'}</p>
+          <Accordion variant="card" openFilled={openFilled} defaultValue={['password']}>
+            <FaqItems />
+          </Accordion>
+        </div>
+      ))}
+    </div>
+  ),
 };
 
 export const Densities: Story = {

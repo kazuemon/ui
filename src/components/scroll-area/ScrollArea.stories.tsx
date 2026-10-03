@@ -195,7 +195,12 @@ export const Accessibility: Story = {
           ))}
         </ul>
       </ScrollArea>
-      <ScrollArea accessibleName="短い記録" className="h-[120px] w-[280px]">
+      <ScrollArea
+        accessibleName="短い記録"
+        id="short-log"
+        style={{ height: 120 }}
+        className="w-[280px]"
+      >
         <Text size="sm">1 行だけ</Text>
       </ScrollArea>
     </div>
@@ -207,9 +212,11 @@ export const Accessibility: Story = {
     await userEvent.tab();
     await expect(long).not.toHaveFocus();
     // スクロールできない枠は Tab で止まらない
-    await expect(canvas.getByRole('region', { name: '短い記録' })).toHaveAttribute(
-      'tabindex',
-      '-1'
-    );
+    const short = canvas.getByRole('region', { name: '短い記録' });
+    await expect(short).toHaveAttribute('tabindex', '-1');
+    // id・style は、いちばん外の枠に付く
+    const root = short.closest('[data-slot="scroll-area"]');
+    await expect(root).toHaveAttribute('id', 'short-log');
+    await expect(root?.getBoundingClientRect().height).toBe(120);
   },
 };
