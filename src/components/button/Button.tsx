@@ -360,7 +360,8 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    * 押せないとき（disabled）も、Tab で止まるようにします。ボタンは aria-disabled で押せないことを伝え、
    * 押しても onClick を呼びません（フォームも送信しません）。見た目は押せないボタンと同じです。
    * 押せない理由を Tooltip で出すときや、押せなくなってもフォーカスを外したくないときに使います。
-   * Tooltip の本体にしたボタンは、渡さなくてもこの形になります（false を渡すと、ふつうの押せないボタンに戻ります）
+   * Tooltip の本体にしたボタンは、渡さなくてもこの形になります（false を渡すと、ふつうの押せないボタンに戻ります）。
+   * 効くのは Tooltip の本体そのものにしたボタンだけです。入れ物（ツールバーなど）を本体にしたときは、中のボタンには効きません
    * @default Tooltip の本体なら true、それ以外は false
    */
   focusableWhenDisabled?: boolean;
@@ -624,33 +625,36 @@ function NativeButton({
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       })}
     >
-      {inline && <Spinner className="text-(color:--button-ink)" />}
-      {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
-      {loading === undefined && !submit ? (
-        children
-      ) : (
-        <span
-          className={[
-            'inline-flex items-center gap-2 [transition:opacity_var(--duration-loading)_var(--ease-press)] motion-reduce:[transition:none]',
-            overlay && 'opacity-(--loading-label-opacity)',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {children}
-        </span>
-      )}
-      {overlay && (
-        <span
-          aria-hidden
-          className="absolute inset-0 flex animate-loading-in items-center justify-center"
-        >
-          <Spinner className="text-(color:--button-ink)" />
-        </span>
-      )}
-      {marked && loadingIndicator === 'bar' && (
-        <LoadingBar className="bg-(color:--button-accent)" />
-      )}
+      {/* 自分の中には「Tooltip の本体」を配らない（本体そのものとして描くボタンにだけ効かせる） */}
+      <TooltipTriggerContext value={false}>
+        {inline && <Spinner className="text-(color:--button-ink)" />}
+        {/* loading を使うボタン（Form の中の送信のボタンも）は、ラベルを包んで薄くできるようにする（包みは送信中でも変えない） */}
+        {loading === undefined && !submit ? (
+          children
+        ) : (
+          <span
+            className={[
+              'inline-flex items-center gap-2 [transition:opacity_var(--duration-loading)_var(--ease-press)] motion-reduce:[transition:none]',
+              overlay && 'opacity-(--loading-label-opacity)',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {children}
+          </span>
+        )}
+        {overlay && (
+          <span
+            aria-hidden
+            className="absolute inset-0 flex animate-loading-in items-center justify-center"
+          >
+            <Spinner className="text-(color:--button-ink)" />
+          </span>
+        )}
+        {marked && loadingIndicator === 'bar' && (
+          <LoadingBar className="bg-(color:--button-accent)" />
+        )}
+      </TooltipTriggerContext>
     </button>
   );
   return withCaption(element, caption, className, captionId);

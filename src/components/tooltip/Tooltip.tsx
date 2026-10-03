@@ -2,6 +2,7 @@
 
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 import {
+  cloneElement,
   createContext,
   type ReactElement,
   type ReactNode,
@@ -53,7 +54,11 @@ const tooltipArrow = [
 export interface TooltipProps {
   /** 出す文。短い補足だけを書く。欠かせない情報は Tooltip に置かず、Popover で見せる */
   content: ReactNode;
-  /** 本体。Button などの要素を1つ渡す（ref と props を受け取れる要素） */
+  /**
+   * 本体。Button などの要素を1つ渡す（ref と props を受け取れる要素）。
+   * 押せないボタン（disabled）を本体にすると、ボタンは押せないままフォーカスできる形になります。
+   * 効くのは本体そのものにしたボタンだけで、入れ物（ツールバーなど）を本体にしたときは、中のボタンには効きません
+   */
   children: ReactElement;
   /**
    * 本体のどちら側に出すか。画面の端に当たるときは反対側に出します
@@ -194,6 +199,17 @@ export function Tooltip({
   const portalContainer = usePortalContainer(container);
   // 外の Tooltip の本体の中にいるか（自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
   const inOuterTrigger = use(TooltipTriggerContext);
+  // 本体の要素の子には「Tooltip の本体」を配らない（入れ物を本体にしたとき、中のボタンまで変えない）
+  //   子を持たない要素（input など）と、Tooltip を重ねたとき（中の Tooltip の本体が、外の Tooltip の本体でもある）は、そのまま渡す
+  const triggerChildren = (children.props as { children?: ReactNode }).children;
+  const triggerElement =
+    triggerChildren === undefined || children.type === Tooltip
+      ? children
+      : cloneElement(
+          children as ReactElement<{ children?: ReactNode }>,
+          undefined,
+          <TooltipTriggerContext value={false}>{triggerChildren}</TooltipTriggerContext>
+        );
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {
     className: positionerClassName,
@@ -252,7 +268,7 @@ export function Tooltip({
       <TooltipTriggerContext value={!disabled || inOuterTrigger}>
         <BaseTooltip.Trigger
           ref={anchorRef}
-          render={children}
+          render={triggerElement}
           delay={delay}
           style={{ WebkitTouchCallout: 'none' }}
           onPointerDown={(event) => {

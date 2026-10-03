@@ -28,7 +28,7 @@ const meta = {
           '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
           '- ツールバーのように Tooltip が並ぶところは `TooltipProvider` で包みます。出るまでの待ち（`delay`）と消えるまでの待ち（`closeDelay`）をそろえ、1 つが出たあとは隣へマウスを移すと待たずに出します。',
           '- 並んだボタンのどれの補足かをはっきりさせたいときは、`showArrow` で本体を指す小さな矢印を出します。',
-          '- 押せないボタン（`disabled`）を本体にすると、ボタンは押せないままフォーカスできる形になり、押せない理由を Tooltip で読めます。外したいときは、ボタンに `focusableWhenDisabled={false}` を渡します。',
+          '- 押せないボタン（`disabled`）を本体にすると、ボタンは押せないままフォーカスできる形になり、押せない理由を Tooltip で読めます。外したいときは、ボタンに `focusableWhenDisabled={false}` を渡します。効くのは本体そのものにしたボタンだけで、ツールバーのような入れ物を本体にしたときは、中のボタンには効きません。',
         ].join('\n'),
       },
     },
@@ -253,6 +253,18 @@ export const DisabledTriggerCheck: Story = {
       <Tooltip {...args} disabled>
         <Button disabled>止めた Tooltip</Button>
       </Tooltip>
+      {/* 入れ物を本体にしたときは、中のボタンには効かない */}
+      <Tooltip {...args} content="入れ物の補足">
+        <div role="toolbar" aria-label="入れ物" className="flex gap-2">
+          <Button disabled>入れ物の中</Button>
+        </div>
+      </Tooltip>
+      {/* Tooltip を重ねたとき、本体のボタンは外の Tooltip の本体でもある */}
+      <Tooltip {...args} content="外の Tooltip">
+        <Tooltip {...args} disabled>
+          <Button disabled>重ねた本体</Button>
+        </Tooltip>
+      </Tooltip>
     </form>
   ),
   play: async ({ canvasElement }) => {
@@ -260,6 +272,12 @@ export const DisabledTriggerCheck: Story = {
     const submit = canvas.getByRole('button', { name: '公開する' });
     // Tooltip を止めているときは、ふつうの押せないボタンのまま（Tab で止まらない）
     await expect(canvas.getByRole('button', { name: '止めた Tooltip' })).toBeDisabled();
+    // 効くのは本体そのものにしたボタンだけ。入れ物を本体にしたときの中のボタンは、ふつうの押せないボタン
+    await expect(submit).not.toBeDisabled();
+    await expect(submit).toHaveAttribute('aria-disabled', 'true');
+    await expect(canvas.getByRole('button', { name: '入れ物の中' })).toBeDisabled();
+    // 重ねた Tooltip の本体は、外の Tooltip のためにフォーカスできる形のまま
+    await expect(canvas.getByRole('button', { name: '重ねた本体' })).not.toBeDisabled();
     // フォーカスできる押せない送信のボタン: 押しても、Enter・Space でも、入力欄で Enter を押しても送らない
     onCheckSubmit.mockClear();
     await userEvent.click(submit);
