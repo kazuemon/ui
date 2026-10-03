@@ -164,7 +164,7 @@
 
 - [x] Notice
 - [x] Loading
-- [ ] Spinner
+- [x] Spinner
 - [x] Toast
 - [x] Progress
 - [x] Skeleton

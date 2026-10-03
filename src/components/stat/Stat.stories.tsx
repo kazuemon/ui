@@ -37,6 +37,8 @@ const meta = {
           '- `deltaFill` を `true` にすると、増減を色に合わせた淡い面（pill）に載せます。数字から切り離して読ませたいときに使います。',
           '- `size` で数字の大きさを選びます。数字をいくつも並べるときは小さい段にします。',
           '- `align` で寄せ方を選びます。カードに載せたいときは Card と組み合わせます。',
+          '- 数字を読み込んでいるあいだは `loading` にします。数字の場所に読み込み中の帯が出て、増減は読み込むまで出ません。ラベル・単位・キャプションはそのまま出ます。読み上げでは数字の代わりに `loadingText`（既定は「読み込んでいます」）を読みます。',
+          '- 読み込みではなく値がないとき（集計していない、など）は、`value` に「—」などを入れます。',
         ].join('\n'),
       },
     },
@@ -73,6 +75,7 @@ const meta = {
     },
     hideDeltaIcon: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
     deltaFill: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    loading: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
   },
 } satisfies Meta<typeof Stat>;
 
@@ -330,6 +333,53 @@ export const Densities: Story = {
       />
     </DensityPair>
   ),
+};
+
+export const Loading: Story = {
+  tags: ['visual'],
+  name: '読み込み中',
+  render: () => (
+    <Gallery columnWidth="14rem">
+      <Specimen label="loading">
+        <Stat
+          label="公開記事"
+          value={128}
+          unit="件"
+          caption="先月比"
+          delta="12%"
+          deltaIndicator="up"
+          loading
+        />
+      </Specimen>
+      <Specimen label="読み込んだあと">
+        <Stat
+          label="公開記事"
+          value={128}
+          unit="件"
+          caption="先月比"
+          delta="12%"
+          deltaIndicator="up"
+        />
+      </Specimen>
+      <Specimen label="値がない">
+        <Stat label="公開記事" value="—" unit="件" caption="先月比" />
+      </Specimen>
+      <Specimen label="lg">
+        <Stat label="稼働率" value="99.9" unit="%" size="lg" loading />
+      </Specimen>
+      <Specimen label="4xl">
+        <Stat label="参加者" value="1,024" unit="人" size="4xl" loading />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement, canvas }) => {
+    const [loading] = canvasElement.querySelectorAll('dl[data-slot="stat"]');
+    // 読み込み中は aria-busy。数字の代わりに読み込み中の文を読み、増減は出さない
+    await expect(loading).toHaveAttribute('aria-busy', 'true');
+    await expect(loading.querySelector('dd')).toHaveTextContent('読み込んでいます');
+    await expect(loading.querySelector('[data-slot="stat-delta"]')).toBeNull();
+    await expect(canvas.getAllByText('読み込んでいます')[0]).toHaveClass('sr-only');
+  },
 };
 
 export const Accessibility: Story = {

@@ -1017,6 +1017,19 @@
   --icon-weight-standalone: var(--icon-stroke-standalone);
   /* ── END icon */
 
+  /* ── 回る円（Spinner。src/components/loading/Loading.tsx）— 軸 434 ── BEGIN spinner */
+  /* size="control"・"text" は部品の中の文字・周りの文字に合わせる（線は viewBox 16 に対して 2）
+     size-{sm,md,lg}: 密度で変わらない段。stroke-{sm,md,lg}: 段ごとの線の太さ（viewBox 16 に対する幅）。大きい段でも線は 2〜2.5px に保つ
+     track-opacity: 薄い輪の濃さ（hideTrack で輪を出さず、弧だけにできる） */
+  --spinner-size-sm: calc(var(--spacing) * 4); /* 16px */
+  --spinner-size-md: calc(var(--spacing) * 6); /* 24px */
+  --spinner-size-lg: calc(var(--spacing) * 10); /* 40px */
+  --spinner-stroke-sm: 2; /* 2px */
+  --spinner-stroke-md: 1.67; /* 2.5px */
+  --spinner-stroke-lg: 1; /* 2.5px */
+  --spinner-track-opacity: 0.3;
+  /* ── END spinner */
+
   /* ── Skeleton — 軸 89 ── BEGIN skeleton */
   /* 読み込み中の場所取り。ページと同じレイヤーなので影は付けない（原則1）。角は代わりに置くものの角（原則5）
      fill: 面の色（入力欄の塗り）。highlight: 光の帯のいちばん明るいところの色
@@ -1556,6 +1569,14 @@
   --code-group-copy-inset: var(--spacing);
   /* ── END code-group */
 
+  /* ── Notice の操作を文の右に置く形（actionsPlacement="end"）— 軸 435 ── BEGIN notice */
+  /* 文と操作を折り返せる横の並びにする。操作は文の塊の縦の真ん中にそろえ、上下の余白へはみ出させる。src/components/notice/Notice.tsx
+     actions-gap: 文と操作のあいだ
+     actions-text-min: 文の列の最小の幅。文の列がこれより狭くなると、操作は文の下（bottom と同じ見た目）に回る */
+  --notice-actions-gap: calc(var(--spacing) * 4);
+  --notice-actions-text-min: 16rem;
+  /* ── END notice */
+
   /* ── Toast — 軸 147・148 ── BEGIN toast */
   /* 一定の時間で消えるお知らせ（トースト）。面はお知らせ（Notice）と同じで、ここは置き方と重なりだけを持つ。src/components/toast
      ページの上に重なるレイヤーなので、影は浮かぶ面と同じ（原則1）。輪郭も浮かぶ面と同じ細い線
@@ -1792,6 +1813,11 @@
   --bar-height-sm: var(--spacing); /* 4px */
   --bar-height-md: calc(var(--spacing) * 2); /* 8px */
   --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
+  /* 分けて塗るバー（MeterGroup。軸 433）
+     group-gap: 区切りの間（地の色が見える）。区切りは角を付けず、両端だけ地の角で切り抜く
+     group-marker-size: 凡例の色の印（丸）の大きさ */
+  --bar-group-gap: calc(var(--spacing) / 2);
+  --bar-group-marker-size: calc(var(--spacing) * 2.5);
   /* 値が変わったときに塗りが伸び縮みする長さ */
   --duration-bar: var(--duration-normal);
   /* ── END bar */
@@ -2009,6 +2035,9 @@
   --stat-delta-leading: var(--leading-body-sm);
   --stat-delta-weight: 700;
   --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
+  /* 読み込み中（loading。軸 431）: 数字の場所に Skeleton の文字の行を 1 本置く（太さ・角は文字の行のまま）。行の高さは数字と同じなので、読み込んでも跳ばない
+     loading-width: 帯の長さ（数字の文字の大きさが基準） */
+  --stat-loading-width: 3em;
   /* ── END stat */
 
   /* ── Masonry — ADR-294〜296 ── BEGIN masonry */

@@ -26,6 +26,7 @@ const meta = {
           '- 動き方は `animation` で選びます。ふだんは `sweep`（短い区切りが左から右へ流れる。ボタンの送信中の線と同じ動き）です。長く待つ処理で止まっていないことをはっきり見せたいときは、`stripes`（幅いっぱいの縞が流れる）にします。`shuttle`（区切りが左右の端を往復する）も選べます。どれも、動きを減らす設定では、流さずに幅いっぱいでその場で明滅します。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「3 / 12 ファイル」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。進み具合に良し悪しはないので、値によって色は変わりません。',
+          '- 失敗した・上限を超えた・うまくいったことを示すときは、`color` を `danger`・`success` にします。地も同じ色相の淡い面になります。地をほかの色と同じグレーにしたいときは `trackColor="neutral"`、値の文字も状態の色にしたいときは `valueColor="color"` です。色だけで伝わらないよう、理由は `caption` に書きます。',
           '- `size` でバーの太さを選びます。`md` が標準で、細い `sm`、太い `lg` と、記事の読了のバーのような線に近い `xs` があります。',
           '- `hideTrack` で地（まだ進んでいない分のグレー）を消し、進んだ分だけの線にできます。',
           '- 端はふだん丸い形です。記事の上端に留める読了のバーのように画面の端に接する線では、`shape="square"` で端を丸めない形にします。',
@@ -51,8 +52,18 @@ const meta = {
     caption: { control: 'text' },
     color: {
       control: 'inline-radio',
-      options: colors,
+      options: [...colors, 'success', 'danger'],
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    trackColor: {
+      control: 'inline-radio',
+      options: ['color', 'neutral'],
+      table: { defaultValue: { summary: "'color'" } },
+    },
+    valueColor: {
+      control: 'inline-radio',
+      options: ['muted', 'color'],
+      table: { defaultValue: { summary: "'muted'" } },
     },
     size: {
       control: 'inline-radio',
@@ -113,6 +124,48 @@ export const Colors: Story = {
               <Progress key={value} label="アップロード" value={value} color={color} />
             ))}
             <Progress label="読み込み" value={null} color={color} />
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+export const StatusColors: Story = {
+  tags: ['visual'],
+  name: '状態の色',
+  decorators: [
+    (Story) => (
+      <div className="w-[760px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <Gallery columnWidth="14rem">
+      {(
+        [
+          ['既定', {}],
+          ['trackColor="neutral"', { trackColor: 'neutral' }],
+          ['valueColor="color"', { valueColor: 'color' }],
+        ] as const
+      ).map(([name, props]) => (
+        <Specimen key={name} label={name}>
+          <div className="flex flex-col gap-5">
+            <Progress
+              label="photo.png"
+              value={60}
+              color="danger"
+              caption="通信が切れたため、アップロードできませんでした"
+              {...props}
+            />
+            <Progress
+              label="photo.png"
+              value={100}
+              color="success"
+              caption="アップロードしました"
+              {...props}
+            />
           </div>
         </Specimen>
       ))}

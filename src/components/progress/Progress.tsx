@@ -6,6 +6,8 @@ import { type ComponentProps, type ReactNode, useId } from 'react';
 import {
   type BarColor,
   type BarSize,
+  type BarTrackColor,
+  type BarValueColor,
   barDescribedBy,
   barStyles,
 } from '../../internal/bar/bar-styles';
@@ -117,10 +119,23 @@ export interface ProgressProps extends Omit<
   /** 値を整えるときのロケール。既定はブラウザのロケールです */
   locale?: Intl.LocalesArgument;
   /**
-   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです
+   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです。
+   * success（うまくいった）・danger（失敗した・上限を超えた）は状態の色で、地も同じ色相の淡い面になります（trackColor）。色だけでなく文（キャプションや値の文字）でも伝えます
    * @default 'neutral'
    */
   color?: BarColor;
+  /**
+   * 状態の色（success・danger）のときの地の色。color は塗りと同じ色相の淡い面で、残りの分まで状態の色になります。
+   * neutral はほかの色と同じグレーです。success・danger 以外では効きません
+   * @default 'color'
+   */
+  trackColor?: BarTrackColor;
+  /**
+   * 状態の色（success・danger）のときの、ラベルの行の右端の値の文字の色。muted は一段淡い色、color は状態の色です。
+   * success・danger 以外では効きません
+   * @default 'muted'
+   */
+  valueColor?: BarValueColor;
   /**
    * バーの太さ。xs（2px）は記事の読了のバーのような細い線、sm（4px）は細いバー、md は標準、lg は太いバーです。
    * どの太さでも端は丸いままです（端を丸めないのは shape="square"）
@@ -167,6 +182,8 @@ export function Progress({
   locale,
   color,
   size,
+  trackColor,
+  valueColor,
   hideTrack = false,
   animation,
   shape,
@@ -174,7 +191,15 @@ export function Progress({
   'aria-describedby': describedByProp,
   ...props
 }: ProgressProps) {
-  const styles = progress({ color, size, track: !hideTrack, animation, shape });
+  const styles = progress({
+    color,
+    size,
+    trackColor,
+    valueColor,
+    track: !hideTrack,
+    animation,
+    shape,
+  });
   const captionId = `${useId()}caption`;
   const indeterminate = value === null || !Number.isFinite(value);
   return (

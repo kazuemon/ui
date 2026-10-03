@@ -250,6 +250,7 @@
 - 2026-09-19 に Progress を作りました。バーの形・色・太さ・3 層の並びは `src/internal/bar/` で Meter と共有し、トークンも `--bar-*` にまとめました。範囲による色は Meter だけのものです。決定は [ADR-0185](./adr/0185-reading-progress.md)・[ADR-0186](./adr/0186-progress-indeterminate.md) です
 - 原則にない判断: 終わった（`value` が `max`）ときも見た目は変えない（`data-complete` だけ付ける）。終わりの分からないときは値の文字も読み上げの値の文も出さない。読了のバーは読み上げから外す（`aria-hidden`。値が変わるたびに音で知らせる読み上げがあるため）
 - 読んだ割合を計算するフック（`useReadingProgress`）は、いまはストーリーの見本だけにあります。ブログで使うときに公開するかを決めます
+- 区別のための色の並び（データ表示用の色）がありません。MeterGroup は書かないとき primary・secondary・neutral の順に塗るので、4 つ目からは `color` の指定が要ります（[ADR-0432](./adr/0432-meter-group.md)）
 
 ### Spoiler
 

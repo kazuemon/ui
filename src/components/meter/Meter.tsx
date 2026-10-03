@@ -5,7 +5,12 @@ import { type ComponentProps, type ReactNode, useId } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { meterRegion } from './meter-region';
-import { barDescribedBy, barStyles } from '../../internal/bar/bar-styles';
+import {
+  type BarTrackColor,
+  type BarValueColor,
+  barDescribedBy,
+  barStyles,
+} from '../../internal/bar/bar-styles';
 import { tv } from '../../internal/tv';
 
 // 決まった範囲の中の量を示すバー（HTML の meter）。スキルの習熟度、ストレージの使用量など
@@ -35,7 +40,7 @@ const meter = tv({
   defaultVariants: { regionColor: 'status' },
 });
 
-/** 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレー */
+/** 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレー、success・danger は状態の色 */
 export type MeterColor = NonNullable<VariantProps<typeof meter>['color']>;
 /** バーの太さ */
 export type MeterSize = NonNullable<VariantProps<typeof meter>['size']>;
@@ -88,10 +93,23 @@ export interface MeterProps extends Omit<
   /** 値を整えるときのロケール。既定はブラウザのロケールです */
   locale?: Intl.LocalesArgument;
   /**
-   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです（原則6）
+   * 塗りの色。primary・secondary は利用者が選ぶ色、neutral は色を持たない濃いグレーです。
+   * success（うまくいった）・danger（失敗した・上限を超えた）は状態の色で、地も同じ色相の淡い面になります（trackColor）。色だけでなく文（キャプションや値の文字）でも伝えます（原則6）
    * @default 'neutral'
    */
   color?: MeterColor;
+  /**
+   * 状態の色（success・danger）のときの地の色。color は塗りと同じ色相の淡い面で、残りの分まで状態の色になります。
+   * neutral はほかの色と同じグレーです。success・danger 以外では効きません
+   * @default 'color'
+   */
+  trackColor?: BarTrackColor;
+  /**
+   * 状態の色（success・danger）のときの、ラベルの行の右端の値の文字の色。muted は一段淡い色、color は状態の色です。
+   * success・danger 以外では効きません
+   * @default 'muted'
+   */
+  valueColor?: BarValueColor;
   /**
    * バーの太さ。sm は細い線に近いバー（一覧に多く並べるとき）、md は標準、lg は太いバー（1 つだけ大きく見せるとき）です。
    * どの太さでも角は丸いままです
@@ -128,12 +146,14 @@ export function Meter({
   locale,
   color,
   size,
+  trackColor,
+  valueColor,
   regionColor,
   className,
   'aria-describedby': describedByProp,
   ...props
 }: MeterProps) {
-  const styles = meter({ color, size, regionColor });
+  const styles = meter({ color, size, trackColor, valueColor, regionColor });
   const captionId = `${useId()}caption`;
   const region = meterRegion({ value, min, max, low, high, optimum });
   const describedBy = barDescribedBy(describedByProp, captionId, Boolean(caption));
