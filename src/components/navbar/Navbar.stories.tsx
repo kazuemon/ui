@@ -664,7 +664,6 @@ export const ControlledMenu: Story = {
   },
 };
 
-
 export const HideOnScroll: Story = {
   name: 'スクロールで隠す',
   parameters: {
