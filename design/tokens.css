@@ -1191,6 +1191,22 @@
   --collapsible-start-opacity: 0;
   /* ── END collapsible */
 
+  /* ── Callout の畳める形 — 軸 443（ADR-0410）・446 ── BEGIN callout */
+  /* 畳める囲み（collapsible）の題の行（帯）。src/components/callout/Callout.tsx
+     軸 446 で比べるための切り替え。決まったら部品で決まった値に畳み、ここから消す
+     row-band: 0 は帯の上下を囲みの余白にし、中身は帯の下端から始める（いまの形）。
+       1 は開閉の行と同じく帯を部品の高さにし、帯と中身のあいだを帯の上下と同じだけ空ける
+     row-fill-*-mix: 帯の塗り（囲みの文字の色を混ぜる割合）。ふだん・hover・開いているとき・開いていて hover
+     row-rule-*: 開いているときの帯の下の線の太さと色（囲みの文字の色を混ぜる割合） */
+  --callout-row-band: 0;
+  --callout-row-fill-mix: 0%;
+  --callout-row-fill-hover-mix: 6%;
+  --callout-row-fill-open-mix: 0%;
+  --callout-row-fill-open-hover-mix: 6%;
+  --callout-row-rule-width: 0px;
+  --callout-row-rule-mix: 16%;
+  /* ── END callout */
+
   /* ── Transition — 軸 92 ── BEGIN transition */
   /* 利用者の中身に付ける出入りの動き。src/components/transition
      長さと緩急は出るとき（enter）と消えるとき（exit）で分ける。既定は浮かぶ面と同じ（--popup-*）

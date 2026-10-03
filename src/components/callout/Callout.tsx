@@ -19,9 +19,10 @@ import { tv } from '../../internal/tv';
 // 文字は読む文字（--text-body）。記事の本文と同じ大きさで、密度で変わる（原則11）
 // 題の要素は、headingLevel を渡すと見出し（h2〜h6）、渡さないと p
 // 畳める囲み（collapsible — 軸 443）: 題の行（アイコン・題・開閉の印）を Base UI の Collapsible の Trigger にし、中身を Panel に入れる
-//   押せる範囲と hover の塗りは、題の行から囲みの端（上・左右。閉じているときは下も）まで広げる（原則17）。疑似要素 ::before で描く
-//   開いているときも、塗りは題の上と同じだけ題の下へ広げ、そこで止める（上下の余白をそろえる）。中身は塗らない
-//   その分、中身は同じだけ下げて始める。下げる余白は Panel の中に置くので、閉じる動きの途中で行が跳ねない
+//   題の行は、囲みの上の余白を上下に持つ帯（Trigger）にする。押せる範囲と hover の塗りは帯の範囲で、左右は囲みの端まで広げる（原則17）。疑似要素 ::before で描く
+//     閉じているときは帯が囲み全体になる。開いているときは帯の下で止め、中身は塗らない
+//   中身は帯の下から始める。下と左右は囲みの余白。上下の余白は Panel の中に置くので、閉じる動きの途中で行が跳ねない
+//   帯の上下の余白・帯と中身のあいだ・帯の塗り・帯の下の線は --callout-row-*（design/tokens.css。軸 446 で比べている途中）
 //   印は Collapsible と同じ ▼（開くと上を向く）で、行の右端に置く
 //   hover の塗りは囲みの文字の色を 6% 混ぜる。押しても濃くしない（開閉の行と同じ。原則3）
 //   フォーカスの線は、塗りと同じ範囲の内側に引く（囲みの端で切れないように）
@@ -30,13 +31,19 @@ const callout = tv({
   slots: {
     root: '',
     trigger: [
-      'group/callout-trigger relative isolate flex w-full cursor-pointer items-start gap-x-[calc(var(--spacing-control-x)-var(--spacing))] text-left',
+      'group/callout-trigger relative isolate flex w-full cursor-pointer items-start gap-x-[calc(var(--spacing-control-x)-var(--spacing))] py-(--callout-row-pad-y) text-left',
       'outline-none',
-      // 押せる範囲と塗り: 囲みの端まで広げる
-      'before:absolute before:-inset-x-(--spacing-control-x) before:-top-(--spacing-control-x) before:-bottom-(--spacing-control-x) before:-z-1 before:rounded-control',
+      // 押せる範囲と塗り: 帯の上下と、囲みの左右の端まで
+      'before:absolute before:-inset-x-(--spacing-control-x) before:inset-y-0 before:-z-1 before:rounded-control',
       'data-panel-open:before:rounded-b-none',
       'before:[transition:background-color_var(--duration-field)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_6%,transparent)]',
+      // 塗り: ふだん・hover・開いているとき・開いていて hover。囲みの文字の色を混ぜる
+      'before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-mix),transparent)]',
+      'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-hover-mix),transparent)]',
+      'data-panel-open:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-open-mix),transparent)]',
+      'data-panel-open:hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-open-hover-mix),transparent)]',
+      // 開いているときの帯の下の線（囲みの端から端まで）
+      'before:border-[color:color-mix(in_oklab,var(--notice-fg)_var(--callout-row-rule-mix),transparent)] data-panel-open:before:border-b-(length:--callout-row-rule-width)',
       'focus-visible:before:[outline:var(--focus-ring-width)_solid_var(--color-focus-ring)] focus-visible:before:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     title: 'min-w-0 font-bold text-(color:--notice-title-color)',
@@ -45,14 +52,19 @@ const callout = tv({
       'transition-[rotate] duration-(--collapsible-duration) ease-(--collapsible-ease) group-data-panel-open/callout-trigger:rotate-180 motion-reduce:[transition:none]',
     ],
     // 中身は、アイコンがあるときはアイコンと間の分だけ字下げして、題の頭にそろえる
-    //   上は、題の行の塗りが題の下へ広がる分（囲みの内側の余白と同じ）だけ空ける
-    content: 'ps-(--callout-panel-inset) pt-(--spacing-control-x)',
+    //   上は帯とのあいだ、下は囲みの余白
+    content: 'ps-(--callout-panel-inset) pt-(--callout-panel-gap) pb-(--spacing-control-x)',
   },
   variants: {
     collapsible: {
       true: {
         root: [
-          'relative flex-col items-stretch',
+          // 上下の余白は帯（題の行）と中身が持つ
+          'relative flex-col items-stretch py-0',
+          // 帯の上下の余白: 囲みの余白（--callout-row-band: 0）か、開閉の行と同じく部品の高さの帯にする余白（1）
+          //   帯と中身のあいだは、帯にするときだけ帯の上下と同じだけ空ける
+          '[--callout-row-pad-y:calc(var(--spacing-control-x)+var(--callout-row-band)*(max(var(--spacing),(var(--spacing-control)-var(--leading-body))/2)-var(--spacing-control-x)))]',
+          '[--callout-panel-gap:calc(var(--callout-row-band)*var(--callout-row-pad-y))]',
           '[--callout-panel-inset:0px] has-[[data-slot=callout-trigger]>[data-slot=notice-icon]]:[--callout-panel-inset:calc(var(--spacing-icon)+var(--spacing-control-x)-var(--spacing))]',
         ],
       },
