@@ -22,6 +22,7 @@ const meta = {
           '- `value` を `min`〜`max`（既定は 0〜100）の中で渡します。値の文字はラベルの行の右端に出ます。`hideValue` で隠せます。',
           '- 値の文字は、既定では割合（「45%」）です。`format` で数の整え方を、`getValueText` で文字そのもの（「12 / 50 GB」）を変えられます。読み上げも同じ文字になります。',
           '- `color` で塗りの色を選びます。指定しないときは濃いグレーです。',
+          '- 失敗した・上限を超えた・うまくいったことを示すときは、`color` を `danger`・`success` にします。地も同じ色相の淡い面になります。地をほかの色と同じグレーにしたいときは `trackColor="neutral"`、値の文字も状態の色にしたいときは `valueColor="color"` です。色だけで伝わらないよう、理由は `caption` に書きます。',
           '- `size` でバーの太さを選びます。`md` が標準で、たくさん並べる一覧では細い `sm`、1 つだけ大きく見せるときは太い `lg` です。どの太さでも角は丸いままです。',
           '- `low`・`high`・`optimum` を渡すと、値のある範囲で塗りの色が変わります。`optimum` のある範囲が「最適」、その隣が「隣の範囲」、反対の端が「反対の端」です。',
           '- 範囲ごとの色は `regionColor` で選びます。既定の `status` は、最適を成功の緑、隣の範囲を警告のオリーブ、反対の端を危険の赤にします。最適のときも `color` の色のままにしたいときは `color` です。',
@@ -45,8 +46,18 @@ const meta = {
     caption: { control: 'text' },
     color: {
       control: 'inline-radio',
-      options: colors,
+      options: [...colors, 'success', 'danger'],
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    trackColor: {
+      control: 'inline-radio',
+      options: ['color', 'neutral'],
+      table: { defaultValue: { summary: "'color'" } },
+    },
+    valueColor: {
+      control: 'inline-radio',
+      options: ['muted', 'color'],
+      table: { defaultValue: { summary: "'muted'" } },
     },
     size: {
       control: 'inline-radio',
@@ -93,6 +104,42 @@ export const Colors: Story = {
             {[0, 6, 45, 100].map((value) => (
               <Meter key={value} label="習熟度" value={value} color={color} />
             ))}
+          </div>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+export const StatusColors: Story = {
+  tags: ['visual'],
+  name: '状態の色',
+  decorators: [
+    (Story) => (
+      <div className="w-[760px] max-w-none">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <Gallery columnWidth="14rem">
+      {(
+        [
+          ['既定', {}],
+          ['trackColor="neutral"', { trackColor: 'neutral' }],
+          ['valueColor="color"', { valueColor: 'color' }],
+        ] as const
+      ).map(([name, props]) => (
+        <Specimen key={name} label={name}>
+          <div className="flex flex-col gap-5">
+            <Meter
+              label="ストレージ"
+              value={96}
+              color="danger"
+              caption="残りが少なくなっています"
+              {...props}
+            />
+            <Meter label="目標" value={70} color="success" {...props} />
           </div>
         </Specimen>
       ))}
