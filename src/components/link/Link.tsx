@@ -32,6 +32,8 @@ import { tv } from '../../internal/tv';
 // 原則5: リンクなどの小物は pill。原則7の例外: 密度の高い並び（More、SNS のアカウント一覧）は枠線
 // 影のない平らな要素なので、hover と押下は塗りの濃さで表し、押下で 1px 沈む（原則3、design/adr/0027）
 // 文字のリンクの下線と hover は design/adr/0030
+//   underline="hover" はふだん下線を透明にし、載せたときだけ always の hover と同じ濃い下線を引く（design/adr/0412）
+//   color="inherit" は周りの文字の色のまま。下線も周りの色から作る。ボタンの見た目では neutral と同じ
 // 大きさ（design/adr/0039）: 枠線のリンクは、枠線のボタンと同じ寸法（--spacing-control ほか。密度で切り替わる）
 //   文字のリンクは大きさを持たず、周りの文字のまま。押せる範囲も文字の行だけで、見えない広がりは付けない
 //   広い範囲が要るときは、文字のリンクを広げずに、ボタンの見た目（variant="button"）にする
@@ -124,6 +126,15 @@ const link = tv({
       secondary:
         '[--color-own-focus:var(--color-fg-secondary)] [--link-color:var(--color-fg-secondary)]',
       neutral: textLinkNeutral,
+      // 周りの文字の色のまま（意味の色の Text の中、見出しの中など）。下線は文字の色から作るので、周りの色に合う
+      inherit: '[--link-color:currentColor]',
+    },
+    // 文字のリンクの下線（text のときだけ効く）。always はいつも淡い下線、hover は載せたときだけ（軸 445）
+    //   hover: ふだんは下線を透明にし、載せたときに always の hover と同じ濃い下線にする。色だけを動かすので、位置は動かない
+    underline: {
+      always: '',
+      hover:
+        '[text-decoration-color:transparent] not-data-disabled:hover:[text-decoration-color:var(--color-link-underline-hover)]',
     },
     // 幅いっぱいに広げたときの中身の寄せ方。枠線のリンクだけに効く（design/adr/0046）
     contentAlign: { center: '', between: '', 'center-end': '' },
@@ -133,10 +144,17 @@ const link = tv({
     { variant: 'outline', contentAlign: 'between', class: 'justify-between' },
     // center-end の左の空き（アイコンと隙間の幅）は、最後のアイコンがあるときだけ部品の中で足す
   ],
-  defaultVariants: { variant: 'text', color: 'neutral', contentAlign: 'center' },
+  defaultVariants: {
+    variant: 'text',
+    color: 'neutral',
+    contentAlign: 'center',
+    underline: 'always',
+  },
 });
 
 export type LinkContentAlign = NonNullable<VariantProps<typeof link>['contentAlign']>;
+/** 文字のリンクの下線の出し方 */
+export type LinkUnderline = NonNullable<VariantProps<typeof link>['underline']>;
 
 export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantProps<typeof link> {
   /**
@@ -150,10 +168,19 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
   className?: string;
   /**
    * 利用者が選ぶ色（原則6）。primary は進めたい移動、secondary は用途を限定しない選べる色です。
-   * 指定しないときは周りの文字と同じグレー（neutral）になります
+   * 指定しないときは周りの文字と同じグレー（neutral）になります。
+   * inherit は周りの文字の色をそのまま使います（意味の色を付けた Text の中や、見出しの中のリンク）。下線も周りの色から作ります。
+   * inherit は文字のリンクと枠線のリンクで効き、ボタンの見た目（button・underline）では neutral と同じです
    * @default 'neutral'
    */
   color?: VariantProps<typeof link>['color'];
+  /**
+   * 文字のリンク（variant="text"）の下線の出し方。always はいつも淡い下線を引き、載せると濃くします。
+   * hover はふだん下線を引かず、載せたときだけ引きます。ナビゲーションやフッターのリンクの並びのように、リンクだと分かる場所で使います。
+   * 文章の中のリンクは always のままにします（下線がないと、色の差だけで見分けることになるため）
+   * @default 'always'
+   */
+  underline?: LinkUnderline;
   /**
    * 見た目。text は文章の中の文字のリンク、outline は枠線の pill、button はボタンと同じ見た目（塗り）、
    * underline は塗りも枠線もなく文字に淡い下線だけが付く、いちばん軽い見た目です。
@@ -274,6 +301,7 @@ function ButtonLookLink(props: LinkProps) {
   const {
     variant,
     color,
+    underline: _underline,
     contentAlign: _contentAlign,
     leadIconPlacement: _leadIconPlacement,
     className,
@@ -290,7 +318,7 @@ function ButtonLookLink(props: LinkProps) {
   return (
     <ButtonLink
       variant={variant === 'underline' ? 'underline' : 'filled'}
-      color={disabled ? 'neutral' : (color ?? 'neutral')}
+      color={disabled || color === 'inherit' ? 'neutral' : (color ?? 'neutral')}
       caption={caption}
       className={className}
       disabled={disabled}
@@ -311,6 +339,7 @@ function PlainLink(all: LinkProps) {
   const {
     variant,
     color,
+    underline,
     contentAlign,
     leadIconPlacement = 'with-label',
     className,
@@ -414,6 +443,8 @@ function PlainLink(all: LinkProps) {
       className: link({
         variant,
         color,
+        // 下線の出し方は文字のリンクだけ
+        underline: outline ? undefined : underline,
         contentAlign,
         className: [
           balance,

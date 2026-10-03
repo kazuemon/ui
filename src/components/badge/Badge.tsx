@@ -15,6 +15,8 @@ import { tv } from '../../internal/tv';
 // children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--badge-ring-width）で相手と切り離す
 //   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
 //   相手が丸い（overlap="circular"）ときは、角からの内側ではなく、Badge の中心を相手の円周上（右上 45°）に置く。既定（square）は今のまま
+//   置く角は placement。top-end（既定）は右上、bottom-end は右下（アバターの在席の点など）。右下は右上を上下に写しただけで、寸法は同じ
+// 0: 既定では出さない（未読がないときは消える）。showZero で「0」を出す（件数を常に見せる場所）
 // 読み上げ: accessibleName を渡すと、見える数字は読ませず（aria-hidden）、代わりに見えない文字（sr-only）でその文を読ませる
 //   sr-only は絶対配置なので、Badge 自身を位置の基準にする（重ねるときは absolute、置くだけのときは relative）
 const badge = tv({
@@ -35,7 +37,7 @@ const badge = tv({
       dot: 'size-(--badge-dot)',
     },
     overlay: {
-      true: 'pointer-events-none absolute top-(--badge-overlay-inset) right-(--badge-overlay-inset) translate-x-1/2 -translate-y-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-surface)]',
+      true: 'pointer-events-none absolute right-(--badge-overlay-inset) translate-x-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-surface)]',
       false: 'relative',
     },
     // 重ねる相手の形（overlay のときだけ効く）。circular は中心を円周上（右上 45°）に置く
@@ -43,27 +45,59 @@ const badge = tv({
       square: {},
       circular: {},
     },
+    // 重ねる角（overlay のときだけ効く）
+    placement: {
+      'top-end': {},
+      'bottom-end': {},
+    },
     size: badgeSizeClass,
   },
   compoundVariants: [
     { color: 'warning', shape: 'dot', class: 'bg-fg-warning' },
-    // 45° の点は、辺の中心から (1 - cos45°) ≈ 0.292893 だけ内側（半分の 14.6447% を top・right に使う）
-    { overlay: true, overlap: 'circular', class: 'top-[14.6447%] right-[14.6447%]' },
+    { overlay: true, placement: 'top-end', class: 'top-(--badge-overlay-inset) -translate-y-1/2' },
+    {
+      overlay: true,
+      placement: 'bottom-end',
+      class: 'bottom-(--badge-overlay-inset) translate-y-1/2',
+    },
+    // 45° の点は、辺の中心から (1 - cos45°) ≈ 0.292893 だけ内側（半分の 14.6447% を top・bottom と right に使う）
+    {
+      overlay: true,
+      overlap: 'circular',
+      placement: 'top-end',
+      class: 'top-[14.6447%] right-[14.6447%]',
+    },
+    {
+      overlay: true,
+      overlap: 'circular',
+      placement: 'bottom-end',
+      class: 'right-[14.6447%] bottom-[14.6447%]',
+    },
   ],
   defaultVariants: {
     color: 'neutral',
     shape: 'dot',
     overlay: false,
     overlap: 'square',
+    placement: 'top-end',
     size: 'sm',
   },
 });
 
+/** 重ねる角 */
+export type BadgePlacement = 'top-end' | 'bottom-end';
+
 export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'children'> {
   /**
-   * 数。渡さないと、数のない点になります。0 以下のときは出しません（仮）
+   * 数。渡さないと、数のない点になります。0 以下のときは出しません（0 は showZero で出せます）
    */
   count?: number;
+  /**
+   * 数が 0 のときも「0」を出します。件数をいつも見せたい場所（受信箱の各フォルダの件数など）で使います。
+   * 通知の件数のように、ないときは消したい場所では使いません
+   * @default false
+   */
+  showZero?: boolean;
   /**
    * これを超える数は「99+」のように出します
    * @default 99
@@ -103,6 +137,11 @@ export interface BadgeProps extends Omit<ComponentProps<'span'>, 'color' | 'chil
    * @default 'square'
    */
   overlap?: 'square' | 'circular';
+  /**
+   * 重ねる角。top-end は右上、bottom-end は右下です。アバターの在席の点のように、右下に置く慣習があるものは bottom-end にします
+   * @default 'top-end'
+   */
+  placement?: BadgePlacement;
   /** 数の丸・点に付きます */
   className?: string;
 }
@@ -123,11 +162,13 @@ export function Badge({
   accessibleName,
   children,
   overlap = 'square',
+  placement = 'top-end',
+  showZero = false,
   className,
   ...props
 }: BadgeProps) {
   const overlay = children !== undefined && children !== null;
-  const shown = count === undefined || count > 0;
+  const shown = count === undefined || count > 0 || (showZero && count === 0);
   const text = count === undefined ? null : count > max ? `${max}+` : count;
   const spoken =
     typeof accessibleName === 'function'
@@ -143,6 +184,7 @@ export function Badge({
         shape: count === undefined ? 'dot' : 'count',
         overlay,
         overlap,
+        placement,
         className,
       })}
       {...props}

@@ -30,6 +30,13 @@ export const textStyles = {
     label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
+  // 意味の色（Text の color — 軸 444）。白地の文字の状態の色（warning はオリーブ）。色だけで、形は添えない
+  color: {
+    info: 'text-fg-info',
+    success: 'text-fg-success',
+    warning: 'text-fg-warning',
+    danger: 'text-fg-danger',
+  },
   weight: {
     normal: 'font-normal',
     medium: 'font-medium',
