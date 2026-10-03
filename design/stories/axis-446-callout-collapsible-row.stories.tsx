@@ -15,12 +15,12 @@ const meta = {
       focusVisible: '[data-slot="callout-trigger"]',
     }),
   },
-  args: { pick: '' },
+  args: { pick: 'current,E' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C', 'D'],
+      options: ['', 'current,E', 'current', 'A', 'B', 'C', 'D', 'E'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -188,6 +188,9 @@ function Description({ density }: { density: string }) {
   return (
     <>
       <p>
+        決定: 既定は現行版（塗りを題の上下にそろえる）。E（現行版の高さのまま、開いているとき塗りの下端に細い線を引く）も選べる。A〜D は採らない。ユーザーの返事:「Callout の開ける形ですが、Accordion のような挙動にするといい感じな気がしています。現状の見た目はちょっとイマイチですね」→ 比較を見て →「5981 は現行版の高さでCの線を付けるとどうですか？」→ E を足した →「開けるようにした場合は現行で、Eも選べるという感じで。」
+      </p>
+      <p>
         畳める囲み（collapsible）の題の行の形を選びます。いまの形は、開いているときも塗りを題の上下にそろえるため、題と中身のあいだが畳めない囲み（参考の行）より広く空きます。
         A〜D
         は、題の行を開閉の行（Accordion・Collapsible）と同じ部品の高さの帯にし、中身を帯の下に置きます。
@@ -196,8 +199,7 @@ function Description({ density }: { density: string }) {
         行は案、列は状態です。各セルは、上が info（アイコンあり）、下が
         warning（アイコンなし）。この表は
         {density}
-        の密度です。候補はトークンの上書きだけで作っています。既定の推しは A、ほかに選べる形として
-        B・C・D を並べています。
+        の密度です。候補はトークンの上書きだけで作っています。既定は現行版、ほかに選べる形として E を採りました。
       </p>
     </>
   );
