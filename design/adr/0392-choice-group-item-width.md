@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は [ADR-0390](./0390-choice-group-horizontal.md) と同じ軸 408 の比較のストーリー（決めた時点のコミット `3148cf6`）です。C が「同じ幅（最小 160px）の列」、A・B・D が中身の幅です。
+比較は [ADR-0390](./0390-choice-group-horizontal.md) と同じ軸 408 の比較のストーリー（決めた時点のコミット `244dd6a`）です。C が「同じ幅（最小 160px）の列」、A・B・D が中身の幅です。
 
 ## 決定
 
@@ -45,4 +45,4 @@
 
 ![軸 408 の比較。現行版・A・B・C・D を 5 列で並べたもの。C が同じ幅の列](./assets/0390-choice-group-horizontal.png)
 
-[ADR-0390](./0390-choice-group-horizontal.md) と同じ画像です。決めた時点のコミットは、比較が `3148cf6`、実装が `a373082` です。
+[ADR-0390](./0390-choice-group-horizontal.md) と同じ画像です。決めた時点のコミットは、比較が `244dd6a`、実装が `65da03e` です。

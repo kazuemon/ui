@@ -10,7 +10,7 @@ RadioGroup・CheckboxGroup は縦に積む形だけでした。「はい／い�
 
 ## 候補
 
-比較は、決めた時点のコミット `3148cf6` の比較のストーリー（`design/stories/axis-408-choice-group-horizontal.stories.tsx`）です。列は「2 択」「3 択」「説明文つき」「多い」「狭い入れ物」です。
+比較は、決めた時点のコミット `244dd6a` の比較のストーリー（`design/stories/axis-408-choice-group-horizontal.stories.tsx`）です。列は「2 択」「3 択」「説明文つき」「多い」「狭い入れ物」です。
 
 | 案     | 並べ方                                                  | 間   | 狭い入れ物（24rem 未満） |
 | ------ | ------------------------------------------------------- | ---- | ------------------------ |
@@ -43,7 +43,7 @@ RadioGroup・CheckboxGroup は縦に積む形だけでした。「はい／い�
 ## 影響
 
 - `src/components/radio/Radio.tsx`（RadioGroup）・`src/components/checkbox/CheckboxGroup.tsx`: `direction`（`'vertical'`（既定）・`'horizontal'`）を持ちます。見た目は `src/internal/choice/choice-styles.ts` に置きます
-- 比べるためだけに置いた切り替えのトークン（`--choice-group-display` など）は、切り替えを畳んだコミット（`a373082`）で消しました。間（`--choice-group-gap-x`）と、同じ幅の列の最小幅（`--choice-group-column-min`）は残しています
+- 比べるためだけに置いた切り替えのトークン（`--choice-group-display` など）は、切り替えを畳んだコミット（`65da03e`）で消しました。間（`--choice-group-gap-x`）と、同じ幅の列の最小幅（`--choice-group-column-min`）は残しています
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -54,4 +54,4 @@ RadioGroup・CheckboxGroup は縦に積む形だけでした。「はい／い�
 
 ![RadioGroup・CheckboxGroup の横並びの比較。現行版・A・B・C・D を、2 択・3 択・説明文つき・多い・狭い入れ物の 5 列で並べたもの。A・C に採用の印（採用した形は、A・C のどちらとも違う既定と、選べる 2 つ）](./assets/0390-choice-group-horizontal.png)
 
-決めた時点のコミットは、比較が `3148cf6`、実装が `a373082` です。`git checkout 3148cf6 && pnpm storybook` で、比較のストーリー（`Design Review/408 選択肢を横に並べる`）を、トークンを畳む前の部品のまま開けます。採用の印は、「A・C を選べる形にした」ことを表します（既定はどの案とも違います）。
+決めた時点のコミットは、比較が `244dd6a`、実装が `65da03e` です。`git checkout 244dd6a && pnpm storybook` で、比較のストーリー（`Design Review/408 選択肢を横に並べる`）を、トークンを畳む前の部品のまま開けます。採用の印は、「A・C を選べる形にした」ことを表します（既定はどの案とも違います）。

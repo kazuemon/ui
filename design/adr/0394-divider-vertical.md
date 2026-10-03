@@ -10,7 +10,7 @@ Divider に `orientation="vertical"` を足し、横に並べたもの（ツー�
 
 ## 候補
 
-比較は、決めた時点のコミット `3148cf6` の比較のストーリー（`design/stories/axis-410-divider-vertical-inset.stories.tsx`）です。列は「ツールバー」「リンクの並び」「メタ情報の行」「パネルの中の区切り」です。
+比較は、決めた時点のコミット `244dd6a` の比較のストーリー（`design/stories/axis-410-divider-vertical-inset.stories.tsx`）です。列は「ツールバー」「リンクの並び」「メタ情報の行」「パネルの中の区切り」です。
 
 | 案        | 縦の線の長さ           |
 | --------- | ---------------------- |
@@ -43,7 +43,7 @@ B と C は縦の線が同じで、左右を空けた線の空け幅だけが違
 ## 影響
 
 - `src/components/divider/Divider.tsx`: `orientation="vertical"` は周りの文字の高さ（1em）で中央にそろえます
-- 比べるためだけに置いた `--divider-vertical-*` のトークンは、切り替えを畳んだコミット（`a373082`）で消しました
+- 比べるためだけに置いた `--divider-vertical-*` のトークンは、切り替えを畳んだコミット（`65da03e`）で消しました
 - 縦の線は、文の中にも置けるよう `span` で描き、`role="separator"` と `aria-orientation="vertical"` を付けます
 - 縦の線の左右の間は、置く側（並べる枠の `gap`）が決めます
 - 比較のストーリーは消しました
@@ -56,4 +56,4 @@ B と C は縦の線が同じで、左右を空けた線の空け幅だけが違
 
 ![縦の Divider と左右を空けた線の比較。現行版・A・B・C を、ツールバー・リンクの並び・メタ情報の行の 3 列で並べたもの。B に採用の印](./assets/0394-divider-vertical-inset.png)
 
-決めた時点のコミットは、比較が `3148cf6`、実装が `a373082` です。`git checkout 3148cf6 && pnpm storybook` で、比較のストーリー（`Design Review/410 縦の区切り線と、左右を空けた線`）を、トークンを畳む前の部品のまま開けます。
+決めた時点のコミットは、比較が `244dd6a`、実装が `65da03e` です。`git checkout 244dd6a && pnpm storybook` で、比較のストーリー（`Design Review/410 縦の区切り線と、左右を空けた線`）を、トークンを畳む前の部品のまま開けます。

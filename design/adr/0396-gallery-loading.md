@@ -10,7 +10,7 @@ Gallery の画像が読み込まれるまでの面の見た目を決めました
 
 ## 候補
 
-比較は、決めた時点のコミット `3148cf6` の比較のストーリー（`design/stories/axis-411-gallery-loading.stories.tsx`）です。列は「読み込み中」「一部が読み込めた」「単体の Image」です。
+比較は、決めた時点のコミット `244dd6a` の比較のストーリー（`design/stories/axis-411-gallery-loading.stories.tsx`）です。列は「読み込み中」「一部が読み込めた」「単体の Image」です。
 
 | 案                | 面              | ふち | 動き                             |
 | ----------------- | --------------- | ---- | -------------------------------- |
@@ -45,7 +45,7 @@ Gallery の画像が読み込まれるまでの面の見た目を決めました
 
 - `src/components/gallery/`: `loadingAnimation`（`'sweep-viewport'`（既定）・`'pulse'`）を持ちます
 - `Image` の見た目は変えません（単体では面ごとの光のまま）。Gallery が中の `Image` に動きを渡すため、`Image` は `src/internal/image-placeholder-context.ts` の context を読みます。Gallery の外の `Image` には届きません
-- 比べるためだけに置いた `--image-placeholder-*` の切り替えのトークンは、切り替えを畳んだコミット（`a373082`）で消しました
+- 比べるためだけに置いた `--image-placeholder-*` の切り替えのトークンは、切り替えを畳んだコミット（`65da03e`）で消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -56,4 +56,4 @@ Gallery の画像が読み込まれるまでの面の見た目を決めました
 
 ![Gallery の読み込み中の比較。現行版・A・B・C・D を、読み込み中・一部が読み込めた・単体の Image の 3 列で並べたもの。A・B に採用の印](./assets/0396-gallery-loading.png)
 
-決めた時点のコミットは、比較が `3148cf6`、実装が `a373082` です。`git checkout 3148cf6 && pnpm storybook` で、比較のストーリー（`Design Review/411 画像を読み込むまでの見た目`）を、トークンを畳む前の部品のまま開けます。
+決めた時点のコミットは、比較が `244dd6a`、実装が `65da03e` です。`git checkout 244dd6a && pnpm storybook` で、比較のストーリー（`Design Review/411 画像を読み込むまでの見た目`）を、トークンを畳む前の部品のまま開けます。
