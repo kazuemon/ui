@@ -458,6 +458,17 @@ export const WithFormSheet: Story = {
     content.scrollTop = content.scrollHeight;
     await waitFor(() => expect(atBottom()).toBeLessThan(1));
     content.scrollTop = 0;
+    // 帯の下に隠れた欄へ Tab で進むと、欄を帯の上まで送る（帯の高さの scroll-padding）
+    const note = within(dialog).getByRole('textbox', { name: 'メモ' });
+    within(dialog).getByRole('textbox', { name: 'ウェブサイト' }).focus();
+    content.scrollTop = 0;
+    await userEvent.tab();
+    await expect(note).toHaveFocus();
+    await waitFor(() =>
+      expect(note.getBoundingClientRect().top).toBeLessThan(footer.getBoundingClientRect().top)
+    );
+    note.blur();
+    content.scrollTop = 0;
   },
 };
 

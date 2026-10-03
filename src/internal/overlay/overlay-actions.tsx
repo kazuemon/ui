@@ -1,11 +1,19 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, use, useEffect, useLayoutEffect } from 'react';
+import {
+  type ComponentProps,
+  type ReactNode,
+  use,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from 'react';
 
 import { type OverlayActionsKind, OverlayActionsContext } from './overlay-actions-context';
 import { warnOnce } from '../link-parts';
 import { SheetMoreCue } from '../sheet/SheetMoreCue';
 import { tv } from '../tv';
+import { useMergedRefs } from '../use-merged-refs';
 
 // 面の下の操作の帯の見た目。仕組みは overlay-actions-context.ts
 const styles = tv({
@@ -31,6 +39,41 @@ const styles = tv({
     },
   },
 });
+
+// 貼り付けた帯を置く、スクロールする中身
+const SCROLLER =
+  '[data-slot=dialog-content],[data-slot=sheet-content],[data-slot=inspector-content]';
+
+/**
+ * 貼り付けた帯の高さを、スクロールする中身の scroll-padding-bottom にする。
+ * Tab で帯の下に隠れた欄へ進んだとき、ブラウザがその欄（入力欄ではカーソル）を帯の上まで送るように。
+ * 帯の中にフォーカスがあるあいだは外す（開いた直後に帯のボタンへフォーカスしたとき、中身をスクロールさせないため）
+ */
+function useStickyScrollPadding(enabled: boolean) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    const band = ref.current;
+    const scroller = enabled ? band?.closest<HTMLElement>(SCROLLER) : null;
+    if (!band || !scroller) return undefined;
+    const apply = (focused: Element | null) => {
+      const outsideBand = focused != null && scroller.contains(focused) && !band.contains(focused);
+      scroller.style.scrollPaddingBottom = outsideBand ? `${band.offsetHeight}px` : '';
+    };
+    // フォーカスが移ったとき（ブラウザがフォーカスした要素へスクロールするより前）に切り替える
+    const onFocusIn = (event: FocusEvent) =>
+      apply(event.target instanceof Element ? event.target : null);
+    scroller.addEventListener('focusin', onFocusIn);
+    const observer = new ResizeObserver(() => apply(document.activeElement));
+    observer.observe(band);
+    apply(document.activeElement);
+    return () => {
+      scroller.removeEventListener('focusin', onFocusIn);
+      observer.disconnect();
+      scroller.style.scrollPaddingBottom = '';
+    };
+  }, [enabled]);
+  return ref;
+}
 
 const SLOTS: Record<OverlayActionsKind, string> = {
   dialog: 'dialog-footer',
@@ -78,9 +121,13 @@ export function OverlayActions({
   start,
   className,
   children,
+  ref,
   ...props
 }: OverlayActionsProps) {
   const slot = use(OverlayActionsContext);
+  const sticky = slot != null && slot.kind !== 'dialog';
+  const bandRef = useStickyScrollPadding(sticky);
+  const mergedRef = useMergedRefs<HTMLDivElement>(bandRef, ref);
   const register = slot?.register;
   useLayoutEffect(() => register?.(), [register]);
   const actionsGiven = slot?.actionsGiven ?? false;
@@ -95,15 +142,15 @@ export function OverlayActions({
   }, [slot, actionsGiven, name]);
   if (!slot) {
     return (
-      <div {...props} className={styles({ className })}>
+      <div ref={ref} {...props} className={styles({ className })}>
         {start != null && <OverlayActionsStart>{start}</OverlayActionsStart>}
         {children}
       </div>
     );
   }
-  const sticky = slot.kind !== 'dialog';
   return (
     <div
+      ref={mergedRef}
       data-slot={SLOTS[slot.kind]}
       data-layout={sticky ? slot.layout : undefined}
       {...props}
