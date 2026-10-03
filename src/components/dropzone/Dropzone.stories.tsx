@@ -80,7 +80,7 @@ function DropzoneDemo(props: Partial<DropzoneProps>) {
       />
       <DropzoneFileList
         files={files.map((file) => ({ file }))}
-        onRemove={(file) => setFiles((current) => current.filter((f) => f !== file))}
+        onRemove={(entry) => setFiles((current) => current.filter((f) => f !== entry.file))}
       />
     </div>
   );
