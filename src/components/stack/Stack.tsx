@@ -14,8 +14,9 @@ import {
 import {
   breakpoints,
   byBreakpoint,
-  type GridBreakpoint,
+  type Breakpoint,
   isListElement,
+  type Responsive,
 } from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
@@ -68,7 +69,7 @@ const stack = tv({
 });
 
 // 段ごとの向きと折り返し。Tailwind が拾えるよう、クラスは段ごとに書き切る。折り返しは横のときだけ
-const directionClasses: Record<GridBreakpoint, Record<StackDirection, string>> = {
+const directionClasses: Record<Breakpoint, Record<StackDirection, string>> = {
   base: {
     vertical: 'flex-col [--stack-vertical:1]',
     horizontal: 'flex-row [--stack-vertical:0]',
@@ -90,7 +91,7 @@ const directionClasses: Record<GridBreakpoint, Record<StackDirection, string>> =
     horizontal: 'xl:flex-row xl:[--stack-vertical:0]',
   },
 };
-const wrapClasses: Record<GridBreakpoint, Record<'wrap' | 'nowrap', string>> = {
+const wrapClasses: Record<Breakpoint, Record<'wrap' | 'nowrap', string>> = {
   base: { wrap: 'flex-wrap', nowrap: 'flex-nowrap' },
   sm: { wrap: 'sm:flex-wrap', nowrap: 'sm:flex-nowrap' },
   md: { wrap: 'md:flex-wrap', nowrap: 'md:flex-nowrap' },
@@ -104,7 +105,7 @@ const separator =
 
 export type StackDirection = 'vertical' | 'horizontal';
 /** 並べる向き。向きなら画面の幅によらず同じ、段ごとの向きなら画面の幅で変わる */
-export type StackDirections = StackDirection | Partial<Record<GridBreakpoint, StackDirection>>;
+export type StackDirections = Responsive<StackDirection>;
 export type StackGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type StackAlign = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
 export type StackJustify = 'start' | 'center' | 'end' | 'between';

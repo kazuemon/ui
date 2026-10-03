@@ -314,6 +314,14 @@ export const PlayIcon = (props: IconProps) => (
   </Icon>
 );
 
+// 縦の 2 本の棒の一時停止（Phosphor の Pause の塗り）。Carousel の自動の送りを止めるボタンに置く（PlayIcon と対）
+export const PauseIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="68" y="48" width="44" height="160" rx="10" fill="currentColor" stroke="none" />
+    <rect x="144" y="48" width="44" height="160" rx="10" fill="currentColor" stroke="none" />
+  </Icon>
+);
+
 // 山かっこ 2 つ（Phosphor の Code）。Embed の読み込む前の面（CodePen などコード系の provider）に置く
 export const CodeIcon = (props: IconProps) => (
   <Icon {...props}>

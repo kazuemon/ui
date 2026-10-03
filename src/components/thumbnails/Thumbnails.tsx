@@ -29,19 +29,19 @@ import { tv } from '../../internal/tv';
 //   角は部品の角（押すもの — 原則5）。画像の細い輪郭は Figure と同じ濃さ（白っぽい画像が白地に溶けないように）
 //   並びが入り切らないときは横にスクロールする。続きは左右の端の内側の影で見せる（原則1。ScrollArea と同じ）
 //     選んでいるものが見えている範囲の外に出たら、見える位置まで送る（動きを減らす設定では滑らせない）
+//   orientation="vertical" は縦に並べる（Carousel の横に置く帯）。入れ物の高さに収め、はみ出す分は縦にスクロールする
+//     ↑↓ で選ぶ。選んでいる棒は帯の内側（スライドの側）に縦に引き、スクロールのつまみは外側（ページの端の側）に溝を取って置く。
+//       棒とつまみが同じ端に重ならない。Carousel の左（thumbnailsPlacement="start"）では棒が右・つまみが左、右（end）では逆
+//       Carousel の横に置かないときは、左に置く形（棒が右・つまみが左）
+//     Carousel の thumbnailsPlacement が start・end のときは、書かなくても縦になる
 
 const styles = tv({
   slots: {
     // フォーカスの線（外に 4px）が枠で切れないよう、枠を広げて内側に余白を取る（Tabs と同じ）
-    root: [
-      'min-w-0 [--thumbnails-room:calc(var(--focus-ring-offset)+var(--focus-ring-width))]',
-      '-mx-(--thumbnails-room) -mt-(--thumbnails-room)',
-    ],
-    viewport: [
-      'px-(--thumbnails-room) pt-(--thumbnails-room)',
-      'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
-    ],
-    list: 'flex w-max gap-(--thumbnails-gap)',
+    root: 'min-w-0 [--thumbnails-room:calc(var(--focus-ring-offset)+var(--focus-ring-width))]',
+    viewport: '',
+    scrollbar: '',
+    list: 'flex gap-(--thumbnails-gap)',
     item: [
       'relative block shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0',
       'aspect-(--thumbnails-item-ratio) w-(--thumbnails-item-width) rounded-(--thumbnails-radius)',
@@ -54,8 +54,8 @@ const styles = tv({
       'before:[box-shadow:inset_0_0_0_var(--border-width-thin)_var(--thumbnails-outline)]',
       'not-aria-selected:hover:before:bg-[color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),transparent)]',
       'not-aria-selected:active:translate-y-(--flat-press-depth) not-aria-selected:active:before:bg-[color-mix(in_oklab,var(--color-fg)_var(--flat-press-mix),transparent)]',
-      // 選んでいる印の棒。画像の下に離して引く
-      "after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%+var(--thumbnails-bar-gap))] after:h-(--thumbnails-bar-height) after:rounded-pill after:content-['']",
+      // 選んでいる印の棒。置き場所は orientation で決める
+      "after:pointer-events-none after:absolute after:rounded-pill after:content-['']",
       'aria-selected:cursor-default aria-selected:after:bg-(--thumbnails-own)',
       ...focusRing,
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -63,6 +63,36 @@ const styles = tv({
     ],
   },
   variants: {
+    orientation: {
+      // 横: 棒は画像の下に離して引く
+      horizontal: {
+        root: '-mx-(--thumbnails-room) -mt-(--thumbnails-room)',
+        viewport: [
+          'px-(--thumbnails-room) pt-(--thumbnails-room)',
+          'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+        ],
+        list: 'w-max',
+        item: 'after:inset-x-0 after:top-[calc(100%+var(--thumbnails-bar-gap))] after:h-(--thumbnails-bar-height)',
+      },
+      // 縦: 入れ物の高さに収める。棒は画像の横（内側）に縦に引き、つまみは外側の溝に置く。左右は slideSide で決める
+      vertical: {
+        root: [
+          // 外へ広げるのはフォーカスの線の分だけ。棒の側は、棒の分だけ内側に余白を取る（横向きの下の棒と同じ）
+          '-m-(--thumbnails-room) flex h-full max-h-full flex-col',
+          '[--thumbnails-bar-room:max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+          // つまみの溝（帯の幅と、帯を端から離す分）。つまみを画像と棒に重ねない
+          '[--thumbnails-scrollbar-gutter:calc(var(--scroll-area-thumb-size-hover)+var(--scroll-area-thumb-inset)*2)]',
+        ],
+        viewport: 'pt-(--thumbnails-room) pb-(--thumbnails-room)',
+        list: 'h-max flex-col gap-(--thumbnails-gap)',
+        item: 'after:top-0 after:h-full after:w-(--thumbnails-bar-height)',
+      },
+    },
+    // 縦のとき、帯から見てスライド（中身）のある側。棒はこちら、つまみは反対の側に置く
+    slideSide: {
+      start: {},
+      end: {},
+    },
     // 選んでいる印の色（原則6）。指定しないときは濃いグレー（Tabs と同じ）。フォーカスの線も部品の色
     color: {
       neutral: { root: '[--thumbnails-own:var(--color-neutral-strong)]' },
@@ -81,8 +111,38 @@ const styles = tv({
       },
     },
   },
-  defaultVariants: { color: 'neutral', indicator: 'underline' },
+  compoundVariants: [
+    {
+      orientation: 'vertical',
+      slideSide: 'end',
+      class: {
+        viewport:
+          'ps-[calc(var(--thumbnails-room)+var(--thumbnails-scrollbar-gutter))] pe-(--thumbnails-bar-room)',
+        // Base UI が右に寄せるつまみを、帯の左へ移す
+        scrollbar: '[inset-inline-end:calc(100%-var(--thumbnails-scrollbar-gutter))]!',
+        item: 'after:start-[calc(100%+var(--thumbnails-bar-gap))]',
+      },
+    },
+    {
+      orientation: 'vertical',
+      slideSide: 'start',
+      class: {
+        viewport:
+          'ps-(--thumbnails-bar-room) pe-[calc(var(--thumbnails-room)+var(--thumbnails-scrollbar-gutter))]',
+        item: 'after:start-[calc(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+      },
+    },
+  ],
+  defaultVariants: {
+    color: 'neutral',
+    indicator: 'underline',
+    orientation: 'horizontal',
+    slideSide: 'end',
+  },
 });
+
+/** 並べる向き。horizontal は横、vertical は縦 */
+export type ThumbnailsOrientation = 'horizontal' | 'vertical';
 
 /** 選んでいる印の色 */
 export type ThumbnailsColor = 'neutral' | 'primary' | 'secondary';
@@ -123,6 +183,13 @@ export interface ThumbnailsProps extends Omit<
    * @default 'underline'
    */
   indicator?: ThumbnailsIndicator;
+  /**
+   * 並べる向き。horizontal は横に並べ、棒を画像の下に引きます。vertical は縦に並べ、入れ物の高さに収めます（高さは className などで決めます）。
+   * 縦では、棒を画像の右に、スクロールのつまみを帯の左に引きます（Carousel の右に置いたときは左右が逆）。
+   * Carousel の `thumbnailsPlacement` が start・end のときは、書かなくても縦になります
+   * @default 'horizontal'
+   */
+  orientation?: ThumbnailsOrientation;
   /** いちばん外の要素に付きます */
   className?: string;
 }
@@ -146,6 +213,7 @@ export function Thumbnails({
   accessibleName = '画像を選ぶ',
   color,
   indicator,
+  orientation: orientationProp,
   className,
   ...props
 }: ThumbnailsProps) {
@@ -163,7 +231,9 @@ export function Thumbnails({
     onValueChange?.(clamped);
     carousel?.onValueChange(clamped);
   };
-  const s = styles({ color, indicator });
+  const orientation = orientationProp ?? carousel?.orientation ?? 'horizontal';
+  const vertical = orientation === 'vertical';
+  const s = styles({ color, indicator, orientation, slideSide: carousel?.slideSide });
 
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -173,25 +243,28 @@ export function Thumbnails({
   useEffect(() => {
     const item = tabs.current[selected];
     if (!viewport || !item) return;
-    const room = parseFloat(getComputedStyle(viewport).paddingLeft) || 0;
+    const style = getComputedStyle(viewport);
+    const room = parseFloat(vertical ? style.paddingTop : style.paddingLeft) || 0;
     const view = viewport.getBoundingClientRect();
     const rect = item.getBoundingClientRect();
+    const [start, end] = vertical ? (['top', 'bottom'] as const) : (['left', 'right'] as const);
     let delta = 0;
-    if (rect.left < view.left + room) delta = rect.left - view.left - room;
-    else if (rect.right > view.right - room) delta = rect.right - view.right + room;
+    if (rect[start] < view[start] + room) delta = rect[start] - view[start] - room;
+    else if (rect[end] > view[end] - room) delta = rect[end] - view[end] + room;
     const first = !placed.current;
     placed.current = true;
     if (delta === 0) return;
-    viewport.scrollBy({ left: delta, behavior: first || reducedMotion() ? 'instant' : 'smooth' });
-  }, [selected, viewport]);
+    viewport.scrollBy({
+      [start]: delta,
+      behavior: first || reducedMotion() ? 'instant' : 'smooth',
+    });
+  }, [selected, viewport, vertical]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const next = {
-      ArrowLeft: selected - 1,
-      ArrowRight: selected + 1,
-      Home: 0,
-      End: count - 1,
-    }[event.key];
+    const keys: Record<string, number> = vertical
+      ? { ArrowUp: selected - 1, ArrowDown: selected + 1, Home: 0, End: count - 1 }
+      : { ArrowLeft: selected - 1, ArrowRight: selected + 1, Home: 0, End: count - 1 };
+    const next = keys[event.key];
     if (next === undefined) return;
     event.preventDefault();
     const clamped = clamp(next, count);
@@ -203,15 +276,17 @@ export function Thumbnails({
     <div data-slot="thumbnails" {...props} className={s.root({ className })}>
       <ScrollFrame
         slot="thumbnails-frame"
-        orientation="horizontal"
+        orientation={orientation}
         focusable={false}
+        className={vertical ? 'min-h-0 flex-1' : undefined}
         viewportClassName={s.viewport()}
+        scrollbarClassName={s.scrollbar()}
         onViewport={setViewport}
       >
         <div
           role="tablist"
           aria-label={accessibleName}
-          aria-orientation="horizontal"
+          aria-orientation={orientation}
           onKeyDown={onKeyDown}
           className={s.list()}
         >

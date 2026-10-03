@@ -17,7 +17,7 @@ import {
 
 import {
   columnsClasses,
-  columnVars,
+  breakpointVars,
   type GridColumns,
   isListElement,
 } from '../../internal/breakpoints';
@@ -195,7 +195,7 @@ export function Masonry({
       style: {
         ...style,
         '--masonry-column-width': `${minColumnWidth}px`,
-        ...columnVars(columns),
+        ...breakpointVars('columns', columns),
         gridAutoRows: measured ? 'var(--masonry-row-unit)' : 'auto',
         ...(measured && { rowGap: 0 }),
       } satisfies TokenStyle,

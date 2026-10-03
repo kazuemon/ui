@@ -20,7 +20,7 @@ const palePhoto = svg(
 // 読み込めない画像（壊れたデータ）
 const broken = 'data:image/png;base64,AAAA';
 
-const sizes = ['sm', 'md', 'lg', 'xl'] as const;
+const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 const shapes = ['circle', 'square'] as const;
 const colors = ['neutral', 'primary', 'secondary'] as const;
 const fallbacks = ['initials', 'icon'] as const;
@@ -51,8 +51,8 @@ const meta = {
           '- 頭文字や人のアイコンに切り替わったときも、読み上げには名前が届きます（頭文字とアイコンは飾りとして読み上げから外し、名前を見えない文字で置きます）。`alt` を書かないときは `name` が読み上げの名前になります。',
           '- `name` を渡すと、画像がないとき・読み込めないときに頭文字を出します。和文は 1 文字、欧文は語頭 2 文字までです（「かずえもん」→「か」、`Kazuya Miyamoto` → `KM`）。',
           '- `fallback` は、画像がないとき・読み込めないときに出すものです。`initials`（既定）は頭文字、`icon` は人のアイコンです。ほかのものを置くときは `children` に渡します。',
-          '- `size` は大きさの段です（`sm`・`md`（既定）・`lg`・`xl`）。押すものではないので、入力方式では変わりません。',
-          '- `shape` は形です。`circle`（既定）は丸、`square` は四角です。四角の角は大きさの段に従い、`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角になります。',
+          '- `size` は大きさの段です（`xs`・`sm`・`md`（既定）・`lg`・`xl`）。`xs` はキャプションや表の小さい文字の横に置く段です。押すものではないので、入力方式では変わりません。',
+          '- `shape` は形です。`circle`（既定）は丸、`square` は四角です。四角の角は大きさの段に従い、`xs` は小さい角、`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角になります。',
           '- `color` は頭文字の色です。`neutral`（既定）はグレー、`primary`・`secondary` は淡い面に濃い文字です。名前から色を自動で決めることはしません。',
           '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。`hideOutline` で消せます。',
         ].join('\n'),
