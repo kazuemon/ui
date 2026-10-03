@@ -39,7 +39,7 @@ export interface FootnoteRefProps extends Omit<ComponentProps<'a'>, 'href' | 'id
   children?: ReactNode;
   /**
    * id の接頭辞。1 ページに脚注の一覧を 2 つ置くときは、組ごとに変えます。
-   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。remark の出力の参照をそのまま使うときは、既定のままにします（参照の説明は、いつも見出しの id `footnote-label` を指すため）。変えるときは、参照も FootnoteRef で描き、remark-rehype の clobberPrefix にも同じ接頭辞を渡します
    * @default 'user-content-'
    */
   idPrefix?: string;
@@ -88,7 +88,7 @@ export interface FootnotesProps extends Omit<ComponentProps<'section'>, 'childre
   label?: ReactNode;
   /**
    * id の接頭辞。FootnoteRef・FootnoteItem と同じ値にします。見出しの id は、既定では remark と同じ `footnote-label`、変えたときは `<idPrefix>footnote-label` です。
-   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。remark の出力の参照をそのまま使うときは、既定のままにします（参照の説明は、いつも見出しの id `footnote-label` を指すため）。変えるときは、参照も FootnoteRef で描き、remark-rehype の clobberPrefix にも同じ接頭辞を渡します
    * @default 'user-content-'
    */
   idPrefix?: string;
@@ -126,7 +126,7 @@ export interface FootnoteItemProps extends Omit<ComponentProps<'li'>, 'id'> {
   id: string;
   /**
    * id の接頭辞。FootnoteRef・Footnotes と同じ値にします。
-   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。remark の出力の参照をそのまま使うときは、既定のままにします（参照の説明は、いつも見出しの id `footnote-label` を指すため）。変えるときは、参照も FootnoteRef で描き、remark-rehype の clobberPrefix にも同じ接頭辞を渡します
    * @default 'user-content-'
    */
   idPrefix?: string;
