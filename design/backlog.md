@@ -492,7 +492,6 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 2026-10-01 に、仮画像（placeholder）の切り替わりとぼかしを決めました（[ADR-0437](./adr/0437-image-placeholder-reveal.md)・[ADR-0438](./adr/0438-image-placeholder-blur.md)）。
 
-- `placeholder` の名前は、props.md の語彙の意味（空のときに例として出す文字）とぶつかります。仮画像を指す名前にするかは決めていません
 - 仮画像の上に、読み込み中の光を流すかは決めていません
 
 ### Sortable
