@@ -25,7 +25,7 @@ const meta = {
           '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
           '- `ListItem` の `status`（`success`・`warning`・`danger`）で、印を状態の色と形のアイコンにします。`icon` で好きなアイコンを印にできます。印は読み上げないので、状態は文でも伝えます。',
           '- 印のアイコンは文字の 1.25 倍の大きさです。`ListItem` の `iconColor` でアイコンの色を、`color` で文の色を、Tag の `color` と同じ色から選びます。書かないときはどちらも文字の色で、`status` のアイコンは状態の色です。',
-          '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグ・ボタンなどを置きます。右端に寄せ、1 行目の高さの中で縦の中央にそろえます。文字の大きさや色は、置くものに付けます。',
+          '- `ListItem` の `trailing` で、項目の末尾に数・日付・タグ・ボタンなどを置きます。右端に寄せ、1 行目の高さの中で縦の中央にそろえます。文字（数）だけを渡すと小さい淡い文字で描き、要素を渡したときの文字の大きさや色は、置くものに付けます。',
         ].join('\n'),
       },
     },
@@ -137,12 +137,10 @@ export const StatusAndTrailing: Story = {
           </ListItem>
         </List>
       </Specimen>
-      <Specimen label="trailing（折り返す文・タグ）">
+      <Specimen label="trailing（文字だけ・折り返す文・タグ）">
         <List>
-          <ListItem trailing={<span className="text-fg-subtle">9/30</span>}>
-            カレンダーに日ごとの印を足した
-          </ListItem>
-          <ListItem trailing={<span className="text-fg-subtle">10/1</span>}>
+          <ListItem trailing="9/30">カレンダーに日ごとの印を足した</ListItem>
+          <ListItem trailing="10/1">
             フォームのどの欄にも結び付かないエラーを出せるようにした
           </ListItem>
           <ListItem status="success" trailing={<Tag color="success">公開</Tag>}>
@@ -285,6 +283,13 @@ export const NestedWithTrailing: Story = {
     await expect(nested).toHaveLength(2);
     await expect(getComputedStyle(nested[0]).marginTop).toBe(getComputedStyle(nested[1]).marginTop);
     await expect(getComputedStyle(nested[0]).marginTop).not.toBe('0px');
+    // 文字だけの末尾は、項目の文より小さい淡い文字で描く
+    const trailing = canvasElement.querySelector<HTMLElement>('[data-slot="list-item-trailing"]')!;
+    const item = trailing.closest('li')!;
+    await expect(parseFloat(getComputedStyle(trailing).fontSize)).toBeLessThan(
+      parseFloat(getComputedStyle(item).fontSize)
+    );
+    await expect(getComputedStyle(trailing).color).not.toBe(getComputedStyle(item).color);
   },
 };
 

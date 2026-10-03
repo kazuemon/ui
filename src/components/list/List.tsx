@@ -145,6 +145,8 @@ const listItem = tv({
     trailing: 'flex h-[var(--list-leading,var(--leading-body))] items-center',
   },
   variants: {
+    // 末尾に文字（数）だけを渡されたときは、補足として小さい淡い文字で描く。要素には文字の大きさや色を付けない
+    trailingText: { true: { trailing: 'text-caption leading-caption text-fg-muted' } },
     marker: {
       true: {
         root: 'before:[content:none]',
@@ -213,7 +215,7 @@ export interface ListItemProps extends Omit<ComponentProps<'li'>, 'color'> {
   color?: ListItemColor;
   /**
    * 項目の末尾に置くもの（数・日付・タグ・ボタンなど）。右端に寄せ、1 行目の行の高さの中で縦の中央にそろえます。
-   * 文字の大きさや色は付けないので、薄くするときなどは置くものに指定してください
+   * 文字（数）だけを渡すと、補足として小さい淡い文字で描きます。要素を渡したときは文字の大きさや色を付けないので、置くものに指定してください
    */
   trailing?: ReactNode;
   /** 項目の文。入れ子のリストは、この中に List を置きます */
@@ -243,10 +245,13 @@ export function ListItem({
   // 描かれない値（false・true・空の文字）は、icon を書かなかったのと同じに扱う（印を消して空の枠を出さない）
   const iconShown = icon != null && typeof icon !== 'boolean' && icon !== '' ? icon : null;
   const marker = checked == null ? (iconShown ?? (StatusIcon ? <StatusIcon /> : null)) : null;
+  // 末尾に文字（数）だけを渡されたときは、補足として小さい淡い文字で描く
+  const trailingText = typeof trailing === 'string' || typeof trailing === 'number';
   const s = listItem({
     marker: marker != null,
     status: checked == null ? status : undefined,
     iconColor,
+    trailingText,
   });
   // 末尾の枠があるときは、文と末尾を 2 列に並べる。チェックリストの項目でも同じ
   const content =
