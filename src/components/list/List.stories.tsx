@@ -316,3 +316,29 @@ export const CheckedWithTrailing: Story = {
     await expect(canvasElement.querySelector('[data-slot="list-item-icon"]')).toBeNull();
   },
 };
+
+// icon に描かれない値（showIcon && <Icon /> の false など）を渡したときは、書かなかったのと同じ印になる
+export const IconFalse: Story = {
+  name: '描かれない icon',
+  parameters: { controls: { disable: true } },
+  render: () => {
+    const showIcon = false as boolean;
+    return (
+      <List>
+        <ListItem icon={showIcon && <RocketLaunchIcon />}>箇条書きの印のまま</ListItem>
+        <ListItem icon={showIcon && <RocketLaunchIcon />} status="success">
+          状態のアイコン
+        </ListItem>
+      </List>
+    );
+  },
+  play: async ({ canvas, canvasElement }) => {
+    const items = canvas.getAllByRole('listitem');
+    // 印を消して空の枠を出さない
+    await expect(items[0].querySelector('[data-slot="list-item-icon"]')).toBeNull();
+    await expect(getComputedStyle(items[0]).display).toBe('list-item');
+    await expect(canvasElement.querySelectorAll('[data-slot="list-item-icon"] svg')).toHaveLength(
+      1
+    );
+  },
+};

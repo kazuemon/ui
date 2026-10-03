@@ -240,7 +240,9 @@ export function ListItem({
   const className = cn(color && listItemColors[color], classNameProp) || undefined;
   // チェックリストの項目は、頭を箱が使うので、印のアイコン（status・icon）を出さない
   const StatusIcon = checked == null && status ? statusIcons[status] : undefined;
-  const marker = checked == null ? (icon ?? (StatusIcon ? <StatusIcon /> : null)) : null;
+  // 描かれない値（false・true・空の文字）は、icon を書かなかったのと同じに扱う（印を消して空の枠を出さない）
+  const iconShown = icon != null && typeof icon !== 'boolean' && icon !== '' ? icon : null;
+  const marker = checked == null ? (iconShown ?? (StatusIcon ? <StatusIcon /> : null)) : null;
   const s = listItem({
     marker: marker != null,
     status: checked == null ? status : undefined,
