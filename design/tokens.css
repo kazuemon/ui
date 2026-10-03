@@ -1148,13 +1148,19 @@
   --carousel-dot-color: var(--color-line-strong);
   --carousel-dot-current-color: var(--color-neutral-strong);
   --carousel-count-gap: var(--spacing);
+  /* per-view-gap: 1 画面に複数枚（slidesPerView）のときのスライドのあいだ（軸 452）
+     autoplay-inline-gap: 自動の送りを止めるボタンと位置の印のあいだ（軸 451）
+     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ */
+  --carousel-per-view-gap: calc(var(--spacing) * 3);
+  --carousel-autoplay-inline-gap: calc(var(--spacing) * 3);
+  --carousel-thumbnails-side-gap: calc(var(--spacing) * 3);
   /* ── END carousel */
 
   /* ── Thumbnails — 軸 288 ── BEGIN thumbnails */
   /* 小さな画像を並べ、押して切り替える帯。src/components/thumbnails
      1 つずつは平らな押すもの（原則3）。hover で本文の色を淡く敷き、押すと沈む。選んでいるものは hover も沈みもしない（Tabs と同じ）
      item-width・item-ratio: 1 つの幅と比。radius: 角（押すものなので部品の角 — 原則5）。outline: 画像の細い輪郭（Figure と同じ濃さ）
-     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く
+     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く。縦に並べたときは画像の内側（スライドの側）の横に縦に引き、スクロールのつまみは外側に溝を取って置く（軸 453）
      rest-opacity・hover-opacity: 選んでいない画像の濃さと、載せたときの濃さ（1 で薄くしない）
      dim-rest-opacity・dim-hover-opacity: indicator="underline-dim" のときの、選んでいない画像の濃さと載せたときの濃さ（軸 288・決定: B） */
   --thumbnails-gap: calc(var(--spacing) * 2);
@@ -1802,6 +1808,22 @@
   --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
   --timeline-tail-length: calc(var(--spacing) * 5);
   --color-timeline-line: var(--color-line);
+  /* 状態の色の点（markerType の success・warning・danger）
+       color-marker-*: 点の色。警告の黄色は白地で 1.2:1 と見えにくいので、前景用のオリーブ色を既定にする（warningColor="yellow" で黄色の塗り）
+       color-marker-on-warning: 警告の点の色の上に載せるアイコンの色（オリーブなら白、黄色なら濃紺）
+     アイコンの丸（TimelineItem の icon）
+       icon-marker-size・icon-size: filled の丸とアイコンの大きさ
+       icon-marker-size-lg・icon-size-lg: soft・outline の丸とアイコンの大きさ（淡い面・輪郭は塗りより軽く見えるので一回り大きく）
+       icon-plain-size: plain（丸なし）のアイコンの大きさ */
+  --color-timeline-marker-success: var(--color-success);
+  --color-timeline-marker-warning: var(--color-fg-warning);
+  --color-timeline-marker-on-warning: var(--palette-white);
+  --color-timeline-marker-danger: var(--color-danger);
+  --timeline-icon-marker-size: calc(var(--spacing) * 6);
+  --timeline-icon-size: calc(var(--spacing) * 3.5);
+  --timeline-icon-marker-size-lg: calc(var(--spacing) * 7);
+  --timeline-icon-size-lg: calc(var(--spacing) * 4);
+  --timeline-icon-plain-size: calc(var(--spacing) * 5);
   /* ── END timeline */
 
   /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */

@@ -5,7 +5,7 @@ import {
   breakpoints,
   byBreakpoint,
   columnsClasses,
-  columnVars,
+  breakpointVars,
   type GridBreakpoint,
   type GridColumns,
 } from '../../internal/breakpoints';
@@ -313,7 +313,7 @@ export function DescriptionList({
   });
   const tokens: TokenStyle = {
     ...(termWidth && { '--description-term-width': termWidth }),
-    ...columnVars(columns),
+    ...breakpointVars('columns', columns),
   };
   return (
     <dl

@@ -1,5 +1,6 @@
 import { FileTextIcon, FolderIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { Tree, TreeItem } from './Tree';
@@ -40,6 +41,9 @@ const meta = {
           '- 行の頭のアイコンは `icon` で渡します。渡さないときは置きません。',
           '- Tab で入るのは 1 行だけです。↑ ↓ で行を移り、→ で開いて中へ、← で閉じて親へ、Home・End で端へ移ります。子を持つ行は Space で開け閉めします。',
           '- 文字を打つと、その文字で始まる行へ移ります。続けて打った文字は 1 語として扱い、少し間が空くと打ち直しになります。開いていない枝の中の行には移りません。',
+          '- 子をあとから読み込むときは、行に `hasChildren` を付けます。children がなくても開け閉めでき、開いたとき（`onExpandedChange`）に読み込みます。読み込んでいるあいだは `loading` を付けます。読み込みが始まったことは、読み上げで 1 回だけ「読み込んでいます」（`loadingText`）と知らせます。終わったときは知らせません。',
+          '- 読み込んでいるあいだも閉じられる（既定の `loadingBehavior="non-blocking"`）ときは、行の右端に回る円が出ます。読み込み終わるまで閉じさせないときは `loadingBehavior="blocking"` にし、開閉の印が回る円に変わります。',
+          '- 開いた中に仮の行を置きたいときは `loadingPlaceholder` を使います。「読み込んでいます」の行（`text`）か、場所取りの行（`skeleton`）です。既定は置きません（`none`）。',
           '- 開いている行を自分で持つときは `expanded`・`onExpandedChange` を使います。はじめから開けておくときは `defaultExpanded` です。',
           '- 字下げの案内線は `hideGuides` で消せます。いまいる行の色は `color` で選びます。',
           '- 行の塗り（hover・いまいる行）は、既定では字下げの分だけ左を空けます。木の幅いっぱいに塗るときは `rowWidth="full"` にします。',
@@ -275,6 +279,114 @@ const files = (
     </TreeItem>
   </>
 );
+
+function LazyTree() {
+  const [children, setChildren] = useState<string[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  return (
+    <Tree accessibleName="ドキュメント" className="max-w-xs">
+      <TreeItem label="はじめに" href="#intro" />
+      <TreeItem
+        label="部品"
+        hasChildren
+        loading={loading}
+        onExpandedChange={(open) => {
+          if (!open || children) return;
+          setLoading(true);
+          window.setTimeout(() => {
+            setChildren(['Button', 'TextField']);
+            setLoading(false);
+          }, 1500);
+        }}
+      >
+        {children?.map((name) => (
+          <TreeItem key={name} label={name} href={`#${name.toLowerCase()}`} />
+        ))}
+      </TreeItem>
+    </Tree>
+  );
+}
+
+export const LazyChildren: Story = {
+  name: '子をあとから読み込む',
+  render: () => <LazyTree />,
+  play: async ({ canvas }) => {
+    // 子がなくても開け閉めでき、読み込んでいるあいだは aria-busy と「読み込んでいます」を届ける
+    const row = canvas.getByRole('treeitem', { name: '部品' });
+    // 知らせの箱ははじめから置いてあり、空
+    const status = canvas.getByRole('status');
+    await expect(status).toBeEmptyDOMElement();
+    await expect(row).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(row);
+    await expect(row).toHaveAttribute('aria-expanded', 'true');
+    await expect(row).toHaveAttribute('aria-busy', 'true');
+    await expect(row).toHaveAccessibleDescription('読み込んでいます');
+    // 読み込みが始まったことを、箱が 1 回だけ伝える
+    await expect(status).toHaveTextContent('読み込んでいます');
+    await waitFor(() => expect(canvas.getByRole('treeitem', { name: 'Button' })).toBeVisible(), {
+      timeout: 3000,
+    });
+    await expect(row).not.toHaveAttribute('aria-busy');
+    // 終わったときは知らせない（箱を空に戻すだけ）
+    await waitFor(() => expect(status).toBeEmptyDOMElement());
+  },
+};
+
+export const LoadingStates: Story = {
+  tags: ['visual'],
+  name: '読み込み中の印',
+  render: () => (
+    <div className="grid max-w-3xl grid-cols-2 gap-6">
+      {(
+        [
+          ['閉じられる（既定）', 'non-blocking', 'none'],
+          ['閉じられない', 'blocking', 'none'],
+          ['「読み込んでいます」の行', 'non-blocking', 'text'],
+          ['場所取りの行', 'non-blocking', 'skeleton'],
+        ] as const
+      ).map(([title, behavior, placeholder]) => (
+        <div key={title} className="flex flex-col gap-2">
+          <p className="text-sm text-fg-muted">{title}</p>
+          <Tree accessibleName={title}>
+            <TreeItem label="はじめに" href="#intro" />
+            <TreeItem
+              label="部品"
+              hasChildren
+              defaultExpanded
+              loading
+              loadingBehavior={behavior}
+              loadingPlaceholder={placeholder}
+            />
+          </Tree>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const LoadingBlocking: Story = {
+  name: '読み込み中に閉じさせない',
+  render: () => (
+    <Tree accessibleName="ドキュメント" className="max-w-xs">
+      <TreeItem label="部品" hasChildren defaultExpanded loading loadingBehavior="blocking" />
+      <TreeItem label="レシピ" hasChildren defaultExpanded loading />
+    </Tree>
+  ),
+  play: async ({ canvas }) => {
+    // blocking は読み込み終わるまで閉じない。non-blocking は閉じられる
+    const blocking = canvas.getByRole('treeitem', { name: '部品' });
+    await userEvent.click(blocking);
+    await expect(blocking).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(blocking).toHaveAttribute('aria-expanded', 'true');
+    // 子が届く前の → は、次の兄弟の行へ移らない（移る先の子がまだない）
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(blocking).toHaveFocus();
+    const nonBlocking = canvas.getByRole('treeitem', { name: 'レシピ' });
+    await userEvent.click(nonBlocking);
+    await expect(nonBlocking).toHaveAttribute('aria-expanded', 'false');
+  },
+};
 
 export const Typeahead: Story = {
   name: '型あたり',

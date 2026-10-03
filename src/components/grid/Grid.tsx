@@ -3,7 +3,7 @@
 import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, CSSProperties, ReactElement, ReactNode } from 'react';
 
-import { columnsClasses, columnVars, type GridColumns } from '../../internal/breakpoints';
+import { columnsClasses, breakpointVars, type GridColumns } from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
 export type { GridBreakpoint, GridColumns } from '../../internal/breakpoints';
@@ -136,7 +136,7 @@ export function Grid({
       className: grid({ layout, gap, rowGap, columnGap, align, className }),
       style: {
         ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
-        ...columnVars(columns),
+        ...breakpointVars('columns', columns),
         ...style,
       } satisfies TokenStyle,
     },
