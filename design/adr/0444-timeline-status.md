@@ -10,7 +10,7 @@ Timeline の `markerType` に足した状態の色（success・warning・danger�
 
 ## 候補
 
-比較は、決めた時点のコミット `7d6c75e` の比較のストーリー（`design/stories/axis-456-timeline-status.stories.tsx`）です。列は「点（md）」「点（lg）・強調」「アイコンの丸」の 3 つです。
+比較は、決めた時点のコミット `f421ab2` の比較のストーリー（`design/stories/axis-456-timeline-status.stories.tsx`）です。列は「点（md）」「点（lg）・強調」「アイコンの丸」の 3 つです。
 
 | 案                | 内容                                                 |
 | ----------------- | ---------------------------------------------------- |
@@ -51,4 +51,4 @@ C（輪郭を足す形）と D（淡い面と輪郭）は選ばれませんで�
 
 ![Timeline の状態の色の点の比較。現行版・A・B・C・D を、点（md）・点（lg）と強調・アイコンの丸の 3 列で並べたもの。A・B に採用の印](./assets/0444-timeline-status.png)
 
-決めた時点のコミットは、比較が `7d6c75e`、実装が `ac690ae` です。`git checkout 7d6c75e && pnpm storybook` で、比較のストーリー（`Design Review/456 年表の状態の色の点`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `f421ab2`、実装が `e822295` です。`git checkout f421ab2 && pnpm storybook` で、比較のストーリー（`Design Review/456 年表の状態の色の点`）を決めたときの部品のまま開けます。

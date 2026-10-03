@@ -10,7 +10,7 @@ Carousel に、1 画面に複数枚を並べる `slidesPerView` を足しまし�
 
 ## 候補
 
-比較は、決めた時点のコミット `7d6c75e` の比較のストーリー（`design/stories/axis-452-carousel-per-view.stories.tsx`）です。列は「2 枚」「3 枚」「3 枚・数で示す」の 3 つです。
+比較は、決めた時点のコミット `f421ab2` の比較のストーリー（`design/stories/axis-452-carousel-per-view.stories.tsx`）です。列は「2 枚」「3 枚」「3 枚・数で示す」の 3 つです。
 
 | 案              | 内容                                                    |
 | --------------- | ------------------------------------------------------- |
@@ -51,4 +51,4 @@ A（あいだ 16px）と、C・D（次の 1 枚の端をのぞかせる形）は
 
 ![Carousel の複数枚の並べ方の比較。現行版・A・B・C・D を、2 枚・3 枚・3 枚で数を示す形の 3 列で並べたもの。B に採用の印](./assets/0440-carousel-per-view.png)
 
-決めた時点のコミットは、比較が `7d6c75e`、実装が `ac690ae` です。`git checkout 7d6c75e && pnpm storybook` で、比較のストーリー（`Design Review/452 カルーセルの複数枚の並べ方`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `f421ab2`、実装が `e822295` です。`git checkout f421ab2 && pnpm storybook` で、比較のストーリー（`Design Review/452 カルーセルの複数枚の並べ方`）を決めたときの部品のまま開けます。
