@@ -164,6 +164,7 @@ const meta = {
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
           '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
+          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります（`resizeLine={false}` でふだんの線を消せます）。最後の列は表の端なので、つまみを出しません。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
           '- セルと行の見出しのない列には、`TableHead`・`TableBody`・`TableRow`・`TableCell` をそのまま使います。',
         ].join('\n'),
       },
@@ -411,6 +412,200 @@ export const ColumnWidths: Story = {
     await expect(widthOf(narrow, 'お店')).toBeGreaterThanOrEqual(12 * rem - 0.5);
     const frame = within(canvas.getByTestId('narrow')).getByRole('region');
     await expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth);
+  },
+};
+
+export const ResizableColumns: Story = {
+  tags: ['visual'],
+  name: '列の幅を変える',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`resizable` を付けた列は、右の境のつまみで幅を変えられます。表の列の境は線が薄いので、つまみはふだんから淡い線で見せます。',
+      },
+      source: {
+        code: [
+          '<DataTableHeader resizable defaultWidth={128} resizeName="注文番号の列の幅">',
+          '  注文番号',
+          '</DataTableHeader>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文">
+        <TableHead>
+          <TableRow>
+            <DataTableHeader resizable defaultWidth={128} resizeName="注文番号の列の幅">
+              注文番号
+            </DataTableHeader>
+            <DataTableHeader resizable resizeName="お店の列の幅">
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end">金額</DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 3).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '128');
+    // 表の列のつまみは、ふだんから線を見せる
+    const line = getComputedStyle(handle, '::before');
+    await expect(line.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    // 線は上下に空きを取り、見出しの上下の線に付かない
+    await expect(parseFloat(line.top)).toBeGreaterThan(0);
+    await expect(parseFloat(line.bottom)).toBeGreaterThan(0);
+  },
+};
+
+export const ResizableColumnsDivided: Story = {
+  tags: ['visual'],
+  name: '列の幅を変える（列の境に線を引いた表）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '列の境に線を引いた表（`showColumnDivider`）のように、幅を変えられることが見た目で分かるときは、`resizeLine={false}` でつまみのふだんの線を消せます。載せる・動かす・フォーカスしたときは線が出ます。',
+      },
+      source: {
+        code: [
+          '<DataTable accessibleName="注文" showColumnDivider>',
+          '  …',
+          '  <DataTableHeader resizable resizeLine={false} resizeName="お店の列の幅">',
+          '    お店',
+          '  </DataTableHeader>',
+        ].join('\n'),
+        language: 'tsx',
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文" showColumnDivider>
+        <TableHead>
+          <TableRow>
+            <DataTableHeader
+              resizable
+              resizeLine={false}
+              defaultWidth={128}
+              resizeName="注文番号の列の幅"
+            >
+              注文番号
+            </DataTableHeader>
+            <DataTableHeader resizable resizeLine={false} resizeName="お店の列の幅">
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end">金額</DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 3).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
+    // resizeLine={false} では、ふだんの線を出さない
+    await expect(getComputedStyle(handle, '::before').backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  },
+};
+
+const columnWidthChange = fn();
+
+function ControlledColumnWidths() {
+  const [width, setWidth] = useState(160);
+  return (
+    <div className="max-w-2xl">
+      <DataTable accessibleName="注文">
+        <TableHead>
+          <TableRow>
+            <DataTableHeader
+              resizable
+              width={width}
+              defaultWidth={160}
+              maxWidth={176}
+              onWidthChange={(next) => {
+                columnWidthChange(next);
+                setWidth(next);
+              }}
+              resizeName="お店の列の幅"
+            >
+              お店
+            </DataTableHeader>
+            <DataTableHeader align="end" resizable resizeName="金額の列の幅">
+              金額
+            </DataTableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.slice(0, 2).map((order) => (
+            <DataTableRow key={order.id}>
+              <TableCell>{order.shop}</TableCell>
+              <TableCell align="end">{yen(order.amount)}</TableCell>
+            </DataTableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+    </div>
+  );
+}
+
+export const ResizableColumnsControlled: Story = {
+  name: '列の幅を外で持つ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`resizable` の列に数の `width` を渡すと、幅を外で持つ形になります。`onWidthChange` で受けた幅を `width` に渡し直します（TanStack Table では `header.getSize()` と `table.setColumnSizing`）。ダブルクリックで戻す先として、`defaultWidth` も渡します（TanStack Table では `header.column.columnDef.size`）。',
+      },
+    },
+  },
+  render: () => <ControlledColumnWidths />,
+  play: async ({ canvas }) => {
+    columnWidthChange.mockClear();
+    const handle = canvas.getByRole('separator', { name: 'お店の列の幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '160');
+    handle.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
+    await expect(handle).toHaveAttribute('aria-valuenow', '176');
+    // 上限を越えない
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
+    await userEvent.keyboard('{Home}');
+    await expect(handle).toHaveAttribute('aria-valuenow', '48');
+    // ダブルクリックで defaultWidth に戻す
+    await userEvent.dblClick(handle);
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(160);
+    await expect(handle).toHaveAttribute('aria-valuenow', '160');
+    // 最後の列は表の端なので、resizable でもつまみを出さない（読み上げにも出ない）
+    await expect(canvas.queryByRole('separator', { name: '金額の列の幅' })).toBeNull();
+    const scroller = canvas.getByRole('region', { name: '注文' });
+    await expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth);
   },
 };
 

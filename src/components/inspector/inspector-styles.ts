@@ -15,7 +15,12 @@ import { tv } from '../../internal/tv';
 //   どちらの形も、閉じた動きが終わったら visibility で隠す（読み上げとフォーカスからも外れる）
 export const inspectorStyles = tv({
   slots: {
-    frame: 'shrink-0',
+    frame: 'shrink-0 data-resizing:transition-none',
+    // 幅を変えるつまみ（resizable）。本文との境（パネルの本文側の端）に、つかめる幅を半分ずつ重ねる
+    //   押しのける形は、枠が切り取らないよう、枠の隣に幅 0 の置き場（handleSlot）を置き、その上に重ねる
+    //   重ねる形は、枠の中のパネルの端に置く
+    handleSlot: 'relative z-3 w-0 shrink-0',
+    handle: 'pointer-events-auto inset-y-0',
     panel: [
       'flex h-full min-h-0 flex-col text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
       '[transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
@@ -23,6 +28,8 @@ export const inspectorStyles = tv({
       'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
       // 閉じた動きが終わったら隠す（visibility は、見えなくなる向きでは動きの終わりに切り替わる）
       'invisible data-open:visible',
+      // 幅を変えているあいだは、幅の動きを止める（指に遅れないように）
+      'data-resizing:transition-none',
     ],
   },
   variants: {
@@ -47,8 +54,8 @@ export const inspectorStyles = tv({
       },
     },
     side: {
-      left: { frame: 'order-first' },
-      right: { frame: 'order-last' },
+      left: { frame: 'order-first', handleSlot: 'order-first' },
+      right: { frame: 'order-last', handleSlot: 'order-last' },
     },
     overlayEdge: {
       flush: {
@@ -65,6 +72,18 @@ export const inspectorStyles = tv({
     },
   },
   compoundVariants: [
+    // つまみの置き場所。押しのける形は幅 0 の置き場の上に、重ねる形はパネルの本文側の端に
+    { variant: 'push', class: { handle: '-left-[calc(var(--resize-handle-hit)/2)]' } },
+    {
+      variant: 'overlay',
+      side: 'right',
+      class: { handle: '-left-[calc(var(--resize-handle-hit)/2)]' },
+    },
+    {
+      variant: 'overlay',
+      side: 'left',
+      class: { handle: '-right-[calc(var(--resize-handle-hit)/2)]' },
+    },
     // 押しのける形: パネルは本文の側の端に着け、本文の側に線を引く
     {
       variant: 'push',

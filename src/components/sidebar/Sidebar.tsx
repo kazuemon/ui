@@ -3,16 +3,14 @@
 import {
   type ComponentProps,
   type CSSProperties,
-  type KeyboardEvent,
-  type PointerEvent,
   type ReactNode,
   type RefObject,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 
 import { CaretLeftIcon, CaretRightIcon } from '../../internal/icons';
+import { ResizeHandle, type ResizeKeyAction } from '../../internal/resize-handle/ResizeHandle';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer } from '../drawer/Drawer';
@@ -316,12 +314,11 @@ export function Sidebar({
         )}
       </nav>
       {showHandle && (
-        <ResizeHandle
+        <SidebarResizeHandle
           resize={resize}
           navRef={navRef}
           navId={navId}
           name={resizeName}
-          resizing={resizing}
           setResizing={setResizing}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
@@ -331,24 +328,21 @@ export function Sidebar({
   );
 }
 
-// 矢印キーで動かす幅（px）
-const KEY_STEP = 16;
 // いちばん狭い幅から、さらにこれだけ細くすると列を畳む（px）
 const COLLAPSE_OVERSHOOT = 48;
 // 畳んだ列から引き出すとき、畳む幅よりこれだけ広げたら開く（px）。行き来の境で開閉を繰り返さないよう、間をあける
 const EXPAND_HYSTERESIS = 24;
 
 /**
- * 列の端の幅を変えるつまみ。本文との境の線の上に重ねる。
- * ドラッグで幅を変え、いちばん狭い幅よりさらに細くすると畳む（collapseOnResize）。畳んだ列からは、右へ引き出すと開く。
+ * 列の端の幅を変えるつまみ。本文との境の線の上に重ねる（見た目と、ドラッグ・キーの動きは internal/resize-handle）。
+ * いちばん狭い幅よりさらに細くすると畳む（collapseOnResize）。畳んだ列からは、右へ引き出すと開く。
  * ← → で 16px ずつ（いちばん狭い幅で ← を押すと畳み、畳んだ列で → を押すと開く）、Home・End で最小・最大。ダブルクリックではじめの幅に戻る
  */
-function ResizeHandle({
+function SidebarResizeHandle({
   resize,
   navRef,
   navId,
   name,
-  resizing,
   setResizing,
   collapsed,
   setCollapsed,
@@ -357,111 +351,68 @@ function ResizeHandle({
   navRef: RefObject<HTMLElement | null>;
   navId: string;
   name: string;
-  resizing: boolean;
   setResizing: (next: boolean) => void;
   collapsed: boolean;
   setCollapsed: (next: boolean) => void;
 }) {
   const s = sidebar();
-  const drag = useRef<{ startX: number; startWidth: number; rtl: boolean } | null>(null);
   const { minWidth, maxWidth } = resize;
   const clamp = (value: number) => Math.min(maxWidth, Math.max(minWidth, Math.round(value)));
-  const current = () => resize.width ?? navRef.current?.offsetWidth ?? minWidth;
   const collapseBelow = minWidth - COLLAPSE_OVERSHOOT;
   const expandAbove = collapseBelow + EXPAND_HYSTERESIS;
   // ドラッグの途中で開閉しても、同じドラッグのまま続ける（開閉のたびに描き直され、次の動きは新しい状態で読む）
-
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
-    const startWidth = collapsed ? (navRef.current?.offsetWidth ?? 0) : current();
-    drag.current = { startX: event.clientX, startWidth, rtl };
-    setResizing(true);
-  };
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    const delta = (event.clientX - d.startX) * (d.rtl ? -1 : 1);
-    const raw = d.startWidth + delta;
+  const onDrag = (raw: number) => {
     if (collapsed) {
       // 畳んだ列: 十分に引き出したら開き、そこからは幅を追う
       if (raw >= expandAbove) {
         setCollapsed(false);
         resize.setWidth(clamp(raw));
       }
-      return;
+      return true;
     }
     if (resize.collapseOnResize && raw < collapseBelow) {
       setCollapsed(true);
-      return;
+      return true;
     }
-    resize.setWidth(clamp(raw));
+    return false;
   };
-  const onPointerEnd = () => {
-    drag.current = null;
-    setResizing(false);
-  };
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
-    const grow = rtl ? 'ArrowLeft' : 'ArrowRight';
-    const shrink = rtl ? 'ArrowRight' : 'ArrowLeft';
+  const onKeyAction = (action: ResizeKeyAction, current: number) => {
     if (collapsed) {
-      if (event.key === grow || event.key === 'End') {
-        event.preventDefault();
-        setCollapsed(false);
-      }
-      return;
+      if (action === 'grow' || action === 'max') setCollapsed(false);
+      return true;
     }
-    if (event.key === shrink && resize.collapseOnResize && current() <= minWidth) {
-      event.preventDefault();
+    if (action === 'shrink' && resize.collapseOnResize && current <= minWidth) {
       setCollapsed(true);
-      return;
+      return true;
     }
-    let next: number | undefined;
-    if (event.key === grow) next = current() + KEY_STEP;
-    else if (event.key === shrink) next = current() - KEY_STEP;
-    else if (event.key === 'Home') next = minWidth;
-    else if (event.key === 'End') next = maxWidth;
-    if (next === undefined) return;
-    event.preventDefault();
-    resize.setWidth(clamp(next));
+    return false;
   };
-  // まだ幅を変えていないときの読み上げの値は、描いた列の幅を測って持つ
-  const [measured, setMeasured] = useState<number>();
-  useLayoutEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return undefined;
-    const observer = new ResizeObserver(() => setMeasured(Math.round(nav.offsetWidth)));
-    observer.observe(nav);
-    return () => observer.disconnect();
-  }, [navRef]);
-  // 畳んだ列では、いちばん狭い幅を値とする（畳んだ列の幅は範囲の外なので）
-  const width = collapsed ? minWidth : (resize.width ?? measured);
   return (
     <div className={s.handleSlot()}>
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={name}
-        aria-controls={navId}
-        aria-valuemin={minWidth}
-        aria-valuemax={maxWidth}
-        aria-valuenow={width}
-        tabIndex={0}
-        data-slot="sidebar-resize-handle"
-        data-resizing={resizing || undefined}
-        className={s.handle()}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        onDoubleClick={() => resize.setWidth(resize.defaultWidth)}
-        onKeyDown={onKeyDown}
-      >
-        {resize.handle === 'grip' && <span aria-hidden="true" className={s.grip()} />}
-      </div>
+      <ResizeHandle
+        name={name}
+        controls={navId}
+        target={navRef}
+        width={collapsed ? undefined : resize.width}
+        min={minWidth}
+        max={maxWidth}
+        edge="end"
+        look={resize.handle}
+        slot="sidebar-resize-handle"
+        className="inset-y-0 -start-[calc(var(--resize-handle-hit)/2)]"
+        // 畳んだ列では、いちばん狭い幅を値とする（畳んだ列の幅は範囲の外なので）
+        valueNow={collapsed ? minWidth : undefined}
+        startWidth={() =>
+          collapsed
+            ? (navRef.current?.offsetWidth ?? 0)
+            : (resize.width ?? navRef.current?.offsetWidth ?? minWidth)
+        }
+        onWidthChange={resize.setWidth}
+        onResizingChange={setResizing}
+        onReset={() => resize.setWidth(resize.defaultWidth)}
+        onDrag={onDrag}
+        onKeyAction={onKeyAction}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   useId,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react';
 
 import { useInspectorContext } from './inspector-context';
@@ -18,6 +19,7 @@ import {
   useOverlayActionsSlot,
 } from '../../internal/overlay/overlay-actions-context';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
+import { ResizeHandle } from '../../internal/resize-handle/ResizeHandle';
 import { focusTargetRef, type OverlayFocusTarget } from '../../internal/overlay/overlay-props';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -93,9 +95,35 @@ export interface InspectorProps extends Omit<
   overlayEdge?: InspectorOverlayEdge;
   /**
    * パネルの幅。数値は px、文字列は CSS の長さ（'24rem'・'30%' など）です。書かないときは Drawer の横のパネルと同じ幅です。
-   * 重ねる形では、狭い領域で本文の側に少し残して縮みます
+   * 重ねる形では、狭い領域で本文の側に少し残して縮みます。
+   * resizable のときに数値を渡すと、幅を外で持つ形（制御）になり、onWidthChange で受けた幅を渡し直します
    */
   width?: number | string;
+  /**
+   * 本文との境のつまみをドラッグして、幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で 16px ずつ、Home・End で最小・最大。
+   * ダブルクリックで defaultWidth（なければ部品の幅）に戻ります
+   * @default false
+   */
+  resizable?: boolean;
+  /** resizable のときの、はじめの幅（px。非制御）。書かないときは width か、部品の幅です */
+  defaultWidth?: number;
+  /** resizable で幅を変えたときに、次の幅（px）を渡して呼びます。覚えておくときはここで保存します */
+  onWidthChange?: (width: number) => void;
+  /**
+   * resizable のときの、いちばん狭い幅（px）
+   * @default 240
+   */
+  minWidth?: number;
+  /**
+   * resizable のときの、いちばん広い幅（px）。重ねる形では、領域の幅でも縮みます
+   * @default 640
+   */
+  maxWidth?: number;
+  /**
+   * 幅を変えるつまみの読み上げの名前
+   * @default 'パネルの幅'
+   */
+  resizeName?: string;
   /**
    * 開閉の動き。slide は領域の端から滑らせ、none は動かさずにすぐ切り替えます。動きを減らす設定では、slide でも動かしません
    * @default 'slide'
@@ -138,6 +166,12 @@ export function Inspector({
   variant = 'push',
   overlayEdge = 'flush',
   width,
+  resizable = false,
+  defaultWidth,
+  onWidthChange,
+  minWidth = 240,
+  maxWidth = 640,
+  resizeName = 'パネルの幅',
   motion = 'slide',
   closeOnEscape = true,
   hideCloseButton = false,
@@ -201,93 +235,135 @@ export function Inspector({
   // 中身に置いた下の操作の帯（InspectorActions）。置かれたら、中身の下の余白と続きの印を帯に譲る
   const slot = useOverlayActionsSlot('inspector', layout, actions != null);
   const s = inspectorStyles({ variant, side, overlayEdge, motion });
+  // 幅を変えられるとき: 数値の width は制御、なければ部品の中で持つ（はじめは defaultWidth）
+  const [widthState, setWidthState] = useState(defaultWidth);
+  const [resizing, setResizing] = useState(false);
+  const controlledWidth = resizable && typeof width === 'number';
+  const resizedWidth = resizable ? (controlledWidth ? width : widthState) : undefined;
+  const setWidth = (next: number) => {
+    if (!controlledWidth) setWidthState(next);
+    onWidthChange?.(next);
+  };
+  const shownWidth = resizedWidth ?? width;
   // 幅を渡されたときは、枠に書いてパネルと一緒に読ませる
   const widthStyle: (CSSProperties & Record<'--inspector-width', string>) | undefined =
-    width === undefined
+    shownWidth === undefined
       ? undefined
-      : { '--inspector-width': typeof width === 'number' ? `${width}px` : width };
+      : { '--inspector-width': typeof shownWidth === 'number' ? `${shownWidth}px` : shownWidth };
+  // 幅を変えるつまみ。本文との境の線の上に、つかめる幅を半分ずつ重ねる（開いているあいだだけ）
+  const handle =
+    resizable && open ? (
+      <ResizeHandle
+        name={resizeName}
+        controls={panelId}
+        target={panelRef}
+        width={resizedWidth}
+        min={minWidth}
+        max={maxWidth}
+        edge={side === 'right' ? 'left' : 'right'}
+        slot="inspector-resize-handle"
+        className={s.handle()}
+        onWidthChange={setWidth}
+        onResizingChange={setResizing}
+        onReset={() => {
+          if (!controlledWidth) setWidthState(defaultWidth);
+          if (defaultWidth !== undefined) onWidthChange?.(defaultWidth);
+        }}
+      />
+    ) : null;
+  // 押しのける形は、枠の隣の幅 0 の置き場に置く（本文の側の辺。並びの順は枠と同じ order で、DOM の順で前後を決める）
+  const handleSlot =
+    variant === 'push' && handle ? <div className={s.handleSlot()}>{handle}</div> : null;
   return (
-    <div
-      data-slot="inspector-frame"
-      data-variant={variant}
-      data-side={side}
-      data-overlay-edge={variant === 'overlay' ? overlayEdge : undefined}
-      data-motion={motion}
-      data-open={open || undefined}
-      style={widthStyle}
-      className={s.frame()}
-    >
-      <OverlayCloseContext value={close}>
-        <aside
-          {...props}
-          ref={mergedRef}
-          id={panelId}
-          aria-labelledby={titleId}
-          aria-describedby={description != null ? descriptionId : undefined}
-          inert={!open}
-          data-slot="inspector"
-          data-variant={variant}
-          data-side={side}
-          data-open={open || undefined}
-          onKeyDown={handleKeyDown}
-          className={s.panel({ className: `${overlayTitleLeading} ${className ?? ''}` })}
-        >
-          <SheetHeader
-            handle={null}
-            close={
-              hideCloseButton ? null : (
-                <SheetCloseButton label={closeName} data-slot="inspector-close" onClick={close} />
-              )
-            }
+    <>
+      {side === 'right' && handleSlot}
+      <div
+        data-slot="inspector-frame"
+        data-variant={variant}
+        data-side={side}
+        data-overlay-edge={variant === 'overlay' ? overlayEdge : undefined}
+        data-motion={motion}
+        data-open={open || undefined}
+        data-resizable={resizable || undefined}
+        data-resizing={resizing || undefined}
+        style={widthStyle}
+        className={s.frame()}
+      >
+        <OverlayCloseContext value={close}>
+          <aside
+            {...props}
+            ref={mergedRef}
+            id={panelId}
+            aria-labelledby={titleId}
+            aria-describedby={description != null ? descriptionId : undefined}
+            inert={!open}
+            data-slot="inspector"
+            data-variant={variant}
+            data-side={side}
+            data-open={open || undefined}
+            data-resizing={resizing || undefined}
+            onKeyDown={handleKeyDown}
+            className={s.panel({ className: `${overlayTitleLeading} ${className ?? ''}` })}
           >
-            <h2 id={titleId} className={sheetTitleClass}>
-              {title}
-            </h2>
-            {description != null && (
-              <p id={descriptionId} className={sheetDescriptionClass}>
-                {description}
-              </p>
-            )}
-          </SheetHeader>
-          {/* 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
-          <SheetMoreCue
-            edge="top"
-            sheet
-            sheetMoreCue="divider-always-shadow"
-            divider="scrollable"
-          />
-          <div
-            ref={cues}
-            data-slot="inspector-content"
-            className={[
-              'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
-              actions == null && !slot.placed && 'pb-(--sheet-padding-x)',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
-          </div>
-          {!slot.placed && (
+            <SheetHeader
+              handle={null}
+              close={
+                hideCloseButton ? null : (
+                  <SheetCloseButton label={closeName} data-slot="inspector-close" onClick={close} />
+                )
+              }
+            >
+              <h2 id={titleId} className={sheetTitleClass}>
+                {title}
+              </h2>
+              {description != null && (
+                <p id={descriptionId} className={sheetDescriptionClass}>
+                  {description}
+                </p>
+              )}
+            </SheetHeader>
+            {/* 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
             <SheetMoreCue
-              edge="bottom"
+              edge="top"
               sheet
               sheetMoreCue="divider-always-shadow"
-              divider={actions != null ? 'shadow' : undefined}
+              divider="scrollable"
             />
-          )}
-          {actions != null && (
             <div
-              data-slot="inspector-footer"
-              data-layout={layout}
-              className="flex shrink-0 flex-wrap justify-end gap-2 p-(--sheet-padding-x) data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col"
+              ref={cues}
+              data-slot="inspector-content"
+              className={[
+                'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
+                actions == null && !slot.placed && 'pb-(--sheet-padding-x)',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              {actions}
+              <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
             </div>
-          )}
-        </aside>
-      </OverlayCloseContext>
-    </div>
+            {!slot.placed && (
+              <SheetMoreCue
+                edge="bottom"
+                sheet
+                sheetMoreCue="divider-always-shadow"
+                divider={actions != null ? 'shadow' : undefined}
+              />
+            )}
+            {actions != null && (
+              <div
+                data-slot="inspector-footer"
+                data-layout={layout}
+                className="flex shrink-0 flex-wrap justify-end gap-2 p-(--sheet-padding-x) data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col"
+              >
+                {actions}
+              </div>
+            )}
+          </aside>
+        </OverlayCloseContext>
+        {variant === 'overlay' && handle}
+      </div>
+      {side === 'left' && handleSlot}
+    </>
   );
 }
 

@@ -42,11 +42,12 @@ const meta = {
         component: [
           '画面の端から出す面です。既定は画面の下から出すシートで、Select のシートと同じ見出し（つまみ・題・右上の ×）を持ちます。',
           '',
-          '- `side` で出す向きを選びます。`bottom`（既定）はシート、`left`・`right` はナビゲーションや詳細を出す横のパネルです。出した向きへはじくと閉じます（`closeOnSwipe={false}` で止められます）。',
-          '- シートの上端のつまみは「引けること」の印です。はじいて閉じられるか、上へ引いて広げられるときに出ます。どちらもできないときは出ません。横から出すパネルには出しません。',
+          '- `side` で出す向きを選びます。`bottom`（既定）はシート、`top` は画面の上から出すシート（知らせの一覧など）、`left`・`right` はナビゲーションや詳細を出す横のパネルです。出した向きへはじくと閉じます（`closeOnSwipe={false}` で止められます）。',
+          '- シートのつまみは「引けること」の印です。はじいて閉じられるか、上へ引いて広げられるときに出ます。どちらもできないときは出ません。下から出すシートでは上の端に、上から出すシートでは下の端に出します。横から出すパネルには出しません。上から出すシートは、半分の高さで止めず中身の高さで開きます。',
           '- 下から出すとき、中身が画面の半分より長ければ、半分の高さで開いてつまみを出します（`detent="half"`、既定）。つまみを上へ引くと高さいっぱいに広がります。`full` は中身の高さで開きます。',
           '- 中身が長いときはスクロールし、上の端に区切り線、上下の端に続きの影を出します。',
           '- 下に並べるボタンは `actions` に渡します。中身をスクロールしても動きません。押して閉じるボタンは `OverlayClose` の `render` に渡します。並べ方は `actionsLayout` で選びます。既定の `auto` は、下から出すシートでは幅いっぱいで縦に積み（最後に渡した主な操作が上）、横から出すパネルでは右に寄せます。渡した順に上から積むときは `stack`、横に並べるときは `end`（右寄せ）か `fill`（幅を等分）です。',
+          '- 下のボタンの左（縦に積むときは上）に、保存の状態や注記を置くときは `actionsStart` に渡します（`DrawerActions` では `start`）。文字列だけを渡すと小さい淡い文字で描きます。',
           '- 中身の `Form` の送信のボタンを下に並べるときは、`actions` の代わりに、`Form` の中の最後に `DrawerActions` を置きます。見た目と並べ方は `actions` と同じ下の帯のままで（中身が長いときも下に残ります）、送信のボタンが `Form` の送信・Enter・送信中にそのまま加わります。`actions` と `DrawerActions` は、どちらか一方にします。',
           '- `title` は見出しの題で、読み上げでは開いた面の名前になります。中身の見出しで何の面か分かるときは `title` を省き、`accessibleName` に読み上げの名前を書きます（どちらか一方が要ります）。',
           '- 開いた直後は面そのものにフォーカスが移ります。中身の要素に `autoFocus` を付けると、その要素に移ります。',
@@ -73,7 +74,7 @@ const meta = {
     description: { control: 'text' },
     side: {
       control: 'inline-radio',
-      options: ['bottom', 'left', 'right'],
+      options: ['bottom', 'top', 'left', 'right'],
       table: { defaultValue: { summary: "'bottom'" } },
     },
     actionsLayout: {
@@ -140,6 +141,109 @@ export const Bottom: Story = {
       )}
     </PhoneFrame>
   ),
+};
+
+const notices = (
+  <div className="flex flex-col gap-3">
+    <p>新しいコメントが 2 件あります</p>
+    <p>「設計の見直し」の締め切りは明日です</p>
+    <p>かずえもんさんがあなたを招待しました</p>
+  </div>
+);
+
+export const Top: Story = {
+  tags: ['visual'],
+  name: '上から',
+  args: { title: 'お知らせ', side: 'top' },
+  parameters: {
+    controls: { include: ['title', 'description'] },
+    docs: {
+      description: {
+        story:
+          '`side="top"` は画面の上から出すシートです。中身の高さで開き、はじいて閉じられるときは、はじく向きの下の端につまみを出します。下のボタンは、下から出すシートと同じく縦に積みます。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <Drawer
+          {...args}
+          trigger={<Button>お知らせ</Button>}
+          actions={<OverlayClose render={<Button variant="outline">閉じる</Button>} />}
+          actionsStart="3 件の新着"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          {notices}
+        </Drawer>
+      )}
+    </PhoneFrame>
+  ),
+};
+
+export const TopWithForm: Story = {
+  name: '上から（Form と組む）',
+  args: { title: 'さがす', side: 'top' },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '上から出すシートでも、`Form` の中の最後に `DrawerActions` を置けます。`start` に渡した文は、縦に積んだボタンの上に置きます。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PhoneFrame>
+      {(frame) => (
+        <Drawer
+          {...args}
+          trigger={<Button>さがす</Button>}
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <Form onFormSubmit={fn()}>
+            <TextField name="q" label="キーワード" defaultValue="デザイン" />
+            <DrawerActions start="3 件の条件で絞り込み中">
+              <Button type="submit" color="primary">
+                さがす
+              </Button>
+            </DrawerActions>
+          </Form>
+        </Drawer>
+      )}
+    </PhoneFrame>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const drawer = await body.findByRole('dialog', { name: 'さがす' });
+    await expect(drawer).toHaveAttribute('data-side', 'top');
+    const footer = drawer.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    await expect(footer.closest('form')).not.toBeNull();
+    // start の文は、縦に積んだボタンの上に置く
+    const start = footer.querySelector<HTMLElement>('[data-slot="overlay-actions-start"]')!;
+    const submit = within(footer).getByRole('button', { name: 'さがす' });
+    await expect(start.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      submit.getBoundingClientRect().top
+    );
+    // つまみは下の端（下の帯のボタンより下）に置く
+    const handles = drawer.querySelectorAll<HTMLElement>('[data-slot="sheet-handle"]');
+    const bar = handles[handles.length - 1].firstElementChild!;
+    await expect(bar.getBoundingClientRect().top).toBeGreaterThan(
+      submit.getBoundingClientRect().bottom
+    );
+    await expect(
+      Math.abs(drawer.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
+    ).toBeLessThan(16);
+    // 面は枠の上の端に着く
+    const frame = canvasElement.querySelector('[data-density]')!;
+    await waitFor(() =>
+      expect(
+        Math.abs(drawer.getBoundingClientRect().top - frame.getBoundingClientRect().top)
+      ).toBeLessThan(2)
+    );
+  },
 };
 
 export const Long: Story = {

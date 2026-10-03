@@ -13,7 +13,7 @@ import {
 import { useDensityScope } from '../../internal/density-scope';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { initialFocusOf } from '../../internal/overlay/initial-focus';
-import { OverlayActions } from '../../internal/overlay/overlay-actions';
+import { OverlayActions, OverlayActionsStart } from '../../internal/overlay/overlay-actions';
 import {
   OverlayActionsContext,
   useOverlayActionsSlot,
@@ -29,6 +29,7 @@ import {
 } from '../../internal/overlay/overlay-props';
 import { type OverlayRole, OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
+import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import {
   overlayTitleLeading,
   sheetDescriptionClass,
@@ -39,6 +40,7 @@ import {
   useSheetPresentation,
 } from '../../internal/sheet/use-narrow-screen';
 import { cn } from '../../internal/tv';
+import { useMoreCues } from '../../internal/sheet/use-more-cues';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Drawer, type OverlayActionsLayout } from '../drawer/Drawer';
 import { usePortalContainer } from '../../internal/ui-config';
@@ -49,6 +51,18 @@ export type {
   OverlayNameProps,
   PopupProps,
 } from '../../internal/overlay/overlay-props';
+
+/**
+ * 中央に浮かべるときの幅の段。sm は確かめや短い問い、md は入力が数個の面、lg は表や長い文を読ませる面。
+ * 狭い画面では、どの段も左右に余白を残して縮みます
+ */
+export type DialogSize = 'sm' | 'md' | 'lg';
+
+/**
+ * 中身が画面より高いときのスクロールのしかた。viewport は面ごと画面の中でスクロールし、
+ * content は題と下の操作を残して、中身だけをスクロールします
+ */
+export type DialogScrollBehavior = 'viewport' | 'content';
 
 /** Dialog の props から、title・accessibleName の組み合わせの決まりを外したもの */
 export interface DialogBaseProps {
@@ -61,6 +75,23 @@ export interface DialogBaseProps {
    * 中身の Form の送信のボタンを並べるときは、actions の代わりに中身の Form の中に DialogActions を置きます
    */
   actions?: ReactNode;
+  /**
+   * 下の操作の左に置く文やチェックボックス（保存の状態、注記、「次から表示しない」など）。
+   * 文字列だけを渡したときは、小さい淡い文字で描きます。要素を渡したときは、文字の大きさや色を付けません（Text などで決めます）。
+   * 画面の下から出すシートで、操作を縦に積むときは操作の上に置きます。中身に DialogActions を置くときは、その start に渡します
+   */
+  actionsStart?: ReactNode;
+  /**
+   * 中央に浮かべるときの幅の段。シートで出すときは幅いっぱいです。決まった幅にするときは className に w-* を渡します
+   * @default 'md'
+   */
+  size?: DialogSize;
+  /**
+   * 中身が画面より高いときのスクロールのしかた。viewport は面ごと画面の中でスクロールし、content は題と下の操作を残して中身だけをスクロールします。
+   * シートで出すときは、いつも中身だけをスクロールします
+   * @default 'content'
+   */
+  scrollBehavior?: DialogScrollBehavior;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
   trigger?: ReactElement;
   /** 開いているか（制御） */
@@ -153,6 +184,8 @@ export function Dialog({
   onOpenChange,
   children,
   actions,
+  size,
+  scrollBehavior,
   ...props
 }: DialogProps) {
   // 読み上げの役割。AlertDialog が包んだときだけ alertdialog になる
@@ -195,6 +228,8 @@ export function Dialog({
   return (
     <CenteredDialog
       {...centered}
+      size={size}
+      scrollBehavior={scrollBehavior}
       role={role}
       actions={inner(actions)}
       open={open}
@@ -211,7 +246,10 @@ export function Dialog({
 //   後ろの画面は暗くする（--color-backdrop）。裏を止めないとき（modal が false・passive）は暗くせず、面の外は触れたままにする
 //   見出しはシートと同じ並び（題・説明のまとまりと、右上に固定した ×）。余白は --dialog-padding
 //   開閉は浮かぶ面と同じ動き（下に --popup-shift 寄った位置から、濃さと一緒に滑る）。動きを減らす設定では動かさない
-//   中身が画面より高いときは、面ごと画面の中でスクロールする
+//   幅は size の段（--dialog-width-sm・--dialog-width・--dialog-width-lg）
+//   中身が画面より高いとき: viewport は面ごと画面の中でスクロールする。content は面の高さを画面に収め、中身だけをスクロールする
+//     content では、シートと同じ続きの印（上は区切り線、下は内側の影と、下に操作があれば区切り線）を出し、
+//     中身に置いた DialogActions は中身の下の端に貼り付ける
 function CenteredDialog({
   role,
   title,
@@ -219,6 +257,9 @@ function CenteredDialog({
   description,
   children,
   actions,
+  actionsStart,
+  size = 'md',
+  scrollBehavior = 'content',
   trigger,
   open,
   onOpenChange: changeOpen,
@@ -235,7 +276,7 @@ function CenteredDialog({
   className,
 }: Omit<
   DialogBaseProps,
-  'presentation' | 'defaultOpen' | 'open' | 'onOpenChange' | 'closeOnSwipe'
+  'presentation' | 'defaultOpen' | 'open' | 'onOpenChange' | 'closeOnSwipe' | 'actionsLayout'
 > & {
   title?: ReactNode;
   accessibleName?: string;
@@ -248,7 +289,13 @@ function CenteredDialog({
   const overlayId = useId();
   const popupRef = useMergedRefs<HTMLDivElement>(popupProps?.ref);
   // 中身に置いた下の操作の帯（DialogActions）。中央に浮かべるときは、いつも右に寄せる
-  const slot = useOverlayActionsSlot('dialog', 'end', actions != null);
+  const scrollContent = scrollBehavior === 'content';
+  const slot = useOverlayActionsSlot(
+    scrollContent ? 'dialog-scroll' : 'dialog',
+    'end',
+    actions != null
+  );
+  const cues = useMoreCues();
   // passive は、裏を止めず後ろも暗くしないが、外を押しても（フォーカスが外れても）閉じない
   const passive = modal === 'passive';
   const { className: popupClassName, ref: _popupRef, ...restPopupProps } = popupProps ?? {};
@@ -281,8 +328,14 @@ function CenteredDialog({
           )}
           {/* 裏を止めないときは、面を置く枠を素通しにし、面だけが触れるようにする */}
           <BaseDialog.Viewport
+            data-slot="dialog-viewport"
             className={[
-              'fixed inset-0 z-10 grid grid-cols-[minmax(0,1fr)] place-items-center overflow-y-auto p-(--dialog-margin)',
+              'fixed inset-0 z-10 p-(--dialog-margin)',
+              // content: 面の高さを枠に収める（max-h-full が効くよう、高さの決まった flex の中に置く）。
+              //   題と下の操作だけで枠より高いとき（横向きのスマートフォンなど）は、枠ごとスクロールする
+              scrollContent
+                ? 'flex items-center justify-center overflow-x-hidden overflow-y-auto'
+                : 'grid grid-cols-[minmax(0,1fr)] place-items-center overflow-y-auto',
               modal !== true && 'pointer-events-none',
             ]
               .filter(Boolean)
@@ -295,13 +348,18 @@ function CenteredDialog({
               // 読み上げの役割（Base UI の既定は dialog。AlertDialog が包んだときは alertdialog）
               role={role}
               data-slot="dialog"
+              data-size={size}
+              data-scroll-behavior={scrollBehavior}
               data-density={scope.density}
               {...overlayNameAttributes(accessibleName)}
               {...restPopupProps}
               ref={popupRef}
               className={[
-                'relative flex w-(--dialog-width) max-w-full flex-col rounded-card pb-(--dialog-padding) border-(length:--border-width-thin) border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg shadow-overlay outline-none',
+                'relative flex w-(--dialog-width) max-w-full flex-col rounded-card border-(length:--border-width-thin) border-surface-line bg-surface text-(length:--text-control) leading-(--leading-control) text-fg shadow-overlay outline-none',
                 overlayTitleLeading,
+                size === 'sm' && '[--dialog-width:var(--dialog-width-sm)]',
+                size === 'lg' && '[--dialog-width:var(--dialog-width-lg)]',
+                scrollContent ? 'max-h-full min-h-0' : 'pb-(--dialog-padding)',
                 '[--sheet-close-inset:calc(var(--dialog-padding)-(var(--spacing-control)-var(--overlay-title-leading))/2)] [--sheet-inset:0px] [--sheet-padding-x:var(--dialog-padding)]',
                 'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
                 'data-ending-style:opacity-0 data-starting-style:opacity-0',
@@ -337,16 +395,53 @@ function CenteredDialog({
                   </BaseDialog.Description>
                 )}
               </SheetHeader>
+              {scrollContent && (
+                <SheetMoreCue
+                  edge="top"
+                  sheet
+                  sheetMoreCue="divider-always-shadow"
+                  divider="scrollable"
+                />
+              )}
               {children != null && (
-                <div data-slot="dialog-content" className="px-(--dialog-padding) pt-2">
+                <div
+                  ref={scrollContent ? cues : undefined}
+                  data-slot="dialog-content"
+                  className={[
+                    'px-(--dialog-padding) pt-2',
+                    // 角は面の角に合わせて丸める（貼り付けた DialogActions の面が、面の下の角からはみ出さないように）
+                    scrollContent &&
+                      'min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]',
+                    // content: 下の余白は、下の操作の帯（actions・DialogActions）か、なければ中身が持つ
+                    scrollContent && actions == null && !slot.placed && 'pb-(--dialog-padding)',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
                   <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
                 </div>
+              )}
+              {scrollContent && !slot.placed && (
+                <SheetMoreCue
+                  edge="bottom"
+                  sheet
+                  sheetMoreCue="divider-always-shadow"
+                  divider={actions != null ? 'shadow' : undefined}
+                />
               )}
               {actions != null && (
                 <div
                   data-slot="dialog-footer"
-                  className="flex flex-wrap justify-end gap-2 px-(--dialog-padding) pt-(--dialog-padding)"
+                  className={[
+                    'flex shrink-0 flex-wrap items-center justify-end gap-2 px-(--dialog-padding) pt-(--dialog-padding)',
+                    scrollContent && 'pb-(--dialog-padding)',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                 >
+                  {actionsStart != null && (
+                    <OverlayActionsStart>{actionsStart}</OverlayActionsStart>
+                  )}
                   {actions}
                 </div>
               )}
@@ -361,6 +456,8 @@ function CenteredDialog({
 export interface DialogActionsProps extends ComponentProps<'div'> {
   /** 下に並べる操作（ボタン）。最も進めたい操作を最後に置きます。押して閉じるボタンは OverlayClose の render に渡す */
   children?: ReactNode;
+  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Dialog の actionsStart と同じ置き方・同じ文字の扱いです */
+  start?: ReactNode;
   /** 帯（div）に付きます */
   className?: string;
 }

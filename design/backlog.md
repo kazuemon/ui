@@ -318,7 +318,7 @@
 - Drawer の半分の段は、Base UI の snap points で面をずらして作っています。Select のシートと違い、つまみを押しても半分と高さいっぱいを切り替えません。はじいたとみなす速さも Base UI の値です。Select のシートの引く操作とそろえるかは決めていません
 - 段（半分と高さいっぱい）があるシートでは、引いても後ろの暗さが変わりません。Base UI の引いた量が段の位置によらず 1 になるためです。閉じる方へ引くときだけ薄くするなら、引いた距離と面の高さから自分で割合を出す必要があります
 - 面に渡したトークン（`--sheet-padding-x` など）は、浮かぶ部分が祖先の密度を写し直すので、使う側が祖先で上書きしても面の中に伝わりません。密度で変わる値を面の外から差し替える仕組みは決めていません
-- Dialog を全画面にできません（2026-10-01 のトリアージ、あとで）。`size="full"` を足す案です。狭い画面だけ全画面にする形も合わせて決めます（余白は Viewport、`className` は Popup に付きます）
+- Dialog の `size` に `full`（全画面）を足していません（F30、あとで。幅の段は [ADR-0458](./adr/0458-dialog-size.md)）。狭い画面だけ全画面にする形も合わせて決めます（余白は Viewport、`className` は Popup に付きます）
 - Popover を hover で開けません（2026-10-01 のトリアージ、あとで）。Menu と同じ `openOnHover`・`openDelay`・`closeDelay` を持たせる案で、ロードマップの PreviewCard と重なります。一緒に決めます
 
 ### Inspector
@@ -528,7 +528,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 2026-09-28 に作りました。Table とは別の部品にする判断と props の形は [ADR-0343](./adr/0343-data-table-separate-from-table.md)、見た目は [ADR-0344](./adr/0344-data-table-sort-indicator.md)〜[ADR-0347](./adr/0347-data-table-sticky-edge.md)、下の帯・選択の帯は [ADR-0348](./adr/0348-data-table-footer-recipe.md)・[ADR-0349](./adr/0349-data-table-selection-bar.md) で決めました。TanStack Table でつなぐ見本は `src/recipes/data-table/OrdersDataTable.tsx` です。
 
-- 列の幅の調整（使う側が列ごとに幅を指定する、ユーザーがドラッグして広げる）は作っていません
+- 表の列の幅は自動の並べ方のままなので、枠いっぱいのときに、ドラッグした幅より広がることがあります。`table-layout: fixed` の口を持つかは決めていません（列をドラッグで変える形は [ADR-0461](./adr/0461-resize-handle.md)・[ADR-0462](./adr/0462-resizable-keyboard.md)）
 - 最初の列（見出しの列）を固定して、横にスクロールしても残す形は作っていません
 - 複数の列での並べ替え（Shift を押しながら 2 つ目の列を押すなど）と、その番号（「1」「2」のような順番の印）は決めていません。TanStack Table の複数列ソートの機能自体は使えますが、DataTableHeader の見た目（矢印だけ）は 1 列の並べ替えしか表していません
 - 行を押して選ぶ形（選択の箱を押さなくても、行のどこを押しても選べる）は作っていません。押せる範囲は選択の箱だけです（原則17。DataTableSelect.tsx のコメント）

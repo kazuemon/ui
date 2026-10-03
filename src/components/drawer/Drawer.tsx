@@ -44,10 +44,15 @@ export interface DrawerBaseProps {
    * 中身の Form の送信のボタンを並べるときは、actions の代わりに中身の Form の中に DrawerActions を置きます
    */
   actions?: ReactNode;
+  /**
+   * 下の操作の左に置く文やチェックボックス（保存の状態、注記など）。操作を縦に積むとき（stack・stack-reverse）と幅を等分するとき（fill）は、操作の上に置きます。
+   * 中身に DrawerActions を置くときは、その start に渡します
+   */
+  actionsStart?: ReactNode;
   /** 開くボタン。Button などの要素を渡す。開閉を外から決めるときは省ける */
   trigger?: ReactElement;
   /**
-   * 出す向き。bottom は画面の下から出すシート、left・right は画面の横から出すパネル。その向きへはじくと閉じる
+   * 出す向き。bottom は画面の下から出すシート、top は画面の上から出すシート、left・right は画面の横から出すパネル。その向きへはじくと閉じる
    * @default 'bottom'
    */
   side?: SheetSide;
@@ -139,6 +144,7 @@ export function Drawer({
   description,
   children,
   actions,
+  actionsStart,
   trigger,
   side = 'bottom',
   detent = 'half',
@@ -204,7 +210,8 @@ export function Drawer({
   const snap = side === 'bottom' && detent === 'half' && long;
   // つまみは「引けること」の印。はじいて閉じられるか、上へ引いて広げられるときに出す（横から出すパネルには出さない）
   // 出さないときも場所は取る。出し入れで見出しの位置と余白が動かないようにするため
-  const handle = side === 'bottom' && (closeOnSwipe || snap);
+  // 上から出すシートは段を持たない（中身の高さで開く）。はじいて閉じられるときだけ出す
+  const handle = (side === 'bottom' || side === 'top') && (closeOnSwipe || snap);
   // はじいて閉じず、上へ広げることもできないときは、引く操作そのものを始めさせない（面を指に追従させない）
   // Base UI には、はじいて閉じるのを止める prop がなく、data-base-ui-swipe-ignore で引く操作を無視させる
   // 広げられるとき（段があるとき）は引く操作が要るので、閉じる合図だけを onSnapPointChange で取り消す
@@ -233,7 +240,7 @@ export function Drawer({
       onOpenChangeComplete={onOpenChangeComplete}
       modal={passive ? false : modal}
       disablePointerDismissal={!dismissible || passive}
-      swipeDirection={side === 'bottom' ? 'down' : side}
+      swipeDirection={side === 'bottom' ? 'down' : side === 'top' ? 'up' : side}
       snapPoints={snap ? SNAP_POINTS : undefined}
       // 段はいつも部品が持つ（途中で Base UI に任せる形と切り替えると、段が空に戻る）
       snapPoint={snap ? snapPoint : null}
@@ -262,6 +269,7 @@ export function Drawer({
           accessibleName={accessibleName}
           description={description}
           footer={actions}
+          footerStart={actionsStart}
           footerLayout={actionsLayout}
           handle={handle}
           swipeLocked={swipeLocked}
@@ -287,6 +295,8 @@ export function Drawer({
 export interface DrawerActionsProps extends ComponentProps<'div'> {
   /** 下に並べる操作（ボタン）。押して閉じるボタンは OverlayClose の render に渡す */
   children?: ReactNode;
+  /** 操作の左（縦に積むときは上）に置く文やチェックボックス。Drawer の actionsStart と同じ置き方・同じ文字の扱いです */
+  start?: ReactNode;
   /** 帯（div）に付きます */
   className?: string;
 }

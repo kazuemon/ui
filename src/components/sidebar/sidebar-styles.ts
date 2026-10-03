@@ -74,18 +74,8 @@ export const sidebar = tv({
     listContent: 'p-(--sidebar-padding)',
     footer:
       'flex shrink-0 flex-col gap-0.5 border-t border-line px-(--sidebar-padding) pt-2 pb-(--sidebar-padding)',
-    // 列の端の幅を変えるつまみ（ADR-0362）。本文との境の線の上に、つかめる幅を半分ずつ重ねる
+    // 列の端の幅を変えるつまみ（ADR-0362）の置き場所。本文との境の線の上に、つかめる幅を半分ずつ重ねる（見た目は internal/resize-handle）
     handleSlot: 'relative z-3 w-0 shrink-0',
-    handle: [
-      'group/sidebar-handle absolute inset-y-0 -start-[calc(var(--sidebar-handle-hit)/2)] w-(--sidebar-handle-hit) cursor-col-resize touch-none outline-none',
-      // 線: 載せたとき・動かしているとき・フォーカスしたときに出す
-      'before:absolute before:inset-y-0 before:start-1/2 before:w-(--sidebar-handle-line-width) before:-translate-x-1/2 before:bg-transparent',
-      'before:[transition:background-color_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      'hover:before:bg-line-strong data-resizing:before:bg-line-strong',
-      'focus-visible:before:bg-(color:--color-primary)',
-    ],
-    // ふだんから見せる小さなつまみ（縦の短い棒。resizeHandle="grip"）
-    grip: 'pointer-events-none absolute start-1/2 top-1/2 h-8 w-1 -translate-1/2 rounded-pill bg-line-strong',
     row: [
       'group/sidebar-row relative flex h-(--spacing-control) w-full shrink-0 cursor-pointer items-center gap-(--sidebar-gap)',
       'rounded-control px-(--sidebar-row-px) text-start no-underline select-none',

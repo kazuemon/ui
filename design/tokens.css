@@ -958,6 +958,8 @@
      left は左から出すパネル、right は右から出すパネル */
   --shadow-sheet-left: 8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
   --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* 上から出すシート（Drawer の side="top"）の影。下から出すシートの影を下へ向けたもの */
+  --shadow-sheet-top: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
 
   /* Dialog・Drawer・Popover の題と説明の大きさ
      題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。ADR-0103。Select のシートの見出しは欄のラベルのまま
@@ -994,8 +996,10 @@
 
   /* Dialog — ADR-0104
      中央に浮かべる。部品（ボタン）を包むので、角はカードの角（原則5）。面・輪郭・影は浮かぶ面と同じ
-     width: 既定の幅。画面が狭いときは左右に margin を残して縮む */
-  --dialog-width: calc(var(--spacing) * 120);
+     width: 既定の幅（size="md"）。width-sm・width-lg は size="sm"・"lg"。段の違いがはっきり分かるよう差を大きくとる。画面が狭いときは左右に margin を残して縮む */
+  --dialog-width-sm: calc(var(--spacing) * 90); /* 360px */
+  --dialog-width: calc(var(--spacing) * 120); /* 480px */
+  --dialog-width-lg: calc(var(--spacing) * 200); /* 800px */
   --dialog-padding: calc(var(--spacing) * 6);
   --dialog-margin: calc(var(--spacing) * 4);
 
@@ -1711,9 +1715,6 @@
   --sidebar-mark-fg: var(--color-on-neutral-strong);
   /* 行ごとのメニューのボタンと、畳める節の印（ADR-0360・0363）。DataTable の並べ替えの印と同じく、ふだん淡く置くとき（subtle。既定）の濃さ */
   --sidebar-indicator-subtle-opacity: 0.5;
-  /* 列の幅を変えるつまみ（ADR-0362）。hit: つかめる幅。line-width: 載せたとき・動かしているときに出す線の太さ */
-  --sidebar-handle-hit: calc(var(--spacing) * 2);
-  --sidebar-handle-line-width: var(--border-width-thick);
   /* ── END sidebar */
 
   /* ── FileTree — ADR-275〜278 ── BEGIN file-tree */
@@ -2151,6 +2152,24 @@
   /* 点のマーカー（variant="dot" — 軸 464）。数字も印も持たない小さな点。大きさの段によらず同じ */
   --stepper-dot-size: calc(var(--spacing) * 2.5); /* 10px */
   /* ── END stepper */
+
+  /* ── 幅を変えるつまみ — ADR-0362（Sidebar）。Inspector の resizable と DataTable の列でも使う ── BEGIN resize-handle
+     src/internal/resize-handle。境の線の上に、つかめる幅を半分ずつ重ねる
+     hit: つかめる幅。line-width: 線の太さ
+     rest・hover・active・focus: ふだん・載せたとき・動かしているあいだ・フォーカス（キーボード）の線の色
+     rest は既定では出さず（境の線だけ）、DataTable の列では淡い線（line）に差し替える。表の列の境は線が薄いか無く、幅を変えられることに気づけないため
+     grip-*: ふだんから見せる小さな縦のつまみ（Sidebar の resizeHandle="grip"）の色と大きさ */
+  --resize-handle-hit: calc(var(--spacing) * 2); /* 8px */
+  --resize-handle-line-width: var(--border-width-thick);
+  --resize-handle-line-inset: 0; /* 線の上下の空き。表の列はセルの上下の余白の分だけ空ける */
+  --resize-handle-rest: transparent;
+  --resize-handle-hover: var(--color-line-strong);
+  --resize-handle-active: var(--color-line-strong);
+  --resize-handle-focus: var(--color-primary);
+  --resize-handle-grip: var(--color-line-strong);
+  --resize-handle-grip-width: var(--spacing); /* 4px */
+  --resize-handle-grip-height: calc(var(--spacing) * 8); /* 32px */
+  /* ── END resize-handle */
 
   /* ── Inspector — ADR-0320〜0325 ── BEGIN inspector */
   /* 決まった領域の中だけで開閉する、常駐のパネル。src/components/inspector

@@ -4,6 +4,7 @@ import { Drawer as BaseDrawer } from '@base-ui/react/drawer';
 import { type ReactNode, type Ref, useId } from 'react';
 
 import { initialFocusOf } from '../overlay/initial-focus';
+import { OverlayActionsStart } from '../overlay/overlay-actions';
 import { OverlayActionsContext, useOverlayActionsSlot } from '../overlay/overlay-actions-context';
 import {
   focusTargetRef,
@@ -30,8 +31,8 @@ import { usePortalContainer } from '../ui-config';
  */
 export type OverlayActionsLayout = 'auto' | 'end' | 'fill' | 'stack' | 'stack-reverse';
 
-/** シートを出す向き。bottom は画面の下から、left・right は画面の横から */
-export type SheetSide = 'bottom' | 'left' | 'right';
+/** シートを出す向き。bottom は画面の下から、top は画面の上から、left・right は画面の横から */
+export type SheetSide = 'bottom' | 'top' | 'left' | 'right';
 
 interface SheetPopupProps {
   side: SheetSide;
@@ -44,10 +45,12 @@ interface SheetPopupProps {
   children?: ReactNode;
   /** 下の端に置く操作（ボタンの並び）。中身をスクロールしても動かない。中身に置いた帯（DrawerActions など）でも置ける */
   footer?: ReactNode;
+  /** 下の操作の左（縦に積むときは上）に置くもの */
+  footerStart?: ReactNode;
   /** 下の操作の並べ方 */
   footerLayout?: OverlayActionsLayout;
   /**
-   * つまみを出すか（下から出すときだけ）。引けるとき（はじいて閉じられる・上へ広げられる）に出す — ADR-0110
+   * つまみを出すか（下・上から出すときだけ）。引けるとき（はじいて閉じられる・上へ広げられる）に出す — ADR-0110
    * 出さないときも場所は取る（出し入れで見出しの位置と余白が動かないようにするため）
    */
   handle?: boolean;
@@ -101,6 +104,7 @@ export function SheetPopup({
   description,
   children,
   footer,
+  footerStart,
   footerLayout = 'auto',
   handle = false,
   swipeLocked = false,
@@ -121,10 +125,11 @@ export function SheetPopup({
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const mergedPopupRef = useMergedRefs<HTMLDivElement>(popupRef, userPopupRef);
   // auto: 下から出すシートは縦に積み（主な操作が上）、横から出すパネルは右寄せ
-  const layout =
-    footerLayout === 'auto' ? (side === 'bottom' ? 'stack-reverse' : 'end') : footerLayout;
-  const overlayId = useId();
   const bottom = side === 'bottom';
+  const top = side === 'top';
+  // 上から出すシートも、下から出すシートと同じく指で押す面なので縦に積む
+  const layout = footerLayout === 'auto' ? (bottom || top ? 'stack-reverse' : 'end') : footerLayout;
+  const overlayId = useId();
   // 中身に置いた下の操作の帯（DrawerActions など）。置かれたら、中身の下の余白と続きの印を帯に譲る
   const actions = useOverlayActionsSlot('sheet', layout, footer != null);
   const footerInContent = actions.placed;
@@ -152,7 +157,9 @@ export function SheetPopup({
         <BaseDrawer.Viewport
           className={[
             'fixed inset-0 z-10 flex pointer-events-none',
-            bottom ? 'flex-col items-center justify-end' : 'items-stretch',
+            bottom && 'flex-col items-center justify-end',
+            top && 'flex-col items-center justify-start',
+            !bottom && !top && 'items-stretch',
             side === 'left' && 'justify-start',
             side === 'right' && 'justify-end',
           ]
@@ -193,6 +200,15 @@ export function SheetPopup({
                 // はじいて閉じるときは、離した位置から下へ滑らせる（transition では滑らない場合がある — src/styles/theme.css）
                 'data-swipe-dismiss:data-ending-style:animate-[sheet-swipe-out-down_var(--duration-sheet)_var(--ease-sheet)_forwards] motion-reduce:data-swipe-dismiss:data-ending-style:animate-none',
               ],
+              // 上から出すシート: 下から出すシートを上下に返した形。下の角を丸め、影は下へ向ける（原則1）
+              //   つまみは、はじく向きの側（下の端）に置く。指が届く側でもある。見出しの上は、下から出すシートと並びをそろえるため場所だけ空ける
+              top && [
+                'max-h-(--sheet-max-height) w-full rounded-b-card border-b-(length:--border-width-thin) [box-shadow:var(--shadow-sheet-top)]',
+                'before:inset-x-0 before:bottom-[calc(100%-1px)] before:h-(--sheet-bleed)',
+                '[transform:translateY(var(--drawer-swipe-movement-y,0px))]',
+                'data-ending-style:[transform:translateY(-100%)] data-starting-style:[transform:translateY(-100%)]',
+                'data-ending-style:[box-shadow:none]',
+              ],
               side === 'left' && [
                 'h-full w-(--sheet-side-width) rounded-r-card border-r-(length:--border-width-thin) [box-shadow:var(--shadow-sheet-left)]',
                 'before:inset-y-0 before:right-[calc(100%-1px)] before:w-(--sheet-bleed)',
@@ -215,7 +231,7 @@ export function SheetPopup({
           >
             {/* 横から出すときは、つまみの場所に端末の安全領域の分を空ける */}
             <SheetHeader
-              handle={bottom && handle}
+              handle={top ? null : bottom && handle}
               className={bottom ? undefined : 'pt-[env(safe-area-inset-top)]'}
               close={
                 hideCloseButton ? null : (
@@ -226,6 +242,8 @@ export function SheetPopup({
                 )
               }
             >
+              {/* 上から出すシートの、見出しの上の空き（下から出すシートのつまみの場所。並びをそろえる） */}
+              {top && <SheetHandleRow place="head" />}
               {title != null && (
                 <BaseDrawer.Title className={sheetTitleClass}>{title}</BaseDrawer.Title>
               )}
@@ -250,7 +268,9 @@ export function SheetPopup({
                 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
                 footer == null &&
                   !footerInContent &&
-                  'pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
+                  (top
+                    ? 'pb-(--sheet-padding-x)'
+                    : 'pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]'),
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -269,14 +289,40 @@ export function SheetPopup({
               <div
                 data-slot="sheet-footer"
                 data-layout={layout}
-                className="flex shrink-0 flex-wrap justify-end gap-2 px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))] data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col"
+                className={[
+                  "flex shrink-0 flex-wrap justify-end gap-2 px-(--sheet-padding-x) pt-(--sheet-padding-x) data-[layout='stack-reverse']:flex-col-reverse data-[layout=fill]:*:flex-1 data-[layout=stack]:flex-col",
+                  top
+                    ? 'pb-(--sheet-padding-x)'
+                    : 'pb-[max(var(--sheet-padding-x),env(safe-area-inset-bottom))]',
+                ].join(' ')}
               >
+                {footerStart != null && <OverlayActionsStart>{footerStart}</OverlayActionsStart>}
                 {footer}
               </div>
             )}
+            {/* 上から出すシートの、下の端のつまみ（はじく向きの側） */}
+            {top && handle && <SheetHandleRow place="foot" />}
           </BaseDrawer.Popup>
         </BaseDrawer.Viewport>
       </BaseDrawer.Portal>
     </BaseDrawer.VirtualKeyboardProvider>
+  );
+}
+
+/**
+ * 上から出すシートのつまみの行。head は見出しの上の空き（つまみは描かず、場所だけ取る）、foot は下の端のつまみ（はじく向きの側）
+ */
+function SheetHandleRow({ place }: { place: 'head' | 'foot' }) {
+  return (
+    <div
+      aria-hidden
+      data-slot="sheet-handle"
+      className={[
+        'flex h-4 shrink-0 items-center justify-center',
+        place === 'head' ? 'invisible' : '-mt-2',
+      ].join(' ')}
+    >
+      <div className="h-1 w-9 rounded-pill bg-(color:--color-line)" />
+    </div>
   );
 }
