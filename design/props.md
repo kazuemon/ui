@@ -115,6 +115,8 @@ Stat の増減の良し悪しは `trend` です。値の意味（増えたこと
 - 部品ごとの見た目の型: Divider の線の長さ、Table の罫線、CodeBlock の配色、Spoiler の隠し方、Card の入れ子、Skeleton の `block`・`text`・`circle`
 - 複数の軸をまとめた既定の組: Text の `body`・`muted`・`subtle`・`label`・`caption`
 
+`surface` は、地の上に面を敷いて浮かせる形です（SegmentedControl のつまみと Tag は白い面、CodeGroup は入力欄と同じグレーの面）。面の色・縁・影は部品ごとに決めます。
+
 値の意味は部品ごとに違うので、型名は `<部品>Variant` にし、JSDoc に値ごとの意味を書きます。`appearance` は使いません。
 
 ### 大きさと形
