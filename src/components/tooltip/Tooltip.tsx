@@ -7,14 +7,18 @@ import {
   type ReactNode,
   use,
   useEffect,
+  useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
+import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
@@ -26,7 +30,7 @@ export type TooltipAlign = 'start' | 'center' | 'end';
 // className は tv でまとめる（面の色だけを差し替えられるようにする。生の文字列で並べると、後ろに置いても打ち消せない）
 const tooltipPopup = tv({
   base: [
-    'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
+    'relative rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
     popupMotionClass,
     'max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption) [box-shadow:var(--shadow-tooltip)]',
   ],
@@ -39,10 +43,24 @@ const tooltipPopup = tv({
   defaultVariants: { shadow: true },
 });
 
+// 本体を指す矢印（showArrow — 軸 462）。Popover の矢印と同じ作り: 面と同じ白に、外側の 2 辺だけ輪郭を引いた四角を 45 度回す
+//   大きさは --tooltip-arrow-size。面の端から半分だけはみ出す。本体とのあいだ（--tooltip-offset）は矢印の分も含めた距離
+const tooltipArrow = [
+  'size-(--tooltip-arrow-size) rotate-45 border-surface-line bg-surface',
+  'data-[side=bottom]:top-[calc(var(--tooltip-arrow-size)/-2)] data-[side=bottom]:border-t-(length:--border-width-thin) data-[side=bottom]:border-l-(length:--border-width-thin)',
+  'data-[side=top]:bottom-[calc(var(--tooltip-arrow-size)/-2)] data-[side=top]:border-r-(length:--border-width-thin) data-[side=top]:border-b-(length:--border-width-thin)',
+  'data-[side=left]:right-[calc(var(--tooltip-arrow-size)/-2)] data-[side=left]:border-t-(length:--border-width-thin) data-[side=left]:border-r-(length:--border-width-thin)',
+  'data-[side=right]:left-[calc(var(--tooltip-arrow-size)/-2)] data-[side=right]:border-b-(length:--border-width-thin) data-[side=right]:border-l-(length:--border-width-thin)',
+].join(' ');
+
 export interface TooltipProps {
   /** 出す文。短い補足だけを書く。欠かせない情報は Tooltip に置かず、Popover で見せる */
   content: ReactNode;
-  /** 本体。Button などの要素を1つ渡す（ref と props を受け取れる要素） */
+  /**
+   * 本体。Button などの要素を1つ渡す（ref と props を受け取れる要素）。
+   * 押せないボタン（disabled）を本体にすると、ボタンは押せないままフォーカスできる形になり、content はボタンの説明として読み上げられます。
+   * 効くのは本体そのものにしたボタンだけで、入れ物（ツールバーなど）を本体にしたときは、中のボタンには効きません
+   */
   children: ReactElement;
   /**
    * 本体のどちら側に出すか。画面の端に当たるときは反対側に出します
@@ -92,6 +110,11 @@ export interface TooltipProps {
    */
   hideShadow?: boolean;
   /**
+   * 本体を指す小さな矢印を出すか。並んだボタンのどれの補足かを、はっきりさせたいときに出します
+   * @default false
+   */
+  showArrow?: boolean;
+  /**
    * 描く場所。本体の祖先に付いた data-density と coarse-large は、描く場所がその外でも写します。
    * まとめて決めるときは ThemeProvider の portalContainer を使います
    * @default document.body
@@ -104,6 +127,9 @@ export interface TooltipProps {
   /** 面（Popup）に足すクラス */
   className?: string;
 }
+
+// 描いているのがブラウザか（サーバーと、ハイドレーションのあいだは false）
+const subscribeNothing = () => () => {};
 
 /** マウスを載せてから出るまでの既定（ms） */
 const DEFAULT_DELAY = 400;
@@ -164,17 +190,43 @@ export function Tooltip({
   onOpenChangeComplete,
   disabled,
   hideShadow = false,
+  showArrow = false,
   portalContainer: container,
   popupProps,
   positionerProps,
   className,
-}: TooltipProps) {
+  [TOOLTIP_TRIGGER]: outerTriggerMark,
+}: TooltipProps & TooltipTriggerMarkProps) {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = openProp ?? openState;
   // 待ち時間は、Tooltip ごとの delay、包む TooltipProvider の delay、既定の順に決める
   const providerDelay = use(TooltipDelayContext);
   const delay = delayProp ?? providerDelay ?? DEFAULT_DELAY;
   const portalContainer = usePortalContainer(container);
+  // 外の Tooltip の本体か（Tooltip を重ねたとき。自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
+  const inOuterTrigger = outerTriggerMark !== undefined;
+  // 押せないボタンを本体にしたときは、出す文を本体の説明（aria-describedby）にも結ぶ（押せない理由を読み上げで伝える — 原則13・15）
+  //   面は出ているあいだしかないので、同じ文を隠した要素（hidden）に置いて結ぶ。hidden なので、読み上げで順に読んでも二度は読まない
+  //   ふつうの（押せる）ボタンの読み上げは変えない。結ぶかは Button が決める（押せないままフォーカスできる形のときだけ）
+  //   Tooltip を重ねたときは、外の Tooltip の文の id も引き継ぐ
+  const descriptionId = useId();
+  const isClient = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false
+  );
+  const childProps: unknown = children.props;
+  const describes =
+    !disabled &&
+    ((typeof childProps === 'object' &&
+      childProps !== null &&
+      'disabled' in childProps &&
+      childProps.disabled === true) ||
+      children.type === Tooltip);
+  const triggerMark =
+    !disabled || inOuterTrigger
+      ? [describes ? descriptionId : '', outerTriggerMark ?? ''].filter(Boolean).join(' ')
+      : undefined;
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {
     className: positionerClassName,
@@ -228,9 +280,13 @@ export function Tooltip({
       }}
       onOpenChangeComplete={onOpenChangeComplete}
     >
+      {/* 本体の要素そのものに印を足す。本体の Button は、押せないとき（disabled）もフォーカスできる形になる（Tooltip を出せるように）
+          印は本体の要素にしか届かないので、入れ物や自作の部品の中のボタンには効かない
+          Tooltip を止めているとき（disabled）は出す理由がないので足さない。外の Tooltip の本体なら、その印を引き継ぐ */}
       <BaseTooltip.Trigger
         ref={anchorRef}
         render={children}
+        {...{ [TOOLTIP_TRIGGER]: triggerMark }}
         delay={delay}
         style={{ WebkitTouchCallout: 'none' }}
         onPointerDown={(event) => {
@@ -261,6 +317,14 @@ export function Tooltip({
           event.stopPropagation();
         }}
       />
+      {describes &&
+        isClient &&
+        createPortal(
+          <span id={descriptionId} hidden>
+            {content}
+          </span>,
+          portalContainer ?? document.body
+        )}
       <BaseTooltip.Portal container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）
@@ -285,6 +349,7 @@ export function Tooltip({
               className: cn(className, popupClassName),
             })}
           >
+            {showArrow && <BaseTooltip.Arrow data-slot="tooltip-arrow" className={tooltipArrow} />}
             {content}
           </BaseTooltip.Popup>
         </BaseTooltip.Positioner>

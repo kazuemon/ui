@@ -433,6 +433,14 @@
      入力欄の文字は指でもマウスでも 16px なので、アイコンもどちらも 20px */
   --spacing-icon-input-coarse: 20px;
   --spacing-icon-input-fine: 20px;
+  /* 小さい段（size="sm"）— 軸 461。ボタンが読む。入力欄にも同じ段を足すときは、同じ値を読んで高さをそろえる
+     高さ・文字・行の高さ・左右の余白・アイコンは密度で変えない（指でも 36px。見た目の釣り合いのため、指で押せる高さ 44px を割る）
+     文字は指の部品の文字と同じ 14px */
+  --spacing-control-sm: calc(var(--spacing) * 9); /* 36px */
+  --spacing-control-x-sm: calc(var(--spacing) * 3); /* 12px */
+  --text-control-sm: 14px;
+  --leading-control-sm: 20px;
+  --spacing-icon-sm: 16px;
   /* 読む文字の大きさと行の高さ — 軸 51 の E
      マウスでは本文 16px。指では、機能の画面（設定・SNS など）の本文を 14px にし、部品の文字と同じ大きさにする
      読みもの（Prose の中。data-reading を付けた要素）では、指でもマウスと同じ大きさ（本文 16px）を保つ（src/styles/theme.css）
@@ -979,6 +987,8 @@
   --tooltip-padding-y: var(--spacing);
   --tooltip-max-width: calc(var(--spacing) * 60);
   --tooltip-offset: calc(var(--spacing) * 2);
+  /* 本体を指す矢印（showArrow — 軸 462）。回す前の四角の一辺。面の端から半分はみ出す */
+  --tooltip-arrow-size: calc(var(--spacing) * 2); /* 8px */
   /* Tooltip は小さいので、ほかの浮かぶ面より影を小さく淡くする */
   --shadow-tooltip: 0 2px 8px rgb(from var(--color-shadow) r g b / 0.08);
 
@@ -1148,13 +1158,19 @@
   --carousel-dot-color: var(--color-line-strong);
   --carousel-dot-current-color: var(--color-neutral-strong);
   --carousel-count-gap: var(--spacing);
+  /* per-view-gap: 1 画面に複数枚（slidesPerView）のときのスライドのあいだ（軸 452）
+     autoplay-inline-gap: 自動の送りを止めるボタンと位置の印のあいだ（軸 451）
+     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ */
+  --carousel-per-view-gap: calc(var(--spacing) * 3);
+  --carousel-autoplay-inline-gap: calc(var(--spacing) * 3);
+  --carousel-thumbnails-side-gap: calc(var(--spacing) * 3);
   /* ── END carousel */
 
   /* ── Thumbnails — 軸 288 ── BEGIN thumbnails */
   /* 小さな画像を並べ、押して切り替える帯。src/components/thumbnails
      1 つずつは平らな押すもの（原則3）。hover で本文の色を淡く敷き、押すと沈む。選んでいるものは hover も沈みもしない（Tabs と同じ）
      item-width・item-ratio: 1 つの幅と比。radius: 角（押すものなので部品の角 — 原則5）。outline: 画像の細い輪郭（Figure と同じ濃さ）
-     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く
+     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く。縦に並べたときは画像の内側（スライドの側）の横に縦に引き、スクロールのつまみは外側に溝を取って置く（軸 453）
      rest-opacity・hover-opacity: 選んでいない画像の濃さと、載せたときの濃さ（1 で薄くしない）
      dim-rest-opacity・dim-hover-opacity: indicator="underline-dim" のときの、選んでいない画像の濃さと載せたときの濃さ（軸 288・決定: B） */
   --thumbnails-gap: calc(var(--spacing) * 2);
@@ -1444,15 +1460,20 @@
      radius-rounded-*: 四角（shape="rounded"）の角。大きさの段に従い、小さい段（sm・md）は部品の角、大きい段（lg・xl）はカードの角 — 軸 140
      outline-width・outline-color: 細い輪郭。白っぽい画像が白地に溶けないように付ける（原則1）。濃さは Image の輪郭と同じ。付けるかは利用者が選ぶ — 軸 140
      icon-scale: 頭文字の代わりに人のアイコンを出すとき（fallback="icon"）の、大きさの段に対する割合 — 軸 141 */
+  --avatar-size-xs: calc(
+    var(--spacing) * 5
+  ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す — 軸 463 */
   --avatar-size-sm: calc(var(--spacing) * 6); /* 24px。文字の行に並べる */
   --avatar-size-md: calc(var(--spacing) * 8); /* 32px。一覧の行 */
   --avatar-size-lg: calc(var(--spacing) * 10); /* 40px。カードの見出し */
   --avatar-size-xl: calc(var(--spacing) * 14); /* 56px。プロフィールの見出し */
+  --avatar-text-xs: 9px;
   --avatar-text-sm: 10px;
   --avatar-text-md: 12px;
   --avatar-text-lg: 16px;
   --avatar-text-xl: 20px;
   --avatar-radius-circle: var(--radius-pill);
+  --avatar-radius-rounded-xs: var(--radius-sm);
   --avatar-radius-rounded-sm: var(--radius-control);
   --avatar-radius-rounded-md: var(--radius-control);
   --avatar-radius-rounded-lg: var(--radius-card);
@@ -1802,6 +1823,22 @@
   --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
   --timeline-tail-length: calc(var(--spacing) * 5);
   --color-timeline-line: var(--color-line);
+  /* 状態の色の点（markerType の success・warning・danger）
+       color-marker-*: 点の色。警告の黄色は白地で 1.2:1 と見えにくいので、前景用のオリーブ色を既定にする（warningColor="yellow" で黄色の塗り）
+       color-marker-on-warning: 警告の点の色の上に載せるアイコンの色（オリーブなら白、黄色なら濃紺）
+     アイコンの丸（TimelineItem の icon）
+       icon-marker-size・icon-size: filled の丸とアイコンの大きさ
+       icon-marker-size-lg・icon-size-lg: soft・outline の丸とアイコンの大きさ（淡い面・輪郭は塗りより軽く見えるので一回り大きく）
+       icon-plain-size: plain（丸なし）のアイコンの大きさ */
+  --color-timeline-marker-success: var(--color-success);
+  --color-timeline-marker-warning: var(--color-fg-warning);
+  --color-timeline-marker-on-warning: var(--palette-white);
+  --color-timeline-marker-danger: var(--color-danger);
+  --timeline-icon-marker-size: calc(var(--spacing) * 6);
+  --timeline-icon-size: calc(var(--spacing) * 3.5);
+  --timeline-icon-marker-size-lg: calc(var(--spacing) * 7);
+  --timeline-icon-size-lg: calc(var(--spacing) * 4);
+  --timeline-icon-plain-size: calc(var(--spacing) * 5);
   /* ── END timeline */
 
   /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */
@@ -2071,6 +2108,18 @@
   --stepper-marker-icon-size: calc(var(--spacing) * 4); /* 16px */
   --stepper-line-width: var(--border-width-thin);
   --stepper-line-gap: calc(var(--spacing) * 1); /* 4px */
+  /* 小さい段（size="sm" — 軸 464）。ラベルは密度で変える（マウス 14px・指 12px。部品が --density-coarse で選ぶ） */
+  --stepper-gap-sm: calc(var(--spacing) * 6); /* 24px */
+  --stepper-label-gap-sm: calc(var(--spacing) * 2); /* 8px */
+  --stepper-marker-size-sm: calc(var(--spacing) * 6); /* 24px */
+  --stepper-marker-text-sm: 12px;
+  --stepper-marker-icon-size-sm: calc(var(--spacing) * 3); /* 12px */
+  --stepper-label-text-sm-fine: 14px;
+  --stepper-label-leading-sm-fine: 20px;
+  --stepper-label-text-sm-coarse: 12px;
+  --stepper-label-leading-sm-coarse: 16px;
+  /* 点のマーカー（variant="dot" — 軸 464）。数字も印も持たない小さな点。大きさの段によらず同じ */
+  --stepper-dot-size: calc(var(--spacing) * 2.5); /* 10px */
   /* ── END stepper */
 
   /* ── Inspector — ADR-0320〜0325 ── BEGIN inspector */

@@ -38,7 +38,10 @@ const stepper = tv({
     root: 'w-full',
     list: 'flex list-none gap-(--stepper-gap) p-0',
     item: [
+      // --stepper-marker-offset: 縦並びで、マーカーがラベルの 1 行目より小さいとき（点）、行の真ん中にそろえるための下げ幅
+      //   マーカーのほうが大きいとき（数字・印）は 0（ラベルをマーカーの上端にそろえる）。横並びでは使わない
       'relative flex flex-1',
+      '[--stepper-marker-offset:0px] data-[orientation=vertical]:[--stepper-marker-offset:max(0px,calc((var(--stepper-label-leading)-var(--stepper-marker-size))/2))]',
       'data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:items-center',
       'data-[orientation=vertical]:flex-none data-[orientation=vertical]:items-start',
     ],
@@ -54,9 +57,10 @@ const stepper = tv({
       'absolute bg-(color:--stepper-line-color)',
       'data-[orientation=horizontal]:top-[calc(var(--stepper-marker-size)/2-var(--stepper-line-width)/2)] data-[orientation=horizontal]:h-(--stepper-line-width)',
       'data-[orientation=horizontal]:start-[calc(50%+var(--stepper-marker-size)/2)] data-[orientation=horizontal]:w-[calc(50%+var(--stepper-gap)/2-var(--stepper-marker-size)/2)]',
-      // 縦並び: マーカーは control の先頭（items-start）に上端がそろうので、マーカーの下端は li の上端 + マーカーの高さ
-      //   次の段の li は、この li の下端 + gap（ol の flex gap）から始まる。線は、その手前・先で少し離す（line-gap）
-      'data-[orientation=vertical]:start-[calc(var(--stepper-marker-size)/2-var(--stepper-line-width)/2)] data-[orientation=vertical]:top-[calc(var(--stepper-marker-size)+var(--stepper-line-gap))] data-[orientation=vertical]:bottom-[calc(var(--stepper-line-gap)-var(--stepper-gap))] data-[orientation=vertical]:w-(--stepper-line-width)',
+      // 縦並び: マーカーは control の先頭（items-start）から --stepper-marker-offset 下がった位置にあるので、
+      //   マーカーの下端は li の上端 + offset + マーカーの高さ。次の段の li は、この li の下端 + gap（ol の flex gap）から始まり、
+      //   そのマーカーも offset 下がる。線は、その手前・先で少し離す（line-gap）
+      'data-[orientation=vertical]:start-[calc(var(--stepper-marker-size)/2-var(--stepper-line-width)/2)] data-[orientation=vertical]:top-[calc(var(--stepper-marker-offset)+var(--stepper-marker-size)+var(--stepper-line-gap))] data-[orientation=vertical]:bottom-[calc(var(--stepper-line-gap)-var(--stepper-gap)-var(--stepper-marker-offset))] data-[orientation=vertical]:w-(--stepper-line-width)',
     ],
     // クリックできる段はボタン、そうでない段は div。どちらも同じ見た目
     control: [
@@ -84,10 +88,40 @@ const stepper = tv({
     content:
       'flex flex-col gap-0.5 data-[orientation=horizontal]:items-center data-[orientation=horizontal]:text-center',
     label:
-      'text-(length:--text-control) leading-(--leading-control) text-(color:--stepper-label-color)',
+      'text-(length:--stepper-label-text) leading-(--stepper-label-leading) text-(color:--stepper-label-color)',
     description: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
   },
   variants: {
+    // 大きさの段（軸 464）。root で段の寸法を入れ、マーカー・線・ラベルが読む
+    //   md のラベルは部品の文字（密度で変わる）。sm は --stepper-*-sm に差し替える
+    size: {
+      md: {
+        root: '[--stepper-label-leading:var(--leading-control)] [--stepper-label-text:var(--text-control)]',
+      },
+      // sm のラベルは密度で変える（--density-coarse: 指用 1・マウス用 0 で、-fine と -coarse のあいだを選ぶ。.coarse-large と同じ式）
+      sm: {
+        root: [
+          '[--stepper-gap:var(--stepper-gap-sm)] [--stepper-label-gap:var(--stepper-label-gap-sm)]',
+          '[--stepper-marker-icon-size:var(--stepper-marker-icon-size-sm)] [--stepper-marker-size:var(--stepper-marker-size-sm)] [--stepper-marker-text:var(--stepper-marker-text-sm)]',
+          '[--stepper-label-text:calc(var(--stepper-label-text-sm-fine)_+_var(--density-coarse)_*_(var(--stepper-label-text-sm-coarse)_-_var(--stepper-label-text-sm-fine)))]',
+          '[--stepper-label-leading:calc(var(--stepper-label-leading-sm-fine)_+_var(--density-coarse)_*_(var(--stepper-label-leading-sm-coarse)_-_var(--stepper-label-leading-sm-fine)))]',
+        ],
+      },
+    },
+    // マーカーの形。dot は数字も印も持たない小さな点にする（大きさの段によらず同じ大きさ）。
+    //   number・check は完了した段の中身の違いだけなので、ここでは分けない（StepperStep が中身を選ぶ）
+    markerShape: {
+      default: {},
+      dot: {
+        root: '[--stepper-marker-size:var(--stepper-dot-size)]',
+        // 縦並びでは、ラベルの 1 行目の真ん中に下げる（--stepper-marker-offset）
+        // 点のエラーの段: 淡い赤の塗りでは点が見えないので、濃い赤で塗る（原則6）
+        marker: [
+          'data-[orientation=vertical]:mt-(--stepper-marker-offset)',
+          'data-invalid:[--stepper-marker-bg:var(--color-fg-danger)]',
+        ],
+      },
+    },
     orientation: {
       horizontal: { list: 'items-start' },
       vertical: { list: 'flex-col' },
@@ -142,6 +176,8 @@ const stepper = tv({
     },
   },
   defaultVariants: {
+    size: 'md',
+    markerShape: 'default',
     orientation: 'horizontal',
     color: 'neutral',
     status: 'upcoming',
@@ -154,10 +190,14 @@ export type StepperOrientation = 'horizontal' | 'vertical';
 
 export type StepperColor = 'neutral' | 'primary' | 'secondary';
 
+/** 大きさ。sm はマーカーと文を一段小さくする */
+export type StepperSize = 'sm' | 'md';
+
 /**
- * 完了した段のマーカー。check はチェックの印に差し替える（既定、ADR-0318）。number は数字のまま色だけ変える
+ * マーカーの形。check は完了した段をチェックの印に差し替える（既定、ADR-0318）。number は数字のまま色だけ変える。
+ * dot は数字も印も持たない小さな点にする
  */
-export type StepperVariant = 'number' | 'check';
+export type StepperVariant = 'number' | 'check' | 'dot';
 
 /** 段の状態。upcoming はまだ、current はいまの段、completed は済んだ段 */
 export type StepperStepStatus = 'upcoming' | 'current' | 'completed';
@@ -207,10 +247,16 @@ export interface StepperProps extends Omit<ComponentProps<'nav'>, 'color' | 'chi
    */
   color?: StepperColor;
   /**
-   * 完了した段のマーカー。check はチェックの印に差し替え、number は数字のまま色だけ変えます
+   * マーカーの形。check は完了した段をチェックの印に差し替え、number は数字のまま色だけ変えます。
+   * dot は数字も印も持たない小さな点にし、いちばん小さく収めます（完了といまの段は、点の色ではなくラベルの太さと線の色で見分けます）
    * @default 'check'
    */
   variant?: StepperVariant;
+  /**
+   * 大きさ。sm はマーカーとラベルを一段小さくし、段のあいだも詰めます。ダイアログやサイドバーの中など、狭い場所に置くときに使います
+   * @default 'md'
+   */
+  size?: StepperSize;
   /**
    * 並び（nav）の読み上げの名前。画面には出ません
    * @default '進み具合'
@@ -233,6 +279,7 @@ export function Stepper({
   orientation = 'horizontal',
   color,
   variant = 'check',
+  size,
   accessibleName = '進み具合',
   className,
   children,
@@ -243,7 +290,12 @@ export function Stepper({
     (child): child is ReactElement<StepperStepProps> =>
       isValidElement(child) && child.type === StepperStep
   );
-  const s = stepper({ orientation, color });
+  const s = stepper({
+    orientation,
+    color,
+    size,
+    markerShape: variant === 'dot' ? 'dot' : 'default',
+  });
 
   return (
     <nav
@@ -304,7 +356,7 @@ export interface StepperStepProps extends Omit<ComponentProps<'li'>, 'title'> {
    * @default false
    */
   disabled?: boolean;
-  /** マーカーの中身を差し替えます（既定は番号、完了すると variant に従います） */
+  /** マーカーの中身を差し替えます（既定は番号、完了すると variant に従います）。variant が dot のときは描きません */
   icon?: ReactNode;
   /**
    * 描く要素（Base UI の render と同じ）。押せる段（完了した段）をリンクにするときに渡します
@@ -330,21 +382,24 @@ export function StepperStep({
 }: StepperStepProps) {
   const { orientation, variant } = use(StepperContext);
   const { number, status, isFirst, isLast, onSelect } = use(StepperItemContext);
-  const s = stepper({ orientation, status, disabled });
+  const dot = variant === 'dot';
+  const s = stepper({ orientation, status, disabled, markerShape: dot ? 'dot' : 'default' });
   const clickable = onSelect !== undefined;
   const labelId = useId();
   const descriptionId = useId();
   const statusId = useId();
 
-  const markerContent =
-    icon ??
-    (invalid ? (
-      <WarningCircleIcon className={s.markerIcon()} />
-    ) : status === 'completed' && variant === 'check' ? (
-      <CheckMarkIcon standalone className={s.markerIcon()} />
-    ) : (
-      number
-    ));
+  // 点（variant="dot"）は中身を持たない（icon も描かない）
+  const markerContent = dot
+    ? null
+    : (icon ??
+      (invalid ? (
+        <WarningCircleIcon className={s.markerIcon()} />
+      ) : status === 'completed' && variant === 'check' ? (
+        <CheckMarkIcon standalone className={s.markerIcon()} />
+      ) : (
+        number
+      )));
 
   // マーカー（数字・チェック・警告アイコン）は見た目の飾りで aria-hidden。伝えている状態（完了・エラー）を
   //   見えない文で足し、aria-labelledby でラベルの後ろにつなぐ（いまの段は別に aria-current が伝える）
@@ -357,6 +412,7 @@ export function StepperStep({
         aria-hidden="true"
         data-slot="stepper-marker"
         data-invalid={invalid || undefined}
+        data-orientation={orientation}
         className={s.marker()}
       >
         {markerContent}

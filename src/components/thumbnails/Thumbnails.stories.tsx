@@ -39,6 +39,7 @@ const meta = {
           '- 選んでいる 1 つには、画像の下に棒を引きます。色は `color`（`neutral`・`primary`・`secondary`。既定は `neutral`）です。`indicator="underline-dim"` にすると、棒に加えて選んでいない画像を少し薄くします。',
           '- ←→ で選びながら移り、Home・End で最初と最後へ移ります。Tab で止まるのは選んでいる 1 つだけです。',
           '- 並びが入り切らないときは横にスクロールし、続きがある端に内側の影を落とします。',
+          '- `orientation="vertical"` で縦に並べ、入れ物の高さに収めます（はみ出す分は縦にスクロールします）。選んでいる棒は画像の右に、スクロールのつまみは帯の左に置きます。Carousel の右に置いたときは左右が入れ替わります。',
         ].join('\n'),
       },
     },
@@ -179,6 +180,24 @@ export const WithFigure: Story = {
     await waitFor(() =>
       expect(canvas.getByText('作品の詳細', { selector: 'figcaption' })).toBeVisible()
     );
+  },
+};
+
+export const Vertical: Story = {
+  name: '縦に並べる',
+  render: () => (
+    <Thumbnails orientation="vertical" className="h-64">
+      {thumbs}
+    </Thumbnails>
+  ),
+  play: async ({ canvas }) => {
+    // 縦では ↑↓ で選ぶ
+    const tabs = canvas.getAllByRole('tab');
+    await expect(canvas.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical');
+    tabs[0].focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs[1]).toHaveFocus();
   },
 };
 

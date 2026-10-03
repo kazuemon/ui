@@ -27,6 +27,8 @@ export interface CarouselEngine {
   canPrev?: boolean;
   /** 次へ送れるか。書かないときは、いまの 1 枚が最後でなければ送れる */
   canNext?: boolean;
+  /** 枠に並んで見えている枚数（slidesPerView）。書かないときは 1 枚 */
+  visibleCount?: number;
 }
 
 /** 送る仕組みの hook。Carousel（と、ほかの仕組みで組んだ Carousel）が、描くたびに 1 回呼ぶ */
