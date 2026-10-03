@@ -1,15 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react';
-import { Fragment, useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { DotsThreeVerticalIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
+import { Fragment, type MouseEvent, useState } from 'react';
+import { addons } from 'storybook/preview-api';
+import { expect, fn, spyOn, userEvent, waitFor, within } from 'storybook/test';
 
 import { DataTable, type DataTableProps } from './DataTable';
 import { DataTableEmpty } from './DataTableEmpty';
+import {
+  DataTableExpandCell,
+  DataTableExpandRow,
+  type DataTableExpandRowVariant,
+} from './DataTableExpand';
 import { DataTableHeader, type DataTableSortDirection } from './DataTableHeader';
 import { DataTableLoading } from './DataTableLoading';
-import { DataTableRow } from './DataTableRow';
+import { DataTableRow, type DataTableRowStatus } from './DataTableRow';
+import { DataTableRowLink } from './DataTableRowLink';
 import { DataTableSelectCell, DataTableSelectHeader } from './DataTableSelect';
+import { Button } from '../button/Button';
 import { Icon } from '../icon/Icon';
+import { Menu } from '../menu/Menu';
+import { MenuItem } from '../menu/MenuItem';
 import { StatusPanel } from '../status-panel/StatusPanel';
 import { TableBody, TableCell, TableHead, TableRow } from '../table/Table';
 import { Tag } from '../tag/Tag';
@@ -147,6 +157,10 @@ const meta = {
           '- 並べ替えていない列の印（上下の山）の出し方は `sortIndicator` です。`subtle`（既定）はふだん淡く置いて載せると濃くし、`always` はいつも同じ濃さ、`hover` は載せたときだけ出します（指で操作しているときはいつも出します）。',
           '- 選ぶ列は、見出しに `DataTableSelectHeader`（すべて選ぶ。一部だけのときは `indeterminate`）、行に `DataTableSelectCell` を置きます。箱の名前は `accessibleName` で、どの行かが分かる文にします。',
           '- 本文の行は `DataTableRow` です。載せると淡く塗り、`selected` の行には `color`（既定は `neutral`）の淡い面を敷きます。',
+          '- 行の `status` は行の状態です。`muted` は済んだ・取り消した行で文字を淡くし、`warning`・`danger` は状態の色で知らせます。見せ方は `DataTable` の `statusIndicator` で、`fill`（既定。淡い面）・`edge`（左端の帯）・`fill-edge`（両方）です。',
+          '- 行を代表するセル（注文番号・名前）に `DataTableRowLink` を置くと、行のどこを押してもそのリンクで移ります。リンクのない行は押しても移りません。リンクの色は `color`（既定は `neutral`）で、Next.js の Link などは `render` に渡します。',
+          '- 行の下に明細を開くときは、行の頭に `DataTableExpandCell`、すぐ下に `DataTableExpandRow` を置きます。開いた行の見た目は `variant` で、`indent`（既定。字下げだけ）・`flush`（字下げなし）・`filled`（グレーの面で親の行とつなぐ）です。',
+          '- 並べ替え・ページ送りのあと、新しい行が届くまでは `refreshing` で行を残したまま薄くします。`showRefreshingBar` で、表の上の端に流れる線も足せます。',
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
           '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
@@ -164,6 +178,13 @@ const meta = {
       options: ['subtle', 'always', 'hover'],
       table: { defaultValue: { summary: "'subtle'" } },
     },
+    statusIndicator: {
+      control: 'inline-radio',
+      options: ['fill', 'edge', 'fill-edge'],
+      table: { defaultValue: { summary: "'fill'" } },
+    },
+    refreshing: { control: 'boolean' },
+    showRefreshingBar: { control: 'boolean' },
     showColumnDivider: { control: 'boolean' },
     caption: { control: 'text' },
   },
@@ -308,6 +329,22 @@ export const StickyHeader: Story = {
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const header = canvasElement.querySelector('thead th');
     await expect(header && getComputedStyle(header).position).toBe('sticky');
+    // 縦のつまみの溝は、見出しの行の下から始まる（見出しに重ならない）
+    const frames = canvasElement.querySelectorAll('[data-slot="data-table-scroll"]');
+    await expect(frames).toHaveLength(3);
+    for (const frame of frames) {
+      // 貼り付いているのは見出しのセル（thead そのものはスクロールで上に流れる）
+      const head = frame.querySelector('thead th')!.getBoundingClientRect();
+      const bar = frame.querySelector(':scope > [data-orientation="vertical"]');
+      await expect(bar).not.toBeNull();
+      await expect(bar!.getBoundingClientRect().top).toBeGreaterThanOrEqual(head.bottom - 0.5);
+    }
+    // banded の見出しのセルは塗らない。帯は ::before の面で、スクロールすると下の角が四角になる（上の角は丸いまま）
+    const bandedHeader = frames[2].querySelector('thead th')!;
+    await expect(getComputedStyle(bandedHeader).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    const band = getComputedStyle(bandedHeader, '::before');
+    await expect(band.borderEndStartRadius).toBe('0px');
+    await expect(band.borderStartStartRadius).not.toBe('0px');
   },
 };
 
@@ -439,6 +476,417 @@ export const Densities: Story = {
   ),
 };
 
+const statusRows: { order: Order; status?: DataTableRowStatus }[] = [
+  { order: orders[0] },
+  { order: { ...orders[1], id: 'A-1028', status: '準備中' }, status: 'warning' },
+  { order: { ...orders[2], id: 'A-1029', status: '準備中' }, status: 'danger' },
+  { order: orders[3], status: 'muted' },
+];
+
+function StatusTable(props: Omit<DataTableProps, 'children'>) {
+  return (
+    <DataTable accessibleName="注文" {...props}>
+      <TableHead>
+        <TableRow>
+          <DataTableHeader>注文番号</DataTableHeader>
+          <DataTableHeader>お店</DataTableHeader>
+          <DataTableHeader>状態</DataTableHeader>
+          <DataTableHeader align="end">金額</DataTableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {statusRows.map(({ order, status }) => (
+          <DataTableRow key={order.id} status={status}>
+            <TableCell>{order.id}</TableCell>
+            <TableCell>{order.shop}</TableCell>
+            <TableCell>{status ?? '—'}</TableCell>
+            <TableCell align="end">{yen(order.amount)}</TableCell>
+          </DataTableRow>
+        ))}
+      </TableBody>
+    </DataTable>
+  );
+}
+
+export const RowStatus: Story = {
+  tags: ['visual'],
+  name: '行の状態',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '上から、状態なし・`warning`・`danger`・`muted` の行です。`statusIndicator` で見せ方を選びます。`muted` はどれでも文字を淡くします。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="30rem">
+      {(['fill', 'edge', 'fill-edge'] as const).map((indicator) => (
+        <Specimen key={indicator} label={indicator}>
+          <StatusTable statusIndicator={indicator} />
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+export const Refreshing: Story = {
+  tags: ['visual'],
+  name: '読み直し中',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`refreshing` は行を残したまま薄くし、表に `aria-busy` を付けます。`showRefreshingBar` を足すと、表の上の端に線が流れます（ここでは線の動きを撮らないため、線のない形だけを並べています。線は Controls で試せます）。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="30rem">
+      <Specimen label="refreshing">
+        <OrdersTable refreshing selected={[]} />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    const table = within(canvasElement).getByRole('table', { name: '注文' });
+    await expect(table).toHaveAttribute('aria-busy', 'true');
+    await expect(canvasElement.querySelector('[data-slot="data-table-refreshing"]')).toBeNull();
+  },
+};
+
+const details: Record<string, string[]> = {
+  'A-1024': ['ノート A5 × 3', 'ボールペン × 5'],
+  'A-1025': ['マグカップ × 2', 'ランチョンマット × 4', '箸置き × 4'],
+  'A-1026': ['食パン × 1'],
+};
+
+function ExpandTable({
+  variant,
+  initialOpen = ['A-1025'],
+}: {
+  variant?: DataTableExpandRowVariant;
+  initialOpen?: string[];
+}) {
+  const [open, setOpen] = useState(initialOpen);
+  return (
+    <DataTable accessibleName="注文">
+      <TableHead>
+        <TableRow>
+          <DataTableHeader className="w-px">
+            <span className="sr-only">明細</span>
+          </DataTableHeader>
+          <DataTableHeader>注文番号</DataTableHeader>
+          <DataTableHeader>お店</DataTableHeader>
+          <DataTableHeader align="end">金額</DataTableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {orders.slice(0, 3).map((order) => {
+          const isOpen = open.includes(order.id);
+          const id = `expand-${variant ?? 'indent'}-${order.id}`;
+          return (
+            <Fragment key={order.id}>
+              <DataTableRow>
+                <DataTableExpandCell
+                  open={isOpen}
+                  onOpenChange={(next) =>
+                    setOpen((current) =>
+                      next ? [...current, order.id] : current.filter((value) => value !== order.id)
+                    )
+                  }
+                  controls={id}
+                  accessibleName={`${order.id} の明細`}
+                />
+                <TableCell>{order.id}</TableCell>
+                <TableCell>{order.shop}</TableCell>
+                <TableCell align="end">{yen(order.amount)}</TableCell>
+              </DataTableRow>
+              <DataTableExpandRow id={id} open={isOpen} columns={4} variant={variant}>
+                <ul className="m-0 list-none p-0">
+                  {details[order.id]?.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </DataTableExpandRow>
+            </Fragment>
+          );
+        })}
+      </TableBody>
+    </DataTable>
+  );
+}
+
+export const Expand: Story = {
+  tags: ['visual'],
+  name: '開いた行',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '2 行目を開いたところです。`DataTableExpandRow` の `variant` は `indent`（既定。字下げだけ）・`flush`（字下げなし）・`filled`（グレーの面で、開いた親の行とつなぐ）です。開いているかは使う側が持ちます。',
+      },
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="30rem">
+      {(['indent', 'flush', 'filled'] as const).map((variant) => (
+        <Specimen key={variant} label={variant}>
+          <ExpandTable variant={variant} />
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [button] = canvas.getAllByRole('button', { name: 'A-1024 の明細' });
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(button);
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(canvas.getAllByText('ノート A5 × 3')[0]).toBeVisible();
+    await userEvent.click(button);
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    // 見た目の比較で、押したあとのフォーカスの線を写さない
+    button.blur();
+  },
+};
+
+const linkTarget = '[data-slot="data-table-row"]:nth-child(2)';
+
+function LinkTable({
+  color,
+  onGo,
+  withMenu,
+}: {
+  color?: 'neutral' | 'primary';
+  onGo?: (href: string) => void;
+  /** 行の端に、メニューを開く ︙ のボタンを置く */
+  withMenu?: boolean;
+}) {
+  // 見本なので移らず、押した行き先を知らせる
+  const go = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    onGo?.(event.currentTarget.getAttribute('href') ?? '');
+  };
+  return (
+    <DataTable accessibleName="注文">
+      <TableHead>
+        <TableRow>
+          <DataTableHeader>注文番号</DataTableHeader>
+          <DataTableHeader>お店</DataTableHeader>
+          <DataTableHeader align="end">金額</DataTableHeader>
+          {withMenu && (
+            <DataTableHeader>
+              <span className="sr-only">操作</span>
+            </DataTableHeader>
+          )}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {orders.slice(0, 3).map((order) => (
+          <DataTableRow key={order.id}>
+            <TableCell>
+              <DataTableRowLink href={`#/orders/${order.id}`} color={color} onClick={go}>
+                {order.id}
+              </DataTableRowLink>
+            </TableCell>
+            <TableCell>{order.shop}</TableCell>
+            <TableCell align="end">{yen(order.amount)}</TableCell>
+            {withMenu && (
+              <TableCell align="end">
+                <Menu
+                  title={`${order.id} の操作`}
+                  trigger={
+                    <Button iconOnly variant="outline" aria-label={`${order.id} の操作`}>
+                      <DotsThreeVerticalIcon />
+                    </Button>
+                  }
+                >
+                  <MenuItem>複製する</MenuItem>
+                  <MenuItem status="danger">取り消す</MenuItem>
+                </Menu>
+              </TableCell>
+            )}
+          </DataTableRow>
+        ))}
+        <DataTableRow>
+          <TableCell>{orders[3].id}</TableCell>
+          <TableCell>{orders[3].shop}（リンクのない行）</TableCell>
+          <TableCell align="end">{yen(orders[3].amount)}</TableCell>
+          {withMenu && <TableCell />}
+        </DataTableRow>
+      </TableBody>
+    </DataTable>
+  );
+}
+
+export const RowLink: Story = {
+  tags: ['visual'],
+  name: '行のリンク',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行を代表するセルに `DataTableRowLink` を置くと、行のどこを押してもそのリンクで移ります。リンクのない行（4 行目）は押しても移りません。キーボードと読み上げは、リンクで移ります。押すと行が少し濃くなります。',
+      },
+    },
+    pseudo: statePseudo({
+      hover: linkTarget,
+      active: linkTarget,
+      focusVisible: `${linkTarget} [data-slot="data-table-row-link"]`,
+    }),
+  },
+  render: () => (
+    <Gallery columnWidth="26rem">
+      <Specimen label="neutral（既定）">
+        <LinkTable />
+      </Specimen>
+      <Specimen label="primary">
+        <LinkTable color="primary" />
+      </Specimen>
+      <Specimen label="hover（2 行目）">
+        <div data-preview="hover">
+          <LinkTable />
+        </div>
+      </Specimen>
+      <Specimen label="押下（2 行目）">
+        <div data-preview="active">
+          <LinkTable />
+        </div>
+      </Specimen>
+      <Specimen label="フォーカス（2 行目のリンク）">
+        <div data-preview="focus">
+          <LinkTable />
+        </div>
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+const went = fn();
+
+export const RowLinkBehavior: Story = {
+  name: '行のリンクの操作',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="max-w-xl">
+      <LinkTable onGo={went} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    went.mockClear();
+    // 行のほかのセルを押すと、行のリンクを押したのと同じ
+    await userEvent.click(canvas.getByText('ひだまり雑貨'));
+    await expect(went).toHaveBeenLastCalledWith('#/orders/A-1025');
+    // リンクそのものを押しても 1 回だけ
+    await userEvent.click(canvas.getByRole('link', { name: 'A-1026' }));
+    await expect(went).toHaveBeenCalledTimes(2);
+    // リンクのない行は移らない
+    await userEvent.click(canvas.getByText('そらいろ書房（リンクのない行）'));
+    await expect(went).toHaveBeenCalledTimes(2);
+    await expect(canvas.getAllByRole('link')).toHaveLength(3);
+    // 中ボタン（ホイール）で行を押すと、行のリンクの行き先を新しいタブで開く
+    const open = spyOn(window, 'open').mockImplementation(() => null);
+    try {
+      await userEvent.pointer({
+        keys: '[MouseMiddle]',
+        target: canvas.getByText('港町ベーカリー'),
+      });
+      await expect(open).toHaveBeenCalledTimes(1);
+      await expect(open).toHaveBeenLastCalledWith(
+        new URL('#/orders/A-1026', document.baseURI).href,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      // リンクのない行は開かない。左ボタンの押下は新しいタブにしない
+      await userEvent.pointer({
+        keys: '[MouseMiddle]',
+        target: canvas.getByText('そらいろ書房（リンクのない行）'),
+      });
+      await userEvent.click(canvas.getByText('港町ベーカリー'));
+      await expect(open).toHaveBeenCalledTimes(1);
+      await expect(went).toHaveBeenCalledTimes(3);
+    } finally {
+      open.mockRestore();
+    }
+  },
+};
+
+const menuButton = `${linkTarget} button`;
+
+export const RowLinkWithMenu: Story = {
+  tags: ['visual'],
+  name: '行のリンクと行の中のメニュー',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行のリンクのある行に、メニューを開くボタンなどの操作を置けます。行の中の操作を押しても行のリンクでは移らず、押している間も行は濃くなりません。',
+      },
+    },
+    pseudo: {
+      rootSelector: 'body',
+      hover: [
+        `[data-preview="active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${linkTarget}`,
+      ],
+      active: [
+        `[data-preview="active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${linkTarget}`,
+        `[data-preview="button-active"] ${menuButton}`,
+      ],
+    },
+  },
+  render: () => (
+    <Gallery columnWidth="30rem">
+      <Specimen label="通常">
+        <LinkTable withMenu />
+      </Specimen>
+      <Specimen label="行を押下（2 行目）">
+        <div data-preview="active">
+          <LinkTable withMenu />
+        </div>
+      </Specimen>
+      <Specimen label="︙ を押下（2 行目）">
+        <div data-preview="button-active">
+          <LinkTable withMenu />
+        </div>
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    // 状態を固定するアドオンが :active を書き換えるのは「描き終わった」の合図のあと。Vitest では出ないので出す
+    addons.getChannel().emit('storyRendered');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const at = (state: string) =>
+      canvasElement.querySelector<HTMLElement>(`[data-preview="${state}"] ${linkTarget}`)!;
+    const bg = (element: Element) => getComputedStyle(element).backgroundColor;
+    // 行を押すと濃くなる。︙ を押している間は、載せたときの塗りのまま
+    const pressed = bg(at('active'));
+    const buttonPressed = bg(at('button-active'));
+    await expect(buttonPressed).not.toBe(pressed);
+    await expect(buttonPressed).not.toBe(bg(canvasElement.querySelector(linkTarget)!));
+    // ︙ を押した時点でメニューが開くと、:active はボタンから外れて行にだけ残る。開いている間も、行は載せたときの塗りのまま
+    // （行だけを押下にした見本で、本物のメニューを開いて確かめる）
+    const trigger = canvasElement.querySelector<HTMLElement>(
+      `[data-preview="active"] ${menuButton}`
+    )!;
+    await userEvent.click(trigger);
+    await waitFor(() => expect(trigger).toHaveAttribute('data-popup-open'));
+    await expect(bg(at('active'))).toBe(buttonPressed);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(document.querySelector('[role="menu"]')).toBeNull());
+    await expect(bg(at('active'))).toBe(pressed);
+    trigger.blur();
+  },
+};
+
 const sortClicked = fn();
 
 export const Accessibility: Story = {
@@ -473,5 +921,49 @@ export const Accessibility: Story = {
     );
     await userEvent.click(canvas.getByRole('checkbox', { name: 'A-1026 を選ぶ' }));
     await expect(all).toHaveAttribute('aria-checked', 'mixed');
+  },
+};
+
+const rowClick = fn();
+const rowLinkClick = fn((event: MouseEvent) => event.preventDefault());
+
+export const RowLinkClickOnce: Story = {
+  name: '行のリンクと行の onClick',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行のリンクの行に `onClick` を渡すと、行のどこを押しても 1 回だけ呼ばれ、そのあと行のリンクで移ります。',
+      },
+    },
+  },
+  render: () => (
+    <DataTable accessibleName="注文">
+      <TableHead>
+        <TableRow>
+          <DataTableHeader>注文番号</DataTableHeader>
+          <DataTableHeader>お店</DataTableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <DataTableRow onClick={rowClick}>
+          <TableCell>
+            <DataTableRowLink href="#a-1024" onClick={rowLinkClick}>
+              A-1024
+            </DataTableRowLink>
+          </TableCell>
+          <TableCell>森の文具店</TableCell>
+        </DataTableRow>
+      </TableBody>
+    </DataTable>
+  ),
+  play: async ({ canvas }) => {
+    rowClick.mockClear();
+    rowLinkClick.mockClear();
+    await userEvent.click(canvas.getByText('森の文具店'));
+    // 行の onClick は 1 回だけ。リンクへは転送される
+    await expect(rowClick).toHaveBeenCalledTimes(1);
+    await expect(rowLinkClick).toHaveBeenCalledTimes(1);
   },
 };
