@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DotsThreeVerticalIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { Fragment, type MouseEvent, useState } from 'react';
 import { addons } from 'storybook/preview-api';
-import { expect, fn, spyOn, userEvent, within } from 'storybook/test';
+import { expect, fn, spyOn, userEvent, waitFor, within } from 'storybook/test';
 
 import { DataTable, type DataTableProps } from './DataTable';
 import { DataTableEmpty } from './DataTableEmpty';
@@ -869,6 +869,18 @@ export const RowLinkWithMenu: Story = {
     const buttonPressed = bg(at('button-active'));
     await expect(buttonPressed).not.toBe(pressed);
     await expect(buttonPressed).not.toBe(bg(canvasElement.querySelector(linkTarget)!));
+    // ︙ を押した時点でメニューが開くと、:active はボタンから外れて行にだけ残る。開いている間も、行は載せたときの塗りのまま
+    // （行だけを押下にした見本で、本物のメニューを開いて確かめる）
+    const trigger = canvasElement.querySelector<HTMLElement>(
+      `[data-preview="active"] ${menuButton}`
+    )!;
+    await userEvent.click(trigger);
+    await waitFor(() => expect(trigger).toHaveAttribute('data-popup-open'));
+    await expect(bg(at('active'))).toBe(buttonPressed);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(document.querySelector('[role="menu"]')).toBeNull());
+    await expect(bg(at('active'))).toBe(pressed);
+    trigger.blur();
   },
 };
 
