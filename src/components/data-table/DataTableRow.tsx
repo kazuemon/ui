@@ -83,6 +83,9 @@ export interface DataTableRowProps extends TableRowProps {
  * 本文の行（tr）。載せると淡く塗り、選んだ行には面を敷きます。
  * 中に DataTableRowLink を置くと、行のどこを押してもそのリンクで移ります（中ボタンでは新しいタブで開きます）
  */
+// 行からリンクへ転送した click。行へ戻ってきたときに、行の onClick をもう一度呼ばないために覚える
+const forwardedClicks = new WeakSet<Event>();
+
 export function DataTableRow({
   selected,
   status,
@@ -93,21 +96,23 @@ export function DataTableRow({
 }: DataTableRowProps) {
   const { statusIndicator } = useContext(DataTableContext);
   const handleClick = (event: MouseEvent<HTMLTableRowElement>) => {
+    // 転送した click が行へ戻ってきたときは、何もしない（行の onClick は最初の押下で呼んである）
+    if (forwardedClicks.has(event.nativeEvent)) return;
     onClick?.(event);
     const anchor = rowLinkFor(event);
     if (!anchor) return;
     // 修飾キー（新しいタブで開く）もそのまま渡す
-    anchor.dispatchEvent(
-      new window.MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        ctrlKey: event.ctrlKey,
-        metaKey: event.metaKey,
-        shiftKey: event.shiftKey,
-        altKey: event.altKey,
-        button: event.button,
-      })
-    );
+    const forwarded = new window.MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+      button: event.button,
+    });
+    forwardedClicks.add(forwarded);
+    anchor.dispatchEvent(forwarded);
   };
   // 中ボタンは click が来ないので auxclick で拾う。転送した click では新しいタブにならないので、行き先を開く
   const handleAuxClick = (event: MouseEvent<HTMLTableRowElement>) => {

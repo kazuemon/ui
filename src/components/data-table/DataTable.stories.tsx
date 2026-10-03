@@ -923,3 +923,47 @@ export const Accessibility: Story = {
     await expect(all).toHaveAttribute('aria-checked', 'mixed');
   },
 };
+
+const rowClick = fn();
+const rowLinkClick = fn((event: MouseEvent) => event.preventDefault());
+
+export const RowLinkClickOnce: Story = {
+  name: '行のリンクと行の onClick',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '行のリンクの行に `onClick` を渡すと、行のどこを押しても 1 回だけ呼ばれ、そのあと行のリンクで移ります。',
+      },
+    },
+  },
+  render: () => (
+    <DataTable accessibleName="注文">
+      <TableHead>
+        <TableRow>
+          <DataTableHeader>注文番号</DataTableHeader>
+          <DataTableHeader>お店</DataTableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <DataTableRow onClick={rowClick}>
+          <TableCell>
+            <DataTableRowLink href="#a-1024" onClick={rowLinkClick}>
+              A-1024
+            </DataTableRowLink>
+          </TableCell>
+          <TableCell>森の文具店</TableCell>
+        </DataTableRow>
+      </TableBody>
+    </DataTable>
+  ),
+  play: async ({ canvas }) => {
+    rowClick.mockClear();
+    rowLinkClick.mockClear();
+    await userEvent.click(canvas.getByText('森の文具店'));
+    // 行の onClick は 1 回だけ。リンクへは転送される
+    await expect(rowClick).toHaveBeenCalledTimes(1);
+    await expect(rowLinkClick).toHaveBeenCalledTimes(1);
+  },
+};
