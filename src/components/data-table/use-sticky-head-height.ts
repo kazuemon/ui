@@ -19,9 +19,20 @@ export function useStickyHeadHeight(frameRef: RefObject<HTMLDivElement | null>, 
     // 表の大きさが変われば見出しの行も変わりうるので、表と見出しの両方を見る
     const observer = new ResizeObserver(write);
     observer.observe(table);
-    if (table.tHead) observer.observe(table.tHead);
+    let head = table.tHead;
+    if (head) observer.observe(head);
+    // 見出しがあとから描かれたり差し替わったりしたら、見る相手を付け直して書き直す
+    const mutation = new MutationObserver(() => {
+      if (table.tHead === head) return;
+      if (head) observer.unobserve(head);
+      head = table.tHead;
+      if (head) observer.observe(head);
+      write();
+    });
+    mutation.observe(table, { childList: true });
     return () => {
       observer.disconnect();
+      mutation.disconnect();
       frame.style.removeProperty('--data-table-head-height');
     };
   }, [frameRef, enabled]);
