@@ -43,4 +43,4 @@ neutral の線に `--color-neutral-strong` を使うのは、係の判断です�
 
 同じ軸の決定を記録した [0403](./0403-card-selected.md) と同じ比較です。画像は 0403 に 1 枚だけ置きました。
 
-決めた時点のコミットは比較が `e5c7799`、実装が `4bb49dc` です。`git checkout e5c7799 && pnpm storybook` で、比較のストーリー（`Design Review/413 押すカードと選んでいる見た目`）を決めたときの部品のまま開けます。
+決めた時点のコミットは比較が `473bff0`、実装が `e3f28a0` です。`git checkout 473bff0 && pnpm storybook` で、比較のストーリー（`Design Review/413 押すカードと選んでいる見た目`）を決めたときの部品のまま開けます。

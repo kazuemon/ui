@@ -10,7 +10,7 @@ Collapsible・Accordion に枠付きのカードの形（variant="card"）を足
 
 ## 候補
 
-比較は、比較のコミット `e5c7799` の比較のストーリー（`design/stories/axis-416-collapsible-card.stories.tsx`）です。列は「Accordion」「閉じている」「hover」です。
+比較は、比較のコミット `473bff0` の比較のストーリー（`design/stories/axis-416-collapsible-card.stories.tsx`）です。列は「Accordion」「閉じている」「hover」です。
 
 | 案                 | 角         | 開いた行   | 項目の間 |
 | ------------------ | ---------- | ---------- | -------- |
@@ -47,4 +47,4 @@ Collapsible・Accordion に枠付きのカードの形（variant="card"）を足
 
 ![開閉の枠付きのカードの形の比較。現行版・A〜C を、Accordion・閉じている・hover の 3 列で並べたもの。A に採用の印](./assets/0407-collapsible-card.png)
 
-決めた時点のコミットは比較が `e5c7799`、実装が `4bb49dc` です。`git checkout e5c7799 && pnpm storybook` で、比較のストーリー（`Design Review/416 開閉の枠付きのカードの形`）を決めたときの部品のまま開けます。
+決めた時点のコミットは比較が `473bff0`、実装が `e3f28a0` です。`git checkout 473bff0 && pnpm storybook` で、比較のストーリー（`Design Review/416 開閉の枠付きのカードの形`）を決めたときの部品のまま開けます。

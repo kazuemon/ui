@@ -10,7 +10,7 @@ Card の頭の帯（CardHeader）の塗りと下の線を決めました。帯�
 
 ## 候補
 
-比較は、比較のコミット `e5c7799` の比較のストーリー（`design/stories/axis-414-card-header.stories.tsx`）です。列は「題と操作」「題と画像」「入れ子」です。
+比較は、比較のコミット `473bff0` の比較のストーリー（`design/stories/axis-414-card-header.stories.tsx`）です。列は「題と操作」「題と画像」「入れ子」です。
 
 | 案                | 塗り         | 下の線 | 上下の余白 |
 | ----------------- | ------------ | ------ | ---------- |
@@ -48,4 +48,4 @@ Card の頭の帯（CardHeader）の塗りと下の線を決めました。帯�
 
 ![Card の頭の帯の比較。現行版・A〜D を、題と操作・題と画像・入れ子の 3 列で並べたもの。A に採用の印](./assets/0405-card-header.png)
 
-決めた時点のコミットは比較が `e5c7799`、実装が `4bb49dc` です。`git checkout e5c7799 && pnpm storybook` で、比較のストーリー（`Design Review/414 カードの頭の帯`）を決めたときの部品のまま開けます。
+決めた時点のコミットは比較が `473bff0`、実装が `e3f28a0` です。`git checkout 473bff0 && pnpm storybook` で、比較のストーリー（`Design Review/414 カードの頭の帯`）を決めたときの部品のまま開けます。
