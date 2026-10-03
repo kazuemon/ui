@@ -164,7 +164,7 @@ const meta = {
           '- `maxHeight` を渡すと、表の中で縦にスクロールし、見出しの行が上に貼り付きます。貼り付いた見出しの下を行が通るあいだは、見出しの下に影が出ます。',
           '- 行がないときは `DataTableEmpty` に `StatusPanel` を入れます。読み込み中は `loading` を付け、行の代わりに `DataTableLoading` を置きます。',
           '- 列の幅は、`DataTableHeader` の `width`（幅）と `minWidth`（最小の幅）で決めます。数は px、文字は CSS の長さです。',
-          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります（`showResizeLine={false}` でふだんの線を消せます）。最後の列は表の端なので、つまみを出しません。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
+          '- `DataTableHeader` に `resizable` を付けると、列の右の境に幅を変えるつまみが付きます。ふだんから淡い線で見せ、載せると濃くなります（`resizeLine={false}` でふだんの線を消せます）。最後の列は表の端なので、つまみを出しません。ドラッグか、つまみにフォーカスして ← → で幅を変え、ダブルクリックではじめの幅に戻ります。読み上げの名前は `resizeName` です。',
           '- セルと行の見出しのない列には、`TableHead`・`TableBody`・`TableRow`・`TableCell` をそのまま使います。',
         ].join('\n'),
       },
@@ -481,13 +481,13 @@ export const ResizableColumnsDivided: Story = {
     docs: {
       description: {
         story:
-          '列の境に線を引いた表（`showColumnDivider`）のように、幅を変えられることが見た目で分かるときは、`showResizeLine={false}` でつまみのふだんの線を消せます。載せる・動かす・フォーカスしたときは線が出ます。',
+          '列の境に線を引いた表（`showColumnDivider`）のように、幅を変えられることが見た目で分かるときは、`resizeLine={false}` でつまみのふだんの線を消せます。載せる・動かす・フォーカスしたときは線が出ます。',
       },
       source: {
         code: [
           '<DataTable accessibleName="注文" showColumnDivider>',
           '  …',
-          '  <DataTableHeader resizable showResizeLine={false} resizeName="お店の列の幅">',
+          '  <DataTableHeader resizable resizeLine={false} resizeName="お店の列の幅">',
           '    お店',
           '  </DataTableHeader>',
         ].join('\n'),
@@ -502,13 +502,13 @@ export const ResizableColumnsDivided: Story = {
           <TableRow>
             <DataTableHeader
               resizable
-              showResizeLine={false}
+              resizeLine={false}
               defaultWidth={128}
               resizeName="注文番号の列の幅"
             >
               注文番号
             </DataTableHeader>
-            <DataTableHeader resizable showResizeLine={false} resizeName="お店の列の幅">
+            <DataTableHeader resizable resizeLine={false} resizeName="お店の列の幅">
               お店
             </DataTableHeader>
             <DataTableHeader align="end">金額</DataTableHeader>
@@ -528,7 +528,7 @@ export const ResizableColumnsDivided: Story = {
   ),
   play: async ({ canvas }) => {
     const handle = canvas.getByRole('separator', { name: '注文番号の列の幅' });
-    // showResizeLine={false} では、ふだんの線を出さない
+    // resizeLine={false} では、ふだんの線を出さない
     await expect(getComputedStyle(handle, '::before').backgroundColor).toBe('rgba(0, 0, 0, 0)');
   },
 };

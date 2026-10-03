@@ -76,7 +76,7 @@ export interface DataTableHeaderProps extends TableHeaderProps {
    * false にしても、載せる・動かす・フォーカスしたときは線が出ます。列の境に縦の線を引いた表など、幅を変えられることが見た目で分かるときに使います
    * @default resizable
    */
-  showResizeLine?: boolean;
+  resizeLine?: boolean;
 }
 
 // resizable で、minWidth が数でないときの、いちばん狭い幅（px）
@@ -93,7 +93,7 @@ export function DataTableHeader({
   onWidthChange,
   maxWidth,
   resizeName = '列の幅',
-  showResizeLine = resizable,
+  resizeLine = resizable,
   align,
   children,
   style: styleProp,
@@ -132,7 +132,7 @@ export function DataTableHeader({
       // 線はセルの上下の余白の分だけ短くし、見出しの文字の行にそろえる（つかめる範囲はセルの高さいっぱい）
       className={[
         'inset-y-0 -end-[calc(var(--resize-handle-hit)/2)] [--resize-handle-line-inset:calc(var(--spacing)*3)] [th:last-child>&]:hidden',
-        showResizeLine ? '[--resize-handle-rest:var(--color-line)]' : '',
+        resizeLine ? '[--resize-handle-rest:var(--color-line)]' : '',
       ].join(' ')}
       onWidthChange={setWidth}
       onReset={() => {
