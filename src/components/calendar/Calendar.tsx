@@ -435,8 +435,10 @@ function CalendarDayButton({ children, ...props }: DayButtonProps) {
   const { renderDayContent } = use(CalendarContext);
   const content = renderDayContent?.(fromDate(props.day.date));
   const hasContent = content != null && content !== false;
+  // 隣の月の日（外側の日）の印は、この月の印として数えない（数字をずらすのは、この月の日に印があるときだけ）
+  const marksMonth = hasContent && !props.modifiers.outside;
   return (
-    <BaseDayButton {...props} data-has-content={hasContent ? '' : undefined}>
+    <BaseDayButton {...props} data-has-content={marksMonth ? '' : undefined}>
       <span className={styles.dayNumber()}>{children}</span>
       {hasContent && <span className={styles.dayContent()}>{content}</span>}
     </BaseDayButton>
@@ -507,15 +509,20 @@ function constrainedDays(
   baseDisabled: (date: PlainDate) => boolean
 ): (iso: string) => boolean {
   if (!start || (!minRangeDays && !maxRangeDays && !excludeDisabled)) return () => false;
-  // 押せない日をまたがない: 始まりから前後に、最初の押せない日までの日数を数える（見る範囲は最長の期間か 2 年）
-  const reach = maxRangeDays ?? 731;
-  const firstDisabled = (step: 1 | -1) => {
-    if (!excludeDisabled) return null;
-    for (let k = 1; k < reach; k++) if (baseDisabled(start.add({ days: k * step }))) return k;
-    return null;
+  // 押せない日をまたがない: 始まりから前後に、最初の押せない日までの日数を数える
+  // 確かめる日の手前まで、必要になった分だけ数え進める（見る範囲に上限を置かない。遠い日でも、間の押せない日を見落とさない）
+  const scans = {
+    1: { checked: 0, found: null as number | null },
+    [-1]: { checked: 0, found: null as number | null },
   };
-  const after = firstDisabled(1);
-  const before = firstDisabled(-1);
+  const firstDisabledBefore = (step: 1 | -1, distance: number) => {
+    const scan = scans[step];
+    while (scan.found === null && scan.checked < distance - 1) {
+      scan.checked += 1;
+      if (baseDisabled(start.add({ days: scan.checked * step }))) scan.found = scan.checked;
+    }
+    return scan.found;
+  };
   return (iso) => {
     const date = Temporal.PlainDate.from(iso);
     const offset = start.until(date).days;
@@ -523,9 +530,10 @@ function constrainedDays(
     const length = Math.abs(offset) + 1;
     if (minRangeDays && length < minRangeDays) return true;
     if (maxRangeDays && length > maxRangeDays) return true;
-    if (offset > 0 && after !== null && offset >= after) return true;
-    if (offset < 0 && before !== null && -offset >= before) return true;
-    return false;
+    if (!excludeDisabled) return false;
+    const step = offset > 0 ? 1 : -1;
+    const found = firstDisabledBefore(step, Math.abs(offset));
+    return found !== null && found < Math.abs(offset);
   };
 }
 

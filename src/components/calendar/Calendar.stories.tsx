@@ -178,6 +178,28 @@ export const RangeConstraints: Story = {
   ),
 };
 
+// 押せない日が遠く（2 年より先）にあっても、またぐ終わりの日は押せない
+const farFull = Temporal.PlainDate.from('2028-09-10');
+export const RangeExcludeFar: Story = {
+  name: '遠くの押せない日をまたがない',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Calendar
+      mode="range"
+      today={today}
+      isDateDisabled={(date) => date.equals(farFull)}
+      excludeDisabled
+      defaultValue={{ start: Temporal.PlainDate.from('2026-09-10'), end: null }}
+      defaultMonth={Temporal.PlainYearMonth.from('2028-09')}
+    />
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('button', { name: /^2028年9月9日/ })).toBeEnabled();
+    await expect(canvas.getByRole('button', { name: /^2028年9月10日/ })).toBeDisabled();
+    await expect(canvas.getByRole('button', { name: /^2028年9月11日/ })).toBeDisabled();
+  },
+};
+
 export const Options: Story = {
   tags: ['visual'],
   name: '形と置き方',
@@ -316,6 +338,24 @@ export const DayContent: Story = {
       </Specimen>
     </Gallery>
   ),
+};
+
+// 前後の月の日にだけ印があるとき、この月の日の数字はずらさない（印は前後の月の日に出す）
+export const DayContentOutside: Story = {
+  name: '前後の月の日の印',
+  render: (args) => (
+    <Calendar
+      {...(args as CalendarSingleProps)}
+      renderDayContent={(date) =>
+        date.month === 10 ? <span className="size-1.5 rounded-full bg-current" /> : null
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const outside = canvasElement.querySelector('td[data-day="2026-10-01"] button');
+    await expect(outside?.querySelectorAll(':scope > span')).toHaveLength(2);
+    await expect(canvasElement.querySelector('[data-has-content]')).toBeNull();
+  },
 };
 
 export const Densities: Story = {
