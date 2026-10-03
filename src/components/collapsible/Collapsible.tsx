@@ -50,6 +50,8 @@ export interface CollapsibleProps extends Omit<
    * 開閉の行（または trigger）を置く場所
    * - top: 中身の上。題を押して下に開きます
    * - bottom: 中身の下。「続きを読む」のように、開いた中身が行の上に出ます
+   *   開いてもフォーカスは行に残ります。開いた中身は行より前にあるので、キーボードでは Shift+Tab で中身へ戻ります（見た目の並びとフォーカスの順は同じ）。
+   *   中身にすぐ入ってほしい操作（入力欄を開くなど）には top を使います
    * @default 'top'
    */
   triggerPlacement?: CollapsibleTriggerPlacement;
