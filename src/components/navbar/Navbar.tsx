@@ -137,7 +137,8 @@ const navbar = tv({
         ],
       },
     },
-    // 透かしているあいだの文字の守り方。白い文字にするときは、帯の中だけ本文の色を差し替える
+    // 透かしているあいだの文字の守り方。白い文字にするときは、帯の中だけ本文の色とフォーカスの線を白に差し替える
+    //   部品の色に従う線（--focus-follow-color）も、帯の中では白にそろえる（濃い青は暗い画像の上で見えない）
     {
       sticky: true,
       stickyBackdrop: 'transparent-until-scroll',
@@ -152,6 +153,7 @@ const navbar = tv({
         root: [
           'not-data-scrolled:bg-transparent not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border',
           'not-data-scrolled:[--color-fg-muted:var(--navbar-scrim-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
+          'not-data-scrolled:[--color-focus-ring:var(--navbar-on-image-focus-ring)] not-data-scrolled:[--focus-follow-color:initial]',
         ],
       },
     },
@@ -170,6 +172,7 @@ const navbar = tv({
       class: {
         root: [
           'not-data-scrolled:[--color-fg-muted:var(--navbar-text-shadow-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
+          'not-data-scrolled:[--color-focus-ring:var(--navbar-on-image-focus-ring)] not-data-scrolled:[--focus-follow-color:initial]',
           'not-data-scrolled:[text-shadow:var(--navbar-text-shadow)]',
         ],
       },

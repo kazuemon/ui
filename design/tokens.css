@@ -1319,6 +1319,7 @@
        scrim: 上から下へ薄れる暗い幕（scrim）。frosted-bg・frosted-blur: 淡いすりガラス（frosted）の面と後ろのぼかし
        on-image-fg: 画像の上で白くした文字（scrim・text-shadow）。scrim-fg-muted・text-shadow-fg-muted: そのときの淡い文字
        text-shadow: 白くした文字の後ろの淡い影（text-shadow）
+       on-image-focus-ring: 白くした文字のあいだの、帯の中のフォーカスの線（本文の色の線は暗い画像の上で見えないため）
        backdrop-duration: 透けた面から不透明な面へ移る長さ */
   --navbar-scrim: linear-gradient(to bottom, oklch(0 0 0 / 0.45), transparent);
   --navbar-frosted-bg: color-mix(in oklab, var(--color-bg) 40%, transparent);
@@ -1327,6 +1328,7 @@
   --navbar-scrim-fg-muted: oklch(1 0 0 / 0.8);
   --navbar-text-shadow-fg-muted: oklch(1 0 0 / 0.85);
   --navbar-text-shadow: 0 1px 3px oklch(0 0 0 / 0.4);
+  --navbar-on-image-focus-ring: var(--navbar-on-image-fg);
   --navbar-backdrop-duration: var(--duration-normal);
   /* ── END navbar */
 

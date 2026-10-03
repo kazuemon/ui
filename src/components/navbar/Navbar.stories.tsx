@@ -314,7 +314,7 @@ export const TransparentTop: Story = {
     docs: {
       description: {
         story:
-          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。',
+          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。`scrim`・`text-shadow` では、帯の中のフォーカスの線も白くします。',
       },
     },
   },
@@ -324,7 +324,11 @@ export const TransparentTop: Story = {
         <div key={variant} className="flex items-center gap-6">
           <span className="w-24 text-xs font-bold text-fg-subtle">{variant}</span>
           {[landscape, night].map((image) => (
-            <div key={image} className="h-40 w-[560px] overflow-y-auto border border-line bg-bg">
+            <div
+              key={image}
+              data-testid={`transparent-${variant}-${image === night ? 'dark' : 'light'}`}
+              className="h-40 w-[560px] overflow-y-auto border border-line bg-bg"
+            >
               <Navbar
                 sticky
                 stickyBackdrop="transparent-until-scroll"
@@ -342,6 +346,34 @@ export const TransparentTop: Story = {
       ))}
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const white = 'oklch(1 0 0)';
+    const scrollTo = async (scroller: HTMLElement, top: number) => {
+      scroller.scrollTop = top;
+      scroller.dispatchEvent(new Event('scroll'));
+      const header = scroller.querySelector('header');
+      await waitFor(() =>
+        top > 0
+          ? expect(header).toHaveAttribute('data-scrolled')
+          : expect(header).not.toHaveAttribute('data-scrolled')
+      );
+    };
+    // 白い文字にするあいだは、フォーカスの線も白。スクロールして面になったら元の色に戻る
+    for (const variant of ['scrim', 'text-shadow']) {
+      const scroller = canvas.getByTestId(`transparent-${variant}-dark`);
+      // 帯に直接載る、面のないボタン（メニューのボタン）
+      const button = within(scroller).getByRole('button', { name: 'メニュー' });
+      await expect(getComputedStyle(button).color).toBe(white);
+      button.focus();
+      await waitFor(() => expect(getComputedStyle(button).outlineColor).toBe(white));
+      await scrollTo(scroller, scroller.scrollHeight);
+      await waitFor(() => expect(getComputedStyle(button).outlineColor).not.toBe(white));
+      await waitFor(() => expect(getComputedStyle(button).color).not.toBe(white));
+      button.blur();
+      await scrollTo(scroller, 0);
+    }
+  },
 };
 
 export const Densities: Story = {
