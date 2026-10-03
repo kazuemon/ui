@@ -4,6 +4,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type RefObject,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -119,6 +120,19 @@ export function ResizeHandle({
     setResizing(next);
     onResizingChange?.(next);
   };
+  // 動かしている途中でつまみが消えたとき（外す・隠す）も、使う側に動かし終わりを伝える（最新の onResizingChange で）
+  const resizingChange = useRef(onResizingChange);
+  useLayoutEffect(() => {
+    resizingChange.current = onResizingChange;
+  });
+  useEffect(
+    () => () => {
+      if (!drag.current) return;
+      drag.current = null;
+      resizingChange.current?.(false);
+    },
+    []
+  );
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -199,6 +213,8 @@ export function ResizeHandle({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      // pointerup・pointercancel より先にキャプチャを失ったときも、動かし終わりにする
+      onLostPointerCapture={onPointerEnd}
       onDoubleClick={onReset}
       onKeyDown={onKeyDown}
     >
