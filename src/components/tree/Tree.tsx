@@ -461,9 +461,10 @@ export function TreeItem({
         break;
       case 'ArrowRight':
         event.preventDefault();
-        // 閉じているときは開き、開いているときは最初の子へ移る
+        // 閉じているときは開き、開いているときは最初の子へ移る（子がまだ届いていなければ移らない）
         if (hasChildren && !open) setOpen(true);
-        else if (hasChildren) move(rows[index + 1]);
+        else if (hasChildren && Number(rows[index + 1]?.dataset.depth) === depth + 1)
+          move(rows[index + 1]);
         break;
       case 'ArrowLeft': {
         event.preventDefault();

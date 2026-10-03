@@ -372,6 +372,9 @@ export const LoadingBlocking: Story = {
     await expect(blocking).toHaveAttribute('aria-expanded', 'true');
     await userEvent.keyboard('{ArrowLeft}');
     await expect(blocking).toHaveAttribute('aria-expanded', 'true');
+    // 子が届く前の → は、次の兄弟の行へ移らない（移る先の子がまだない）
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(blocking).toHaveFocus();
     const nonBlocking = canvas.getByRole('treeitem', { name: 'レシピ' });
     await userEvent.click(nonBlocking);
     await expect(nonBlocking).toHaveAttribute('aria-expanded', 'false');
