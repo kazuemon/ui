@@ -23,7 +23,6 @@ import { tv } from '../../internal/tv';
 //     行のあいだの線は、1 列のときは 2 つ目からの組の上に引く。列に並べると、2 行目からの組の上に線を引き、
 //     線の太さだけ上へずらす（前の行の下の余白に重ねて、行の高さを線の有無で変えない）。1 行目の組は、渡した段ごとの
 //     列の数だけ前から選んで線を外す（firstRowClasses）。根を切り取らないので、値に置いたリンクのフォーカスの線が切れない。
-//     framed は 1 行目の組にも線を引き、外枠の上の線に重ねる
 
 const leaderRoot = [
   '[--description-column-gap:var(--description-leader-gap)]',
@@ -119,12 +118,6 @@ const descriptionList = tv({
     },
   },
   compoundVariants: [
-    // 外枠があるときは、1 行目の組の線を外枠の上の線に重ねる（1 行目を選ばない）
-    {
-      columns: true,
-      divider: 'framed',
-      class: { root: '[--description-first-divider-width:var(--description-divider-width)]' },
-    },
     // 縦に並べたときは、用語と説明が上下なので線でつなげない
     {
       layout: 'stacked',
@@ -314,7 +307,7 @@ export function DescriptionList({
   return (
     <dl
       data-slot="description-list"
-      className={styles.root({ className: [divider !== 'framed' && firstRow(columns), className] })}
+      className={styles.root({ className: [firstRow(columns), className] })}
       style={Object.keys(tokens).length > 0 ? { ...tokens, ...style } : style}
       {...props}
     />
