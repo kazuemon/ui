@@ -87,7 +87,10 @@ export interface MasonryProps extends ComponentProps<'div'> {
    * @default 'md'
    */
   gap?: MasonryGap;
-  /** 描く要素（Base UI の render と同じ）。ul・ol にするときは `render={<ul />}` を渡します。子は li で包みます */
+  /**
+   * 描く要素（Base UI の render と同じ）。ul・ol にするときは `render={<ul />}` を渡します。子は li で包みます。
+   * ul・ol は要素を直接渡します。ul・ol を中で描く自作の部品を渡しても一覧とはみなさず、子を li で包みません
+   */
   render?: ReactElement;
   /** 並べる子。縦横の比率が違っても、渡した順のまま隙間なく積みます */
   children?: ReactNode;

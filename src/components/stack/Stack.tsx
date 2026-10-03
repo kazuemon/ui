@@ -142,7 +142,10 @@ export interface StackProps extends ComponentProps<'div'> {
    * @default false
    */
   showDivider?: boolean;
-  /** 描く要素（Base UI の render と同じ）。ul・section などにするときは `render={<ul />}` を渡します */
+  /**
+   * 描く要素（Base UI の render と同じ）。ul・section などにするときは `render={<ul />}` を渡します。
+   * ul・ol は要素を直接渡します。ul・ol を中で描く自作の部品を渡しても一覧とはみなさず、区切り線は li の枠線になりません
+   */
   render?: ReactElement;
   /** 並べる子。間隔は gap で決めます。ul・ol で描くときは li を並べます */
   children?: ReactNode;
