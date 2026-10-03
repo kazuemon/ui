@@ -10,7 +10,7 @@ Tag は淡い面の 1 つの形だけでした。形を選べるようにし、�
 
 ## 候補
 
-比較は、決めた時点のコミット `f4015bb` の比較のストーリー（`design/stories/axis-418-tag-variant.stories.tsx`）です。列は soft・outline・solid・破線・大きさです。
+比較は、決めた時点のコミット `9429d10` の比較のストーリー（`design/stories/axis-418-tag-variant.stories.tsx`）です。列は soft・outline・solid・破線・大きさです。
 
 | 案        | outline                   | 破線                        |
 | --------- | ------------------------- | --------------------------- |
@@ -49,7 +49,7 @@ Tag は淡い面の 1 つの形だけでした。形を選べるようにし、�
 ## 影響
 
 - `src/components/tag/Tag.tsx`: `variant`（`soft`・`outline`・`surface`・`solid`・`dashed`、既定 `soft`）を持ちます
-- 比べるためだけに置いた `--tag-outline-bg` は、畳んで消しました（実装のコミット `8815271`）
+- 比べるためだけに置いた `--tag-outline-bg` は、畳んで消しました（実装のコミット `8351dfd`）
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -60,4 +60,4 @@ Tag は淡い面の 1 つの形だけでした。形を選べるようにし、�
 
 ![Tag の形の比較。現行版・A・B・C・D を、soft・outline・solid・破線・大きさの列で並べたもの。A・B・C に採用の印](./assets/0398-tag-variant.png)
 
-決めた時点のコミットは `f4015bb` です。`git checkout f4015bb && pnpm storybook` で、比較のストーリー（`Design Review/418 タグの形`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `9429d10` です。`git checkout 9429d10 && pnpm storybook` で、比較のストーリー（`Design Review/418 タグの形`）を決めたときの部品のまま開けます。

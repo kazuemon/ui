@@ -10,7 +10,7 @@ Tag と Chip の文字の前に置くアイコンの、大きさと色を決め�
 
 ## 候補
 
-比較は、決めた時点のコミット `f4015bb` の比較のストーリー（`design/stories/axis-419-small-parts-icon.stories.tsx`）です。列は Tag・Tag の色・Tag の形・Chip です。
+比較は、決めた時点のコミット `9429d10` の比較のストーリー（`design/stories/axis-419-small-parts-icon.stories.tsx`）です。列は Tag・Tag の色・Tag の形・Chip です。
 
 | 案        | 大きさ         | 色             |
 | --------- | -------------- | -------------- |
@@ -43,7 +43,7 @@ Tag と Chip の文字の前に置くアイコンの、大きさと色を決め�
 
 - `src/components/tag/Tag.tsx`・`src/components/chip/Chip.tsx`: `icon` と `iconColor` を持ちます
 - `src/internal/small-parts-leading.ts`: Tag と Chip が使う先頭のアイコンの見た目です
-- 比べるためだけに置いた `--small-parts-icon-scale`・`--small-parts-icon-mix` は、畳んで消しました（実装のコミット `8815271`）
+- 比べるためだけに置いた `--small-parts-icon-scale`・`--small-parts-icon-mix` は、畳んで消しました（実装のコミット `8351dfd`）
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -54,4 +54,4 @@ Tag と Chip の文字の前に置くアイコンの、大きさと色を決め�
 
 ![Tag と Chip の先頭のアイコンの比較。現行版・A〜D を、Tag・Tag の色・Tag の形・Chip の列で並べたもの。A に採用の印](./assets/0399-tag-icon.png)
 
-決めた時点のコミットは `f4015bb` です。`git checkout f4015bb && pnpm storybook` で、比較のストーリー（`Design Review/419 タグとチップの先頭のアイコン`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `9429d10` です。`git checkout 9429d10 && pnpm storybook` で、比較のストーリー（`Design Review/419 タグとチップの先頭のアイコン`）を決めたときの部品のまま開けます。

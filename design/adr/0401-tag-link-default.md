@@ -26,10 +26,10 @@ Tag をリンクの見た目にするかを、何で決めるかを決めまし�
 
 ## 影響
 
-- `src/components/tag/Tag.tsx`: `link?: boolean`（既定は `href != null`）を持ちます（実装のコミット `8815271`）
+- `src/components/tag/Tag.tsx`: `link?: boolean`（既定は `href != null`）を持ちます（実装のコミット `8351dfd`）
 
 ## 原則への反映
 
 反映なし。props の決まりで、見た目の原則は変わりません。
 
-決めた時点のコミットは `8815271` です。
+決めた時点のコミットは `8351dfd` です。

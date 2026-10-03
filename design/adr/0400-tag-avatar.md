@@ -10,7 +10,7 @@ Tag と Chip の文字の前に置くアバターの、周りの余白と文字�
 
 ## 候補
 
-比較は、決めた時点のコミット `f4015bb` の比較のストーリー（`design/stories/axis-420-small-parts-avatar.stories.tsx`）です。列は Tag・Tag の形・Chip・頭文字です。
+比較は、決めた時点のコミット `9429d10` の比較のストーリー（`design/stories/axis-420-small-parts-avatar.stories.tsx`）です。列は Tag・Tag の形・Chip・頭文字です。
 
 | 案        | 上下・左の余白 | 文字との間 |
 | --------- | -------------- | ---------- |
@@ -38,7 +38,7 @@ Tag と Chip の文字の前に置くアバターの、周りの余白と文字�
 ## 影響
 
 - `src/internal/small-parts-leading.ts`: アバターの余白と文字との間を持ちます（Tag・Chip で共通）
-- 比べるためだけに置いたトークンは、決めた値に畳みました（実装のコミット `8815271`）
+- 比べるためだけに置いたトークンは、決めた値に畳みました（実装のコミット `8351dfd`）
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -49,4 +49,4 @@ Tag と Chip の文字の前に置くアバターの、周りの余白と文字�
 
 ![Tag と Chip の先頭のアバターの比較。現行版・A〜D を、Tag・Tag の形・Chip・頭文字の列で並べたもの。B・D に採用の印](./assets/0400-tag-avatar.png)
 
-決めた時点のコミットは `f4015bb` です。`git checkout f4015bb && pnpm storybook` で、比較のストーリー（`Design Review/420 タグとチップの先頭のアバター`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `9429d10` です。`git checkout 9429d10 && pnpm storybook` で、比較のストーリー（`Design Review/420 タグとチップの先頭のアバター`）を決めたときの部品のまま開けます。
