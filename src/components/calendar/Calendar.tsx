@@ -328,7 +328,8 @@ export interface CalendarRangeProps extends CalendarBaseProps {
   required?: boolean;
   /**
    * 期間のいちばん短い日数。始まりと終わりの日を両方数えます（1 泊 2 日なら 2）。
-   * 始まりを選んだあと、これより短くなる日は選べません
+   * 始まりを選んだあと、これより短くなる日は選べません。
+   * 選んだ始まりの日をもう一度押すと、始まりが外れ、別の日を始まりに選び直せます（required のときは外れません）
    */
   minRangeDays?: number;
   /**
@@ -708,8 +709,15 @@ export function Calendar(props: CalendarProps) {
     //   始まりだけのとき: 押した日を終わりにする（前の日なら入れ替える。同じ日なら 1 日の期間）
     const onSelect = (_next: DateRange | undefined, triggerDate: Date) => {
       const date = fromDate(triggerDate);
-      // 始まりの日をもう一度押すと 1 日の期間になる。それより長い期間が要るときは、始まりのまま待つ
-      if (range && !range.end && date.equals(range.start) && (props.minRangeDays ?? 1) > 1) return;
+      // 始まりの日をもう一度押すと 1 日の期間になる。それより長い期間が要るときは、始まりを外す
+      // （近い日が選べなくなっているので、外さないと始まりを選び直せない）。required のときは始まりのまま待つ
+      if (range && !range.end && date.equals(range.start) && (props.minRangeDays ?? 1) > 1) {
+        if (props.required) return;
+        setRange(null);
+        setPointed(null);
+        props.onValueChange?.(null);
+        return;
+      }
       const value: CalendarRange =
         range && !range.end
           ? Temporal.PlainDate.compare(date, range.start) < 0

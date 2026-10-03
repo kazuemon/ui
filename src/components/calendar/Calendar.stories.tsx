@@ -37,7 +37,7 @@ const meta = {
           '- 前後の月の日は灰色で見せます。`hideOutsideDays` で隠します。表はいつも 6 週で、月を送っても高さが変わりません。',
           '- 月を送ると、すぐに切り替わります。`monthTransition="fade"` で、その場でふわっと入れ替わります。',
           '- `min`・`max` で選べる期間を区切ります。区切りの外の月へは送れません。日ごとに押せなくするときは `isDateDisabled` を使います。',
-          '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなり、取り消し線が付きます（もとから押せない日には付きません）。',
+          '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなり、取り消し線が付きます（もとから押せない日には付きません）。`minRangeDays` で近い日が押せなくなったときは、選んだ始まりの日をもう一度押すと始まりが外れ、選び直せます。',
           '- `renderDayContent` で、日ごとの印（空きの点、値段など）を日の数字に添えます。印は読み上げられないので、意味は文でも伝えます。',
           '- 週の始まりの曜日を `locale` と別に決めるときは `weekStartsOn`（0 が日曜）を使います。',
           '- 曜日と月の名前、週の始まりの曜日は `locale` に従います。今日は `timeZone` での今日です。どちらも ThemeProvider で決められます。',
@@ -223,6 +223,44 @@ export const Holidays: Story = {
     await expect(
       canvas.getByRole('button', { name: '2026年9月21日月曜日 敬老の日' })
     ).toBeVisible();
+  },
+};
+
+// 最短の日数があるとき、始まりの日をもう一度押すと始まりが外れ、近い日を新しい始まりに選べる
+function MinRangeExample() {
+  const [value, setValue] = useState<CalendarRange | null>(null);
+  return (
+    <Calendar mode="range" today={today} minRangeDays={3} value={value} onValueChange={setValue} />
+  );
+}
+
+export const RangeMinRestart: Story = {
+  name: '最短の日数と始まりの選び直し',
+  parameters: { controls: { disable: true } },
+  render: () => <MinRangeExample />,
+  play: async ({ canvas }) => {
+    const day = (n: number, weekday: string) =>
+      canvas.getByRole('button', { name: new RegExp(`^2026年9月${n}日${weekday}`) });
+    await userEvent.click(day(10, '木曜日'));
+    await expect(day(10, '木曜日')).toHaveAccessibleName('2026年9月10日木曜日 選択中');
+    // 始まりから 3 日に満たない日は押せない
+    await expect(day(11, '金曜日')).toBeDisabled();
+    // 始まりを押し直すと外れ、近い日を新しい始まりに選べる
+    await userEvent.click(day(10, '木曜日'));
+    await expect(day(10, '木曜日')).toHaveAccessibleName('2026年9月10日木曜日');
+    await expect(day(11, '金曜日')).toBeEnabled();
+    await userEvent.click(day(11, '金曜日'));
+    await expect(day(11, '金曜日')).toHaveAccessibleName('2026年9月11日金曜日 選択中');
+    // キーボードでも同じ（Enter で外し、Space で選び直す）
+    day(11, '金曜日').focus();
+    await userEvent.keyboard('{Enter}');
+    await expect(day(11, '金曜日')).toHaveAccessibleName('2026年9月11日金曜日');
+    await expect(day(12, '土曜日')).toBeEnabled();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(day(12, '土曜日')).toHaveFocus();
+    await userEvent.keyboard(' ');
+    await expect(day(12, '土曜日')).toHaveAccessibleName('2026年9月12日土曜日 選択中');
+    await expect(day(13, '日曜日')).toBeDisabled();
   },
 };
 
