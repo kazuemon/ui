@@ -10,7 +10,7 @@ DropzoneFileList に、保存済みのファイル（サーバーに置いてあ
 
 ## 候補
 
-比較は、決めた時点のコミット `3f59d4a` の比較のストーリー（`design/stories/axis-491-dropzone-saved-files.stories.tsx`）です。列は「list」「thumbnail」「リンクに hover・フォーカス」です。
+比較は、決めた時点のコミット `dd4fe39` の比較のストーリー（`design/stories/axis-491-dropzone-saved-files.stories.tsx`）です。列は「list」「thumbnail」「リンクに hover・フォーカス」です。
 
 | 案                  | 見分け方                                                                     |
 | ------------------- | ---------------------------------------------------------------------------- |
@@ -40,7 +40,7 @@ DropzoneFileList に、保存済みのファイル（サーバーに置いてあ
 ## 影響
 
 - `src/components/dropzone/DropzoneFileList.tsx`: リンクの名前にいつも下線を引きます
-- 見分け方を比べるためだけに置いたトークン（印の表示、リンクの下線、保存済みの面と枠の色）は、実装のコミット `e46af66` で消しました
+- 見分け方を比べるためだけに置いたトークン（印の表示、リンクの下線、保存済みの面と枠の色）は、実装のコミット `7bb5dd9` で消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -51,4 +51,4 @@ DropzoneFileList に、保存済みのファイル（サーバーに置いてあ
 
 ![DropzoneFileList の保存済みのファイルの見分け方の比較。現行版・A・B・C を、list・thumbnail・リンクに hover・フォーカスの 3 列で並べたもの。A・B に採用の印](./assets/0435-dropzone-saved-files.png)
 
-決めた時点のコミットは `3f59d4a`（比較）・`e46af66`（実装）です。`git checkout 3f59d4a && pnpm storybook` で、比較のストーリー（`Design Review/491 保存済みのファイルの見分け方`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `dd4fe39`（比較）・`7bb5dd9`（実装）です。`git checkout dd4fe39 && pnpm storybook` で、比較のストーリー（`Design Review/491 保存済みのファイルの見分け方`）を決めたときの部品のまま開けます。

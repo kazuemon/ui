@@ -10,7 +10,7 @@ Image の仮画像（placeholder）を、どれだけぼかして敷くかを決
 
 ## 候補
 
-比較は、決めた時点のコミット `3f59d4a` の比較のストーリー（`design/stories/axis-493-image-placeholder-blur.stories.tsx`）です。列は「大きい」「小さい」「本物」です。
+比較は、決めた時点のコミット `dd4fe39` の比較のストーリー（`design/stories/axis-493-image-placeholder-blur.stories.tsx`）です。列は「大きい」「小さい」「本物」です。
 
 | 案              | ぼかし | 見た目                                       |
 | --------------- | ------ | -------------------------------------------- |
@@ -43,7 +43,7 @@ Image の仮画像（placeholder）を、どれだけぼかして敷くかを決
 ## 影響
 
 - `src/components/image/Image.tsx`: `placeholderBlur`（既定 `sm`）を持ちます
-- 比べるために置いた 1 つのトークンは、実装のコミット `e46af66` で段ごとのトークン（`--image-placeholder-blur-sm`・`-md`・`-lg`）に畳みました
+- 比べるために置いた 1 つのトークンは、実装のコミット `7bb5dd9` で段ごとのトークン（`--image-placeholder-blur-sm`・`-md`・`-lg`）に畳みました
 - レビューで、段のトークンの値を Tailwind の blur の段（8・12・16px）にそろえました。`md`・`lg` は、比較の C・D より弱くなります
 - 比較のストーリーと、その見本の画像（`axis-image-samples.ts`）は消しました
 
@@ -55,4 +55,4 @@ Image の仮画像（placeholder）を、どれだけぼかして敷くかを決
 
 ![Image の仮画像のぼかしの比較。現行版・A・B・C・D を、大きい・小さい・本物の 3 列で並べたもの。B に採用の印](./assets/0438-image-placeholder-blur.png)
 
-決めた時点のコミットは `3f59d4a`（比較）・`e46af66`（実装）です。`git checkout 3f59d4a && pnpm storybook` で、比較のストーリー（`Design Review/493 仮画像のぼかしの強さ`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `dd4fe39`（比較）・`7bb5dd9`（実装）です。`git checkout dd4fe39 && pnpm storybook` で、比較のストーリー（`Design Review/493 仮画像のぼかしの強さ`）を決めたときの部品のまま開けます。

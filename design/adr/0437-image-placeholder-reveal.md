@@ -10,7 +10,7 @@ Image に、読み込むまで敷く仮画像（placeholder）を足しました
 
 ## 候補
 
-比較は、決めた時点のコミット `3f59d4a` の比較のストーリー（`design/stories/axis-492-image-reveal.stories.tsx`）です。列は「読み込み中」「切り替わり」「読み込めた」で、切り替わりの列は動きを繰り返します。動きは止めた画像では見えないので、案を言葉で書きます。
+比較は、決めた時点のコミット `dd4fe39` の比較のストーリー（`design/stories/axis-492-image-reveal.stories.tsx`）です。列は「読み込み中」「切り替わり」「読み込めた」で、切り替わりの列は動きを繰り返します。動きは止めた画像では見えないので、案を言葉で書きます。
 
 | 案        | 切り替わり                                                      |
 | --------- | --------------------------------------------------------------- |
@@ -37,7 +37,7 @@ Image に、読み込むまで敷く仮画像（placeholder）を足しました
 ## 影響
 
 - `src/components/image/Image.tsx`: 仮画像を敷いても、読み込めたら本物をすぐ出します
-- 重ねて出す動きのトークン（`--image-reveal-duration`・`--image-reveal-from-blur`）は、実装のコミット `e46af66` で消しました
+- 重ねて出す動きのトークン（`--image-reveal-duration`・`--image-reveal-from-blur`）は、実装のコミット `7bb5dd9` で消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -48,4 +48,4 @@ Image に、読み込むまで敷く仮画像（placeholder）を足しました
 
 ![Image の仮画像から本物への切り替わりの比較。現行版・A・B・C・D を、読み込み中・切り替わり・読み込めたの 3 列で並べたもの。A に採用の印](./assets/0437-image-reveal.png)
 
-決めた時点のコミットは `3f59d4a`（比較）・`e46af66`（実装）です。`git checkout 3f59d4a && pnpm storybook` で、比較のストーリー（`Design Review/492 仮画像から本物への切り替わり`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `dd4fe39`（比較）・`7bb5dd9`（実装）です。`git checkout dd4fe39 && pnpm storybook` で、比較のストーリー（`Design Review/492 仮画像から本物への切り替わり`）を決めたときの部品のまま開けます。

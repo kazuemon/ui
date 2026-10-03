@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は [ADR-0435](./0435-dropzone-saved-file-link.md) と同じ、決めた時点のコミット `3f59d4a` の比較のストーリーです。案 A は部品が「保存済み」の文を添える形、B は印を出さない形でした。
+比較は [ADR-0435](./0435-dropzone-saved-file-link.md) と同じ、決めた時点のコミット `dd4fe39` の比較のストーリーです。案 A は部品が「保存済み」の文を添える形、B は印を出さない形でした。
 
 ## 決定
 
@@ -45,4 +45,4 @@
 
 ![DropzoneFileList の保存済みのファイルの見分け方の比較。現行版・A・B・C を並べたもの。A・B に採用の印](./assets/0435-dropzone-saved-files.png)
 
-[ADR-0435](./0435-dropzone-saved-file-link.md) と同じ画像です。決めた時点のコミットは `3f59d4a`（比較）・`e46af66`（実装）です。
+[ADR-0435](./0435-dropzone-saved-file-link.md) と同じ画像です。決めた時点のコミットは `dd4fe39`（比較）・`7bb5dd9`（実装）です。
