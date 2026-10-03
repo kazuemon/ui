@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `18f0bee` の比較のストーリー（`design/stories/axis-446-callout-collapsible-row.stories.tsx`）です。
+比較は、決めた時点のコミット `736b398` の比較のストーリー（`design/stories/axis-446-callout-collapsible-row.stories.tsx`）です。
 
 | 案             | 題の行の上下   | 開いたときの帯       |
 | -------------- | -------------- | -------------------- |
@@ -61,4 +61,4 @@ A〜D は、題の行を開閉の行と同じ高さの帯にする案です。�
 
 ![畳める Callout の題の行の比較。現行版・A〜E・畳めない囲みを、閉じている・hover・開いている・開いて hover・フォーカスの列で並べたもの。現行版と E に採用の印](./assets/0472-callout-collapsible-divider.png)
 
-決めた時点のコミットは、比較が `18f0bee`、実装が `75e934a` です。`git checkout 18f0bee && pnpm storybook` で、比較のストーリー（`Design Review/446 畳める囲みの題の行`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `736b398`、実装が `fad892a` です。`git checkout 736b398 && pnpm storybook` で、比較のストーリー（`Design Review/446 畳める囲みの題の行`）を決めたときの部品のまま開けます。

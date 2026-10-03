@@ -10,7 +10,7 @@ CodeBlock に言語の名前（`language`）を足すにあたり、帯の中の
 
 ## 候補
 
-比較は、決めた時点のコミット `a6fca55` の比較のストーリー（`design/stories/axis-441-code-block-language.stories.tsx`）です。列は「題と言語」「言語だけ」「濃い地」「狭い幅・長い題」です。
+比較は、決めた時点のコミット `8cf8d0d` の比較のストーリー（`design/stories/axis-441-code-block-language.stories.tsx`）です。列は「題と言語」「言語だけ」「濃い地」「狭い幅・長い題」です。
 
 | 案              | 位置                       | 見た目     |
 | --------------- | -------------------------- | ---------- |
@@ -52,4 +52,4 @@ A・B・C は、選べる形として残りました。既定にしなかった�
 
 ![CodeBlock の言語のラベルの比較。現行版・A〜D を、題と言語・言語だけ・濃い地・狭い幅の 4 列で並べたもの。D に採用の印](./assets/0408-code-block-language.png)
 
-決めた時点のコミットは、比較が `a6fca55`、実装が `0d27ad0` です。`git checkout a6fca55 && pnpm storybook` で、比較のストーリー（`Design Review/441 コードの言語のラベル`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `8cf8d0d`、実装が `fee413b` です。`git checkout 8cf8d0d && pnpm storybook` で、比較のストーリー（`Design Review/441 コードの言語のラベル`）を決めたときの部品のまま開けます。

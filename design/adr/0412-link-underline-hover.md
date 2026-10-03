@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `a6fca55` の比較のストーリー（`design/stories/axis-445-link-underline-hover.stories.tsx`）です。列は「通常」「hover」「フォーカス」「フッターの並び」「周りの色・hover」です。
+比較は、決めた時点のコミット `8cf8d0d` の比較のストーリー（`design/stories/axis-445-link-underline-hover.stories.tsx`）です。列は「通常」「hover」「フォーカス」「フッターの並び」「周りの色・hover」です。
 
 | 案                     | ふだん   | 載せたとき                         |
 | ---------------------- | -------- | ---------------------------------- |
@@ -49,4 +49,4 @@ B（淡い下線）は採りませんでした。always の hover と下線が�
 
 ![Link の載せたときだけ出す下線の比較。現行版・A・B を、通常・hover・フォーカス・フッターの並び・周りの色の 5 列で並べたもの。A に採用の印](./assets/0412-link-underline-hover.png)
 
-決めた時点のコミットは、比較が `a6fca55`、実装が `0d27ad0` です。`git checkout a6fca55 && pnpm storybook` で、比較のストーリー（`Design Review/445 載せたときだけ出す下線`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `8cf8d0d`、実装が `fee413b` です。`git checkout 8cf8d0d && pnpm storybook` で、比較のストーリー（`Design Review/445 載せたときだけ出す下線`）を決めたときの部品のまま開けます。

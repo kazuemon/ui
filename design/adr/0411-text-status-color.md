@@ -10,7 +10,7 @@ Text に意味の色（`color`: info・success・warning・danger）を足すに
 
 ## 候補
 
-比較は、決めた時点のコミット `a6fca55` の比較のストーリー（`design/stories/axis-444-text-status-color.stories.tsx`）です。列は「4 つの色」「文の中の一部」「小さい文字」です。
+比較は、決めた時点のコミット `8cf8d0d` の比較のストーリー（`design/stories/axis-444-text-status-color.stories.tsx`）です。列は「4 つの色」「文の中の一部」「小さい文字」です。
 
 | 案        | 文字の色 | 形                         |
 | --------- | -------- | -------------------------- |
@@ -52,4 +52,4 @@ B・C（形を添える）は採りませんでした。形と読み上げを持
 
 ![Text の意味の色の比較。現行版・A・B・C を、4 つの色・文の中の一部・小さい文字の 3 列で並べたもの。A に採用の印](./assets/0411-text-status-color.png)
 
-決めた時点のコミットは、比較が `a6fca55`、実装が `0d27ad0` です。`git checkout a6fca55 && pnpm storybook` で、比較のストーリー（`Design Review/444 文字の意味の色`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `8cf8d0d`、実装が `fee413b` です。`git checkout 8cf8d0d && pnpm storybook` で、比較のストーリー（`Design Review/444 文字の意味の色`）を決めたときの部品のまま開けます。

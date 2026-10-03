@@ -10,7 +10,7 @@ Callout に畳める形（`collapsible`）を足すにあたり、開閉の印�
 
 ## 候補
 
-比較は、決めた時点のコミット `a6fca55` の比較のストーリー（`design/stories/axis-443-callout-collapsible.stories.tsx`）です。列は「閉じている」「hover」「フォーカス」「開いて hover」「濃い塗り・hover」「muted・開いている」です。
+比較は、決めた時点のコミット `8cf8d0d` の比較のストーリー（`design/stories/axis-443-callout-collapsible.stories.tsx`）です。列は「閉じている」「hover」「フォーカス」「開いて hover」「濃い塗り・hover」「muted・開いている」です。
 
 | 案        | 印の位置     | 載せたときの塗り |
 | --------- | ------------ | ---------------- |
@@ -51,4 +51,4 @@ B（印を題のすぐ後ろ）・C（塗りを 10%）は採りませんでし�
 
 ![Callout の畳める形の比較。現行版・A・B・C を、閉じている・hover・フォーカス・開いて hover・濃い塗り・muted の列で並べたもの。A に採用の印](./assets/0410-callout-collapsible.png)
 
-決めた時点のコミットは、比較が `a6fca55`、実装が `0d27ad0` です。`git checkout a6fca55 && pnpm storybook` で、比較のストーリー（`Design Review/443 畳める囲み`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `8cf8d0d`、実装が `fee413b` です。`git checkout 8cf8d0d && pnpm storybook` で、比較のストーリー（`Design Review/443 畳める囲み`）を決めたときの部品のまま開けます。
