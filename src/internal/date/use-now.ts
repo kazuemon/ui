@@ -40,6 +40,8 @@ function clockFor(interval: number): Clock {
         if (clock.listeners.size === 0 && clock.timer !== undefined) {
           clearInterval(clock.timer);
           clock.timer = undefined;
+          // 聞く人がいなくなった時計は捨てる（間隔ごとに増え続けないように）
+          if (clocks.get(interval) === clock) clocks.delete(interval);
         }
       };
     },
@@ -67,7 +69,8 @@ export function useNow(
   // 0 以下や数でない間隔は、タイマーが詰まって回るので既定に戻す
   const safeInterval =
     Number.isFinite(interval) && interval > 0 ? interval : DEFAULT_UPDATE_INTERVAL;
-  const clock = enabled ? clockFor(safeInterval) : null;
+  // サーバーでは購読しないので、時計を作らない（作ると聞く人のないまま残る）
+  const clock = enabled && typeof window !== 'undefined' ? clockFor(safeInterval) : null;
   return useSyncExternalStore(
     clock ? clock.subscribe : subscribeNone,
     clock ? clock.getSnapshot : getNone,
