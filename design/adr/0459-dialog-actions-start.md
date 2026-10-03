@@ -10,7 +10,7 @@ Dialog の下の操作の左に、保存の状態・注記・「次から表示�
 
 ## 候補
 
-比較は、決めた時点のコミット `e1ff491` の比較のストーリー（`design/stories/axis-513-dialog-actions-start.stories.tsx`）です。列は「文」「チェックボックス」「DialogActions の start」「シート」です。
+比較は、決めた時点のコミット `f8c1d3e` の比較のストーリー（`design/stories/axis-513-dialog-actions-start.stories.tsx`）です。列は「文」「チェックボックス」「DialogActions の start」「シート」です。
 
 | 案     | 大きさ       | 色       |
 | ------ | ------------ | -------- |
@@ -48,4 +48,4 @@ A・B は、文字だけのときも一律に部品の文字にします。補�
 
 ![操作の左に置く文の比較。現行版・A・B を、文・チェックボックス・DialogActions の start・シートの 4 列で並べたもの。現行版に採用の印](./assets/0459-dialog-actions-start.png)
 
-決めた時点のコミットは、比較が `e1ff491`、実装が `d475fde`（直しは `ec0f385`）です。 `git checkout e1ff491 && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `f8c1d3e`、実装が `ec5558e`（直しは `0a9553c`）です。 `git checkout f8c1d3e && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。

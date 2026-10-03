@@ -10,7 +10,7 @@ Dialog の幅がいつも 480px で、確かめの短い問いにも表を置く
 
 ## 候補
 
-比較は、決めた時点のコミット `e1ff491` の比較のストーリー（`design/stories/axis-512-dialog-size.stories.tsx`）です。列は sm（確かめ）・md（入力欄 2 つ）・lg（表）です。
+比較は、決めた時点のコミット `f8c1d3e` の比較のストーリー（`design/stories/axis-512-dialog-size.stories.tsx`）です。列は sm（確かめ）・md（入力欄 2 つ）・lg（表）です。
 
 | 案     | sm・md・lg         |
 | ------ | ------------------ |
@@ -49,4 +49,4 @@ A は段の差が小さく、lg でも表が窮屈です。B は md を広げる
 
 ![Dialog の幅の段の比較。現行版・A・B・C を、sm・md・lg の 3 列で並べたもの。C に採用の印](./assets/0458-dialog-size.png)
 
-決めた時点のコミットは、比較が `e1ff491`、実装が `d475fde`（直しは `ec0f385`）です。 `git checkout e1ff491 && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `f8c1d3e`、実装が `ec5558e`（直しは `0a9553c`）です。 `git checkout f8c1d3e && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
