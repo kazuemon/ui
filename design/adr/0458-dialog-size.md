@@ -39,6 +39,7 @@ A は段の差が小さく、lg でも表が窮屈です。B は md を広げる
 
 - `src/components/dialog/Dialog.tsx`: `size`。幅は `design/tokens.css` の Dialog の幅のトークンです
 - 全画面の段は backlog に残しました
+- `src/components/alert-dialog/AlertDialog.tsx`: AlertDialog にも `size`・`scrollBehavior` を通します。中身に長い説明や一覧を置く確かめもあるためです。レビューで、通さない案ではなく通す案（B）を選んでもらいました
 
 ## 原則への反映
 

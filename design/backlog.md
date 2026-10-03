@@ -710,7 +710,6 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 2026-09-19 に作りました。決定は [ADR-0123](./adr/0123-alert-dialog.md) です。
 
-- AlertDialog に Dialog の `size`・`scrollBehavior` を通すかは決めていません。Dialog を包んでいるので、中身が高いときの既定（content）は同じになりますが、props としては渡せません（[ADR-0457](./adr/0457-dialog-scroll.md)・[ADR-0458](./adr/0458-dialog-size.md)）
 - シートの面の読み上げの役割（`alertdialog`）は、`PopupRole` が DOM の `role` 属性を layout effect で書き換えるハックで付けています。Base UI の `SheetPopup` が role を props で受け取らないためで、`SheetPopup` に role を渡せるようにするのが本筋です
 
 ### LinkCard

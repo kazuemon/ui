@@ -38,6 +38,8 @@
 - `src/components/dialog/Dialog.tsx`: `scrollBehavior` の既定が content になります。高い Dialog の見え方が変わります（AlertDialog も同じ）。既定が変わることは破壊的変更にあたるかもしれませんが、0.x なので `feat:` のままにしました
 - `src/internal/sheet/SheetMoreCue.tsx`・`use-more-cues.ts`・`src/internal/overlay/overlay-actions.tsx`: 続きの印と、中身に貼り付ける下の帯（`dialog-scroll`）を、シートと共有します
 - Dialog の Docs に、中身が長いときの例を足しました
+- `src/internal/overlay/overlay-actions.tsx`: 中身に貼り付けた帯の高さを、スクロールする中身の `scroll-padding-bottom` にします。Tab で帯の下に隠れた欄へ進むと、欄を帯の上まで送ります。帯の中にフォーカスがあるあいだは外します（開いた直後に帯のボタンへフォーカスしても、中身をスクロールさせないため）。シート・Inspector の帯も同じです。レビューで「お勧めで」と返事をもらいました
+  - 欄ごとの `scroll-margin` では直りません。Chrome は入力欄にフォーカスしたとき、欄ではなくカーソルが見えるところまでしかスクロールしないためです
 
 ## 原則への反映
 

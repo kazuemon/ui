@@ -24,6 +24,7 @@ Inspector の幅と表の列の幅を、ユーザーが変えられるように�
 
 - `src/internal/resize-handle/ResizeHandle.tsx`、`src/components/inspector/Inspector.tsx`、`src/components/data-table/DataTableHeader.tsx`
 - 変えた幅は部品の中では覚えません。使う側が `onWidthChange` などで保存します
+- 表の列で幅を外で持つ（数の `width` を渡す）ときは、ダブルクリックで戻す先として `defaultWidth` も渡します。渡さないと、ダブルクリックしても幅は変わりません。`onWidthChange(undefined)` で「既定に戻す」を伝える案は、受ける側がみな undefined を扱うことになるので採りませんでした（レビューで「お勧めで」）
 
 ## 原則への反映
 
