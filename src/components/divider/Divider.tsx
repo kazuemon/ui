@@ -35,7 +35,8 @@ const labeled = tv({
   slots: {
     root: 'flex w-full min-w-0 items-center',
     line: 'h-0 min-w-6 flex-1 border-0 border-t-(length:--border-width-thin) border-solid border-line',
-    label: 'max-w-full shrink text-center',
+    // 空白のない長い文字列も折り返す（min-w-0 で文字の幅まで広がらないようにする）
+    label: 'max-w-full min-w-0 shrink text-center [overflow-wrap:anywhere]',
   },
   variants: {
     labelSize: {
@@ -130,7 +131,8 @@ export function Divider({
       />
     );
   }
-  if (label != null && label !== false) {
+  // 空の文字（空白だけを含む）は、ラベルのない線として描く（区切りの役割を残す）
+  if (label != null && label !== false && !(typeof label === 'string' && label.trim() === '')) {
     const s = labeled({ labelSize });
     // 区切りの役割（separator）は中身を読ませないので付けない。文字だけを読み、線は飾りとして外す
     return (

@@ -120,3 +120,30 @@ export const LabelAndVertical: Story = {
     await expect(separators[0]).toHaveAttribute('aria-orientation', 'vertical');
   },
 };
+
+export const LabelEdgeCases: Story = {
+  name: 'ラベルの端の場合',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '空白のない長いラベルも、置いた幅の中で折り返します。空の文字を渡したときは、ラベルのない線として描きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex w-40 flex-col gap-4" data-testid="narrow">
+      <Divider label="https://example.com/very-long-path-without-spaces" />
+      <Divider label="" />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const narrow = canvas.getByTestId('narrow');
+    // はみ出さない
+    for (const divider of narrow.querySelectorAll<HTMLElement>('[data-slot="divider"]'))
+      await expect(divider.scrollWidth).toBeLessThanOrEqual(narrow.clientWidth);
+    // 空のラベルは区切りの役割を持つ線
+    await expect(canvas.getByRole('separator')).toBeInTheDocument();
+  },
+};
