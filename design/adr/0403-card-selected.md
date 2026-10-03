@@ -39,6 +39,7 @@
 
 - `src/components/card/Card.tsx`: `selected`・`selectedIndicator`（`fill`・`line`、既定 `fill`）を持ちます
 - `design/tokens.css`: `--card-selected-line-width`・`--card-selected-hover-mix` を持ちます。比べるためだった線・面の色のトークンは消し、色は `color` から部品が作ります
+- 選んでいる線は、輪郭そのものを線の色にし、残りの幅を内側に重ねて描きます。輪郭の外に重ねるとカードの切り取り（overflow-hidden）で外側の 1px が欠けるためです
 
 ## 原則への反映
 

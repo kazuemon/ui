@@ -45,9 +45,13 @@ const styles = tv({
       'border-(length:--card-line-width) border-(color:--card-line)',
       '[--card-line-width:var(--border-width-thin)] [--card-line:var(--color-surface-line)]',
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
-      // 選んでいる印（selected）。輪郭の上に重ねて線を引く。寸法は変えない。線の色は color の色（--card-accent）
-      "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:-inset-(--card-line-width) data-selected:after:z-1 data-selected:after:content-['']",
-      'data-selected:after:rounded-card data-selected:after:border-(length:--card-selected-line-width) data-selected:after:border-(color:--card-accent)',
+      // 選んでいる印（selected）。輪郭に重ねて線を引く。寸法は変えない。線の色は color の色（--card-accent）
+      //   輪郭は overflow-hidden の外にあり、重ねた疑似要素を輪郭の上に出すと切り取られる。
+      //   そこで輪郭そのものを線の色にし、残りの幅（--card-selected-line-width − 輪郭の幅）を内側の疑似要素で足す
+      'data-selected:[--card-line:var(--card-accent)]',
+      "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:inset-0 data-selected:after:z-1 data-selected:after:content-['']",
+      'data-selected:after:rounded-[calc(var(--radius-card)-var(--card-line-width))] data-selected:after:border-(color:--card-accent)',
+      'data-selected:after:border-[length:calc(var(--card-selected-line-width)-var(--card-line-width))]',
     ],
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
     // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線（輪郭と同じ細い線）で中身と分ける
