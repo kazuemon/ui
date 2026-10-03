@@ -195,7 +195,8 @@ export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' |
   maxHeight?: number | string;
   /**
    * 長い行を、横にスクロールさせずに折り返します。続きの行は、その行の字下げ（行頭の空白）と同じだけ下げます。
-   * 文章に近い設定ファイルや、狭い画面で読ませたいときに使います
+   * 文章に近い設定ファイルや、狭い画面で読ませたいときに使います。
+   * 字下げのそろえは、行番号・強調行と同じく、Shiki が出す行ごとの要素（`.line`）に効きます。行に分けていない `<code>` を children に渡したときは、折り返すだけで続きの行は下げません
    * @default false
    */
   wrap?: boolean;
