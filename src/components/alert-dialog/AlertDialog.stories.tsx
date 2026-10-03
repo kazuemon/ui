@@ -31,6 +31,7 @@ const meta = {
           '- 2 つのボタンは、ふだんは中身の下の帯に描きます。中身の中に `AlertDialogActions` を置くと、その場所に描きます（見た目は同じ下の帯です）。ボタンの文言・色・処理は、置いたときも AlertDialog の props で決めます。',
           '- 確かめの入力が済むまで実行させないときは、`actionDisabled` で実行する側のボタンを押せなくします。',
           '- 出し方（`presentation`）は Dialog と同じです。シートで出すときも、下へはじいて閉じることはできず、つまみも出ません。',
+          '- 幅の段（`size`）とスクロールのしかた（`scrollBehavior`）も Dialog と同じです。問いと 2 つのボタンだけなら既定の `md` のまま、中身に長い説明や一覧を置くときは `lg` にします。',
           '- 入力を求めるとき、閉じる手段を複数残したいときは、Dialog を使います。',
         ].join('\n'),
       },
@@ -44,6 +45,8 @@ const meta = {
     color: 'danger',
     actionDisabled: false,
     presentation: 'auto',
+    size: 'md',
+    scrollBehavior: 'content',
   },
   argTypes: {
     title: { control: 'text' },
@@ -60,6 +63,16 @@ const meta = {
       control: 'inline-radio',
       options: ['auto', 'popover', 'sheet'],
       table: { defaultValue: { summary: "'auto'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg'],
+      table: { defaultValue: { summary: "'md'" } },
+    },
+    scrollBehavior: {
+      control: 'inline-radio',
+      options: ['viewport', 'content'],
+      table: { defaultValue: { summary: "'content'" } },
     },
     trigger: { control: false },
     children: { control: false },
@@ -186,6 +199,25 @@ export const WithContent: Story = {
       )}
     </ScreenFrame>
   ),
+};
+
+export const Size: Story = {
+  name: '幅の段',
+  tags: ['!autodocs'],
+  args: { size: 'lg', scrollBehavior: 'viewport' },
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <AlertDialog {...args} presentation="popover" defaultOpen>
+      説明
+    </AlertDialog>
+  ),
+  play: async ({ canvasElement }) => {
+    // size・scrollBehavior は Dialog に渡る
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = await body.findByRole('alertdialog', { name: '下書きを削除しますか？' });
+    await expect(dialog).toHaveAttribute('data-size', 'lg');
+    await expect(dialog).toHaveAttribute('data-scroll-behavior', 'viewport');
+  },
 };
 
 export const Sheet: Story = {

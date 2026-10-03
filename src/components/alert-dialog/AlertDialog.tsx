@@ -20,7 +20,7 @@ import { OverlayRoleContext } from '../../internal/overlay/overlay-role-context'
 import type { OverlayFocusTarget, PopupProps } from '../../internal/overlay/overlay-props';
 import { Button } from '../button/Button';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
-import { Dialog } from '../dialog/Dialog';
+import { Dialog, type DialogScrollBehavior, type DialogSize } from '../dialog/Dialog';
 import type { OverlayActionsLayout } from '../drawer/Drawer';
 
 /** 実行する側のボタンの色。パレットの色と意味を持った色を 1 つの軸に並べる（ADR-0235） */
@@ -78,6 +78,18 @@ export interface AlertDialogProps {
    * @default 'auto'
    */
   presentation?: OverlayPresentation;
+  /**
+   * 中央に浮かべるときの幅の段（Dialog と同じ）。問いと 2 つのボタンだけなら既定の md のまま、中身に長い説明や一覧を置くときは lg にします。
+   * シートで出すときは幅いっぱいです
+   * @default 'md'
+   */
+  size?: DialogSize;
+  /**
+   * 中身が画面より高いときのスクロールのしかた（Dialog と同じ）。viewport は面ごと画面の中でスクロールし、content は題と下のボタンを残して中身だけをスクロールします。
+   * シートで出すときは、いつも中身だけをスクロールします
+   * @default 'content'
+   */
+  scrollBehavior?: DialogScrollBehavior;
   /**
    * 画面の下から出すシートで出すときの、2 つのボタンの並べ方。既定の auto は、幅いっぱいで縦に積み、実行する側を上にします。
    * 中央に浮かべるときは、いつも右に寄せ、実行する側を右端にします
