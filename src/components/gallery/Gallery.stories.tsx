@@ -31,6 +31,7 @@ const meta = {
           '画像を並べ、押すと画面いっぱいに拡大して、前後に送って見られる部品です。作品のページの画像や、記事の図をまとめて見せるのに使います。1 枚だけなら ImageZoom を使います。',
           '',
           "- `items` に画像を渡します。`src`・`alt`・`width`・`height`・`render` は Image と同じです。`zoomSrc` を渡すと、拡大したときだけ大きな画像を読み込みます。枚数が多いときは、画像ごとに `loading: 'lazy'` を渡すと、見えるところまで来てから読み込みます（`decoding`・`fetchPriority` も渡せます）。",
+          '- 画像ごとに `placeholder`（読み込むまで敷く小さな画像）と `placeholderBlur`（そのぼかしの強さ）、`fallbackSrc`（読み込めなかったときの代わりの画像）を渡せます。どれも Image と同じです。',
           '- 読み込むまでの面の動きは `loadingAnimation` で選びます。既定の `sweep-viewport` は並び全体をまたぐ 1 本の光、`pulse` は面の明滅です。',
           "- 並べた画像は、同じ比（`ratio`、既定は 4 / 3）に切り取ってそろえます。`ratio` には `16 / 9` のような数か `'16 / 9'` の文字を渡せます（Image と同じ）。拡大すると全体が見えます。",
           '- `columns` で列の数を決めます（既定は 3）。入れ物が狭いとき（28rem 未満）は 2 列にまとめます。画像のあいだは `gap` で、Stack と同じ段から選びます。',
@@ -601,5 +602,45 @@ export const LoadingAttributes: Story = {
     await expect(images[0]).not.toHaveAttribute('loading');
     await expect(images[1]).toHaveAttribute('loading', 'lazy');
     await expect(images[2]).toHaveAttribute('decoding', 'async');
+  },
+};
+
+// 仮画像に使う、縮めた空と山の絵（数十 px の縮小版の代わり）
+const landscapeTiny = `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9" width="16" height="9"><rect width="16" height="9" fill="#cfeafc"/><path d="M0 7 L5 4 L9 6 L16 3 L16 9 L0 9Z" fill="#2f6b58"/></svg>')}`;
+
+export const PlaceholderAndFallback: Story = {
+  name: '仮画像・代わりの画像',
+  decorators: [wide],
+  args: {
+    items: [
+      { alt: '読み込み中の絵', placeholder: landscapeTiny },
+      { alt: '強くぼかした読み込み中の絵', placeholder: landscapeTiny, placeholderBlur: 'md' },
+      { src: broken, fallbackSrc: galleryImages[0].src, alt: '空と山の絵' },
+    ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '画像ごとに `placeholder` を渡すと、読み込むまでそれをぼかして敷きます（ぼかしの強さは `placeholderBlur`）。`fallbackSrc` を渡すと、読み込めなかったときにその画像に替え、拡大もその画像で見られます。',
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const frames = [
+      ...canvasElement.querySelectorAll('[data-slot="gallery-list"] [data-slot="image"]'),
+    ];
+    await expect(frames[0]).toHaveAttribute('data-placeholder');
+    await expect(frames[0]).toHaveAttribute('data-status', 'loading');
+    // placeholderBlur も中の Image に届く（md は既定の sm より強くぼかす）
+    const blurOf = (frame: Element) =>
+      parseFloat(
+        getComputedStyle(frame.querySelector('[aria-hidden] > span')!).filter.replace('blur(', '')
+      );
+    await expect(blurOf(frames[1])).toBeGreaterThan(blurOf(frames[0]));
+    // 読み込めない src は、代わりの画像に替わり、押して拡大できる
+    await waitFor(() => expect(frames[2]).toHaveAttribute('data-status', 'loaded'));
+    await expect(frames[2].querySelector('img')).toHaveAttribute('src', galleryImages[0].src);
+    await waitFor(() => expect(frames[2].closest('button')).toBeEnabled());
   },
 };

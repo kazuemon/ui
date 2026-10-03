@@ -118,6 +118,9 @@ export interface GalleryItem extends Pick<
   | 'decoding'
   | 'fetchPriority'
   | 'render'
+  | 'placeholder'
+  | 'placeholderBlur'
+  | 'fallbackSrc'
 > {
   /** 拡大したときに読み込む、大きな画像の URL。書かないときは、並べた画像をそのまま拡大します */
   zoomSrc?: string;
@@ -129,7 +132,8 @@ export interface GalleryProps extends Omit<ComponentProps<'div'>, 'children'> {
   /**
    * 並べる画像。`src`・`alt`・`width`・`height`・`render` は Image と同じです。
    * 枚数が多いときは、画面の外の画像に `loading: 'lazy'` を渡すと、見えるところまで来てから読み込みます
-   * （`decoding`・`fetchPriority` も img の属性として渡せます）
+   * （`decoding`・`fetchPriority` も img の属性として渡せます）。
+   * 読み込むまで敷く仮画像の `placeholder`・`placeholderBlur` と、読み込めなかったときの代わりの画像の `fallbackSrc` も Image と同じです
    */
   items: GalleryItem[];
   /**
