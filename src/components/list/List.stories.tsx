@@ -21,7 +21,7 @@ const meta = {
           '- `as` は `ul`（既定、箇条書き）と `ol`（番号付き）です。`start` で最初の番号を決め、`reversed` で大きい順に振ります。',
           '- `markerType` は箇条書きの印です。`dash`（既定）は薄いグレーの短い線、`dot` は濃紺の丸です。入れ子のリストは外側の印を引き継ぎます。',
           '- 番号は薄いグレーで右揃えです。10 以上の番号でも「.」の位置がそろいます。',
-          '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。',
+          '- `task` でチェックリストにし、`ListItem` の `checked` で箱を出します。箱は押せません。まだの項目は輪郭の四角、済んだ項目はチェックの印だけです。チェックリストの項目は頭を箱が使うので、`status`・`icon` は効きません。`trailing` は効きます。',
           '- `checkedVariant` は済んだ項目の文の色です。`subtle`（既定）は薄いグレー、`default` は本文と同じ色です。',
           '- `ListItem` の `status`（`success`・`warning`・`danger`）で、印を状態の色と形のアイコンにします。`icon` で好きなアイコンを印にできます。印は読み上げないので、状態は文でも伝えます。',
           '- 印のアイコンは文字の 1.25 倍の大きさです。`ListItem` の `iconColor` でアイコンの色を、`color` で文の色を、Tag の `color` と同じ色から選びます。書かないときはどちらも文字の色で、`status` のアイコンは状態の色です。',
@@ -285,5 +285,34 @@ export const NestedWithTrailing: Story = {
     await expect(nested).toHaveLength(2);
     await expect(getComputedStyle(nested[0]).marginTop).toBe(getComputedStyle(nested[1]).marginTop);
     await expect(getComputedStyle(nested[0]).marginTop).not.toBe('0px');
+  },
+};
+
+export const CheckedWithTrailing: Story = {
+  name: 'チェックリストの項目の末尾',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <List task>
+      <ListItem checked trailing={<span className="text-fg-subtle">9/30</span>}>
+        原稿を書く
+      </ListItem>
+      <ListItem checked={false} status="danger" trailing="10/3">
+        見直す
+      </ListItem>
+    </List>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const items = canvas.getAllByRole('listitem');
+    // 末尾の枠は、チェックリストの項目でも右端に出る
+    const trailing = canvasElement.querySelectorAll('[data-slot="list-item-trailing"]');
+    await expect(trailing).toHaveLength(2);
+    await expect(trailing[1]).toHaveTextContent('10/3');
+    const item = items[1].getBoundingClientRect();
+    await expect(Math.round(trailing[1].getBoundingClientRect().right)).toBe(
+      Math.round(item.right)
+    );
+    // 頭は箱が使うので、状態のアイコンは出さない
+    await expect(canvas.getAllByRole('checkbox')).toHaveLength(2);
+    await expect(canvasElement.querySelector('[data-slot="list-item-icon"]')).toBeNull();
   },
 };

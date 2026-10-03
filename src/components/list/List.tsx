@@ -188,7 +188,8 @@ const statusIcons = {
 
 export interface ListItemProps extends Omit<ComponentProps<'li'>, 'color'> {
   /**
-   * チェックリストの項目にします。true は済み、false はまだです。箱は押せません（記事の中の表示です）
+   * チェックリストの項目にします。true は済み、false はまだです。箱は押せません（記事の中の表示です）。
+   * 項目の頭は箱が使うので、status・icon・iconColor は効きません。trailing は効きます
    */
   checked?: boolean;
   /**
@@ -237,10 +238,35 @@ export function ListItem({
 }: ListItemProps) {
   // 文の色は、利用者の className で上書きできるよう tailwind-merge でまとめる
   const className = cn(color && listItemColors[color], classNameProp) || undefined;
-  const StatusIcon = status ? statusIcons[status] : undefined;
-  const marker = icon ?? (StatusIcon ? <StatusIcon /> : null);
-  if (checked == null && (marker != null || trailing != null)) {
-    const s = listItem({ marker: marker != null, status, iconColor });
+  // チェックリストの項目は、頭を箱が使うので、印のアイコン（status・icon）を出さない
+  const StatusIcon = checked == null && status ? statusIcons[status] : undefined;
+  const marker = checked == null ? (icon ?? (StatusIcon ? <StatusIcon /> : null)) : null;
+  const s = listItem({
+    marker: marker != null,
+    status: checked == null ? status : undefined,
+    iconColor,
+  });
+  // 末尾の枠があるときは、文と末尾を 2 列に並べる。チェックリストの項目でも同じ
+  const content =
+    trailing != null ? (
+      <div className={s.body()}>
+        <div className={s.text()}>{children}</div>
+        <div data-slot="list-item-trailing" className={s.trailing()}>
+          {trailing}
+        </div>
+      </div>
+    ) : (
+      children
+    );
+  if (checked != null) {
+    return (
+      <li className={['task-list-item', className].filter(Boolean).join(' ')} {...props}>
+        <input type="checkbox" disabled readOnly checked={checked} />
+        {trailing != null ? content : <> {children}</>}
+      </li>
+    );
+  }
+  if (marker != null || trailing != null) {
     return (
       <li className={s.root({ className })} data-status={status} {...props}>
         {marker != null && (
@@ -248,29 +274,13 @@ export function ListItem({
             {marker}
           </span>
         )}
-        {trailing != null ? (
-          <div className={s.body()}>
-            <div className={s.text()}>{children}</div>
-            <div data-slot="list-item-trailing" className={s.trailing()}>
-              {trailing}
-            </div>
-          </div>
-        ) : (
-          children
-        )}
-      </li>
-    );
-  }
-  if (checked == null) {
-    return (
-      <li className={className} {...props}>
-        {children}
+        {content}
       </li>
     );
   }
   return (
-    <li className={['task-list-item', className].filter(Boolean).join(' ')} {...props}>
-      <input type="checkbox" disabled readOnly checked={checked} /> {children}
+    <li className={className} {...props}>
+      {children}
     </li>
   );
 }
