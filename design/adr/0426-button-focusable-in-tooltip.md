@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `70feeec` の比較のストーリー（[ADR-0425](./0425-tooltip-arrow.md) と同じ `axis-462-tooltip-arrow.stories.tsx`）の、3 列目「押せない理由（フォーカス）」です。
+比較は、決めた時点のコミット `60c0270` の比較のストーリー（[ADR-0425](./0425-tooltip-arrow.md) と同じ `axis-462-tooltip-arrow.stories.tsx`）の、3 列目「押せない理由（フォーカス）」です。
 
 | 案        | Tooltip の本体の押せないボタン                            |
 | --------- | --------------------------------------------------------- |
@@ -56,4 +56,4 @@
 
 ![Tooltip の矢印と、押せない理由のフォーカスの比較。3 列目が押せないボタンにキーボードで止まった状態](./assets/0425-tooltip-arrow.png)
 
-決めた時点のコミットは、比較が `70feeec`、実装が `92132e1` です。`git checkout 70feeec && pnpm storybook` で、比較のストーリー（`Design Review/462 Tooltip の矢印`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `60c0270`、実装が `f2fb844` です。`git checkout 60c0270 && pnpm storybook` で、比較のストーリー（`Design Review/462 Tooltip の矢印`）を決めたときの部品のまま開けます。

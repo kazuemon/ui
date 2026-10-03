@@ -10,7 +10,7 @@ Stepper に大きさ（`size`）を足しました。小さい段（`sm`）は�
 
 ## 候補
 
-比較は、決めた時点のコミット `70feeec` の比較のストーリー（`design/stories/axis-464-stepper-size.stories.tsx`）です。列は「横並び（マウス）」「横並び（指）」「縦並び」です。
+比較は、決めた時点のコミット `60c0270` の比較のストーリー（`design/stories/axis-464-stepper-size.stories.tsx`）です。列は「横並び（マウス）」「横並び（指）」「縦並び」です。
 
 | 案                | マーカー | ラベル                             |
 | ----------------- | -------- | ---------------------------------- |
@@ -56,4 +56,4 @@ D は [ADR-0429](./0429-stepper-dot.md) で別に決めました。
 
 ![Stepper の小さい段の比較。現行版・A・B・C・D を、横並び（マウス・指）・縦並びの 3 列で並べたもの。A・B・D に採用の印](./assets/0428-stepper-small.png)
 
-決めた時点のコミットは、比較が `70feeec`、実装が `92132e1` です。`git checkout 70feeec && pnpm storybook` で、比較のストーリー（`Design Review/464 Stepper の小さい段`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `60c0270`、実装が `f2fb844` です。`git checkout 60c0270 && pnpm storybook` で、比較のストーリー（`Design Review/464 Stepper の小さい段`）を決めたときの部品のまま開けます。

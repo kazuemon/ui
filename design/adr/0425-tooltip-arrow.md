@@ -10,7 +10,7 @@ Tooltip に、本体を指す矢印（`showArrow`。既定は出さない）を�
 
 ## 候補
 
-比較は、決めた時点のコミット `70feeec` の比較のストーリー（`design/stories/axis-462-tooltip-arrow.stories.tsx`）です。列は「下に出す」「上に出す」「押せない理由（フォーカス）」です。
+比較は、決めた時点のコミット `60c0270` の比較のストーリー（`design/stories/axis-462-tooltip-arrow.stories.tsx`）です。列は「下に出す」「上に出す」「押せない理由（フォーカス）」です。
 
 | 案        | 矢印（回す前の一辺）   | 本体とのあいだ |
 | --------- | ---------------------- | -------------- |
@@ -55,4 +55,4 @@ B の矢印は Popover と同じ大きさです。
 
 ![Tooltip の矢印の比較。現行版・A・B・C を、下に出す・上に出す・押せない理由の 3 列で並べたもの。A に採用の印](./assets/0425-tooltip-arrow.png)
 
-決めた時点のコミットは、比較が `70feeec`、実装が `92132e1` です。`git checkout 70feeec && pnpm storybook` で、比較のストーリー（`Design Review/462 Tooltip の矢印`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `60c0270`、実装が `f2fb844` です。`git checkout 60c0270 && pnpm storybook` で、比較のストーリー（`Design Review/462 Tooltip の矢印`）を決めたときの部品のまま開けます。

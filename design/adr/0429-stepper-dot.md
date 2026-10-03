@@ -10,7 +10,7 @@ Stepper のいちばん小さい形として、数字も印も持たない 10px 
 
 ## 候補
 
-比較は、決めた時点のコミット `70feeec` の比較のストーリー（[ADR-0428](./0428-stepper-small.md) と同じ `axis-464-stepper-size.stories.tsx`）の D の行です。
+比較は、決めた時点のコミット `60c0270` の比較のストーリー（[ADR-0428](./0428-stepper-small.md) と同じ `axis-464-stepper-size.stories.tsx`）の D の行です。
 
 | 案        | マーカー | 縦並びの点の位置                  |
 | --------- | -------- | --------------------------------- |
@@ -54,4 +54,4 @@ Stepper のいちばん小さい形として、数字も印も持たない 10px 
 
 ![Stepper の小さい段の比較。D の行が 10px の点](./assets/0428-stepper-small.png)
 
-決めた時点のコミットは、比較が `70feeec`、実装が `92132e1` です。`git checkout 70feeec && pnpm storybook` で、比較のストーリー（`Design Review/464 Stepper の小さい段`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `60c0270`、実装が `f2fb844` です。`git checkout 60c0270 && pnpm storybook` で、比較のストーリー（`Design Review/464 Stepper の小さい段`）を決めたときの部品のまま開けます。
