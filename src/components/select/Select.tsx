@@ -35,6 +35,7 @@ import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import { type ListboxSlotProps, mergeSlotClass } from '../../internal/listbox/listbox-slot-props';
 import {
   flattenItems,
+  hasIcon,
   isGroupedItems,
   type ListboxItems,
   normalizeItems,
@@ -542,7 +543,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       : flatItems.find((item) => item.value === currentValue)?.icon;
   const placeholderText = loadingBlocking ? loadingText : placeholder;
   const valueChildren =
-    renderValue || selectedIcon != null
+    renderValue || hasIcon(selectedIcon)
       ? (shown: ListboxValue | ListboxValue[] | null) => {
           const empty = Array.isArray(shown) ? shown.length === 0 : shown == null;
           if (empty) return placeholderText;

@@ -386,6 +386,33 @@ export const ItemIcons: Story = {
   ),
 };
 
+// 条件でアイコンを出し分けたとき（icon={条件 && <Icon />}）、false の選択肢にはアイコンの場所を空けない
+const showIcons = false;
+export const ItemIconsConditional: Story = {
+  name: '選択肢のアイコン（条件で出し分ける）',
+  tags: ['!autodocs'],
+  args: {
+    label: '行き方',
+    prefix: undefined,
+    placeholder: undefined,
+    items: [
+      { label: '電車', value: 'train', icon: showIcons && <Icon icon={TrainIcon} /> },
+      { label: '徒歩', value: 'walk', icon: showIcons && <Icon icon={PersonSimpleWalkIcon} /> },
+    ],
+  },
+  parameters: { controls: { disable: true } },
+  render: (args) => <Select {...args} defaultValue="train" defaultOpen modal={false} />,
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await body.findByRole('option', { name: '電車' });
+    // 一覧にも本体にも、アイコンの場所を出さない
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="listbox-item-icon"]')
+    ).toBeNull();
+    await expect(canvasElement.querySelector('[data-slot="select-value-icon"]')).toBeNull();
+  },
+};
+
 export const Messages: Story = {
   tags: ['visual'],
   name: 'キャプション・エラー・警告',

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { fieldStyles } from '../field/field-styles';
 import { WarningIcon } from '../icons';
 import { listboxOption } from './listbox-styles';
+import { hasIcon } from './listbox-items';
 import type { ListboxItemNote } from './use-listbox-option';
 
 const styles = fieldStyles();
@@ -67,7 +68,7 @@ export function ListboxOptionContent({
 }: ListboxOptionContentProps) {
   return (
     <>
-      {icon != null && (
+      {hasIcon(icon) && (
         <span aria-hidden data-slot="listbox-item-icon" className={iconClassName}>
           {icon}
         </span>

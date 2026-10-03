@@ -80,3 +80,8 @@ export function labelMap<Value extends ListboxValue>(items: ListboxItem<Value>[]
   for (const item of items) map.set(item.value, item.label);
   return map;
 }
+
+/** アイコンを渡されたか。`icon={条件 && <Icon />}` の false（と true・空の文字）は、渡していないとみなす */
+export function hasIcon(icon: ReactNode): boolean {
+  return icon != null && typeof icon !== 'boolean' && icon !== '';
+}
