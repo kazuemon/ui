@@ -56,7 +56,10 @@ const tile = tv({
       'truncate bg-surface px-2 py-1 text-(length:--text-caption) leading-(--leading-caption) text-fg',
     link: savedLink,
     // 項目の caption。左上に小さな札で置き、長ければ切る
-    mark: 'absolute top-1 left-1 max-w-[calc(100%-var(--spacing)*2)] truncate rounded-pill bg-surface px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
+    mark: 'absolute top-1 left-1 max-w-[calc(100%-var(--spacing)*2)] rounded-pill bg-surface px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
+    // 切るのは中の文。札の中に置いたリンクのフォーカスの線が切れないよう、内側に余白を取り、外側の余白で打ち消す。
+    // 左右は札の余白の分まで取る（Link は自分の左右の余白を外へ張り出すので、そのぶん広く要る）
+    markText: '-mx-2 -my-1 block truncate px-2 py-1',
   },
 });
 
@@ -256,7 +259,11 @@ export function DropzoneFileList({
                 data-saved={saved}
               >
                 <Thumbnail entry={entry} />
-                {caption != null && <span className={t.mark()}>{caption}</span>}
+                {caption != null && (
+                  <span className={t.mark()}>
+                    <span className={t.markText()}>{caption}</span>
+                  </span>
+                )}
                 {onRemove && (
                   <Button
                     iconOnly

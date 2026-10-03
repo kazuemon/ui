@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { DropzoneFileList, type DropzoneFileEntry } from './DropzoneFileList';
+import { Link } from '../link/Link';
 import { Gallery, Specimen } from '../../stories/story-parts';
 
 // 1x1 の透明 PNG。thumbnail のタイルで実際に画像として描けるようにする（見せかけの中身だと壊れた画像になる）
@@ -187,5 +188,39 @@ export const SavedBroken: Story = {
     await expect(canvasElement.querySelector('li svg')).toBeInTheDocument();
     await expect(canvas.getByRole('link', { name: /missing\.png/ })).toBeVisible();
     await expect(canvas.getByRole('button', { name: '削除: missing.png' })).toBeInTheDocument();
+  },
+};
+
+export const CaptionLink: Story = {
+  name: '添える文の中のリンク',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="max-w-sm">
+      <DropzoneFileList
+        variant="thumbnail"
+        files={[
+          {
+            name: 'cover.svg',
+            url: savedPhoto,
+            type: 'image/svg+xml',
+            caption: <Link href="#history">履歴</Link>,
+          },
+        ]}
+      />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const link = canvas.getByRole('link', { name: '履歴' });
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    // 札の中のリンクのフォーカスの線が、文を切る枠の内側に収まる
+    const style = getComputedStyle(link);
+    const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+    const box = link.parentElement!.getBoundingClientRect();
+    const rect = link.getBoundingClientRect();
+    await expect(rect.top - ring).toBeGreaterThanOrEqual(box.top - 0.5);
+    await expect(rect.bottom + ring).toBeLessThanOrEqual(box.bottom + 0.5);
+    await expect(rect.left - ring).toBeGreaterThanOrEqual(box.left - 0.5);
+    await expect(rect.right + ring).toBeLessThanOrEqual(box.right + 0.5);
   },
 };
