@@ -52,4 +52,4 @@ Select・Combobox・Autocomplete・TagsInput の選択肢（items の 1 項目�
 
 ![選択肢のアイコンの比較。現行版・A・B・C・D を、Select の一覧・選んだ値・Combobox の一覧・参考の列で並べたもの。C と D に採用の印](./assets/0465-listbox-item-icon.png)
 
-決めた時点のコミットは、比較が `650a783`（見やすく直したのは `264a702`）、実装が `3ddb35f` です。`git checkout 650a783 && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `bbe5886`（見やすく直したのは `2d61686`）、実装が `fce31b3` です。`git checkout bbe5886 && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。

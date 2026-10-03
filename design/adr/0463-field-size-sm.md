@@ -56,4 +56,4 @@ TextField・MaskField の `size` はこれまで input の文字数を表して�
 
 ![入力欄の小さい段の比較。現行版・A・B・C・D を、Button と並べる・prefix と suffix・消すボタンと ▼・hover・フォーカス・指の列で並べたもの。A に採用の印](./assets/0463-field-size-sm.png)
 
-決めた時点のコミットは、比較が `94163ef`、実装が `dcae1fb` です。`git checkout 94163ef && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `206e075`、実装が `f8ea07f` です。`git checkout 206e075 && pnpm storybook` で、比較のストーリーを決めたときの部品のまま開けます。
