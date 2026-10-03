@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type CSSProperties, type ReactNode, useId } from 'react';
+import { type ComponentProps, type CSSProperties, type ReactNode, useId, useRef } from 'react';
 
 import type { ChoiceColor } from '../../internal/choice/choice-styles';
 import { tableStyles } from '../../internal/reading/table';
@@ -8,6 +8,7 @@ import { ScrollFrame } from '../../internal/ScrollFrame';
 import { tv } from '../../internal/tv';
 import type { TableVariant, TableVerticalAlign } from '../table/Table';
 import { DataTableContext } from './data-table-context';
+import { useStickyHeadHeight } from './use-sticky-head-height';
 
 // データの表。Table と同じ要素・罫線・見出し・余白・文字（internal/reading/table.ts）に、データを扱う見た目を足す
 //   並べ替えの見出し（DataTableHeader）・選択の列（DataTableSelectHeader・DataTableSelectCell）・選んだ行（DataTableRow）・
@@ -21,6 +22,7 @@ import { DataTableContext } from './data-table-context';
 //   見出しの影は、ScrollArea の上の端の影と同じ色・高さ。枠（framed）の角丸は見出しの面の上の角で切れ、影は見出しの下の辺から落ちるので角にかからない
 //   banded の丸い帯は th の ::before に描き、th そのものは地の色の四角にする。貼り付いたとき、帯の角丸の外に下を通る行が透けず、
 //     影は帯の下の辺（四角い th の下）から、ほかの見た目と同じ形で落ちる
+//   縦のつまみの溝は、貼り付いた見出しの行の下から始める（見出しに重ねない）。見出しの行の高さは use-sticky-head-height が測る
 //   セルの縦の寄せの既定は middle（選択の箱や行の操作と、文字の行をそろえる）
 //   選んだ行の面は color（選択の箱と同じ色）の淡い面。色を持たないときは Select の選んだ項目と同じグレー（原則6）
 //   並べ替えていない列の印（上下の山）は sortIndicator で出し方を選ぶ。既定の subtle は、ふだん半分の濃さで置き、載せると濃くする
@@ -32,6 +34,8 @@ const dataTable = tv({
   slots: {
     root: 'relative flex min-w-0 flex-col gap-2',
     frame: '',
+    // スクロールの枠のつまみの帯（ScrollFrame の scrollbarClassName）
+    scrollbar: '',
     table: [
       ...tableStyles.table,
       ...tableStyles.cells,
@@ -97,7 +101,11 @@ const dataTable = tv({
       hover: { root: '[--data-table-sort-hover:1] [--data-table-sort-idle:var(--density-coarse)]' },
     },
     scrollY: {
-      true: { frame: 'max-h-(--data-table-max-height)' },
+      // 縦のつまみの溝は見出しの行の下から（Base UI が style で top: 0 を書くので、!important で上書きする）
+      true: {
+        frame: 'max-h-(--data-table-max-height)',
+        scrollbar: 'data-[orientation=vertical]:top-(--data-table-head-height,0px)!',
+      },
       false: {},
     },
   },
@@ -210,6 +218,8 @@ export function DataTable({
     sortIndicator,
     scrollY,
   });
+  const frameRef = useRef<HTMLDivElement>(null);
+  useStickyHeadHeight(frameRef, scrollY);
   const captionId = useId();
   const labelledBy = caption == null ? undefined : captionId;
   const ariaLabel = caption == null ? accessibleName : undefined;
@@ -221,8 +231,10 @@ export function DataTable({
     <DataTableContext.Provider value={{ color, statusIndicator }}>
       <figure className={styles.root({ className })} style={style} data-slot="data-table">
         <ScrollFrame
+          ref={frameRef}
           slot="data-table-scroll"
           className={styles.frame()}
+          scrollbarClassName={styles.scrollbar()}
           topEdge={false}
           viewportProps={{
             role: 'region',

@@ -329,6 +329,16 @@ export const StickyHeader: Story = {
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const header = canvasElement.querySelector('thead th');
     await expect(header && getComputedStyle(header).position).toBe('sticky');
+    // 縦のつまみの溝は、見出しの行の下から始まる（見出しに重ならない）
+    const frames = canvasElement.querySelectorAll('[data-slot="data-table-scroll"]');
+    await expect(frames).toHaveLength(3);
+    for (const frame of frames) {
+      // 貼り付いているのは見出しのセル（thead そのものはスクロールで上に流れる）
+      const head = frame.querySelector('thead th')!.getBoundingClientRect();
+      const bar = frame.querySelector(':scope > [data-orientation="vertical"]');
+      await expect(bar).not.toBeNull();
+      await expect(bar!.getBoundingClientRect().top).toBeGreaterThanOrEqual(head.bottom - 0.5);
+    }
   },
 };
 
