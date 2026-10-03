@@ -214,12 +214,12 @@ export function useScrollSnapEngine({
 
   // 子の数が変わったときも測り直す。1 枚の幅が変わったとき（slidesPerView を変えたなど、枠の大きさは同じまま）も測り直す
   useIsomorphicLayoutEffect(() => {
-    if (!viewport) return;
-    setVisibleCount(measureVisible(viewport));
-    const first = slidesOf(viewport)[0];
-    if (!first) return;
-    const observer = new ResizeObserver(() => setVisibleCount(measureVisible(viewport)));
-    observer.observe(first);
+    if (viewport) setVisibleCount(measureVisible(viewport));
+    const first = viewport ? slidesOf(viewport)[0] : undefined;
+    const observer = new ResizeObserver(() => {
+      if (viewport) setVisibleCount(measureVisible(viewport));
+    });
+    if (first) observer.observe(first);
     return () => observer.disconnect();
   }, [viewport, count]);
 
