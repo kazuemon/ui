@@ -1,6 +1,13 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useId, useRef, useSyncExternalStore } from 'react';
+import {
+  type ComponentProps,
+  type ReactNode,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 import { tv } from '../../internal/tv';
@@ -13,6 +20,7 @@ import { defaultMovedText, useSortableList } from './use-sortable-list';
 // 並べ替えられる表の本文（tbody）。Sortable と同じ並びの状態・キーボード・移動の操作を、表の行に使う
 //   行は SortableItem に render（DataTableRow・tr）を渡して描く。つまみと移動の操作は、行の中のセルに置く
 //   つまみの説明と読み上げの箱は、表の中に置けない（tbody の外の要素は表を壊す）ので、ページの末尾（body）に描く
+//     Dialog など aria-modal の面の中にあるときは、その面の中に描く（面の外は読み上げから隠れ、知らせが聞こえない）
 //     サーバーでは描かず、画面に出たあとに足す
 
 const body = tv({
@@ -25,9 +33,10 @@ const body = tv({
   },
 });
 
-const subscribeNothing = () => () => {};
-const onClient = () => true;
-const onServer = () => false;
+// 読み上げの箱を置く場所。いちばん近い aria-modal の面（Dialog・AlertDialog・Drawer）か、なければページの末尾
+const modalSurface = '[aria-modal="true"], [role="dialog"], [role="alertdialog"]';
+const announcerContainer = (element: HTMLElement) =>
+  element.closest<HTMLElement>(modalSurface) ?? element.ownerDocument.body;
 
 export interface SortableTableBodyProps
   extends
@@ -102,14 +111,17 @@ export function SortableTableBody({
     },
     hideMoveItems,
   });
-  // サーバーと、画面に出る前の 1 回目の描画では false（ページの末尾に描くものは、出たあとに足す）
-  const mounted = useSyncExternalStore(subscribeNothing, onClient, onServer);
+  // サーバーと、画面に出る前の 1 回目の描画では null（読み上げの箱は、出たあとに置き場所を決めて足す）
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (bodyRef.current != null) setContainer(announcerContainer(bodyRef.current));
+  }, []);
   return (
     <ListContext value={context}>
       <tbody ref={mergedRef} className={body({ motion, className })} {...props}>
         {children}
       </tbody>
-      {mounted &&
+      {container != null &&
         createPortal(
           <>
             <span id={instructionId} hidden>
@@ -117,7 +129,7 @@ export function SortableTableBody({
             </span>
             <VisuallyHidden role="status">{announcement}</VisuallyHidden>
           </>,
-          document.body
+          container
         )}
     </ListContext>
   );

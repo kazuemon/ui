@@ -14,7 +14,9 @@ import {
 } from './Sortable';
 import { SortableItemActions, SortableSeparator, useSortableItemActions } from './Sortable';
 import { SortableTableBody } from './SortableTableBody';
+import { Button } from '../button/Button';
 import { DataTableHeader } from '../data-table/DataTableHeader';
+import { Dialog } from '../dialog/Dialog';
 import { DataTableRow } from '../data-table/DataTableRow';
 import { DataTable } from '../data-table/DataTable';
 import { MenuItem, MenuSeparator } from '../menu/MenuItem';
@@ -744,5 +746,47 @@ export const TableRowLifted: Story = {
         expect(row == null ? 'none' : getComputedStyle(row).boxShadow).not.toBe('none')
       );
     }
+  },
+};
+
+export const InDialog: Story = {
+  name: 'Dialog の中で',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`Dialog` の中にも、そのまま置けます。動かしたことの知らせは、`Dialog` の中で読み上げます。',
+      },
+    },
+  },
+  render: () => (
+    <Dialog title="並べ替える" trigger={<Button>並べ替える</Button>}>
+      <div className="flex flex-col gap-6">
+        <Sample />
+        <TableSample />
+      </div>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(within(canvasElement).getByRole('button', { name: '並べ替える' }));
+    const dialog = await body.findByRole('dialog', { name: '並べ替える' });
+    const inDialog = within(dialog);
+    // リストと表の行を 1 つずつ動かし、知らせの領域が Dialog の中にあることを確かめる
+    for (const [scope, name] of [
+      [inDialog.getByRole('list', { name: '記事を出すまで' }), '見直しを頼むを並べ替え'],
+      [inDialog.getByRole('table', { name: '作業の順番' }), '図を描くを並べ替え'],
+    ] as const) {
+      within(scope).getByRole('button', { name }).focus();
+      await userEvent.keyboard('{ArrowDown}');
+    }
+    await waitFor(() =>
+      expect(inDialog.getAllByRole('status').map((status) => status.textContent)).toEqual([
+        '3 番目に移しました（4 件中）',
+        '3 番目に移しました（3 件中）',
+      ])
+    );
+    await userEvent.keyboard('{Escape}');
   },
 };
