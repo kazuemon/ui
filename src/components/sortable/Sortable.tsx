@@ -3,7 +3,6 @@
 import {
   type ComponentProps,
   type ReactNode,
-  type Ref,
   use,
   useId,
   useLayoutEffect,
@@ -158,20 +157,11 @@ export type SortableDragSourceVariant = NonNullable<
 >;
 /** 並べ替えの動き */
 export type SortableMotion = NonNullable<VariantProps<typeof sortable>['motion']>;
-/** 描く要素。ul は順に意味のない並び、ol は順に意味のある並び（順位・手順） */
-export type SortableAs = 'ul' | 'ol';
 
 export interface SortableProps extends Omit<
   ComponentProps<'ul'>,
-  'defaultValue' | 'onChange' | 'children' | 'ref'
+  'defaultValue' | 'onChange' | 'children'
 > {
-  /**
-   * 描く要素。ul は順に意味のない並び、ol は順位や手順のように順に意味のある並びです（List の as と同じ）
-   * @default 'ul'
-   */
-  as?: SortableAs;
-  /** 一覧の要素（ul・ol）の ref */
-  ref?: Ref<HTMLUListElement | HTMLOListElement>;
   /** 項目の並び。SortableItem の value を、いまの順に並べた配列です */
   value: string[];
   /** キーボードで並べ替えたときに、新しい並びを渡して呼びます。ポインタで引く並べ替えは、使う側がエンジンの知らせから value を更新します */
@@ -259,7 +249,6 @@ const defaultMovedText = (position: number, total: number) =>
  * 見た目とキーボードでの並べ替えを持ちます。ポインタで引く動きは持たないので、dnd-kit などとつなぎます（Recipes/Sortable）。
  */
 export function Sortable({
-  as = 'ul',
   value,
   onValueChange,
   variant = 'card',
@@ -280,8 +269,8 @@ export function Sortable({
   ref,
   ...props
 }: SortableProps) {
-  const listRef = useRef<HTMLUListElement | HTMLOListElement>(null);
-  const mergedRef = useMergedRefs<HTMLUListElement | HTMLOListElement>(ref, listRef);
+  const listRef = useRef<HTMLUListElement>(null);
+  const mergedRef = useMergedRefs(ref, listRef);
   const instructionId = useId();
   const focusAfterMove = useRef<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -346,15 +335,9 @@ export function Sortable({
   const { list } = sortable({ variant, motion });
   return (
     <ListContext value={context}>
-      {as === 'ol' ? (
-        <ol ref={mergedRef} className={list({ className })} {...props}>
-          {children}
-        </ol>
-      ) : (
-        <ul ref={mergedRef} className={list({ className })} {...props}>
-          {children}
-        </ul>
-      )}
+      <ul ref={mergedRef} className={list({ className })} {...props}>
+        {children}
+      </ul>
       <span id={instructionId} hidden>
         {instructionText}
       </span>

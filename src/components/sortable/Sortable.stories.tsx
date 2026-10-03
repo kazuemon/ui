@@ -25,7 +25,7 @@ const variants: SortableVariant[] = ['card', 'fill', 'divided'];
 type SampleProps = Partial<
   Pick<
     SortableProps,
-    'variant' | 'grabArea' | 'disabled' | 'moveActions' | 'dragSourceVariant' | 'motion' | 'as'
+    'variant' | 'grabArea' | 'disabled' | 'moveActions' | 'dragSourceVariant' | 'motion'
   >
 > & {
   /** 入る場所の見た目にする項目（並べ替えの途中を止めて見せる） */
@@ -95,7 +95,6 @@ const meta = {
           '- つまみを置く端は `SortableHandle` の `placement` です。既定は `start`（先頭）で、`end`（末尾）を選べます。つまみは項目の端に接した塊で、項目の高さいっぱいに押せます。',
           '- `grabArea` はどこをつかんで引くかです。既定は `handle`（つまみだけ）で、`item`（項目のどこでも）を選べます。エンジンにも同じ指定をします。`item` では、指でリストの上をスクロールしようとしたときにも引き始めることがあるので、指で使う画面では `handle` を選びます。',
           '- ドラッグだけでしか並べ替えられないと、WCAG 2.2 の 2.5.7（ドラッグの動き）を満たしません。ポインタで使う人がいるなら、`moveActions` に `item-menu`（末尾の ︙ から上へ・下へ・先頭へ・末尾へ）か `buttons`（末尾の上へ・下へのボタン）を選びます。既定は `none` です。文字は `moveUpLabel`・`moveDownLabel`・`moveFirstLabel`・`moveLastLabel`・`moveMenuName` で差し替えます。',
-          '- 順位や手順のように順に意味のある並びは、`as="ol"` で番号付きの一覧（`ol`）として描きます。既定は `ul` です。',
           '- `disabled` で並べ替えられなくすると、つまみを隠します。項目ごとに止めるときは `SortableItem` の `disabled` です。',
         ].join('\n'),
       },
@@ -358,23 +357,6 @@ export const MoveWithoutDragging: Story = {
     await waitFor(() => expect(labelsOf(buttonList)()[1]).toBe('下書きを書く'));
     await waitFor(() =>
       expect(buttonCanvas.getByRole('button', { name: '下書きを書くを並べ替え' })).toHaveFocus()
-    );
-  },
-};
-
-export const Ordered: Story = {
-  name: '順に意味のある並び（ol）',
-  render: () => <Sample as="ol" />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const list = canvas.getByRole('list', { name: '記事を出すまで' });
-    await expect(list.tagName).toBe('OL');
-    // キーボードの並べ替えは ul と同じ
-    const handle = canvas.getByRole('button', { name: '見出しの画像を作るを並べ替え' });
-    handle.focus();
-    await userEvent.keyboard('{ArrowUp}');
-    await waitFor(() =>
-      expect(canvas.getByRole('status')).toHaveTextContent('2 番目に移しました（4 件中）')
     );
   },
 };
