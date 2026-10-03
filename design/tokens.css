@@ -2124,17 +2124,6 @@
   --data-table-refreshing-opacity: 0.5;
   --data-table-refreshing-bar-height: calc(var(--spacing) * 0.5); /* 2px */
   --data-table-expand-indent: calc(var(--spacing-icon) + var(--spacing) * 6);
-  /* 軸 428（比べるためだけ。決まったら部品に畳んで消す）: banded の貼り付いた見出しの帯の角と影
-     banded-head-corner-fill: 帯の角丸の外の面（transparent は下を通る行が見える）
-     banded-head-square: 1 で帯の下の角をいつも四角にする
-     banded-head-square-scrolled: 1 で、スクロールした量（--cue-top）に合わせて帯の下の角を四角にする
-     banded-shadow-inset: 影を、両端の見出しで帯の角丸の分だけ内側から始める
-     banded-shadow-taper: 影の両端を、この幅でぼかして消す */
-  --data-table-banded-head-corner-fill: transparent;
-  --data-table-banded-head-square: 0;
-  --data-table-banded-head-square-scrolled: 0;
-  --data-table-banded-shadow-inset: 0px;
-  --data-table-banded-shadow-taper: 0px;
   /* ── END data-table */
 
   /* ── Sortable — ADR-0336〜0342 ── BEGIN sortable */

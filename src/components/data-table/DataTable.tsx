@@ -20,8 +20,9 @@ import { useStickyHeadHeight } from './use-sticky-head-height';
 //     見出しの下に影を落とす（原則1: ページの一部でも、スクロールした内容が下を通るようになったら重なり）。
 //     影の濃さは ScrollFrame が書く --cue-top（スクロールした量）に合わせる。枠の上の端の影は見出しに重なるので出さない
 //   見出しの影は、ScrollArea の上の端の影と同じ色・高さ。枠（framed）の角丸は見出しの面の上の角で切れ、影は見出しの下の辺から落ちるので角にかからない
-//   banded の丸い帯は th の ::before に描く。th そのものは塗らないので、貼り付いたとき帯の角丸の外には下を通る行が見える（帯の面は行を隠す）。
-//     影は th の下の辺（帯の下の辺）から、ほかの見た目と同じ形で落ちる
+//   banded の丸い帯は th の ::before に描く。th そのものは塗らない（帯の面は行を隠す）。
+//     スクロールすると、帯の下の角は影の濃さと同じ量（--cue-top）で丸から四角になり、影は四角い帯の下の辺から落ちる。
+//     止まっているときは上下とも丸い帯
 //   縦のつまみの溝は、貼り付いた見出しの行の下から始める（見出しに重ねない）。見出しの行の高さは use-sticky-head-height が測る
 //   セルの縦の寄せの既定は middle（選択の箱や行の操作と、文字の行をそろえる）
 //   選んだ行の面は color（選択の箱と同じ色）の淡い面。色を持たないときは Select の選んだ項目と同じグレー（原則6）
@@ -71,15 +72,11 @@ const dataTable = tv({
       banded: {
         table: [
           '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3',
-          '[&_thead_th]:bg-(--data-table-banded-head-corner-fill)',
           "[&_thead_th]:before:pointer-events-none [&_thead_th]:before:absolute [&_thead_th]:before:inset-0 [&_thead_th]:before:-z-1 [&_thead_th]:before:bg-field [&_thead_th]:before:content-['']",
           '[&_thead_th:first-child]:before:rounded-ss-control [&_thead_th:last-child]:before:rounded-se-control',
           '[&_thead_th:first-child]:before:rounded-es-(--data-table-banded-head-bottom-radius) [&_thead_th:last-child]:before:rounded-ee-(--data-table-banded-head-bottom-radius)',
-          '[--data-table-banded-head-bottom-radius:calc(var(--radius-control)*(1-var(--data-table-banded-head-square))*(1-var(--cue-top,0)*var(--data-table-banded-head-square-scrolled)))]',
-          // 影の両端
-          '[&_thead_th:first-child]:after:start-(--data-table-banded-shadow-inset) [&_thead_th:last-child]:after:end-(--data-table-banded-shadow-inset)',
-          '[&_thead_th:first-child]:after:[mask-image:linear-gradient(to_right,transparent,#000_var(--data-table-banded-shadow-taper))]',
-          '[&_thead_th:last-child]:after:[mask-image:linear-gradient(to_left,transparent,#000_var(--data-table-banded-shadow-taper))]',
+          // 帯の下の角は、スクロールした量（--cue-top）に合わせて丸から四角にする。影と同時に、貼り付いた面の形になる
+          '[--data-table-banded-head-bottom-radius:calc(var(--radius-control)*(1-var(--cue-top,0)))]',
         ],
       },
     },
