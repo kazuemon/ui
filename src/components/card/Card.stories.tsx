@@ -539,13 +539,16 @@ export const Emphasis: Story = {
         columnWidth="11rem"
         rowLabel={(color) => color}
         renderCell={(color, column) => (
-          <Plan
-            name="スタンダード"
-            price="月 500 円"
-            variant="emphasis"
-            color={color}
-            onClick={column.label === '押せない' ? undefined : () => {}}
-          />
+          // 輪の外に出るフォーカスの線が、表の枠で切れないよう空ける
+          <div className="p-1">
+            <Plan
+              name="スタンダード"
+              price="月 500 円"
+              variant="emphasis"
+              color={color}
+              onClick={column.label === '押せない' ? undefined : () => {}}
+            />
+          </div>
         )}
       />
       <div className="flex flex-wrap gap-x-10 gap-y-8">

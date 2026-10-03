@@ -171,6 +171,12 @@ const styles = tv({
   compoundVariants: [
     // リンクのカードは、a そのものにフォーカスの線を出す
     { interactive: true, button: false, class: { root: focusRing } },
+    // 強調の形のフォーカスの線は、淡い輪に重ねず、輪の外にいつもの離れを空けて出す
+    {
+      variant: 'emphasis',
+      interactive: true,
+      class: { root: '[outline-offset:calc(var(--card-emphasis-halo)+var(--focus-ring-offset))]' },
+    },
     // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
     { variant: ['default', 'emphasis'], interactive: true, class: { root: 'p-0' } },
     // 塗って選んでいる押せるカードの hover。淡い面に線の色を少し混ぜる

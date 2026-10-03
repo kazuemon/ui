@@ -68,6 +68,7 @@ A の青い輪郭は、選んでいる line の形と同じ青い線で、並べ
 ## 影響
 
 - `src/components/card/Card.tsx`: `variant="emphasis"` は、面・輪郭・hover の塗りを default のまま変えず、輪郭の外に輪を描きます。輪の色は `color` の前景の色（部品の中の `--card-accent`。選んでいる線と共有）を薄めて作ります。`color` の JSDoc に、強調の輪の色にもなることを書きました
+- 押せる強調のカードでは、フォーカスの線を淡い輪に重ねず、輪の幅といつもの離れを足した外側に出します。ほかの形のフォーカスの線は変えません
 - `design/tokens.css`: `--card-emphasis-halo`（Timeline の強調の輪の幅）・`--card-emphasis-halo-mix`（Timeline の強調の輪の濃さ）を持ちます。比べるためだけに置いた `--card-emphasis-fill`・`--card-emphasis-fill-hover`・`--card-emphasis-line`・`--card-emphasis-line-width`・`--card-emphasis-halo-base` は、G の値に畳んで消しました
 - Card の Docs に「強調の形」のストーリー（並べたとき・色ごとの押せる状態・選んでいるカードと並べた例）を足しました
 
