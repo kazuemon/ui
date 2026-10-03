@@ -400,6 +400,35 @@ export const TriggerBottom: Story = {
   },
 };
 
+export const TriggerBottomCard: Story = {
+  name: '行を中身の下に置くカードの形',
+  args: {
+    title: '続きを読む',
+    variant: 'card',
+    triggerPlacement: 'bottom',
+    children: answer,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`variant="card"` で行を中身の下に置くと、開いているあいだは行の下の角だけを丸め、上の中身とつなげます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: '続きを読む' });
+    await userEvent.click(trigger);
+    await waitFor(() => expect(trigger).toHaveAttribute('data-panel-open'));
+    // 上の中身とつながる上の角は丸めず、下の角は囲みに合わせて丸める
+    const style = getComputedStyle(trigger);
+    await expect(style.borderTopLeftRadius).toBe('0px');
+    await expect(style.borderTopRightRadius).toBe('0px');
+    await expect(style.borderBottomLeftRadius).not.toBe('0px');
+    await expect(style.borderBottomRightRadius).not.toBe('0px');
+  },
+};
+
 export const HiddenUntilFoundCheck: Story = {
   name: 'ページ内検索で開く（確かめ）',
   tags: ['!autodocs'],

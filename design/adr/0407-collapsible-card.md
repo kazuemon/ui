@@ -37,6 +37,7 @@ Collapsible・Accordion に枠付きのカードの形（variant="card"）を足
 ## 影響
 
 - `src/internal/collapsible-styles.ts`・`src/components/collapsible/Collapsible.tsx`・`src/components/accordion/Accordion.tsx`: `variant="card"` と `openFilled`（既定 `false`）を持ちます
+- Collapsible で行を中身の下に置く（`triggerPlacement="bottom"`）カードの形では、開いているあいだ行の上の角を丸めず、下の角を丸めます
 - `design/tokens.css`: `--collapsible-card-gap` を持ちます。角・輪郭・面はカードと同じなので、比べるためだったトークンは消しました
 
 ## 原則への反映

@@ -118,7 +118,7 @@ export function Collapsible({
   ...props
 }: CollapsibleProps) {
   const { className: panelClassName, ...panelRest } = panelProps ?? {};
-  const styles = collapsibleStyles({ variant, indicator, openFilled });
+  const styles = collapsibleStyles({ variant, indicator, openFilled, triggerPlacement });
   const Heading = headingLevel ? (`h${headingLevel}` as const) : null;
   const row = (
     <BaseCollapsible.Trigger data-slot="collapsible-trigger" className={styles.trigger()}>

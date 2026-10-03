@@ -95,7 +95,8 @@ export const collapsibleStyles = tv({
           'border-(length:--border-width-thin) border-(color:--color-surface-line)',
           '[[data-slot=collapsible]+&]:mt-(--collapsible-card-gap)',
         ],
-        // 行の角は囲みの内側の同心の角。開いているあいだは、下の中身とつながるよう下の角を丸めない
+        // 行の角は囲みの内側の同心の角。開いているあいだは、中身とつながる側の角を丸めない
+        //   行を中身の上に置くときは下の角、下に置くとき（triggerPlacement="bottom"）は上の角（下の compoundVariants）
         trigger: [
           'rounded-[calc(var(--radius-card)-var(--border-width-thin))]',
           'data-panel-open:rounded-b-none',
@@ -107,6 +108,11 @@ export const collapsibleStyles = tv({
     openFilled: {
       true: {},
       false: {},
+    },
+    // 行を置く場所。top は中身の上、bottom は中身の下（Collapsible の triggerPlacement）
+    triggerPlacement: {
+      top: {},
+      bottom: {},
     },
     indicator: {
       // 題の右。閉じているとき ▼、開くと 180° 回って ▲（Select の ▼ と同じ位置と向き）
@@ -128,6 +134,20 @@ export const collapsibleStyles = tv({
         root: '[--collapsible-fill-open-hover:var(--color-field-hover)] [--collapsible-fill-open:var(--color-field)]',
       },
     },
+    // 行を中身の下に置くカードの形。開いているあいだは、上の中身とつながるよう上の角を丸めず、下の角を丸める
+    {
+      variant: 'card',
+      triggerPlacement: 'bottom',
+      class: {
+        trigger:
+          'data-panel-open:rounded-t-none data-panel-open:rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]',
+      },
+    },
   ],
-  defaultVariants: { variant: 'plain', indicator: 'end', openFilled: false },
+  defaultVariants: {
+    variant: 'plain',
+    indicator: 'end',
+    openFilled: false,
+    triggerPlacement: 'top',
+  },
 });
