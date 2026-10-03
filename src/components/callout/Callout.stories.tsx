@@ -38,6 +38,7 @@ const meta = {
           '- 文字は本文と同じ大きさです。',
           '- `headingLevel` で題を見出し（h2〜h6）にできます。記事の目次に題を載せたいときに使います。',
           '- `collapsible` で題の行を押して中身を畳めます。はじめに開くかは `defaultOpen` です。閉じた中身も、ページ内検索で見つかると開きます。',
+          '- `showDivider` を足すと、開いているときの題の行の下に細い線が入り、題と中身が分かれます（`collapsible` のときだけ）。',
         ].join('\n'),
       },
     },
@@ -163,4 +164,20 @@ export const Collapsible: Story = {
     // 囲みの名前は題
     await expect(canvas.getAllByRole('note', { name: 'インストールの手順' })).toHaveLength(1);
   },
+};
+
+export const CollapsibleDivider: Story = {
+  name: '畳める囲みの線',
+  tags: ['visual'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div data-reading className="flex max-w-xl flex-col gap-4">
+      <Callout status="info" title="インストールの手順" collapsible showDivider defaultOpen>
+        pnpm add @kazuemon/ui のあと、CSS を読み込みます。
+      </Callout>
+      <Callout status="warning" title="古い版から上げるとき" collapsible showDivider>
+        v1 の size の値は v2 で変わりました。
+      </Callout>
+    </div>
+  ),
 };

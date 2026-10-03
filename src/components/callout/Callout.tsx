@@ -22,7 +22,7 @@ import { tv } from '../../internal/tv';
 //   題の行は、囲みの上の余白を上下に持つ帯（Trigger）にする。押せる範囲と hover の塗りは帯の範囲で、左右は囲みの端まで広げる（原則17）。疑似要素 ::before で描く
 //     閉じているときは帯が囲み全体になる。開いているときは帯の下で止め、中身は塗らない
 //   中身は帯の下から始める。下と左右は囲みの余白。上下の余白は Panel の中に置くので、閉じる動きの途中で行が跳ねない
-//   帯の上下の余白・帯と中身のあいだ・帯の塗り・帯の下の線は --callout-row-*（design/tokens.css。軸 446 で比べている途中）
+//   帯の上下の余白は囲みの余白。showDivider のときだけ、開いている帯の下に細い線を引き、中身は線の下に帯の上下と同じだけ空けて始める（軸 446）
 //   印は Collapsible と同じ ▼（開くと上を向く）で、行の右端に置く
 //   hover の塗りは囲みの文字の色を 6% 混ぜる。押しても濃くしない（開閉の行と同じ。原則3）
 //   フォーカスの線は、塗りと同じ範囲の内側に引く（囲みの端で切れないように）
@@ -31,19 +31,14 @@ const callout = tv({
   slots: {
     root: '',
     trigger: [
-      'group/callout-trigger relative isolate flex w-full cursor-pointer items-start gap-x-[calc(var(--spacing-control-x)-var(--spacing))] py-(--callout-row-pad-y) text-left',
+      'group/callout-trigger relative isolate flex w-full cursor-pointer items-start gap-x-[calc(var(--spacing-control-x)-var(--spacing))] py-(--spacing-control-x) text-left',
       'outline-none',
       // 押せる範囲と塗り: 帯の上下と、囲みの左右の端まで
       'before:absolute before:-inset-x-(--spacing-control-x) before:inset-y-0 before:-z-1 before:rounded-control',
       'data-panel-open:before:rounded-b-none',
       'before:[transition:background-color_var(--duration-field)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      // 塗り: ふだん・hover・開いているとき・開いていて hover。囲みの文字の色を混ぜる
-      'before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-mix),transparent)]',
+      // 塗りは hover だけ。囲みの文字の色を混ぜる
       'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-hover-mix),transparent)]',
-      'data-panel-open:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-open-mix),transparent)]',
-      'data-panel-open:hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-open-hover-mix),transparent)]',
-      // 開いているときの帯の下の線（囲みの端から端まで）
-      'before:border-[color:color-mix(in_oklab,var(--notice-fg)_var(--callout-row-rule-mix),transparent)] data-panel-open:before:border-b-(length:--callout-row-rule-width)',
       'focus-visible:before:[outline:var(--focus-ring-width)_solid_var(--color-focus-ring)] focus-visible:before:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     title: 'min-w-0 font-bold text-(color:--notice-title-color)',
@@ -53,7 +48,7 @@ const callout = tv({
     ],
     // 中身は、アイコンがあるときはアイコンと間の分だけ字下げして、題の頭にそろえる
     //   上は帯とのあいだ、下は囲みの余白
-    content: 'ps-(--callout-panel-inset) pt-(--callout-panel-gap) pb-(--spacing-control-x)',
+    content: 'ps-(--callout-panel-inset) pt-(--callout-panel-gap,0px) pb-(--spacing-control-x)',
   },
   variants: {
     collapsible: {
@@ -61,17 +56,22 @@ const callout = tv({
         root: [
           // 上下の余白は帯（題の行）と中身が持つ
           'relative flex-col items-stretch py-0',
-          // 帯の上下の余白: 囲みの余白（--callout-row-band: 0）か、開閉の行と同じく部品の高さの帯にする余白（1）
-          //   帯と中身のあいだは、帯にするときだけ帯の上下と同じだけ空ける
-          '[--callout-row-pad-y:calc(var(--spacing-control-x)+var(--callout-row-band)*(max(var(--spacing),(var(--spacing-control)-var(--leading-body))/2)-var(--spacing-control-x)))]',
-          // 帯と中身のあいだ: 帯の上下と同じだけ空けるか（--callout-row-gap。0・1、既定は --callout-row-band と同じ）
-          '[--callout-panel-gap:calc(var(--callout-row-gap,var(--callout-row-band))*var(--callout-row-pad-y))]',
           '[--callout-panel-inset:0px] has-[[data-slot=callout-trigger]>[data-slot=notice-icon]]:[--callout-panel-inset:calc(var(--spacing-icon)+var(--spacing-control-x)-var(--spacing))]',
         ],
       },
       false: {},
     },
+    // 開いているときの帯の下の線（囲みの端から端まで）。中身は線の下に、帯の上下と同じだけ空けて始める
+    showDivider: {
+      true: {
+        root: '[--callout-panel-gap:var(--spacing-control-x)]',
+        trigger:
+          'before:border-[color:color-mix(in_oklab,var(--notice-fg)_var(--callout-row-rule-mix),transparent)] data-panel-open:before:border-b-(length:--border-width-thin)',
+      },
+      false: {},
+    },
   },
+  defaultVariants: { showDivider: false },
 });
 
 /** 題の見出しの段 */
@@ -104,6 +104,11 @@ export interface CalloutProps extends Omit<
    * @default false
    */
   collapsible?: boolean;
+  /**
+   * 開いているときだけ、題の行の下に細い線を囲みの端から端まで引きます。中身は線の下から始まります。collapsible のときだけ効きます
+   * @default false
+   */
+  showDivider?: boolean;
   /** 開いているか（制御）。collapsible のときだけ効きます */
   open?: boolean;
   /**
@@ -129,6 +134,7 @@ export function Callout({
   title,
   headingLevel,
   collapsible = false,
+  showDivider = false,
   open,
   defaultOpen = false,
   onOpenChange,
@@ -140,7 +146,7 @@ export function Callout({
   // 状態を書かないときは、色を持たないグレー
   const surfaceStatus = status ?? 'neutral';
   const canCollapse = collapsible && title != null;
-  const styles = callout({ collapsible: canCollapse });
+  const styles = callout({ collapsible: canCollapse, showDivider: canCollapse && showDivider });
   // 畳めるときの並べ方（縦に積む）は面の既定（横並び）を上書きし、使う側の className はさらにその上に効かせる（tailwind-merge で）
   const surfaceClass = noticeSurface({
     variant,
