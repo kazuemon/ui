@@ -463,8 +463,15 @@ export const Separators: Story = {
         '公開する',
       ])
     );
+    // 知らせと項目の位置は、区切りの行を数えない（項目は 4 件）
+    const status = within(list.parentElement ?? list).getByRole('status');
+    await waitFor(() => expect(status).toHaveTextContent('3 番目に移しました（4 件中）'));
+    const moved = handle.closest('li');
+    await expect(moved).toHaveAttribute('aria-posinset', '3');
+    await expect(moved).toHaveAttribute('aria-setsize', '4');
     await userEvent.keyboard('{ArrowUp}');
     await waitFor(() => expect(labels()[2]).toBe('見直しを頼む'));
+    await waitFor(() => expect(status).toHaveTextContent('2 番目に移しました（4 件中）'));
     handle.blur();
   },
 };

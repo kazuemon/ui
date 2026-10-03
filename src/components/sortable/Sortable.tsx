@@ -425,6 +425,9 @@ export function SortableItem({
   });
   const itemDisabled = disabled || (listContext?.disabled ?? false);
   const row = render != null;
+  // リストの項目は、何番目・何件中を value の並びから付ける（間に挟んだ区切りの行を数えない）
+  //   表の行（tr）には付けない（行の位置は表が持つ）
+  const position = listContext == null || row ? -1 : listContext.order.indexOf(value);
   const itemContext = useMemo(
     () => ({ value, locked: disabled, name: accessibleName, menu, row }),
     [value, disabled, accessibleName, menu, row]
@@ -437,6 +440,8 @@ export function SortableItem({
       ...props,
       className: row ? styles.row({ className }) : styles.item({ className }),
       'data-value': value,
+      'aria-posinset': position < 0 ? undefined : position + 1,
+      'aria-setsize': position < 0 ? undefined : listContext?.order.length,
       'data-dragging': dragging || undefined,
       'data-drag-source': (dragSource && !dragging) || undefined,
       'data-disabled': itemDisabled || undefined,
