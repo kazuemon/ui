@@ -22,8 +22,11 @@ const meta = {
           '押して中身を開閉する行です。詳しい設定、FAQ の答え、「もっと見る」の続きのように、ふだんは隠しておける中身に使います。',
           '',
           '- 行全体を押せます。マウスを載せると行が淡く塗られ、開閉の印は開くと向きが変わります。',
-          '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided` です。',
+          '- 行の見た目は `variant` で選びます。ふだんは塗りなしの `plain`、開いている行を塗る `open-filled`、いつも塗る `filled`、区切り線で区切る `divided`、細い輪郭の面で囲む `card` です。',
+          '- `card` は開いた行を塗りません。どれが開いているかを遠目にも見せたいときは、`openFilled` で開いた行を淡いグレーで塗ります。',
           '- 開閉の印は、`indicator` で題の右（`end`）か左（`start`）に置きます。見た目とは別に選べます。',
+          '- 「続きを読む」のように行を中身の下に置くときは、`triggerPlacement="bottom"` にします。',
+          '- 行をページの見出しの並びに入れたいときは、`headingLevel`（2〜6）を渡します。見た目は変わりません。',
           '- 開閉は `defaultOpen`（はじめの状態）か、`open` と `onOpenChange`（使う側で持つ）で決めます。',
           '- 行の代わりに自分のボタンを置くときは、`trigger` に Button などを渡します。見た目はその要素のままで、開いているあいだ `aria-expanded` が付きます。',
           '- 閉じた中身もページ内検索で見つけてほしいときは `hiddenUntilFound` を付けます。見つかると開きます。',
@@ -39,14 +42,21 @@ const meta = {
     children: { control: 'text' },
     variant: {
       control: 'inline-radio',
-      options: ['plain', 'open-filled', 'filled', 'divided'],
+      options: ['plain', 'open-filled', 'filled', 'divided', 'card'],
       table: { defaultValue: { summary: 'plain' } },
     },
+    openFilled: { table: { defaultValue: { summary: 'false' } } },
     indicator: {
       control: 'inline-radio',
       options: ['end', 'start'],
       table: { defaultValue: { summary: 'end' } },
     },
+    triggerPlacement: {
+      control: 'inline-radio',
+      options: ['top', 'bottom'],
+      table: { defaultValue: { summary: 'top' } },
+    },
+    headingLevel: { control: 'select', options: [undefined, 2, 3, 4, 5, 6] },
     defaultOpen: { table: { defaultValue: { summary: 'false' } } },
     disabled: { table: { defaultValue: { summary: 'false' } } },
     hiddenUntilFound: { table: { defaultValue: { summary: 'false' } } },
@@ -174,6 +184,43 @@ export const VariantsStart: Story = {
     pseudo: appearancePseudo,
   },
   render: () => <VariantMatrix indicator="start" />,
+};
+
+export const CardVariant: Story = {
+  tags: ['visual'],
+  name: 'カードの形',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`variant="card"` は、行と中身をカードと同じ角・白い面・細い輪郭で囲みます。開いた行は塗らず、`openFilled` を付けると淡いグレーで塗ります。続けて置くと少し離します。',
+      },
+    },
+    pseudo: appearancePseudo,
+  },
+  render: () => (
+    <div className="flex flex-col gap-8">
+      <Matrix
+        rows={[false, true]}
+        columns={appearanceColumns}
+        columnWidth="12rem"
+        rowLabel={(openFilled) => (openFilled ? 'openFilled' : '既定')}
+        renderCell={(openFilled, column) => (
+          <Collapsible
+            title="詳しい設定"
+            variant="card"
+            openFilled={openFilled}
+            defaultOpen={column.open}
+          >
+            リンクは 24 時間で切れます。
+          </Collapsible>
+        )}
+      />
+      <div className="w-[360px] max-w-full">
+        <FaqList variant="card" />
+      </div>
+    </div>
+  ),
 };
 
 function FaqList({ variant, indicator }: Partial<Variant>) {
@@ -321,6 +368,64 @@ export const Accessibility: Story = {
     await userEvent.keyboard('{Enter}');
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await waitFor(() => expect(canvas.queryByText(answer)).toBeNull());
+  },
+};
+
+export const TriggerBottom: Story = {
+  name: '行を中身の下に置く',
+  args: {
+    title: '続きを読む',
+    triggerPlacement: 'bottom',
+    headingLevel: 3,
+    children: answer,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`triggerPlacement="bottom"` で、行を中身の下に置きます。開くと、中身が行の上に出ます。`headingLevel` を渡すと、行を見出しで包みます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: '続きを読む' });
+    // 行は見出し（h3）に包まれる
+    await expect(canvas.getByRole('heading', { level: 3 })).toContainElement(trigger);
+    await userEvent.click(trigger);
+    // 開いた中身は行の前に置かれる
+    const panel = canvas.getByText(answer).closest('[data-slot="collapsible-panel"]');
+    await expect(panel?.compareDocumentPosition(trigger) === Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      true
+    );
+  },
+};
+
+export const TriggerBottomCard: Story = {
+  name: '行を中身の下に置くカードの形',
+  args: {
+    title: '続きを読む',
+    variant: 'card',
+    triggerPlacement: 'bottom',
+    children: answer,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`variant="card"` で行を中身の下に置くと、開いているあいだは行の下の角だけを丸め、上の中身とつなげます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: '続きを読む' });
+    await userEvent.click(trigger);
+    await waitFor(() => expect(trigger).toHaveAttribute('data-panel-open'));
+    // 上の中身とつながる上の角は丸めず、下の角は囲みに合わせて丸める
+    const style = getComputedStyle(trigger);
+    await expect(style.borderTopLeftRadius).toBe('0px');
+    await expect(style.borderTopRightRadius).toBe('0px');
+    await expect(style.borderBottomLeftRadius).not.toBe('0px');
+    await expect(style.borderBottomRightRadius).not.toBe('0px');
   },
 };
 

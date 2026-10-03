@@ -101,9 +101,17 @@ export {
   Card,
   CardBody,
   type CardBodyProps,
+  type CardColor,
+  CardHeader,
+  type CardHeaderProps,
+  type CardHeaderVariant,
   CardImage,
   type CardImageProps,
   type CardProps,
+  type CardSelectedIndicator,
+  type CardSize,
+  CardTitle,
+  type CardTitleProps,
   type CardVariant,
 } from './components/card/Card';
 export {
@@ -129,8 +137,10 @@ export {
 } from './components/checkbox/CheckboxGroup';
 export {
   Collapsible,
+  type CollapsibleHeadingLevel,
   type CollapsibleIndicator,
   type CollapsibleProps,
+  type CollapsibleTriggerPlacement,
   type CollapsibleVariant,
 } from './components/collapsible/Collapsible';
 export {
