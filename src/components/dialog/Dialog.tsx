@@ -331,9 +331,10 @@ function CenteredDialog({
             data-slot="dialog-viewport"
             className={[
               'fixed inset-0 z-10 p-(--dialog-margin)',
-              // content: 面の高さを枠に収める（max-h-full が効くよう、高さの決まった flex の中に置く）
+              // content: 面の高さを枠に収める（max-h-full が効くよう、高さの決まった flex の中に置く）。
+              //   題と下の操作だけで枠より高いとき（横向きのスマートフォンなど）は、枠ごとスクロールする
               scrollContent
-                ? 'flex items-center justify-center overflow-hidden'
+                ? 'flex items-center justify-center overflow-x-hidden overflow-y-auto'
                 : 'grid grid-cols-[minmax(0,1fr)] place-items-center overflow-y-auto',
               modal !== true && 'pointer-events-none',
             ]
