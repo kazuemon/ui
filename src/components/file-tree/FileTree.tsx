@@ -261,7 +261,13 @@ export function FileTree({
   );
 }
 
-export interface FileTreeItemProps extends Omit<ComponentProps<'li'>, 'children' | 'color'> {
+/** 行の種類。folder はフォルダ、file はファイル */
+export type FileTreeItemType = 'folder' | 'file';
+
+export interface FileTreeItemProps extends Omit<
+  ComponentProps<'li'>,
+  'children' | 'color' | 'type'
+> {
   /** ファイル・フォルダの名前 */
   label: ReactNode;
   /**
@@ -281,6 +287,11 @@ export interface FileTreeItemProps extends Omit<ComponentProps<'li'>, 'children'
    * @default false
    */
   highlighted?: boolean;
+  /**
+   * 行の種類。folder はフォルダ、file はファイルのアイコンを出します。空のフォルダは、子を渡さずに `type="folder"` にします。
+   * 書かないときは、子を持てばフォルダ、持たなければファイルです
+   */
+  type?: FileTreeItemType;
   /** 入れ子の行（FileTreeItem）。渡すとフォルダになります */
   children?: ReactNode;
   /** 行の要素（li）に付きます。知らない props（id・data-*・aria-*）も li に流します */
@@ -296,20 +307,18 @@ export function FileTreeItem({
   color = 'neutral',
   comment,
   highlighted = false,
+  type,
   className,
   children,
   ...props
 }: FileTreeItemProps) {
   const hasChildren = children != null && children !== false;
-  const slots = fileTree({
-    highlighted,
-    kind: hasChildren ? 'folder' : 'file',
-    itemColor: color,
-  });
+  const kind = type ?? (hasChildren ? 'folder' : 'file');
+  const slots = fileTree({ highlighted, kind, itemColor: color });
   return (
     <li
       data-slot="file-tree-item"
-      data-type={hasChildren ? 'folder' : 'file'}
+      data-type={kind}
       className={slots.item({ className })}
       {...props}
     >
@@ -320,7 +329,11 @@ export function FileTreeItem({
           </span>
         ) : (
           <span aria-hidden="true" className={slots.iconDefault()}>
-            {hasChildren ? <FolderIcon bold={highlighted} /> : <FileIcon bold={highlighted} />}
+            {kind === 'folder' ? (
+              <FolderIcon bold={highlighted} />
+            ) : (
+              <FileIcon bold={highlighted} />
+            )}
           </span>
         )}
         <span data-slot="file-tree-label" className={slots.label()}>

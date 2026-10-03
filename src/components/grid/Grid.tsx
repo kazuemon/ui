@@ -3,7 +3,10 @@
 import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, CSSProperties, ReactElement, ReactNode } from 'react';
 
+import { columnsClasses, columnVars, type GridColumns } from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
+
+export type { GridBreakpoint, GridColumns } from '../../internal/breakpoints';
 
 // 子を格子（行と列）に並べる枠（ADR-0308〜0312）
 //   Stack は 1 列、Grid は列を並べる。Masonry と違い隙間なく積まないので、CSS Grid だけで描ける（子の高さを測らない）
@@ -13,30 +16,25 @@ import { tv } from '../../internal/tv';
 //     columns だけ: 入れ物の幅によらず列の数を固定する（Masonry と同じ。ADR-0310）
 //     columns と minColumnWidth: columns を上限にし、1 列が minColumnWidth を割るときは列を減らす（ADR-0310）
 //   columns は画面の幅の段ごとにも渡せる（{ base: 1, md: 3 }。段は Tailwind の既定の sm・md・lg・xl。ADR-0311）
-//     クラスは静的に書き、数だけを style で --grid-columns-<段> に入れる。--grid-columns は、いまの画面の幅で効く段の数を、
-//     渡していない段は 1 つ下の段へ（base もないときは 1 列へ）さかのぼって読む。fixed・capped は --grid-columns だけを読むので、
-//     数でも段ごとでも同じ式で描ける
-//     入れ子の Grid が外の Grid の段の数を受け継がないよう、段の変数は自分の要素で initial に戻す（渡した段は style が上書きする）
+//     クラスは静的に書き、数だけを style で --columns-<段> に入れる（src/internal/breakpoints.ts。Masonry・DescriptionList と同じ）。
+//     fixed・capped は --columns だけを読むので、数でも段ごとでも同じ式で描ける
 //       1 列の最小の幅を「100% / 列の数 − 間隔」にすると、列の数ちょうどが入り、1 つ多いと入らない。
 //       間隔が 0 のときも端数で 1 列落ちないよう、引く幅は 1px を下回らせない
 //   同じ行の子の高さの揃え（align）は CSS Grid の既定の stretch（ADR-0308）
 //   間隔は Stack と同じ間隔の段（ADR-0212）。押すものではないので入力方式では変えない
 const grid = tv({
   base: [
-    'grid gap-(--grid-gap) [--grid-min:var(--grid-column-width)]',
-    '[--grid-columns-base:initial] [--grid-columns-lg:initial] [--grid-columns-md:initial] [--grid-columns-sm:initial] [--grid-columns-xl:initial]',
-    '[--grid-columns:var(--grid-columns-base,1)]',
-    'sm:[--grid-columns:var(--grid-columns-sm,var(--grid-columns-base,1))]',
-    'md:[--grid-columns:var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1)))]',
-    'lg:[--grid-columns:var(--grid-columns-lg,var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1))))]',
-    'xl:[--grid-columns:var(--grid-columns-xl,var(--grid-columns-lg,var(--grid-columns-md,var(--grid-columns-sm,var(--grid-columns-base,1)))))]',
+    // 縦横の間隔。rowGap・columnGap を渡さなければ gap の段（--grid-gap）。入れ子の Grid が外の値を受け継がないよう、自分の要素で決め直す
+    'grid gap-x-(--grid-column-gap) gap-y-(--grid-row-gap) [--grid-column-gap:var(--grid-gap)] [--grid-row-gap:var(--grid-gap)]',
+    '[--grid-min:var(--grid-column-width)]',
+    ...columnsClasses,
   ],
   variants: {
     layout: {
       fill: '[grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--grid-min)),1fr))]',
-      fixed: '[grid-template-columns:repeat(var(--grid-columns),minmax(0,1fr))]',
+      fixed: '[grid-template-columns:repeat(var(--columns),minmax(0,1fr))]',
       capped:
-        '[grid-template-columns:repeat(auto-fill,minmax(min(100%,max(var(--grid-min),100%_/_var(--grid-columns)_-_max(var(--grid-gap),1px))),1fr))]',
+        '[grid-template-columns:repeat(auto-fill,minmax(min(100%,max(var(--grid-min),100%_/_var(--columns)_-_max(var(--grid-column-gap),1px))),1fr))]',
     },
     gap: {
       none: '[--grid-gap:0px]',
@@ -45,6 +43,22 @@ const grid = tv({
       md: '[--grid-gap:var(--stack-gap-md)]',
       lg: '[--grid-gap:var(--stack-gap-lg)]',
       xl: '[--grid-gap:var(--stack-gap-xl)]',
+    },
+    rowGap: {
+      none: '[--grid-row-gap:0px]',
+      xs: '[--grid-row-gap:var(--stack-gap-xs)]',
+      sm: '[--grid-row-gap:var(--stack-gap-sm)]',
+      md: '[--grid-row-gap:var(--stack-gap-md)]',
+      lg: '[--grid-row-gap:var(--stack-gap-lg)]',
+      xl: '[--grid-row-gap:var(--stack-gap-xl)]',
+    },
+    columnGap: {
+      none: '[--grid-column-gap:0px]',
+      xs: '[--grid-column-gap:var(--stack-gap-xs)]',
+      sm: '[--grid-column-gap:var(--stack-gap-sm)]',
+      md: '[--grid-column-gap:var(--stack-gap-md)]',
+      lg: '[--grid-column-gap:var(--stack-gap-lg)]',
+      xl: '[--grid-column-gap:var(--stack-gap-xl)]',
     },
     align: {
       start: 'items-start',
@@ -60,13 +74,6 @@ type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
 export type GridGap = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type GridAlign = 'start' | 'center' | 'end' | 'stretch';
-/** 列の数を変える画面の幅の段。base はいちばん狭い画面から、sm・md・lg・xl は Tailwind の既定の幅（40rem・48rem・64rem・80rem）から上 */
-export type GridBreakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
-/** 列の数。数なら画面の幅によらず同じ、段ごとの数なら画面の幅で変わる */
-export type GridColumns = number | Partial<Record<GridBreakpoint, number>>;
-
-const breakpoints: readonly GridBreakpoint[] = ['base', 'sm', 'md', 'lg', 'xl'];
-
 export interface GridProps extends ComponentProps<'div'> {
   /**
    * 列の最小の幅（px）。入れ物の幅をこの値で割った数だけ列にします。columns と一緒に渡すと、columns を上限にして、
@@ -86,6 +93,10 @@ export interface GridProps extends ComponentProps<'div'> {
    * @default 'md'
    */
   gap?: GridGap;
+  /** 行と行のあいだ（縦）の間隔。渡すと gap より優先します。段は gap と同じです */
+  rowGap?: GridGap;
+  /** 列と列のあいだ（横）の間隔。渡すと gap より優先します。段は gap と同じです */
+  columnGap?: GridGap;
   /**
    * 同じ行の子の、上下の揃え。stretch は行でいちばん高い子に合わせて伸ばします（カードの高さがそろう）。
    * 子の高さをそのままにするときは `align="start"` を渡します
@@ -100,18 +111,6 @@ export interface GridProps extends ComponentProps<'div'> {
   className?: string;
 }
 
-// 渡した段の数だけを --grid-columns-<段> に入れる
-function columnVars(columns: GridColumns | undefined): Record<`--${string}`, string> {
-  if (columns == null) return {};
-  if (typeof columns === 'number') return { '--grid-columns-base': String(columns) };
-  const vars: Record<`--${string}`, string> = {};
-  for (const bp of breakpoints) {
-    const n = columns[bp];
-    if (n != null) vars[`--grid-columns-${bp}`] = String(n);
-  }
-  return vars;
-}
-
 /**
  * 子を行と列の格子に並べる部品。列の数は、入れ物の幅から決めるか、画面の幅の段ごとに渡します
  */
@@ -119,6 +118,8 @@ export function Grid({
   minColumnWidth,
   columns,
   gap,
+  rowGap,
+  columnGap,
   align,
   className,
   render,
@@ -132,7 +133,7 @@ export function Grid({
     props: {
       ...props,
       'data-slot': 'grid',
-      className: grid({ layout, gap, align, className }),
+      className: grid({ layout, gap, rowGap, columnGap, align, className }),
       style: {
         ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
         ...columnVars(columns),

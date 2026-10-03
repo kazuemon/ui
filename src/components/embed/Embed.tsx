@@ -85,11 +85,11 @@ const styles = tv({
       'data-[status=idle]:[--embed-outline-width:var(--embed-idle-outline-width)]',
     ],
     iframe: ['border-0 opacity-0', 'group-data-[status=loaded]/embed:opacity-100'],
-    // face は AspectRatio の直下の子として絶対配置になる（frame と同じ理由）。
-    //   after: の光の帯は、この絶対配置そのものを基準にできるので、position を上書きしない
+    // face は枠いっぱいに重ねる。AspectRatio が広げるのは最初の子だけで、読み込み中は iframe のあとに置くので、自分で置く。
+    //   after: の光の帯は、この絶対配置そのものを基準にできる
     // 面は Skeleton と同じ塗り（軸271・決定 A）。光の帯は、クリック前（idle）は止め、読み込み中（loading）は動く（軸271・274）
     face: [
-      'flex w-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
+      'absolute inset-0 flex size-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
       'bg-(--skeleton-fill)',
       'after:pointer-events-none after:absolute after:inset-0 after:[background-position:100%_0] after:bg-no-repeat',
       'after:animate-(--skeleton-sweep) after:bg-size-[300%_100%]',
@@ -126,6 +126,8 @@ export interface EmbedProps extends Omit<
   ratio?: number | string;
   /** 下に添えるキャプション */
   caption?: ReactNode;
+  /** キャプションを付けたときの、外側の figure 要素に渡す props。キャプションがないときは figure で包みません */
+  figureProps?: ComponentProps<'figure'>;
   /**
    * iframe が読み込めるまで（クリックを待つあいだ・読み込んでいるあいだ）出す中身。X の投稿の文面などを渡します。JS が動かなくても・
    * Server Components でも読めます（最初の描画に含まれ、読み込めたら iframe に置き換わります）。渡さないときは、部品が用意した案内を出します
@@ -171,6 +173,7 @@ export function Embed({
   title,
   ratio,
   caption,
+  figureProps,
   children,
   clickToLoad = false,
   loadLabel = '読み込む',
@@ -200,53 +203,59 @@ export function Embed({
     load();
   };
 
+  const frame = (
+    <AspectRatio
+      ratio={ratio ?? config.ratio}
+      data-slot="embed"
+      data-status={status}
+      {...(frameProps as ComponentProps<'div'>)}
+      className={s.frame({ className: frameProps?.className })}
+    >
+      {status !== 'idle' && mounted && (
+        <iframe
+          {...props}
+          src={src}
+          title={title}
+          loading={loading}
+          allow={allow ?? config.allow}
+          allowFullScreen={allowFullScreen ?? config.allowFullScreen}
+          onLoad={(event) => {
+            setStatus('loaded');
+            onLoad?.(event);
+          }}
+          className={s.iframe({ className })}
+        />
+      )}
+      {status === 'idle' && (
+        <div
+          role="button"
+          tabIndex={0}
+          data-slot="embed-load"
+          onClick={load}
+          onKeyDown={onFaceKeyDown}
+          className={s.face({ className: 'cursor-pointer' })}
+        >
+          {children ?? <Icon className={s.icon()} />}
+          <span className={s.label()}>{loadLabel}</span>
+          {children == null && <span className={s.sub()}>{title}</span>}
+        </div>
+      )}
+      {status === 'loading' && (
+        <div aria-busy data-slot="embed-loading" className={s.face()}>
+          {/* 回る円は出さない。光の帯（after:）だけで進んでいることを伝える（軸274・決定 A） */}
+          {children}
+          <span className={s.label()}>{loadingText}</span>
+        </div>
+      )}
+    </AspectRatio>
+  );
+
+  // キャプションがないときは figure で包まない（Figure・ImageZoom と同じ）
+  if (caption == null) return frame;
   return (
-    <figure className={s.root()}>
-      <AspectRatio
-        ratio={ratio ?? config.ratio}
-        data-slot="embed"
-        data-status={status}
-        {...(frameProps as ComponentProps<'div'>)}
-        className={s.frame({ className: frameProps?.className })}
-      >
-        {status !== 'idle' && mounted && (
-          <iframe
-            {...props}
-            src={src}
-            title={title}
-            loading={loading}
-            allow={allow ?? config.allow}
-            allowFullScreen={allowFullScreen ?? config.allowFullScreen}
-            onLoad={(event) => {
-              setStatus('loaded');
-              onLoad?.(event);
-            }}
-            className={s.iframe({ className })}
-          />
-        )}
-        {status === 'idle' && (
-          <div
-            role="button"
-            tabIndex={0}
-            data-slot="embed-load"
-            onClick={load}
-            onKeyDown={onFaceKeyDown}
-            className={s.face({ className: 'cursor-pointer' })}
-          >
-            {children ?? <Icon className={s.icon()} />}
-            <span className={s.label()}>{loadLabel}</span>
-            {children == null && <span className={s.sub()}>{title}</span>}
-          </div>
-        )}
-        {status === 'loading' && (
-          <div aria-busy data-slot="embed-loading" className={s.face()}>
-            {/* 回る円は出さない。光の帯（after:）だけで進んでいることを伝える（軸274・決定 A） */}
-            {children}
-            <span className={s.label()}>{loadingText}</span>
-          </div>
-        )}
-      </AspectRatio>
-      {caption != null && <figcaption className={s.caption()}>{caption}</figcaption>}
+    <figure {...figureProps} className={s.root({ className: figureProps?.className })}>
+      {frame}
+      <figcaption className={s.caption()}>{caption}</figcaption>
     </figure>
   );
 }

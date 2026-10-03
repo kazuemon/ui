@@ -58,7 +58,7 @@ const meta = {
           '- 動きを減らす設定（prefers-reduced-motion）のときは自動再生せず、標準のコントロールを強制して出します。動かないままでも、押して再生する手段だけは残します。',
           '- `poster` を渡さないときは、読み込むまで Image と同じ Skeleton の面を出します。読み込みに失敗した・形式に対応していないときは、面の上にアイコンと文を出します（`errorText`）。',
           '- `ratio` は Embed と同じ考え方で、書かないときは 16:9 です（`width`・`height` があればその比）。',
-          '- `caption` を渡すと、Figure と同じように下に中央寄せで出ます。複数の形式・字幕を渡すときは `children` に `<source>`・`<track>` を並べます。',
+          '- `caption` を渡すと、Figure と同じように下に中央寄せで出ます。そのときだけ `figure` で包み、`figureProps` はその `figure` に付きます。複数の形式・字幕を渡すときは `children` に `<source>`・`<track>` を並べます。',
         ].join('\n'),
       },
     },
@@ -166,8 +166,15 @@ export const WithCaption: Story = {
       fit="cover"
       className={hideNativeTime}
       caption="図 1. ボタンのホバーの見た目（操作の録画）"
+      figureProps={{ id: 'figure' }}
     />
   ),
+  play: async ({ canvasElement }) => {
+    // キャプションがあるときは figure で包み、figureProps は figure に付く
+    const figure = canvasElement.querySelector('figure');
+    await expect(figure).toHaveAttribute('id', 'figure');
+    await expect(figure?.querySelector('figcaption')).not.toBeNull();
+  },
 };
 
 // controls={false} の見本を押して再生する。始まると大きな再生ボタンが消える
@@ -181,6 +188,8 @@ export const ClickToPlay: Story = {
     const canvas = within(canvasElement);
     const frame = canvasElement.querySelector('[data-slot="video"]')!;
     await waitFor(() => expect(frame).toHaveAttribute('data-status', 'loaded'));
+    // キャプションがないときは figure で包まない
+    await expect(canvasElement.querySelector('figure')).toBeNull();
     const button = canvas.getByRole('button', { name: '再生' });
     const video = canvasElement.querySelector('video')!;
     await expect(video.paused).toBe(true);

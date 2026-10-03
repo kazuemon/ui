@@ -1,6 +1,14 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import {
+  breakpoints,
+  byBreakpoint,
+  columnsClasses,
+  columnVars,
+  type GridBreakpoint,
+  type GridColumns,
+} from '../../internal/breakpoints';
 import { tv } from '../../internal/tv';
 
 // 用語と説明の組（dl・dt・dd）。経歴・技術・メタ情報のような「名前と値」の並び
@@ -11,6 +19,10 @@ import { tv } from '../../internal/tv';
 //   --description-divider-width: 行のあいだの線。--description-frame-width: 外枠
 //   --description-leader-*: 用語の右から説明までをつなぐ薄い線（divider="leader-dotted"・"leader-solid"）
 //   props は既定と違うときだけ、根の要素でトークンを上書きする（中の要素へは継承で届く）
+//   columns: 組を Grid と同じ段ごとの列に並べる（src/internal/breakpoints.ts）。列のあいだは Grid の既定と同じ間隔
+//     行のあいだの線は、1 列のときは 2 つ目からの組の上に引く。列に並べると、2 行目からの組の上に線を引き、
+//     線の太さだけ上へずらす（前の行の下の余白に重ねて、行の高さを線の有無で変えない）。1 行目の組は、渡した段ごとの
+//     列の数だけ前から選んで線を外す（firstRowClasses）。根を切り取らないので、値に置いたリンクのフォーカスの線が切れない。
 
 const leaderRoot = [
   '[--description-column-gap:var(--description-leader-gap)]',
@@ -23,13 +35,18 @@ const descriptionList = tv({
     root: [
       'flex min-w-0 flex-col gap-(--description-item-gap) rounded-control',
       '[border-width:var(--description-frame-width)] [border-color:var(--color-description-line)]',
+      // 列に並べるときだけ使う値。入れ子の DescriptionList が外の値を受け継がないよう、自分の要素で決め直す
+      '[--description-divider-shift:0px] [--description-first-divider-width:0px] [--description-first-row:0]',
     ],
     item: [
       'flex min-w-0 gap-x-(--description-column-gap) gap-y-(--description-row-gap)',
       '[flex-direction:var(--description-direction)] [align-items:var(--description-item-align)]',
       'px-(--description-pad-x) py-(--description-pad-y)',
-      '[border-top-width:var(--description-divider-width)] [border-top-color:var(--color-description-line)]',
-      'first:[border-top-width:0px]',
+      // --description-first-row は、列に並べたときの 1 行目の組だけ 1（firstRowClasses）
+      '[border-top-width:calc(var(--description-divider-width)*(1-var(--description-first-row)))]',
+      '[border-top-color:var(--color-description-line)]',
+      'first:[border-top-width:var(--description-first-divider-width)]',
+      'mt-[calc(var(--description-divider-shift)*(var(--description-first-row)-1))]',
     ],
     term: [
       '[display:var(--description-term-display)] w-(--description-term-width) shrink-0',
@@ -46,6 +63,16 @@ const descriptionList = tv({
     details: 'min-w-0 [flex:var(--description-details-flex)] text-body text-fg',
   },
   variants: {
+    columns: {
+      false: {},
+      true: {
+        root: [
+          'grid [grid-template-columns:repeat(var(--columns),minmax(0,1fr))] gap-x-(--stack-gap-md)',
+          ...columnsClasses,
+          '[--description-divider-shift:var(--description-divider-width)]',
+        ],
+      },
+    },
     layout: {
       horizontal: {},
       stacked: {
@@ -104,12 +131,112 @@ const descriptionList = tv({
     },
   ],
   defaultVariants: {
+    columns: false,
     layout: 'horizontal',
     divider: 'none',
     termAlign: 'start',
     termStyle: 'default',
   },
 });
+
+// 列に並べたときの 1 行目の組（前から列の数だけ）を、渡した段ごとに選ぶクラス。n 列のクラスは配列の n - 1 番目。
+// 段の中で 1 行目を 1、それより後ろを 0 にし直すので、狭い段より列が少ない段でも、狭い段の選び方が残らない。
+// Tailwind がクラスを見つけられるよう、列の数ごとに書き出す（13 列からは 12 列として扱う）
+const FIRST_ROW_MAX = 12;
+const firstRowClasses: Record<GridBreakpoint, readonly string[]> = {
+  base: [
+    '[&>:nth-child(-n+1)]:[--description-first-row:1] [&>:nth-child(n+2)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+2)]:[--description-first-row:1] [&>:nth-child(n+3)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+3)]:[--description-first-row:1] [&>:nth-child(n+4)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+4)]:[--description-first-row:1] [&>:nth-child(n+5)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+5)]:[--description-first-row:1] [&>:nth-child(n+6)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+6)]:[--description-first-row:1] [&>:nth-child(n+7)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+7)]:[--description-first-row:1] [&>:nth-child(n+8)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+8)]:[--description-first-row:1] [&>:nth-child(n+9)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+9)]:[--description-first-row:1] [&>:nth-child(n+10)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+10)]:[--description-first-row:1] [&>:nth-child(n+11)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+11)]:[--description-first-row:1] [&>:nth-child(n+12)]:[--description-first-row:0]',
+    '[&>:nth-child(-n+12)]:[--description-first-row:1] [&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  sm: [
+    'sm:[&>:nth-child(-n+1)]:[--description-first-row:1] sm:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+2)]:[--description-first-row:1] sm:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+3)]:[--description-first-row:1] sm:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+4)]:[--description-first-row:1] sm:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+5)]:[--description-first-row:1] sm:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+6)]:[--description-first-row:1] sm:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+7)]:[--description-first-row:1] sm:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+8)]:[--description-first-row:1] sm:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+9)]:[--description-first-row:1] sm:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+10)]:[--description-first-row:1] sm:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+11)]:[--description-first-row:1] sm:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'sm:[&>:nth-child(-n+12)]:[--description-first-row:1] sm:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  md: [
+    'md:[&>:nth-child(-n+1)]:[--description-first-row:1] md:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+2)]:[--description-first-row:1] md:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+3)]:[--description-first-row:1] md:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+4)]:[--description-first-row:1] md:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+5)]:[--description-first-row:1] md:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+6)]:[--description-first-row:1] md:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+7)]:[--description-first-row:1] md:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+8)]:[--description-first-row:1] md:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+9)]:[--description-first-row:1] md:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+10)]:[--description-first-row:1] md:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+11)]:[--description-first-row:1] md:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'md:[&>:nth-child(-n+12)]:[--description-first-row:1] md:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  lg: [
+    'lg:[&>:nth-child(-n+1)]:[--description-first-row:1] lg:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+2)]:[--description-first-row:1] lg:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+3)]:[--description-first-row:1] lg:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+4)]:[--description-first-row:1] lg:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+5)]:[--description-first-row:1] lg:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+6)]:[--description-first-row:1] lg:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+7)]:[--description-first-row:1] lg:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+8)]:[--description-first-row:1] lg:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+9)]:[--description-first-row:1] lg:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+10)]:[--description-first-row:1] lg:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+11)]:[--description-first-row:1] lg:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'lg:[&>:nth-child(-n+12)]:[--description-first-row:1] lg:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+  xl: [
+    'xl:[&>:nth-child(-n+1)]:[--description-first-row:1] xl:[&>:nth-child(n+2)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+2)]:[--description-first-row:1] xl:[&>:nth-child(n+3)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+3)]:[--description-first-row:1] xl:[&>:nth-child(n+4)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+4)]:[--description-first-row:1] xl:[&>:nth-child(n+5)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+5)]:[--description-first-row:1] xl:[&>:nth-child(n+6)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+6)]:[--description-first-row:1] xl:[&>:nth-child(n+7)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+7)]:[--description-first-row:1] xl:[&>:nth-child(n+8)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+8)]:[--description-first-row:1] xl:[&>:nth-child(n+9)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+9)]:[--description-first-row:1] xl:[&>:nth-child(n+10)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+10)]:[--description-first-row:1] xl:[&>:nth-child(n+11)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+11)]:[--description-first-row:1] xl:[&>:nth-child(n+12)]:[--description-first-row:0]',
+    'xl:[&>:nth-child(-n+12)]:[--description-first-row:1] xl:[&>:nth-child(n+13)]:[--description-first-row:0]',
+  ],
+};
+
+// 列の数は 1〜FIRST_ROW_MAX に丸める（1 行目を選ぶクラスと、並べる列の数をそろえる）
+function clampColumns(columns: GridColumns | undefined): GridColumns | undefined {
+  if (columns == null) return undefined;
+  const clamp = (n: number) => Math.min(Math.max(Math.trunc(n), 1), FIRST_ROW_MAX);
+  if (typeof columns === 'number') return clamp(columns);
+  return Object.fromEntries(
+    Object.entries(columns).map(([bp, n]) => [bp, n == null ? n : clamp(n)])
+  ) as GridColumns;
+}
+
+function firstRow(columns: GridColumns | undefined) {
+  if (columns == null) return undefined;
+  const byBp = byBreakpoint(columns);
+  // base を渡していないときは、いちばん狭い画面では 1 列
+  const counts = { ...byBp, base: byBp.base ?? 1 };
+  return breakpoints.flatMap((bp) => {
+    const n = counts[bp];
+    if (n == null) return [];
+    return [firstRowClasses[bp][Math.min(Math.max(Math.trunc(n), 1), FIRST_ROW_MAX) - 1]];
+  });
+}
 
 type TokenStyle = CSSProperties & Record<`--${string}`, string>;
 
@@ -155,6 +282,11 @@ export interface DescriptionListProps extends ComponentProps<'dl'> {
    * 用語の列の幅（`'8rem'`・`'160px'` など）。horizontal で leader-* 以外のときだけ効きます。書かないときは 128px です
    */
   termWidth?: string;
+  /**
+   * 組を並べる列の数。渡さないときは 1 列です。数を渡すとどの画面の幅でも同じ（`columns={2}`）、
+   * 画面の幅の段ごとの数を渡すと画面の幅で変わります（`columns={{ base: 1, md: 2 }}`）。段は Grid の columns と同じです。列は 12 までで、それより多い数は 12 列として扱います
+   */
+  columns?: GridColumns;
 }
 
 /**
@@ -166,17 +298,28 @@ export function DescriptionList({
   termAlign,
   termStyle,
   termWidth,
+  columns: columnsProp,
   className,
   style,
   ...props
 }: DescriptionListProps) {
-  const styles = descriptionList({ layout, divider, termAlign, termStyle });
-  const termStyleToken: TokenStyle = { '--description-term-width': termWidth ?? '' };
+  const columns = clampColumns(columnsProp);
+  const styles = descriptionList({
+    layout,
+    divider,
+    termAlign,
+    termStyle,
+    columns: columns != null,
+  });
+  const tokens: TokenStyle = {
+    ...(termWidth && { '--description-term-width': termWidth }),
+    ...columnVars(columns),
+  };
   return (
     <dl
       data-slot="description-list"
-      className={styles.root({ className })}
-      style={termWidth ? { ...termStyleToken, ...style } : style}
+      className={styles.root({ className: [firstRow(columns), className] })}
+      style={Object.keys(tokens).length > 0 ? { ...tokens, ...style } : style}
       {...props}
     />
   );

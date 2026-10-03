@@ -69,7 +69,9 @@ export interface BlockquoteProps extends Omit<ComponentProps<'blockquote'>, 'col
   source?: ReactNode;
   /** 引用の文。段落が複数あるときは p を並べます。出典は source に渡します */
   children?: ReactNode;
-  /** 引用の要素（blockquote）に付くクラス。出典を渡したときは、外側の figure に付きます */
+  /** 出典を渡したときの、外側の figure 要素に渡す props。出典がないときは figure で包みません */
+  figureProps?: ComponentProps<'figure'>;
+  /** 引用の要素（blockquote）に付きます。出典を渡したときも同じです。外側の figure に付けるクラスは figureProps の className に渡します */
   className?: string;
 }
 
@@ -81,17 +83,14 @@ export function Blockquote({
   color,
   icon,
   source,
+  figureProps,
   className,
   children,
   ...props
 }: BlockquoteProps) {
   const styles = blockquote({ variant, color });
   const quote = (
-    <blockquote
-      data-slot="blockquote"
-      className={styles.body({ className: source == null ? className : undefined })}
-      {...props}
-    >
+    <blockquote data-slot="blockquote" className={styles.body({ className })} {...props}>
       {icon ? (
         <span aria-hidden="true" className={styles.icon()}>
           {icon}
@@ -102,7 +101,7 @@ export function Blockquote({
   );
   if (source == null) return quote;
   return (
-    <figure className={styles.root({ className })}>
+    <figure {...figureProps} className={styles.root({ className: figureProps?.className })}>
       {quote}
       <figcaption className={styles.cite()}>{source}</figcaption>
     </figure>

@@ -22,7 +22,11 @@ export {
   type AlertDialogColor,
   type AlertDialogProps,
 } from './components/alert-dialog/AlertDialog';
-export { AspectRatio, type AspectRatioProps } from './components/aspect-ratio/AspectRatio';
+export {
+  AspectRatio,
+  type AspectRatioProps,
+  type MediaFit,
+} from './components/aspect-ratio/AspectRatio';
 export {
   Autocomplete,
   type AutocompleteBaseProps,
@@ -214,6 +218,7 @@ export {
   type FileTreeLine,
   FileTreeItem,
   type FileTreeItemProps,
+  type FileTreeItemType,
   type FileTreeProps,
 } from './components/file-tree/FileTree';
 export { Figure, type FigureProps } from './components/figure/Figure';
@@ -259,7 +264,7 @@ export {
   type HeadingAnchorProps,
   type HeadingAnchorReveal,
 } from './components/heading-anchor/HeadingAnchor';
-export { Icon, type IconProps, type IconSize } from './components/icon/Icon';
+export { Icon, type IconColor, type IconProps, type IconSize } from './components/icon/Icon';
 export { Image, type ImageProps, type ImageRadius } from './components/image/Image';
 export {
   ImageZoom,
@@ -539,13 +544,20 @@ export {
   SidebarTrigger,
   type SidebarTriggerProps,
 } from './components/sidebar/SidebarLayout';
-export { Skeleton, type SkeletonProps, type SkeletonVariant } from './components/skeleton/Skeleton';
+export {
+  Skeleton,
+  type SkeletonAnimation,
+  type SkeletonProps,
+  type SkeletonRadius,
+  type SkeletonVariant,
+} from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
 export { Spoiler, type SpoilerProps, type SpoilerVariant } from './components/spoiler/Spoiler';
 export {
   Stack,
   type StackAlign,
   type StackDirection,
+  type StackDirections,
   type StackGap,
   type StackJustify,
   type StackProps,

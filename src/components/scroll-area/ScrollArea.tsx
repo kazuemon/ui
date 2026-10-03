@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps, ReactNode, Ref, UIEventHandler } from 'react';
+import type { ComponentProps, CSSProperties, ReactNode, Ref, UIEventHandler } from 'react';
 
 import { ScrollFrame } from '../../internal/ScrollFrame';
 
@@ -53,6 +53,10 @@ export interface ScrollAreaProps {
   onScroll?: UIEventHandler<HTMLDivElement>;
   /** 枠（いちばん外の要素）に付きます */
   ref?: Ref<HTMLDivElement>;
+  /** 枠（いちばん外の要素）の id */
+  id?: string;
+  /** 枠（いちばん外の要素）の style。高さを値で決めるときなどに使います */
+  style?: CSSProperties;
 }
 
 /**
@@ -70,10 +74,14 @@ export function ScrollArea({
   accessibleName,
   onScroll,
   ref,
+  id,
+  style,
 }: ScrollAreaProps) {
   return (
     <ScrollFrame
       ref={ref}
+      id={id}
+      style={style}
       className={className}
       contentProps={contentProps}
       viewportProps={onScroll ? { ...viewportProps, onScroll } : viewportProps}
