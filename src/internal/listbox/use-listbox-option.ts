@@ -63,6 +63,11 @@ export interface ListboxItem<Value = string> {
    * 2行目のある選択肢だけ高くなる（指用 52px・マウス用 48px）
    */
   note?: ListboxItemNote;
+  /**
+   * ラベルの前に置くアイコン（`<Icon icon={GlobeIcon} />` など）。大きさと色は一覧が決めます。
+   * 飾りとして扱い、読み上げません。Select では、選んだ値の前にも出します
+   */
+  icon?: ReactNode;
 }
 
 /**
@@ -80,6 +85,8 @@ export interface ListboxOptionParts {
   labelProps: { id?: string; className: string };
   /** 選んだ印（Base UI の ItemIndicator）に広げる */
   indicatorProps: { className: string };
+  /** ラベルの前のアイコンを包む要素のクラス */
+  iconClassName: string;
   /** 2行目に付ける id。ListboxOptionContent にそのまま渡す */
   noteId: string;
 }
@@ -100,6 +107,7 @@ export function useListboxOption(item: ListboxItem<ListboxValue>): ListboxOption
     },
     labelProps: { id: note ? `${id}label` : undefined, className: slots.label() },
     indicatorProps: { className: slots.indicator() },
+    iconClassName: slots.icon(),
     noteId: `${id}note`,
   };
 }

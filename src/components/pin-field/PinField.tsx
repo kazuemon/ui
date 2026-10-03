@@ -283,7 +283,7 @@ const HalfWidthNoticedContext = createContext<
 export type PinFieldBaseProps = Omit<PinFieldControlProps, 'className'> &
   Omit<
     InputFieldProps,
-    'placeholder' | 'prefix' | 'suffix' | 'addonShape' | 'loading' | 'loadingIndicator'
+    'placeholder' | 'prefix' | 'suffix' | 'addonShape' | 'loading' | 'loadingIndicator' | 'size'
   > &
   HalfWidthNoticeProps & {
     /**

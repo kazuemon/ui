@@ -1,3 +1,4 @@
+import { BicycleIcon, CarIcon, PersonSimpleWalkIcon, TrainIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
@@ -9,6 +10,7 @@ import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import type { FieldNamed } from '../../internal/field/input-field-props';
 import { Select, type SelectBaseProps, SelectControl } from './Select';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Icon } from '../icon/Icon';
 import { TextField } from '../text-field/TextField';
 import { Gallery, Matrix, PhoneFrame, Specimen } from '../../stories/story-parts';
 import { labelClass, sourceCode } from '../../stories/story-states';
@@ -317,6 +319,100 @@ export const ItemNotes: Story = {
   ),
 };
 
+const routes: ListboxItem[] = [
+  { label: '電車', value: 'train', icon: <Icon icon={TrainIcon} /> },
+  { label: '自転車', value: 'bike', icon: <Icon icon={BicycleIcon} /> },
+  {
+    label: '車',
+    value: 'car',
+    icon: <Icon icon={CarIcon} />,
+    disabled: true,
+    note: { kind: 'reason', text: '駐車場がありません' },
+  },
+  { label: '徒歩', value: 'walk', icon: <Icon icon={PersonSimpleWalkIcon} /> },
+];
+
+// Show code: 枠（PopoverFrame）の中身は出ないので、Select の使い方を source.code に手で書く
+export const ItemIcons: Story = {
+  tags: ['visual'],
+  name: '選択肢のアイコン',
+  args: { label: '行き方', items: routes, prefix: undefined, placeholder: undefined },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '選択肢の `icon` は、ラベルの前に置くアイコンです。文字の 1.25 倍の大きさで、色は文字と同じです（選んだ項目・選べない項目では文字と一緒に変わります）。アイコンは飾りで、読み上げません。本体にも選んだ選択肢のアイコンを出します。`hideValueIcon` を付けると、アイコンは開いた一覧の中だけになり、本体はほかの入力欄と同じくラベルだけになります。',
+      },
+      source: sourceCode(`
+        const routes: ListboxItem[] = [
+          { label: '電車', value: 'train', icon: <Icon icon={TrainIcon} /> },
+          { label: '自転車', value: 'bike', icon: <Icon icon={BicycleIcon} /> },
+          { label: '車', value: 'car', icon: <Icon icon={CarIcon} />, disabled: true, note: { kind: 'reason', text: '駐車場がありません' } },
+          { label: '徒歩', value: 'walk', icon: <Icon icon={PersonSimpleWalkIcon} /> },
+        ];
+
+        <Select label="行き方" items={routes} defaultValue="train" />
+        // 本体にはアイコンを出さない
+        <Select label="行き方" items={routes} defaultValue="bike" hideValueIcon />
+      `),
+    },
+  },
+  render: (args, { viewMode }) => (
+    <div className="flex flex-wrap items-start gap-8">
+      <div className="w-60">
+        <PopoverFrame height="h-[19rem]">
+          {(container) => (
+            <Select
+              {...args}
+              color="primary"
+              presentation="popover"
+              popoverMaxHeight="none"
+              defaultValue="train"
+              defaultOpen={openOnLoad(viewMode)}
+              modal={false}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+            />
+          )}
+        </PopoverFrame>
+      </div>
+      <div className="flex w-60 flex-col gap-4">
+        <Select {...args} defaultValue="bike" />
+        <Select {...args} defaultValue="walk" disabled />
+        <Select {...args} label="行き方（hideValueIcon）" defaultValue="bike" hideValueIcon />
+      </div>
+    </div>
+  ),
+};
+
+// 条件でアイコンを出し分けたとき（icon={条件 && <Icon />}）、false の選択肢にはアイコンの場所を空けない
+const showIcons = false;
+export const ItemIconsConditional: Story = {
+  name: '選択肢のアイコン（条件で出し分ける）',
+  tags: ['!autodocs'],
+  args: {
+    label: '行き方',
+    prefix: undefined,
+    placeholder: undefined,
+    items: [
+      { label: '電車', value: 'train', icon: showIcons && <Icon icon={TrainIcon} /> },
+      { label: '徒歩', value: 'walk', icon: showIcons && <Icon icon={PersonSimpleWalkIcon} /> },
+    ],
+  },
+  parameters: { controls: { disable: true } },
+  render: (args) => <Select {...args} defaultValue="train" defaultOpen modal={false} />,
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await body.findByRole('option', { name: '電車' });
+    // 一覧にも本体にも、アイコンの場所を出さない
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="listbox-item-icon"]')
+    ).toBeNull();
+    await expect(canvasElement.querySelector('[data-slot="select-value-icon"]')).toBeNull();
+  },
+};
+
 export const Messages: Story = {
   tags: ['visual'],
   name: 'キャプション・エラー・警告',
@@ -439,6 +535,52 @@ export const ReadOnly: Story = {
     // フォーカスできる（見た目の比較は、線のない状態で撮るので最後に外す）
     trigger.focus();
     await expect(trigger).toHaveFocus();
+    trigger.blur();
+  },
+};
+
+export const Clearable: Story = {
+  tags: ['visual'],
+  name: '値を消すボタン',
+  parameters: {
+    controls: { exclude: ['clearable'] },
+    docs: {
+      description: {
+        story:
+          '`clearable` を付けると、値があるときだけ欄の右端に × を出し、▼ は × の左へずれます。× を押すと値が空に戻り、フォーカスは欄に戻ります。× にマウスを載せているあいだは × だけが濃くなり、欄の塗りは変わりません。読み取り専用の欄では出さず、押せない欄では押せない形で出します。読み上げの名前は `clearName` で変えられます。',
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="値あり">
+        <Select {...args} clearable defaultValue="ward-3" />
+      </Specimen>
+      <Specimen label="値なし">
+        <Select {...args} clearable placeholder="選んでください" />
+      </Specimen>
+      <Specimen label="押せない">
+        <Select {...args} clearable disabled defaultValue="ward-3" />
+      </Specimen>
+    </Gallery>
+  ),
+};
+
+export const ClearableClick: Story = {
+  name: '値を消すボタンを押す',
+  args: { clearable: true, defaultValue: 'ward-3' },
+  parameters: {
+    docs: {
+      description: {
+        story: '× を押すと値が空に戻り、フォーカスは欄に戻ります。× は消えます。',
+      },
+    },
+  },
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('combobox');
+    await userEvent.click(canvas.getByRole('button', { name: '選んだ項目を消去' }));
+    await expect(trigger).toHaveFocus();
+    await expect(canvas.queryByRole('button', { name: '選んだ項目を消去' })).toBeNull();
     trigger.blur();
   },
 };

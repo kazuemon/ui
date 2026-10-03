@@ -374,6 +374,9 @@ export function useFieldControlKind(kind: FieldControlKind) {
   }, [setControlKind, nativeLabel, registerCaption]);
 }
 
+/** 入力欄の本体の大きさの段 */
+export type FieldSize = 'md' | 'sm';
+
 interface FieldBaseProps extends FieldMarkProps, FieldLabelLayoutProps {
   label?: ReactNode;
   accessibleName?: string;
@@ -399,6 +402,8 @@ interface FieldBaseProps extends FieldMarkProps, FieldLabelLayoutProps {
   info?: ReactNode;
   /** 押せない（Disabled）状態にする */
   disabled?: boolean;
+  /** 本体の大きさの段。sm は Button の size="sm" と同じ高さ。既定は md */
+  size?: FieldSize;
   /** 待っている（確かめている・読み込んでいる）。root に data-loading（loadingBehavior の値）を付ける */
   loading?: boolean;
   /** 待っているあいだの欄の扱い。blocking では、本体を押せない欄と同じ見た目にする（controlBox）。既定は non-blocking */
@@ -466,6 +471,7 @@ export function Field({
   success,
   info,
   disabled: disabledProp,
+  size,
   loading,
   loadingBehavior = 'non-blocking',
   required,
@@ -509,7 +515,7 @@ export function Field({
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する
       data-success={success && !error ? '' : undefined}
-      className={styles.root({ start: placement === 'start', narrow, className })}
+      className={styles.root({ start: placement === 'start', narrow, size, className })}
     >
       <FieldBody
         id={id}

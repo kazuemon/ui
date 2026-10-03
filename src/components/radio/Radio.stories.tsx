@@ -4,6 +4,7 @@ import { expect, userEvent } from 'storybook/test';
 
 import { Radio, RadioGroup, RadioGroupControl } from './Radio';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Link } from '../link/Link';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
 
@@ -23,6 +24,7 @@ const meta = {
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
           '- `direction="horizontal"` で選択肢を横に 1 行で並べます。「はい／いいえ」のような短い選択肢のときに使います。既定では折り返さず、狭い入れ物でも縦には戻しません。',
           '- 横に並べたとき、`wrap` を渡すと入りきらない選択肢を次の行へ折り返します。`itemWidth="equal"` は選択肢を同じ幅の列にそろえ、説明文の長い選択肢があっても並びが偏りません。',
+          '- `frame="card"` で選択肢 1 つずつをカードの形にし、カード全体を押せるようにします。`Radio` の `labelAside` で値段などを右端に置けます。選んでいるカードは線で示し、`selectedIndicator="fill"` で面も淡く塗ります。',
           '- `readOnly` にすると、丸が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
         ].join('\n'),
       },
@@ -57,6 +59,16 @@ const meta = {
       control: 'inline-radio',
       options: ['fit', 'equal'],
       table: { defaultValue: { summary: "'fit'" } },
+    },
+    frame: {
+      control: 'inline-radio',
+      options: ['none', 'card'],
+      table: { defaultValue: { summary: "'none'" } },
+    },
+    selectedIndicator: {
+      control: 'inline-radio',
+      options: ['line', 'fill'],
+      table: { defaultValue: { summary: "'line'" } },
     },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -157,6 +169,152 @@ export const Horizontal: Story = {
       </RadioGroup>
     </div>
   ),
+};
+
+const planRadios = (disabledTeam = false) => [
+  <Radio key="free" value="free" label="フリー" caption="個人の試用に" labelAside="0 円" />,
+  <Radio
+    key="standard"
+    value="standard"
+    label="スタンダード"
+    caption="記事 100 本まで"
+    labelAside="月 500 円"
+  />,
+  <Radio
+    key="team"
+    value="team"
+    label="チーム"
+    caption="5 人まで"
+    labelAside="月 1,500 円"
+    disabled={disabledTeam}
+  />,
+];
+
+export const Card: Story = {
+  tags: ['visual'],
+  name: 'カードの形',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`frame="card"` は、選択肢 1 つずつを Card と同じ白い面・輪郭・角のカードにし、カードのどこを押しても選ばれます。題（`label`）・説明（`caption`）に加え、`labelAside` で値段などを右端に置けます。選んでいるカードは、面を白のまま輪郭の上に色の線を重ねます（`selectedIndicator="line"`、既定）。`selectedIndicator="fill"` は面も色の淡い面にし、選んでいることをより強く見せます。キーボードのフォーカスの線はカードの外に出します。`direction`・`itemWidth` と組み合わせられます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-3xl flex-col gap-8">
+      <div className="flex flex-wrap items-start gap-8">
+        <div className="w-72">
+          <RadioGroup label="プラン" frame="card" defaultValue="standard">
+            {planRadios()}
+          </RadioGroup>
+        </div>
+        <div className="w-72">
+          <RadioGroup
+            label="プラン（fill・primary）"
+            frame="card"
+            selectedIndicator="fill"
+            color="primary"
+            defaultValue="standard"
+          >
+            {planRadios(true)}
+          </RadioGroup>
+        </div>
+      </div>
+      <RadioGroup
+        label="プラン（横・同じ幅）"
+        frame="card"
+        direction="horizontal"
+        itemWidth="equal"
+        defaultValue="standard"
+      >
+        {planRadios()}
+      </RadioGroup>
+    </div>
+  ),
+};
+
+export const CardClick: Story = {
+  name: 'カードを押す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: { story: 'カードのどこを押しても選ばれます。値段の文字を押しても選ばれます。' },
+    },
+  },
+  render: () => (
+    <div className="w-72">
+      <RadioGroup label="プラン" frame="card" defaultValue="standard">
+        {planRadios()}
+      </RadioGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 値段の文字の上にあるのは、カードいっぱいに広げた横の文字の押せる範囲
+    const aside = canvas.getByText('0 円').getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      aside.left + aside.width / 2,
+      aside.top + aside.height / 2
+    );
+    await expect(hit).toBeInstanceOf(HTMLLabelElement);
+    if (hit instanceof HTMLElement) await userEvent.click(hit);
+    await expect(canvas.getByRole('radio', { name: 'フリー' })).toBeChecked();
+    // 値段は名前に入らず、説明として読む（caption の前）
+    await expect(canvas.getByRole('radio', { name: 'スタンダード' })).toHaveAccessibleDescription(
+      '月 500 円 記事 100 本まで'
+    );
+  },
+};
+
+export const CardWithLink: Story = {
+  name: 'カードの中のリンク',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '説明（`caption`）の中にリンクやボタンを置くと、カードの押せる範囲より上に出るので、マウスでもそのまま押せます。カードのほかの場所を押すと選ばれます。読み取り専用のカードは、マウスを載せても塗りを変えません。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-wrap gap-8">
+      <div className="w-72">
+        <RadioGroup label="プラン" frame="card" defaultValue="free">
+          <Radio value="free" label="フリー" caption="個人の試用に" labelAside="0 円" />
+          <Radio
+            value="standard"
+            label="スタンダード"
+            caption={
+              <>
+                記事 100 本まで。<Link href="#compare">詳しい比較</Link>
+              </>
+            }
+            labelAside="月 500 円"
+          />
+        </RadioGroup>
+      </div>
+      <div className="w-72">
+        <RadioGroup label="プラン（読み取り専用）" frame="card" readOnly defaultValue="free">
+          <Radio value="free" label="フリー" caption="個人の試用に" labelAside="0 円" />
+        </RadioGroup>
+      </div>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // リンクの上にあるのはリンク（押せる範囲の広がりに覆われない）
+    const link = canvas.getByRole('link', { name: '詳しい比較' });
+    // 折り返したときは外枠の真ん中が文字の外になるので、1 行目の真ん中で確かめる
+    const rect = link.getClientRects()[0];
+    const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    await expect(link.contains(hit)).toBe(true);
+    await expect(canvas.getByRole('radio', { name: 'スタンダード' })).not.toBeChecked();
+    // 読み取り専用のカードには、載せたときの塗りを付けない
+    const readOnlyGroup = canvas.getByRole('radiogroup', { name: 'プラン（読み取り専用）' });
+    const card = readOnlyGroup.querySelector<HTMLElement>('[data-radio-card]')!;
+    await expect(card.className).not.toContain('hover:');
+  },
 };
 
 export const HorizontalKeyboard: Story = {

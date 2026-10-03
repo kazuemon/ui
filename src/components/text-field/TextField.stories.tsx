@@ -437,6 +437,33 @@ export const Densities: Story = {
   ),
 };
 
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  args: { defaultValue: 'かずえもん' },
+  parameters: {
+    controls: { exclude: ['size'] },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は、表の行や小さな面の中、`Button` の `size="sm"` の横に置く一段小さい欄です。高さ・文字・左右の余白・アイコンが `Button` の sm とそろいます。指で押す画面でも小さいままで、文字が 16px より小さいので iPhone の Safari ではフォーカスすると画面が拡大されます。指で押すことが多い画面の主な欄には md を使います。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      {(['md', 'sm'] as const).map((size) => (
+        <div key={size} className="flex w-96 items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <TextField {...args} size={size} />
+          </div>
+          <Button size={size}>検索</Button>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
 export const Count: Story = {
   tags: ['visual'],
   name: '文字数',

@@ -18,12 +18,14 @@ import {
 
 // 選択肢の1項目。見た目は選択肢の一覧で共有する（src/internal/listbox）
 export function SelectOption<Value extends ListboxValue>({ item }: { item: ListboxItem<Value> }) {
-  const { itemProps, labelProps, indicatorProps, noteId } = useListboxOption(item);
+  const { itemProps, labelProps, indicatorProps, iconClassName, noteId } = useListboxOption(item);
   return (
     <BaseSelect.Item value={item.value} disabled={item.disabled} {...itemProps}>
       <ListboxOptionContent
         note={item.note}
         noteId={noteId}
+        icon={item.icon}
+        iconClassName={iconClassName}
         indicator={
           <BaseSelect.ItemIndicator {...indicatorProps}>
             <CheckIcon />

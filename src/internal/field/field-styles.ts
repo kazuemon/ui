@@ -67,6 +67,19 @@ export const fieldStyles = tv({
     start: {
       true: { root: '[[data-field-group]>&]:grid [[data-field-group]>&]:grid-cols-subgrid' },
     },
+    // 大きさの段。sm は Button の小さい段と同じ高さ・文字・左右の余白・アイコン（--*-control-sm・--spacing-icon-sm）
+    //   密度の寸法（高さ・左右の余白・文字・行の高さ・アイコン）を根で差し替え、本体・prefix・suffix・ラベルの縦の位置が一緒に読む
+    //   文字が 16px 未満なので、iPhone の Safari ではフォーカスで拡大される。小さい欄では許容する
+    //   ラベルとキャプションの大きさは変えない
+    size: {
+      md: {},
+      sm: {
+        root: [
+          '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-control:var(--spacing-control-sm)]',
+          '[--leading-input:var(--leading-control-sm)] [--spacing-icon-input:var(--spacing-icon-sm)] [--text-input:var(--text-control-sm)]',
+        ],
+      },
+    },
     // 横に置くラベルの重さ（ADR-0367）。muted は標準の太さで一段淡い色
     muted: {
       true: { label: 'font-normal text-fg-muted' },

@@ -23,8 +23,8 @@ import {
 } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import type { AddonShape } from '../field-addon/field-addon-context';
-import { FieldAddon } from '../field-addon/FieldAddon';
-import { CaretDownIcon } from '../../internal/icons';
+import { FieldAddon, FieldAddonButton } from '../field-addon/FieldAddon';
+import { CaretDownIcon, XIcon } from '../../internal/icons';
 import type { LoadingIndicator } from '../loading/Loading';
 import {
   type ListboxColor,
@@ -35,6 +35,7 @@ import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import { type ListboxSlotProps, mergeSlotClass } from '../../internal/listbox/listbox-slot-props';
 import {
   flattenItems,
+  hasIcon,
   isGroupedItems,
   type ListboxItems,
   normalizeItems,
@@ -251,6 +252,27 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
    * @default false
    */
   hideCaretOnDisabled?: boolean;
+  /**
+   * 選んだ値を消すボタン（×）を欄の端に出すか。`multiple` では選んだ項目をすべて消します。
+   * 何も選んでいないときと、読み取り専用の欄では出しません。押せない欄では押せない形で出します
+   * @default false
+   */
+  clearable?: boolean;
+  /**
+   * 消すボタンの読み上げの名前
+   * @default multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去'
+   */
+  clearName?: string;
+  /**
+   * 本体に出す、選んだ値の見せ方。値があるときだけ呼びます（空のときは placeholder）。
+   * 書かないときは、選んだ選択肢のラベルです。選択肢に icon があれば、その前に同じアイコンを出します（hideValueIcon で出さない）
+   */
+  renderValue?: (value: SelectValue<Value, Multiple>) => ReactNode;
+  /**
+   * 本体に、選んだ選択肢のアイコン（items の icon）を出しません。アイコンは開いた一覧の中だけになり、本体はラベルだけのほかの入力欄とそろいます
+   * @default false
+   */
+  hideValueIcon?: boolean;
   /** 本体（選択肢を開くボタン）に付くクラス */
   className?: string;
 }
@@ -260,6 +282,7 @@ interface SelectFieldProps extends Pick<
   InputFieldProps,
   | 'label'
   | 'accessibleName'
+  | 'size'
   | 'caption'
   | 'captionPlacement'
   | 'infoText'
@@ -327,6 +350,27 @@ export type SelectProps<Value = string, Multiple extends boolean = false> = Fiel
 
 const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 
+// 消すボタン（clearable）。本体（ボタン）と × を包み、× を本体の上に重ねる
+//   幅（--select-clear-width）は suffix のボタンと同じ（左右の余白＋アイコン）。中のアイコンは入力欄の大きさ
+//   × は右端に置き、本体は × の分の場所を空ける。▼ は × の左へずれる（Combobox と同じ）
+//   × に hover しているあいだは、欄の塗りを通常に戻す（× だけが濃くなる。開く場所と消す場所の境目を見せる）
+const selectClearField = [
+  'relative w-full min-w-0 [--spacing-icon:var(--spacing-icon-input)]',
+  '[--select-clear-width:calc(var(--spacing-control-x)*2+var(--spacing-icon-input))]',
+].join(' ');
+const selectClearTrigger = [
+  'pe-[calc(var(--spacing-control-x)-var(--field-border-width)+var(--select-clear-width))]',
+  '[[data-slot=select-field]:has(>[data-select-clear]:enabled:hover)>&]:not-focus-within:[--control-bg:var(--color-field)]',
+].join(' ');
+const selectClearButton = [
+  'absolute! inset-y-(--field-border-width) m-0! border-0! [--addon-inset:0px]',
+  'end-(--field-border-width)',
+  '[border-start-end-radius:var(--addon-radius)]! [border-end-end-radius:var(--addon-radius)]!',
+].join(' ');
+
+// 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ（文字の 1.25 倍・文字の色）
+const selectValueIcon = 'flex shrink-0 [&>svg]:size-[1.25em]';
+
 /**
  * Base UI から来た値を onValueChange に渡す
  * 値の型は multiple の有無で決まるので（SelectValue）、Base UI 側の広い型からここで橋渡しする
@@ -379,6 +423,10 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedText,
   hideCaretOnDisabled = false,
+  clearable = false,
+  clearName,
+  renderValue,
+  hideValueIcon = false,
   className,
 }: SelectControlProps<Value, Multiple> & ListboxValueCheck<Value>) {
   const field = useFieldState();
@@ -472,6 +520,53 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
 
   const selected = selectedTokens(color);
 
+  // 値は部品の中でも持つ（消すボタンで空に戻すため。value を渡されたときはそちらに従う）
+  const emptyValue: ListboxValue | ListboxValue[] | null = multiple ? [] : null;
+  const [valueState, setValueState] = useState<ListboxValue | ListboxValue[] | null>(
+    (defaultValue as ListboxValue | ListboxValue[] | null | undefined) ?? emptyValue
+  );
+  const currentValue =
+    value !== undefined ? (value as ListboxValue | ListboxValue[] | null) : valueState;
+  const changeValue = (next: ListboxValue | ListboxValue[] | null) => {
+    setValueState(next);
+    if (onValueChange) emitValue(onValueChange, next);
+  };
+  const hasValue = Array.isArray(currentValue) ? currentValue.length > 0 : currentValue != null;
+  // 消すボタン。本体はボタンなので、中にボタンを置けない。本体と × を包み、× は本体の上に重ねる
+  //   本体は右端に × の分の場所を空け、▼ は × の左に来る
+  const showClear = clearable && !readOnly && hasValue;
+  // 本体に出す値（軸 523）。renderValue か、選んだ選択肢にアイコンがあるときだけ、Base UI の既定の文字を差し替える
+  //   差し替えると Base UI は placeholder を出さないので、空のときの文もここで出す
+  const selectedIcon =
+    hideValueIcon || Array.isArray(currentValue)
+      ? undefined
+      : flatItems.find((item) => item.value === currentValue)?.icon;
+  const placeholderText = loadingBlocking ? loadingText : placeholder;
+  const valueChildren =
+    renderValue || hasIcon(selectedIcon)
+      ? (shown: ListboxValue | ListboxValue[] | null) => {
+          const empty = Array.isArray(shown) ? shown.length === 0 : shown == null;
+          if (empty) return placeholderText;
+          if (renderValue)
+            return (renderValue as (value: ListboxValue | ListboxValue[] | null) => ReactNode)(
+              shown
+            );
+          const item = flatItems.find((option) => option.value === shown);
+          return (
+            <span className="inline-flex max-w-full items-center gap-2 align-top">
+              <span aria-hidden data-slot="select-value-icon" className={selectValueIcon}>
+                {item?.icon}
+              </span>
+              <span className="truncate">{item?.label}</span>
+            </span>
+          );
+        }
+      : undefined;
+  const clear = () => {
+    changeValue(emptyValue);
+    triggerRef.current?.focus();
+  };
+
   // <部位>Props（ADR-0250）。className は部品のクラスに重ね、ref は内部の ref とつなぐ
   const {
     className: popupClassName,
@@ -483,13 +578,82 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
+  const trigger = (
+    <BaseSelect.Trigger
+      ref={triggerRef}
+      aria-describedby={messageIds}
+      aria-required={field?.required || undefined}
+      aria-disabled={blocking || undefined}
+      aria-busy={loading || undefined}
+      data-slot="control"
+      data-field-readonly={readOnly || undefined}
+      data-closing={closing || undefined}
+      onFocus={() => setClosing(false)}
+      data-addon-shape={addonShape}
+      className={controlBox({
+        className: [
+          'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
+          // 読み取り専用は文字の欄と同じで、押せない欄の禁止の形にはしない。値はなぞって写せる
+          blocking ? 'cursor-progress' : readOnly ? 'cursor-default select-text' : 'cursor-pointer',
+          loading && 'relative',
+          'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
+          // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
+          '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
+          '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
+          '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
+          // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
+          OWN_FOCUS[color],
+          '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
+          showClear && selectClearTrigger,
+          className,
+        ],
+      })}
+    >
+      {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
+      <BaseSelect.Value
+        className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
+        placeholder={placeholderText}
+      >
+        {valueChildren}
+      </BaseSelect.Value>
+      {loading && loadingIndicator === 'spinner' && (
+        <FieldSpinner
+          className={
+            loadingBlocking ? undefined : 'me-[calc(var(--spacing)*2-var(--spacing-control-x))]'
+          }
+        />
+      )}
+      {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
+      {successText && !hideSuccessMark && !errorText && !loading && (
+        <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
+      )}
+      {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。hideCaretOnDisabled で隠す）
+              Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
+              止めて読み込んでいるあいだは隠す
+              読み取り専用（軸 177）では残すが、押せない Select と同じ色まで淡くする。塗りのないアイコンは押せない意味の印（ADR-0190）で、
+              選ぶ欄だと分かる形を残しつつ、押せるようには見せない */}
+      <BaseSelect.Icon
+        className={[
+          'flex group-data-disabled/field:text-fg-subtle',
+          readOnly ? 'text-fg-subtle' : 'text-fg-muted',
+          'group-data-[loading=blocking]/field:text-fg-subtle',
+          (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <CaretDownIcon />
+      </BaseSelect.Icon>
+      {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
+    </BaseSelect.Trigger>
+  );
+
   return (
     <BaseSelect.Root<ListboxValue, boolean>
       items={flatItems}
       multiple={multiple}
-      value={value as ListboxValue | ListboxValue[] | null | undefined}
-      defaultValue={defaultValue as ListboxValue | ListboxValue[] | null | undefined}
-      onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
+      value={currentValue}
+      onValueChange={changeValue}
       form={form}
       autoComplete={autoComplete}
       inputRef={inputRef}
@@ -526,74 +690,25 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
             止めるときは、押せない欄と同じ見た目（controlBox）にする
             プレースホルダの場所の文（ふだんの文・押せないときの理由・止めるときの loadingText）は、どれも --color-fg-subtle
             押せない文字の色（--color-on-field-disabled）は選んだ値だけ。値が入った押せない欄と、文を出している欄を見分けるため */}
-      <BaseSelect.Trigger
-        ref={triggerRef}
-        aria-describedby={messageIds}
-        aria-required={field?.required || undefined}
-        aria-disabled={blocking || undefined}
-        aria-busy={loading || undefined}
-        data-slot="control"
-        data-field-readonly={readOnly || undefined}
-        data-closing={closing || undefined}
-        onFocus={() => setClosing(false)}
-        data-addon-shape={addonShape}
-        className={controlBox({
-          className: [
-            'text-left data-popup-open:border-[color:var(--control-focus-line,var(--color-focus))] data-popup-open:[--control-bg:var(--color-field-focus)]',
-            // 読み取り専用は文字の欄と同じで、押せない欄の禁止の形にはしない。値はなぞって写せる
-            blocking
-              ? 'cursor-progress'
-              : readOnly
-                ? 'cursor-default select-text'
-                : 'cursor-pointer',
-            loading && 'relative',
-            'data-closing:border-[color:var(--control-focus-line,var(--color-focus))] data-closing:[--control-bg:var(--color-field-focus)]',
-            // エラーの欄の離した線（controlBox）は、開いているあいだもフォーカス中と同じに引く
-            '[&:is([data-popup-open],[data-closing])]:[outline-style:solid] [&:is([data-popup-open],[data-closing])]:[outline-width:var(--control-ring-width,0px)]',
-            '[&:is([data-popup-open],[data-closing])]:[outline-offset:var(--focus-ring-offset)] [&:is([data-popup-open],[data-closing])]:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
-            '[&:is([data-popup-open],[data-closing])]:ring-[length:var(--control-ring-inner,0px)] [&:is([data-popup-open],[data-closing])]:ring-[color:var(--color-focus-ring-inner)]',
-            // フォーカスの枠線と線の色（部品の色 — ADR-0071 の M）
-            OWN_FOCUS[color],
-            '[--field-addon-pad:calc(var(--spacing-control-x)-var(--field-border-width))]',
-            className,
-          ],
-        })}
-      >
-        {prefix != null && <FieldAddon>{prefix}</FieldAddon>}
-        <BaseSelect.Value
-          className="min-w-0 flex-1 truncate data-placeholder:text-(color:--field-placeholder)"
-          placeholder={loadingBlocking ? loadingText : placeholder}
-        />
-        {loading && loadingIndicator === 'spinner' && (
-          <FieldSpinner
-            className={
-              loadingBlocking ? undefined : 'me-[calc(var(--spacing)*2-var(--spacing-control-x))]'
-            }
-          />
-        )}
-        {/* 成功のチェック（後半の軸 37）。回る円と同じ場所（▼ の左）。待っているあいだは回る円を優先し、エラーのときは出さない */}
-        {successText && !hideSuccessMark && !errorText && !loading && (
-          <FieldSuccessMark className="me-[calc(var(--spacing)*2-var(--spacing-control-x))]" />
-        )}
-        {/* ▼。Disabled のときはプレースホルダの場所の文と同じ色（--color-fg-subtle。hideCaretOnDisabled で隠す）
-              Form の送信中に止めているあいだ（data-loading="blocking"）も、押せない Select と同じ色で残す
-              止めて読み込んでいるあいだは隠す
-              読み取り専用（軸 177）では残すが、押せない Select と同じ色まで淡くする。塗りのないアイコンは押せない意味の印（ADR-0190）で、
-              選ぶ欄だと分かる形を残しつつ、押せるようには見せない */}
-        <BaseSelect.Icon
-          className={[
-            'flex group-data-disabled/field:text-fg-subtle',
-            readOnly ? 'text-fg-subtle' : 'text-fg-muted',
-            'group-data-[loading=blocking]/field:text-fg-subtle',
-            (loadingBlocking || (disabled && hideCaretOnDisabled)) && 'hidden',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          <CaretDownIcon />
-        </BaseSelect.Icon>
-        {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
-      </BaseSelect.Trigger>
+      {/* clearable では、値の有無にかかわらず包む。× を消したときに本体を作り直すと、本体に戻したフォーカスが外れるため */}
+      {clearable ? (
+        <div data-slot="select-field" className={selectClearField}>
+          {trigger}
+          {showClear && (
+            <FieldAddonButton
+              data-select-clear=""
+              aria-label={clearName ?? (multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去')}
+              disabled={blocking || disabled || undefined}
+              onClick={clear}
+              className={selectClearButton}
+            >
+              <XIcon standalone />
+            </FieldAddonButton>
+          )}
+        </div>
+      ) : (
+        trigger
+      )}
       <BaseSelect.Portal container={portalContainer}>
         {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
         {sheet && (

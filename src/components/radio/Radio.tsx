@@ -15,6 +15,9 @@ import {
   choiceReadOnly,
   choiceRows,
   choiceStyles,
+  radioCard,
+  type RadioGroupFrame,
+  type RadioGroupSelectedIndicator,
 } from '../../internal/choice/choice-styles';
 import {
   type CaptionPlacement,
@@ -44,6 +47,11 @@ export interface RadioProps extends Omit<
   label: ReactNode;
   /** 横の文字の下の説明。押せないときも読めるままです */
   caption?: ReactNode;
+  /**
+   * 横の文字と同じ行の右端に置くもの（値段など）。RadioGroup の frame="card" で使います。
+   * 読み上げでは選択肢の名前には入らず、説明（caption の前）として読みます
+   */
+  labelAside?: ReactNode;
   /** この選択肢の値。RadioGroup の value と突き合わせ、選ばれているかが決まります */
   value: unknown;
   /**
@@ -75,6 +83,7 @@ export interface RadioProps extends Omit<
 export function Radio({
   label,
   caption,
+  labelAside,
   className,
   value,
   disabled,
@@ -89,10 +98,19 @@ export function Radio({
   // Form の送信中と読み取り専用（軸 177）は、押せない丸と同じ見た目にして選び直しを止める
   // 読み取り専用はグループ（RadioGroup の readOnly）からも来る
   const locked = useChoiceLock(disabled, readOnly ?? group?.readOnly);
+  const card =
+    group?.frame === 'card'
+      ? radioCard({
+          color: group?.color,
+          selectedIndicator: group?.selectedIndicator,
+          readOnly: locked.readOnlyLook,
+        })
+      : undefined;
   return (
     <BaseField.Item
       disabled={disabled}
-      className={s.item({ className: [choiceRows(caption), className] })}
+      className={s.item({ className: [choiceRows(caption), card?.item(), className] })}
+      data-radio-card={card ? '' : undefined}
     >
       <BaseRadio.Root
         value={value}
@@ -105,7 +123,7 @@ export function Radio({
         readOnly={locked.readOnly}
         aria-disabled={locked.ariaDisabled || ariaDisabled}
         className={s.box({
-          className: ['rounded-pill', locked.readOnlyLook && choiceReadOnly.box],
+          className: ['rounded-pill', locked.readOnlyLook && choiceReadOnly.box, card?.box()],
         })}
         {...locked.data}
         {...props}
@@ -113,10 +131,22 @@ export function Radio({
         <BaseRadio.Indicator className={s.dot()} />
       </BaseRadio.Root>
       <BaseField.Label
-        className={s.label({ className: locked.readOnlyLook ? choiceReadOnly.label : undefined })}
+        className={s.label({
+          className: [locked.readOnlyLook ? choiceReadOnly.label : undefined, card?.label()],
+        })}
       >
         {label}
       </BaseField.Label>
+      {/* 値段などは選ぶときの材料なので、説明として読み上げる（caption の前に読む） */}
+      {labelAside != null && (
+        <BaseField.Description
+          render={<span />}
+          data-slot="radio-label-aside"
+          className={card?.aside() ?? radioCard().aside()}
+        >
+          {labelAside}
+        </BaseField.Description>
+      )}
       {caption && <BaseField.Description className={s.caption()}>{caption}</BaseField.Description>}
     </BaseField.Item>
   );
@@ -166,6 +196,19 @@ export interface RadioGroupControlProps<Value> extends Omit<
    * @default 'fit'
    */
   itemWidth?: ChoiceGroupItemWidth;
+  /**
+   * 選択肢の囲み方。card は選択肢 1 つずつをカードの形にし、カード全体を押せるようにします。
+   * 題・説明・値段（Radio の label・caption・labelAside）を載せた、プランや配送方法の選択に使います
+   * @default 'none'
+   */
+  frame?: RadioGroupFrame;
+  /**
+   * frame="card" の選んでいるカードの見た目。Card の selectedIndicator と同じ語です
+   * - line: 面は白のまま、輪郭の上に色の線を重ねます
+   * - fill: 面を色の淡い面にし、輪郭の上に色の線を重ねます。選んでいることをより強く見せたいときに使います
+   * @default 'line'
+   */
+  selectedIndicator?: RadioGroupSelectedIndicator;
   /** 中に置く選択肢。Radio を value 付きで並べます */
   children: ReactNode;
 }
@@ -186,6 +229,8 @@ export function RadioGroupControl<Value>({
   direction = 'vertical',
   wrap = false,
   itemWidth = 'fit',
+  frame = 'none',
+  selectedIndicator = 'line',
   children,
   readOnly,
   'aria-describedby': ariaDescribedBy,
@@ -195,7 +240,12 @@ export function RadioGroupControl<Value>({
   useFieldControlKind({ nativeLabel: false, registerCaption: false });
   const field = useFieldState();
   const disabled = field?.disabled;
-  const context = useMemo(() => ({ color, readOnly }), [color, readOnly]);
+  const context = useMemo(
+    () => ({ color, readOnly, frame, selectedIndicator }),
+    [color, readOnly, frame, selectedIndicator]
+  );
+  // カードの形は、カードどうしの間（8px）を空けて並べる。横に並べるときも同じ間で、カードの高さを行でそろえる
+  const cardGap = frame === 'card' ? 'items-stretch gap-2!' : undefined;
   // Form の送信中と読み取り専用は、グループでも選び直し（矢印キーを含む）を止める。見た目は中の Radio が押せない丸にする
   const locked = useChoiceLock(disabled, readOnly);
   return (
@@ -216,10 +266,12 @@ export function RadioGroupControl<Value>({
         aria-describedby={
           [ariaDescribedBy, field?.describedBy].filter(Boolean).join(' ') || undefined
         }
-        className="flex flex-col"
+        className={['flex flex-col', cardGap].filter(Boolean).join(' ')}
       >
         {direction === 'horizontal' ? (
-          <div className={choiceGroupList({ direction, wrap, itemWidth })}>{children}</div>
+          <div className={choiceGroupList({ direction, wrap, itemWidth, className: cardGap })}>
+            {children}
+          </div>
         ) : (
           children
         )}
