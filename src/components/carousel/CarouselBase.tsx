@@ -18,6 +18,7 @@ import { CaretLeftIcon, CaretRightIcon, PauseIcon, PlayIcon } from '../../intern
 import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
 import type { CarouselEngine } from './carousel-engine';
+import { perViewCounts } from './per-view';
 import { useAutoPlay } from './use-auto-play';
 import type { CarouselState } from './use-carousel-state';
 
@@ -206,7 +207,8 @@ export interface CarouselProps extends Omit<
   peek?: boolean;
   /**
    * 1 画面に並べる枚数。数か、画面の幅の段ごとの数（`{ base: 1, md: 3 }`。段は Grid の `columns` と同じ）を渡します。
-   * 送るのは 1 枚ずつです。書かないときは 1 枚を幅いっぱいに見せます（`peek` は 1 枚のときだけ効きます）
+   * 送るのは 1 枚ずつです。書かないときは 1 枚を幅いっぱいに見せます（`peek` は 1 枚のときだけ効きます）。
+   * 数は 1 以上の整数です。小数は切り捨て、1 未満の段は渡していないものとして 1 つ下の段の値を使います
    */
   slidesPerView?: CarouselSlidesPerView;
   /**
@@ -380,7 +382,8 @@ export function CarouselView({
   const canPrev = engineCanPrev ?? (wraps || position > 0);
   const canNext = engineCanNext ?? (wraps || position < stops - 1);
   const indicator = indicatorProp ?? (thumbnails != null ? 'none' : 'dots');
-  const perView = slidesPerView != null;
+  const perViewByBreakpoint = perViewCounts(slidesPerView);
+  const perView = perViewByBreakpoint != null;
   const s = styles({
     mode,
     controlsPosition,
@@ -522,7 +525,7 @@ export function CarouselView({
         onFocus: chain(props.onFocus, auto.rootProps.onFocus),
         onBlur: chain(props.onBlur, auto.rootProps.onBlur),
       })}
-      style={{ ...breakpointVars('carousel-per-view', slidesPerView), ...style }}
+      style={{ ...breakpointVars('carousel-per-view', perViewByBreakpoint), ...style }}
       className={s.root({ className })}
     >
       <div className={s.stage()}>
