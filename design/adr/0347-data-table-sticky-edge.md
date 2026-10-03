@@ -1,6 +1,6 @@
 # 0347. DataTable の貼り付いた見出しの境目は、現行版（影）のまま。banded は帯を ::before に描き、影が角にかからないようにする
 
-- ステータス: Accepted
+- ステータス: Accepted（banded の角丸の外に下の行が透けない部分は [ADR-0473](./0473-data-table-banded-sticky-corner.md) で置き換え）
 - 日付: 2026-09-28
 - ラウンド: 後半 軸 367
 
@@ -47,6 +47,8 @@ DataTable に `maxHeight` を渡すと、表の中で縦にスクロールし、
 - `src/components/data-table/DataTable.tsx`: `banded` の見出しの帯を `th::before` に描くよう直しました（`before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:bg-field`、角丸は `before:rounded-s-control`・`before:rounded-e-control`）。影（`after:...`）は `th` の下の辺から、`variant` によらず同じ形で落とします
 - 見出しの行はいつも `sticky` です。枠の高さに上限がなければ縦にスクロールしないので動かず、`maxHeight`（や、利用者がレイアウトで決めた枠の高さ）でスクロールするときだけ貼り付きます（[ADR-0343](./0343-data-table-separate-from-table.md)）
 - 比較のストーリー `design/stories/axis-367-data-table-sticky-edge.stories.tsx` は消しました
+- のちに、`banded` の `th` を地の色で塗るのをやめ、帯の角丸の外に下の行が見えるようにしました。スクロールした分だけ帯の下の角を四角にして影と合わせる形は [ADR-0473](./0473-data-table-banded-sticky-corner.md) です
+- のちに、縦のつまみの溝を、貼り付いた見出しの行の下から始めるようにしました（見出しに重ねない。見出しの行の高さは `use-sticky-head-height.ts` が測ります）
 
 ## 原則への反映
 
