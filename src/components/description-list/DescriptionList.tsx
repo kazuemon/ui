@@ -216,6 +216,16 @@ const firstRowClasses: Record<GridBreakpoint, readonly string[]> = {
   ],
 };
 
+// 列の数は 1〜FIRST_ROW_MAX に丸める（1 行目を選ぶクラスと、並べる列の数をそろえる）
+function clampColumns(columns: GridColumns | undefined): GridColumns | undefined {
+  if (columns == null) return undefined;
+  const clamp = (n: number) => Math.min(Math.max(Math.trunc(n), 1), FIRST_ROW_MAX);
+  if (typeof columns === 'number') return clamp(columns);
+  return Object.fromEntries(
+    Object.entries(columns).map(([bp, n]) => [bp, n == null ? n : clamp(n)])
+  ) as GridColumns;
+}
+
 function firstRow(columns: GridColumns | undefined) {
   if (columns == null) return undefined;
   const byBp = byBreakpoint(columns);
@@ -274,7 +284,7 @@ export interface DescriptionListProps extends ComponentProps<'dl'> {
   termWidth?: string;
   /**
    * 組を並べる列の数。渡さないときは 1 列です。数を渡すとどの画面の幅でも同じ（`columns={2}`）、
-   * 画面の幅の段ごとの数を渡すと画面の幅で変わります（`columns={{ base: 1, md: 2 }}`）。段は Grid の columns と同じです
+   * 画面の幅の段ごとの数を渡すと画面の幅で変わります（`columns={{ base: 1, md: 2 }}`）。段は Grid の columns と同じです。列は 12 までで、それより多い数は 12 列として扱います
    */
   columns?: GridColumns;
 }
@@ -288,11 +298,12 @@ export function DescriptionList({
   termAlign,
   termStyle,
   termWidth,
-  columns,
+  columns: columnsProp,
   className,
   style,
   ...props
 }: DescriptionListProps) {
+  const columns = clampColumns(columnsProp);
   const styles = descriptionList({
     layout,
     divider,

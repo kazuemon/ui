@@ -352,3 +352,28 @@ export const Accessibility: Story = {
     await expect(leaderTerm?.nextElementSibling).toBe(leaderList.querySelector('dd'));
   },
 };
+
+export const ColumnsMax: Story = {
+  name: '列の数の上限',
+  parameters: {
+    controls: { disable: true },
+    docs: { description: { story: '列は 12 までです。それより多い数を渡すと 12 列に並べます。' } },
+  },
+  render: () => (
+    <DescriptionList columns={13} divider="line" data-testid="many">
+      {Array.from({ length: 13 }, (_, i) => (
+        <DescriptionItem key={i} term={`項目 ${i + 1}`}>
+          {i + 1}
+        </DescriptionItem>
+      ))}
+    </DescriptionList>
+  ),
+  play: async ({ canvas }) => {
+    const list = canvas.getByTestId('many');
+    // 12 列に並び、13 番目は 2 行目（上に線がある）
+    const columns = getComputedStyle(list).gridTemplateColumns.split(' ').length;
+    await expect(columns).toBe(12);
+    const thirteenth = list.children[12] as HTMLElement;
+    await expect(getComputedStyle(thirteenth).borderTopWidth).not.toBe('0px');
+  },
+};
