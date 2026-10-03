@@ -13,7 +13,7 @@ const Sample = () => (
       。行の高さは整数の値にします
       <FootnoteRef id="2" />。
     </Text>
-    <Footnotes label="脚注">
+    <Footnotes>
       <FootnoteItem id="1">
         和文フォントは、縦の寸法を漢字の枠に合わせて補正しています。
       </FootnoteItem>
@@ -34,7 +34,7 @@ const meta = {
           '',
           '- 本文の参照は `FootnoteRef` です。上付きの `[1]` で、青い文字のリンクになります。',
           '- 末尾の一覧は `Footnotes` に `FootnoteItem` を並べます。文字は注記の大きさで補足の濃さ、項目の後ろに参照へ戻るリンク（↩）が付きます。',
-          '- `Footnotes` の見出し（`label`）は読み上げだけで、参照の説明にもなります。',
+          '- `Footnotes` の見出し（`label`）は既定で「脚注」です。読み上げだけで、参照の説明にもなります。',
           '- 戻るリンクの読み上げは「参照 1 に戻る」です。`backrefName` に、識別子を受けて文を返す関数を渡すと変えられます。',
           '- id は GFM の変換と同じ `user-content-fn-1` の形です。1 ページに一覧を 2 つ置くときは、組ごとに `idPrefix` を変えます（remark-rehype の `clobberPrefix` と同じ値にします）。',
           '- 本文と一覧のあいだの区切り（線など）は持ちません。置く側で `Divider` などを置きます。',

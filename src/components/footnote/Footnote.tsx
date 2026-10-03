@@ -11,7 +11,7 @@ import { List } from '../list/List';
 //   参照: <sup><a href="#user-content-fn-1" id="user-content-fnref-1" data-footnote-ref aria-describedby="footnote-label">1</a></sup>
 //   一覧: <section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2><ol><li id="user-content-fn-1"><p>…
 //         <a href="#user-content-fnref-1" data-footnote-backref aria-label="…">↩</a></p></li></ol></section>
-//   戻るリンクの名前だけは既定を日本語にしている（remark は footnoteBackLabel で変える）
+//   見出しの文と戻るリンクの名前は既定を日本語にしている（remark は footnoteLabel・footnoteBackLabel で変える）
 // 見た目のクラス列は src/internal/reading/footnote.ts（Prose も同じものを使う）
 // 本文との区切り（線など）は付けない。置く側が Divider などで決める
 // id の接頭辞（idPrefix）は remark-rehype の clobberPrefix と同じ。見出しの id だけは、remark と同じく
@@ -38,7 +38,8 @@ export interface FootnoteRefProps extends Omit<ComponentProps<'a'>, 'href' | 'id
   /** 見せる番号。指定しないときは id です */
   children?: ReactNode;
   /**
-   * id の接頭辞。remark-rehype の clobberPrefix と同じ値にします。1 ページに脚注の一覧を 2 つ置くときは、組ごとに変えます
+   * id の接頭辞。1 ページに脚注の一覧を 2 つ置くときは、組ごとに変えます。
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
    * @default 'user-content-'
    */
   idPrefix?: string;
@@ -82,11 +83,12 @@ const footnotes = tv({
 export interface FootnotesProps extends Omit<ComponentProps<'section'>, 'children'> {
   /**
    * 見出しの文。ふだんは読み上げだけで、参照の説明（aria-describedby）になります
-   * @default 'Footnotes'
+   * @default '脚注'
    */
   label?: ReactNode;
   /**
-   * id の接頭辞。FootnoteRef・FootnoteItem と同じ値にします。見出しの id は、既定では remark と同じ `footnote-label`、変えたときは `<idPrefix>footnote-label` です
+   * id の接頭辞。FootnoteRef・FootnoteItem と同じ値にします。見出しの id は、既定では remark と同じ `footnote-label`、変えたときは `<idPrefix>footnote-label` です。
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
    * @default 'user-content-'
    */
   idPrefix?: string;
@@ -98,7 +100,7 @@ export interface FootnotesProps extends Omit<ComponentProps<'section'>, 'childre
  * 末尾の脚注の一覧
  */
 export function Footnotes({
-  label = 'Footnotes',
+  label = '脚注',
   idPrefix = DEFAULT_ID_PREFIX,
   className,
   children,
@@ -123,7 +125,8 @@ export interface FootnoteItemProps extends Omit<ComponentProps<'li'>, 'id'> {
   /** 脚注の識別子。参照（FootnoteRef）の id と同じ値にします */
   id: string;
   /**
-   * id の接頭辞。FootnoteRef・Footnotes と同じ値にします
+   * id の接頭辞。FootnoteRef・Footnotes と同じ値にします。
+   * 既定（`'user-content-'`）は remark-gfm の出力と同じです。変えるときは remark-rehype の clobberPrefix にも同じ接頭辞を渡します（渡さないと、本文の脚注番号のリンク先と一覧の id がずれます）
    * @default 'user-content-'
    */
   idPrefix?: string;
