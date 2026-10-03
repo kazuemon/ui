@@ -251,9 +251,14 @@ interface CalendarBaseProps {
   isDateDisabled?: (date: PlainDate) => boolean;
   /**
    * 日ごとの印（空きの有無の点、値段など）を返す。返したものを日の数字に添えて出します。
-   * 印は読み上げられないので、意味を伝えるときは getHoliday の名前や、カレンダーの外の文でも伝えてください
+   * 印そのものは読み上げられないので、意味を伝えるときは getDayContentLabel で同じ意味の文も返してください
    */
   renderDayContent?: (date: PlainDate) => ReactNode;
+  /**
+   * 日ごとの印（renderDayContent）の意味を、読み上げの文で返す。返した文は、日のボタンの読み上げで日付（祝日の名前）のあとに読まれます。
+   * renderDayContent と組で使い、印を出す日には同じ意味の文を返してください。渡さないとき、または undefined を返した日は、印を読み上げません
+   */
+  getDayContentLabel?: (date: PlainDate) => string | undefined;
   /**
    * 祝日の名前を返す。名前を返した日は日曜と同じ色になり、名前が読み上げに入ります。祝日のデータは部品に含みません
    */
@@ -558,6 +563,7 @@ export function Calendar(props: CalendarProps) {
     isDateDisabled,
     getHoliday,
     renderDayContent,
+    getDayContentLabel,
     weekStartsOn,
     month,
     defaultMonth,
@@ -673,6 +679,7 @@ export function Calendar(props: CalendarProps) {
           modifiers.today ? `${labels.today} ` : '',
           intl.full.format(date),
           getHoliday ? ` ${getHoliday(fromDate(date)) ?? ''}`.trimEnd() : '',
+          getDayContentLabel ? ` ${getDayContentLabel(fromDate(date)) ?? ''}`.trimEnd() : '',
           modifiers.selected ? ` ${labels.selected}` : '',
         ].join(''),
       labelPrevious: () => labels.previousMonth,

@@ -38,7 +38,7 @@ const meta = {
           '- 月を送ると、すぐに切り替わります。`monthTransition="fade"` で、その場でふわっと入れ替わります。',
           '- `min`・`max` で選べる期間を区切ります。区切りの外の月へは送れません。日ごとに押せなくするときは `isDateDisabled` を使います。',
           '- 期間を選ぶときは、`minRangeDays`・`maxRangeDays` で日数（始まりと終わりの日を両方数える）を、`excludeDisabled` で押せない日をまたがないことを決められます。始まりを選んだあと、合わない日は押せなくなり、取り消し線が付きます（もとから押せない日には付きません）。`minRangeDays` で近い日が押せなくなったときは、選んだ始まりの日をもう一度押すと始まりが外れ、選び直せます。',
-          '- `renderDayContent` で、日ごとの印（空きの点、値段など）を日の数字に添えます。印は読み上げられないので、意味は文でも伝えます。',
+          '- `renderDayContent` で、日ごとの印（空きの点、値段など）を日の数字に添えます。印そのものは読み上げられないので、同じ意味の文を `getDayContentLabel` で返します。文は日のボタンの読み上げで、日付のあとに読まれます。',
           '- 週の始まりの曜日を `locale` と別に決めるときは `weekStartsOn`（0 が日曜）を使います。',
           '- 曜日と月の名前、週の始まりの曜日は `locale` に従います。今日は `timeZone` での今日です。どちらも ThemeProvider で決められます。',
           '- 矢印キーで日を、Page Up・Page Down で月を、Shift を足すと年を送ります。',
@@ -320,6 +320,11 @@ const dotContent = (date: Temporal.PlainDate) =>
   ) : null;
 const textContent = (date: Temporal.PlainDate) =>
   date.month === 9 && fewLeft[date.day] ? `残${fewLeft[date.day]}` : null;
+// 印の意味を読み上げの文で返す
+const dotLabel = (date: Temporal.PlainDate) =>
+  date.month === 9 && openDays.has(date.day) ? '空きあり' : undefined;
+const textLabel = (date: Temporal.PlainDate) =>
+  date.month === 9 && fewLeft[date.day] ? `残り${fewLeft[date.day]}席` : undefined;
 
 export const DayContent: Story = {
   tags: ['visual'],
@@ -327,17 +332,31 @@ export const DayContent: Story = {
   render: (args) => (
     <Gallery columnWidth="20rem">
       <Specimen label="点の印">
-        <Calendar {...(args as CalendarSingleProps)} renderDayContent={dotContent} />
+        <Calendar
+          {...(args as CalendarSingleProps)}
+          renderDayContent={dotContent}
+          getDayContentLabel={dotLabel}
+        />
       </Specimen>
       <Specimen label="文字の印・選んだ日">
         <Calendar
           {...(args as CalendarSingleProps)}
           defaultValue={Temporal.PlainDate.from('2026-09-16')}
           renderDayContent={textContent}
+          getDayContentLabel={textLabel}
         />
       </Specimen>
     </Gallery>
   ),
+  play: async ({ canvas }) => {
+    // 印の意味は、日のボタンの読み上げで日付のあとに読まれる
+    await expect(
+      canvas.getByRole('button', { name: '2026年9月3日木曜日 空きあり' })
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('button', { name: '2026年9月16日水曜日 残り3席 選択中' })
+    ).toBeInTheDocument();
+  },
 };
 
 // 前後の月の日にだけ印があるとき、この月の日の数字はずらさない（印は前後の月の日に出す）
