@@ -18,6 +18,7 @@
 
 - 線の色と淡い面の色は、`color` から部品が作ります
 - neutral では、線は濃いグレー（墨）、面は淡いグレーになります
+- 強調の形の輪（[ADR-0470](./0470-card-emphasis.md)）も、同じ `color` の色から作ります
 
 ## 理由
 
@@ -26,6 +27,8 @@
 > 413 ユーザーの考え次第ですが、デフォAでCも選べる、色は primary など指定可能、かなと。
 
 neutral の線に `--color-neutral-strong` を使うのは、係の判断です。ユーザーの返事に色の指定はなく、「色は primary など指定可能」を受けて、色を持つ部品の `color` の語彙（props.md）に合わせました。
+
+既定を primary にしたのは、レビューでの確かめのあとのユーザーの判断です（「primary のままで」）。選ぶ部品（Checkbox・Radio・SegmentedControl・Switch・ToggleGroup・Tabs）の `color` の既定は neutral ですが、Card は比較で選んだ見た目（青い線と淡い青の面）をそのまま既定にしました。強調の輪も同じ `color` を使うので、既定は primary の淡い輪になります。
 
 ## 却下した案と理由
 
