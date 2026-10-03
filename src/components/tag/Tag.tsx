@@ -8,7 +8,12 @@ import {
 import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
-import { NewTabNote } from '../../internal/link-parts';
+import {
+  NewTabNote,
+  resolveLink,
+  warnOnce,
+  withoutLinkAttributes,
+} from '../../internal/link-parts';
 import { leadingAvatarClass, leadingIcon } from '../../internal/small-parts-leading';
 import { type SmallPartsSize, tagSizeClass } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
@@ -22,13 +27,14 @@ import { tv } from '../../internal/tv';
 // 大きさ（sm・md・lg・inherit）は Tag・Badge・Chip 共通の 1 本の軸 — ADR-0259（値は src/internal/small-parts-size.ts）
 // 形（variant）— ADR-0398: soft（淡い面。既定）・outline（面なし・文字の色を薄めた縁）・surface（白い面・文字の色の縁）・
 //   solid（濃い塗り）・dashed（面なし・破線の縁。「まだない」の印）
-//   outline は Button の outline と同じく面を塗らない。白い面を敷く形は SegmentedControl のつまみと同じ surface と呼ぶ
+//   outline は Button の outline と同じく面を塗らない。surface の意味は design/props.md の variant
 //   色ごとに面・文字・濃い塗りを --tag-color-* に置き、variant がそれを --tag-bg・--tag-fg・縁へ振り分ける
 //   縁はどの形でも同じ幅で引き（塗りの形では透明）、左右の余白から縁の幅を引く。形を変えても寸法は変わらない
 // リンク（href・render・link）— ADR-0397: ブログのタグから一覧のページへ移る
 //   平らな押すもの（原則3）: hover で文字の色を淡く敷いて下線を出し、押すと濃く敷いて沈む。影は付けない（この大きさでは影で押せると読めない）
 //   敷く色は面の上に重ねる層（background-image）なので、どの形・色にも効く
-//   link の既定は href があるか（link ?? href != null — ADR-0401）。Link など、ほかのリンクの部品と同じ決まり
+//   リンクにするかは link で決める。既定は href があるか（link-parts の resolveLink — ADR-0401。Card と同じ決まり）
+//   link={false} のときは a にせず（span か render の要素）、href・target・rel などリンクだけの属性を渡さない
 //   Tag はサーバーのまま描けるよう、フックを使わない（render は cloneElement で重ねる）
 // 先頭のアイコン・アバター（icon・avatar）— ADR-0399・0400。置き方は src/internal/small-parts-leading.ts（Chip と共有）
 //   アイコンは文字と同じ大きさで、色は既定で文字の色。iconColor で color と同じ色から選べる（solid では文字の色のまま）
@@ -118,12 +124,15 @@ export interface TagProps
    * @default 'sm'
    */
   size?: SmallPartsSize;
-  /** 渡すと、タグがリンク（a）になります。記事のタグから、そのタグの一覧のページへ移るときに使います */
+  /**
+   * 渡すと、タグがリンク（a）になります。記事のタグから、そのタグの一覧のページへ移るときに使います。
+   * `link={false}` のときは渡しても付けません
+   */
   href?: string;
-  /** href か render と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
+  /** リンクのタグに渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
   target?: string;
   /**
-   * href か render と一緒に渡すリンクの rel
+   * リンクのタグに渡す rel
    * @default target が '_blank' なら 'noopener noreferrer'
    */
   rel?: string;
@@ -134,7 +143,9 @@ export interface TagProps
   render?: ReactElement;
   /**
    * リンクとして描くか。押せるときの手応え（hover・押下・フォーカスの線）が付きます。
-   * href を渡すと既定で true です。render にルーターのリンクを渡すときは、部品からはリンクか分からないので書きます
+   * href を渡すと既定で true です。render にルーターのリンクを渡すときは、部品からはリンクか分からないので書きます。
+   * false にすると、href を渡していてもリンクにせず、ただのタグ（span か render の要素）として描きます。
+   * href・target・rel などリンクだけの属性は付けません
    * @default href != null
    */
   link?: boolean;
@@ -172,16 +183,19 @@ export function Tag({
   children,
   ...props
 }: TagProps) {
-  const isLink = link ?? href != null;
-  // 開き方（target・rel）は、a か render の要素（ルーターのリンク）に渡す。書いていない属性は渡さない（render の側の値を消さない）
-  const anchor = href != null || render != null;
-  const newTab = anchor && target === '_blank';
+  const isLink = resolveLink(link, href);
+  if (isLink && href == null && render == null)
+    warnOnce('Tag: link を付けたタグには、href か、リンクの要素（render）を渡します');
+  // 開き方（target・rel）は、リンクのときだけ a か render の要素（ルーターのリンク）に渡す。
+  // 書いていない属性は渡さない（render の側の値を消さない）
+  const newTab = isLink && target === '_blank';
   const linkRel = newTab ? (rel ?? 'noopener noreferrer') : rel;
   const own = {
-    ...props,
-    ...(href != null && { href }),
-    ...(anchor && target != null && { target }),
-    ...(anchor && linkRel != null && { rel: linkRel }),
+    // link={false} のときは、リンクだけの属性（download など）も描く要素に渡さない
+    ...(isLink ? props : withoutLinkAttributes(props)),
+    ...(isLink && href != null && { href }),
+    ...(isLink && target != null && { target }),
+    ...(isLink && linkRel != null && { rel: linkRel }),
     'data-slot': 'tag',
     'data-link': isLink || undefined,
     className: tag({ variant, color, size, link: isLink, className }),
@@ -207,5 +221,5 @@ export function Tag({
     ),
   };
   if (render) return cloneElement(render, own);
-  return createElement(href != null ? 'a' : 'span', own);
+  return createElement(isLink ? 'a' : 'span', own);
 }

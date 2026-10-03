@@ -1,7 +1,9 @@
 import { CalendarBlankIcon, HashIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { MouseEvent } from 'react';
-import { expect } from 'storybook/test';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+import { expect, spyOn } from 'storybook/test';
 
 import { Tag, type TagVariant } from './Tag';
 import { Avatar } from '../avatar/Avatar';
@@ -197,7 +199,7 @@ export const LinkResolution: Story = {
     docs: {
       description: {
         story:
-          '`link` の既定は `href` があるかどうかです。`href` があっても `link={false}` なら押せる見た目を付けません。新しいタブで開くときは、そのことを読み上げに添えます。',
+          '`link` の既定は `href` があるかどうかです。`link={false}` にすると、`href` を渡していてもリンクにせず、ただのタグとして描きます。`link` を付けたのに `href` も `render` もないときは、開発中に警告が出ます。新しいタブで開くときは、そのことを読み上げに添えます。',
       },
     },
   },
@@ -207,7 +209,7 @@ export const LinkResolution: Story = {
       <Tag {...args} href="#tags/design" onClick={stay}>
         href あり
       </Tag>
-      <Tag {...args} href="#tags/design" onClick={stay} link={false}>
+      <Tag {...args} href="#tags/design" target="_blank" onClick={stay} link={false}>
         link=false
       </Tag>
       <Tag {...args} render={<a href="#tags/design" onClick={stay} />} link>
@@ -225,13 +227,36 @@ export const LinkResolution: Story = {
     await expect(canvas.getByText('href なし').closest('[data-slot="tag"]')?.tagName).toBe('SPAN');
     const withHref = canvas.getByRole('link', { name: 'href あり' });
     await expect(withHref).toHaveAttribute('data-link');
-    await expect(canvas.getByRole('link', { name: 'link=false' })).not.toHaveAttribute('data-link');
+    // href と link={false}: span で描き、href・target・rel を付けず、読み上げの文も足さない
+    const off = canvas.getByText('link=false').closest('[data-slot="tag"]');
+    await expect(off?.tagName).toBe('SPAN');
+    await expect(off).not.toHaveAttribute('href');
+    await expect(off).not.toHaveAttribute('target');
+    await expect(off).not.toHaveAttribute('rel');
+    await expect(off).not.toHaveAttribute('data-link');
+    await expect(off?.textContent).not.toContain('新しいタブで開きます');
     await expect(canvas.getByRole('link', { name: 'render と link' })).toHaveAttribute('data-link');
     const newTab = canvas.getByRole('link', { name: /^新しいタブ\s*（/ });
     await expect(newTab).toHaveAttribute('rel', 'noopener noreferrer');
     const renderNewTab = canvas.getByRole('link', { name: /^render で新しいタブ\s*（/ });
     await expect(renderNewTab).toHaveAttribute('target', '_blank');
     await expect(renderNewTab).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(canvas.getAllByRole('link')).toHaveLength(4);
+
+    // link だけ（href も render もない）: 開発中に警告する
+    const warn = spyOn(console, 'warn').mockImplementation(() => {});
+    const root = createRoot(document.createElement('div'));
+    try {
+      flushSync(() => root.render(<Tag link>link だけ</Tag>));
+      await expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Tag: link を付けたタグには、href か、リンクの要素（render）を渡します'
+        )
+      );
+    } finally {
+      root.unmount();
+      warn.mockRestore();
+    }
   },
 };
 
