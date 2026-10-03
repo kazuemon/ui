@@ -29,6 +29,7 @@ const meta = {
           '- `markerType` は点の見せ方、`line` は項目をつなぐ縦の線で、どちらも Steps の点と線に合わせた種類と色です。既定はグレーの丸（`neutral`）と細い実線（`solid`）です。輪郭の丸（`outline`）・Primary の青の丸（`primary`）、点線（`dotted`）・線なし（`none`）も選べます。',
           '- 起きたことの結果を色で示すときは、状態の色の点（`success`・`warning`・`danger`）を使います。色だけに頼らず、題やアイコンでも伝えます。警告の点は、白地でも読めるオリーブ色が既定です。警告と一目で分かる黄色にしたいときは `warningColor="yellow"` にします。',
           '- `TimelineItem` の `icon` にアイコンを渡すと、点の代わりにアイコンを入れた丸を置きます。丸の色は点の種類に従います。丸の見せ方は `iconVariant` で選び、既定は点の色の塗りに白抜きのアイコン（`filled`）です。淡い面（`soft`）・細い輪郭（`outline`）・丸なしのアイコンだけ（`plain`）も選べます。',
+          '- アイコンは飾りとして扱い、読み上げません。題がなく、アイコンで状態を伝えるときは `iconName` に読み上げの名前（「完了」など）を渡します。',
           '- 点の種類は項目ごとに変えられます。`TimelineItem` にも `markerType` を渡せて、渡した項目だけ `Timeline` の指定を上書きします。',
           '- `markerSize` は点の大きさです。既定は `md` で、点を骨組みとして見せたいときは `lg`、さらに静かにしたいときは `sm` にします。',
           '- `tail="dotted"` にすると、最後の項目のあとに線が少しだけ点線で伸びて、年表がまだ続くことを見せます。',
@@ -596,6 +597,31 @@ export const Accessibility: Story = {
     await expect(items[0]).not.toHaveAttribute('data-emphasis');
     await expect(items[1]).toHaveAttribute('data-emphasis');
     await expect(items[1]).not.toHaveAttribute('aria-current');
+  },
+};
+
+export const IconName: Story = {
+  name: 'アイコンの名前',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Timeline>
+      <TimelineItem date="2026年8月" markerType="success" icon={<CheckIcon />} iconName="完了">
+        審査を通過しました。
+      </TimelineItem>
+      <TimelineItem date="2026年5月" title="入社" icon={<BriefcaseIcon />}>
+        フロントエンドを担当しました。
+      </TimelineItem>
+    </Timeline>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    // iconName を渡したアイコンは画像として名前を読む。渡さないアイコンは飾り
+    const named = canvas.getByRole('img', { name: '完了' });
+    await expect(named).toHaveAttribute('data-slot', 'timeline-icon');
+    await expect(named).not.toHaveAttribute('aria-hidden');
+    await expect(canvas.getAllByRole('img')).toHaveLength(1);
+    const icons = canvasElement.querySelectorAll('[data-slot="timeline-icon"]');
+    await expect(icons[1]).toHaveAttribute('aria-hidden', 'true');
+    await expect(icons[1]).not.toHaveAttribute('role');
   },
 };
 

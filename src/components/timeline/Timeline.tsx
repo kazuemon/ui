@@ -439,6 +439,11 @@ export interface TimelineItemProps extends Omit<ComponentProps<'li'>, 'title'> {
    */
   icon?: ReactNode;
   /**
+   * 画面に出ない、アイコンの読み上げだけの名前（「完了」「警告」など）。渡したときだけアイコンを画像として読み上げます。
+   * 渡さないときアイコンは飾りで、読み上げません。題がなく、アイコンで状態を伝えるときは `iconName` を渡してください
+   */
+  iconName?: string;
+  /**
    * この項目だけのアイコンの丸の見せ方。書かないときは Timeline の `iconVariant` に従います（Timeline の既定は filled）
    */
   iconVariant?: TimelineIconVariant;
@@ -459,6 +464,7 @@ export function TimelineItem({
   title,
   markerType: itemMarkerType,
   icon,
+  iconName,
   iconVariant: itemIconVariant,
   emphasis = false,
   className,
@@ -519,7 +525,7 @@ export function TimelineItem({
       >
         {hasIcon ? (
           <span
-            aria-hidden="true"
+            {...(iconName ? { role: 'img', 'aria-label': iconName } : { 'aria-hidden': true })}
             data-slot="timeline-icon"
             data-variant={iconVariant}
             className={iconMarker({ variant: iconVariant })}
