@@ -7,8 +7,12 @@ import {
   createContext,
   type ReactElement,
   type ReactNode,
+  useCallback,
   useContext,
+  useEffect,
   useId,
+  useRef,
+  useState,
 } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -20,6 +24,7 @@ import {
   withoutLinkAttributes,
 } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
+import { Heading, type HeadingProps } from '../heading/Heading';
 import { Image, type ImageProps } from '../image/Image';
 
 // カード — 軸 103・151
@@ -34,6 +39,11 @@ import { Image, type ImageProps } from '../image/Image';
 //     押すと沈む（影は hover のまま）。輪郭は hover でも変えない
 //     hover で画像を少し大きくする動き（--card-hover-media-scale）は、imageZoom を渡したときだけ（既定はなし）
 //     面の塗りは --card-fill（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+//   押すカード（onClick）は、カードを div のまま描き、中に見えない button（card-action）を置く
+//     button の疑似要素を inset 0 でカードいっぱいに広げ、押せる範囲を見た目の範囲にする（リンクのカードでよく使う広げ方のボタン版）
+//     カード全体を button で描くと、中の見出しや画像が HTML として不正になり、読み上げで中身全体が 1 つの名前になるため
+//     名前は CardTitle（aria-labelledby）か accessibleName。中に置くリンク・ボタンは、広げた範囲の上に出す（relative・z-index）
+//     フォーカスの線は、:focus-visible の button を含むカードの輪郭に出す
 //   新しいタブで開くときは、読み上げに「新しいタブで開きます」を足す（Link と同じ。原則7）
 //   押せる Card を Prose の中に置いても崩れないようにする（LinkCard と同じ書き方）
 //     Prose は中の a に文字のリンクの見た目を当てる。ここで同じ性質を書いて打ち消す（下線・余白・色）
@@ -53,6 +63,8 @@ const styles = tv({
       'data-selected:after:rounded-[calc(var(--radius-card)-var(--card-line-width))] data-selected:after:border-(color:--card-accent)',
       'data-selected:after:border-[length:calc(var(--card-selected-line-width)-var(--card-line-width))]',
     ],
+    // 押すカードの見えない button。疑似要素をカードいっぱいに広げる
+    action: '',
     body: 'flex flex-col gap-(--card-gap) p-(--card-body-padding)',
     // 頭の帯。左右の余白は中身とそろえ、上下は --card-header-padding-y。下の線（輪郭と同じ細い線）で中身と分ける
     header: [
@@ -127,7 +139,6 @@ const styles = tv({
       true: {
         root: [
           'top-0 m-0 cursor-pointer no-underline',
-          ...focusRing,
           'shadow-raised hover:shadow-raised-hover hover:[--card-fill:var(--card-fill-hover)]',
           'active:top-(--press-depth) active:shadow-(--shadow-raised-press)',
           '[transition:--card-fill_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -136,13 +147,30 @@ const styles = tv({
       },
       false: {},
     },
-    // button として描くとき（onClick）。ボタンの既定の寄せと幅を、カードに合わせる
+    // 押すカード（onClick）。フォーカスの線は、中の button が :focus-visible のときにカードの輪郭に出す
+    //   中に置いたリンク・ボタンなどは、button の広げた範囲（z-1）の上に出す
     button: {
-      true: { root: 'w-full text-left' },
+      true: {
+        root: [
+          '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
+          '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
+          'has-[[data-slot=card-action]:focus-visible]:[outline-width:var(--focus-ring-width)] has-[[data-slot=card-action]:focus-visible]:[outline-style:solid]',
+          'has-[[data-slot=card-action]:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
+          // 詳細度を 0 にし（:where）、中の要素が自分で決めた位置・重ね順を上書きしない。位置を持たない素の a などは relative にする
+          '[:where(&_:is(a[href],button,input,select,textarea,summary,label,[tabindex]):not([data-slot=card-action]))]:relative',
+          '[:where(&_:is(a[href],button,input,select,textarea,summary,label,[tabindex]):not([data-slot=card-action]))]:z-2',
+        ],
+        action: [
+          'm-0 size-0 cursor-pointer appearance-none border-0 bg-transparent p-0 outline-none',
+          "after:absolute after:inset-0 after:z-1 after:content-['']",
+        ],
+      },
       false: {},
     },
   },
   compoundVariants: [
+    // リンクのカードは、a そのものにフォーカスの線を出す
+    { interactive: true, button: false, class: { root: focusRing } },
     // Prose の a に当たる px-1 py-0.5 を打ち消す（nested は --card-nested-inset を持つので触らない）
     { variant: ['default', 'emphasis'], interactive: true, class: { root: 'p-0' } },
     // 塗って選んでいる押せるカードの hover。淡い面に線の色を少し混ぜる
@@ -188,7 +216,13 @@ export type CardColor = 'primary' | 'secondary' | 'neutral';
 export type CardSelectedIndicator = 'fill' | 'line';
 export type CardHeaderVariant = 'default' | 'filled';
 
-const CardContext = createContext<CardVariant>('default');
+interface CardContextValue {
+  variant: CardVariant;
+  /** CardTitle の id を、押すカードの button の名前として登録する。戻り値で外す */
+  registerTitle?: (id: string) => () => void;
+}
+
+const CardContext = createContext<CardContextValue>({ variant: 'default' });
 
 export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClick'> {
   /**
@@ -206,7 +240,7 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClic
   size?: CardSize;
   /**
    * 選んでいる見た目にします。押せるカードを選択肢として並べるときに使います。
-   * onClick で button として描くときは、読み上げに押している状態（aria-pressed）として伝えます
+   * onClick を渡した押すカードでは、読み上げに押している状態（aria-pressed）として伝えます
    */
   selected?: boolean;
   /**
@@ -231,10 +265,15 @@ export interface CardProps extends Omit<ComponentProps<'div'>, 'color' | 'onClic
    */
   link?: boolean;
   /**
-   * リンクにしない（href も link も渡さない）カードにこれを渡すと、カード全体が 1 つのボタン（button）になります。選ぶ・開くなど、ページを移らない操作に使います。
-   * 中にほかのリンクやボタンは置けません
+   * リンクにしない（href も link も渡さない）カードにこれを渡すと、カード全体が押せるボタンになります。選ぶ・開くなど、ページを移らない操作に使います。
+   * ボタンの名前は CardTitle の文です。CardTitle がないときは accessibleName を渡します。
+   * 中に置いたリンクやボタンは、それぞれ押せます
    */
-  onClick?: MouseEventHandler<HTMLElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  /**
+   * 押すカード（onClick）のボタンの、読み上げだけの名前。CardTitle がないときと、題と違う名前にしたいときに渡します
+   */
+  accessibleName?: string;
   /** href と一緒に渡すと、リンクの開き方になります（'_blank' で新しいタブ） */
   target?: string;
   /** href と一緒に渡すリンクの rel。新しいタブで開くときは noopener noreferrer を付けます */
@@ -267,6 +306,7 @@ export function Card({
   target,
   rel,
   onClick,
+  accessibleName,
   selected,
   selectedIndicator = 'fill',
   color = 'primary',
@@ -279,24 +319,40 @@ export function Card({
   const link = resolveLink(linkProp, href);
   if (link && href == null && render == null)
     warnOnce('Card: link を付けたカードには、href か、リンクの要素（render）を渡します');
-  // リンクにせず onClick だけのときは、カード全体を 1 つのボタンにする
-  const button = !link && onClick != null && render == null;
-  const interactive = link || onClick != null;
+  // リンクにせず onClick を渡したときは、見えない button をカードいっぱいに広げる
+  const button = !link && onClick != null;
+  const interactive = link || button;
+  // 押すカードの名前にする CardTitle の id。effect の中でも読めるよう ref にも置く
+  const [titleId, setTitleId] = useState<string | undefined>();
+  const titleRef = useRef<string | undefined>(undefined);
+  const registerTitle = useCallback((id: string) => {
+    titleRef.current = id;
+    setTitleId(id);
+    return () => {
+      if (titleRef.current !== id) return;
+      titleRef.current = undefined;
+      setTitleId(undefined);
+    };
+  }, []);
+  useEffect(() => {
+    if (button && accessibleName == null && titleRef.current == null)
+      warnOnce('Card: onClick を渡したカードには、CardTitle を置くか accessibleName を渡します');
+  }, [button, accessibleName]);
   const newTab = link && (target === '_blank' || opensNewTab(render));
   const noteId = useId();
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const s = styles({ variant, size, color, selectedIndicator, interactive, button });
   const element = useRender({
     render,
-    defaultTagName: link ? 'a' : button ? 'button' : 'div',
+    defaultTagName: link ? 'a' : 'div',
     props: {
       // link={false} のときは、リンクだけの属性（download など）も描く要素に渡さない
       ...(link ? props : withoutLinkAttributes(props)),
       // 渡していない属性は置かない（undefined を置くと、渡した要素が自分で付ける href などを消すため）
       ...(link &&
         definedOnly({ href, target, rel: newTab ? (rel ?? 'noopener noreferrer') : rel })),
-      ...(onClick != null && { onClick }),
-      ...(button && { type: 'button', 'aria-pressed': selected }),
+      // リンクのカードでは、onClick を a に付ける
+      ...(link && onClick != null && { onClick }),
       ...naming?.props,
       'data-slot': 'card',
       'data-variant': variant,
@@ -307,13 +363,28 @@ export function Card({
       className: s.root({ className }),
       children: (
         <>
+          {button && (
+            <button
+              type="button"
+              data-slot="card-action"
+              aria-pressed={selected}
+              aria-label={accessibleName}
+              aria-labelledby={accessibleName == null ? titleId : undefined}
+              onClick={onClick}
+              className={s.action()}
+            />
+          )}
           {children}
           {naming?.note}
         </>
       ),
     },
   });
-  return <CardContext value={variant}>{element}</CardContext>;
+  return (
+    <CardContext value={{ variant, registerTitle: button ? registerTitle : undefined }}>
+      {element}
+    </CardContext>
+  );
 }
 
 export interface CardHeaderProps extends ComponentProps<'div'> {
@@ -344,7 +415,7 @@ export function CardHeader({
   className,
   ...props
 }: CardHeaderProps) {
-  const cardVariant = useContext(CardContext);
+  const { variant: cardVariant } = useContext(CardContext);
   const s = styles({ variant: cardVariant, headerVariant: variant, hideDivider });
   return (
     <div
@@ -354,6 +425,30 @@ export function CardHeader({
       {...props}
     />
   );
+}
+
+export interface CardTitleProps extends HeadingProps {
+  /**
+   * 見出しの段
+   * @default 3
+   */
+  level?: HeadingProps['level'];
+  /**
+   * 見た目の大きさ
+   * @default 'md'
+   */
+  size?: HeadingProps['size'];
+}
+
+/**
+ * カードの題。見出し（Heading）で描きます。押すカード（onClick）では、これがボタンの名前になります
+ */
+export function CardTitle({ level = 3, size = 'md', id, ...props }: CardTitleProps) {
+  const { registerTitle } = useContext(CardContext);
+  const ownId = useId();
+  const titleId = id ?? ownId;
+  useEffect(() => registerTitle?.(titleId), [registerTitle, titleId]);
+  return <Heading data-slot="card-title" level={level} size={size} id={titleId} {...props} />;
 }
 
 export interface CardBodyProps extends ComponentProps<'div'> {
@@ -381,7 +476,7 @@ export function CardImage({
   frameProps,
   ...props
 }: CardImageProps) {
-  const variant = useContext(CardContext);
+  const { variant } = useContext(CardContext);
   const nested = variant === 'nested';
   return (
     <Image

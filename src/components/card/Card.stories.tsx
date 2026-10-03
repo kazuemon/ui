@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps, ReactNode } from 'react';
-import { expect } from 'storybook/test';
+import { expect, fn, userEvent } from 'storybook/test';
 
-import { Card, CardBody, CardHeader, CardImage } from './Card';
+import { Card, CardBody, CardHeader, CardImage, CardTitle } from './Card';
 import { landscape } from '../../samples/images';
 import { DensityPair, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
@@ -40,7 +40,7 @@ const meta = {
           '- `href` を渡すと、カード全体が 1 つのリンクになります。Next.js・TanStack Router の `Link` は `render` に渡し、`link` を付けます。`target="_blank"` のときは、読み上げに「新しいタブで開きます」を足します。',
           '- カード全体がリンクになるので、中にほかのリンクやボタンは置けません。置きたいときは `href` を渡さず、題をリンクにします。',
           '- 全体が押せるカードは、ボタンと同じ薄い影で浮かせます。hover で影が減って面が淡く塗られ、押すと沈みます。押せないカードには影を付けません。',
-          '- `href` を渡さずに `onClick` を渡すと、カード全体が 1 つのボタンになります。選ぶ・開くなど、ページを移らない操作に使います。',
+          '- `href` を渡さずに `onClick` を渡すと、カード全体が押せるボタンになります。選ぶ・開くなど、ページを移らない操作に使います。題は `CardTitle` に入れると、それがボタンの名前になります。題がないときは `accessibleName` を渡します。中に置いたリンクやボタンは、それぞれ押せます。',
           '- 選択肢として並べるときは、選んでいるカードに `selected` を付けます。ボタンのときは、読み上げに押している状態として伝えます。既定では面を淡く塗って線を重ね、`selectedIndicator="line"` で線だけにします。色は `color`（`primary`・`secondary`・`neutral`）で選びます。',
           '- 題と操作を 1 行に並べる帯は `CardHeader` に入れ、カードのいちばん上に置きます。下の線で中身と分けます。`variant="filled"` で帯を淡いグレーで塗り、`hideDivider` で線を消します。',
           '- 並べたカードのうち 1 枚（おすすめなど）を目立たせるときは、`variant="emphasis"` にします。面と輪郭はそのままで、輪郭の外に淡い輪を足します。輪の色は `color` で選びます。',
@@ -446,7 +446,7 @@ export const Selected: Story = {
     },
     pseudo: statePseudo({
       hover: '[data-slot="card"]',
-      focusVisible: '[data-slot="card"]',
+      focusVisible: '[data-slot="card-action"]',
     }),
   },
   render: () => (
@@ -471,9 +471,7 @@ export const Selected: Story = {
           color={color}
         >
           <CardBody>
-            <Heading level={3} size="md">
-              スタンダード
-            </Heading>
+            <CardTitle>スタンダード</CardTitle>
             <Text size="sm" variant="muted">
               月 500 円
             </Text>
@@ -494,9 +492,7 @@ const Plan = ({
       <Text size="sm" variant="subtle">
         {props.variant === 'emphasis' ? 'おすすめ' : 'プラン'}
       </Text>
-      <Heading level={3} size="md">
-        {name}
-      </Heading>
+      <CardTitle>{name}</CardTitle>
       <Text size="sm" variant="muted">
         {price}
       </Text>
@@ -524,7 +520,7 @@ export const Emphasis: Story = {
     },
     pseudo: statePseudo({
       hover: '[data-slot="card"]',
-      focusVisible: '[data-slot="card"]',
+      focusVisible: '[data-slot="card-action"]',
     }),
   },
   render: () => (
@@ -624,27 +620,78 @@ export const Header: Story = {
 export const ButtonCard: Story = {
   name: '押すカード（ボタン）',
   decorators: [narrow],
-  render: () => (
+  args: { onClick: fn() },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`onClick` を渡すと、カード全体が押せるボタンになります。`CardTitle` の文がボタンの名前になり、`selected` は押している状態として伝わります。題がないときは `accessibleName` で名前を付けます。中に置いたリンクやボタンは、それぞれ押せます。',
+      },
+      source: sourceCode(`
+        <Card onClick={() => choose('standard')} selected={plan === 'standard'}>
+          <CardBody>
+            <CardTitle>スタンダード</CardTitle>
+            <Text size="sm" variant="muted">月 500 円</Text>
+          </CardBody>
+        </Card>
+      `),
+    },
+  },
+  render: (args) => (
     <div className="flex flex-col gap-3">
-      <Card onClick={() => {}} selected={false}>
+      <Card onClick={args.onClick} selected={false}>
         <CardBody>
-          <Content title="フリー" />
+          <CardTitle>フリー</CardTitle>
+          <Text size="sm" variant="muted">
+            0 円
+          </Text>
         </CardBody>
       </Card>
-      <Card onClick={() => {}} selected>
+      <Card onClick={args.onClick} selected>
         <CardBody>
-          <Content title="スタンダード" />
+          <CardTitle>スタンダード</CardTitle>
+          <Text size="sm" variant="muted">
+            月 500 円。<a href="#details">くわしい違い</a>
+          </Text>
         </CardBody>
+      </Card>
+      <Card onClick={args.onClick} accessibleName="画像だけのカード">
+        <CardImage src={landscape} alt="" />
       </Card>
     </div>
   ),
-  play: async ({ canvas }) => {
-    // onClick だけのカードは button になり、selected は押している状態で伝わる
-    const buttons = canvas.getAllByRole('button');
-    await expect(buttons).toHaveLength(2);
-    await expect(buttons[0]).toHaveAttribute('aria-pressed', 'false');
-    await expect(buttons[1]).toHaveAttribute('aria-pressed', 'true');
-    await expect(buttons[1]).toHaveAttribute('type', 'button');
+  play: async ({ args, canvas }) => {
+    // カードは div のまま、中の button が CardTitle の文を名前にする
+    const free = canvas.getByRole('button', { name: 'フリー' });
+    const standard = canvas.getByRole('button', { name: 'スタンダード' });
+    await expect(free).toHaveAttribute('aria-pressed', 'false');
+    await expect(standard).toHaveAttribute('aria-pressed', 'true');
+    await expect(standard).toHaveAttribute('type', 'button');
+    await expect(standard.closest('[data-slot="card"]')?.tagName).toBe('DIV');
+    // 題がないカードは accessibleName が名前になる
+    await expect(canvas.getByRole('button', { name: '画像だけのカード' })).toBeInTheDocument();
+
+    // カードのどこを押しても（題の外の文でも）、その場所にあるのはボタン（広げた範囲）
+    const centerOf = (element: Element) => {
+      const rect = element.getBoundingClientRect();
+      return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    };
+    const onText = centerOf(canvas.getByText('0 円'));
+    await expect(onText).toBe(free);
+    await userEvent.click(onText!);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+    await expect(free).toHaveFocus();
+
+    // キーボードで次のボタンに来ると、カードの輪郭にフォーカスの線が出る
+    await userEvent.tab();
+    await expect(standard).toHaveFocus();
+    await expect(getComputedStyle(standard.closest('[data-slot="card"]')!).outlineStyle).toBe(
+      'solid'
+    );
+
+    // 中のリンクは、広げた範囲の上に出る（押すとリンクだけが押される）
+    const link = canvas.getByRole('link', { name: 'くわしい違い' });
+    await expect(link.contains(centerOf(link))).toBe(true);
   },
 };
 

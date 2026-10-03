@@ -106,6 +106,8 @@ export {
   type CardProps,
   type CardSelectedIndicator,
   type CardSize,
+  CardTitle,
+  type CardTitleProps,
   type CardVariant,
 } from './components/card/Card';
 export {

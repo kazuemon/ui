@@ -40,6 +40,7 @@
 - `src/components/card/Card.tsx`: `selected`・`selectedIndicator`（`fill`・`line`、既定 `fill`）を持ちます
 - `design/tokens.css`: `--card-selected-line-width`・`--card-selected-hover-mix` を持ちます。比べるためだった線・面の色のトークンは消し、色は `color` から部品が作ります
 - 選んでいる線は、輪郭そのものを線の色にし、残りの幅を内側に重ねて描きます。輪郭の外に重ねるとカードの切り取り（overflow-hidden）で外側の 1px が欠けるためです
+- 押すカード（`onClick`）は、カードを div のまま描き、中の見えない button の押せる範囲をカードいっぱいに広げます。`aria-pressed` はその button に付き、名前は `CardTitle` の文か `accessibleName` です。フォーカスの線はカードの輪郭に出します
 
 ## 原則への反映
 
