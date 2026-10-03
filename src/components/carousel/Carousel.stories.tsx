@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Image } from '../image/Image';
@@ -31,7 +31,11 @@ const meta = {
           '- `peek` を付けると、1 枚を少し狭くして中央に止め、両隣のスライドの端を少し見せます。既定は 1 枚を幅いっぱいに見せます。',
           '- `thumbnails` に `Thumbnails` を渡すと、小さな画像の帯で、いまの 1 枚を示して切り替えられます。Thumbnails だけで位置を示す（`indicator="none"`、既定）なら、`controlsPosition="overlay"` と組むと、下に空いた行が残りません。',
           '- `accessibleName` に、何の並びか（「作品の画面」など）を書きます。読み上げでは、いまの 1 枚が変わるたびに「3 / 5」を読みます。',
-          '- いまの 1 枚は `value`・`defaultValue`・`onValueChange` で扱います（0 から数えます）。端でつながる送り方と、自動で送る動きは持ちません。',
+          '- `slidesPerView` で 1 画面に複数枚を並べます。数か、画面の幅の段ごとの数（`{ base: 1, md: 3 }`。Grid の `columns` と同じ段）を渡します。送るのは 1 枚ずつで、位置の印は止まる位置の数を示します。',
+          '- `loop` を付けると端でつながり、最後の次は最初へ、最初の前は最後へ戻ります。',
+          '- `autoPlay` を付けると、`autoPlayInterval`（既定 5 秒）ごとに自動で送ります。止めるボタンが付き、マウスを載せているあいだと、キーボードで中に入ったあいだも止まります。動きを減らす設定では、止めた状態で始まります。',
+          '- `thumbnailsPlacement` で Thumbnails の置き場所を選びます。`bottom`（既定）は枠の下、`start`・`end` は枠の横に縦に並べます。横に置いた帯では、選んでいる棒をスライドの側に、スクロールのつまみを外側に置きます。',
+          '- いまの 1 枚は `value`・`defaultValue`・`onValueChange` で扱います（0 から数えます）。',
         ].join('\n'),
       },
     },
@@ -159,6 +163,157 @@ export const Variants: Story = {
     await waitFor(() => expect(offCenter()).toBeLessThan(1));
     await expect(peekSlide.offsetWidth).toBeLessThan(peekViewport.clientWidth * 0.9);
   },
+};
+
+export const AutoPlay: Story = {
+  name: '自動で送る',
+  decorators: [narrow],
+  args: { autoPlay: true, loop: true },
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        <Carousel accessibleName="作品の画面" autoPlay loop>
+          <Image ratio={16 / 9} src="/works/top.png" alt="トップページ" />
+          <Image ratio={16 / 9} src="/works/list.png" alt="作品の一覧" />
+          <Image ratio={16 / 9} src="/works/detail.png" alt="作品の詳細" />
+        </Carousel>
+      `),
+    },
+  },
+  play: async ({ canvas, canvasElement }) => {
+    // 止めるボタンで止め、もう一度押すと送りはじめる。止めているあいだは位置を読み上げる（送っているあいだは黙る）
+    //   動きを減らす設定（テストはこの設定で流す）では、止めた状態で始まる
+    //   始めるボタンを押したら、マウスを載せたままでもすぐ送りはじめる
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const live = canvasElement.querySelector('[aria-live]')!;
+    if (!reduced) await userEvent.click(canvas.getByRole('button', { name: '自動の送りを止める' }));
+    const button = canvas.getByRole('button', { name: '自動の送りを始める' });
+    await expect(live).toHaveAttribute('aria-live', 'polite');
+    await userEvent.click(button);
+    await expect(button).toHaveAccessibleName('自動の送りを止める');
+    await expect(live).toHaveAttribute('aria-live', 'off');
+    await userEvent.click(button);
+    await expect(button).toHaveAccessibleName('自動の送りを始める');
+    await expect(live).toHaveAttribute('aria-live', 'polite');
+  },
+};
+
+export const AutoPlayButton: Story = {
+  tags: ['visual'],
+  name: '自動で送る（止めるボタン）',
+  decorators: [narrow],
+  args: { autoPlay: true, loop: true, autoPlayInterval: 1_000_000 },
+};
+
+export const Loop: Story = {
+  name: '端でつなぐ',
+  decorators: [narrow],
+  args: { loop: true, defaultValue: 4 },
+  play: async ({ canvas, canvasElement }) => {
+    // 最後の 1 枚の次は最初へ戻る。端でも前へ・次へは押せる
+    const next = canvas.getByRole('button', { name: '次のスライド' });
+    await expect(next).toBeEnabled();
+    await userEvent.click(next);
+    await waitFor(() =>
+      expect(
+        canvasElement
+          .querySelector('[data-slot="carousel-slide"][data-current]')
+          ?.getAttribute('aria-label')
+      ).toBe('1 / 5')
+    );
+  },
+};
+
+export const SlidesPerView: Story = {
+  tags: ['visual'],
+  name: '複数枚を並べる',
+  args: { slidesPerView: { base: 1, sm: 2, md: 3 } },
+  parameters: {
+    docs: {
+      source: sourceCode(`
+        <Carousel accessibleName="作品の画面" slidesPerView={{ base: 1, sm: 2, md: 3 }}>
+          …
+        </Carousel>
+      `),
+    },
+  },
+};
+
+// 並べる数を変えたら、止まる位置の数（位置の印）も変わる。枠の大きさが変わらないときも測り直す
+function PerViewSwitch() {
+  const [perView, setPerView] = useState(2);
+  return (
+    <div className="flex flex-col gap-4">
+      <button type="button" onClick={() => setPerView(3)}>
+        3 枚にする
+      </button>
+      <Carousel accessibleName="作品の画面" slidesPerView={perView}>
+        {/* 高さの決まったスライド（並べる数を変えても枠の大きさが変わらない） */}
+        {screens.map((screen) => (
+          <div key={screen.alt} className="h-32 bg-surface">
+            {screen.alt}
+          </div>
+        ))}
+      </Carousel>
+    </div>
+  );
+}
+
+export const SlidesPerViewChange: Story = {
+  name: '並べる数を変える',
+  render: () => <PerViewSwitch />,
+  play: async ({ canvas, canvasElement }) => {
+    const dots = () =>
+      canvasElement.querySelector('[data-slot="carousel-dots"]')!.childElementCount;
+    // 5 枚を 2 枚ずつ並べると、止まる位置は 4 つ
+    await waitFor(() => expect(dots()).toBe(4));
+    await userEvent.click(canvas.getByRole('button', { name: '3 枚にする' }));
+    // 枠の幅が同じでも、1 枚の幅が変わったら測り直す（止まる位置は 3 つ）
+    await waitFor(() => expect(dots()).toBe(3));
+  },
+};
+
+export const ThumbnailsAside: Story = {
+  name: 'Thumbnails を横に置く',
+  args: {
+    thumbnails: <Thumbnails>{thumbs}</Thumbnails>,
+    thumbnailsPlacement: 'start',
+    indicator: undefined,
+    controlsPosition: 'overlay',
+  },
+  decorators: [(Story: () => ReactNode) => <div className="max-w-2xl">{Story()}</div>],
+};
+
+// 枠の左と右に置いた帯。帯に載せて、スクロールのつまみを出した形
+export const ThumbnailsSides: Story = {
+  tags: ['visual'],
+  name: 'Thumbnails を横に置く（左・右）',
+  parameters: {
+    controls: { disable: true },
+    pseudo: statePseudo({ hover: '[data-slot="thumbnails-frame"]' }),
+  },
+  render: () => (
+    // 帯の外側のつまみが画面の端で切れないよう、両側を空ける
+    <div className="px-4">
+      <Gallery columnWidth="24rem">
+        {(['start', 'end'] as const).map((placement) => (
+          <Specimen key={placement} label={`thumbnailsPlacement="${placement}"（帯に hover）`}>
+            <div data-preview="hover">
+              <Carousel
+                accessibleName="作品の画面"
+                defaultValue={1}
+                controlsPosition="overlay"
+                thumbnailsPlacement={placement}
+                thumbnails={<Thumbnails>{thumbs}</Thumbnails>}
+              >
+                {slides}
+              </Carousel>
+            </div>
+          </Specimen>
+        ))}
+      </Gallery>
+    </div>
+  ),
 };
 
 export const WithThumbnails: Story = {

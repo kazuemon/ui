@@ -4,13 +4,20 @@ import { type CarouselProps, CarouselView } from './CarouselBase';
 import { useCarouselState } from './use-carousel-state';
 import { useScrollSnapEngine } from './use-scroll-snap-engine';
 
-export type { CarouselControlsPosition, CarouselIndicator, CarouselProps } from './CarouselBase';
+export type {
+  CarouselControlsPosition,
+  CarouselIndicator,
+  CarouselProps,
+  CarouselSlidesPerView,
+  CarouselThumbnailsPlacement,
+} from './CarouselBase';
 
 /**
  * 横に送って 1 枚ずつ見せる並び。作品のスクリーンショットや、記事の中の数枚の画像に使います
  *
  * 並べた子の 1 つずつが 1 枚になります。指・トラックパッドの横スクロール、前へ・次へのボタン、
- * 枠にフォーカスしたときの ←→ で送ります。端でつながる送り方と、自動で送る動きは持ちません。
+ * 枠にフォーカスしたときの ←→ で送ります。`loop` で端をつなぎ、`autoPlay` で自動で送ります（止めるボタンが付きます）。
+ * `slidesPerView` で 1 画面に複数枚を並べられます。
  * `thumbnails` に Thumbnails を渡すと、小さな画像の帯で、いまの 1 枚を示して切り替えられます。
  */
 export function Carousel({

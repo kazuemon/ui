@@ -27,6 +27,7 @@ import {
   withRenderOverrides,
 } from '../../internal/link-parts';
 import { type LoadingIndicator, LoadingBar, Spinner } from '../loading/Loading';
+import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { tv } from '../../internal/tv';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
@@ -122,6 +123,17 @@ const button = tv({
       neutral: '',
       white: '',
     },
+    // 大きさの段（軸 461）。sm は密度の寸法（高さ・左右の余白・文字・アイコン）を、自分の中だけ小さい段に差し替える
+    //   密度では変えない（指でも同じ高さ。見た目の釣り合いのため、指で押せる高さを割る）
+    //   中の回る円・アイコンも --spacing-icon を読むので、一緒に小さくなる。値は design/tokens.css の *-sm
+    size: {
+      md: '',
+      sm: [
+        '[--spacing-control:var(--spacing-control-sm)]',
+        '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
+        '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
+      ],
+    },
   },
   compoundVariants: [
     {
@@ -195,7 +207,7 @@ const button = tv({
       ],
     },
   ],
-  defaultVariants: { variant: 'filled', color: 'neutral' },
+  defaultVariants: { variant: 'filled', color: 'neutral', size: 'md' },
 });
 
 // アイコンだけのボタン（iconOnly）: 部品の高さの正方形（幅の下限を高さと同じにし、左右の余白をなくす）
@@ -338,6 +350,21 @@ export interface ButtonProps extends ButtonBaseProps, ButtonCaptionProps {
    * @default 'neutral'
    */
   color?: VariantProps<typeof button>['color'];
+  /**
+   * 大きさ。sm は表の行や小さな面の中に置く、一段小さいボタンです。
+   * 指で操作するときも同じ大きさで、押せる高さ（44px）より低くなります。指で押すことが多い画面の主な操作には md を使います
+   * @default 'md'
+   */
+  size?: VariantProps<typeof button>['size'];
+  /**
+   * 押せないとき（disabled）も、Tab で止まるようにします。ボタンは aria-disabled で押せないことを伝え、
+   * 押しても onClick を呼びません（フォームも送信しません）。見た目は押せないボタンと同じです。
+   * 押せない理由を Tooltip で出すときや、押せなくなってもフォーカスを外したくないときに使います。
+   * Tooltip の本体にしたボタンは、渡さなくてもこの形になります（false を渡すと、ふつうの押せないボタンに戻ります）。
+   * 効くのは Tooltip の本体そのものにしたボタンだけです。入れ物（ツールバーなど）を本体にしたときは、中のボタンには効きません
+   * @default Tooltip の本体なら true、それ以外は false
+   */
+  focusableWhenDisabled?: boolean;
 }
 
 /** アイコンだけのボタン（iconOnly）の props。読み上げの名前（aria-label）が要ります */
@@ -430,6 +457,7 @@ export interface ButtonLinkProps extends ButtonLinkBaseProps, ButtonCaptionProps
 export function ButtonLink({
   variant,
   color,
+  size,
   className,
   render,
   loading,
@@ -483,6 +511,7 @@ export function ButtonLink({
       className: button({
         variant,
         color,
+        size,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       }),
       children: (
@@ -526,6 +555,7 @@ export function Button(allProps: ButtonProps | ButtonIconOnlyProps) {
 function NativeButton({
   variant,
   color,
+  size,
   className,
   type = 'button',
   loading,
@@ -534,12 +564,15 @@ function NativeButton({
   caption,
   iconOnly = false,
   shape = 'square',
+  focusableWhenDisabled: focusableWhenDisabledProp,
+  disabled,
   onClick,
   children,
   ref,
   'aria-describedby': ariaDescribedBy,
+  [TOOLTIP_TRIGGER]: tooltipTrigger,
   ...props
-}: ButtonProps | ButtonIconOnlyProps) {
+}: (ButtonProps | ButtonIconOnlyProps) & TooltipTriggerMarkProps) {
   if (iconOnly && !props['aria-label'] && !props['aria-labelledby'])
     warnOnce('Button: アイコンだけのボタン（iconOnly）には aria-label で読み上げの名前を付けます');
   const captionId = useId();
@@ -558,6 +591,12 @@ function NativeButton({
   const formBusy = submit && loading === undefined && form.submitting;
   // busy: 押せない見た目にし、押しても何もしない。marked: 送信中の印（回る円・線）を出す
   const busy = loading ?? formBusy;
+  // フォーカスできる押せないボタン（focusableWhenDisabled）: disabled 属性を付けず、aria-disabled と data-disabled で描く
+  //   見た目は押せないボタンと同じ（data-disabled: は disabled: と同じ指定）。押しても何もしない
+  //   Tooltip の本体のときは既定でこの形にする（押せない理由を Tooltip で出せるように）。明示した値はそちらを優先する
+  //   Tooltip の本体かは、Tooltip が本体の要素にだけ足す印で見る（入れ物や自作の部品の中のボタンには届かない）
+  const focusableWhenDisabled = focusableWhenDisabledProp ?? tooltipTrigger !== undefined;
+  const softDisabled = disabled === true && focusableWhenDisabled;
   const marked = loading ?? (formBusy && self !== null && form.submitter === self);
   // 回る円は、ラベルに重ねる（既定）か、ラベルの左に置く（inlineSpinner）。線のときは inlineSpinner を見ない
   const overlay = marked && loadingIndicator === 'spinner' && !inlineSpinner;
@@ -566,13 +605,20 @@ function NativeButton({
     <button
       type={type}
       {...props}
+      disabled={softDisabled ? undefined : disabled}
       ref={submit ? setRefs : ref}
-      aria-describedby={joinIds(ariaDescribedBy, caption ? captionId : undefined)}
+      // 押せないまま Tooltip の本体にしたときは、Tooltip の文（押せない理由）も説明に結ぶ
+      aria-describedby={joinIds(
+        ariaDescribedBy,
+        caption ? captionId : undefined,
+        softDisabled ? tooltipTrigger : undefined
+      )}
       data-loading={busy || undefined}
+      data-disabled={softDisabled || undefined}
       aria-busy={marked || undefined}
-      aria-disabled={busy || props['aria-disabled']}
+      aria-disabled={busy || softDisabled || props['aria-disabled']}
       onClick={(event) => {
-        if (busy) {
+        if (busy || softDisabled) {
           event.preventDefault();
           return;
         }
@@ -584,6 +630,7 @@ function NativeButton({
       className={button({
         variant,
         color,
+        size,
         className: [iconOnly && iconOnlyClass[shape], caption ? undefined : className],
       })}
     >
