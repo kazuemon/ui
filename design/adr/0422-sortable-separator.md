@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `79d885a` の比較のストーリー（`design/stories/axis-483-sortable-separator.stories.tsx`）です。列は項目の面（card・fill・divided）です。
+比較は、決めた時点のコミット `292fd64` の比較のストーリー（`design/stories/axis-483-sortable-separator.stories.tsx`）です。列は項目の面（card・fill・divided）です。
 
 | 案                | 文字             | 線               | 面               |
 | ----------------- | ---------------- | ---------------- | ---------------- |
@@ -41,7 +41,7 @@
 ## 影響
 
 - `src/components/sortable/Sortable.tsx`: `SortableSeparator` に `showDivider`（既定 `false`）を持ちます
-- `design/tokens.css`: 比べるためだけに置いた `--sortable-separator-fg`・`--sortable-separator-line-width`・`--sortable-separator-bg`・`--sortable-separator-px` は `24d9d48` で消し、`showDivider` の variant に畳みました。上の空きは `--sortable-separator-pt`（文字だけ）と `--sortable-separator-divider-pt`（線を引くとき）です
+- `design/tokens.css`: 比べるためだけに置いた `--sortable-separator-fg`・`--sortable-separator-line-width`・`--sortable-separator-bg`・`--sortable-separator-px` は `5b3b0a1` で消し、`showDivider` の variant に畳みました。上の空きは `--sortable-separator-pt`（文字だけ）と `--sortable-separator-divider-pt`（線を引くとき）です
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -52,4 +52,4 @@
 
 ![並べ替えの動かさない行の比較。現行版・A〜C を、card・fill・divided の 3 列で並べたもの。A・B に採用の印](./assets/0422-sortable-separator.png)
 
-決めた時点のコミットは `79d885a`（比較）・`24d9d48`（実装）です。`git checkout 79d885a && pnpm storybook` で、比較のストーリー（`Design Review/483 並べ替えの動かさない行`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `292fd64`（比較）・`5b3b0a1`（実装）です。`git checkout 292fd64 && pnpm storybook` で、比較のストーリー（`Design Review/483 並べ替えの動かさない行`）を決めたときの部品のまま開けます。

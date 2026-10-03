@@ -10,7 +10,7 @@ Sortable で表の行（DataTable の行）を並べ替えられるようにし�
 
 ## 候補
 
-比較は、決めた時点のコミット `79d885a` の比較のストーリー（`design/stories/axis-481-sortable-row-grab.stories.tsx`）です。列は「通常」「つまみに hover」「つまみにフォーカス」です。
+比較は、決めた時点のコミット `292fd64` の比較のストーリー（`design/stories/axis-481-sortable-row-grab.stories.tsx`）です。列は「通常」「つまみに hover」「つまみにフォーカス」です。
 
 | 案                    | 掴む場所                        | 列                          |
 | --------------------- | ------------------------------- | --------------------------- |
@@ -54,4 +54,4 @@ Sortable で表の行（DataTable の行）を並べ替えられるようにし�
 
 ![表の行の掴む場所の比較。現行版・A〜D を、通常・つまみに hover・つまみにフォーカスの 3 列で並べたもの。A・C に採用の印](./assets/0420-sortable-row-handle-column.png)
 
-決めた時点のコミットは `79d885a`（比較）・`24d9d48`（実装）です。`git checkout 79d885a && pnpm storybook` で、比較のストーリー（`Design Review/481 表の行の掴む場所`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `292fd64`（比較）・`5b3b0a1`（実装）です。`git checkout 292fd64 && pnpm storybook` で、比較のストーリー（`Design Review/481 表の行の掴む場所`）を決めたときの部品のまま開けます。

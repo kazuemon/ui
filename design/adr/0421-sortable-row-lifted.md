@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `79d885a` の比較のストーリー（`design/stories/axis-482-sortable-row-lifted.stories.tsx`）です。列は表の見た目（lines・framed・banded）で、どれも 2 行目を引いているところです。
+比較は、決めた時点のコミット `292fd64` の比較のストーリー（`design/stories/axis-482-sortable-row-lifted.stories.tsx`）です。列は表の見た目（lines・framed・banded）で、どれも 2 行目を引いているところです。
 
 | 案        | 面           | 影                   | 大きさ   |
 | --------- | ------------ | -------------------- | -------- |
@@ -35,7 +35,7 @@
 
 > 外枠のある表、のイメージです。
 
-はじめの実装（`24d9d48`）は「枠の中」をすべての表の行と読み、どの表でも大きくしない形にしていました。確かめの答えを受けて、いったん外枠のある表だけに絞りました（`ed89a2f`）。その後のレビューで、lines・banded の表でも行は幅いっぱいに並び、大きくすると同じくはみ出すことを挙げ、表の行は形によらず大きくしない形に戻すことを勧めました。ユーザーの返事の原文です。
+はじめの実装（`5b3b0a1`）は「枠の中」をすべての表の行と読み、どの表でも大きくしない形にしていました。確かめの答えを受けて、いったん外枠のある表だけに絞りました（`d4f1b23`）。その後のレビューで、lines・banded の表でも行は幅いっぱいに並び、大きくすると同じくはみ出すことを挙げ、表の行は形によらず大きくしない形に戻すことを勧めました。ユーザーの返事の原文です。
 
 > お勧めで OK
 
@@ -48,7 +48,7 @@
 
 - `src/components/sortable/Sortable.tsx`: 表の行（`data-dragging`）には、リストと同じ面と影を、押す動きと同じ長さ・緩急で付けます。大きさは変えません
 - 外枠のある表だけに絞ったときに足した、表の見た目を中の部品に渡す context（`TableVariantContext`）は、表の形で分けなくなったので消しました
-- 比べるためだけに置いた `--sortable-row-lifted-bg`・`--sortable-row-lifted-shadow`・`--sortable-row-lifted-scale` は、`24d9d48` で消し、リストの `--sortable-lifted-*` に畳みました
+- 比べるためだけに置いた `--sortable-row-lifted-bg`・`--sortable-row-lifted-shadow`・`--sortable-row-lifted-scale` は、`5b3b0a1` で消し、リストの `--sortable-lifted-*` に畳みました
 - `Components/Sortable` に「表の行を引いているとき」を足し、play で lines・framed・banded のどれでも大きくせず、影を付けることを確かめます
 - divided のリストの持ち上げた写しは、DragOverlay の中では既定の card で描かれます（未決として backlog に残しました）
 - 比較のストーリーは消しました
@@ -61,4 +61,4 @@
 
 ![表の動かしている行の比較。現行版・A〜C を、lines・framed・banded の 3 列で並べたもの。現行版・A に採用の印](./assets/0421-sortable-row-lifted.png)
 
-決めた時点のコミットは `79d885a`（比較）・`24d9d48`（実装）・`ed89a2f`（外枠のある表だけに絞った直し）です。表の形によらず大きくしない形に戻した直しは、このあとのコミットです。`git checkout 79d885a && pnpm storybook` で、比較のストーリー（`Design Review/482 表の動かしている行`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `292fd64`（比較）・`5b3b0a1`（実装）・`d4f1b23`（外枠のある表だけに絞った直し）です。表の形によらず大きくしない形に戻した直しは `76c0b73` です。`git checkout 292fd64 && pnpm storybook` で、比較のストーリー（`Design Review/482 表の動かしている行`）を決めたときの部品のまま開けます。

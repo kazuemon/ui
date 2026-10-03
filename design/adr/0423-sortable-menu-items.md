@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `79d885a` の比較のストーリー（`design/stories/axis-484-sortable-menu-layout.stories.tsx`）です。列は「︙ を開いたところ」「項目を足したとき」です。メニューは同時に開いているので、下の行の面が上の行に重なって写っています。
+比較は、決めた時点のコミット `292fd64` の比較のストーリー（`design/stories/axis-484-sortable-menu-layout.stories.tsx`）です。列は「︙ を開いたところ」「項目を足したとき」です。メニューは同時に開いているので、下の行の面が上の行に重なって写っています。
 
 | 案             | 移す先・入れ替え                                       |
 | -------------- | ------------------------------------------------------ |
@@ -44,7 +44,7 @@
 
 - `src/components/sortable/Sortable.tsx`・`SortableTableBody.tsx`: `hideMoveItems`（既定 `false`）を持ちます。`SortableItem` の `menu` はそのまま残します
 - `src/components/sortable/SortableMoveActions.tsx`: `useSortableItemActions` と型 `SortableItemActionsValue` を公開します（`src/index.ts`）
-- 比較のために足した `moveTargets`・`onMoveToTarget`・`moveToTargetLabel`・`moveTargetsTitle`・`showSwapActions`・`swapLabel`・`swapTitle`・`menuLayout` と、型 `SortableMoveTarget`・`SortableMenuLayout` は `24d9d48` で消しました。どれもこのブランチ（`4cf00c3`）で足して消したもので、main（`03af00f`）には一度も入っていないので、利用者への破壊的変更にはなりません
+- 比較のために足した `moveTargets`・`onMoveToTarget`・`moveToTargetLabel`・`moveTargetsTitle`・`showSwapActions`・`swapLabel`・`swapTitle`・`menuLayout` と、型 `SortableMoveTarget`・`SortableMenuLayout` は `5b3b0a1` で消しました。どれもこのブランチ（`c5fa0ff`）で足して消したもので、main（`03af00f`）には一度も入っていないので、利用者への破壊的変更にはなりません
 - `src/recipes/sortable-move-between-lists.tsx` と `Recipes/Sortable` に、︙ のメニューに「〜へ移動」を足して 2 つのリストのあいだで移す見本を置きました
 - 比較のストーリーは消しました
 
@@ -56,4 +56,4 @@
 
 ![並べ替えのメニューの移す先の比較。現行版・A〜C を、︙ を開いたところ・項目を足したときの 2 列で並べたもの。現行版に採用の印](./assets/0423-sortable-menu-items.png)
 
-決めた時点のコミットは `79d885a`（比較）・`24d9d48`（実装）です。`git checkout 79d885a && pnpm storybook` で、比較のストーリー（`Design Review/484 並べ替えのメニューの移す先`）を決めたときの部品のまま開けます。
+決めた時点のコミットは `292fd64`（比較）・`5b3b0a1`（実装）です。`git checkout 292fd64 && pnpm storybook` で、比較のストーリー（`Design Review/484 並べ替えのメニューの移す先`）を決めたときの部品のまま開けます。
