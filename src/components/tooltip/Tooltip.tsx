@@ -7,9 +7,12 @@ import {
   type ReactNode,
   use,
   useEffect,
+  useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
@@ -55,7 +58,7 @@ export interface TooltipProps {
   content: ReactNode;
   /**
    * 本体。Button などの要素を1つ渡す（ref と props を受け取れる要素）。
-   * 押せないボタン（disabled）を本体にすると、ボタンは押せないままフォーカスできる形になります。
+   * 押せないボタン（disabled）を本体にすると、ボタンは押せないままフォーカスできる形になり、content はボタンの説明として読み上げられます。
    * 効くのは本体そのものにしたボタンだけで、入れ物（ツールバーなど）を本体にしたときは、中のボタンには効きません
    */
   children: ReactElement;
@@ -124,6 +127,9 @@ export interface TooltipProps {
   /** 面（Popup）に足すクラス */
   className?: string;
 }
+
+// 描いているのがブラウザか（サーバーと、ハイドレーションのあいだは false）
+const subscribeNothing = () => () => {};
 
 /** マウスを載せてから出るまでの既定（ms） */
 const DEFAULT_DELAY = 400;
@@ -199,6 +205,28 @@ export function Tooltip({
   const portalContainer = usePortalContainer(container);
   // 外の Tooltip の本体か（Tooltip を重ねたとき。自分を止めているときも、外の Tooltip のために押せないボタンをフォーカスできる形に保つ）
   const inOuterTrigger = outerTriggerMark !== undefined;
+  // 押せないボタンを本体にしたときは、出す文を本体の説明（aria-describedby）にも結ぶ（押せない理由を読み上げで伝える — 原則13・15）
+  //   面は出ているあいだしかないので、同じ文を隠した要素（hidden）に置いて結ぶ。hidden なので、読み上げで順に読んでも二度は読まない
+  //   ふつうの（押せる）ボタンの読み上げは変えない。結ぶかは Button が決める（押せないままフォーカスできる形のときだけ）
+  //   Tooltip を重ねたときは、外の Tooltip の文の id も引き継ぐ
+  const descriptionId = useId();
+  const isClient = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false
+  );
+  const childProps: unknown = children.props;
+  const describes =
+    !disabled &&
+    ((typeof childProps === 'object' &&
+      childProps !== null &&
+      'disabled' in childProps &&
+      childProps.disabled === true) ||
+      children.type === Tooltip);
+  const triggerMark =
+    !disabled || inOuterTrigger
+      ? [describes ? descriptionId : '', outerTriggerMark ?? ''].filter(Boolean).join(' ')
+      : undefined;
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
   const {
     className: positionerClassName,
@@ -258,7 +286,7 @@ export function Tooltip({
       <BaseTooltip.Trigger
         ref={anchorRef}
         render={children}
-        {...{ [TOOLTIP_TRIGGER]: !disabled || inOuterTrigger ? '' : undefined }}
+        {...{ [TOOLTIP_TRIGGER]: triggerMark }}
         delay={delay}
         style={{ WebkitTouchCallout: 'none' }}
         onPointerDown={(event) => {
@@ -289,6 +317,14 @@ export function Tooltip({
           event.stopPropagation();
         }}
       />
+      {describes &&
+        isClient &&
+        createPortal(
+          <span id={descriptionId} hidden>
+            {content}
+          </span>,
+          portalContainer ?? document.body
+        )}
       <BaseTooltip.Portal container={portalContainer}>
         <BaseTooltip.Positioner
           // 長押しで出したときは、指と手で隠れる向きを避ける（longPressSide）

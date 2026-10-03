@@ -605,7 +605,12 @@ function NativeButton({
       {...props}
       disabled={softDisabled ? undefined : disabled}
       ref={submit ? setRefs : ref}
-      aria-describedby={joinIds(ariaDescribedBy, caption ? captionId : undefined)}
+      // 押せないまま Tooltip の本体にしたときは、Tooltip の文（押せない理由）も説明に結ぶ
+      aria-describedby={joinIds(
+        ariaDescribedBy,
+        caption ? captionId : undefined,
+        softDisabled ? tooltipTrigger : undefined
+      )}
       data-loading={busy || undefined}
       data-disabled={softDisabled || undefined}
       aria-busy={marked || undefined}

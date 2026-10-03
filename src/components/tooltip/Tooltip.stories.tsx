@@ -190,7 +190,7 @@ export const DisabledTrigger: Story = {
     docs: {
       description: {
         story:
-          '押せないボタンを本体にすると、Tab で止まり、Tooltip で押せない理由を読めます。押しても `onClick` は呼びません。右は `focusableWhenDisabled={false}` を渡して外した形で、Tab では止まりません。',
+          '押せないボタンを本体にすると、Tab で止まり、Tooltip で押せない理由を読めます。理由はボタンの説明として読み上げられます。押しても `onClick` は呼びません。右は `focusableWhenDisabled={false}` を渡して外した形で、Tab では止まりません。',
       },
       source: sourceCode(`
         <Tooltip content="下書きを保存すると公開できます" showArrow>
@@ -222,11 +222,19 @@ export const DisabledTrigger: Story = {
     await expect(publish).not.toBeDisabled();
     await expect(publish).toHaveAttribute('aria-disabled', 'true');
     await expect(optedOut).toBeDisabled();
+    // 押せない理由は、出す前から本体の説明として読み上げられる。外した形は結ばない
+    await expect(publish).toHaveAccessibleDescription('下書きを保存すると公開できます');
+    await expect(optedOut).not.toHaveAttribute('aria-describedby');
     // Tab で止まり、押せない理由が出る。押しても onClick を呼ばない
     onPublish.mockClear();
     await userEvent.tab();
     await expect(publish).toHaveFocus();
-    await waitFor(() => expect(body.getByText('下書きを保存すると公開できます')).toBeVisible());
+    // 本体の説明に結ぶ隠した文と区別して、出た面を見る
+    await waitFor(() =>
+      expect(
+        body.getByText('下書きを保存すると公開できます', { selector: '[data-slot="tooltip"]' })
+      ).toBeVisible()
+    );
     await userEvent.keyboard('{Enter}');
     await expect(onPublish).not.toHaveBeenCalled();
     // 外した形には止まらない
@@ -291,7 +299,17 @@ export const DisabledTriggerCheck: Story = {
     await expect(canvas.getByRole('button', { name: '入れ物の中' })).toBeDisabled();
     await expect(canvas.getByRole('button', { name: '自作の部品の中' })).toBeDisabled();
     // 重ねた Tooltip の本体は、外の Tooltip のためにフォーカスできる形のまま
-    await expect(canvas.getByRole('button', { name: '重ねた本体' })).not.toBeDisabled();
+    const nested = canvas.getByRole('button', { name: '重ねた本体' });
+    await expect(nested).not.toBeDisabled();
+    // 押せない理由は、本体のボタンの説明に入る（重ねたときは外の Tooltip の文）。入れ物・自作の部品の中のボタンには入らない
+    await expect(submit).toHaveAccessibleDescription('下書きを保存すると公開できます');
+    await expect(nested).toHaveAccessibleDescription('外の Tooltip');
+    await expect(canvas.getByRole('button', { name: '入れ物の中' })).not.toHaveAttribute(
+      'aria-describedby'
+    );
+    await expect(canvas.getByRole('button', { name: '自作の部品の中' })).not.toHaveAttribute(
+      'aria-describedby'
+    );
     // フォーカスできる押せない送信のボタン: 押しても、Enter・Space でも、入力欄で Enter を押しても送らない
     onCheckSubmit.mockClear();
     await userEvent.click(submit);
@@ -339,6 +357,8 @@ export const Accessibility: Story = {
     const trigger = canvas.getByRole('button', { name: '共有' });
     // キーボードでフォーカスすると、待たずに出る。Esc で消える
     await userEvent.tab();
+    // 押せるボタンの読み上げは変えない（Tooltip の文を説明に結ばない）
+    await expect(trigger).not.toHaveAttribute('aria-describedby');
     await expect(trigger).toHaveFocus();
     await waitFor(() => expect(body.getByText('リンクをコピー')).toBeVisible());
     await userEvent.keyboard('{Escape}');

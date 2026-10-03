@@ -4,10 +4,12 @@
 //   印は本体の要素そのものにしか届かない。入れ物（ツールバーなど）や自作の部品を本体にしたときは、その中のボタンには効かない
 //   Tooltip を重ねたときは、外の Tooltip が中の Tooltip に印を足し、中の Tooltip が本体のボタンへ渡す
 //   利用者が focusableWhenDisabled={false} を渡したときは、そちらを優先する
+//   値は、本体の説明に結ぶ id の並び（Tooltip の文を隠した要素の id。空のこともある）
+//   Button は、押せないままフォーカスできる形のときだけ、これを aria-describedby に足す（押せない理由を読み上げで伝える）
 //   印は data-* なので、Button 以外の要素に届いても DOM の属性になるだけで、害はない
 export const TOOLTIP_TRIGGER = 'data-tooltip-trigger';
 
 export interface TooltipTriggerMarkProps {
-  /** Tooltip の本体であることの印（内部用。値は空の文字列） */
+  /** Tooltip の本体であることの印（内部用）。値は本体の説明に結ぶ id の並び */
   [TOOLTIP_TRIGGER]?: string;
 }
