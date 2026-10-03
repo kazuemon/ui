@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent } from 'storybook/test';
+import { expect, userEvent, waitFor } from 'storybook/test';
 
 import { DropzoneFileList, type DropzoneFileEntry } from './DropzoneFileList';
 import { Gallery, Specimen } from '../../stories/story-parts';
@@ -166,5 +166,26 @@ export const Saved: Story = {
     await expect(
       canvas.queryByRole('link', { name: /kazuemon-icon\.png/ })
     ).not.toBeInTheDocument();
+  },
+};
+
+export const SavedBroken: Story = {
+  name: '保存済みの画像が読めないとき',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="max-w-sm">
+      <DropzoneFileList
+        variant="thumbnail"
+        files={[{ name: 'missing.png', size: 12_000, url: 'data:image/png;base64,AAAA' }]}
+        onRemove={() => {}}
+      />
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    // 読めなかった画像は、画像でないファイルと同じアイコンのタイルに替わる。名前と外すボタンは残る
+    await waitFor(() => expect(canvasElement.querySelector('img')).toBeNull());
+    await expect(canvasElement.querySelector('li svg')).toBeInTheDocument();
+    await expect(canvas.getByRole('link', { name: /missing\.png/ })).toBeVisible();
+    await expect(canvas.getByRole('button', { name: '削除: missing.png' })).toBeInTheDocument();
   },
 };

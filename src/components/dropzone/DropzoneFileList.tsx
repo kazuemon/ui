@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useEffect, useRef } from 'react';
+import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
 import { formatFileSize } from './dropzone-utils';
@@ -138,11 +138,14 @@ function EntryName({ entry, className }: { entry: DropzoneFileEntry; className: 
 
 /**
  * thumbnail のタイルに置く画像。保存済みのものは url をそのまま使い、いま選んだものはブラウザの中だけの URL（createObjectURL）を、
- * file が変わるたびに作り直す
+ * file が変わるたびに作り直す。保存済みの url の画像が読めないときは、画像でないファイルと同じアイコンにする
  */
 function Thumbnail({ entry }: { entry: DropzoneFileEntry }) {
   const { file, url: savedUrl } = entry;
-  const isImage = entryIsImage(entry) && (file != null || savedUrl != null);
+  // 読めなかった url を覚える。url が変われば、もう一度画像として読む
+  const [failedUrl, setFailedUrl] = useState<string>();
+  const failed = !file && savedUrl != null && failedUrl === savedUrl;
+  const isImage = entryIsImage(entry) && (file != null || savedUrl != null) && !failed;
   const imgRef = useRef<HTMLImageElement>(null);
   // URL は描画の途中ではなく effect の中で作り、同じ effect の片付けで解放する（描画が中断されても URL が残らない）。
   // setState はせず、img に直接渡す
@@ -156,7 +159,16 @@ function Thumbnail({ entry }: { entry: DropzoneFileEntry }) {
       URL.revokeObjectURL(url);
     };
   }, [file, isImage]);
-  if (isImage && !file) return <img src={savedUrl} alt="" className="size-full object-cover" />;
+  if (isImage && !file) {
+    return (
+      <img
+        src={savedUrl}
+        alt=""
+        className="size-full object-cover"
+        onError={() => setFailedUrl(savedUrl)}
+      />
+    );
+  }
   if (!isImage) {
     return (
       <div className="flex flex-1 items-center justify-center text-fg-muted">
