@@ -635,6 +635,7 @@ export {
   type StepperStepProps,
   type StepperStepStatus,
   type StepperProps,
+  type StepperSize,
   type StepperVariant,
 } from './components/stepper/Stepper';
 export {
