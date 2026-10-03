@@ -11,7 +11,7 @@ import type { CarouselEngine, CarouselEngineOptions } from './carousel-engine';
 //     送っているあいだに途中の 1 枚を知らせると、index が途中へ戻って行き来するので、着くまで（または使う人が触るまで）知らせない
 //   動きを減らす設定では、滑らせずにすぐ送る（原則14）。はじめの位置（defaultValue）も滑らせない
 //   枠の幅が変わったら、いまの 1 枚の位置に置き直す
-//   並んで見えている枚数（slidesPerView）を、枠と 1 枚の幅から測って visibleCount で返す。幅が変わったら測り直す
+//   並んで見えている枚数（slidesPerView）を、枠と 1 枚の幅から測って visibleCount で返す。枠か 1 枚の幅が変わったら測り直す
 // 端でつながる（loop）・自動で送る（autoPlay）は、見た目の側（CarouselView）が index を変えて行う。ここは送る先へ送るだけ
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
@@ -212,9 +212,15 @@ export function useScrollSnapEngine({
     };
   }, [viewport]);
 
-  // 子の数が変わったときも測り直す
+  // 子の数が変わったときも測り直す。1 枚の幅が変わったとき（slidesPerView を変えたなど、枠の大きさは同じまま）も測り直す
   useIsomorphicLayoutEffect(() => {
-    if (viewport) setVisibleCount(measureVisible(viewport));
+    if (!viewport) return;
+    setVisibleCount(measureVisible(viewport));
+    const first = slidesOf(viewport)[0];
+    if (!first) return;
+    const observer = new ResizeObserver(() => setVisibleCount(measureVisible(viewport)));
+    observer.observe(first);
+    return () => observer.disconnect();
   }, [viewport, count]);
 
   return { mode: 'scroll', bindViewport, visibleCount };

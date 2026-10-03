@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Image } from '../image/Image';
@@ -236,6 +236,40 @@ export const SlidesPerView: Story = {
         </Carousel>
       `),
     },
+  },
+};
+
+// 並べる数を変えたら、止まる位置の数（位置の印）も変わる。枠の大きさが変わらないときも測り直す
+function PerViewSwitch() {
+  const [perView, setPerView] = useState(2);
+  return (
+    <div className="flex flex-col gap-4">
+      <button type="button" onClick={() => setPerView(3)}>
+        3 枚にする
+      </button>
+      <Carousel accessibleName="作品の画面" slidesPerView={perView}>
+        {/* 高さの決まったスライド（並べる数を変えても枠の大きさが変わらない） */}
+        {screens.map((screen) => (
+          <div key={screen.alt} className="h-32 bg-surface">
+            {screen.alt}
+          </div>
+        ))}
+      </Carousel>
+    </div>
+  );
+}
+
+export const SlidesPerViewChange: Story = {
+  name: '並べる数を変える',
+  render: () => <PerViewSwitch />,
+  play: async ({ canvas, canvasElement }) => {
+    const dots = () =>
+      canvasElement.querySelector('[data-slot="carousel-dots"]')!.childElementCount;
+    // 5 枚を 2 枚ずつ並べると、止まる位置は 4 つ
+    await waitFor(() => expect(dots()).toBe(4));
+    await userEvent.click(canvas.getByRole('button', { name: '3 枚にする' }));
+    // 枠の幅が同じでも、1 枚の幅が変わったら測り直す（止まる位置は 3 つ）
+    await waitFor(() => expect(dots()).toBe(3));
   },
 };
 
