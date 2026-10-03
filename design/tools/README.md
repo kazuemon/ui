@@ -1,6 +1,6 @@
 # design/tools
 
-デザインの記録を作るための道具です。いまは、比較画像の撮影と、原則の書き方の確かめの2つを使います。
+デザインの記録を作るための道具です。いまは、比較画像の撮影、原則の書き方の確かめ、検証の図の撮影の3つを使います。
 
 ## 比較画像を撮る
 
@@ -30,6 +30,20 @@ node design/tools/capture-story.mjs design-review-NN-xxx--candidates \
 pnpm check:principles
 # または node design/tools/check-principles.mjs [path]
 ```
+
+## 検証の図を撮る
+
+検証の比較（`ui-probe-compare`）が、A と B で割れた見た目を HTML に描きます。その HTML を項目ごとの画像にします。GitHub の自動化（`.github/workflows/ui-probe.yml`）が呼び、画像を `probe-assets` のブランチに置いて Issue のコメントに貼ります。
+
+```sh
+node design/tools/render-figures.mjs figures.html --out figures/
+```
+
+- `figures.html` は `<section data-figure="q1" data-title="…">` を並べた断片です。中に `<figure data-label="A: …">` を並べると、見出しと列の枠が付きます。書き方はスキル（`.claude/skills/ui-probe-compare/SKILL.md`）にあります
+- `theme.css` を読んで Vite と Tailwind でビルドするので、トークンのクラスと CSS 変数がそのまま使えます
+- section ごとに要素を 2 倍の解像度で撮り、`<out>/<data-figure>.png` に書きます。文字の描き方・hover・動きの条件は、見た目の回帰テストとそろえています
+- HTML は Issue の文から作られるので、CSP でスクリプトを止めて描きます。そのため、Playwright でページにスタイルやスクリプトを差し込めません（止まります）。撮る条件は、ビルドする CSS の側に書きます
+- `--density coarse|fine` で密度を固定します（既定は fine）
 
 ## color.mjs（共有モジュール）
 

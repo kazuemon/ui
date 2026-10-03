@@ -1,5 +1,5 @@
 # 検証: Issue に「probe」のラベルを付けると、原則と tokens.css だけを読んだ Haiku 2 体が部品を設計し、
-# 3 体目が答えを比べて「決めてほしいこと」を Issue に書く（design/adr/0047 の手順）
+# 3 体目が答えを比べて「決めてほしいこと」と、割れた見た目の図を Issue に書く（design/adr/0047 の手順）
 name: UI probe
 
 on:
@@ -41,26 +41,83 @@ jobs:
   compare:
     needs: probe
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write # 図の画像を probe-assets のブランチに置く
       issues: write
       id-token: write
+    env:
+      ISSUE: ${{ github.event.issue.number }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          chromium: 'true'
       - name: Compare the two answers
+        # 比べて、割れた見た目を図の HTML に描く。投稿は下の手順でする
+        # 図を描くのは Haiku には重いので Sonnet で動かす
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: '/ui-probe-compare ISSUE: ${{ github.event.issue.number }}'
+          prompt: '/ui-probe-compare ISSUE: ${{ env.ISSUE }} OUT: ${{ runner.temp }}/probe'
           show_full_output: true # 最初の数回の様子見。落ち着いたら消す
           claude_args: |
-            --model claude-haiku-4-5-20251001
-            --max-turns 30
-            --allowedTools "Read,Glob,Grep,Write,Bash(gh issue view:*),Bash(gh issue comment:*)"
+            --model claude-sonnet-5
+            --max-turns 40
+            --allowedTools "Read,Glob,Grep,Write,Bash(gh issue view:*)"
+      - name: Render the figures
+        # 描けなかった図があっても、本文は投稿する
+        continue-on-error: true
+        run: |
+          OUT="$RUNNER_TEMP/probe"
+          if [ -f "$OUT/figures.html" ]; then
+            node design/tools/render-figures.mjs "$OUT/figures.html" --out "$OUT/figures"
+          fi
+      - name: Upload the figures
+        # 画像を孤立したブランチ probe-assets の issue-<番号>/<実行の番号>/ に置き、コミットの sha で指す（キャッシュされないように）
+        id: upload
+        continue-on-error: true
+        run: |
+          OUT="$RUNNER_TEMP/probe"
+          if ! compgen -G "$OUT/figures/*.png" > /dev/null; then
+            exit 0
+          fi
+          git config --global user.name 'claude[bot]'
+          git config --global user.email '41898282+claude[bot]@users.noreply.github.com'
+          dir="$RUNNER_TEMP/probe-assets"
+          if git fetch --depth 1 origin probe-assets; then
+            git worktree add "$dir" FETCH_HEAD
+          else
+            git worktree add --orphan -b probe-assets "$dir"
+          fi
+          dest="issue-$ISSUE/$GITHUB_RUN_ID"
+          mkdir -p "$dir/$dest"
+          cp "$OUT"/figures/*.png "$dir/$dest/"
+          git -C "$dir" add "$dest"
+          git -C "$dir" commit -m "probe: figures for #$ISSUE"
+          git -C "$dir" push origin HEAD:probe-assets
+          echo "base=https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$(git -C "$dir" rev-parse HEAD)/$dest" >> "$GITHUB_OUTPUT"
+      - name: Post the comparison
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ steps.upload.outputs.base }}
+        run: |
+          OUT="$RUNNER_TEMP/probe"
+          # <!-- figure:q1 --> を画像に置き換える。画像がない印は消す
+          FIG="$OUT/figures" perl -pe 's{<!-- figure:([\w-]+) -->}{($ENV{BASE} && -e "$ENV{FIG}/$1.png") ? "![$1]($ENV{BASE}/$1.png)" : ""}ge' \
+            "$OUT/compare.md" > "$OUT/body.md"
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body-file "$OUT/body.md"
+      - name: Keep the figures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: probe-figures-${{ env.ISSUE }}
+          path: ${{ runner.temp }}/probe
+          if-no-files-found: ignore
       - name: Remove the label
         # もう一度付ければ、もう一度走る
         if: always()
