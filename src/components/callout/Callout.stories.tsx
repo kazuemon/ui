@@ -181,3 +181,32 @@ export const CollapsibleDivider: Story = {
     </div>
   ),
 };
+
+export const TitleEdgeCases: Story = {
+  name: '題の端の場合',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '題が空の文字のときは、`collapsible` を渡しても畳める形にせず、ふつうの囲みとして描きます。数の 0 は題として出します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xl flex-col gap-4">
+      <Callout title="" collapsible>
+        題のない囲み
+      </Callout>
+      <Callout title={0} collapsible>
+        0 件のとき
+      </Callout>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 空の題では、名前のない開閉のボタンを作らない
+    await expect(canvas.getAllByRole('button')).toHaveLength(1);
+    await expect(canvas.getByRole('button', { name: '0' })).toBeInTheDocument();
+    await expect(canvas.getByRole('note', { name: '0' })).toBeInTheDocument();
+  },
+};

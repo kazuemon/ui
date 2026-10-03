@@ -145,7 +145,9 @@ export function Callout({
   const titleId = useId();
   // 状態を書かないときは、色を持たないグレー
   const surfaceStatus = status ?? 'neutral';
-  const canCollapse = collapsible && title != null;
+  // 題があるか。空の文字・真偽値は題なしとして扱い、数の 0 は題として残す
+  const hasTitle = title != null && title !== false && title !== true && title !== '';
+  const canCollapse = collapsible && hasTitle;
   const styles = callout({ collapsible: canCollapse, showDivider: canCollapse && showDivider });
   // 畳めるときの並べ方（縦に積む）は面の既定（横並び）を上書きし、使う側の className はさらにその上に効かせる（tailwind-merge で）
   const surfaceClass = noticeSurface({
@@ -157,7 +159,7 @@ export function Callout({
   const TitleTag = headingLevel ? (`h${headingLevel}` as const) : 'p';
   const common = {
     role: 'note',
-    'aria-labelledby': title ? titleId : undefined,
+    'aria-labelledby': hasTitle ? titleId : undefined,
     'data-slot': 'callout',
     'data-status': surfaceStatus,
     'data-variant': variant,
@@ -200,7 +202,7 @@ export function Callout({
     <div {...common} {...props} className={surfaceClass}>
       <NoticeIcon status={surfaceStatus} variant={variant} icon={icon} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {title ? (
+        {hasTitle ? (
           <TitleTag
             id={titleId}
             data-slot="notice-title"
