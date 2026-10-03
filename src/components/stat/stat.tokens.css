@@ -1,0 +1,16 @@
+:root {
+  /* Stat（数字とラベル）
+     並びは Field・バーと同じ 3 層: 上にラベル（太字）、真ん中に数字、下にキャプション（小さくグレー）
+     数字の大きさ: --stat-value-text・--stat-value-leading（size が文字の尺度の段を差し替える。密度でも一緒に変わる）
+     増減: 矢印の有無（deltaIcon）と淡い面の有無（deltaFill）は部品が持つ。色は tone（成功の緑・危険の赤・グレー） */
+  --stat-value-text: var(--text-heading-2xl);
+  --stat-value-leading: var(--leading-heading-2xl);
+  --stat-value-gap: calc(var(--spacing) * 2); /* 数字と、単位・増減のあいだ */
+  --stat-delta-text: var(--text-body-sm);
+  --stat-delta-leading: var(--leading-body-sm);
+  --stat-delta-weight: 700;
+  --stat-delta-gap: calc(var(--spacing) * 0.5); /* 矢印と文字のあいだ */
+  /* 読み込み中（loading。軸 431）: 数字の場所に Skeleton の文字の行を 1 本置く（太さ・角は文字の行のまま）。行の高さは数字と同じなので、読み込んでも跳ばない
+     loading-width: 帯の長さ（数字の文字の大きさが基準） */
+  --stat-loading-width: 3em;
+}

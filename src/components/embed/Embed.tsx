@@ -81,7 +81,7 @@ const styles = tv({
       'rounded-card shadow-(--embed-shadow)',
       '[outline:var(--embed-outline-width)_solid_var(--embed-outline-color)]',
       '[outline-offset:calc(var(--embed-outline-width)*-1)]',
-      'data-[status=idle]:[--embed-shadow:var(--embed-idle-shadow)]',
+      'data-[status=idle]:[--embed-shadow:var(--shadow-raised)]',
       'data-[status=idle]:[--embed-outline-width:var(--embed-idle-outline-width)]',
     ],
     iframe: ['border-0 opacity-0', 'group-data-[status=loaded]/embed:opacity-100'],

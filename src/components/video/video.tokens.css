@@ -1,0 +1,18 @@
+:root {
+  /* Video（手元の動画ファイルを再生する）— ADR-0297〜0299
+     コントロールはブラウザ標準。自前で持つのは、再生前に重ねる大きな再生ボタンだけ
+     letterbox-fill: contain で余白ができたところの色
+     loading-*: poster がないときの読み込み中の面（Skeleton と同じ塗りで、光が動く）。失敗した面は常に出す
+     play-*: controls={false} のときに重ねる大きな再生ボタンの既定の見た目（playButtonVariant="raised"）。flat（白の半透明・影なし）は部品側で上書きする
+     icon-size: 失敗したときのアイコンの大きさ */
+  --video-letterbox-fill: var(--skeleton-fill);
+  --video-icon-size: calc(var(--spacing) * 8);
+  --video-loading-opacity: 1;
+  --video-loading-motion-play-state: running;
+  --video-play-size: calc(var(--spacing) * 14);
+  --video-play-fill: var(--color-primary);
+  --video-play-fg: var(--color-on-primary);
+  --video-play-shadow: var(--shadow-raised);
+  --video-play-icon-size: calc(var(--spacing) * 6);
+  --video-play-hover-scale: 1.06;
+}

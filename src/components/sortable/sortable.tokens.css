@@ -1,0 +1,24 @@
+:root {
+  /* Sortable（並べ替えられるリスト）— ADR-0336〜0342
+     gap: 項目のあいだ（card・fill。divided は線で区切るので 0）
+     item-py・item-gap: 項目の上下の余白・中身どうしのあいだ。高さは --spacing-control から
+     handle-width: つまみの幅。項目の端に接し、高さは項目いっぱい
+     lifted-*: 持ち上げた項目の影（輪郭つき）と拡大
+     move-duration・move-ease: 並べ替えの動き。motion="none" と動きを減らす設定では動かさない。dnd-kit のレシピも同じ値 */
+  --sortable-gap: calc(var(--spacing) * 2); /* 8px */
+  --sortable-item-py: calc(var(--spacing) * 2.5); /* 10px。16px・24px の行で 44px */
+  --sortable-item-gap: calc(var(--spacing) * 3); /* 12px */
+  --sortable-handle-width: calc(var(--spacing) * 10); /* 40px */
+  --sortable-lifted-shadow:
+    0 4px 12px rgb(from var(--color-shadow) r g b / 0.24),
+    inset 0 0 0 var(--border-width-thin) var(--color-surface-line);
+  --sortable-lifted-scale: 1.03;
+  --sortable-move-duration: var(--duration-slow);
+  --sortable-move-ease: var(--ease-sheet);
+  /* separator-*: 動かさない行（SortableSeparator）。見出しの文字だけで、上の空きで分ける。gap は showDivider の線と文字のあいだ、
+     divider-pt は線を引いたときの上の空き（線が分かれ目を示すぶん詰める） */
+  --sortable-separator-gap: calc(var(--spacing) * 3); /* 12px */
+  --sortable-separator-pt: calc(var(--spacing) * 3); /* 12px */
+  --sortable-separator-divider-pt: calc(var(--spacing) * 2); /* 8px */
+  --sortable-separator-pb: calc(var(--spacing) * 1); /* 4px */
+}

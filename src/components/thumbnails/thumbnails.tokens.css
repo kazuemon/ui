@@ -1,0 +1,17 @@
+:root {
+  /* Thumbnails（小さな画像を並べ、押して切り替える帯）
+     1 つずつは平らな押すもの。hover で本文の色を淡く敷き、押すと沈む。選んでいるものは hover も沈みもしない（Tabs と同じ）
+     item-width・item-ratio: 1 つの幅と比。radius: 角（部品の角）。outline: 画像の細い輪郭（Figure と同じ濃さ）
+     bar-*: 選んでいる印の棒（Tabs の line の印と同じ太さ）。画像の下に離して引く。縦に並べたときは画像の内側の横に縦に引き、スクロールのつまみは外側に溝を取って置く
+     rest-opacity・hover-opacity: 選んでいない画像の濃さと、載せたときの濃さ（1 で薄くしない）
+     dim-rest-opacity・dim-hover-opacity: indicator="underline-dim" のときの、選んでいない画像の濃さと載せたときの濃さ */
+  --thumbnails-gap: calc(var(--spacing) * 2);
+  --thumbnails-item-width: calc(var(--spacing) * 24);
+  --thumbnails-item-ratio: 16 / 9;
+  --thumbnails-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --thumbnails-bar-gap: calc(var(--spacing) * 1.5);
+  --thumbnails-rest-opacity: 1;
+  --thumbnails-hover-opacity: 1;
+  --thumbnails-dim-rest-opacity: 0.6;
+  --thumbnails-dim-hover-opacity: 0.85;
+}

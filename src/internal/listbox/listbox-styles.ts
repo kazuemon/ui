@@ -5,7 +5,7 @@ import { tv } from '../tv';
 // Select・Combobox・Autocomplete・CommandPalette が共有する。Base UI のどの部品かは問わない
 //   面は白・細い輪郭・やわらかい影（浮かぶ UI の影は重なりを表す — 原則1）。シートでは上の角だけカードの角にして下から滑り出る
 //   項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色（listbox-colors の selectedTokens）
-//   余白・高さ・角は --select-popup-padding と密度のトークンから作る（名前は Select が先に持っていたもの）
+//   余白・高さ・角は --spacing と密度のトークンから作る（名前は Select が先に持っていたもの）
 
 /** 選択肢の出し方。popover: 本体の下に浮かべる、sheet: 画面の下から出すシート */
 export type ListboxPresentation = 'popover' | 'sheet';
@@ -26,17 +26,17 @@ export const listboxPopup = tv({
   base: [
     popupSurfaceClass,
     // 選択肢の文字は欄の値と同じ大きさ（指でも 16px）。選んだ値が欄に入っても大きさが変わらない
-    'p-(--select-popup-padding) text-input [--sheet-inset:var(--select-popup-padding)] [--spacing-icon:var(--spacing-icon-input)]',
+    'p-(--spacing) text-input [--sheet-inset:var(--spacing)] [--spacing-icon:var(--spacing-icon-input)]',
   ],
   variants: {
     presentation: {
       popover: [
         // 上下の余白は選択肢の内側に持たせ、続きの影が面の上下の端に接するようにする。角丸で切り抜く
         'min-w-(--anchor-width) overflow-clip py-0 shadow-overlay',
-        // 開閉の動き（--popup-duration-in・-out・-ease・-shift — ADR-0054 の D）
+        // 開閉の動き（--duration-normal・-out・-ease・-shift — ADR-0054 の D）
         // 本体の側から離れる向きにずれた位置から、濃さと一緒に滑る
         // 動きを減らす設定では動かさず、すぐに出す・消す（原則3）
-        'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
+        'transition-[opacity,translate] duration-(--duration-normal) ease-(--ease-sheet) data-ending-style:duration-(--popup-duration-out)',
         'data-ending-style:opacity-0 data-starting-style:opacity-0',
         'data-ending-style:[translate:0_calc(var(--popup-shift)*-1)] data-starting-style:[translate:0_calc(var(--popup-shift)*-1)]',
         'data-[side=top]:data-ending-style:[translate:0_var(--popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--popup-shift)]',
@@ -74,12 +74,12 @@ export const listboxList = tv({
     loadingRow: { true: '', false: '' },
   },
   compoundVariants: [
-    { presentation: 'popover', loadingRow: true, class: 'pt-(--select-popup-padding)' },
-    { presentation: 'popover', loadingRow: false, class: 'py-(--select-popup-padding)' },
+    { presentation: 'popover', loadingRow: true, class: 'pt-(--spacing)' },
+    { presentation: 'popover', loadingRow: false, class: 'py-(--spacing)' },
     {
       presentation: 'sheet',
       loadingRow: false,
-      class: 'pb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]',
+      class: 'pb-[max(var(--spacing),env(safe-area-inset-bottom))]',
     },
   ],
   defaultVariants: { presentation: 'popover', loadingRow: false },
@@ -93,7 +93,7 @@ export const listboxList = tv({
 export const listboxOption = tv({
   slots: {
     root: [
-      'group/option flex min-h-(--spacing-control) cursor-pointer items-center gap-(--spacing-control-x) rounded-[calc(var(--radius-control)-var(--select-popup-padding))] px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] outline-none select-none',
+      'group/option flex min-h-(--spacing-control) cursor-pointer items-center gap-(--spacing-control-x) rounded-[calc(var(--radius-control)-var(--spacing))] px-[calc(var(--spacing-control-x)-var(--spacing))] outline-none select-none',
       // hover（キーボードで選んでいるときも同じ）は、選んだ項目の見た目より優先する
       'data-highlighted:bg-field',
       'data-selected:text-(color:--color-on-select-item-selected) data-selected:not-data-highlighted:bg-(color:--color-select-item-selected)',
@@ -135,7 +135,7 @@ export const listboxOption = tv({
  * label: 入力欄のラベルと同じ文字（太字・一段淡い濃紺）。caption: キャプションと同じ小さいグレーの文字
  */
 export const listboxGroupLabel = tv({
-  base: 'block px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] pt-2 pb-1 select-none',
+  base: 'block px-[calc(var(--spacing-control-x)-var(--spacing))] pt-2 pb-1 select-none',
   variants: {
     style: {
       label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg-muted',
@@ -150,14 +150,14 @@ export const listboxGroupLabel = tv({
  * 上下には面の余白と同じ間を空ける。Menu の区切り線と同じ形
  */
 export const listboxSeparatorClass =
-  'mx-[calc(var(--select-popup-padding)*-1)] my-(--select-popup-padding) h-(--border-width-thin) bg-surface-line';
+  'mx-[calc(var(--spacing)*-1)] my-(--spacing) h-(--border-width-thin) bg-surface-line';
 
 /**
  * 選ぶものがないときの行（Base UI の Empty に渡す）。文は呼び出し側が渡す（部品は文を組み立てない）
  * 高さと左右の余白は選択肢と同じで、文はキャプションと同じグレー。長い文は折り返す
  */
 export const listboxEmptyClass =
-  'flex min-h-(--spacing-control) items-center px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] text-fg-muted select-none';
+  'flex min-h-(--spacing-control) items-center px-[calc(var(--spacing-control-x)-var(--spacing))] text-fg-muted select-none';
 
 /**
  * 一覧の下に出す「読み込んでいます」の行（design/adr/0042）。選べない。高さと左の余白は項目と同じ
@@ -165,11 +165,11 @@ export const listboxEmptyClass =
  * 下の余白は、シートでは端末の安全領域の分を空ける
  */
 export const listboxLoadingRow = tv({
-  base: 'flex h-(--spacing-control) shrink-0 items-center gap-2 px-[calc(var(--spacing-control-x)-var(--select-popup-padding))] text-fg-muted select-none',
+  base: 'flex h-(--spacing-control) shrink-0 items-center gap-2 px-[calc(var(--spacing-control-x)-var(--spacing))] text-fg-muted select-none',
   variants: {
     presentation: {
-      popover: 'mb-(--select-popup-padding)',
-      sheet: 'mb-[max(var(--select-popup-padding),env(safe-area-inset-bottom))]',
+      popover: 'mb-(--spacing)',
+      sheet: 'mb-[max(var(--spacing),env(safe-area-inset-bottom))]',
     },
   },
   defaultVariants: { presentation: 'popover' },

@@ -12,8 +12,8 @@ import { tv } from '../../internal/tv';
 // 色は濃い塗りに白い文字。状態の色は塗りのお知らせ（filled）と同じ、グレーはトグルの ON と同じ濃いグレー。淡い面に濃い文字のタグと見分ける
 //   警告の点だけは、白地の文字・アイコンと同じオリーブ（--color-fg-warning）。黄色の点は白地で 1.20:1 しかない（原則6）
 //   警告の数の丸は、黄色に濃紺の文字のまま
-// children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--badge-ring-width）で相手と切り離す
-//   Badge の中心を、相手の右上の角から --badge-overlay-inset だけ内側に置く（0 は角そのもの）
+// children を渡すと、その右上の角に重ねる。重ねるときだけ、置く面の色（--color-surface）の縁（--border-width-thick）で相手と切り離す
+//   Badge の中心を、相手の右上の角から --spacing だけ内側に置く（0 は角そのもの）
 //   相手が丸い（overlap="circular"）ときは、角からの内側ではなく、Badge の中心を相手の円周上（右上 45°）に置く。既定（square）は今のまま
 //   置く角は placement。top-end（既定）は右上、bottom-end は右下（アバターの在席の点など）。右下は右上を上下に写しただけで、寸法は同じ
 // 0: 既定では出さない（未読がないときは消える）。showZero で「0」を出す（件数を常に見せる場所）
@@ -37,7 +37,7 @@ const badge = tv({
       dot: 'size-(--badge-dot)',
     },
     overlay: {
-      true: 'pointer-events-none absolute right-(--badge-overlay-inset) translate-x-1/2 shadow-[0_0_0_var(--badge-ring-width)_var(--color-surface)]',
+      true: 'pointer-events-none absolute right-(--spacing) translate-x-1/2 shadow-[0_0_0_var(--border-width-thick)_var(--color-surface)]',
       false: 'relative',
     },
     // 重ねる相手の形（overlay のときだけ効く）。circular は中心を円周上（右上 45°）に置く
@@ -54,11 +54,11 @@ const badge = tv({
   },
   compoundVariants: [
     { color: 'warning', shape: 'dot', class: 'bg-fg-warning' },
-    { overlay: true, placement: 'top-end', class: 'top-(--badge-overlay-inset) -translate-y-1/2' },
+    { overlay: true, placement: 'top-end', class: 'top-(--spacing) -translate-y-1/2' },
     {
       overlay: true,
       placement: 'bottom-end',
-      class: 'bottom-(--badge-overlay-inset) translate-y-1/2',
+      class: 'bottom-(--spacing) translate-y-1/2',
     },
     // 45° の点は、辺の中心から (1 - cos45°) ≈ 0.292893 だけ内側（半分の 14.6447% を top・bottom と right に使う）
     {

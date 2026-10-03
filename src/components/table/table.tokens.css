@@ -1,0 +1,6 @@
+:root {
+  /* Table（表）
+     合計の行（TableFoot）は上に濃く太い線（--border-width-medium・--color-line-strong）と太字。variant で面（--color-field）か二重線にもできる
+     foot-double-width: 二重線の太さ。1px の線 2 本と、あいだの 1px */
+  --table-foot-double-width: calc(var(--border-width-thin) * 3); /* 3px */
+}

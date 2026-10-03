@@ -1,0 +1,17 @@
+:root {
+  /* Steps（番号付きの手順）— ADR-0172・0181
+     gap: 段と段のあいだ。title-gap: 題と本文のあいだ
+     marker-*: 番号の印。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
+       marker-text は丸の中の数字、marker-number-text は丸を置かないときの数字
+     line-*: 段をつなぐ縦の線（印の中心の下から次の印の上まで）。line-gap は印と線の端のあいだ
+       line-dotted-* は点線のときの太さと印とのあいだ */
+  --steps-gap: calc(var(--spacing) * 8);
+  --steps-title-gap: calc(var(--spacing) * 1);
+  --steps-marker-size: calc(var(--spacing) * 7);
+  --steps-marker-gap: calc(var(--spacing) * 3);
+  --steps-marker-text: 14px;
+  --steps-marker-number-text: 20px;
+  --steps-line-width: var(--border-width-thin);
+  --steps-line-gap: calc(var(--spacing) * 1);
+  --steps-line-dotted-gap: calc(var(--spacing) * 1.5);
+}

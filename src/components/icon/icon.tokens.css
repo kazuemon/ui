@@ -1,0 +1,15 @@
+:root {
+  /* Icon（公開の Icon 部品）— ADR-0018
+     size-text: 既定（size="text"）。周りの文字に比例する（16px の文字に 20px）
+     size="control" は --spacing-icon（密度で変わる）を部品の中で指す */
+  --icon-size-text: 1.25em;
+  /* 文の中でアイコンの中心を置く高さ（ベースラインから）。漢字の字面の中心（0.34〜0.375em） */
+  --icon-text-center: 0.35em;
+  /* 段（size="sm"・"md"・"lg"）。密度で変わらない */
+  --icon-size-sm: calc(var(--spacing) * 4); /* 16px */
+  --icon-size-md: calc(var(--spacing) * 5); /* 20px */
+  --icon-size-lg: calc(var(--spacing) * 6); /* 24px */
+  /* 線の太さ（viewBox 256 に対する線幅）。文字と並ぶとき・単体（standalone）のとき */
+  --icon-weight-inline: var(--icon-stroke);
+  --icon-weight-standalone: var(--icon-stroke-standalone);
+}

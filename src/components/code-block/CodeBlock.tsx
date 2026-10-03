@@ -86,10 +86,10 @@ const codeBlock = tv({
       },
       dark: {
         root: [
-          '[--cb-bg:var(--color-codeblock-dark-bg)] [--cb-fg:var(--color-codeblock-dark-fg)] [--cb-muted:var(--color-codeblock-dark-muted)]',
-          '[--cb-head-bg:var(--color-codeblock-dark-head-bg)] [--cb-line:var(--color-codeblock-dark-line)] [--cb-number:var(--color-codeblock-dark-number)]',
+          '[--cb-bg:var(--palette-ink-900)] [--cb-fg:var(--palette-code-dark-fg)] [--cb-muted:var(--palette-code-dark-muted)]',
+          '[--cb-head-bg:var(--color-codeblock-dark-head-bg)] [--cb-line:var(--color-codeblock-dark-line)] [--cb-number:var(--palette-code-dark-line-number)]',
           '[--cb-copy-line:var(--color-codeblock-dark-copy-line)]',
-          '[--cb-deleted:var(--color-codeblock-dark-deleted)] [--cb-highlight:var(--color-codeblock-dark-highlight)] [--cb-inserted:var(--color-codeblock-dark-inserted)]',
+          '[--cb-deleted:var(--palette-code-dark-deleted)] [--cb-highlight:var(--palette-blue-500)] [--cb-inserted:var(--palette-success-500)]',
           '[--cb-highlight-bg:color-mix(in_oklab,var(--cb-bg),var(--cb-highlight)_18%)]',
           '[--cb-deleted-bg:color-mix(in_oklab,var(--cb-bg),var(--cb-deleted)_14%)] [--cb-inserted-bg:color-mix(in_oklab,var(--cb-bg),var(--cb-inserted)_12%)]',
           '[--shiki-token-function:var(--palette-code-dark-function)] [--shiki-token-keyword:var(--palette-code-dark-keyword)]',

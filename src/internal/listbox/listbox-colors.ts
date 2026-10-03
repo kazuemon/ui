@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react';
 export type ListboxColor = 'primary' | 'secondary' | 'neutral';
 
 // 選んだ項目の印の色（design/adr/0047）。face は淡い面、ink は文字とチェック
-// neutral の面は、hover のグレー（入力欄の塗り）と見分けられる濃さのグレー（--color-select-neutral-selected）
+// neutral の面は、hover のグレー（入力欄の塗り）と見分けられる濃さのグレー（--palette-gray-200）
 // focus は、フォーカスの枠線と線を部品の色に従わせるとき（--focus-follow-color: 1 — 後半の軸 41）の色。線なので、ピンクは前景用
 //   neutral は持たない（--color-focus のまま）。本体には OWN_FOCUS のクラスで、浮かぶ部分（シートの × など）には style で置く
 const TONES: Record<ListboxColor, { face: string; ink: string; focus?: string }> = {
@@ -21,7 +21,7 @@ const TONES: Record<ListboxColor, { face: string; ink: string; focus?: string }>
     ink: 'var(--color-on-secondary-subtle)',
     focus: 'var(--color-fg-secondary)',
   },
-  neutral: { face: 'var(--color-select-neutral-selected)', ink: 'var(--color-fg)' },
+  neutral: { face: 'var(--palette-gray-200)', ink: 'var(--color-fg)' },
 };
 
 /**

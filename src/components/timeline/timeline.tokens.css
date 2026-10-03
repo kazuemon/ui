@@ -1,0 +1,48 @@
+:root {
+  /* Timeline（職歴・活動の年表）
+     読みもの。ページと同じレイヤーなので影を付けず、押せない
+     gap: 項目と項目のあいだ。date-gap: 日付と題のあいだ（点の右に積むとき）
+     inline-gap: 日付と題を同じ行に並べるときの、日付と題のあいだ。title-gap: 題と説明のあいだ
+     date-width・date-aside-gap: 点の左に日付の列を置くとき（datePlacement="aside"）の列の幅と、列と点のあいだ
+       入れ物が狭いと列を置けないので、畳むかは部品の collapse で選ぶ（入れ物の幅で決める）
+     marker-size-{sm,md,lg}: 点の大きさ（markerSize）。日付と題が主役なので、Steps の番号の丸より小さい
+     marker-gap: 点と文のあいだ
+       点の種類（グレーの丸・輪郭の丸・Primary の丸）は markerType で選ぶ。名前と色は Steps の marker に合わせる
+       color-marker は 3:1 のグレー。Steps の neutral は丸の中の数字が濃さを持つが、Timeline の点には中身がない
+     emphasis-*: 強調する項目の点（TimelineItem の emphasis）。点の種類は変えず、淡い輪と大きさで示す
+       halo-mix は輪の濃さ。輪の色は、その点の色（markerType ごと）を薄めて作る
+     line-*: 項目をつなぐ縦の線。点の中心の下から次の項目の点の上まで。line-gap は点と線の端のあいだ
+       線の種類（実線・点線・なし）は line で選ぶ。line-dotted-* は点線のときの太さと点とのあいだ
+     tail-length: 最後の項目のあとに点線を伸ばすとき（tail="dotted"）の長さ */
+  --timeline-gap: calc(var(--spacing) * 6);
+  --timeline-date-gap: calc(var(--spacing) * 1);
+  --timeline-inline-gap: calc(var(--spacing) * 3);
+  --timeline-title-gap: calc(var(--spacing) * 1);
+  --timeline-date-width: calc(var(--spacing) * 24);
+  --timeline-date-aside-gap: calc(var(--spacing) * 3);
+  --timeline-marker-size-sm: calc(var(--spacing) * 2); /* 8px */
+  --timeline-marker-size-md: calc(var(--spacing) * 2.5); /* 10px */
+  --timeline-marker-size-lg: calc(var(--spacing) * 3.5); /* 14px */
+  --timeline-marker-gap: calc(var(--spacing) * 3);
+  --timeline-emphasis-scale: 1.2;
+  --timeline-emphasis-halo: calc(var(--spacing) * 1);
+  --timeline-emphasis-halo-mix: 45%;
+  --timeline-line-width: var(--border-width-thin);
+  --timeline-line-gap: calc(var(--spacing) * 1);
+  --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
+  --timeline-tail-length: calc(var(--spacing) * 5);
+  /* 状態の色の点（markerType の success・warning・danger）
+       color-marker-*: 点の色。警告の黄色は白地で 1.2:1 と見えにくいので、前景用のオリーブ色を既定にする（warningColor="yellow" で黄色の塗り）
+       color-marker-on-warning: 警告の点の色の上に載せるアイコンの色（オリーブなら白、黄色なら濃紺）
+     アイコンの丸（TimelineItem の icon）
+       icon-marker-size・icon-size: filled の丸とアイコンの大きさ
+       icon-marker-size-lg・icon-size-lg: soft・outline の丸とアイコンの大きさ（淡い面・輪郭は塗りより軽く見えるので一回り大きく）
+       icon-plain-size: plain（丸なし）のアイコンの大きさ */
+  --color-timeline-marker-warning: var(--color-fg-warning);
+  --color-timeline-marker-on-warning: var(--palette-white);
+  --timeline-icon-marker-size: calc(var(--spacing) * 6);
+  --timeline-icon-size: calc(var(--spacing) * 3.5);
+  --timeline-icon-marker-size-lg: calc(var(--spacing) * 7);
+  --timeline-icon-size-lg: calc(var(--spacing) * 4);
+  --timeline-icon-plain-size: calc(var(--spacing) * 5);
+}

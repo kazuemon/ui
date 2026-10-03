@@ -21,11 +21,11 @@ import { ToggleGroupContext } from './toggle-group-context';
 const toggle = tv({
   base: [
     'relative inline-flex h-(--spacing-control) shrink-0 cursor-pointer items-center justify-center gap-2',
-    'rounded-(--toggle-radius) px-(--spacing-control-x) whitespace-nowrap select-none',
+    'rounded-(--radius-control) px-(--spacing-control-x) whitespace-nowrap select-none',
     'text-(length:--text-control) leading-(--leading-control) font-bold',
     'border-(length:--border-width-medium) border-(color:--toggle-border-color)',
     'bg-(color:--toggle-bg) text-(color:--toggle-fg)',
-    '[--toggle-bg:var(--toggle-off-bg)] [--toggle-border-color:transparent] [--toggle-fg:var(--toggle-off-fg)]',
+    '[--toggle-bg:var(--color-neutral)] [--toggle-border-color:transparent] [--toggle-fg:var(--toggle-off-fg)]',
     ...focusRing,
     '[transition:background-color_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),opacity_var(--duration-loading)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
@@ -45,8 +45,8 @@ const toggle = tv({
     // ToggleGroup の詰め方（frame="connected"）のときだけ、両端以外の角丸を消す（design/stories/axis-269）
     // 向き（data-orientation。ToggleGroup が常に持つ）で、丸める辺を左右（horizontal）と上下（vertical）に分ける
     'in-data-[frame=connected]:rounded-none',
-    'in-data-[frame=connected]:in-data-[orientation=horizontal]:first:rounded-s-(--toggle-radius) in-data-[frame=connected]:in-data-[orientation=horizontal]:last:rounded-e-(--toggle-radius)',
-    'in-data-[frame=connected]:in-data-[orientation=vertical]:first:rounded-t-(--toggle-radius) in-data-[frame=connected]:in-data-[orientation=vertical]:last:rounded-b-(--toggle-radius)',
+    'in-data-[frame=connected]:in-data-[orientation=horizontal]:first:rounded-s-(--radius-control) in-data-[frame=connected]:in-data-[orientation=horizontal]:last:rounded-e-(--radius-control)',
+    'in-data-[frame=connected]:in-data-[orientation=vertical]:first:rounded-t-(--radius-control) in-data-[frame=connected]:in-data-[orientation=vertical]:last:rounded-b-(--radius-control)',
   ],
   variants: {
     color: {

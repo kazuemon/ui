@@ -1,0 +1,19 @@
+:root {
+  /* PinField（桁の箱）
+     箱 1 つずつは controlBox と同じ規則（グレーの塗り・フォーカスの箱だけ枠線・エラーは赤い枠線）で、離して並べる
+     --pin-field-box-width         箱の幅。高さは --spacing-control で、正方形にする
+     --pin-field-gap               箱と箱のあいだ
+     --pin-field-dot-size          まだ打っていない箱の中の淡い点（emptyDots）の半径
+     --pin-field-text              打った文字と、文字で渡した区切りの大きさ
+     --pin-field-group-gap         group で区切る位置の間
+     --pin-field-dash-width        既定の区切り（短い横線）の幅
+     --color-fg-subtle   区切り（横線・渡した文字）の色 */
+  --pin-field-box-width: var(--spacing-control);
+  --pin-field-gap: calc(var(--spacing) * 2);
+  --pin-field-dot-size: calc(var(--spacing) * 0.75);
+  --pin-field-text: var(--text-xl);
+  --pin-field-group-gap: calc(var(--spacing) * 3);
+  --pin-field-dash-width: calc(var(--spacing) * 2);
+  /* 箱の列と、右に置く回る円・成功の印のあいだ */
+  --pin-field-mark-gap: calc(var(--spacing) * 3);
+}

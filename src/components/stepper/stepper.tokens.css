@@ -1,0 +1,26 @@
+:root {
+  /* Stepper（複数の段階の進み具合を示すナビゲーション）
+     gap: 段と段のあいだ（ol の flex gap。横並びは列のあいだ、縦並びは行のあいだ）
+     label-gap: マーカーと文（ラベル・説明）のあいだ
+     marker-size: マーカー（丸）の直径。marker-text: 中の数字の大きさ。marker-icon-size: チェック・警告の印の大きさ
+     line-width: 連結線の太さ。line-gap: 縦並びで、線と次のマーカーの上下のあいだ（線がマーカーに接しないための余白） */
+  --stepper-gap: calc(var(--spacing) * 8); /* 32px */
+  --stepper-label-gap: calc(var(--spacing) * 3); /* 12px */
+  --stepper-marker-size: calc(var(--spacing) * 8); /* 32px */
+  --stepper-marker-text: 14px;
+  --stepper-marker-icon-size: calc(var(--spacing) * 4); /* 16px */
+  --stepper-line-width: var(--border-width-thin);
+  --stepper-line-gap: calc(var(--spacing) * 1); /* 4px */
+  /* 小さい段（size="sm" — 軸 464）。ラベルは密度で変える（マウス 14px・指 12px。部品が --density-coarse で選ぶ） */
+  --stepper-gap-sm: calc(var(--spacing) * 6); /* 24px */
+  --stepper-label-gap-sm: calc(var(--spacing) * 2); /* 8px */
+  --stepper-marker-size-sm: calc(var(--spacing) * 6); /* 24px */
+  --stepper-marker-text-sm: 12px;
+  --stepper-marker-icon-size-sm: calc(var(--spacing) * 3); /* 12px */
+  --stepper-label-text-sm-fine: 14px;
+  --stepper-label-leading-sm-fine: 20px;
+  --stepper-label-text-sm-coarse: 12px;
+  --stepper-label-leading-sm-coarse: 16px;
+  /* 点のマーカー（variant="dot" — 軸 464）。数字も印も持たない小さな点。大きさの段によらず同じ */
+  --stepper-dot-size: calc(var(--spacing) * 2.5); /* 10px */
+}

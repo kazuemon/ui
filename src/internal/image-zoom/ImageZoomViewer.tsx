@@ -63,11 +63,11 @@ export type ImageZoomCloseButtonVariant = 'flat' | 'raised';
 // 選べる形は、既定のトークン（tokens.css の --image-zoom-*）への上書きで作る。後ろの面と面（Popup）の両方に当てる
 const variantTokens: Record<ImageZoomVariant, string> = {
   light: '',
-  dark: '[--image-zoom-backdrop:var(--image-zoom-dark-backdrop)] [--image-zoom-backdrop-blur:var(--image-zoom-dark-backdrop-blur)] [--image-zoom-outline:transparent] [--image-zoom-caption-color:var(--image-zoom-dark-caption-color)] [--image-zoom-close-fg:var(--image-zoom-dark-close-fg)]',
+  dark: '[--image-zoom-backdrop:var(--image-zoom-dark-backdrop)] [--image-zoom-backdrop-blur:var(--image-zoom-dark-backdrop-blur)] [--image-zoom-outline:transparent] [--image-zoom-caption-color:var(--palette-white)] [--image-zoom-close-fg:var(--palette-white)]',
 };
 const motionTokens: Record<ImageZoomMotion, string> = {
   expand: '',
-  fade: '[--image-zoom-motion:fade] [--image-zoom-duration-in:var(--popup-duration-in)] [--image-zoom-duration-out:var(--popup-duration-out)]',
+  fade: '[--image-zoom-motion:fade] [--image-zoom-duration-in:var(--duration-normal)] [--image-zoom-duration-out:var(--popup-duration-out)]',
 };
 const closeButtonTokens: Record<ImageZoomCloseButtonVariant, string> = {
   flat: '',
@@ -590,7 +590,7 @@ function ZoomStage({
         key={slideKey}
         ref={setBox}
         data-slot="image-zoom-image"
-        className="relative shrink-0 overflow-hidden rounded-(--image-zoom-radius) [will-change:transform]"
+        className="relative shrink-0 overflow-hidden rounded-(--radius-card) [will-change:transform]"
       >
         {/* 読み上げの名前が画像の代わりの文なので、画像そのものは読ませない（二度読ませない — 原則15） */}
         <img

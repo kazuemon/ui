@@ -10,7 +10,7 @@ import type { CollapsibleVariant, CollapsibleIndicator } from '../collapsible/Co
 
 // 開閉の行を束ねた一覧。行・印・中身の見た目は Collapsible と同じ（internal/collapsible-styles。ADR-0117）
 // Accordion だけが持つのは、項目のあいだの扱い
-//   filled: 塗りの面がつながらないよう、項目のあいだを少し離す（Collapsible と同じ --collapsible-row-gap）
+//   filled: 塗りの面がつながらないよう、項目のあいだを少し離す（Collapsible と同じ --spacing）
 //   divided: あいだの線は 1 本に重ねる。一覧の上端と下端には引かない（軸 96 の A）。見出しや本文とのあいだに線を増やさない
 // 中身の高さは Base UI が --accordion-panel-height に測るので、Collapsible の変数に渡して同じ動きにする
 const accordionStyles = tv({
@@ -23,7 +23,7 @@ const accordionStyles = tv({
     variant: {
       plain: {},
       'open-filled': {},
-      filled: { root: 'gap-(--collapsible-row-gap)' },
+      filled: { root: 'gap-(--spacing)' },
       card: { root: 'gap-(--collapsible-card-gap)' },
       divided: {
         item: [

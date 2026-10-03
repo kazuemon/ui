@@ -1,0 +1,7 @@
+:root {
+  /* Notice の操作を文の右に置く形（actionsPlacement="end"）。操作は文の塊の縦の真ん中にそろえ、上下の余白へはみ出させる
+     actions-gap: 文と操作のあいだ
+     actions-text-min: 文の列の最小の幅。これより狭くなると、操作は文の下に回る */
+  --notice-actions-gap: calc(var(--spacing) * 4);
+  --notice-actions-text-min: 16rem;
+}

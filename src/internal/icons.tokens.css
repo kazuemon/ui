@@ -1,0 +1,6 @@
+:root {
+  /* アイコン（Phosphor）の viewBox 256 に対する線幅 — ADR-0018
+     文字と並ぶときは Regular、単体（アイコンボタンなど）は Bold */
+  --icon-stroke: 16;
+  --icon-stroke-standalone: 24;
+}

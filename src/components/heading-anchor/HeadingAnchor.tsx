@@ -19,18 +19,18 @@ import { tv } from '../../internal/tv';
 const headingAnchor = tv({
   base: [
     // Prose の中の a の見た目（下線・色・左右の張り出し）は、ここで置き直す
-    'relative inline-flex cursor-pointer rounded-(--link-text-radius) px-1 py-0.5 text-(color:--heading-anchor-color) no-underline',
+    'relative inline-flex cursor-pointer rounded-(--radius-md) px-1 py-0.5 text-(color:--color-fg-subtle) no-underline',
     'align-[calc(var(--icon-text-center)-var(--heading-anchor-icon-size)/2)]',
     // 印の大きさ。利用者が渡した svg にも同じ大きさをかける
     '[&_svg]:size-(--heading-anchor-icon-size) [&_svg]:shrink-0',
     '[opacity:max(var(--heading-anchor-rest-opacity),calc(var(--density-coarse)*var(--heading-anchor-touch-opacity)))]',
     // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）。色は Link と同じく、文字の色（hover の Primary）を淡く敷く
     'bg-(color:--flat-bg) [--flat-bg:transparent]',
-    'hover:text-(color:--heading-anchor-color-hover) hover:[--flat-bg:color-mix(in_oklab,var(--heading-anchor-color-hover)_var(--flat-hover-mix),transparent)] focus-visible:text-(color:--heading-anchor-color-hover) focus-visible:opacity-100 active:[--flat-bg:color-mix(in_oklab,var(--heading-anchor-color-hover)_var(--flat-press-mix),transparent)]',
+    'hover:text-(color:--color-primary) hover:[--flat-bg:color-mix(in_oklab,var(--color-primary)_var(--flat-hover-mix),transparent)] focus-visible:text-(color:--color-primary) focus-visible:opacity-100 active:[--flat-bg:color-mix(in_oklab,var(--color-primary)_var(--flat-press-mix),transparent)]',
     // 見出しに hover したとき。見出しのどこでも現れる
     '[:is(h1,h2,h3,h4,h5,h6):hover_&]:opacity-100',
     'active:top-(--flat-press-depth)',
-    '[transition:opacity_var(--heading-anchor-duration)_var(--ease-press),--flat-bg_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    '[transition:opacity_var(--duration-fast)_var(--ease-press),--flat-bg_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),top_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
     '[--color-own-focus:var(--color-primary)]',
     ...focusRing,

@@ -71,11 +71,11 @@ const segmented = tv({
   slots: {
     root: [
       'relative isolate inline-grid w-fit max-w-full grid-flow-col items-stretch',
-      'h-(--spacing-control) rounded-(--segmented-control-radius) p-(--segmented-control-pad)',
+      'h-(--spacing-control) rounded-(--segmented-control-radius) p-(--spacing)',
       'bg-(color:--segmented-control-bg) [--segmented-control-bg:var(--segmented-control-track-bg)]',
       'border-(length:--segmented-control-track-border-width) border-line',
       // 項目とつまみの角は、溝の角から内側の余白を引いた同心の角（原則5）
-      '[--segmented-control-item-radius:max(0px,calc(var(--segmented-control-radius)-var(--segmented-control-pad)-var(--segmented-control-track-border-width)))]',
+      '[--segmented-control-item-radius:max(0px,calc(var(--segmented-control-radius)-var(--spacing)-var(--segmented-control-track-border-width)))]',
       // エラー: 入力欄のエラーと同じ淡い赤
       'data-invalid:[--segmented-control-bg:var(--color-field-invalid)]',
       // 押せない・読み取り専用・送信中: 押せない欄のグレー。つまみは影を消し、色を薄くする（原則13）
@@ -91,7 +91,7 @@ const segmented = tv({
       'top-(--segmented-control-knob-y) left-(--segmented-control-knob-x) h-(--segmented-control-knob-h) w-(--segmented-control-knob-w)',
       'bg-(color:--segmented-control-knob-bg) shadow-(--segmented-control-knob-shadow-now)',
       'opacity-[calc(var(--segmented-control-knob-opacity,0)*var(--segmented-control-knob-opacity-now))]',
-      'in-data-knob-ready:[transition:left_var(--segmented-control-knob-motion)_var(--segmented-control-knob-ease),width_var(--segmented-control-knob-motion)_var(--segmented-control-knob-ease),top_var(--segmented-control-knob-motion)_var(--segmented-control-knob-ease),height_var(--segmented-control-knob-motion)_var(--segmented-control-knob-ease)]',
+      'in-data-knob-ready:[transition:left_var(--segmented-control-knob-motion)_var(--ease-press),width_var(--segmented-control-knob-motion)_var(--ease-press),top_var(--segmented-control-knob-motion)_var(--ease-press),height_var(--segmented-control-knob-motion)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     // 項目の升（Field.Item）。仕切りの線を描く。選んだ項目と、その隣では線を消す
@@ -196,7 +196,7 @@ const segmented = tv({
     },
     // つまみの動き。none はすぐ切り替える。動きを減らす設定では、値によらず動かさない
     indicatorMotion: {
-      slide: { root: '[--segmented-control-knob-motion:var(--segmented-control-knob-duration)]' },
+      slide: { root: '[--segmented-control-knob-motion:var(--duration-normal)]' },
       none: { root: '[--segmented-control-knob-motion:0ms]' },
     },
   },

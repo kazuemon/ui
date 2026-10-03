@@ -57,11 +57,11 @@ const styles = tv({
       'bg-(color:--card-fill) [--card-fill:var(--color-surface)]',
       // 選んでいる印（selected）。輪郭に重ねて線を引く。寸法は変えない。線の色は color の色（--card-accent）
       //   輪郭は overflow-hidden の外にあり、重ねた疑似要素を輪郭の上に出すと切り取られる。
-      //   そこで輪郭そのものを線の色にし、残りの幅（--card-selected-line-width − 輪郭の幅）を内側の疑似要素で足す
+      //   そこで輪郭そのものを線の色にし、残りの幅（--border-width-thick − 輪郭の幅）を内側の疑似要素で足す
       'data-selected:[--card-line:var(--card-accent)]',
       "data-selected:after:pointer-events-none data-selected:after:absolute data-selected:after:inset-0 data-selected:after:z-1 data-selected:after:content-['']",
       'data-selected:after:rounded-[calc(var(--radius-card)-var(--card-line-width))] data-selected:after:border-(color:--card-accent)',
-      'data-selected:after:border-[length:calc(var(--card-selected-line-width)-var(--card-line-width))]',
+      'data-selected:after:border-[length:calc(var(--border-width-thick)-var(--card-line-width))]',
     ],
     // 押すカードの見えない button。疑似要素をカードいっぱいに広げる
     action: '',
@@ -117,7 +117,7 @@ const styles = tv({
         root: '[--card-accent:var(--color-fg-secondary)] [--card-selected-tint:var(--color-secondary-subtle)]',
       },
       neutral: {
-        root: '[--card-accent:var(--color-neutral-strong)] [--card-selected-tint:var(--color-select-neutral-selected)]',
+        root: '[--card-accent:var(--color-neutral-strong)] [--card-selected-tint:var(--palette-gray-200)]',
       },
     },
     // 選んでいる見た目の形。fill は面を淡く塗って線を重ね、line は面を変えずに線だけを重ねる

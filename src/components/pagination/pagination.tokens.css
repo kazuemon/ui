@@ -1,0 +1,15 @@
+:root {
+  /* Pagination（ページ番号のナビ）— ADR-0177・0178
+     番号と前へ・次へは平らな押すもの。高さと幅の下限は部品の高さ
+     gap: 項目のあいだ。item-px: 番号の左右の余白（2 桁以上で幅が伸びるとき）
+     step-*: 前へ・次へ（矢印と文字のとき）の左右の余白と、矢印と文字のあいだ
+     item-color: 番号と前へ・次への文字（Navbar の行き先と同じグレー）
+     角（shape）・枠線（outline）・いまのページの印（currentIndicator）は部品で選ぶ
+     ellipsis-*: 省略（…）の幅と色。押せないので部品の高さの正方形にしない（押せるメニューにするとき（ellipsisMenu）は番号と同じ大きさになる）
+     count-gap: いちばん狭いところの「5 / 10」の、数と「/ 10」のあいだ */
+  --pagination-item-px: calc(var(--spacing) * 2);
+  --pagination-step-px: calc(var(--spacing) * 3);
+  --pagination-step-gap: calc(var(--spacing) * 2);
+  --pagination-item-color: var(--color-fg-muted);
+  --pagination-ellipsis-width: calc(var(--spacing) * 6);
+}

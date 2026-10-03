@@ -13,7 +13,7 @@ import { tv } from '../../internal/tv';
 //     フォーカスしても隠れたままになるため
 //   ページの上に重なる面なので、面・輪郭・影は浮かぶ面と同じ（原則1）。リンクの小物なので角は pill（原則5）
 //   文字はリンクと同じ Primary の青と淡い下線。hover で下線だけ濃くする（design/adr/0030）
-//   フォーカスの線は focusRing（design/adr/0031）。線の色は既定で Primary（--skip-link-focus-ring-color）
+//   フォーカスの線は focusRing（design/adr/0031）。線の色は既定で Primary（--color-primary）
 //   位置・角・面の色は --skip-link-*（design/tokens.css）
 const skipLink = tv({
   base: [
@@ -21,12 +21,12 @@ const skipLink = tv({
     'focus:fixed focus:top-(--skip-link-top) focus:right-(--skip-link-right) focus:left-(--skip-link-left) focus:z-50',
     'focus:m-0 focus:h-auto focus:w-auto focus:overflow-visible focus:whitespace-normal focus:[clip-path:none]',
     'focus:flex focus:min-h-(--spacing-control) focus:items-center focus:border-(length:--border-width-thin) focus:px-(--spacing-control-x) focus:py-1',
-    'rounded-(--skip-link-radius) border-(color:--skip-link-line) bg-(color:--skip-link-bg) shadow-(--skip-link-shadow)',
-    'text-(length:--text-control) leading-(--leading-control) font-bold text-(color:--skip-link-fg)',
+    'rounded-(--radius-pill) border-(color:--color-surface-line) bg-(color:--color-surface) shadow-(--shadow-overlay)',
+    'text-(length:--text-control) leading-(--leading-control) font-bold text-(color:--color-primary)',
     'underline [text-decoration-color:var(--color-link-underline)] decoration-1 underline-offset-4 hover:[text-decoration-color:var(--color-link-underline-hover)]',
-    '[--color-own-focus:var(--skip-link-focus-ring-color)] [--focus-ring-offset:var(--skip-link-focus-ring-offset)]',
+    '[--color-own-focus:var(--color-primary)] [--focus-ring-offset:var(--skip-link-focus-ring-offset)]',
     ...focusRing,
-    '[transition:text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    '[transition:text-decoration-color_var(--duration-normal)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
   ],
 });

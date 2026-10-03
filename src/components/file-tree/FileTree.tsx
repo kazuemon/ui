@@ -55,12 +55,12 @@ const fileTree = tv({
     // 狭い幅ではファイル名を優先する。ファイル名は自分の幅のまま（縮むのは、ファイル名だけで幅を越えたときだけ）、
     //   コメントは幅 0 から残りを埋め、入りきらない分を切る。右端に寄せるのは text-end で行う
     label: 'min-w-0 truncate',
-    comment: 'min-w-0 flex-1 truncate text-end text-(color:--file-tree-comment-color)',
+    comment: 'min-w-0 flex-1 truncate text-end text-(color:--color-fg-subtle)',
     group: [
       ...listReset,
       'flex flex-col',
       'ms-(--file-tree-guide-left) ps-[calc(var(--file-tree-indent)-var(--file-tree-guide-left))]',
-      '[border-inline-start:var(--file-tree-guide-width)_var(--file-tree-line-style)_var(--file-tree-guide-color)]',
+      '[border-inline-start:var(--file-tree-guide-width)_var(--file-tree-line-style)_var(--color-line)]',
     ],
   },
   variants: {
@@ -69,7 +69,7 @@ const fileTree = tv({
     frame: {
       true: {
         root: 'rounded-control bg-(color:--file-tree-frame-bg)',
-        head: 'px-(--file-tree-frame-px) pt-(--file-tree-frame-py) [box-shadow:inset_0_calc(var(--border-width-thin)*-1)_0_0_var(--file-tree-title-line)]',
+        head: 'px-(--file-tree-frame-px) pt-(--file-tree-frame-py) [box-shadow:inset_0_calc(var(--border-width-thin)*-1)_0_0_var(--color-line)]',
         list: 'px-(--file-tree-frame-px)',
       },
       false: { list: 'px-0' },
@@ -89,7 +89,7 @@ const fileTree = tv({
     //   文字色・太さはここで、強調した行なら常に付ける（indicator に関わらず文字は色付き＋太字のまま）
     highlighted: {
       true: {
-        row: '[font-weight:var(--file-tree-highlight-weight)] text-(color:--file-tree-highlight-fg)',
+        row: '[font-weight:var(--font-weight-heading)] text-(color:--file-tree-highlight-fg)',
       },
       false: {},
     },
@@ -99,13 +99,13 @@ const fileTree = tv({
     highlightIndicator: { fill: {}, text: {} },
     // 既定のフォルダ・ファイルのアイコンの色（軸 277）。フォルダ・ファイルで別トークンにしている
     kind: {
-      folder: { iconDefault: 'text-(color:--file-tree-icon-folder-color)' },
-      file: { iconDefault: 'text-(color:--file-tree-icon-file-color)' },
+      folder: { iconDefault: 'text-(color:--color-fg-subtle)' },
+      file: { iconDefault: 'text-(color:--color-fg-subtle)' },
     },
     // 行ごとのアイコンの色（軸 277・決定）。既定（neutral）はフォルダ・ファイルの色のまま（iconDefault は kind が付ける。
     //   渡したアイコン＝icon 変体は kind の対象外なので、neutral の既定色はここで付ける）。指定したときだけ変える
     itemColor: {
-      neutral: { icon: 'text-(color:--file-tree-icon-color)' },
+      neutral: { icon: 'text-(color:--color-fg-subtle)' },
       primary: {
         iconDefault: 'text-(color:--color-primary)',
         icon: 'text-(color:--color-primary)',
@@ -139,7 +139,7 @@ const fileTree = tv({
       color: 'neutral',
       highlightIndicator: 'fill',
       class: {
-        root: '[--file-tree-highlight-bg:var(--color-select-neutral-selected)] [--file-tree-highlight-fg:var(--color-fg)]',
+        root: '[--file-tree-highlight-bg:var(--palette-gray-200)] [--file-tree-highlight-fg:var(--color-fg)]',
       },
     },
     {

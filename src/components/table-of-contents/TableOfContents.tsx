@@ -34,12 +34,12 @@ const styles = tv({
     // 一覧の左の細い線（今の見出しの印が載る）
     list: [
       'flex flex-col ps-(--toc-track-gap)',
-      'border-s-(length:--toc-track-width) border-(color:--toc-track-color)',
+      'border-s-(length:--toc-track-width) border-(color:--color-line)',
     ],
     // 入れ子の並び。ふだんは字下げだけ
     group: 'flex flex-col ps-(--toc-indent)',
     link: [
-      'relative grid rounded-control px-(--toc-item-px) py-(--toc-item-py) no-underline',
+      'relative grid rounded-control px-(--toc-item-px) py-(--spacing) no-underline',
       '[overflow-wrap:anywhere]',
       'text-(color:--toc-link-color) [--toc-link-color:var(--toc-item-color)]',
       // 塗り: ふだんは塗らない。hover と押下は、文字の色を淡く敷く
@@ -53,8 +53,8 @@ const styles = tv({
       // 今の見出し: 太字にし、文字の色を印のものにする
       'aria-[current=location]:font-bold aria-[current=location]:[--toc-link-color:var(--toc-current-fg)]',
       // 今の見出しの印の線。一覧の左の線の中心に、段にかかわらず重ねる
-      "before:absolute before:inset-y-0 before:hidden before:w-(--toc-current-bar-width) before:rounded-pill before:bg-(color:--toc-current-bar-color) before:content-['']",
-      'before:start-[calc(-1*(var(--toc-track-width)*0.5+var(--toc-current-bar-width)*0.5+var(--toc-track-gap)+var(--toc-depth)*var(--toc-step)))]',
+      "before:absolute before:inset-y-0 before:hidden before:w-(--border-width-thick) before:rounded-pill before:bg-(color:--toc-current-bar-color) before:content-['']",
+      'before:start-[calc(-1*(var(--toc-track-width)*0.5+var(--border-width-thick)*0.5+var(--toc-track-gap)+var(--toc-depth)*var(--toc-step)))]',
     ],
     // 見える文字と、幅を取るための太字の写しを同じ場所に重ねる
     text: '[grid-area:1/1]',
@@ -87,7 +87,7 @@ const styles = tv({
         root: '[--toc-step:calc(var(--toc-item-px)+var(--toc-guide-width)+var(--toc-track-gap))]',
         group: [
           'ms-(--toc-item-px) ps-(--toc-track-gap)',
-          'border-s-(length:--toc-guide-width) border-(color:--toc-track-color)',
+          'border-s-(length:--toc-guide-width) border-(color:--color-line)',
         ],
       },
       false: {},

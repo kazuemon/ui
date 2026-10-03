@@ -52,7 +52,7 @@ const inner = tv({
     'after:start-[calc(var(--steps-marker-size)/2-var(--steps-line-width)/2)]',
     'after:top-[calc(var(--step-marker-top)+var(--steps-marker-size)+var(--steps-line-gap))]',
     'after:bottom-[calc(var(--step-marker-top)-var(--steps-gap)+var(--steps-line-gap))]',
-    'after:[border-inline-start:var(--steps-line-width)_var(--step-line-style)_var(--color-steps-line)]',
+    'after:[border-inline-start:var(--steps-line-width)_var(--step-line-style)_var(--color-line)]',
     '[li:last-child>&]:after:content-none',
   ],
   variants: {
@@ -80,7 +80,7 @@ const inner = tv({
       solid: '[--step-line-style:solid]',
       dotted: [
         '[--step-line-style:dotted]',
-        '[--steps-line-gap:var(--steps-line-dotted-gap)] [--steps-line-width:var(--steps-line-dotted-width)]',
+        '[--steps-line-gap:var(--steps-line-dotted-gap)] [--steps-line-width:var(--border-width-thick)]',
       ],
       none: 'after:content-none',
     },
@@ -107,7 +107,7 @@ const body = tv({
   base: [
     '[&>*:not(:first-child)]:mt-(--prose-block-gap) [&>p+p:not(:first-child)]:mt-(--prose-paragraph-gap)',
     // 本文の直下のリストは、段の li の中にあっても入れ子の印にしない
-    '[&>ul]:[--lm-h:var(--list-bullet-height)] [&>ul]:[--lm-radius:var(--list-bullet-radius)] [&>ul]:[--lm-w:var(--list-bullet-width)]',
+    '[&>ul]:[--lm-h:var(--list-bullet-height)] [&>ul]:[--lm-radius:var(--radius-pill)] [&>ul]:[--lm-w:var(--list-bullet-width)]',
     '[&>ul]:[--lm-bg:var(--color-list-bullet)] [&>ul]:[--lm-ring-color:var(--color-list-bullet-ring)] [&>ul]:[--lm-ring:var(--list-bullet-ring)]',
   ],
   variants: {

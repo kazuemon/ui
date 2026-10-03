@@ -42,7 +42,7 @@ const slider = tv({
       'data-disabled:cursor-not-allowed data-disabled:[--color-choice-hover:var(--color-switch-off-disabled)] data-disabled:[--color-choice:var(--color-switch-off-disabled)]',
       '[--slider-fill:var(--slider-own)]',
       // 押しているあいだに差し替える値。既定は変えない値で、pressEffect が置き換える（下の variants）
-      '[--slider-fill-press-darken:0%] [--slider-thumb-press-halo:0px] [--slider-thumb-press-scale:1] [--slider-thumb-press-shadow:var(--slider-thumb-shadow)]',
+      '[--slider-fill-press-darken:0%] [--slider-thumb-press-halo:0px] [--slider-thumb-press-scale:1] [--slider-thumb-press-shadow:var(--shadow-raised)]',
       // 押しているあいだ（つまみかトラックを押してから離すまで。Base UI の data-dragging と :active）は、塗りを濃くする
       //   濃さは --slider-fill-press-darken（本文の色を混ぜる割合）。押せないとき・止めているときは変えない
       'not-data-disabled:active:[--slider-fill:color-mix(in_oklab,var(--slider-own),var(--color-fg)_var(--slider-fill-press-darken))]',
@@ -56,16 +56,16 @@ const slider = tv({
     thumb: [
       'size-(--slider-thumb-size) rounded-pill bg-surface',
       // 影は 3 つを重ねる: エラーの内側の赤い線、押しているあいだの外側の輪（塗りの色を淡く）、ふだんの影
-      '[--slider-thumb-halo:0px] [--slider-thumb-invalid:0px] [--slider-thumb-shadow-now:var(--slider-thumb-shadow)]',
-      'shadow-[inset_0_0_0_var(--slider-thumb-invalid)_var(--color-choice-invalid-line),0_0_0_var(--slider-thumb-halo)_color-mix(in_oklab,var(--slider-fill)_var(--slider-press-halo-mix),transparent),var(--slider-thumb-shadow-now)]',
+      '[--slider-thumb-halo:0px] [--slider-thumb-invalid:0px] [--slider-thumb-shadow-now:var(--shadow-raised)]',
+      'shadow-[inset_0_0_0_var(--slider-thumb-invalid)_var(--color-fg-danger),0_0_0_var(--slider-thumb-halo)_color-mix(in_oklab,var(--slider-fill)_var(--slider-press-halo-mix),transparent),var(--slider-thumb-shadow-now)]',
       // エラー: つまみの内側に赤い線（押せないときは引かない）
-      'data-invalid:not-data-disabled:[--slider-thumb-invalid:var(--choice-invalid-line-width)]',
+      'data-invalid:not-data-disabled:[--slider-thumb-invalid:var(--border-width-medium)]',
       // 押しているあいだ（Base UI の data-dragging と、トラックの :active）: 大きさ・影・輪を、pressEffect の値に差し替える
       'not-data-disabled:group-active/slider:scale-(--slider-thumb-press-scale) not-data-disabled:data-dragging:scale-(--slider-thumb-press-scale)',
       'not-data-disabled:group-active/slider:[--slider-thumb-shadow-now:var(--slider-thumb-press-shadow)] not-data-disabled:data-dragging:[--slider-thumb-shadow-now:var(--slider-thumb-press-shadow)]',
       'not-data-disabled:group-active/slider:[--slider-thumb-halo:var(--slider-thumb-press-halo)] not-data-disabled:data-dragging:[--slider-thumb-halo:var(--slider-thumb-press-halo)]',
       // 押せないとき: 影を消し、色によらずグレー（トグルの押せないノブと同じ — 原則13）
-      'data-disabled:bg-(color:--color-switch-neutral-disabled-knob) data-disabled:shadow-none',
+      'data-disabled:bg-(color:--color-on-neutral-disabled) data-disabled:shadow-none',
       // キーボードで操作したときのフォーカスの線（focusRing と同じトークン）。フォーカスは中の input に当たるので、has で見る
       '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
       '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
@@ -94,7 +94,7 @@ const slider = tv({
       neutral: {
         control: [
           '[--slider-own:var(--color-neutral-strong)]',
-          'data-disabled:[--slider-fill:var(--color-switch-neutral-disabled-knob)]',
+          'data-disabled:[--slider-fill:var(--color-on-neutral-disabled)]',
         ],
         indicator: 'data-disabled:opacity-100',
       },

@@ -44,7 +44,7 @@ const styles = tv({
     list: 'flex gap-(--thumbnails-gap)',
     item: [
       'relative block shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0',
-      'aspect-(--thumbnails-item-ratio) w-(--thumbnails-item-width) rounded-(--thumbnails-radius)',
+      'aspect-(--thumbnails-item-ratio) w-(--thumbnails-item-width) rounded-(--radius-control)',
       // 中の画像を 1 つずつの大きさに切り取って埋める
       '[&_img]:block [&_img]:size-full [&_img]:rounded-[inherit] [&_img]:object-cover',
       '[&_img]:opacity-(--thumbnails-rest-opacity) not-aria-selected:hover:[&_img]:opacity-(--thumbnails-hover-opacity) aria-selected:[&_img]:opacity-100',
@@ -69,23 +69,23 @@ const styles = tv({
         root: '-mx-(--thumbnails-room) -mt-(--thumbnails-room)',
         viewport: [
           'px-(--thumbnails-room) pt-(--thumbnails-room)',
-          'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+          'pb-[max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--border-width-thick)))]',
         ],
         list: 'w-max',
-        item: 'after:inset-x-0 after:top-[calc(100%+var(--thumbnails-bar-gap))] after:h-(--thumbnails-bar-height)',
+        item: 'after:inset-x-0 after:top-[calc(100%+var(--thumbnails-bar-gap))] after:h-(--border-width-thick)',
       },
       // 縦: 入れ物の高さに収める。棒は画像の横（内側）に縦に引き、つまみは外側の溝に置く。左右は slideSide で決める
       vertical: {
         root: [
           // 外へ広げるのはフォーカスの線の分だけ。棒の側は、棒の分だけ内側に余白を取る（横向きの下の棒と同じ）
           '-m-(--thumbnails-room) flex h-full max-h-full flex-col',
-          '[--thumbnails-bar-room:max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+          '[--thumbnails-bar-room:max(var(--thumbnails-room),calc(var(--thumbnails-bar-gap)+var(--border-width-thick)))]',
           // つまみの溝（帯の幅と、帯を端から離す分）。つまみを画像と棒に重ねない
           '[--thumbnails-scrollbar-gutter:calc(var(--scroll-area-thumb-size-hover)+var(--scroll-area-thumb-inset)*2)]',
         ],
         viewport: 'pt-(--thumbnails-room) pb-(--thumbnails-room)',
         list: 'h-max flex-col gap-(--thumbnails-gap)',
-        item: 'after:top-0 after:h-full after:w-(--thumbnails-bar-height)',
+        item: 'after:top-0 after:h-full after:w-(--border-width-thick)',
       },
     },
     // 縦のとき、帯から見てスライド（中身）のある側。棒はこちら、つまみは反対の側に置く
@@ -129,7 +129,7 @@ const styles = tv({
       class: {
         viewport:
           'ps-(--thumbnails-bar-room) pe-[calc(var(--thumbnails-room)+var(--thumbnails-scrollbar-gutter))]',
-        item: 'after:start-[calc(-1*(var(--thumbnails-bar-gap)+var(--thumbnails-bar-height)))]',
+        item: 'after:start-[calc(-1*(var(--thumbnails-bar-gap)+var(--border-width-thick)))]',
       },
     },
   ],

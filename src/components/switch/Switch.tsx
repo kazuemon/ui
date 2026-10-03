@@ -20,7 +20,7 @@ import { focusRing } from '../../internal/focus-styles';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
 import { tv } from '../../internal/tv';
 
-// OFF のトラックはグレー（チェックボックスの選んでいない箱と同じ色。--color-switch-off）で、輪郭を付けない（design/adr/0011）
+// OFF のトラックはグレー（チェックボックスの選んでいない箱と同じ色。--color-field-addon）で、輪郭を付けない（design/adr/0011）
 // ON の色は利用者が選ぶ（原則6）。ピンクは面用（原則12: 文字を載せない塗り）
 // 指定しないときはグレー（ON は濃いグレー）— design/adr/0028
 // ノブの影は「押せること」の記号（原則1）。Disabled では影をなくす
@@ -101,12 +101,12 @@ const styles = tv({
       primary: {
         track:
           '[--color-own-focus:var(--color-primary)] data-checked:[--switch-track:var(--color-primary)]',
-        thumb: 'data-disabled:not-data-checked:bg-(color:--color-switch-off-disabled-knob)',
+        thumb: 'data-disabled:not-data-checked:bg-(color:--color-on-neutral-disabled)',
       },
       secondary: {
         track:
           '[--color-own-focus:var(--color-fg-secondary)] data-checked:[--switch-track:var(--color-secondary)]',
-        thumb: 'data-disabled:not-data-checked:bg-(color:--color-switch-off-disabled-knob)',
+        thumb: 'data-disabled:not-data-checked:bg-(color:--color-on-neutral-disabled)',
       },
       // 色を持たないトグル。OFF（淡いグレー）と区別できるよう、ON は濃いグレー
       // 押せないときは色を残せないので、薄くせずグレーにする — design/adr/0029
@@ -116,7 +116,7 @@ const styles = tv({
           'data-checked:[--switch-track:var(--color-neutral-strong)]',
           'data-disabled:data-checked:bg-(color:--color-switch-neutral-on-disabled) data-disabled:data-checked:opacity-100',
         ],
-        thumb: 'data-disabled:bg-(color:--color-switch-neutral-disabled-knob)',
+        thumb: 'data-disabled:bg-(color:--color-on-neutral-disabled)',
       },
     },
     // トラックの位置。start は文字の左（既定）、end は文字の右。列の並びはトークン（線の名前で、トラック・ラベル・キャプションの列を指す）
@@ -208,7 +208,7 @@ const styles = tv({
       'group/switch relative [grid-column:track] row-[1/2] inline-flex h-(--switch-h) w-(--switch-w) shrink-0 cursor-pointer items-center rounded-pill p-(--switch-inset)',
       'self-start',
       trackLineMargin,
-      '[--switch-track:var(--color-switch-off)]',
+      '[--switch-track:var(--color-field-addon)]',
       'bg-(color:--switch-track)',
       // キーボードで操作したときのフォーカス（design/adr/0031）は、frame が none のときトラックの外側に描く（下の frame）
       // 塗りは、ノブの滑る動きと同じ長さ・緩急で一緒に動かす

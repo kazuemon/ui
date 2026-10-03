@@ -1,0 +1,23 @@
+:root {
+  /* Avatar（画像・頭文字・アイコン）
+     size-*: 大きさの段（正方形）。入力方式では変えない（Badge と同じ）
+     text-*: 頭文字の大きさ。段のおよそ 0.4 倍
+     outline-width・outline-color: 白っぽい画像が白地に溶けないための細い輪郭。濃さは Image の輪郭と同じ
+     icon-scale: fallback="icon" のアイコンの、段に対する割合
+     radius: 丸は pill、shape="rounded" は小さい段（sm・md）が部品の角、大きい段（lg・xl）がカードの角 */
+  --avatar-size-xs: calc(
+    var(--spacing) * 5
+  ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す */
+  --avatar-size-sm: calc(var(--spacing) * 6); /* 24px。文字の行に並べる */
+  --avatar-size-md: calc(var(--spacing) * 8); /* 32px。一覧の行 */
+  --avatar-size-lg: calc(var(--spacing) * 10); /* 40px。カードの見出し */
+  --avatar-size-xl: calc(var(--spacing) * 14); /* 56px。プロフィールの見出し */
+  --avatar-text-xs: 9px;
+  --avatar-text-sm: 10px;
+  --avatar-text-md: 12px;
+  --avatar-text-lg: 16px;
+  --avatar-text-xl: 20px;
+  --avatar-outline-width: var(--border-width-thin);
+  --avatar-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --avatar-icon-scale: 0.6;
+}

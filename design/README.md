@@ -15,6 +15,6 @@
 | `stories/`      | 決めている途中の軸の比較ストーリー。`Design Review/NN 軸の名前` に並ぶ。決まったら消す    |
 | `tools/`        | 比較画像の撮影と、原則の書き方の確かめ。使い方は [`tools/README.md`](./tools/README.md)   |
 
-値は `tokens.css` の 1 か所だけに書きます。`principles.md` と ADR は、値ではなく役割トークン名で参照します。
+公開の値は `tokens.css` に、部品の中だけの値は部品のフォルダの `<name>.tokens.css` に書きます。`principles.md` と ADR は、値ではなく役割トークン名で参照します。
 
 決め方（ループの進め方、決まったあとに更新するもの）は、リポジトリ直下の [`CLAUDE.md`](../CLAUDE.md) にあります。

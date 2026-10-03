@@ -1,0 +1,10 @@
+:root {
+  /* Toggle・ToggleGroup（二値のボタン）
+     OFF は color を指定していても同じグレー。hover・押下の濃さは平らな押すものと同じ（--flat-hover-mix・--flat-press-mix）。どちらの押下でも沈める
+     ON は variant と color で決まる。--toggle-accent・--toggle-accent-fg・--toggle-accent-subtle・--toggle-accent-subtle-fg は color が決め、--toggle-on-* は variant がそこから選ぶ
+     枠線の太さは常に --border-width-medium を確保し、色（--toggle-border-color）だけを透明と部品の色で切り替える（幅を変えると auto width の文字ボタンが膨らむ）
+     ToggleGroup の connected は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す。Toggle は in-data-[frame=…] で属する ToggleGroup の frame を読む */
+  --toggle-off-fg: var(--color-fg-muted);
+  --toggle-off-hover-bg: var(--color-field-hover);
+  --toggle-group-gap: calc(var(--spacing) * 2);
+}

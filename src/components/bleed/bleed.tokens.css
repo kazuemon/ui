@@ -1,0 +1,6 @@
+:root {
+  /* Bleed（本文の幅の外へ出す）
+     gutter: 出す幅（片側）。Container の左右の余白（幅の 5%）を本文の幅（90%）から逆算した 1/18。% は Bleed の親（本文の幅）が基準
+       Container の幅の上限で止まる広い画面では 1/18 のまま（prose で約 37px）で、実際の余白（最大 48px）には届かない */
+  --bleed-gutter: clamp(calc(var(--spacing) * 4), calc(100% / 18), calc(var(--spacing) * 12));
+}

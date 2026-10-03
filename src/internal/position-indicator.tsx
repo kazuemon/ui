@@ -13,13 +13,13 @@ const styles = tv({
     dots: 'flex items-center gap-(--carousel-dot-gap)',
     dot: [
       'h-(--carousel-dot-size) w-(--carousel-dot-size) shrink-0 rounded-pill',
-      'bg-[color:var(--position-dot-color,var(--carousel-dot-color))]',
-      'data-current:w-(--carousel-dot-current-width) data-current:bg-[color:var(--position-dot-current-color,var(--carousel-dot-current-color))]',
+      'bg-[color:var(--position-dot-color,var(--color-line-strong))]',
+      'data-current:w-(--carousel-dot-current-width) data-current:bg-[color:var(--position-dot-current-color,var(--color-neutral-strong))]',
       'transition-[width,background-color] duration-(--duration-normal) ease-(--ease-press) motion-reduce:transition-none',
     ],
     // 並べ方は --position-count-display で差し替えられる（inline にすると、間は gap ではなく文字の空白になる。Gallery）
     count:
-      '[display:var(--position-count-display,inline-flex)] items-center gap-(--carousel-count-gap) whitespace-nowrap tabular-nums',
+      '[display:var(--position-count-display,inline-flex)] items-center gap-(--spacing) whitespace-nowrap tabular-nums',
     countCurrent:
       '[font-weight:var(--position-count-current-weight,var(--font-weight-bold))] text-[color:var(--position-count-current-color,var(--color-fg))]',
     countTotal: 'text-[color:var(--position-count-total-color,var(--color-fg-muted))]',

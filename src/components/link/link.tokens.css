@@ -1,0 +1,19 @@
+:root {
+  /* 文字のリンク — ADR-0030・0031・0046・0056
+     下線: ふだんは文字の色を 35% に透かした淡い下線（太さ 1px）。hover で下線だけが文字より濃くなる（黒を 30% 混ぜる）。文字の色は変えない */
+  --color-link-underline: color-mix(in oklab, currentColor 35%, transparent);
+  --color-link-underline-hover: color-mix(in oklab, currentColor, black 30%);
+  /* 下線の色の変化の緩急。ゆっくり始めてゆっくり終える */
+  --link-underline-ease: var(--ease-in-out);
+  /* 文字のリンクの角丸は、フォーカスの線がこの角丸に沿う */
+  /* 新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）
+     下線を ↗ の線の右端まで続ける幅と、線の下端を基線にそろえる量は、部品がこの値から計算する（どの大きさでも成り立つ） */
+  --link-external-icon-size: 0.85em;
+  /* 本文の外（Text・Heading・Prose の外）に置いた文字のリンクの大きさと行の高さ
+     部品の文字と同じ（マウス 16/24・指 14/20）。--link-text-size・--link-text-leading は src/styles/theme.css の密度の規則が入れる
+     Text・Heading・Prose の中では、部品が 1em と未設定に戻す（周りの文字のまま。記事の中は 16px）。未設定（initial）の行の高さは周りを受け継ぐ */
+  /* 幅いっぱいの枠線のリンク（contentAlign="center-end"）の前のアイコン（サービスのアイコンなど）
+     1: 前のアイコンは文字と一緒に動く（まとめて中央。既定）。0: 前のアイコンは左端に残り、文字だけが中央に寄る
+     0 は部品の leadIconPlacement="start" で選ぶ。between では、どちらでも前のアイコンは左端、文字はそのすぐ後ろ */
+  --link-lead-icon-follow: 1;
+}

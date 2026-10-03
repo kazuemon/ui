@@ -55,10 +55,10 @@ const codeGroup = tv({
     // スクロールする範囲は、コピーのボタンの手前で終わらせる（タブがボタンの下に入らない）
     scroller: 'me-[calc(var(--spacing-control)+var(--spacing)*2)] h-full',
     viewport: 'flex items-end',
-    list: 'relative flex w-max items-center gap-(--code-group-tab-gap) px-(--code-group-list-px)',
+    list: 'relative flex w-max items-center gap-(--code-group-tab-gap) px-(--spacing)',
     tab: [
       'relative z-1 inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap select-none',
-      'my-(--code-group-tab-inset) h-(--spacing-control) rounded-(--code-group-tab-radius) px-(--code-group-tab-px)',
+      'my-(--spacing) h-(--spacing-control) rounded-(--radius-pill) px-(--code-group-tab-px)',
       'font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
       // 選んだタブ: 文字を濃く太く（印は下の線）
       'data-active:cursor-default data-active:text-(color:--cb-fg)',
@@ -82,14 +82,14 @@ const codeGroup = tv({
     indicator: [
       'pointer-events-none absolute bottom-0 z-0 h-(--code-group-bar) bg-(color:--code-group-bar-color)',
       'right-(--active-tab-right) left-(--active-tab-left)',
-      '[transition:left_var(--code-group-bar-duration)_var(--code-group-bar-ease),right_var(--code-group-bar-duration)_var(--code-group-bar-ease)]',
+      '[transition:left_var(--duration-normal)_var(--ease-press),right_var(--duration-normal)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     panel: 'min-w-0',
     copy: [
       'absolute z-2 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
       // 帯の中: 上と右に (帯の高さ − ボタン) / 2 = 4px（CodeBlock の題があるときと同じ）
-      'top-[calc((var(--cb-head-h)-var(--spacing-control))/2)] right-(--code-group-copy-inset)',
+      'top-[calc((var(--cb-head-h)-var(--spacing-control))/2)] right-(--spacing)',
       'h-(--spacing-control) min-w-(--spacing-control) px-[calc((var(--spacing-control)-var(--spacing-icon))/2)]',
       'rounded-control text-(color:--cb-muted)',
       'hover:[background-image:linear-gradient(var(--color-flat-hover),var(--color-flat-hover))]',
@@ -111,11 +111,11 @@ const codeGroup = tv({
       surface: { root: codeBlockStyles.surfaceColors },
       dark: {
         root: [
-          '[--cb-bg:var(--color-codeblock-dark-bg)] [--cb-fg:var(--color-codeblock-dark-fg)] [--cb-muted:var(--color-codeblock-dark-muted)]',
+          '[--cb-bg:var(--palette-ink-900)] [--cb-fg:var(--palette-code-dark-fg)] [--cb-muted:var(--palette-code-dark-muted)]',
           '[--cb-head-bg:var(--color-codeblock-dark-head-bg)] [--cb-line:var(--color-codeblock-dark-line)]',
           '[--cb-copy-line:var(--color-codeblock-dark-copy-line)]',
           // 選んだタブの印とフォーカスの線は、濃い地の上で見える色にする
-          '[--code-group-bar-color:var(--color-codeblock-dark-highlight)]',
+          '[--code-group-bar-color:var(--palette-blue-500)]',
           '[--color-focus-ring:var(--cb-fg)]',
         ],
       },

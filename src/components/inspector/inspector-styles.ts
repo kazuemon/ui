@@ -23,9 +23,9 @@ export const inspectorStyles = tv({
     handle: 'pointer-events-auto inset-y-0',
     panel: [
       'flex h-full min-h-0 flex-col text-(length:--text-control) leading-(--leading-control) text-fg outline-none [--sheet-inset:0px]',
-      '[transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
+      '[transition-timing-function:var(--ease-sheet)] motion-reduce:transition-none',
       // 開くときは duration-in、閉じるときは duration-out（原則14: 閉じるほうを短くする）
-      'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
+      'duration-(--duration-normal) data-open:duration-(--duration-sheet)',
       // 閉じた動きが終わったら隠す（visibility は、見えなくなる向きでは動きの終わりに切り替わる）
       'invisible data-open:visible',
       // 幅を変えているあいだは、幅の動きを止める（指に遅れないように）
@@ -37,8 +37,8 @@ export const inspectorStyles = tv({
       push: {
         frame: [
           'relative h-full w-0 max-w-full overflow-hidden data-open:w-(--inspector-width)',
-          'transition-[width] [transition-timing-function:var(--inspector-ease)] motion-reduce:transition-none',
-          'duration-(--inspector-duration-out) data-open:duration-(--inspector-duration-in)',
+          'transition-[width] [transition-timing-function:var(--ease-sheet)] motion-reduce:transition-none',
+          'duration-(--duration-normal) data-open:duration-(--duration-sheet)',
         ],
         panel: ['absolute inset-y-0 w-full border-line bg-surface', 'transition-[visibility]'],
       },
@@ -63,7 +63,7 @@ export const inspectorStyles = tv({
       },
       floating: {
         frame:
-          '[--inspector-edge-line:var(--border-width-thin)] [--inspector-inset:var(--inspector-floating-inset)] [--inspector-radius:var(--inspector-floating-radius)]',
+          '[--inspector-edge-line:var(--border-width-thin)] [--inspector-inset:var(--inspector-floating-inset)] [--inspector-radius:var(--radius-card)]',
       },
     },
     motion: {

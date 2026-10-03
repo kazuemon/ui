@@ -26,7 +26,7 @@ const expandButton = tv({
 });
 
 const expandIcon =
-  'flex transition-[rotate] duration-(--collapsible-duration) ease-(--collapsible-ease) group-aria-expanded/expand:rotate-90 motion-reduce:[transition:none]';
+  'flex transition-[rotate] duration-(--duration-normal) ease-(--ease-sheet) group-aria-expanded/expand:rotate-90 motion-reduce:[transition:none]';
 
 export interface DataTableExpandCellProps extends Omit<ComponentProps<'td'>, 'onToggle'> {
   /**

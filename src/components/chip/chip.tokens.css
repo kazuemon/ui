@@ -1,0 +1,11 @@
+:root {
+  /* Chip — ADR-0217・0219・0259
+     大きさは chipSize（sm・md・lg）を Chip の size にそのまま渡す。--combobox-chip-height は打つ欄の高さをチップにそろえる変数で、値は部品が chipSize から置く
+     最大幅は既定では決めない（欄の幅まで）。Combobox の chipMaxWidth で渡す
+     白い面に、文字の色を薄めた細い縁（グレーの欄の上でもページの上でも輪郭が見える）
+     読み取り専用は縁をなくし、入力欄の付属部分と同じグレーの面。押せないときは縁を薄い線の色 */
+  --chip-border-width: var(--border-width-thin);
+  --chip-border-style: solid;
+  --chip-border-color: color-mix(in oklab, currentColor 45%, transparent);
+  --chip-readonly-border-color: transparent;
+}

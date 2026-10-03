@@ -200,10 +200,10 @@ const button = tv({
         'text-fg [--button-accent:var(--color-fg)] [--button-ink:var(--color-fg)] [--button-line:var(--color-line)]',
         // 薄くせず、枠線と文字をグレーにする。枠線の太さと塗り（なし）は押せるときと同じ
         'disabled:opacity-100',
-        'disabled:border-(color:--color-outline-neutral-disabled-line) disabled:text-(color:--color-outline-neutral-disabled-text)',
+        'disabled:border-(color:--color-line) disabled:text-(color:--color-on-neutral-disabled)',
         'data-disabled:opacity-100',
-        'data-disabled:border-(color:--color-outline-neutral-disabled-line) data-disabled:text-(color:--color-outline-neutral-disabled-text)',
-        'data-loading:border-(color:--color-outline-neutral-disabled-line) data-loading:text-(color:--color-outline-neutral-disabled-text)',
+        'data-disabled:border-(color:--color-line) data-disabled:text-(color:--color-on-neutral-disabled)',
+        'data-loading:border-(color:--color-line) data-loading:text-(color:--color-on-neutral-disabled)',
       ],
     },
   ],

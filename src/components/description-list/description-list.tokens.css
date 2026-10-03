@@ -1,0 +1,28 @@
+:root {
+  /* DescriptionList（用語と説明の組）
+     並び（layout）・区切り（divider）・用語の寄せ方（termAlign）・用語の文字（termStyle）で、この値を差し替える
+     並び: --description-direction が row なら用語が左・説明が右、column なら用語の下に説明
+     区切り: --description-divider-width（行のあいだの線）・--description-frame-width（外枠）・
+             --description-leader-*（用語の右から説明までをつなぐ薄い線。divider="leader-dotted"・"leader-solid"）
+     用語: 名前なので太字。大きさは本文か、Field のラベルと同じ 14px（termStyle="label"） */
+  --description-item-gap: calc(var(--spacing) * 3); /* 行のあいだ（区切りの線を出さないとき） */
+  --description-column-gap: calc(var(--spacing) * 4); /* 横に並べたときの、用語と説明のあいだ */
+  --description-direction: row;
+  --description-item-align: baseline;
+  --description-term-width: calc(var(--spacing) * 32); /* 128px。用語の列の幅（横のときだけ効く） */
+  --description-term-align: start;
+  --description-term-display: block; /* leader-* のときは flex にして、中身の幅＋線にする */
+  --description-term-grow: 0;
+  --description-term-text: var(--text-body);
+  --description-term-leading: var(--leading-body);
+  --description-details-flex: 1 1 0%; /* leader-* のときは 0 1 auto（説明は中身の幅で右に付く） */
+  --description-pad-x: 0px;
+  --description-pad-y: 0px;
+  --description-divider-width: 0px;
+  --description-frame-width: 0px;
+  /* 用語の右から説明までをつなぐ線（divider="leader-dotted"・"leader-solid"）。目次の点線 */
+  --description-leader-display: none;
+  --description-leader-gap: calc(var(--spacing) * 2); /* 線と、用語・説明のあいだ */
+  --description-leader-style: dotted; /* leader-solid は solid に差し替える */
+  --description-leader-width: var(--border-width-thin);
+}

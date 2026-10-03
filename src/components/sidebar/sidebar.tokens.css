@@ -1,0 +1,36 @@
+:root {
+  /* Sidebar（ページの横に並ぶ列）— ADR-0350〜0364
+     行は Tree の行と同じ考え（hover は入力欄の塗り、いまいる行は部品の色）
+     width: 開いた列の幅。rail-width: 畳んだ列の幅（アイコンだけ残す）
+     padding: 列の内側の余白。row-px: 行の左右の余白。畳んだ列の幅の中でアイコンが中央に来る値（開いた形と畳んだ形でアイコンの位置が動かない）
+     gap: アイコンと文字のあいだ。nested-px: 入れ子の行の左の余白（案内線から文字まで。Tree の案内線と文字の間と同じ 16px）
+     current-*: いまいる行。色を持たないときはグレーの面と太字（Tree と同じ） */
+  --sidebar-width: calc(var(--spacing) * 72);
+  --sidebar-padding: calc(var(--spacing) * 4);
+  /* rail-width（行が角丸の正方形になるよう、部品の高さと左右の余白から決める）・row-px・current-hover は、
+     部品の高さや色を途中の要素で差し替えても追従するよう、:root ではなく列の要素の上で計算する（sidebar-styles.ts の derived） */
+  --sidebar-gap: calc(var(--spacing) * 3);
+  --sidebar-nested-px: calc(var(--spacing) * 4);
+  --sidebar-nested-gap: calc(
+    var(--spacing) * 1.5
+  ); /* 案内線と入れ子の行の塗りのあいだ（Tree の --tree-gap と同じ） */
+  --sidebar-row-rest: transparent;
+  --sidebar-row-hover: var(--color-field);
+  --sidebar-row-press: color-mix(in oklab, var(--color-field), var(--color-fg) 6%);
+  --sidebar-current-bg: var(--palette-gray-200);
+  --sidebar-current-fg: var(--color-fg);
+  /* 開け閉めで高さを動かすあいだ、中身を切る場所（Tree と同じ。計算せずに書く） */
+  --sidebar-panel-clip-margin: 6px;
+  /* 列の面。bg: 列の地。variant="muted" で淡いグレーに差し替える。本文との境の細い線はいつも引く */
+  --sidebar-bg: var(--color-surface);
+  /* 上下に固定する場所。fill: headerVariant・footerVariant の filled で敷く淡い面（入力欄の塗りと同じ）
+     variant="muted" では、グレーの地と見分けられるよう部品が一段濃い色に差し替える */
+  --sidebar-edge-fill: var(--color-field);
+  /* 行の件数。count-*: 開いた列の件数の札（既定はグレー。color で差し替える）。mark-*: 畳んだ列でアイコンに重ねる札と点 */
+  --sidebar-count-bg: var(--palette-gray-200);
+  --sidebar-count-fg: var(--color-fg-muted);
+  --sidebar-mark-bg: var(--color-neutral-strong);
+  --sidebar-mark-fg: var(--color-on-neutral-strong);
+  /* 行ごとのメニューのボタンと、畳める節の印。ふだん淡く置くとき（subtle。既定）の濃さ。DataTable の並べ替えの印と同じ */
+  --sidebar-indicator-subtle-opacity: 0.5;
+}

@@ -1,0 +1,4 @@
+:root {
+  /* MaskField — 残りの桁の見本を _ で出す形（maskHintStyle="underscore"）の字間。打った文字にも当て、打っても桁の位置をずらさない */
+  --mask-field-tracking: 0.15em;
+}

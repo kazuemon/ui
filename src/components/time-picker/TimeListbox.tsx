@@ -125,7 +125,7 @@ export function TimeListbox({
         <div
           aria-hidden
           data-slot="time-picker-column-heading"
-          className="border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--time-picker-popup-padding))] py-(--time-picker-popup-padding) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
+          className="border-b-(length:--border-width-thin) border-surface-line px-[calc(var(--spacing-control-x)-var(--spacing))] py-(--spacing) text-center text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle"
         >
           {heading}
         </div>
@@ -134,11 +134,11 @@ export function TimeListbox({
         slot="time-picker-scroll"
         className="min-h-0 flex-1"
         focusable={false}
-        viewportClassName="max-h-[min(var(--available-height,100dvh),calc(var(--spacing-control)*var(--time-picker-max-rows)+var(--time-picker-popup-padding)*2))] p-(--time-picker-popup-padding)"
+        viewportClassName="max-h-[min(var(--available-height,100dvh),calc(var(--spacing-control)*var(--time-picker-max-rows)+var(--spacing)*2))] p-(--spacing)"
         contentStyle={{ minWidth: 0 }}
         inlineEdges={false}
         orientation="vertical"
-        scrollbarClassName="my-(--time-picker-popup-padding)"
+        scrollbarClassName="my-(--spacing)"
         onViewport={(element) => {
           viewportRef.current = element;
         }}

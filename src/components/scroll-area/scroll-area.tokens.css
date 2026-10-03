@@ -1,0 +1,10 @@
+:root {
+  /* ScrollArea（スクロールする枠）
+     続きがあることは、端の内側の影（--color-sheet-edge-shadow。Select・シートと同じ）で見せる
+     つまみは中身の上に重ねる細い棒。影があるときは、枠に載せたとき・スクロールしているあいだ・キーボードで止まったときに出す（いつも出すことも選べる）。影をなくしたときは、いつも出す
+     thumb-size: つまみの太さ。見えている太さがそのまま押せる範囲（4px）
+     thumb-size-hover: つまみそのものに載せたとき・つかんでいるあいだの太さ。枠の内側へ太くなる（ふだんの 2 倍）
+     thumb-inset: 枠の端からの隙間（押せる範囲には入れない） */
+  --scroll-area-thumb-size-hover: calc(var(--spacing) * 2);
+  --scroll-area-thumb-inset: calc(var(--spacing) / 2);
+}

@@ -1,0 +1,7 @@
+:root {
+  /* ButtonGroup（複数の Button を連結して並べる。選択状態は持たない）
+     詰め方（frame）は ToggleGroup と同じ
+     connected（既定）は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す。gap はそれぞれ離して並べ、間は --button-group-gap
+     Button は in-data-[frame=…] で、自分が属する ButtonGroup の frame を読み、connected のときだけ自分の角丸を変える（Button.tsx） */
+  --button-group-gap: calc(var(--spacing) * 2);
+}

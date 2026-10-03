@@ -33,12 +33,12 @@ export function AutocompleteScroll({
     <ScrollFrame
       slot="autocomplete-scroll"
       // 面の左右の余白の分だけ外へ広げ、影とつまみを面の端に寄せる。中身の余白は Viewport が持ち直す
-      className="-mx-(--select-popup-padding)"
+      className="-mx-(--spacing)"
       focusable={false}
       viewportClassName={listboxList({
         presentation: 'popover',
         loadingRow,
-        className: 'px-(--select-popup-padding) has-data-empty:py-0',
+        className: 'px-(--spacing) has-data-empty:py-0',
       })}
       // Base UI の既定（min-width: fit-content）は、長い文字で中身を広げてしまうので、枠の幅に収める
       contentStyle={{ minWidth: 0 }}
@@ -46,7 +46,7 @@ export function AutocompleteScroll({
       inlineEdges={false}
       orientation="vertical"
       // つまみは、最初の行の上端から最後の行の下端までの範囲を動く（面の角にかからない）
-      scrollbarClassName="my-(--select-popup-padding)"
+      scrollbarClassName="my-(--spacing)"
       onViewport={setViewport}
     >
       {children}

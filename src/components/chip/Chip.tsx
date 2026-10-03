@@ -31,10 +31,10 @@ const chip = tv({
     'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--chip-border-width)))]',
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う
-    'bg-(--chip-bg,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
+    'bg-(--color-surface,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
     '[border:var(--chip-border-width)_var(--chip-border-style)_var(--chip-border-color)]',
-    'data-disabled:border-(--chip-disabled-border-color,var(--chip-border-color)) data-disabled:bg-(--chip-disabled-bg,var(--chip-bg,var(--chip-color-bg))) data-disabled:text-(color:--chip-disabled-fg,var(--chip-fg,var(--chip-color-fg)))',
-    'data-readonly:[border-width:var(--chip-readonly-border-width,var(--chip-border-width))] data-readonly:[border-style:var(--chip-readonly-border-style,var(--chip-border-style))] data-readonly:border-(--chip-readonly-border-color,var(--chip-border-color)) data-readonly:bg-(--chip-readonly-bg,var(--chip-bg,var(--chip-color-bg))) data-readonly:text-(color:--chip-readonly-fg,var(--chip-fg,var(--chip-color-fg)))',
+    'data-disabled:border-(--color-line,var(--chip-border-color)) data-disabled:bg-(--chip-disabled-bg,var(--color-surface,var(--chip-color-bg))) data-disabled:text-(color:--chip-disabled-fg,var(--chip-fg,var(--chip-color-fg)))',
+    'data-readonly:[border-width:var(--chip-readonly-border-width,var(--chip-border-width))] data-readonly:[border-style:var(--chip-readonly-border-style,var(--chip-border-style))] data-readonly:border-(--chip-readonly-border-color,var(--chip-border-color)) data-readonly:bg-(--color-field-addon,var(--color-surface,var(--chip-color-bg))) data-readonly:text-(color:--chip-readonly-fg,var(--chip-fg,var(--chip-color-fg)))',
   ],
   variants: {
     color: {

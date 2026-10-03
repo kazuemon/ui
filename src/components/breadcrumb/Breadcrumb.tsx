@@ -35,8 +35,8 @@ import { tv } from '../../internal/tv';
 const breadcrumb = tv({
   slots: {
     root: 'text-body-sm text-fg-muted',
-    list: 'flex flex-wrap items-center gap-x-(--breadcrumb-gap) gap-y-(--breadcrumb-row-gap)',
-    item: 'flex items-center gap-x-(--breadcrumb-gap)',
+    list: 'flex flex-wrap items-center gap-x-(--spacing) gap-y-(--spacing)',
+    item: 'flex items-center gap-x-(--spacing)',
     // 区切りの印。中に置いたアイコンは、周りの文字と同じ大きさにそろえる
     separator: [
       'flex shrink-0 items-center select-none',
@@ -54,7 +54,7 @@ const breadcrumb = tv({
       'bg-(color:--flat-bg) [--flat-bg:transparent]',
       'hover:[--flat-bg:var(--breadcrumb-link-hover-bg)]',
       'active:translate-y-(--flat-press-depth) active:[--flat-bg:var(--breadcrumb-link-press-bg)]',
-      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),text-decoration-color_var(--link-underline-duration)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+      '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),text-decoration-color_var(--duration-normal)_var(--link-underline-ease),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
       ...focusRing,
     ],
@@ -73,8 +73,8 @@ const breadcrumb = tv({
       pill: {
         root: [
           '[--breadcrumb-link-underline-hover:transparent] [--breadcrumb-link-underline:transparent]',
-          '[--breadcrumb-link-radius:var(--breadcrumb-pill-radius)]',
-          '[--breadcrumb-link-px:var(--breadcrumb-pill-px)] [--breadcrumb-link-py:var(--breadcrumb-pill-py)]',
+          '[--breadcrumb-link-radius:var(--radius-pill)]',
+          '[--breadcrumb-link-px:var(--breadcrumb-pill-px)] [--breadcrumb-link-py:var(--spacing)]',
           '[--breadcrumb-link-hover-bg:var(--breadcrumb-pill-hover-bg)] [--breadcrumb-link-press-bg:var(--breadcrumb-pill-press-bg)]',
         ],
       },

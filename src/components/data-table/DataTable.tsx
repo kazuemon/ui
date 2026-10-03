@@ -93,7 +93,7 @@ const dataTable = tv({
     color: {
       primary: { root: '[--data-table-row-selected:var(--color-primary-subtle)]' },
       secondary: { root: '[--data-table-row-selected:var(--color-secondary-subtle)]' },
-      neutral: { root: '[--data-table-row-selected:var(--color-select-neutral-selected)]' },
+      neutral: { root: '[--data-table-row-selected:var(--palette-gray-200)]' },
     },
     // 並べ替えていない列の印の濃さ。見出し（DataTableHeader）が --data-table-sort-idle・--data-table-sort-hover を読む
     //   hover: 指では載せられないので、指の密度（--density-coarse が 1）ではいつも出す（原則16）

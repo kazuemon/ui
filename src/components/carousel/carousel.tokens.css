@@ -1,0 +1,33 @@
+:root {
+  /* Carousel（横に送って 1 枚ずつ見せる並び）— ADR-0285〜0287・0289
+     送る仕組みは横のスクロールと scroll-snap。スライドはページと同じレイヤーなので影は付けない
+     slide-size・gap: 1 枚の幅（枠の幅に対する割合。cqi で書く）と、スライドのあいだ。snap-align: 止まる位置（start・center）
+       track-inset: 並びの左右の余白。center で最初と最後の 1 枚も中央に止めるときに使う
+     radius: 枠の角。フォーカスの線がこの角に沿う（画像と同じカードの角）
+     controls-*: 前へ・次へと位置の印の行。columns・areas は grid の列と並び（prev・indicator・next）
+       controls-gap: 枠と行のあいだ。indicator-justify: 印の寄せ
+     overlay-inset: 画像に重ねるとき（controlsPosition="overlay"）の、枠の端からボタンまで
+     peek-slide-size・peek-gap: 両隣を少し見せるとき（peek）の 1 枚の幅とスライドのあいだ
+     dot-*: 位置の点（indicator="dots"）。いまの 1 枚は横に伸ばして濃くする。Gallery の点も同じ形
+     count-gap: 「3 / 5」の数と「/ 5」のあいだ（Pagination の「5 / 10」と同じ。Gallery の数も同じ） */
+  --carousel-slide-size: 100cqi;
+  --carousel-gap: calc(var(--spacing) * 4);
+  --carousel-snap-align: start;
+  --carousel-track-inset: 0px;
+  --carousel-controls-gap: calc(var(--spacing) * 3);
+  --carousel-controls-columns: auto 1fr auto;
+  --carousel-controls-areas: 'prev indicator next';
+  --carousel-indicator-justify: center;
+  --carousel-overlay-inset: calc(var(--spacing) * 3);
+  --carousel-peek-slide-size: 80cqi;
+  --carousel-peek-gap: calc(var(--spacing) * 3);
+  --carousel-dot-size: calc(var(--spacing) * 2);
+  --carousel-dot-current-width: calc(var(--spacing) * 5);
+  --carousel-dot-gap: calc(var(--spacing) * 1.5);
+  /* per-view-gap: 1 画面に複数枚（slidesPerView）のときのスライドのあいだ（軸 452）
+     autoplay-inline-gap: 自動の送りを止めるボタンと位置の印のあいだ（軸 451）
+     thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ */
+  --carousel-per-view-gap: calc(var(--spacing) * 3);
+  --carousel-autoplay-inline-gap: calc(var(--spacing) * 3);
+  --carousel-thumbnails-side-gap: calc(var(--spacing) * 3);
+}

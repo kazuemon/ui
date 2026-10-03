@@ -15,8 +15,8 @@ import { type TransitionPreset, useUIConfig } from '../../internal/ui-config';
 //   弾ませない（原則3）。動きを減らす設定では動かさず、すぐに出す・消す
 const transition = tv({
   base: [
-    '[transition-property:opacity,translate,scale,height] duration-(--transition-duration-enter) ease-(--transition-ease-enter)',
-    'data-ending-style:duration-(--transition-duration-exit) data-ending-style:ease-(--transition-ease-exit)',
+    '[transition-property:opacity,translate,scale,height] duration-(--transition-duration-enter) ease-(--ease-sheet)',
+    'data-ending-style:duration-(--transition-duration-exit) data-ending-style:ease-(--ease-sheet)',
     'data-ending-style:opacity-0 data-starting-style:opacity-0',
     'data-ending-style:[translate:0_var(--transition-from-shift)] data-starting-style:[translate:0_var(--transition-from-shift)]',
     'data-ending-style:scale-(--transition-from-scale) data-starting-style:scale-(--transition-from-scale)',

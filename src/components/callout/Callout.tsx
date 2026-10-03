@@ -44,7 +44,7 @@ const callout = tv({
     title: 'min-w-0 font-bold text-(color:--notice-title-color)',
     indicator: [
       'ms-auto mt-(--notice-icon-offset) flex shrink-0 text-(color:--notice-icon-color) [&_svg]:size-(--spacing-icon)',
-      'transition-[rotate] duration-(--collapsible-duration) ease-(--collapsible-ease) group-data-panel-open/callout-trigger:rotate-180 motion-reduce:[transition:none]',
+      'transition-[rotate] duration-(--duration-normal) ease-(--ease-sheet) group-data-panel-open/callout-trigger:rotate-180 motion-reduce:[transition:none]',
     ],
     // 中身は、アイコンがあるときはアイコンと間の分だけ字下げして、題の頭にそろえる
     //   上は帯とのあいだ、下は囲みの余白

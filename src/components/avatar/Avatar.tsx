@@ -41,37 +41,37 @@ const avatar = tv({
       xs: {
         root: [
           '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
+          '[--avatar-radius-rounded:var(--radius-sm)]',
         ],
       },
       sm: {
         root: [
           '[--avatar-size:var(--avatar-size-sm)] [--avatar-text:var(--avatar-text-sm)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-sm)]',
+          '[--avatar-radius-rounded:var(--radius-control)]',
         ],
       },
       md: {
         root: [
           '[--avatar-size:var(--avatar-size-md)] [--avatar-text:var(--avatar-text-md)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-md)]',
+          '[--avatar-radius-rounded:var(--radius-control)]',
         ],
       },
       lg: {
         root: [
           '[--avatar-size:var(--avatar-size-lg)] [--avatar-text:var(--avatar-text-lg)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-lg)]',
+          '[--avatar-radius-rounded:var(--radius-card)]',
         ],
       },
       xl: {
         root: [
           '[--avatar-size:var(--avatar-size-xl)] [--avatar-text:var(--avatar-text-xl)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xl)]',
+          '[--avatar-radius-rounded:var(--radius-card)]',
         ],
       },
     },
     // 形（原則5）: circle は小物の丸、square は四角（角は大きさの段に従う）
     shape: {
-      circle: { root: '[--avatar-radius:var(--avatar-radius-circle)]' },
+      circle: { root: '[--avatar-radius:var(--radius-pill)]' },
       square: { root: '[--avatar-radius:var(--avatar-radius-rounded)]' },
     },
     // 頭文字の面と文字（原則6）。指定しないときはグレー

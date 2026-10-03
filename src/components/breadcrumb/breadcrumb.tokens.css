@@ -1,0 +1,33 @@
+:root {
+  /* Breadcrumb（パンくずリスト）— ADR-0030
+     文字は読む文字の小さいほう（--text-body-sm）。影は付けない
+     gap: 項目と区切りの印のあいだ。row-gap: 入りきらずに折り返したときの行のあいだ
+     separator-size・--color-breadcrumb-separator: 区切りの印の大きさ（周りの文字に対する比）と色。形は separator で選ぶ（既定は右向きの山、「/」も選べる）
+     link-*: 行き先のリンクの見た目。ここの値は既定（appearance="underline"）で、文字のリンクと同じ淡い下線。hover で下線だけが濃くなる
+       radius・px・py: 角丸と余白。いまいるページの文字も同じ余白で置き、行き先と位置をそろえる
+       underline・underline-hover: ふだんと hover の下線の色
+       hover-color: hover の文字の色（下線では変えない）
+       hover-bg・press-bg: 平らな要素として敷く塗り（下線では透明）。登録した変数（--flat-bg）に入れるので currentColor は混ぜられない
+     pill-*: appearance="pill"（Navbar の行き先と同じ平らな pill）のときに、部品が link-* に差し替える値 */
+  --breadcrumb-separator-size: 1em;
+  --color-breadcrumb-separator: var(--color-fg-subtle);
+  --breadcrumb-link-radius: var(--radius-md);
+  --breadcrumb-link-px: var(--spacing);
+  --breadcrumb-link-py: calc(var(--spacing) / 2);
+  --breadcrumb-link-color: var(--color-fg-muted);
+  --breadcrumb-link-underline: var(--color-link-underline);
+  --breadcrumb-link-underline-hover: var(--color-link-underline-hover);
+  --breadcrumb-link-hover-bg: transparent;
+  --breadcrumb-link-press-bg: transparent;
+  --breadcrumb-pill-px: calc(var(--spacing) * 3);
+  --breadcrumb-pill-hover-bg: color-mix(
+    in oklab,
+    var(--color-fg) var(--flat-hover-mix),
+    transparent
+  );
+  --breadcrumb-pill-press-bg: color-mix(
+    in oklab,
+    var(--color-fg) var(--flat-press-mix),
+    transparent
+  );
+}

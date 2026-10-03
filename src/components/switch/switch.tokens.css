@@ -1,0 +1,42 @@
+:root {
+  /* Switch（トグル）— ADR-0049・0065〜0069
+     トラックの大きさは密度で変わる */
+  --switch-w-coarse: 48px;
+  --switch-h-coarse: 28px;
+  --switch-knob-coarse: 22px;
+  /* 大きい指用。部品の高さ 52px に合わせて幅を 1.3 倍 */
+  --switch-w-coarse-large: 52px;
+  --switch-h-coarse-large: 28px;
+  --switch-knob-coarse-large: 22px;
+  --switch-w-fine: 40px;
+  --switch-h-fine: 22px;
+  --switch-knob-fine: 16px;
+  --switch-inset: 3px; /* トラックとノブの隙間 */
+  /* ノブの影。押せることの記号なので、押せないときはなくす */
+  --shadow-switch-knob: 0 1px 2px rgb(from var(--color-shadow) r g b / 0.3);
+  /* 行の並び。--switch-gap: トラックと文字の間。--switch-columns-*: 格子の列（トラックが左・右）。列は線の名前 track・label・row で指す
+     トラックはラベルの行の中央。キャプションが何行あっても、トラックはラベルの横から動かない
+     トラックとラベルは部品の高さの 1 行に置き、キャプションはその外（2 行目のラベルの列）に置く
+       captionAppearance="surface" は、ラベルの列に入力欄の塗りの面を敷く（角は部品の角、余白は左右 12px・上下 8px） */
+  --switch-gap: calc(var(--spacing) * 3);
+  --switch-columns-start: [row-start track-start] auto [track-end label-start] minmax(0, 1fr)
+    [label-end row-end];
+  --switch-columns-end: [row-start label-start] minmax(0, 1fr) [label-end track-start] auto
+    [track-end row-end];
+  /* 行全体を押せるトグル（frame。既定は囲みなし none、card・divided を選べる）
+     行の範囲を囲み（card）か区切り線（divided）で描き、その内側を全部押せる。線は細い境界線、影なし。囲みがあるときは、トラックを行の縦の中央に置く
+     card の角は部品の角。行の hover の塗りは、一覧の項目の hover と同じ入力欄の塗り
+     --switch-row-gap: card を続けて置いたときの間
+     押しているあいだも行を濃くせず、hover と同じ塗りのまま。押したことはノブの縮みで伝える
+       指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms。離して戻るときは入力欄と同じ長さ）
+     行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-field-addon）。hover の塗りに溶けない（1.17:1） */
+  --switch-row-gap: calc(var(--spacing) * 2);
+  /* OFF のトラック（押せるとき）は入力欄の prefix・suffix と同じ一段濃いグレー。チェックボックス・ラジオの選んでいない箱（--color-choice）も同じ色
+     押せない OFF のトラックは、押せない箱（--color-choice-disabled）と同じ、ふだんより薄い入力欄の塗りのグレー */
+  --color-switch-off-disabled: var(--color-field);
+  /* 押せないグレーのトグル: 薄くせず、ノブをグレーの文字の色にする
+     ON のトラックは押せない OFF と同じ地（#F2F4F4）。押せないものは ON も OFF も同じ地で、状態はノブの位置で見せる
+     （押せる OFF と同じ #E1E3E4 では、押せない ON が押せる OFF と紛れる）
+     色つき（primary・secondary）の押せない OFF のノブも、色なしの押せないノブと同じグレー（地 #F2F4F4 の上で 2.24:1。白いノブは 1.10:1 でほぼ見えない） */
+  --color-switch-neutral-on-disabled: var(--color-switch-off-disabled);
+}

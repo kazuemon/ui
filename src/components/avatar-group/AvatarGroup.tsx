@@ -28,7 +28,7 @@ const avatarGroup = tv({
   slots: {
     root: 'inline-flex items-center',
     // 重なる縁。box-shadow は Avatar 自身の rounded を追う。outline を使う Avatar の細い輪郭とは重ならない
-    item: 'relative shrink-0 shadow-[0_0_0_var(--avatar-group-ring-width)_var(--color-surface)]',
+    item: 'relative shrink-0 shadow-[0_0_0_var(--border-width-thick)_var(--color-surface)]',
   },
   variants: {
     // 先頭以外は、直前のアバターの上に重ねる

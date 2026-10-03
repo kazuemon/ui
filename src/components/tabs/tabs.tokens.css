@@ -1,0 +1,13 @@
+:root {
+  /* Tabs（切り替える見出しの並びと、その中身）— ADR-0027・0146〜0148
+     タブの高さは部品の高さ（密度）。並びが溝（segmented）を敷くときは、溝の内側の余白の分だけタブを低くし、並び全体を部品の高さにそろえる
+     hover は平らなボタンと同じく本文の色を淡く敷き、押すと沈む。塗りの角は --radius-pill
+     選んだタブの印は 1 つの要素（Base UI の Tabs.Indicator）で描き、選んだタブの位置へ動く。見た目は indicator props、動きは indicatorMotion props で選ぶ
+       色は部品の色: 濃い色（グレーは濃いグレー）、subtle は淡い面、segmented は白い面（溝の中のつまみ）
+     indicator・indicatorMotion が切り替える値（形・色・並びの線と溝・動きの長さ）は部品の内部の CSS 変数に畳んであり、ここには置かない */
+  --tabs-line-width: var(--border-width-thin);
+  /* フォーカスの線
+     タブは内側に引き、線の下端を下の印・並びの線より上に収める（角は pill のまま）
+     パネルは離れは全体と同じで、角を小さくする。1 行のパネルでも pill にならず、角丸の四角に見える */
+  --tabs-tab-focus-offset: calc(var(--spacing) * -1);
+}

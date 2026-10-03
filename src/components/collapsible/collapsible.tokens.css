@@ -1,0 +1,14 @@
+:root {
+  /* Collapsible（開閉の行と、中身の高さの動き）
+     行の塗り・区切り線・角は見た目（appearance）ごとに部品に書く。印の位置と回り方は indicator に従う
+     gap: 題と開閉の印のあいだ
+     row-gap: いつも塗る見た目（filled）で、続けて置いた行のあいだ（塗りの面がつながらないように）
+     中身: 高さを動かす長さと緩急（どの見た目も同じ）、出はじめの濃さ（1 で濃さは動かさない）
+       上下の余白は行の上下の余白と同じ（部品で計算する）。塗った行の面の下端から中身までが、面の中の余白とそろう */
+  --collapsible-gap: calc(var(--spacing) * 2);
+  --collapsible-start-opacity: 0;
+  /* 枠付きのカードの形（variant="card"）— 軸 416。角・輪郭・面はカードと同じで、部品が決める
+     開いた行は塗らない（openFilled で open-filled と同じグレーを敷ける）
+     card-gap: 続けて置いたときの間 */
+  --collapsible-card-gap: calc(var(--spacing) * 2);
+}

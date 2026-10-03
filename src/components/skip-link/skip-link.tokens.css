@@ -1,0 +1,11 @@
+:root {
+  /* SkipLink（「本文へ移動」のリンク）
+     ふだんは読み上げにだけ届け、フォーカスしたときだけ画面の上に重ねる
+     ページの上に重なる面なので、面・輪郭・影は浮かぶ面と同じ。リンクなので角は pill、文字はリンクの Primary と下線
+     top・left・right: 画面の端からの位置（right が auto なら文字の幅、0 なら上端の帯）。radius: 角
+     bg・fg・line・shadow: 面・文字・輪郭・影。focus-ring-offset・focus-ring-color: フォーカスの線の離れと色（帯では内側に引く） */
+  --skip-link-top: calc(var(--spacing) * 3);
+  --skip-link-left: calc(var(--spacing) * 3);
+  --skip-link-right: auto;
+  --skip-link-focus-ring-offset: var(--focus-ring-offset);
+}

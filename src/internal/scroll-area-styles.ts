@@ -38,8 +38,8 @@ export const scrollAreaStyles = tv({
     //   載せたとき（hover）とつかんでいるあいだ（active。ポインタを捕まえているので、つまみの外へ出ても続く）に太くする
     //   カーソルは、載せたときにつかめる手、つかんでいるあいだは握った手にする
     thumb: [
-      'pointer-events-auto cursor-grab rounded-pill bg-(--scroll-area-thumb-color) active:cursor-grabbing',
-      '[--thumb-size:var(--scroll-area-thumb-size)] hover:[--thumb-size:var(--scroll-area-thumb-size-hover)] active:[--thumb-size:var(--scroll-area-thumb-size-hover)]',
+      'pointer-events-auto cursor-grab rounded-pill bg-(--color-line-strong) active:cursor-grabbing',
+      '[--thumb-size:var(--spacing)] hover:[--thumb-size:var(--scroll-area-thumb-size-hover)] active:[--thumb-size:var(--scroll-area-thumb-size-hover)]',
       'data-[orientation=vertical]:ms-auto data-[orientation=vertical]:w-(--thumb-size)',
       'data-[orientation=vertical]:transition-[width] data-[orientation=vertical]:duration-(--duration-fast)',
       'data-[orientation=horizontal]:mt-auto data-[orientation=horizontal]:h-(--thumb-size)',

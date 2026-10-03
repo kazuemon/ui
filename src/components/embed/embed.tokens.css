@@ -1,0 +1,11 @@
+:root {
+  /* Embed（iframe で埋める）— ADR-0271〜0274
+     角は常にカードの角。枠は Image・Figure と同じ考え方
+     shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の影と輪郭
+     idle-shadow・idle-outline-width: clickToLoad でまだ押していないときだけの枠の影と輪郭
+     読み込む前の面は Skeleton と同じ塗り（--skeleton-fill） */
+  --embed-shadow: none;
+  --embed-outline-width: var(--border-width-thin);
+  --embed-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --embed-idle-outline-width: 0px;
+}

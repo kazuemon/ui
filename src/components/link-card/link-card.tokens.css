@@ -1,0 +1,12 @@
+:root {
+  /* LinkCard（記事の中から別のページへ移るカード）— ADR-0143〜0145
+     面・角・輪郭・hover・押下はカードと同じ（--card-fill・--card-hover-media-scale を使う）
+     画像の位置（layout）・サイトの行の位置（sitePlacement）・題と説明の行数（titleLines・descriptionLines）は props で選ぶ
+     media-width: 横に並べるときの画像の幅。カードの幅の割合で、広いときは上限で止める
+     media-aspect: 画像の比。横に並べるときは画像の最小の高さ（文が長いと画像が縦に伸びる）、上に置くときは画像の高さを決める
+     padding・gap: 文の余白と、文の中の縦の間 */
+  --link-card-media-width: min(calc(var(--spacing) * 48), 36%);
+  --link-card-media-aspect: 1.91 / 1;
+  --link-card-padding: calc(var(--spacing) * 4);
+  --link-card-gap: calc(var(--spacing) * 1);
+}

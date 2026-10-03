@@ -1,0 +1,27 @@
+:root {
+  /* Toast（一定の時間で消えるお知らせ）
+     面はお知らせ（Notice）と同じで、ここは置き方と重なりだけを持つ
+     ページの上に重なるレイヤーなので、影も輪郭の細い線も浮かぶ面と同じ
+     width: 幅。inset: 画面の端からの距離。gap: 開いたときのあいだ
+     peek: 重ねたとき、後ろの 1 枚をのぞかせる高さ。scale-step: 後ろへ 1 枚ごとに縮める割合
+     duration・ease: 出入りと重なりの動き（浮かぶ面と同じ緩急、シートと同じ長さ） */
+  --toast-width: calc(var(--spacing) * 90);
+  --toast-inset: calc(var(--spacing) * 4);
+  --toast-gap: calc(var(--spacing) * 3);
+  --toast-peek: calc(var(--spacing) * 3);
+  --toast-scale-step: 0.05;
+  --toast-line: var(--color-surface-line);
+  /* 残り時間の線（消えるまでの時間を決めたときだけ出す）。面の下の端に引く。色は題・アイコンと同じ状態の色で、部品が面の要素で --toast-progress-color に入れる */
+  --toast-progress-height: calc(var(--spacing) / 2);
+  --toast-progress-opacity: 0.5;
+}
+
+/* 残り時間の線。消えるまでの時間をかけて、幅いっぱいから 0 へ縮む */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}

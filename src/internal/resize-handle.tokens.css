@@ -1,0 +1,12 @@
+:root {
+  /* 幅を変えるつまみ（Sidebar・Inspector の resizable・DataTable の列）— ADR-0362
+     境の線の上に、つかめる幅を半分ずつ重ねる
+     hit: つかめる幅。line-width: 線の太さ
+     rest・hover・active・focus: ふだん・載せたとき・動かしているあいだ・フォーカスの線の色
+     rest は既定では出さず（境の線だけ）、DataTable の列では淡い線（line）に差し替える
+     grip-*: ふだんから見せる小さな縦のつまみ（resizeHandle="grip"）の色と大きさ */
+  --resize-handle-hit: calc(var(--spacing) * 2); /* 8px */
+  --resize-handle-line-inset: 0; /* 線の上下の空き。表の列はセルの上下の余白の分だけ空ける */
+  --resize-handle-rest: transparent;
+  --resize-handle-grip-height: calc(var(--spacing) * 8); /* 32px */
+}

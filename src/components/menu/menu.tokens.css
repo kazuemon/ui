@@ -1,0 +1,15 @@
+:root {
+  /* Menu（押して開く操作の一覧）— ADR-0149・0152
+     面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay・部品の角）。余白・本体との間も同じ
+     項目の hover とキーボードの選択は入力欄の塗り。危険な項目は、赤い枠線のボタンの hover と同じく赤を淡く敷く
+     min-width: 項目が短くても、押しやすい幅を保つ（本体の幅より狭くはしない） */
+  --menu-popup-padding: var(--spacing);
+  --menu-offset: var(--spacing);
+  --menu-min-width: calc(var(--spacing) * 48);
+  --menu-item-highlight: var(--color-field);
+  --menu-danger-highlight: color-mix(
+    in oklab,
+    var(--color-fg-danger) var(--flat-hover-mix),
+    transparent
+  );
+}

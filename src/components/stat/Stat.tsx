@@ -20,13 +20,13 @@ import { Skeleton } from '../skeleton/Skeleton';
 
 const stat = tv({
   slots: {
-    root: 'flex min-w-0 flex-col gap-(--stat-gap)',
+    root: 'flex min-w-0 flex-col gap-(--spacing)',
     label: 'text-(length:--text-label) leading-(--leading-label) font-bold text-fg',
-    body: 'flex min-w-0 flex-col gap-(--stat-caption-gap)',
+    body: 'flex min-w-0 flex-col gap-(--spacing)',
     valueRow: 'flex flex-wrap items-baseline gap-x-(--stat-value-gap) gap-y-1',
     value: [
       'text-(length:--stat-value-text) leading-(--stat-value-leading) [letter-spacing:var(--stat-value-tracking,normal)]',
-      '[font-weight:var(--stat-value-weight)] text-fg tabular-nums',
+      '[font-weight:var(--font-weight-heading)] text-fg tabular-nums',
     ],
     // 読み込み中の帯。文字の大きさと行の高さを数字から受け継ぐ（Skeleton の文字の行）
     loading: 'inline-block w-(--stat-loading-width) max-w-full align-bottom',

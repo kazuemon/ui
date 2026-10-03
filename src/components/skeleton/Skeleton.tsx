@@ -14,7 +14,7 @@ const skeleton = tv({
   slots: {
     root: 'block',
     line: 'flex h-[1lh] items-center',
-    bar: [skeletonSurface, 'block h-(--skeleton-text-bar) w-full rounded-(--skeleton-text-radius)'],
+    bar: [skeletonSurface, 'block h-(--skeleton-text-bar) w-full rounded-(--radius-sm)'],
   },
   variants: {
     variant: {

@@ -1,0 +1,45 @@
+:root {
+  /* Progress（処理の進み具合のバー）— ADR-0185・0186
+     終わりの分からないとき（indeterminate）の動きは animation で選ぶ。keyframes はファイル末尾
+       sweep（既定）: 塗りの色の短い区切りが、左の外から右の外へ流れる。sweep-width: 区切りの幅（地の幅に対する割合）
+       shuttle: 区切りが地の中に収まったまま左右の端を往復する。shuttle-width: 区切りの幅。shuttle-animation: 片道の長さと緩み（alternate で往復）
+       stripes: 地の幅いっぱいを斜めの縞で塗り、左から右へ流す
+         stripes: 縞の絵（background の値）。塗りの色（currentColor）と、それを透かして地が見える色を交互に並べる
+         stripe-size: 縞の 1 組の幅。stripes-animation: 縞を 1 組ずつ送る長さ（一定の速さ）
+       動きを減らす設定では、どれも幅いっぱいに引いて明滅する（部品で当てる）。縞は止まる
+     height-xs: 読了のバー向けの、いちばん細い太さ（size="xs"。Progress だけ） */
+  --progress-sweep-width: 40%;
+  --progress-shuttle-width: 30%;
+  --progress-shuttle-animation: progress-shuttle 0.9s ease-in-out infinite alternate;
+  --progress-stripe-size: calc(var(--spacing) * 4);
+  --progress-stripes: linear-gradient(
+      135deg,
+      currentColor 25%,
+      color-mix(in oklab, currentColor 35%, transparent) 25% 50%,
+      currentColor 50% 75%,
+      color-mix(in oklab, currentColor 35%, transparent) 75%
+    )
+    0 0 / var(--progress-stripe-size) var(--progress-stripe-size);
+  --progress-stripes-animation: progress-stripes 0.8s linear infinite;
+  --progress-height-xs: calc(var(--spacing) / 2);
+}
+
+/* 終わりの分からない Progress の動き（animation）
+   progress-shuttle: 区切りが左右の端のあいだを往復する（alternate で使う。--progress-shuttle-width の幅）
+   progress-stripes: 縞の絵を右へ 1 組ずつ送る（縞が左から右へ流れて見える。--progress-stripe-size の幅） */
+@keyframes progress-shuttle {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - var(--progress-shuttle-width));
+  }
+}
+@keyframes progress-stripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: var(--progress-stripe-size) 0;
+  }
+}

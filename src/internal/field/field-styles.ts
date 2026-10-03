@@ -36,11 +36,11 @@ export const fieldStyles = tv({
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     // エラー・警告の行（design/adr/0041）。色は呼び出し側で足す（エラーは text-danger、警告は text-fg-warning）
     message:
-      'flex items-start gap-(--field-message-gap) text-(length:--text-caption) leading-(--leading-caption)',
+      'flex items-start gap-(--spacing) text-(length:--text-caption) leading-(--leading-caption)',
     messageIcon: 'size-(--leading-caption) shrink-0',
     // エラー・警告の行を包む箱（design/adr/0044）。文がなくてもいつも置き、読み上げの live region（polite）にする
     // 箱そのものは隠さない（隠した live region に文を入れると、読み上げソフトによっては知らせないため）
-    // 行の高さ（grid の行 0fr ↔ 1fr）と濃さを、押下と同じ緩急で --duration-field-message の長さで動かす
+    // 行の高さ（grid の行 0fr ↔ 1fr）と濃さを、押下と同じ緩急で --duration-normal の長さで動かす
     // 見えなくする（visibility）のは中身で、閉じ終えたとき。動きを減らす設定では、すぐ切り替える
     // 空のときに間（--spacing-field-gap）が増えないよう、箱の上の間を打ち消す。間は行の上に持たせる（messageLine）
     // 箱はエラー・警告で1つずつ続けて置く。両方開くと、エラーの行と警告の行の間も --spacing-field-gap になる（design/adr/0041 の追記）
@@ -52,11 +52,11 @@ export const fieldStyles = tv({
       '[--field-message-overlap:max(0px,var(--field-message-pull,0px)_-_var(--spacing-field-gap))]',
       'data-open:mt-[calc(-1*var(--spacing-field-gap)_-_var(--field-message-overlap))]',
       '[[data-slot=field-message][data-open]~&]:[--field-message-pull:0px]',
-      'transition-[grid-template-rows,margin-top] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
+      'transition-[grid-template-rows,margin-top] duration-(--duration-normal) ease-press motion-reduce:transition-none',
     ],
     messageClip: [
       'invisible min-h-0 overflow-hidden opacity-0 group-data-open/message:visible group-data-open/message:opacity-100',
-      'transition-[opacity,visibility] duration-(--duration-field-message) ease-press motion-reduce:transition-none',
+      'transition-[opacity,visibility] duration-(--duration-normal) ease-press motion-reduce:transition-none',
     ],
     messageLine: 'pt-[max(0px,var(--spacing-field-gap)_-_var(--field-message-pull,0px))]',
   },
@@ -176,6 +176,6 @@ export const controlBox = tv({
     'data-field-readonly:focus-within:[outline-width:var(--control-ring-width,0px)] data-field-readonly:focus-within:[outline-style:solid]',
     'data-field-readonly:focus-within:[outline-offset:var(--focus-ring-offset)] data-field-readonly:focus-within:[outline-color:var(--control-ring-color,var(--color-focus-ring))]',
     // prefix・suffix を内側に浮かせる形（addonShape="floating" — design/adr/0035）。既定は端に接する
-    'data-[addon-shape=floating]:[--field-addon-inset:var(--field-addon-floating-inset)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
+    'data-[addon-shape=floating]:[--field-addon-inset:var(--spacing)] data-[addon-shape=floating]:[--field-addon-round-inner:1]',
   ],
 });

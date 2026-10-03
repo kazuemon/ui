@@ -10,7 +10,7 @@ import { tv } from '../../internal/tv';
 
 // 部品の見た目の考え（どの原則に従うか、どの ADR で決めたか）をここに短く書く。例: 原則5（小物は pill）、design/adr/NNNN
 // 値は書かない。役割のトークン（Tailwind のクラス: bg-surface・text-fg-muted・h-control など）を先に使い、
-// 役割にない値だけ、部品のトークン（design/tokens.css の :root、--example-*）を足して読む
+// 役割にない値だけ、部品のトークン（このフォルダの example.tokens.css の :root、--example-*）を足して読む
 const example = tv({
   base: [
     'inline-flex h-(--spacing-control) items-center gap-2 rounded-control px-(--spacing-control-x) text-(length:--text-control) leading-(--leading-control)',

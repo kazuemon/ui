@@ -1,0 +1,7 @@
+:root {
+  /* DatePicker のカレンダーの面（浮かべる形）。面は Popover と同じ
+     popup-padding: 面の内側の余白（Popover にそろえる）
+     footer-gap: カレンダーと「今日」のボタンの行のあいだ */
+  --date-picker-popup-padding: var(--popover-padding);
+  --date-picker-footer-gap: calc(var(--spacing) * 2);
+}
