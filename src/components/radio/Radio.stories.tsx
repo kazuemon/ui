@@ -21,6 +21,8 @@ const meta = {
           '- `errorText`・`warningText`・`infoText` は選択肢の下に、入力欄と同じ行で出します。',
           '- グループの `caption`・`errorText`・`warningText` は、グループの説明です。選択肢1つずつの説明は、その `Radio` の `caption`（2 行目）だけです。',
           '- `color` は選んだときの色です。指定しないときは濃いグレー（`neutral`）です。',
+          '- `direction="horizontal"` で選択肢を横に 1 行で並べます。「はい／いいえ」のような短い選択肢のときに使います。既定では折り返さず、狭い入れ物でも縦には戻しません。',
+          '- 横に並べたとき、`wrap` を渡すと入りきらない選択肢を次の行へ折り返します。`itemWidth="equal"` は選択肢を同じ幅の列にそろえ、説明文の長い選択肢があっても並びが偏りません。',
           '- `readOnly` にすると、丸が押せないときと同じ見た目になります。横の文字は本文の色のままです。フォーカスはでき、読み上げでは「読み取り専用」と伝わります。値は変わりませんが、フォームでは送られます。',
         ].join('\n'),
       },
@@ -44,6 +46,17 @@ const meta = {
       control: 'inline-radio',
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    direction: {
+      control: 'inline-radio',
+      options: ['vertical', 'horizontal'],
+      table: { defaultValue: { summary: "'vertical'" } },
+    },
+    wrap: { control: 'boolean' },
+    itemWidth: {
+      control: 'inline-radio',
+      options: ['fit', 'equal'],
+      table: { defaultValue: { summary: "'fit'" } },
     },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -90,6 +103,87 @@ export const Required: Story = {
     await expect(canvas.getByRole('radio', { name: '午後' })).toHaveAccessibleDescription(
       '14 時から 18 時'
     );
+  },
+};
+
+export const Horizontal: Story = {
+  tags: ['visual'],
+  name: '横に並べる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`direction="horizontal"` は、選択肢ごとの文字の幅のまま 1 行に並べます。`wrap` で入りきらない選択肢を折り返し、`itemWidth="equal"` で同じ幅の列にそろえます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-xl flex-col gap-8">
+      <RadioGroup label="メールで知らせる" defaultValue="yes" direction="horizontal">
+        <Radio value="yes" label="はい" />
+        <Radio value="no" label="いいえ" />
+      </RadioGroup>
+      <div className="max-w-64">
+        <RadioGroup label="性別（wrap）" direction="horizontal" wrap>
+          <Radio value="female" label="女性" />
+          <Radio value="male" label="男性" />
+          <Radio value="none" label="回答しない" />
+        </RadioGroup>
+      </div>
+      <RadioGroup
+        label="プラン（itemWidth=equal）"
+        defaultValue="free"
+        direction="horizontal"
+        itemWidth="equal"
+      >
+        <Radio value="free" label="無料" caption="月 3 件まで" />
+        <Radio
+          value="pro"
+          label="プロ"
+          caption="件数の上限なし。チームで使うときは、あとから席を足せます"
+        />
+        <Radio value="team" label="チーム" caption="10 人から" />
+      </RadioGroup>
+      <RadioGroup
+        label="配送の時間（itemWidth=equal・wrap）"
+        direction="horizontal"
+        itemWidth="equal"
+        wrap
+      >
+        {['午前', '12〜14 時', '14〜16 時', '16〜18 時', '18〜20 時', '19〜21 時'].map((time) => (
+          <Radio key={time} value={time} label={time} />
+        ))}
+      </RadioGroup>
+    </div>
+  ),
+};
+
+export const HorizontalKeyboard: Story = {
+  name: '横に並べたときのキーボード',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: '横に並べても 1 つのグループです。矢印キーで隣の選択肢へ移って選びます。',
+      },
+    },
+  },
+  render: () => (
+    <RadioGroup label="メールで知らせる" defaultValue="yes" direction="horizontal">
+      <Radio value="yes" label="はい" />
+      <Radio value="no" label="いいえ" />
+    </RadioGroup>
+  ),
+  play: async ({ canvas }) => {
+    const group = canvas.getByRole('radiogroup', { name: 'メールで知らせる' });
+    await expect(group).toBeInTheDocument();
+    const yes = canvas.getByRole('radio', { name: 'はい' });
+    const no = canvas.getByRole('radio', { name: 'いいえ' });
+    await userEvent.click(yes);
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(no).toBeChecked();
+    await expect(no).toHaveFocus();
   },
 };
 
@@ -185,5 +279,34 @@ export const Composed: Story = {
     // 見出しは <label> ではない（グループの名前として付く）
     await expect(canvas.getByText('配送の時間').closest('label')).toBeNull();
     await expect(canvas.getByRole('radio', { name: '午前' })).toHaveAccessibleDescription('');
+  },
+};
+
+export const HorizontalNarrow: Story = {
+  name: '横並び（狭い入れ物）',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '折り返さない横並びは、狭い入れ物でも選択肢を縮めず、文字を 1 行のまま並べます。入りきらない分ははみ出すので、狭いときは `wrap` か縦の並びにします。',
+      },
+    },
+  },
+  render: () => (
+    <div className="w-48 overflow-x-auto">
+      <RadioGroup label="届け方" defaultValue="home" direction="horizontal">
+        <Radio value="home" label="自宅に届ける" />
+        <Radio value="store" label="近くの店で受け取る" />
+      </RadioGroup>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    // 選択肢の文字は改行されない（1 行の高さのまま）
+    for (const name of ['自宅に届ける', '近くの店で受け取る']) {
+      const label = canvas.getByText(name);
+      const lineHeight = parseFloat(getComputedStyle(label).lineHeight);
+      await expect(label.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5);
+    }
   },
 };
