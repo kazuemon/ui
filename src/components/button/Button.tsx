@@ -477,6 +477,8 @@ export function ButtonLink({
       // 利用者が rel を書いたときは、それを使う（押せないときは移らないので付けない）
       rel: disabled ? undefined : newTab ? (props.rel ?? 'noopener noreferrer') : props.rel,
       'data-icon-only': iconOnly ? shape : undefined,
+      // 面を持つか（filled）を、置かれた先の部品が読む（Navbar の画像の上で白くした文字を、面の中では戻す）
+      'data-variant': variant ?? 'filled',
       // キャプションがあるときは、className は包みに付ける
       className: button({
         variant,
@@ -578,6 +580,7 @@ function NativeButton({
       }}
       // キャプションがあるときは、className は包みに付ける
       data-icon-only={iconOnly ? shape : undefined}
+      data-variant={variant ?? 'filled'}
       className={button({
         variant,
         color,

@@ -46,6 +46,7 @@ Navbar をヒーロー画像に重ね、いちばん上では透かしてスク�
 - `src/components/navbar/Navbar.tsx`: `stickyBackdrop` に `transparent-until-scroll` を足し、`transparentVariant`（`plain` が既定・`scrim`・`frosted`・`text-shadow`）を持ちます
 - `design/tokens.css`: 部品のトークン（`--navbar-scrim`・`--navbar-frosted-*`・`--navbar-on-image-fg` など）を足しました。比べるためだけの `--navbar-top-*` は、実装のコミット `e19502e` で畳んで消しました
 - 白い文字にする C・E のあいだは、帯の中のフォーカスの線も白にします（`--navbar-on-image-focus-ring`。いつもの本文の色の線は暗い画像の上で見えないため）。スクロールして面になったら元の色に戻ります
+- 白くするのは帯に直接載る文字とアイコンだけで、帯に置いた面を持つ部品（入力欄・Select の欄、塗りのボタン）の中は元の色のままにします（白い面に白い文字にしないため）。部品は欄の `data-slot="control"` と、ボタンの `data-variant`（`filled`）で見分けます
 - 比較のストーリーは消しました
 
 ## 原則への反映

@@ -137,8 +137,7 @@ const navbar = tv({
         ],
       },
     },
-    // 透かしているあいだの文字の守り方。白い文字にするときは、帯の中だけ本文の色とフォーカスの線を白に差し替える
-    //   部品の色に従う線（--focus-follow-color）も、帯の中では白にそろえる（濃い青は暗い画像の上で見えない）
+    // 透かしているあいだの文字の守り方
     {
       sticky: true,
       stickyBackdrop: 'transparent-until-scroll',
@@ -150,11 +149,8 @@ const navbar = tv({
       stickyBackdrop: 'transparent-until-scroll',
       transparentVariant: 'scrim',
       class: {
-        root: [
-          'not-data-scrolled:bg-transparent not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border',
-          'not-data-scrolled:[--color-fg-muted:var(--navbar-scrim-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
-          'not-data-scrolled:[--color-focus-ring:var(--navbar-on-image-focus-ring)] not-data-scrolled:[--focus-follow-color:initial]',
-        ],
+        root: 'not-data-scrolled:bg-transparent not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border',
+        inner: '[:not([data-scrolled])>&]:[--color-fg-muted:var(--navbar-scrim-fg-muted)]',
       },
     },
     {
@@ -170,10 +166,33 @@ const navbar = tv({
       stickyBackdrop: 'transparent-until-scroll',
       transparentVariant: 'text-shadow',
       class: {
+        inner: [
+          '[:not([data-scrolled])>&]:[--color-fg-muted:var(--navbar-text-shadow-fg-muted)]',
+          '[:not([data-scrolled])>&]:[text-shadow:var(--navbar-text-shadow)]',
+        ],
+      },
+    },
+    // 白い文字にするとき（scrim・text-shadow）は、帯の中だけ本文の色とフォーカスの線を白に差し替える
+    //   差し替えは帯の中身（inner）に置き、帯（root）にはページの色を控える。面を持つ部品（入力欄・Select の欄、
+    //   塗りのボタン）の中では、控えた色に戻す（白い面に白い文字にしない）。フォーカスの線は、面の外に引く塗りのボタンでは白のまま、
+    //   欄の中（消すボタンなど）では元の色に戻す。部品の色に従う線（--focus-follow-color）も、帯の中では白にそろえる
+    {
+      sticky: true,
+      stickyBackdrop: 'transparent-until-scroll',
+      transparentVariant: ['scrim', 'text-shadow'],
+      class: {
         root: [
-          'not-data-scrolled:[--color-fg-muted:var(--navbar-text-shadow-fg-muted)] not-data-scrolled:[--color-fg:var(--navbar-on-image-fg)]',
-          'not-data-scrolled:[--color-focus-ring:var(--navbar-on-image-focus-ring)] not-data-scrolled:[--focus-follow-color:initial]',
-          'not-data-scrolled:[text-shadow:var(--navbar-text-shadow)]',
+          '[--navbar-page-fg-muted:var(--color-fg-muted)] [--navbar-page-fg:var(--color-fg)]',
+          '[--navbar-page-focus-follow:var(--focus-follow-color)] [--navbar-page-focus-ring:var(--color-focus-ring)]',
+        ],
+        inner: [
+          // 文字の色（color）は帯で決まった値が受け継がれるので、差し替えた本文の色で引き直す
+          'text-fg [:not([data-scrolled])>&]:[--color-fg:var(--navbar-on-image-fg)]',
+          '[:not([data-scrolled])>&]:[--color-focus-ring:var(--navbar-on-image-focus-ring)] [:not([data-scrolled])>&]:[--focus-follow-color:initial]',
+          '[&_:is([data-slot=control],[data-variant=filled])]:[--color-fg:var(--navbar-page-fg)]',
+          '[&_:is([data-slot=control],[data-variant=filled])]:[--color-fg-muted:var(--navbar-page-fg-muted)]',
+          '[&_:is([data-slot=control],[data-variant=filled])]:[text-shadow:none]',
+          '[&_[data-slot=control]]:[--color-focus-ring:var(--navbar-page-focus-ring)] [&_[data-slot=control]]:[--focus-follow-color:var(--navbar-page-focus-follow)]',
         ],
       },
     },

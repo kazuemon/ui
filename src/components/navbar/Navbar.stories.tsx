@@ -314,7 +314,7 @@ export const TransparentTop: Story = {
     docs: {
       description: {
         story:
-          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。`scrim`・`text-shadow` では、帯の中のフォーカスの線も白くします。',
+          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。`scrim`・`text-shadow` で白くするのは、帯に直接載る文字とアイコン（行き先・ロゴ・面のないボタン）とフォーカスの線です。検索の欄や塗りのボタンのように面を持つ部品の中は、元の色のままです（いちばん下の行）。',
       },
     },
   },
@@ -344,6 +344,35 @@ export const TransparentTop: Story = {
           ))}
         </div>
       ))}
+      <div className="flex items-center gap-6">
+        <span className="w-24 text-xs font-bold text-fg-subtle">欄・ボタン</span>
+        {(['scrim', 'text-shadow'] as const).map((variant) => (
+          <div
+            key={variant}
+            data-testid={`with-field-${variant}`}
+            className="h-40 w-[560px] overflow-y-auto border border-line bg-bg"
+          >
+            <Navbar
+              sticky
+              stickyBackdrop="transparent-until-scroll"
+              transparentVariant={variant}
+              className="-mb-(--navbar-height)"
+              brand={<span>k6n</span>}
+              actions={<Button color="white">Sign in</Button>}
+            >
+              {links()}
+              <NavbarGroup narrowPlacement="bar" className="min-w-0 flex-1">
+                <SearchField
+                  accessibleName="サイト内を検索"
+                  defaultValue="Navbar"
+                  className="min-w-0 flex-1"
+                />
+              </NavbarGroup>
+            </Navbar>
+            <img src={night} alt="" className="block h-48 w-full object-cover" />
+          </div>
+        ))}
+      </div>
     </div>
   ),
   play: async ({ canvasElement }) => {
@@ -372,6 +401,18 @@ export const TransparentTop: Story = {
       await waitFor(() => expect(getComputedStyle(button).color).not.toBe(white));
       button.blur();
       await scrollTo(scroller, 0);
+    }
+    // 面を持つ部品（検索の欄・塗りのボタン）の中は、白くせず元の色のまま
+    for (const variant of ['scrim', 'text-shadow']) {
+      const box = within(canvas.getByTestId(`with-field-${variant}`));
+      const input = box.getByRole('searchbox', { name: 'サイト内を検索' });
+      const button = box.getByRole('button', { name: 'Sign in' });
+      await expect(getComputedStyle(box.getByRole('button', { name: 'メニュー' })).color).toBe(
+        white
+      );
+      await expect(getComputedStyle(input).color).not.toBe(white);
+      await expect(getComputedStyle(input).textShadow).toBe('none');
+      await expect(getComputedStyle(button).color).not.toBe(white);
     }
   },
 };
