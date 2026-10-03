@@ -1,7 +1,10 @@
+import { MapPinIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent } from 'storybook/test';
 
 import { Chip } from './Chip';
+import { Avatar } from '../avatar/Avatar';
+import { Icon } from '../icon/Icon';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { type MatrixColumn, statePseudo } from '../../stories/story-states';
 
@@ -27,6 +30,7 @@ const meta = {
           '',
           '- 色は `Tag` と同じです。`primary`・`secondary`・`neutral`（既定）と、状態を表す `info`・`success`・`warning`・`danger` があります。',
           '- `onRemove` を渡すと右端に消すボタン（×）が出ます。読み上げの名前を `removeName` で必ず渡します（「デザインを外す」など）。',
+          '- `icon`・`avatar` で、文字の前にアイコンや人の顔を置けます（`Tag` と同じ）。',
           '- `disabled` は押せない見た目で、消すボタンも押せません。`readOnly` は消すボタンを出しません。',
           '- Base UI の `Combobox.Chip` の `render` に `Chip` を、`Combobox.ChipRemove` の `render` に `ChipRemove` を渡して、複数選択の欄に組み込めます。',
         ].join('\n'),
@@ -48,6 +52,9 @@ const meta = {
     },
     disabled: { table: { defaultValue: { summary: 'false' } } },
     readOnly: { table: { defaultValue: { summary: 'false' } } },
+    iconColor: { control: 'inline-radio', options: allColors },
+    icon: { control: false },
+    avatar: { control: false },
     size: {
       control: 'inline-radio',
       options: ['sm', 'md', 'lg', 'inherit'],
@@ -138,6 +145,60 @@ export const States: Story = {
         </Specimen>
       </Gallery>
     </div>
+  ),
+};
+
+// 見本の画像（外に取りに行かない）
+const photo = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"><rect width="160" height="160" fill="#f8b4c8"/><circle cx="80" cy="64" r="30" fill="#ffe7d1"/><path d="M16 160c0-35 29-56 64-56s64 21 64 56Z" fill="#5b4a8a"/></svg>'
+)}`;
+
+export const IconAndAvatar: Story = {
+  tags: ['visual'],
+  name: 'アイコンとアバター',
+  parameters: {
+    docs: {
+      description: {
+        story: [
+          '- `icon` は文字の前に置くアイコンです。大きさは文字と同じで、色は既定で文字の色です。`iconColor` で `color` と同じ色から選べます。',
+          '- `avatar` は文字の前に置く人の顔（`Avatar`）です。大きさはチップの高さから決まります。',
+        ].join('\n'),
+      },
+    },
+  },
+  render: (args) => (
+    <Gallery>
+      <Specimen label="icon（sm・md・lg）">
+        <div className="flex flex-col items-start gap-2">
+          {(['sm', 'md', 'lg'] as const).map((size) => (
+            <Chip key={size} {...args} size={size} icon={<Icon icon={MapPinIcon} />}>
+              東京
+            </Chip>
+          ))}
+          <Chip {...args} icon={<Icon icon={MapPinIcon} />} iconColor="primary">
+            iconColor
+          </Chip>
+        </div>
+      </Specimen>
+      <Specimen label="avatar（sm・md・lg）">
+        <div className="flex flex-col items-start gap-2">
+          {(['sm', 'md', 'lg'] as const).map((size) => (
+            <Chip
+              key={size}
+              {...args}
+              size={size}
+              avatar={<Avatar src={photo} name="山田 花子" alt="" />}
+              removeName="山田 花子を外す"
+            >
+              山田 花子
+            </Chip>
+          ))}
+          <Chip {...args} avatar={<Avatar name="佐藤 次郎" alt="" />} removeName="佐藤 次郎を外す">
+            佐藤 次郎
+          </Chip>
+        </div>
+      </Specimen>
+    </Gallery>
   ),
 };
 

@@ -614,7 +614,7 @@ export {
   type ChipProps,
   type ChipRemoveProps,
 } from './components/chip/Chip';
-export { Tag, type TagProps } from './components/tag/Tag';
+export { Tag, type TagColor, type TagProps, type TagVariant } from './components/tag/Tag';
 export {
   TagsInput,
   type TagsInputBaseProps,
