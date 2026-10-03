@@ -28,6 +28,9 @@ import { ImageBrokenIcon } from './image-icons';
 //   どれもなければ、16:9 の画像だと仮定して読み込み中（と失敗したとき）は 16:9 の枠を取り、読み込めたら画像本来の比の高さに変える
 //   （スクリプトが動かない描き方でも、画像本来の比で描く）
 //   このとき高さが変わり、下の内容が跳ぶ。寸法を書かない以上しかたがないので、跳ばせたくないときは width・height か ratio を書く
+// 仮画像（placeholder。小さな画像の URL か要素）を渡すと、読み込み中は面の代わりに、それをぼかして敷く（軸 492・493）
+//   読み込めたら本物にすぐ替える（動きは付けない）。ぼかしの強さは placeholderBlur の段。失敗したときは、仮画像の上に失敗の面を出す
+// 代わりの画像（fallbackSrc）を渡すと、src が読み込めなかったときに一度だけそれに替える。それも失敗したら失敗の面を出す
 // 面を出すのは、描いたあとに読み込みが終わっていないと分かったときだけ。スクリプトが動かない描き方（Astro の静的な出力など）では、
 //   素の画像のまま出す（面を置かないだけで、画像は隠さない）
 
@@ -46,6 +49,11 @@ const styles = tv({
       // 本来の比で描くときは、枠いっぱいに重ねず、画像の高さで枠を広げる（AspectRatio の最初の子の absolute より強く効かせる）
       'group-data-natural/image:relative group-data-natural/image:h-auto',
     ],
+    // 仮画像の層。本物の下に敷く。ぼかした縁が透けないよう、ぼかしの 2 倍だけ枠の外へ広げて、枠で切る
+    // 読み込めたら隠す（透ける画像の下に残らないように）
+    blur: 'pointer-events-none absolute inset-0 overflow-hidden rounded-(--image-radius) group-data-[status=loaded]/image:invisible',
+    blurInner:
+      'absolute inset-[calc(var(--image-placeholder-blur)*-2)] [filter:blur(var(--image-placeholder-blur))] *:size-full *:object-cover',
     // 面は画像の上に重ね、読み込み中と失敗のときだけ見せる
     // 動きは、単体では面ごとの光（sweep）。Gallery に並べたときは、Gallery が決める（軸 411）
     placeholder: [
@@ -54,6 +62,8 @@ const styles = tv({
       // 失敗した面は動かさない
       'group-data-[status=error]/image:animate-none group-data-[status=error]/image:after:hidden',
       'group-data-[status=loaded]/image:invisible group-data-[status=loaded]/image:animate-none group-data-[status=loaded]/image:after:hidden',
+      // 仮画像があるときは、読み込み中の面を出さない（失敗したときだけ出す）
+      'group-data-placeholder/image:group-data-[status=loading]/image:invisible',
     ],
     errorIcon: 'hidden size-(--image-icon-size) shrink-0 group-data-[status=error]/image:block',
     // 長い文は 2 行で切る（line-clamp は display を持つので、出し分けの要素の内側に置く）
@@ -79,12 +89,21 @@ const styles = tv({
       },
       none: { frame: '[--image-radius:0px]' },
     },
+    // 仮画像のぼかしの強さ。none はぼかさない
+    placeholderBlur: {
+      none: { frame: '[--image-placeholder-blur:0px]' },
+      sm: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-sm)]' },
+      md: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-md)]' },
+      lg: { frame: '[--image-placeholder-blur:var(--image-placeholder-blur-lg)]' },
+    },
   },
-  defaultVariants: { animation: 'sweep', outline: true, radius: 'card' },
+  defaultVariants: { animation: 'sweep', outline: true, radius: 'card', placeholderBlur: 'sm' },
 });
 
 /** 画像の角 */
 export type ImageRadius = NonNullable<VariantProps<typeof styles>['radius']>;
+/** 仮画像のぼかしの強さ */
+export type ImagePlaceholderBlur = NonNullable<VariantProps<typeof styles>['placeholderBlur']>;
 
 export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
   /** 画像の URL。まだ決まっていない（データを読み込んでいる）あいだは書かずにおくと、読み込み中の面を出します。render を渡すときは、渡す要素に書きます */
@@ -124,6 +143,22 @@ export interface ImageProps extends Omit<ComponentProps<'img'>, 'alt' | 'src'> {
    * @default 'card'
    */
   radius?: ImageRadius;
+  /**
+   * 読み込むまで敷く仮画像。小さな画像の URL（数十 px の縮小版や data URL）か、要素（BlurHash を描いた canvas など）を渡します。
+   * ぼかして枠いっぱいに広げ、読み込めたら本物にすぐ替えます。渡さないときは、読み込み中の面を出します
+   */
+  placeholder?: string | ReactElement;
+  /**
+   * 仮画像のぼかしの強さ。none はぼかさず、sm・md・lg の順に強くなります。
+   * ぼかしは画像の大きさによらず同じ強さなので、小さい画像ほど強く効きます。BlurHash のようにはじめからぼやけた仮画像は none にします
+   * @default 'sm'
+   */
+  placeholderBlur?: ImagePlaceholderBlur;
+  /**
+   * src（srcSet）が読み込めなかったときに一度だけ替える画像の URL。替えるときは srcSet・sizes を外します。
+   * それも読み込めなかったときは、失敗の面を出します。render を渡すときは使いません
+   */
+  fallbackSrc?: string;
   /** 画像を包む枠（枠の要素）に渡す props。className は画像の要素に付きます */
   frameProps?: ComponentProps<'span'>;
   /** 画像の要素に付きます。枠に付けるクラスは frameProps の className に渡します */
@@ -146,9 +181,22 @@ export function Image({
   render,
   onLoad,
   onError,
-  ...props
+  placeholder,
+  placeholderBlur,
+  fallbackSrc,
+  ...imageProps
 }: ImageProps) {
   const renderProps = (render?.props ?? {}) as { src?: unknown; width?: unknown; height?: unknown };
+  // 読み込めなかった画像の候補（src、なければ srcSet）。今の候補と同じなら代わりの画像に替える（候補が変われば、また候補から読む）
+  //   fallbackSrc がなくても覚えておくので、あとから fallbackSrc を渡しても替わる
+  const imageSource = imageProps.src ?? imageProps.srcSet;
+  const [failedSrc, setFailedSrc] = useState<string>();
+  const useFallback =
+    !render && fallbackSrc != null && imageSource != null && failedSrc === imageSource;
+  // srcSet・sizes があると src より先に使われ、代わりの画像に替わらないので外す
+  const props = useFallback
+    ? { ...imageProps, src: fallbackSrc, srcSet: undefined, sizes: undefined }
+    : imageProps;
   const src = renderProps.src ?? props.src;
   const width = toMediaSize(renderProps.width ?? props.width);
   const height = toMediaSize(renderProps.height ?? props.height);
@@ -166,11 +214,17 @@ export function Image({
     else setStatus('loading');
   }, [src]);
 
+  // 失敗したら、描く前に代わりの画像に替える（失敗の面を一瞬も出さない）
+  useIsomorphicLayoutEffect(() => {
+    if (status !== 'error' || render || useFallback) return;
+    if (imageSource != null) setFailedSrc(imageSource);
+  }, [status]);
+
   const sized = ratio == null && width != null && height != null;
   // 寸法がなく、読み込み中でも失敗でもないとき（読み込めた・スクリプトが動かない）は、画像本来の比の高さで描く
   const natural = ratio == null && !sized && status !== 'loading' && status !== 'error';
   const animation = useContext(ImagePlaceholderAnimationContext) ?? 'sweep';
-  const s = styles({ animation, outline: !hideOutline, radius });
+  const s = styles({ animation, outline: !hideOutline, radius, placeholderBlur });
   const image = useRender({
     render,
     defaultTagName: 'img',
@@ -197,10 +251,18 @@ export function Image({
       data-slot="image"
       data-status={status === 'idle' ? undefined : status}
       data-natural={natural || undefined}
+      data-placeholder={placeholder != null ? '' : undefined}
       // 枠は AspectRatio を span で描く（AspectRatio の型は div のままなので、span の props として受けて渡す）
       {...(frameProps as ComponentProps<'div'>)}
       className={s.frame({ className: frameProps?.className })}
     >
+      {placeholder != null && (
+        <span className={s.blur()} aria-hidden>
+          <span className={s.blurInner()}>
+            {typeof placeholder === 'string' ? <img src={placeholder} alt="" /> : placeholder}
+          </span>
+        </span>
+      )}
       {image}
       {status !== 'idle' && (
         <span className={s.placeholder()}>

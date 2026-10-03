@@ -277,7 +277,12 @@ export {
   type HeadingAnchorReveal,
 } from './components/heading-anchor/HeadingAnchor';
 export { Icon, type IconColor, type IconProps, type IconSize } from './components/icon/Icon';
-export { Image, type ImageProps, type ImageRadius } from './components/image/Image';
+export {
+  Image,
+  type ImagePlaceholderBlur,
+  type ImageProps,
+  type ImageRadius,
+} from './components/image/Image';
 export {
   ImageZoom,
   type ImageZoomCaptionMotion,
