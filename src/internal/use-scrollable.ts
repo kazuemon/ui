@@ -13,15 +13,20 @@ export function isScrollableX(element: HTMLElement) {
   return element.scrollWidth > element.clientWidth + 1;
 }
 
+/** 中身が見えている高さより高いか（高さの上限を付けた表）。横と同じく 1px は許す */
+function isScrollableY(element: HTMLElement) {
+  return element.scrollHeight > element.clientHeight + 1;
+}
+
 /**
- * 要素が横にはみ出しているか（中身の幅が見えている幅より広いか）を返す。幅が変わるたびに測り直す
+ * 要素がはみ出しているか（中身の幅か高さが、見えている範囲より大きいか）を返す。大きさが変わるたびに測り直す
  */
 export function useScrollable(ref: RefObject<HTMLElement | null>) {
   const [scrollable, setScrollable] = useState(false);
   useEffect(() => {
     const element = ref.current;
     if (!element) return undefined;
-    const measure = () => setScrollable(isScrollableX(element));
+    const measure = () => setScrollable(isScrollableX(element) || isScrollableY(element));
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);

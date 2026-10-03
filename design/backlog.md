@@ -456,6 +456,7 @@
 
 props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./adr/0235-color-status-trend.md)〜[0257](./adr/0257-frame.md) で決めました。次はまだ決めていません。
 
+- `textSize`（文字の大きさだけを選ぶ props。Table が持ちます。[ADR-0414](./adr/0414-table-size.md)）を、`design/props.md` の語彙に足すかは決めていません
 - `as` と `render` の使い分け（タグ名を選ぶだけなら `as`、部品を差し替えるなら `render`、という暗黙の線引きのままです。polymorphism の扱いを詰めます。N-16）
 - 見本の入口 `@kazuemon/ui/samples`（`src/samples/` と見本用の fixtures をそこへ寄せるかは決めていません。M-12）
 - `render` に渡した要素の `target` を部品が読む作り（サーバーコンポーネントから渡すと読めません。対応策は別途検討します。M-18）
@@ -510,7 +511,8 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - 複数の列での並べ替え（Shift を押しながら 2 つ目の列を押すなど）と、その番号（「1」「2」のような順番の印）は決めていません。TanStack Table の複数列ソートの機能自体は使えますが、DataTableHeader の見た目（矢印だけ）は 1 列の並べ替えしか表していません
 - 行を押して選ぶ形（選択の箱を押さなくても、行のどこを押しても選べる）は作っていません。押せる範囲は選択の箱だけです（原則17。DataTableSelect.tsx のコメント）
 - 範囲選択（1 行目を選んで Shift を押しながら別の行を選ぶと、間の行もまとめて選ぶ）は作っていません
-- 読み込み直しのあいだの見せ方（並べ替え・ページ送りのあと、新しい行が届くまでの見せ方）は決めていません。`DataTableLoading` は初回の読み込みの形で、行が既にあるところへの読み込み直しは想定していません
+- DataTable にも `size`・`textSize`・`showStripes`・`hideRowDivider` を持たせるかは決めていません。Table にはあります（[ADR-0414](./adr/0414-table-size.md)・[ADR-0415](./adr/0415-table-stripes.md)）
+- サーバー側の読み直しのレシピ（TanStack Query の `keepPreviousData` で前の行を残し、`refreshing` を渡す）は書いていません（[ADR-0417](./adr/0417-data-table-refreshing.md)）
 - `Pagination` を下の帯に置くとき、`min-w-0` が要るかは比べていません（[ADR-0348](./adr/0348-data-table-footer-recipe.md)）。狭い幅で `Select`（1 ページの件数）と並べたときに、`Pagination` 側が縮むかどうかです
 - 見出しのボタン（`DataTableHeader` の `onSortClick`）は、キーボードでは Tab で止まりますが、並べ替えている列だけに `aria-sort` を付ける以外の読み上げの確かめ（本物の読み上げソフト）はしていません
 
