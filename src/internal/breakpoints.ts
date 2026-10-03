@@ -1,19 +1,23 @@
 import type { ReactElement } from 'react';
 
-// 画面の幅の段と、段ごとに変える値（Grid・Masonry の columns、Stack の direction）
+// 画面の幅の段と、段ごとに変える値（Grid・Masonry・DescriptionList の columns、Stack の direction、Carousel の slidesPerView）
 //   段は Tailwind の既定の sm・md・lg・xl。渡していない段は 1 つ下の段の値を使う（ADR-0311）
 
+/** 画面の幅の段。base はいちばん狭い画面から、sm・md・lg・xl は Tailwind の既定の幅（40rem・48rem・64rem・80rem）から上 */
+export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
+/** 値か、段ごとの値 */
+export type Responsive<T> = T | Partial<Record<Breakpoint, T>>;
 /** 列の数を変える画面の幅の段。base はいちばん狭い画面から、sm・md・lg・xl は Tailwind の既定の幅（40rem・48rem・64rem・80rem）から上 */
-export type GridBreakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl';
+export type GridBreakpoint = Breakpoint;
 /** 列の数。数なら画面の幅によらず同じ、段ごとの数なら画面の幅で変わる */
-export type GridColumns = number | Partial<Record<GridBreakpoint, number>>;
+export type GridColumns = Responsive<number>;
 
-export const breakpoints: readonly GridBreakpoint[] = ['base', 'sm', 'md', 'lg', 'xl'];
+export const breakpoints: readonly Breakpoint[] = ['base', 'sm', 'md', 'lg', 'xl'];
 
 /** 数か段ごとの値を、段ごとの値にそろえる */
 export function byBreakpoint<T extends string | number>(
-  value: T | Partial<Record<GridBreakpoint, T>> | undefined
-): Partial<Record<GridBreakpoint, T>> {
+  value: Responsive<T> | undefined
+): Partial<Record<Breakpoint, T>> {
   if (value == null) return {};
   if (typeof value === 'object') return value;
   return { base: value };
@@ -31,11 +35,17 @@ export const columnsClasses = [
   'xl:[--columns:var(--columns-xl,var(--columns-lg,var(--columns-md,var(--columns-sm,var(--columns-base,1)))))]',
 ];
 
-/** 渡した段の数だけを --columns-<段> に入れる */
-export function columnVars(columns: GridColumns | undefined): Record<`--${string}`, string> {
+/**
+ * 渡した段の数だけを --<name>-<段> に入れる。数を 1 つだけ渡したときは base に入れる
+ * （Grid・Masonry・DescriptionList の columns は --columns-<段>、Carousel の slidesPerView は --carousel-per-view-<段>）
+ */
+export function breakpointVars(
+  name: string,
+  value: Responsive<number> | undefined
+): Record<`--${string}`, string> {
   const vars: Record<`--${string}`, string> = {};
-  for (const [bp, n] of Object.entries(byBreakpoint(columns))) {
-    if (n != null) vars[`--columns-${bp}`] = String(n);
+  for (const [bp, n] of Object.entries(byBreakpoint(value))) {
+    if (n != null) vars[`--${name}-${bp}`] = String(n);
   }
   return vars;
 }

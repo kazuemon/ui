@@ -119,6 +119,8 @@ export {
   type CarouselControlsPosition,
   type CarouselIndicator,
   type CarouselProps,
+  type CarouselSlidesPerView,
+  type CarouselThumbnailsPlacement,
 } from './components/carousel/Carousel';
 export {
   Checkbox,
@@ -635,6 +637,7 @@ export {
   type StepperStepProps,
   type StepperStepStatus,
   type StepperProps,
+  type StepperSize,
   type StepperVariant,
 } from './components/stepper/Stepper';
 export {
@@ -693,6 +696,7 @@ export {
   Thumbnails,
   type ThumbnailsColor,
   type ThumbnailsIndicator,
+  type ThumbnailsOrientation,
   type ThumbnailsProps,
 } from './components/thumbnails/Thumbnails';
 export { Time, type TimeProps } from './components/time/Time';
@@ -703,12 +707,14 @@ export {
   type TimelineDatePlacement,
   type TimelineHeadingLevel,
   TimelineItem,
+  type TimelineIconVariant,
   type TimelineItemProps,
   type TimelineLine,
   type TimelineMarkerSize,
   type TimelineMarkerType,
   type TimelineProps,
   type TimelineTail,
+  type TimelineWarningColor,
 } from './components/timeline/Timeline';
 export {
   Transition,
@@ -742,6 +748,7 @@ export {
   type TreeCurrentIndicator,
   TreeItem,
   type TreeItemProps,
+  type TreeLoadingPlaceholder,
   type TreePanelMotion,
   type TreeProps,
   type TreeRowWidth,
