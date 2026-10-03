@@ -1,11 +1,8 @@
 :root {
-  /* ── Affix — ADR-0175・0176 ── BEGIN affix */
-  /* スクロールしても端に留まる枠。src/components/affix
-     gap: 留まったときの、画面（または貼り付けた Navbar の下の線）からの離れ。面を持たないとき（目次・上へ戻る）だけ。
-       ページのレイアウトに合わせて使う側が上書きする（ADR-0176）
+  /* Affix（スクロールしても端に留まる枠）— ADR-0175・0176
+     gap: 留まったときの、画面（または貼り付けた Navbar の下の線）からの離れ。面を持たないとき（目次・上へ戻る）だけ。使う側がページに合わせて上書きする
      navbar-height: belowNavbar のとき、上から空ける Navbar の高さ（線の太さは部品が足す）
-     shadow-top・shadow-bottom: surfaceEdge="shadow" の帯が留まったときに落とす影。
-       上に留まる帯は下へ（Navbar の stickyEdge="shadow" と同じ）、下に留まる帯は上へ（ADR-0175） */
+     shadow-top・shadow-bottom: surfaceEdge="shadow" の帯が留まったときに落とす影。上に留まる帯は下へ（Navbar の stickyEdge="shadow" と同じ）、下に留まる帯は上へ */
   --affix-gap: calc(var(--spacing) * 6);
   --affix-navbar-height: var(--navbar-height);
   --affix-shadow-top: var(--navbar-sticky-shadow);

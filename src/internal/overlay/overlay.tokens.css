@@ -1,13 +1,14 @@
 :root {
-  /* 浮かぶ面の開閉の動き — ADR-0054（D: 本体の側に 8px 寄った位置から、濃さと一緒に滑る。緩急はシートと同じ）
+  /* 浮かぶ面の開閉の動き — ADR-0054
+     本体の側に 8px 寄った位置から、濃さと一緒に滑る。緩急はシートと同じ
      Select の浮かぶ選択肢・Popover・Tooltip が使う。Dialog は中央に出るので、下から shift だけ寄った位置から滑る
      濃さ 0 から、ずれ shift（本体の側から離れる向き）を戻しながら現れる
      開くときは duration-in、閉じるときは duration-out。動きを減らす設定では動かさない */
   --popup-duration-out: 150ms;
   --popup-shift: calc(var(--spacing) * 2);
 
-  /* Dialog・Drawer・Popover の題と説明の大きさ
-     題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。ADR-0103。Select のシートの見出しは欄のラベルのまま
+  /* Dialog・Drawer・Popover の題と説明の大きさ — ADR-0103
+     題は見出しの 3 段目（中身の文字より一段大きい）、説明は小さい本文。Select のシートの見出しは欄のラベルのまま
      --overlay-title-size・--overlay-title-leading・--overlay-description-size・--overlay-description-leading は、
      密度で変わる役割を指すので、src/styles/theme.css の密度の規則が入れる */
 }

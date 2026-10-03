@@ -1,14 +1,10 @@
 :root {
-  /* ── Sortable — ADR-0336〜0342 ── BEGIN sortable */
-  /* 並べ替えられるリスト。src/components/sortable。ポインタで引く動きは外のエンジン（dnd-kit）に任せる（src/recipes/Sortable.stories.tsx）
-     gap: 項目と項目のあいだ（variant="card"・"fill"。divided は線で区切るので 0）
-     item-radius・item-py・item-gap: 項目の角・上下の余白・中身どうしのあいだ。高さは部品の高さ（--spacing-control）から
-     handle-width・handle-radius: つまみの幅と角。項目の端に接した塊で、高さは項目いっぱい
-     lifted-*: 持ち上げた項目（dragging）— ADR-0338。面は白、影は重なる面より濃く近い影と細い輪郭、大きさは少しだけ大きく
-       表の行（SortableTableBody）は幅いっぱいに並ぶので、表の形によらず面と影だけを使い、大きくしない
-     source-line-*: 入る場所（dragSource）の内側の点線 — ADR-0339。dragSourceVariant="filled" では、下に入力欄の塗りを敷く
-     move-duration・move-ease: 並べ替えの動きの長さと緩急 — ADR-0341。motion="none" と、動きを減らす設定では動かさない
-       レシピ（dnd-kit）の周りがずれる動き・離したときに収まる動きも、同じ長さと緩急にそろえる */
+  /* Sortable（並べ替えられるリスト）— ADR-0336〜0342
+     gap: 項目のあいだ（card・fill。divided は線で区切るので 0）
+     item-py・item-gap: 項目の上下の余白・中身どうしのあいだ。高さは --spacing-control から
+     handle-width: つまみの幅。項目の端に接し、高さは項目いっぱい
+     lifted-*: 持ち上げた項目の影（輪郭つき）と拡大
+     move-duration・move-ease: 並べ替えの動き。motion="none" と動きを減らす設定では動かさない。dnd-kit のレシピも同じ値 */
   --sortable-gap: calc(var(--spacing) * 2); /* 8px */
   --sortable-item-py: calc(var(--spacing) * 2.5); /* 10px。16px・24px の行で 44px */
   --sortable-item-gap: calc(var(--spacing) * 3); /* 12px */

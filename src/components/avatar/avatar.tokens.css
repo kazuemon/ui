@@ -1,16 +1,13 @@
 :root {
-  /* ── Avatar — 軸 140・141 ── BEGIN avatar */
-  /* 人やものの顔（画像・頭文字・アイコン）。src/components/avatar
-     押せないので影はなく、ページと同じレイヤーに置く（原則1）
-     size-*: 大きさの段（正方形）。押すものではないので、入力方式では変えない（原則11。Badge と同じ）
-     text-*: 頭文字の大きさ。部品の文字ではなく、大きさの段に従う（およそ段の 0.4 倍）
-     radius-circle: 丸（shape="circle"、既定）。小物と同じ pill（原則5）— 軸 140
-     radius-rounded-*: 四角（shape="rounded"）の角。大きさの段に従い、小さい段（sm・md）は部品の角、大きい段（lg・xl）はカードの角 — 軸 140
-     outline-width・outline-color: 細い輪郭。白っぽい画像が白地に溶けないように付ける（原則1）。濃さは Image の輪郭と同じ。付けるかは利用者が選ぶ — 軸 140
-     icon-scale: 頭文字の代わりに人のアイコンを出すとき（fallback="icon"）の、大きさの段に対する割合 — 軸 141 */
+  /* Avatar（画像・頭文字・アイコン）
+     size-*: 大きさの段（正方形）。入力方式では変えない（Badge と同じ）
+     text-*: 頭文字の大きさ。段のおよそ 0.4 倍
+     outline-width・outline-color: 白っぽい画像が白地に溶けないための細い輪郭。濃さは Image の輪郭と同じ
+     icon-scale: fallback="icon" のアイコンの、段に対する割合
+     radius: 丸は pill、shape="rounded" は小さい段（sm・md）が部品の角、大きい段（lg・xl）がカードの角 */
   --avatar-size-xs: calc(
     var(--spacing) * 5
-  ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す — 軸 463 */
+  ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す */
   --avatar-size-sm: calc(var(--spacing) * 6); /* 24px。文字の行に並べる */
   --avatar-size-md: calc(var(--spacing) * 8); /* 32px。一覧の行 */
   --avatar-size-lg: calc(var(--spacing) * 10); /* 40px。カードの見出し */

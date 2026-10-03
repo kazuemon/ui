@@ -1,7 +1,7 @@
 /*
- * @kazuemon/ui design tokens — 現行版
+ * @kazuemon/ui design tokens
  *
- * 層（design/adr/0003・ADR-0076）
+ * 層（ADR-0003・0076）
  *   値の層   --palette-*                 生の色。部品・原則からは直接参照しない
  *   尺度の層 --border-width-*・--duration-* ほか  役割と部品が共通で使う値。角丸・余白・緩急は Tailwind の既定の尺度を使う
  *   役割の層 --color-*・--radius-* ほか   部品と原則はこちらを参照する
@@ -14,7 +14,7 @@
  *   密度で変わる値は @theme reference に置く。クラスは作るが、値は src/styles/globals.css の密度の規則が入れる
  * 部品の層（:root）は部品の中だけで使い、名前も値も予告なく変える。
  *
- * 色は「面用」と「前景用」の2段（design/adr/0002）。
+ * 色は「面用」と「前景用」の2段（ADR-0002）。
  *   面用   元の値。塗り・ロゴ・装飾に使う
  *   前景用 明度だけ下げて基準を満たした値。文字・枠線に使う
  *   基準: 本文・ボタン文字 4.5:1 / 大きい文字・アイコン・枠線 3:1
@@ -30,55 +30,53 @@
   --palette-pink-500: #f53273; /* 白地 3.76 */
   --palette-pink-600: #e41966; /* 白地 4.54 */
   /* タグの面と文字: sky-50・sky-700 と同じ作り方（面は明度 0.96・彩度 0.02 で色相だけ変える。
-     文字は同じ色相で、面の上で 4.5:1 を満たすまで明度を下げる）— ADR-0028 */
+     文字は同じ色相で、面の上で 4.5:1 を満たすまで明度を下げる） */
   --palette-blue-50: #e9f2fe;
   --palette-blue-700: #196bd6; /* blue-50 の上で 4.52 */
   --palette-pink-50: #ffebee;
   --palette-pink-700: #d7005d; /* pink-50 の上で 4.54 */
-  --palette-red-700: #ba012d; /* 白地 6.71。前景用のピンクとの比 1.48 — adr/0023 */
-  --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 — adr/0021 */
-  /* red-50 から、gray-50 と gray-200 の明度の差（0.05）だけ下げた値。彩度は red-50 の 1.5 倍 — adr/0035 */
+  --palette-red-700: #ba012d; /* 白地 6.71。前景用のピンクとの比 1.48 */
+  --palette-red-50: #fef2f1; /* red-700 と同じ色相で明度だけ上げた値 */
+  /* red-50 から、gray-50 と gray-200 の明度の差（0.05）だけ下げた値。彩度は red-50 の 1.5 倍 */
   --palette-red-100: #f1e0de;
-  /* 危険のお知らせの淡い面: red-700 と同じ色相で、タグの面と同じ明度 0.96・彩度 0.02。red-700 を載せて 5.93 — adr/0043
-     red-50（入力欄のエラーの塗り、明度 0.97）と red-100（明度 0.92）のあいだ */
+  /* 危険のお知らせの淡い面: red-700 と同じ色相で、タグの面と同じ明度 0.96・彩度 0.02。red-700 を載せて 5.93
+     red-50（明度 0.97）と red-100（明度 0.92）のあいだ */
   --palette-red-75: #feeded;
 
   --palette-sky-50: #e3f4fe; /* タグの面 */
   --palette-sky-700: #0075a7; /* sky-50 の上で 4.54 */
 
-  /* 中立色: 無彩色寄り（色相 220・彩度 0.002）— design/adr/0005 */
+  /* 中立色: 無彩色寄り（色相 220・彩度 0.002） */
   --palette-white: #ffffff;
   --palette-gray-50: #f2f4f4;
   --palette-gray-100: #eff0f1;
-  --palette-gray-150: #eef0f0; /* gray-50 の明度を 0.011 下げた値（入力欄の hover）— adr/0022 */
+  --palette-gray-150: #eef0f0; /* gray-50 の明度を 0.011 下げた値（入力欄の hover） */
   --palette-gray-200: #e1e3e4;
   --palette-gray-300: #dee0e1;
-  --palette-gray-400: #a3a5a6; /* Disabled の文字 — adr/0026 */
-  --palette-gray-500: #939596; /* 白地 3.01。3:1 の輪郭 — adr/0025 */
+  --palette-gray-400: #a3a5a6; /* Disabled の文字 */
+  --palette-gray-500: #939596; /* 白地 3.01。3:1 の輪郭 */
   --palette-mint-50: #e2f4f1;
 
   --palette-ink-900: #1f2f37;
   --palette-ink-700: #525c60;
-  --palette-ink-500: #6e787d; /* 旧 #788287（白地 3.93）を 4.5 まで下げた値 */
+  --palette-ink-500: #6e787d; /* 白地 4.5 */
 
   --palette-success-500: #6bf188;
-  /* 成功の淡い面: ほかのタグの面と同じ明度 0.96（彩度 0.03）に置き換えた値 — adr/0043
-     旧 #E1FCE7 は明度 0.97・彩度 0.04 で、ほかの淡い面より明るく、役割もなかった */
+  /* 成功の淡い面: ほかのタグの面と同じ明度 0.96（彩度 0.03） */
   --palette-success-50: #e5f8e7;
-  /* 前景用: success-500 と同じ色相（148°）のまま、白地と淡い面の両方で 4.5:1 を満たすまで明度を下げた値 — adr/0043
-     白地 5.02。success-50 の上で 4.52（warning-700 と同じく、1つの値で両方に使う）。白文字を載せる塗りにも使う（5.02） */
+  /* 前景用: success-500 と同じ色相（148°）のまま、白地と淡い面の両方で 4.5:1 を満たすまで明度を下げた値
+     白地 5.02。success-50 の上で 4.52（1つの値で両方に使う）。白文字を載せる塗りにも使う（5.02） */
   --palette-success-700: #008132;
-  --palette-warning-500: #eff16b; /* 白地 1.20 — 塗り専用。上に載せる文字は濃紺（11.49）— adr/0038 */
-  /* 前景用: warning-500 と同じ色相のまま、白地で 4.5:1 を満たすまで明度を下げた値 — adr/0038 */
+  --palette-warning-500: #eff16b; /* 白地 1.20 — 塗り専用。上に載せる文字は濃紺（11.49） */
+  /* 前景用: warning-500 と同じ色相のまま、白地で 4.5:1 を満たすまで明度を下げた値 */
   --palette-warning-700: #727200; /* 白地 5.09。warning-50 の上で 4.55 */
-  /* タグの面: sky-50・blue-50 などと同じ明度 0.96 — adr/0038
-     旧 #FCFCE1 は白地 1.04 で面が見えず、役割もなかったため置き換えた */
+  /* タグの面: sky-50・blue-50 などと同じ明度 0.96 */
   --palette-warning-50: #f3f5ce;
-  /* 情報の値。役割は当てない。情報の役割は Primary と同じ色相の blue-* を使う（info-500 は Primary と色相が 1.7° しか違わない）— adr/0043 */
+  /* 情報の値。役割は当てない（情報の役割は blue-* を使う。info-500 は Primary と色相が 1.7° しか違わない） */
   --palette-info-500: #6b9ff1;
   --palette-info-50: #e1ecfc;
 
-  /* コードの色（CodeBlock の色分けと行番号）— 軸 68 の D・69 の B。light は明るい地（白・入力欄のグレー）、dark は濃い地（ink-900）に置く
+  /* コードの色（CodeBlock の色分けと行番号）。light は明るい地（白・入力欄のグレー）、dark は濃い地（ink-900）に置く
      色分けは GitHub の明るいテーマ・暗いテーマ（Primer）の値。役割は :root の --shiki-token-* と --color-codeblock-* が指す
      比（design/tools/color.mjs の contrast）は「地・最低」。最低は、地と強調行・差分・帯の面のうちいちばん低いもの
        light の面: 白・グレー #f2f4f4・強調行 #dee8f3・足した行 #dde9e0・消した行 #f1e4e3
@@ -108,8 +106,8 @@
 
   /* ── 尺度の層 ─────────────────────────────────────
      役割と部品が共通で使う値。余白と角丸は Tailwind と同じ名前・同じ値で、px で持つ（利用者の p-2・rounded-xl と部品が同じ値になる）
-     Tailwind の既定は rem。部品の高さと文字は px なので、ブラウザの文字の大きさを変えたときに余白と角丸だけが大きくならないよう、px にそろえる
-     （rem にするかは、高さと文字と一緒に backlog の「全体の倍率」で決める）。緩急（--ease-in-out）は Tailwind の既定をそのまま使う */
+     部品の高さと文字が px なので、ブラウザの文字の大きさを変えたときに余白と角丸だけが大きくならないよう、px にそろえる
+     緩急（--ease-in-out）は Tailwind の既定をそのまま使う */
   --spacing: 4px;
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -131,23 +129,21 @@
   /* 地と面 */
   --color-bg: var(--palette-white); /* ページの地 */
   --color-surface: var(--palette-white); /* カードなど。地より明るいか同じ */
-  /* 編集できる入力欄の塗り（原則8）。一覧の項目の hover もこの色 */
+  /* 編集できる入力欄の塗り（原則 8）。一覧の項目の hover もこの色 */
   --color-field: var(--palette-gray-50);
-  --color-field-hover: var(--palette-gray-150); /* 入力欄の hover。半段濃く — adr/0022 */
-  --color-field-focus: var(--color-field); /* フォーカス中も塗りは変えない — adr/0019 */
-  --color-field-invalid: var(--palette-red-50); /* エラー中の入力欄の塗り — adr/0021 */
-  --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix・suffix — adr/0024 */
-  /* エラー中の prefix・suffix の塗り — adr/0035
-     ふだんの「グレーの塊と欄」の関係を、エラーの塗り（--color-field-invalid）に写した赤み。文字の色は変えない */
+  --color-field-hover: var(--palette-gray-150); /* 入力欄の hover。半段濃く */
+  --color-field-focus: var(--color-field); /* フォーカス中も塗りは変えない */
+  --color-field-invalid: var(--palette-red-50); /* エラー中の入力欄の塗り */
+  --color-field-addon: var(--palette-gray-200); /* 入力欄の prefix・suffix */
+  /* エラー中の prefix・suffix の塗り。ふだんの「グレーの塊と欄」の関係を、エラーの塗りに写した赤み。文字の色は変えない */
   --color-field-addon-invalid: var(--palette-red-100);
-  /* グレーボタン・グレーのタグの塗り（コントラスト未決） */
+  /* グレーボタン・グレーのタグの塗り */
   --color-neutral: var(--palette-gray-100);
   --color-line: var(--palette-gray-300); /* 細い境界線・読み取り専用の下線 */
-  --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 — adr/0025 */
-  /* 白いボタンと浮かぶ選択肢の輪郭 — adr/0025。var(--color-line-strong) に差し替えると、はっきりした輪郭になる */
+  --color-line-strong: var(--palette-gray-500); /* 3:1 の輪郭 */
+  /* 白いボタンと浮かぶ選択肢の輪郭 */
   --color-surface-line: var(--palette-gray-300);
-  /* 平らな要素（影のない押すもの）の hover と押下（原則3）— adr/0027
-     枠線のボタン・枠線のリンク: 要素の文字の色を淡く敷く。色のない要素は灰色になる */
+  /* 平らな要素（影のない押すもの）の hover と押下（原則 3）。要素の文字の色を淡く敷く。色のない要素は灰色になる */
   --color-flat-hover: color-mix(in oklab, currentColor var(--flat-hover-mix), transparent);
   --color-flat-press: color-mix(in oklab, currentColor var(--flat-press-mix), transparent);
 
@@ -161,40 +157,39 @@
   --color-brand: var(--palette-sky-400); /* 面用: ロゴ・装飾・タグの塗り */
   --color-fg-brand: var(--palette-sky-500); /* 前景用: 大きい見出しのみ */
   --color-on-brand: var(--palette-ink-900); /* 水色の面に載せる文字 */
-  /* 水色のタグ（淡い面＋同じ色相の濃い文字 — adr/0007）。いまは比較の「採用」の印で使う */
+  /* 水色のタグ（淡い面＋同じ色相の濃い文字） */
   --color-tag: var(--palette-sky-50);
   --color-on-tag: var(--palette-sky-700);
 
-  /* プライマリ（濃い青）— design/adr/0012（一旦この値で確定） */
+  /* プライマリ（濃い青） */
   --color-primary: var(--palette-blue-600); /* Primary ボタン・フォーカス枠 */
   --color-on-primary: var(--palette-white);
 
-  /* セカンダリ（ピンク）— design/adr/0013
-     用途は限定しない。部品の利用者が primary / secondary から場所に合う色を選ぶ */
+  /* セカンダリ（ピンク）。用途は限定しない。利用者が primary / secondary から場所に合う色を選ぶ */
   --color-secondary: var(--palette-pink-500); /* 面用: 文字を載せない塗り（トグル ON など） */
   --color-fg-secondary: var(--palette-pink-600); /* 前景用: 文字・枠線・白文字を載せる塗り */
   --color-on-secondary: var(--palette-white);
 
-  /* 利用者が選ぶ色の淡い面と、その上の文字（原則6。タグ・選んだ選択肢）— adr/0007・ADR-0028
+  /* 利用者が選ぶ色の淡い面と、その上の文字（原則 6。タグ・選んだ選択肢）
      面は明度 0.96 前後で色相だけ変え、文字は同じ色相で面の上の 4.5:1 を満たすまで明度を下げる */
   --color-primary-subtle: var(--palette-blue-50);
   --color-on-primary-subtle: var(--palette-blue-700); /* 4.52 */
   --color-secondary-subtle: var(--palette-pink-50);
   --color-on-secondary-subtle: var(--palette-pink-700); /* 4.54 */
 
-  /* 色を持たない濃いグレー（原則6）。トグルの ON・選んだ箱・Badge の塗り */
+  /* 色を持たない濃いグレー（原則 6）。トグルの ON・選んだ箱・Badge の塗り */
   --color-neutral-strong: var(--palette-ink-700);
   --color-on-neutral-strong: var(--palette-white);
 
-  /* 状態の色（情報・成功・警告・危険）— adr/0038・adr/0043
+  /* 状態の色（情報・成功・警告・危険）
      状態ごとに4つの役割を持つ。部品（タグ・お知らせ・Badge・入力欄の下の行）は、この役割だけを使う
        --color-{状態}         濃い塗り（塗りのお知らせ・Badge）
        --color-on-{状態}      濃い塗りに載せる文字・アイコン
        --color-fg-{状態}      白地と淡い面に置く文字・枠線・アイコン（前景用。どちらの上でも 4.5:1 を満たす）
        --color-{状態}-subtle  淡い面（タグ・淡い面のお知らせ）。明度 0.96 前後
      情報は Primary と同じ色相（塗りは Primary、淡い面と文字は Primary の淡い面と文字）
-     危険はピンクと明度で見分ける（adr/0023）。淡い面はピンクの淡い面と色の差 0.6（文字どうしは 1.29 で見分ける）
-     警告の黄色は塗りにだけ使い、上に載せる文字とアイコンは濃紺にする（原則12）。白地に置く文字・枠線・アイコンはオリーブ色 */
+     危険はピンクと明度で見分ける。淡い面はピンクの淡い面と色の差 0.6（文字どうしは 1.29 で見分ける）
+     警告の黄色は塗りにだけ使い、上に載せる文字とアイコンは濃紺にする（原則 12）。白地に置く文字・枠線・アイコンはオリーブ色 */
   --color-info: var(--color-primary);
   --color-on-info: var(--color-on-primary); /* 4.53 */
   --color-fg-info: var(--color-on-primary-subtle); /* 白地 5.10。淡い面の上 4.52 */
@@ -212,7 +207,7 @@
   --color-fg-danger: var(--palette-red-700); /* 白地 6.71。淡い面の上 5.93 */
   --color-danger-subtle: var(--palette-red-75);
 
-  /* 押せないとき（原則1）— design/adr/0026。どの部品も影はなくす
+  /* 押せないとき（原則 1）。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す
      入力欄: 明るいグレーの塗りに薄い文字。テーマの色を持たないので、グレーにしても失うものがない
      グレーのボタン: 入力欄と同じ。塗りと文字の色が近くなることで、押せないことを伝える
@@ -222,7 +217,7 @@
   --color-neutral-disabled: var(--palette-gray-200);
   --color-on-neutral-disabled: var(--palette-gray-400);
 
-  /* フォーカス（原則2）— ADR-0071 の M
+  /* フォーカス（原則 2）
      --color-focus: 入力欄の枠線の色。--color-focus-ring: キーボードで操作したときの線の色
      色を持つ部品は部品の色にする。これは色を持たない部品（色なしの Select・ボタン、TextField）の色で、本文の濃紺
      --color-focus-ring-inner: エラーの欄で、赤い枠線と離した線のあいだを埋める色 */
@@ -230,22 +225,21 @@
   --color-focus-ring: var(--color-focus);
   --color-focus-ring-inner: var(--palette-white);
 
-  /* ── 役割の層: 角丸（原則5） ───────────────────────── */
-  --radius-control: var(--radius-xl); /* 12px。フォーム部品・ボタン・お知らせ — design/adr/0008 */
-  /* 16px。カード（標準・入れ子の型とも）・シート — design/adr/0016 */
+  /* ── 役割の層: 角丸（原則 5） ───────────────────────── */
+  --radius-control: var(--radius-xl); /* 12px。フォーム部品・ボタン・お知らせ */
+  /* 16px。カード（標準・入れ子の型とも）・シート */
   --radius-card: var(--radius-2xl);
   --radius-pill: 9999px; /* リンク・タグ・トグル */
 
-  /* ── 役割の層: 影（原則1: 塗りのあるボタンにのみ）— design/adr/0006 ── */
+  /* ── 役割の層: 影（原則 1: 塗りのあるボタンにのみ）── */
   /* 輪郭程度のごく薄い影。hover で落ち影が消えて輪郭の線だけ残る */
   --shadow-raised:
     0 1px 2px rgb(from var(--color-shadow) r g b / 0.1),
     0 0 0 1px rgb(from var(--color-shadow) r g b / 0.05);
   --shadow-raised-hover: 0 0 0 1px rgb(from var(--color-shadow) r g b / 0.06);
-  /* 押したとき — adr/0033
-     落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが、押して縮んで見えないようにする */
+  /* 押したとき: 落ち影は消し（接地）、輪郭の 1px の線は hover と同じまま残す。白地に近いグレーのボタンが縮んで見えないようにする */
   --shadow-raised-press: var(--shadow-raised-hover);
-  /* 重なるレイヤー（原則1）— adr/0036・adr/0037・ADR-0102
+  /* 重なるレイヤー（原則 1）
      ページの上に重なる面（浮かぶ選択肢・Popover・Tooltip・Dialog）の、やわらかく広い影。輪郭は白いボタンと同じ細い線（--color-surface-line）
      sheet は画面の下から出る面（Select のシート・Drawer）の上向きの影。左右から出る Drawer は、影を開く向きに回す
      backdrop は、後ろの画面を暗くする色（シート・Dialog・Drawer） */
@@ -254,35 +248,35 @@
   --color-backdrop: rgb(from var(--color-shadow) r g b / 0.3);
 
   /* ── 役割の層: 線の太さ・離し方・薄さ ───────────────── */
-  /* 入力欄の枠線（原則2）— design/adr/0019: フォーカスは枠線だけを足す。枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
+  /* 入力欄の枠線（原則 2）: フォーカスは枠線だけを足す。枠線は通常時も透明で確保し、フォーカスで文字がずれないようにする */
   --field-border-width: var(--border-width-thick);
-  /* キーボードで操作したときのフォーカス（focus-visible）— adr/0031
+  /* キーボードで操作したときのフォーカス（focus-visible）
      ボタン・リンク・トグルの輪郭の外側に、この太さの線をこの幅だけ離して描く。入力欄は上の枠線のまま（クリックでも出る）
      離すので、青やピンクのボタンでも線が溶けない */
   --focus-ring-width: var(--border-width-thick);
   --focus-ring-offset: 2px;
-  --disabled-opacity: 0.4; /* 色を持つ押すものを押せないときの薄さ — design/adr/0026 */
-  --press-depth: 1px; /* 押下で沈む深さ — design/adr/0009 */
-  --flat-press-depth: 1px; /* 平らな要素も押下で 1px 沈む — adr/0027 */
+  --disabled-opacity: 0.4; /* 色を持つ押すものを押せないときの薄さ */
+  --press-depth: 1px; /* 押下で沈む深さ */
+  --flat-press-depth: 1px; /* 平らな要素の押下で沈む深さ */
   /* 平らな要素の hover と押下で、文字の色を敷く濃さ（--color-flat-hover・--color-flat-press が読む）
-     塗りを登録した変数で動かす要素（ADR-0112）は currentColor を補間できないので、文字の色の変数をこの濃さで混ぜて同じ色を作る */
+     塗りを登録した変数で動かす要素は currentColor を補間できないので、文字の色の変数をこの濃さで混ぜて同じ色を作る */
   --flat-hover-mix: 8%;
   --flat-press-mix: 16%;
 
-  /* ── 役割の層: 動き（原則3「一段沈む」） ─────────────── */
+  /* ── 役割の層: 動き（原則 3「一段沈む」） ─────────────── */
   --ease-press: cubic-bezier(0.2, 0, 0, 1);
-  --duration-press: var(--duration-fast); /* 押下 — design/adr/0009 */
-  /* 入力欄の状態の移り変わり（原則2）。フォーカスの線もこの長さでフェードインし、位置は動かさない */
+  --duration-press: var(--duration-fast); /* 押下 */
+  /* 入力欄の状態の移り変わり（原則 2）。フォーカスの線もこの長さでフェードインし、位置は動かさない */
   --duration-field: var(--duration-fast);
   --focus-ring-duration: var(--duration-field);
-  /* 送信中（loading）— adr/0034。押せないボタンと同じ見た目に、押下と同じ緩急でこの長さで切り替わる（出るときも戻るときも） */
+  /* 送信中（loading）: 押せないボタンと同じ見た目に、押下と同じ緩急でこの長さで切り替わる（出るときも戻るときも） */
   --duration-loading: var(--duration-normal);
-  /* シート（画面の下から出る面）と、浮かぶ選択肢の緩急 — adr/0037・ADR-0054 */
+  /* シート（画面の下から出る面）と、浮かぶ選択肢の緩急 */
   --duration-sheet: var(--duration-slow);
   --ease-sheet: cubic-bezier(0.33, 1, 0.68, 1);
-  /* 送信中（loading）の印の動き — adr/0034
+  /* 送信中（loading）の印の動き
      loading-in: 薄くしたラベルに重ねる回る円が、ふわっと出る。loading-bar: 下端の線が左から右へ流れる
-     動きを減らす設定では loading-in をなくし、回る円はすぐに出る（下の @media — adr/0042） */
+     動きを減らす設定では loading-in をなくし、回る円はすぐに出る（下の @media） */
   --animate-loading-in: loading-in var(--duration-loading) var(--ease-press) both;
   --animate-loading-bar: loading-bar 1.2s ease-in-out infinite;
   @keyframes loading-in {
@@ -298,10 +292,10 @@
       transform: translateX(250%);
     }
   }
-  /* 動きを減らす設定（prefers-reduced-motion: reduce）のときの印の動き — adr/0042
+  /* 動きを減らす設定（prefers-reduced-motion: reduce）のときの印の動き
      spin-reduced: 回る円は止めず、3秒で1周にする（ふだんの 1/3 の速さ）
      loading-bar-reduced: 線は流さず、幅いっぱいに引いて明滅する（濃さ 60% ↔ 20%、1.6 秒で1往復）
-     Button・TextField・Select の印と、開いた選択肢の「読み込んでいます」の行が使う（src/components/loading/Loading.tsx） */
+     Button・TextField・Select の印と、開いた選択肢の「読み込んでいます」の行が使う */
   --animate-spin-reduced: spin 3s linear infinite;
   --animate-loading-bar-reduced: loading-bar-pulse 1.6s ease-in-out infinite;
   @keyframes loading-bar-pulse {
@@ -322,7 +316,7 @@
   --leading-caption: 16px;
 }
 
-/* ── 役割の層: 密度で変わる寸法（原則11）— design/adr/0004 ───────
+/* ── 役割の層: 密度で変わる寸法（原則 11）───────
    値は入力方式で切り替わる。src/styles/globals.css が、下の :root の指用（-coarse）とマウス用（-fine）から、
    ページ全体と data-density を付けた要素の中で入れる。ここはクラス（h-control・px-control-x・text-label など）を作るだけで、
    CSS 変数は書き出さない（密度の規則がないところでは、クラスはマウス用の値になる）
@@ -332,7 +326,7 @@
      --spacing-icon        部品の中の文字と並ぶアイコン
      --text-control・--leading-control  部品の中の文字
      --text-input・--leading-input      文字を打つ欄の値（指でも 16px）
-     --text-label・--text-caption       部品のラベルとキャプション（原則4） */
+     --text-label・--text-caption       部品のラベルとキャプション（原則 4） */
 @theme reference {
   --spacing-control: var(--spacing-control-fine);
   --spacing-control-x: var(--spacing-control-x-fine);
@@ -348,11 +342,11 @@
   --text-label--line-height: var(--leading-label);
   --text-caption: var(--text-caption-fine);
   --text-caption--line-height: var(--leading-caption);
-  /* 読む文字（Text・Heading）。部品の中の文字とは別に持つ — 軸 51
+  /* 読む文字（Text・Heading）。部品の中の文字とは別に持つ
      --text-body・--text-body-sm          本文（md）と、本文より小さい注記（sm）
      --text-heading-md〜2xl               見出しの 4 段（h4〜h6 は md）
      --text-heading-3xl〜5xl              Hero・節の大見出しの段
-     名前は Text・Heading の size と同じ段（xs〜5xl — ADR-0369）。Tailwind の既定の text-xl などを上書きしないよう、heading- を付ける */
+     名前は Text・Heading の size と同じ段（xs〜5xl）。Tailwind の既定の text-xl などを上書きしないよう、heading- を付ける */
   --text-body: var(--text-body-fine);
   --text-body--line-height: var(--leading-body);
   --leading-body: var(--leading-body-fine);
@@ -371,7 +365,7 @@
   --text-heading-md: var(--text-heading-md-fine);
   --text-heading-md--line-height: var(--leading-heading-md);
   --leading-heading-md: var(--leading-heading-md-fine);
-  /* Hero・節の大見出しの段（3xl〜5xl — ADR-0368）。大きな太字の和文は、字間を少し詰める */
+  /* Hero・節の大見出しの段（3xl〜5xl）。大きな太字の和文は、字間を少し詰める */
   --text-heading-5xl: var(--text-heading-5xl-fine);
   --text-heading-5xl--line-height: var(--leading-heading-5xl);
   --text-heading-5xl--letter-spacing: var(--heading-large-tracking);
@@ -386,7 +380,7 @@
   --leading-heading-3xl: var(--leading-heading-3xl-fine);
 }
 
-/* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす — adr/0042
+/* 動きを減らす設定（prefers-reduced-motion: reduce）では、回る円がふわっと出る動きをなくす
    @theme の中には @media を書けないので、ここで上書きする。animate-loading-in を使う印は、どれもすぐに出る */
 @media (prefers-reduced-motion: reduce) {
   :root {

@@ -1,6 +1,5 @@
 :root {
-  /* ── Stack — 軸 230 ── BEGIN stack */
-  /* 子を縦・横に並べるときの間隔の段。値は尺度（--spacing）の倍数。入力方式では変えない（押すものではなく、置き方の間隔のため） */
+  /* Stack — 子を縦・横に並べるときの間隔の段。値は尺度（--spacing）の倍数。入力方式では変えない（押すものではなく、置き方の間隔のため） */
   --stack-gap-xs: calc(var(--spacing) * 1); /* 4px */
   --stack-gap-sm: calc(var(--spacing) * 2); /* 8px */
   --stack-gap-md: calc(var(--spacing) * 4); /* 16px */

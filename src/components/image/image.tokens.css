@@ -1,7 +1,6 @@
 :root {
-  /* ── Image — 軸 90 ── BEGIN image */
-  /* 画像。角はカードの角、輪郭は Figure と同じ（原則5）。読み込むまでは Skeleton と同じ面（--skeleton-*）を置き、
-     読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
+  /* Image — 角はカードの角、輪郭は Figure と同じ
+     読み込むまでは Skeleton と同じ面（--skeleton-*）を置き、読み込んだらすぐ出す。失敗したら、面の上に破れた画像のアイコンと文を出す
      icon-size: 失敗したときのアイコンの大きさ */
   --image-icon-size: calc(var(--spacing) * 8);
   /* 仮画像（placeholder）— 軸 492・493。読み込めたら本物にすぐ替える

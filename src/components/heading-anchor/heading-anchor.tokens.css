@@ -1,10 +1,9 @@
 :root {
-  /* ── HeadingAnchor — 軸 200・201 ── BEGIN heading-anchor */
-  /* 見出しに付くページ内リンク。文字の仲間なので、大きさは見出しの文字に比例する（原則21）
+  /* HeadingAnchor（見出しのページ内リンク）
+     大きさは見出しの文字に比例する
      icon-size: 印の大きさ（見出しの文字に対する比）。gap: 文字と印のあいだ
-     rest-opacity: ふだんの濃さ（hover とフォーカスでは 1）。touch-opacity: 指（hover できない入力）のときのふだんの濃さ。
-       指では hover がないので、隠したままだと見つけられない。--density-coarse（指用の密度なら 1）で切り替える
-     color・color-hover: 印の色。ふだんは控えめな灰色、hover で Primary */
+     rest-opacity: ふだんの濃さ（hover とフォーカスでは 1）
+     touch-opacity: hover できない入力（指）のときのふだんの濃さ。隠すと見つけられない。--density-coarse で切り替える */
   --heading-anchor-icon-size: 0.9em;
   --heading-anchor-gap: 0.4em;
   --heading-anchor-rest-opacity: 0;

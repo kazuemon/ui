@@ -1,9 +1,7 @@
 :root {
-  /* ── DatePicker ── BEGIN date-picker */
-  /* カレンダーの面（浮かべる形）。面そのものは Popover と同じ（白・細い輪郭・--shadow-overlay）
-     「今日」のボタンは幅いっぱい。variant="button" の暦の印は右端（Select の ▼ と同じ）で、iconPlacement="start" で値の前
-     popup-padding   面の内側の余白。Popover の余白にそろえる
-     footer-gap      カレンダーと下の行（「今日」のボタン）のあいだ */
+  /* DatePicker のカレンダーの面（浮かべる形）。面は Popover と同じ
+     popup-padding: 面の内側の余白（Popover にそろえる）
+     footer-gap: カレンダーと「今日」のボタンの行のあいだ */
   --date-picker-popup-padding: var(--popover-padding);
   --date-picker-footer-gap: calc(var(--spacing) * 2);
 }

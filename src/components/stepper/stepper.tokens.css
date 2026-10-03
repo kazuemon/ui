@@ -1,6 +1,5 @@
 :root {
-  /* ── Stepper ── BEGIN stepper */
-  /* 複数の段階の進み具合を示すナビゲーション。src/components/stepper。原則にない判断は design/backlog.md の Stepper 参照
+  /* Stepper（複数の段階の進み具合を示すナビゲーション）
      gap: 段と段のあいだ（ol の flex gap。横並びは列のあいだ、縦並びは行のあいだ）
      label-gap: マーカーと文（ラベル・説明）のあいだ
      marker-size: マーカー（丸）の直径。marker-text: 中の数字の大きさ。marker-icon-size: チェック・警告の印の大きさ

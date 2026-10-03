@@ -1,11 +1,10 @@
 :root {
-  /* ── Card — 軸 103・151 ── BEGIN card */
-  /* カード。src/components/card。角は --radius-card（ADR-0016）
-     面は地と同じ白なので、細い輪郭（--color-surface-line）で面を見せる。押せないカードは影を付けない（原則1: ページと同じレイヤー）
-     media-aspect: 画像の比率 — ADR-0017。nested-inset: 入れ子の型の、画像の周りの余白 — ADR-0014
+  /* Card — ADR-0014・0016・0017・0169
+     角は --radius-card。面は地と同じ白なので、細い輪郭（--color-surface-line）で面を見せる。押せないカードは影を付けない
+     media-aspect: 画像の比率。nested-inset: 入れ子の型の、画像の周りの余白
      padding: 中身の余白。入れ子の型では、画像の周りの余白を引いた分を中身に足して、文字の位置を標準の型とそろえる
      gap: 中身の縦の間（日付と題など）
-     押せるカード（href・render）— 軸 151（ADR-0169）: 浮いた押すもの。ボタンと同じ影（--shadow-raised）を付け、
+     押せるカード（href・render）: 浮いた押すもの。ボタンと同じ影（--shadow-raised）を付け、
        hover で落ち影を消して面を淡く塗り、押すと --press-depth だけ沈む（影は hover のまま）。輪郭は変えない。LinkCard・Pager も同じ
        fill-hover: hover の面の塗り。入力欄の塗りを白に半分混ぜた色（入力欄の塗りより淡いグレーがパレットにないため）
        hover-media-scale: imageZoom のとき、hover で画像を大きくする割合 */

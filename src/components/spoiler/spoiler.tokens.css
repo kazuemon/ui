@@ -1,7 +1,6 @@
 :root {
-  /* ── Spoiler ── BEGIN spoiler */
-  /* 文中で隠しておき、押すと見える言葉（ネタバレ・答え）。src/components/spoiler
-     文の中にあるので影は付けない（原則1）。色は周りの文字の色（currentColor）から作り、どの地の上でも一段濃い面にする（Code と同じ考え方）
+  /* Spoiler（文中で隠し、押すと見える言葉）
+     文の中にあるので影は付けない。色は周りの文字の色（currentColor）から作り、どの地の上でも一段濃い面にする（Code と同じ考え方）
      隠し方（appearance）ごとの、隠しているときの面（background の値）と hover の面
        hatched: 斜線の模様で覆う（既定）。soft: 淡い面で覆う。blur: 文字をぼかし、文中のコードと同じ淡い面を敷く
      blur-radius: blur のときのぼかしの強さ

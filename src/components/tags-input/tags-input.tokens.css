@@ -1,25 +1,22 @@
 :root {
-  /* ── TagsInput ── BEGIN tags-input */
-  /* 打った文字をタグにして並べる欄。src/components/tags-input/
-     欄とチップの大きさは、複数選ぶ Combobox と同じ chipSize（ADR-0217・0259）。ここは TagsInput だけが持つ差し替え
-     wrap・max-height・chip-shrink・content-min-width: タグが増えたときの伸び方。
-     既定は Combobox と同じ折り返し（上限なし）で、行数を決めたとき（maxRows）だけ部品が欄の style で差し替える
-     チップは ScrollArea の枠（軸 93）に入れてあり、上限を決めるとそこからはみ出した分がスクロールする
+  /* TagsInput（打った文字をタグにして並べる欄）— ADR-0217・0259
+     欄とチップの大きさは、複数選ぶ Combobox と同じ chipSize
+     wrap・max-height・chip-shrink・content-min-width: タグが増えたときの伸び方
+     既定は Combobox と同じ折り返し（上限なし）。行数を決めたとき（maxRows）だけ部品が欄の style で差し替える
+     チップは ScrollArea の枠に入れてあり、上限を決めるとはみ出した分がスクロールする
      1 行にしたときは、チップを縮めず（chip-shrink: 0）、中身を最大の幅に広げて（content-min-width）横に流す */
   --tags-input-wrap: wrap;
   --tags-input-max-height: none;
   --tags-input-chip-shrink: 1;
   --tags-input-content-min-width: 0px;
-  /* 弾いたとき（重複・validate 失敗）の合図。すでにあるチップを一瞬だけ強調する色
-     間違いというより「もうある」ことなので、エラーの赤ではなく、落ち着いたグレーの面にする
-     duration は部品も読む（use-tags-flash.ts） */
+  /* 弾いたとき（重複・validate 失敗）に、すでにあるチップを一瞬だけ強調する長さ。色はエラーの赤でなく落ち着いたグレー（「もうある」ことの合図）
+     duration は JS も読む */
   --tags-input-flash-duration: 900ms;
   --tags-input-flash-fg: var(--color-fg);
   --tags-input-flash-border-color: var(--color-fg-muted);
 }
 
-/* タグにならなかったときの合図
-   すでにあるチップを一瞬だけ強調し、元の色へ戻る（戻り先は書かない ＝ そのチップのふだんの色） */
+/* タグにならなかったときの合図。すでにあるチップを一瞬だけ強調し、元の色へ戻る（戻り先は書かない ＝ ふだんの色） */
 @keyframes tags-input-flash {
   0%,
   55% {

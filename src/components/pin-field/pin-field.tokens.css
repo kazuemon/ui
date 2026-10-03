@@ -1,6 +1,6 @@
 :root {
-  /* ── PinField ── BEGIN pin-field */
-  /* 桁の箱（軸 170）。箱 1 つずつは controlBox と同じ規則（グレーの塗り・フォーカスの箱だけ枠線・エラーは赤い枠線）で、離して並べる
+  /* PinField（桁の箱）
+     箱 1 つずつは controlBox と同じ規則（グレーの塗り・フォーカスの箱だけ枠線・エラーは赤い枠線）で、離して並べる
      --pin-field-box-width         箱の幅。高さは --spacing-control で、正方形にする
      --pin-field-gap               箱と箱のあいだ
      --pin-field-dot-size          まだ打っていない箱の中の淡い点（emptyDots）の半径

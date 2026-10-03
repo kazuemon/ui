@@ -1,19 +1,18 @@
 :root {
-  /* ── ImageZoom — ADR-279〜284 ── BEGIN image-zoom */
-  /* 画像を押して、画面いっぱいに拡大して見る。src/components/image-zoom
-     拡大したときの面（軸 279）
-       backdrop・backdrop-blur: 後ろの面の色とぼかし。画像を見るための地なので、Dialog の後ろの暗さ（--color-backdrop）より濃く覆う
-       padding-x・padding-y: 画面の端と拡大した画像のあいだ。radius: 拡大した画像の角。outline: 拡大した画像の細い輪郭
-       caption-color・caption-gap: 拡大したときのキャプションの色と、画像とのあいだ
-     閉じる ×（軸 281）
+  /* ImageZoom（押して画面いっぱいに拡大する）— ADR-0279〜0284
+     拡大したときの面
+       backdrop・backdrop-blur: 後ろの面の色とぼかし。Dialog の後ろの暗さ（--color-backdrop）より濃く覆う
+       padding-x・padding-y: 画面の端と拡大した画像のあいだ。radius: 画像の角。outline: 画像の細い輪郭
+       caption-color・caption-gap: キャプションの色と、画像とのあいだ
+     閉じる ×
        close-inset: 画面の角からの距離。close-fg・close-bg・close-shadow: 色・面・影
        close-opacity: ふだんの濃さ（0 はキーボードで来たときだけ見せる）
        close-space: 1 は × の分の場所を上下に取り、画像に重ねない。0 は画像に重なってよい
-       focus-ring: 面の上のフォーカスの線の色（濃い地では地の上の文字の色 — 原則2）
-     開閉の動き（軸 280）
+       focus-ring: 面の上のフォーカスの線の色（濃い地では地の上の文字の色）
+     開閉の動き
        motion: expand は元の位置の画像から広がり、閉じると戻る。fade はその場で濃さと少し小さい姿から出る
-       duration-in・duration-out・ease: 長さと緩急。閉じるほうを短くする（原則14）。fade-scale: fade のはじめの大きさ
-     押せることの見せ方（軸 282）
+       duration-in・duration-out・ease: 長さと緩急。閉じるほうを短くする。fade-scale: fade のはじめの大きさ
+     押せることの見せ方
        cue-opacity・cue-hover-opacity: 右下の虫眼鏡の印の濃さ（ふだん・hover とキーボードのフォーカス）。cue-size・cue-inset: 印の大きさと隅からの距離 */
   --image-zoom-backdrop: color-mix(in oklab, var(--color-bg) 88%, transparent);
   --image-zoom-backdrop-blur: calc(var(--spacing) * 2);
@@ -22,7 +21,7 @@
   --image-zoom-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --image-zoom-caption-color: var(--color-fg);
   --image-zoom-caption-gap: calc(var(--spacing) * 3);
-  /* variant="dark" の後ろの面（色・ぼかし）とキャプション・× の色（軸 284・決定: I。濃紺 70%・ぼかし 8px・白い文字）。白い地には黒い文字、暗い地には白い文字（原則2） */
+  /* variant="dark" の後ろの面（濃紺 70%・ぼかし 8px）。キャプション・× は暗い地の上なので白い文字 */
   --image-zoom-dark-backdrop: rgb(from var(--color-shadow) r g b / 0.7);
   --image-zoom-dark-backdrop-blur: calc(var(--spacing) * 2);
   --image-zoom-close-inset: calc(var(--spacing) * 2);

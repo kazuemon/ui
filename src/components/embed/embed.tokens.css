@@ -1,11 +1,9 @@
 :root {
-  /* ── Embed — ADR-271〜274 ── BEGIN embed */
-  /* 記事に YouTube・X の投稿・CodePen などを iframe で埋める。src/components/embed
-     枠（角丸・影・輪郭）は Image・Figure と同じ考え方（原則1・5）。角は常にカードの角（rounded-card）
-     shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の影・輪郭（軸 272。決定: 影なし・輪郭のみ）
-     idle-shadow・idle-outline-width: clickToLoad でまだ押していないときだけの、枠の影・輪郭（軸 272。決定: A＝浮いた影・輪郭なし）
-     読み込む前の面は Skeleton と同じ塗り（--skeleton-fill）をそのまま使う。光の帯はクリック前は止め、読み込み中は動く（軸 271・274）
-     読み込み中の回る円は出さない（軸 274・決定 A）。キャプションは Figure と同じ、下・中央のまま（軸 273） */
+  /* Embed（iframe で埋める）— ADR-0271〜0274
+     角は常にカードの角。枠は Image・Figure と同じ考え方
+     shadow・outline-width・outline-color: 読み込み中・読み込んだあとの枠の影と輪郭
+     idle-shadow・idle-outline-width: clickToLoad でまだ押していないときだけの枠の影と輪郭
+     読み込む前の面は Skeleton と同じ塗り（--skeleton-fill） */
   --embed-shadow: none;
   --embed-outline-width: var(--border-width-thin);
   --embed-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);

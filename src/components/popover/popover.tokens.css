@@ -1,6 +1,6 @@
 :root {
   /* Popover — ADR-0107
-     面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay）。角は浮かぶ面なので部品の角（原則5）
+     面は浮かぶ選択肢と同じ（白・細い輪郭・--shadow-overlay）。角は部品の角
      padding: 内側の余白。max-width: 幅の上限。本体との間は浮かぶ選択肢と同じ 4px
      本体を指す矢印は既定では出さない（部品の arrow で出す） */
   --popover-padding: calc(var(--spacing) * 4);

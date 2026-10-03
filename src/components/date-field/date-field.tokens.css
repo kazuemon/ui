@@ -1,6 +1,5 @@
 :root {
-  /* ── DateField・TimeField ── BEGIN date-field */
-  /* 区切り（年・月・日・時・分）の見た目（軸 172）
+  /* DateField・TimeField — 区切り（年・月・日・時・分）の見た目
      --date-segment-pad-x         区切りの左右の余白。いま打っている区切りの塗りはこの幅だけ文字の外へ広がる
                                   （先頭の区切りの分は本体の内側の余白から引き、値の文字の先頭を TextField とそろえる）
      --date-segment-gap           区切りと区切り記号（/ :）のあいだ。塗りが記号にかからないよう、塗りの外に空ける

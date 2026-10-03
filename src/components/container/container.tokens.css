@@ -1,6 +1,6 @@
 :root {
-  /* ── Container — 軸 94 ── BEGIN container */
-  /* 本文の幅と左右の余白 — 軸 94 の E。幅（width-*）は余白を除いた中身の幅で、Tailwind の max-w-2xl・5xl・7xl と同じ値
+  /* Container（本文の幅と左右の余白）
+     幅（width-*）は余白を除いた中身の幅で、Tailwind の max-w-2xl・5xl・7xl と同じ値
      読みもの（prose）は本文 16px でちょうど 1 行 42 字（42em）
      左右の余白は画面の端に部品が付かないためのもので、押すものではないので入力方式では変えない。置いた場所の幅の 5%（16〜48px） */
   --container-width-prose: calc(var(--spacing) * 168); /* 672px */

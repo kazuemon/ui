@@ -1,12 +1,10 @@
 :root {
-  /* ── DataTable — ADR-0343〜0349 ── BEGIN data-table */
-  /* データの表。src/components/data-table。罫線・見出し・余白・文字は Table と同じ（ADR-0090）
-     sort-subtle-opacity: 並べ替えていない列の印（上下の山）を、ふだん淡く置くとき（sortIndicator="subtle"。既定）の濃さ。
-       見出しに載せる・キーボードで止まると、淡い文字の色そのままの濃さにする。並べ替えている列の矢印は、いつも本文の色 — ADR-0344
-     row-hover: 行に載せたときの面（原則3。中に押す部品を持つ行は淡く塗り、押しても濃くしない）。一覧の項目の hover と同じ入力欄の塗り
-     row-selected-hover-mix: 選んだ行に載せたとき、面に本文の色を混ぜる割合。選んだ行の面は部品が color から決める（neutral は
-       Select の選んだ項目と同じグレー、primary・secondary は淡い面）— ADR-0345
-     見出しの文字は本文の色（ADR-0346）、貼り付いた見出しの境目は ScrollArea の上の端と同じ影（ADR-0347）で、部品に書く */
+  /* DataTable（データの表）— ADR-0343〜0349
+     罫線・見出し・余白・文字は Table と同じ（ADR-0090）
+     sort-subtle-opacity: 並べ替えていない列の印（上下の山）を、ふだん淡く置くとき（sortIndicator="subtle"。既定）の濃さ。見出しに載せる・キーボードで止まると、淡い文字の色そのままの濃さにする。並べ替えている列の矢印は、いつも本文の色
+     row-hover: 行に載せたときの面。中に押す部品を持つ行は淡く塗り、押しても濃くしない。一覧の項目の hover と同じ入力欄の塗り
+     row-selected-hover-mix: 選んだ行に載せたとき、面に本文の色を混ぜる割合。選んだ行の面は部品が color から決める（neutral は Select の選んだ項目と同じグレー、primary・secondary は淡い面）
+     見出しの文字は本文の色、貼り付いた見出しの境目は ScrollArea の上の端と同じ影で、部品に書く */
   --data-table-sort-subtle-opacity: 0.5;
   --data-table-row-hover: var(--color-field);
   --data-table-row-selected-hover-mix: 6%;

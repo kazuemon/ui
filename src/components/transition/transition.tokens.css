@@ -1,10 +1,9 @@
 :root {
-  /* ── Transition — 軸 92 ── BEGIN transition */
-  /* 利用者の中身に付ける出入りの動き。src/components/transition
+  /* Transition（利用者の中身に付ける出入りの動き）
      長さと緩急は出るとき（enter）と消えるとき（exit）で分ける。既定は浮かぶ面と同じ（--popup-*）
      shift・scale: preset を書かないときの出方。下に shift ずれた位置・scale の大きさから、濃さと一緒に定位置へ戻る
      preset-shift: fade-up・fade-down のずれ。preset-scale: scale のはじめの大きさ
-     動きを減らす設定では、どの形も動かさずにすぐ出す・消す（原則3） */
+     動きを減らす設定では、どの形も動かさずにすぐ出す・消す */
   --transition-duration-enter: var(--duration-normal);
   --transition-duration-exit: var(--popup-duration-out);
   --transition-shift: var(--popup-shift);

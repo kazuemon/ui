@@ -1,11 +1,10 @@
 :root {
-  /* ── TableOfContents — ADR-0183・0184 ── BEGIN table-of-contents */
-  /* ブログ記事の目次。src/components/table-of-contents
-     行は平らな押すもの（原則3）。行の高さは部品の高さにせず、文字の上下に item-py だけ空ける
+  /* TableOfContents（記事の目次）— ADR-0183・0184
+     行の高さは部品の高さにせず、文字の上下に item-py だけ空ける
      gap: 題と一覧のあいだ。item-px・item-py: 行の余白（hover の塗りの範囲）。item-color: 行の文字
-     track-*: 一覧の左の細い線と、線から行までの空き。今の見出しの印の線はこの線の中心に重ねる（track={false} で線の太さを 0 にする）
-     current-*: 今の見出しの印（ADR-0183）。文字の色と、印の線の太さと色（color で差し替える）
-     indent: 入れ子の 1 段の字下げ。guide-width: 段ごとの細い線（guides のときだけ引く。ADR-0184） */
+     track-*: 一覧の左の細い線と、線から行までの空き。今の見出しの印の線はこの線の中心に重ねる
+     current-*: 今の見出しの文字の色と、印の線の色
+     indent: 入れ子の 1 段の字下げ。guide-width: 段ごとの細い線（guides のとき） */
   --toc-gap: calc(var(--spacing) * 2);
   --toc-item-px: calc(var(--spacing) * 2);
   --toc-item-color: var(--color-fg-muted);

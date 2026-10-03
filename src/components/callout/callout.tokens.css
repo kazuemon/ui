@@ -1,8 +1,7 @@
 :root {
-  /* ── Callout の畳める形 — 軸 443（ADR-0410）・446（ADR-0472） ── BEGIN callout */
-  /* 畳める囲み（collapsible）の題の行。src/components/callout/Callout.tsx
+  /* Callout の畳める形（題の行）— ADR-0410・0472
      row-fill-hover-mix: hover の塗り（囲みの文字の色を混ぜる割合）
-     row-rule-mix: showDivider の帯の下の線の色（囲みの文字の色を混ぜる割合） */
+     row-rule-mix: showDivider の帯の下の線の色（同じく文字の色を混ぜる割合） */
   --callout-row-fill-hover-mix: 6%;
   --callout-row-rule-mix: 16%;
 }

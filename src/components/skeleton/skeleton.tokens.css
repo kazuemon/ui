@@ -1,14 +1,13 @@
 :root {
-  /* ── Skeleton — 軸 89 ── BEGIN skeleton */
-  /* 読み込み中の場所取り。ページと同じレイヤーなので影は付けない（原則1）。角は代わりに置くものの角（原則5）
+  /* Skeleton（読み込み中の場所取り）
      fill: 面の色（入力欄の塗り）。highlight: 光の帯のいちばん明るいところの色
-     動きは 3 つから選ぶ（帯の向き・幅・絵の大きさは src/internal/skeleton-styles.ts。keyframes はファイル末尾）
+     動きは 3 つから選ぶ。keyframes はファイル末尾
        sweep: 既定。面ごとに、縦の光の帯が左から右へ通り抜ける
        sweep-viewport: 画面を基準にした帯が、並んだ面をまたいで通る（長さの 6 割で通り、残りは休む）
        pulse: 面そのものの明滅（Tailwind の pulse。濃さ 100% ↔ 50%、2 秒）
-     動きを減らす設定では、どれも光は通さず、その場の明滅（Tailwind の pulse）に置き換える（原則3）
-     text-bar: 文字の行の帯の高さ（周りの文字の大きさに対する比）。行そのものは周りの行の高さを取り、帯はその中央に置く
-     text-radius: 文字の行の帯の角。last-line: 2 行以上のとき、最後の行の幅 */
+     動きを減らす設定では、どれも光は通さず、その場の明滅（Tailwind の pulse）に置き換える
+     text-bar: 文字の行の帯の高さ（周りの文字の大きさに対する比）。帯は周りの行の高さの中央に置く
+     last-line: 2 行以上のとき、最後の行の幅 */
   --skeleton-fill: var(--color-field);
   --skeleton-highlight: color-mix(in oklab, var(--color-surface) 60%, transparent);
   --skeleton-sweep: skeleton-sweep 1.6s ease-in-out infinite;
@@ -18,7 +17,7 @@
   --skeleton-last-line: 60%;
 }
 
-/* 読み込み中の面の光（軸 89。--skeleton-sweep）。光の絵の位置を右端から左端へ動かすと、帯が面の左の外から右の外へ通る */
+/* 面の光（--skeleton-sweep）。光の絵の位置を右端から左端へ動かすと、帯が面の左の外から右の外へ通る */
 @keyframes skeleton-sweep {
   from {
     background-position: 100% 0;

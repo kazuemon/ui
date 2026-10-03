@@ -1,16 +1,13 @@
 :root {
-  /* ── Progress — ADR-0185・0186 ── BEGIN progress */
-  /* 処理の進み具合を示すバー。src/components/progress。形は上の Bar と同じ
-     終わりの分からないとき（indeterminate）の動きは animation で選ぶ（ADR-0186）。keyframes はファイル末尾（progress keyframes）
-       sweep（既定）: 塗りの色の短い区切りが、左の外から右の外へ流れる（送信中の流れる線と同じ動き — adr/0034。loading-bar）
-         sweep-width: 流れる区切りの幅（地の幅に対する割合）
-       shuttle: 区切りが地の中に収まったまま、左右の端を往復する
-         shuttle-width: 往復する区切りの幅。shuttle-animation: 片道の長さと緩み（alternate で往復）
-       stripes: 地の幅いっぱいを斜めの縞で塗り、縞を左から右へ流す
-         stripes: 縞の絵（background の値）。塗りの色（currentColor。部品が塗りの色を入れる）と、それを透かして地が見える色を交互に並べる
+  /* Progress（処理の進み具合のバー）— ADR-0185・0186
+     終わりの分からないとき（indeterminate）の動きは animation で選ぶ。keyframes はファイル末尾
+       sweep（既定）: 塗りの色の短い区切りが、左の外から右の外へ流れる。sweep-width: 区切りの幅（地の幅に対する割合）
+       shuttle: 区切りが地の中に収まったまま左右の端を往復する。shuttle-width: 区切りの幅。shuttle-animation: 片道の長さと緩み（alternate で往復）
+       stripes: 地の幅いっぱいを斜めの縞で塗り、左から右へ流す
+         stripes: 縞の絵（background の値）。塗りの色（currentColor）と、それを透かして地が見える色を交互に並べる
          stripe-size: 縞の 1 組の幅。stripes-animation: 縞を 1 組ずつ送る長さ（一定の速さ）
-       動きを減らす設定では、どれも幅いっぱいに引いて明滅する（送信中の線と同じ — adr/0042。部品で当てる）。縞は止まる
-     height-xs: 読了のバー向けの、いちばん細い太さ（size="xs"。Progress だけ。ADR-0185） */
+       動きを減らす設定では、どれも幅いっぱいに引いて明滅する（部品で当てる）。縞は止まる
+     height-xs: 読了のバー向けの、いちばん細い太さ（size="xs"。Progress だけ） */
   --progress-sweep-width: 40%;
   --progress-shuttle-width: 30%;
   --progress-shuttle-animation: progress-shuttle 0.9s ease-in-out infinite alternate;
@@ -24,7 +21,7 @@
     )
     0 0 / var(--progress-stripe-size) var(--progress-stripe-size);
   --progress-stripes-animation: progress-stripes 0.8s linear infinite;
-  --progress-height-xs: calc(var(--spacing) / 2); /* 2px */
+  --progress-height-xs: calc(var(--spacing) / 2);
 }
 
 /* 終わりの分からない Progress の動き（animation）

@@ -1,16 +1,12 @@
 :root {
-  /* ── Bar（Meter・Progress）— ADR-0179 ── BEGIN bar */
-  /* 地の上に値までを塗るバー。Meter（決まった範囲の中の量）と Progress（進み具合）が共有する。src/internal/bar
-     押さないのでページと同じレイヤー（影なし — 原則1）。塗りは部品の色（原則6。指定しないときは濃いグレー）
-     地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5。部品で当てる）。範囲ごとの塗りの色は Meter の regionColor
-     Progress だけは、読了のバー向けに端を丸めない形（shape="square"）を選べる
-     height-{sm,md,lg}: バーの太さ（size）。入力方式で変えない（原則11） */
+  /* Bar（Meter・Progress が共有する、値までを塗るバー）— ADR-0179
+     塗りは部品の色（指定しないときは濃いグレー）。地はトグルの OFF と同じグレー（field-addon）。角はどの太さでも pill
+     height-*: バーの太さ（size）。入力方式で変えない */
   --bar-height-md: calc(var(--spacing) * 2); /* 8px */
   --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
-  /* 分けて塗るバー（MeterGroup。軸 433）
+  /* 分けて塗るバー（MeterGroup）
      group-gap: 区切りの間（地の色が見える）。区切りは角を付けず、両端だけ地の角で切り抜く
      group-marker-size: 凡例の色の印（丸）の大きさ */
   --bar-group-gap: calc(var(--spacing) / 2);
   --bar-group-marker-size: calc(var(--spacing) * 2.5);
-  /* 値が変わったときに塗りが伸び縮みする長さ */
 }

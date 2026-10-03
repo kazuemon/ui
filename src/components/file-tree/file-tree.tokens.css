@@ -1,30 +1,26 @@
 :root {
-  /* ── FileTree — ADR-275〜278 ── BEGIN file-tree */
-  /* 記事の中で、フォルダとファイルの構成を見せる静的な図版。src/components/file-tree
-     Tree と違い開閉を持たない（最初から全部描く）ので、字下げと案内線は JS の depth を持たず、
-     入れ子の ul の margin・padding の積み重ねだけで作る（部品側のコメント参照）
+  /* FileTree（フォルダとファイルの構成を見せる静的な図版）— ADR-0275〜0278
      文字は CodeBlock の本文と同じ等幅・大きさ（14/24。マウスでも指でも変わらない）
      row-px・gap・indent・guide-*: Tree と同じ考え方（indent＝アイコン幅＋間、guide-left＝row-px＋アイコン幅/2） */
   --file-tree-row-px: calc(var(--spacing) * 1);
-  /* row-pe: 行の右端と comment のあいだ。強調した行の塗りの端に、comment の文字がくっつかないように */
+  /* row-pe: 行の右端と comment のあいだ（強調した行の塗りの端に comment の文字をくっつけない） */
   --file-tree-row-pe: calc(var(--spacing) * 2);
   --file-tree-gap: calc(var(--spacing) * 1.5);
   --file-tree-icon-size: var(--spacing-icon);
   --file-tree-indent: calc(var(--file-tree-icon-size) + var(--file-tree-gap));
   --file-tree-guide-left: calc(var(--file-tree-row-px) + var(--file-tree-icon-size) / 2);
-  /* 案内線（軸 276・決定: solid・none の 2 つ。dotted は外した）。部品の line が --file-tree-line-style に入れる */
+  /* 案内線（solid・none）。部品の line が --file-tree-line-style に入れる */
   --file-tree-guide-width: var(--border-width-thin);
   --file-tree-line-style: solid;
-  /* 既定のフォルダ・ファイルのアイコンの色（軸 277・決定: 既定は変えない）。渡したアイコン（icon）の色は --color-fg-subtle
-     行ごとの色（FileTreeItem の color）は --color-primary・--color-secondary を直に指す（この 2 トークンは経由しない） */
-  /* 外枠（軸 275・決定）。CodeBlock と同じグレーの面、内側の余白も CodeBlock と同じ（px-4・py-3 と同じ計算式）。輪郭は持たない */
+  /* 外枠: CodeBlock と同じグレーの面と内側の余白（px-4・py-3 と同じ計算式）。輪郭は持たない
+     渡したアイコン（icon）の色は --color-fg-subtle。行ごとの色（FileTreeItem の color）は --color-primary・--color-secondary を直に指す */
   --file-tree-frame-bg: var(--color-codeblock-bg);
   --file-tree-frame-px: calc(var(--spacing) * 4);
   --file-tree-frame-py: calc(var(--spacing) * 3);
   --file-tree-title-fg: var(--color-codeblock-muted);
-  /* 強調した行（軸 278・決定）。部品の色（FileTree の color、既定 neutral）の淡い塗り＋部品の色の文字＋太字。左の線はなし
-     塗り・文字色は部品が color × highlightIndicator から --file-tree-highlight-bg・-fg に入れ直す（ここの値は既定 neutral のときの値）
-     アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先）。太さは部品が FolderIcon・FileIcon に bold を渡す */
+  /* 強調した行: 部品の色（FileTree の color、既定 neutral）の淡い塗り＋同じ色の文字＋太字。左の線はなし
+     塗り・文字色は部品が color × highlightIndicator から --file-tree-highlight-bg・-fg に入れ直す（ここの値は neutral のとき）
+     アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先） */
   --file-tree-highlight-bg: var(--palette-gray-200);
   --file-tree-highlight-fg: var(--color-fg);
 }

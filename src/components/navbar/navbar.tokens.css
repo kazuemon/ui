@@ -1,12 +1,10 @@
 :root {
-  /* ── Navbar — 軸 104・105 ── BEGIN navbar */
-  /* ページの上の帯。ロゴ・行き先・操作を 1 行に並べる。src/components/navbar
-     height: 帯の高さ。入力方式では変えない（原則11: 部品の高さは指で押せる大きさのまま）
-     gap: ロゴ・行き先・操作のあいだ。item-gap: 行き先どうしのあいだ
-     current-bar: いまいるページの下の線の太さ（currentIndicator="underline" — 軸 104 の C）
-     貼り付けた（sticky）ときの境目と面 — 軸 105
-       sticky-shadow: stickyEdge="shadow" の、下へ落とす淡い影（線の代わり）
-       backdrop-bg・backdrop-blur: stickyBackdrop="blur" の、透ける面と後ろのぼかし */
+  /* Navbar（ページの上の帯）
+     height: 帯の高さ。入力方式では変えない（指で押せる大きさのまま）
+     gap: ロゴ・行き先・操作のあいだ
+     current-bar: currentIndicator="underline" の下の線の太さ
+     sticky-shadow: stickyEdge="shadow" の、下へ落とす淡い影
+     backdrop-bg・backdrop-blur: stickyBackdrop="blur" の透ける面と後ろのぼかし */
   --navbar-height: calc(var(--spacing) * 16);
   --navbar-gap: calc(var(--spacing) * 6);
   --navbar-current-bar: calc(var(--spacing) / 2);

@@ -1,18 +1,15 @@
 :root {
-  /* ── Tree — 軸 149・150 ── BEGIN tree */
-  /* 入れ子の行き先の木（ドキュメントの目次・ファイルの一覧）。src/components/tree
-     行は一覧の項目の仲間。hover は入力欄の塗り、押すと一段濃くして沈む（原則3）。高さは部品の高さ（原則11）
+  /* Tree（入れ子の行き先の木。目次・ファイルの一覧）
+     行は一覧の項目の仲間。hover は入力欄の塗り、押すと一段濃くして沈む。高さは部品の高さ
      row-px: 行の左右の余白。gap: 印・アイコン・文字のあいだ。indent: 1 段ごとの字下げ
-     guide-*: 字下げの案内線（軸 149）。親の印の中心にそろえる。太さ 0 で線なし
-     current-*: いまいる行（軸 150 の決定）。面・文字・その行に載せたときの面
-       色を持たないときの面は、Select の選んだ項目と同じグレー */
+     guide-*: 字下げの案内線。親の印の中心にそろえる。太さ 0 で線なし
+     current-*: いまいる行の面・文字・その行に載せたときの面。色を持たないときの面は、Select の選んだ項目と同じグレー */
   --tree-row-px: calc(var(--spacing) * 2);
   --tree-gap: calc(var(--spacing) * 1.5);
   /* 1 段の字下げ＝印の幅＋印と文字の間。子の行の印が、親の行の文字の頭にそろう */
   --tree-indent: calc(var(--spacing-icon) + var(--tree-gap));
   --tree-guide-width: var(--border-width-thin);
-  /* 案内線の位置。行の左端から、開閉の印の中心まで（段の分は部品が --tree-depth を足す。
-     トークンの値はここ（:root）で解決されるので、段ごとに変わる分は部品の側で足す） */
+  /* 案内線の位置。行の左端から開閉の印の中心まで。段の分は部品が --tree-depth を足す（:root で解決されるので、段ごとに変わる分は部品の側で足す） */
   --tree-guide-left: calc(var(--tree-row-px) + var(--spacing-icon) / 2);
   --tree-row-rest: transparent;
   --tree-row-hover: var(--color-field);
@@ -20,8 +17,7 @@
   --tree-current-bg: var(--palette-gray-200);
   --tree-current-fg: var(--color-fg);
   --tree-current-hover: color-mix(in oklab, var(--tree-current-bg), var(--color-fg) 8%);
-  /* 開け閉めで高さを動かすあいだ、中身を切る場所。フォーカスの線（離れ＋太さ）より外に取る */
-  /* Chrome は overflow-clip-margin に calc() を受け取らない（0 として扱う）ので、ここだけは計算せずに書く。
-     フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る値 */
+  /* 開け閉めで高さを動かすあいだ、中身を切る場所。フォーカスの線（離れ 2px ＋ 太さ 2px）より外に取る
+     Chrome は overflow-clip-margin に calc() を受け取らない（0 として扱う）ので、ここだけは計算せずに書く */
   --tree-panel-clip-margin: 6px;
 }

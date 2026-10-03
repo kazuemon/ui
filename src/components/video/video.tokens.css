@@ -1,12 +1,9 @@
 :root {
-  /* ── Video — ADR-297〜299 ── BEGIN video */
-  /* 手元の動画ファイル（mp4・webm など）を記事・作品ページに置いて再生する。src/components/video
-     コントロールはブラウザ標準（controls 既定 true）。自前で持つのは、再生前に重ねる大きな再生ボタンだけ
-     中身の収め方（cover・contain）は props の fit が必須で、既定値を持たない（決定: 軸299）。letterbox-fill は
-       contain で余白ができたところの色
-     loading-*: poster がないときの読み込み中の面（Skeleton と同じ塗り。光が動く形に決定 — 軸298）。失敗した面は常に出す
-     play-*: controls={false} のときに重ねる大きな再生ボタンの、既定の見た目（playButtonVariant="raised"。決定 — 軸297）。
-       flat（白の半透明・影なし）は部品側で上書きする
+  /* Video（手元の動画ファイルを再生する）— ADR-0297〜0299
+     コントロールはブラウザ標準。自前で持つのは、再生前に重ねる大きな再生ボタンだけ
+     letterbox-fill: contain で余白ができたところの色
+     loading-*: poster がないときの読み込み中の面（Skeleton と同じ塗りで、光が動く）。失敗した面は常に出す
+     play-*: controls={false} のときに重ねる大きな再生ボタンの既定の見た目（playButtonVariant="raised"）。flat（白の半透明・影なし）は部品側で上書きする
      icon-size: 失敗したときのアイコンの大きさ */
   --video-letterbox-fill: var(--skeleton-fill);
   --video-icon-size: calc(var(--spacing) * 8);
