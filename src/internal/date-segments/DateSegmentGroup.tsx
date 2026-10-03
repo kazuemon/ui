@@ -28,7 +28,7 @@ const segmentStyles = tv({
       'group-data-disabled/field:cursor-not-allowed group-data-[loading=blocking]/field:cursor-progress',
     ],
     segment: [
-      'rounded-(--date-segment-radius) px-(--date-segment-pad-x) whitespace-pre tabular-nums caret-transparent outline-none',
+      'rounded-(--radius-sm) px-(--date-segment-pad-x) whitespace-pre tabular-nums caret-transparent outline-none',
       'data-placeholder:text-(color:--field-placeholder)',
       // いま打っている区切り（軸 172）。欄の枠線（フォーカス）と重ならないよう、線ではなく塗りで示す。マウスで押したときも出す
       'focus:bg-(--date-segment-focus-bg) focus:text-(color:--date-segment-focus-fg)',

@@ -9,12 +9,9 @@
      ellipsis-*: 省略（…）の幅と色。押せないので部品の高さの正方形にしない
        （押せるメニューにするとき（ellipsisMenu）は番号と同じ大きさになる — 原則17）
      count-gap: いちばん狭いところの「5 / 10」の、数と「/ 10」のあいだ */
-  --pagination-gap: var(--spacing);
   --pagination-item-px: calc(var(--spacing) * 2);
   --pagination-step-px: calc(var(--spacing) * 3);
   --pagination-step-gap: calc(var(--spacing) * 2);
   --pagination-item-color: var(--color-fg-muted);
   --pagination-ellipsis-width: calc(var(--spacing) * 6);
-  --pagination-ellipsis-color: var(--color-fg-subtle);
-  --pagination-count-gap: var(--spacing);
 }

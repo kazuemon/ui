@@ -14,24 +14,17 @@
   --file-tree-guide-left: calc(var(--file-tree-row-px) + var(--file-tree-icon-size) / 2);
   /* 案内線（軸 276・決定: solid・none の 2 つ。dotted は外した）。部品の line が --file-tree-line-style に入れる */
   --file-tree-guide-width: var(--border-width-thin);
-  --file-tree-guide-color: var(--color-line);
   --file-tree-line-style: solid;
-  /* 既定のフォルダ・ファイルのアイコンの色（軸 277・決定: 既定は変えない）。渡したアイコン（icon）の色は --file-tree-icon-color
+  /* 既定のフォルダ・ファイルのアイコンの色（軸 277・決定: 既定は変えない）。渡したアイコン（icon）の色は --color-fg-subtle
      行ごとの色（FileTreeItem の color）は --color-primary・--color-secondary を直に指す（この 2 トークンは経由しない） */
-  --file-tree-icon-folder-color: var(--color-fg-subtle);
-  --file-tree-icon-file-color: var(--color-fg-subtle);
-  --file-tree-icon-color: var(--color-fg-subtle);
-  --file-tree-comment-color: var(--color-fg-subtle);
   /* 外枠（軸 275・決定）。CodeBlock と同じグレーの面、内側の余白も CodeBlock と同じ（px-4・py-3 と同じ計算式）。輪郭は持たない */
   --file-tree-frame-bg: var(--color-codeblock-bg);
   --file-tree-frame-px: calc(var(--spacing) * 4);
   --file-tree-frame-py: calc(var(--spacing) * 3);
   --file-tree-title-fg: var(--color-codeblock-muted);
-  --file-tree-title-line: var(--color-codeblock-line);
   /* 強調した行（軸 278・決定）。部品の色（FileTree の color、既定 neutral）の淡い塗り＋部品の色の文字＋太字。左の線はなし
      塗り・文字色は部品が color × highlightIndicator から --file-tree-highlight-bg・-fg に入れ直す（ここの値は既定 neutral のときの値）
      アイコンの色も --file-tree-highlight-fg を使う（kind・itemColor より優先）。太さは部品が FolderIcon・FileIcon に bold を渡す */
-  --file-tree-highlight-bg: var(--color-select-neutral-selected);
+  --file-tree-highlight-bg: var(--palette-gray-200);
   --file-tree-highlight-fg: var(--color-fg);
-  --file-tree-highlight-weight: var(--font-weight-heading);
 }

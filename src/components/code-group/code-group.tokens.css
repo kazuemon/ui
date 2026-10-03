@@ -8,16 +8,10 @@
      line: 帯とコードの境目の線の太さ。bar: 選んだタブの印の太さ（境目の線に下端をそろえて重ねる）と、色・滑って移る動き
      focus-offset: フォーカスの線をタブの内側に引く量（Tabs の --tabs-tab-focus-offset と同じ）
      copy-inset: コピーのボタンと、帯の上・右のあいだ */
-  --code-group-list-px: var(--spacing);
   --code-group-tab-px: calc(var(--spacing) * 3);
   --code-group-tab-gap: 0px;
-  --code-group-tab-inset: var(--spacing);
-  --code-group-tab-radius: var(--radius-pill);
   --code-group-line: var(--border-width-thin);
   --code-group-bar: calc(var(--spacing) / 2);
   --code-group-bar-color: var(--color-primary);
-  --code-group-bar-duration: var(--duration-normal);
-  --code-group-bar-ease: var(--ease-press);
   --code-group-tab-focus-offset: calc(var(--spacing) * -1);
-  --code-group-copy-inset: var(--spacing);
 }

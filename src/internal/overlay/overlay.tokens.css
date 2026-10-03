@@ -3,9 +3,7 @@
      Select の浮かぶ選択肢・Popover・Tooltip が使う。Dialog は中央に出るので、下から shift だけ寄った位置から滑る
      濃さ 0 から、ずれ shift（本体の側から離れる向き）を戻しながら現れる
      開くときは duration-in、閉じるときは duration-out。動きを減らす設定では動かさない */
-  --popup-duration-in: var(--duration-normal);
   --popup-duration-out: 150ms;
-  --popup-ease: var(--ease-sheet);
   --popup-shift: calc(var(--spacing) * 2);
 
   /* Dialog・Drawer・Popover の題と説明の大きさ

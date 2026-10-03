@@ -12,7 +12,6 @@
      list: リスト。印があって段落より詰まって見えるので、入力方式によらず 4px 足す
      block: 引用・コード・表・画像だけの段落。線や面で文字より大きく見えるので、マウスでは 12px 足す。指では足さない
        （block は src/styles/theme.css の密度の規則が入れる） */
-  --prose-heading-list-extra: var(--spacing); /* 4px */
   --prose-heading-block-extra-fine: calc(var(--spacing) * 3); /* 12px */
   --prose-heading-block-extra-coarse: 0px;
   --prose-paragraph-gap: calc(var(--spacing) * 4); /* 16px */

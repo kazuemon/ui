@@ -10,11 +10,9 @@
        hover-color: hover の文字の色（下線の案では変えない）
        hover-bg・press-bg: 平らな要素として敷く塗り（下線の案では透明）。登録した変数（--flat-bg）に入れるので currentColor は混ぜられない
      pill-*: appearance="pill"（Navbar の行き先と同じ平らな pill）のときに、部品が link-* に差し替える値 */
-  --breadcrumb-gap: var(--spacing);
-  --breadcrumb-row-gap: var(--spacing);
   --breadcrumb-separator-size: 1em;
   --color-breadcrumb-separator: var(--color-fg-subtle);
-  --breadcrumb-link-radius: var(--link-text-radius);
+  --breadcrumb-link-radius: var(--radius-md);
   --breadcrumb-link-px: var(--spacing);
   --breadcrumb-link-py: calc(var(--spacing) / 2);
   --breadcrumb-link-color: var(--color-fg-muted);
@@ -22,9 +20,7 @@
   --breadcrumb-link-underline-hover: var(--color-link-underline-hover);
   --breadcrumb-link-hover-bg: transparent;
   --breadcrumb-link-press-bg: transparent;
-  --breadcrumb-pill-radius: var(--radius-pill);
   --breadcrumb-pill-px: calc(var(--spacing) * 3);
-  --breadcrumb-pill-py: var(--spacing);
   --breadcrumb-pill-hover-bg: color-mix(
     in oklab,
     var(--color-fg) var(--flat-hover-mix),

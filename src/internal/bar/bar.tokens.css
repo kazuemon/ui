@@ -5,7 +5,6 @@
      地はトグルの OFF と同じグレー（field-addon）、角はどの太さでも pill（原則5。部品で当てる）。範囲ごとの塗りの色は Meter の regionColor
      Progress だけは、読了のバー向けに端を丸めない形（shape="square"）を選べる
      height-{sm,md,lg}: バーの太さ（size）。入力方式で変えない（原則11） */
-  --bar-height-sm: var(--spacing); /* 4px */
   --bar-height-md: calc(var(--spacing) * 2); /* 8px */
   --bar-height-lg: calc(var(--spacing) * 3); /* 12px */
   /* 分けて塗るバー（MeterGroup。軸 433）
@@ -14,5 +13,4 @@
   --bar-group-gap: calc(var(--spacing) / 2);
   --bar-group-marker-size: calc(var(--spacing) * 2.5);
   /* 値が変わったときに塗りが伸び縮みする長さ */
-  --duration-bar: var(--duration-normal);
 }

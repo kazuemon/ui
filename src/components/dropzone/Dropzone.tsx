@@ -62,7 +62,7 @@ const dropzoneBox = tv({
   base: [
     'group/dropzone relative flex w-full flex-col items-center overflow-hidden rounded-control',
     'min-h-(--dropzone-min-height)',
-    'border-(length:--dropzone-border-width) border-(color:--dropzone-border-color) bg-(color:--dropzone-bg)',
+    'border-(length:--border-width-thick) border-(color:--dropzone-border-color) bg-(color:--dropzone-bg)',
     '[transition-property:background-color,border-color] duration-(--duration-field) ease-press motion-reduce:transition-none',
     // hover（原則3）: フォーカス中は変えない。:hover は input が覆っていても箱の祖先として効く
     'hover:not-focus-within:[--dropzone-bg:var(--dropzone-bg-hover)]',
@@ -102,7 +102,7 @@ const dropzoneBox = tv({
       secondary:
         '[--dropzone-drag-accept-bg:var(--color-secondary-subtle)] [--dropzone-drag-accept-border:var(--color-fg-secondary)]',
       neutral:
-        '[--dropzone-drag-accept-bg:var(--color-select-neutral-selected)] [--dropzone-drag-accept-border:var(--color-neutral-strong)]',
+        '[--dropzone-drag-accept-bg:var(--palette-gray-200)] [--dropzone-drag-accept-border:var(--color-neutral-strong)]',
     },
   },
   defaultVariants: { variant: 'filled', color: 'neutral' },

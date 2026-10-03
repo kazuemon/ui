@@ -10,7 +10,6 @@
   --choice-size-coarse: 22px;
   --checkbox-radius: 5px; /* チェックボックスの角。ラジオは完全な丸（--radius-pill） */
   /* チェックと中間の横線の太さ。画面の px で、箱の大きさによらない */
-  --checkbox-mark-width: var(--border-width-thick);
   --radio-dot-ratio: 0.4; /* ラジオの白い丸の直径。箱に対する比。部品が 2px 単位に丸め、箱と同じ偶数にして中央に置く（端数だとふちのぼかしが偏る） */
   --choice-gap: calc(var(--spacing) * 2); /* 箱と横の文字の間 */
   /* 選んでいない箱の塗り — ADR-0062 の C の色の組。トグルの OFF をADR-0067 の D の色にしたとき、箱も同じ濃さにそろえた
@@ -23,14 +22,11 @@
   --color-choice-invalid: var(--color-field-addon-invalid);
   /* エラーの箱の内側の線 — ADR-0070 の A（入力欄と同じく、エラーは塗りと線の2つで表す。塗りだけでは通常の箱との明るさの比が 1.01）
      選んでいない、押せる箱だけに、inset の影で引く（寸法を変えない） */
-  --choice-invalid-line-width: var(--border-width-medium);
-  --color-choice-invalid-line: var(--color-fg-danger);
   /* 押せない箱。ふだんの箱より薄い、入力欄の塗りのグレー。押せない OFF のトラックと同じ */
   --color-choice-disabled: var(--color-field);
   /* 押せない、色を指定しない選んだ箱: 押せない箱と同じ地に、グレーの印（押せないグレーのトグルと同じ考え方）— adr/0029
      押せる選んでいない箱（#E1E3E4）と紛れないよう、押せないものは選んでも選ばなくても同じ地にし、状態は印のあるなしで見せる */
   --color-choice-neutral-on-disabled: var(--color-choice-disabled);
-  --color-choice-neutral-mark-disabled: var(--color-switch-neutral-disabled-knob);
   /* 押しているあいだの箱（原則3）— ADR-0063（E: 沈んで塗りが濃くなる。平らなボタンと同じ組み合わせ）
      箱か横の文字を押しているあいだ、箱に効く。押せないときは変えない。深さ・長さ・緩急は平らな要素の押下と同じ（--flat-press-depth・--duration-press・--ease-press）
      --choice-press-darken: 選んでいない箱の塗り（hover の塗り）に混ぜる本文の色の割合

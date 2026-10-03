@@ -43,11 +43,11 @@ export const collapsibleStyles = tv({
     indicator: [
       'flex shrink-0 text-fg-muted',
       'group-data-disabled/collapsible-trigger:text-(color:--color-on-neutral-disabled)',
-      'transition-[rotate] duration-(--collapsible-duration) ease-(--collapsible-ease) motion-reduce:[transition:none]',
+      'transition-[rotate] duration-(--duration-normal) ease-(--ease-sheet) motion-reduce:[transition:none]',
     ],
     panel: [
       'h-(--collapsible-panel-height) overflow-hidden',
-      'transition-[height,opacity] duration-(--collapsible-duration) ease-(--collapsible-ease)',
+      'transition-[height,opacity] duration-(--duration-normal) ease-(--ease-sheet)',
       'data-ending-style:h-0 data-starting-style:h-0',
       'data-ending-style:opacity-(--collapsible-start-opacity) data-starting-style:opacity-(--collapsible-start-opacity)',
       'motion-reduce:[transition:none]',
@@ -73,7 +73,7 @@ export const collapsibleStyles = tv({
       filled: {
         root: [
           '[--collapsible-fill-hover:var(--color-field-hover)] [--collapsible-fill-open-hover:var(--color-field-hover)] [--collapsible-fill-open:var(--color-field)] [--collapsible-fill:var(--color-field)]',
-          '[[data-slot=collapsible]+&]:mt-(--collapsible-row-gap)',
+          '[[data-slot=collapsible]+&]:mt-(--spacing)',
         ],
       },
       // 行と中身の上下に区切り線。続けて置いた行のあいだの線は 1 本に重ねる。角はなく、hover で淡く塗る

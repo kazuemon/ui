@@ -17,18 +17,12 @@
   --pager-item-gap: calc(var(--spacing) * 2);
   --pager-label-gap: calc(var(--spacing) * 1);
   --pager-label-display: block;
-  --pager-press-depth: var(--press-depth);
   --pager-card-padding-block: calc(var(--spacing) * 3);
   --pager-card-padding-inline: calc(var(--spacing) * 4);
-  --pager-card-radius: var(--radius-card);
   --pager-card-line-width: var(--border-width-thin);
-  --pager-card-line: var(--color-surface-line);
-  --pager-card-fill: var(--color-surface);
   --pager-card-fill-hover: var(--card-fill-hover);
   --pager-card-fill-press: var(--card-fill-hover);
-  --pager-text-radius: var(--radius-control);
   --pager-text-underline: var(--color-link-underline);
   --pager-text-underline-hover: var(--color-link-underline-hover);
-  --pager-text-underline-duration: var(--link-underline-duration);
   --pager-text-underline-ease: var(--link-underline-ease);
 }

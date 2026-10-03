@@ -145,7 +145,7 @@ function GroupSeparator({ separator }: { separator: ReactNode }) {
       <span
         aria-hidden
         data-slot="pin-field-separator"
-        className="h-(--border-width-thick) w-(--pin-field-dash-width) shrink-0 rounded-pill bg-(--pin-field-separator-color)"
+        className="h-(--border-width-thick) w-(--pin-field-dash-width) shrink-0 rounded-pill bg-(--color-fg-subtle)"
       />
     );
   }
@@ -153,7 +153,7 @@ function GroupSeparator({ separator }: { separator: ReactNode }) {
     <span
       aria-hidden
       data-slot="pin-field-separator"
-      className="shrink-0 text-(length:--pin-field-text) leading-none text-(--pin-field-separator-color) select-none"
+      className="shrink-0 text-(length:--pin-field-text) leading-none text-(--color-fg-subtle) select-none"
     >
       {separator}
     </span>

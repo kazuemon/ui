@@ -4,9 +4,6 @@
      選んだ日は部品の色の濃い塗り（ADR-0134）。期間の中の日は淡い面の帯、選んでいる途中は半分の濃さの帯（ADR-0141）
      今日は太字と短い下線（ADR-0135）。日曜と祝日は危険の赤、土曜は情報の青（ADR-0137・0140） */
   /* 色を持たない（neutral）ときの淡い面。Select の選んだ項目と同じグレー */
-  --color-calendar-neutral-subtle: var(--palette-gray-200);
-  --color-calendar-sunday: var(--color-fg-danger);
-  --color-calendar-saturday: var(--color-fg-info);
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade" — ADR-0142） */
   --calendar-month-fade-duration: 150ms;
   /* 日ごとの印（renderDayContent）。日のボタンの下の中央に置き、印を持つ日がある月はすべての日の数字を上へずらす */

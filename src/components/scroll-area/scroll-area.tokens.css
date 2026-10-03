@@ -6,8 +6,6 @@
      thumb-size: つまみの太さ。見えている太さがそのまま押せる範囲（1 ラウンド目と同じ 4px）
      thumb-size-hover: つまみそのものに載せたとき・つかんでいるあいだの太さ。枠の内側へ太くなる（ふだんの 2 倍）
      thumb-inset: 枠の端からの隙間（押せる範囲には入れない） */
-  --scroll-area-thumb-size: var(--spacing);
   --scroll-area-thumb-size-hover: calc(var(--spacing) * 2);
   --scroll-area-thumb-inset: calc(var(--spacing) / 2);
-  --scroll-area-thumb-color: var(--color-line-strong);
 }

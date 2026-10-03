@@ -45,7 +45,7 @@ export const copyErrorTooltipClass = 'bg-danger-subtle text-fg-danger';
 /** 写せなかったことを知らせる吹き出しの中身。丸の「!」を文の前に置く（原則6）。文と並ぶので線は Regular（原則21） */
 export function CopyErrorContent({ text }: { text: string }) {
   return (
-    <span className="flex items-start gap-(--field-message-gap)">
+    <span className="flex items-start gap-(--spacing)">
       <WarningCircleIcon className="size-(--leading-caption) shrink-0" />
       {text}
     </span>

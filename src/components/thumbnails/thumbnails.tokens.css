@@ -9,9 +9,7 @@
   --thumbnails-gap: calc(var(--spacing) * 2);
   --thumbnails-item-width: calc(var(--spacing) * 24);
   --thumbnails-item-ratio: 16 / 9;
-  --thumbnails-radius: var(--radius-control);
   --thumbnails-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
-  --thumbnails-bar-height: var(--border-width-thick);
   --thumbnails-bar-gap: calc(var(--spacing) * 1.5);
   --thumbnails-rest-opacity: 1;
   --thumbnails-hover-opacity: 1;

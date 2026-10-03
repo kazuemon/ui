@@ -23,21 +23,21 @@ export type ResizeKeyAction = 'grow' | 'shrink' | 'min' | 'max';
 
 // 幅を変えるつまみの見た目 — ADR-0362（Sidebar）。Inspector・DataTable の列も同じ形を使う
 //   境の線の上に、つかめる幅（--resize-handle-hit）を半分ずつ重ねる。置き場所（inset・start・end）は使う側が className で決める
-//   線: ふだんは --resize-handle-rest、載せたとき --resize-handle-hover、動かしているあいだ --resize-handle-active、
-//     フォーカス（キーボード）で --resize-handle-focus。太さは --resize-handle-line-width、上下の空きは --resize-handle-line-inset
+//   線: ふだんは --resize-handle-rest、載せたとき --color-line-strong、動かしているあいだ --color-line-strong、
+//     フォーカス（キーボード）で --color-primary。太さは --border-width-thick、上下の空きは --resize-handle-line-inset
 //   grip: ふだんから見せる小さな縦のつまみ（look="grip"）
 const styles = tv({
   slots: {
     handle: [
       'group/resize-handle absolute z-3 w-(--resize-handle-hit) cursor-col-resize touch-none outline-none',
-      "before:absolute before:inset-y-(--resize-handle-line-inset) before:start-1/2 before:w-(--resize-handle-line-width) before:-translate-x-1/2 before:bg-(color:--resize-handle-rest) before:content-[''] rtl:before:translate-x-1/2",
+      "before:absolute before:inset-y-(--resize-handle-line-inset) before:start-1/2 before:w-(--border-width-thick) before:-translate-x-1/2 before:bg-(color:--resize-handle-rest) before:content-[''] rtl:before:translate-x-1/2",
       'before:[transition:background-color_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      'hover:before:bg-(color:--resize-handle-hover)',
-      'focus-visible:before:bg-(color:--resize-handle-focus)',
+      'hover:before:bg-(color:--color-line-strong)',
+      'focus-visible:before:bg-(color:--color-primary)',
       // 押したとき（動かす前）から、動かしているあいだの色にする
-      'active:before:bg-(color:--resize-handle-active) data-resizing:before:bg-(color:--resize-handle-active)',
+      'active:before:bg-(color:--color-line-strong) data-resizing:before:bg-(color:--color-line-strong)',
     ],
-    grip: 'pointer-events-none absolute start-1/2 top-1/2 h-(--resize-handle-grip-height) w-(--resize-handle-grip-width) -translate-1/2 rounded-pill bg-(color:--resize-handle-grip)',
+    grip: 'pointer-events-none absolute start-1/2 top-1/2 h-(--resize-handle-grip-height) w-(--spacing) -translate-1/2 rounded-pill bg-(color:--color-line-strong)',
   },
 });
 

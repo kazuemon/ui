@@ -17,9 +17,5 @@
   --inspector-overlay-shadow-left: var(--shadow-sheet-left);
   --inspector-overlay-shadow-right: var(--shadow-sheet-right);
   --inspector-floating-inset: calc(var(--spacing) * 2); /* 8px */
-  --inspector-floating-radius: var(--radius-card);
   --inspector-overlay-gap: calc(var(--spacing) * 12);
-  --inspector-duration-in: var(--duration-sheet);
-  --inspector-duration-out: var(--duration-normal);
-  --inspector-ease: var(--ease-sheet);
 }

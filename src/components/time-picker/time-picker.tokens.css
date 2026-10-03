@@ -5,5 +5,4 @@
      max-rows: 一覧の高さの上限（項目の数）。最後の項目を半分だけ見せ、続きがあることを示す
      popup-padding: 一覧の内側の余白（列の見出し・「完了」の行も同じ）。Select の浮かぶ選択肢にそろえる */
   --time-picker-max-rows: 7.5;
-  --time-picker-popup-padding: var(--select-popup-padding);
 }

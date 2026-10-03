@@ -53,9 +53,9 @@ const styles = tv({
     // 間隔は Stack と同じ段（--stack-gap-*）。gap を書かないときは tokens.css の --gallery-gap
     list: 'm-0 grid list-none gap-(--gallery-gap) p-0',
     item: 'min-w-0',
-    // 並べた画像の角（フォーカスの線も沿う）は --gallery-radius
-    trigger: 'rounded-(--gallery-radius)',
-    frame: '[--image-radius:var(--gallery-radius)]',
+    // 並べた画像の角（フォーカスの線も沿う）は --radius-card
+    trigger: 'rounded-(--radius-card)',
+    frame: '[--image-radius:var(--radius-card)]',
   },
   variants: {
     gap: {

@@ -324,7 +324,7 @@ function CenteredDialog({
         <BaseDialog.Portal container={portalContainer}>
           {/* 裏を止めるときだけ、後ろを暗くする */}
           {modal === true && (
-            <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+            <BaseDialog.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-normal) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
           )}
           {/* 裏を止めないときは、面を置く枠を素通しにし、面だけが触れるようにする */}
           <BaseDialog.Viewport
@@ -361,7 +361,7 @@ function CenteredDialog({
                 size === 'lg' && '[--dialog-width:var(--dialog-width-lg)]',
                 scrollContent ? 'max-h-full min-h-0' : 'pb-(--dialog-padding)',
                 '[--sheet-close-inset:calc(var(--dialog-padding)-(var(--spacing-control)-var(--overlay-title-leading))/2)] [--sheet-inset:0px] [--sheet-padding-x:var(--dialog-padding)]',
-                'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
+                'transition-[opacity,translate] duration-(--duration-normal) ease-(--ease-sheet) data-ending-style:duration-(--popup-duration-out)',
                 'data-ending-style:opacity-0 data-starting-style:opacity-0',
                 'data-ending-style:[translate:0_var(--popup-shift)] data-starting-style:[translate:0_var(--popup-shift)]',
                 'motion-reduce:[transition:none]',

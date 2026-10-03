@@ -3,6 +3,4 @@
   --loading-label-opacity: 0.55;
 
   /* 押せない枠線のグレーのボタンと枠線のリンク: 薄くせず、枠線と文字をグレーにする — adr/0029 */
-  --color-outline-neutral-disabled-line: var(--color-line);
-  --color-outline-neutral-disabled-text: var(--color-on-neutral-disabled);
 }

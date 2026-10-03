@@ -10,10 +10,7 @@
   --toast-gap: calc(var(--spacing) * 3);
   --toast-peek: calc(var(--spacing) * 3);
   --toast-scale-step: 0.05;
-  --toast-shadow: var(--shadow-overlay);
   --toast-line: var(--color-surface-line);
-  --toast-duration: var(--duration-slow);
-  --toast-ease: var(--popup-ease);
   /* 残り時間の線（消えるまでの時間を決めたときだけ出す）。面の下の端に引く
      色は題・アイコンと同じ状態の色で、部品が面の要素で --toast-progress-color に入れる */
   --toast-progress-height: calc(var(--spacing) / 2);

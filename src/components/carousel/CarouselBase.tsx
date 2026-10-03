@@ -63,7 +63,7 @@ const styles = tv({
     stage: 'relative min-w-0',
     // 1 枚の幅（--carousel-slide-size）は、枠の幅に対する割合（cqi）で書く
     viewport: [
-      '@container relative rounded-(--carousel-radius)',
+      '@container relative rounded-(--radius-card)',
       ...focusRing,
       'transition-[outline-color,outline-offset] duration-(--focus-ring-duration) ease-(--ease-press) motion-reduce:transition-none',
     ],

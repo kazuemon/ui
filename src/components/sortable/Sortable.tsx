@@ -58,10 +58,10 @@ const sortable = tv({
       'bg-(color:--sortable-item-bg) [box-shadow:var(--sortable-item-shadow)]',
       // 入る場所: 中身を消し（場所は残す）、点線の枠だけを見せる。線は寸法を変えないよう内側の outline で描く
       'data-drag-source:[box-shadow:none] data-drag-source:[outline-style:dashed]',
-      'data-drag-source:[outline-width:var(--sortable-source-line-width)] data-drag-source:[outline-color:var(--sortable-source-line-color)]',
-      'data-drag-source:[outline-offset:calc(var(--sortable-source-line-width)*-1)]',
+      'data-drag-source:[outline-width:var(--border-width-medium)] data-drag-source:[outline-color:var(--color-line-strong)]',
+      'data-drag-source:[outline-offset:calc(var(--border-width-medium)*-1)]',
       // 持ち上げた項目: 白い面・細い輪郭・濃く近い影で、少しだけ大きく。出るときに、置いてあった見た目から持ち上がる
-      'data-dragging:z-1 data-dragging:cursor-grabbing data-dragging:bg-(color:--sortable-lifted-bg)',
+      'data-dragging:z-1 data-dragging:cursor-grabbing data-dragging:bg-(color:--color-surface)',
       'data-dragging:scale-(--sortable-lifted-scale) data-dragging:[box-shadow:var(--sortable-lifted-shadow)]',
       'data-dragging:[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press)]',
       'data-dragging:starting:scale-100 data-dragging:starting:[box-shadow:var(--sortable-item-shadow)]',
@@ -74,7 +74,7 @@ const sortable = tv({
     ],
     handle: [
       'absolute inset-y-0 inline-flex cursor-grab touch-none items-center justify-center text-fg-subtle',
-      'w-(--sortable-handle-width) rounded-(--sortable-handle-radius)',
+      'w-(--sortable-handle-width) rounded-(--radius-control)',
       // 項目の端に接した塊で、高さは項目いっぱい（原則8 の端のボタンと同じ考え方）。置く端は placement
       'data-[placement=end]:end-0 data-[placement=start]:start-0',
       // 平らな押すもの: hover で文字の色を淡く敷く（原則3）。押しても沈めない（押したまま引くので、沈むと引き始めがずれて見える）
@@ -102,14 +102,14 @@ const sortable = tv({
       // 持ち上げた行: セルに面を敷き、行に影を落とす（リストの持ち上げた項目と同じ面と影）。表の行は幅いっぱいに並ぶので、大きくするとはみ出す（列の線もずれる）。形によらず大きくしない
       //   面はセルに置く（dnd-kit が引いている行の背景を消すため）
       'data-dragging:relative data-dragging:z-1 data-dragging:cursor-grabbing',
-      'data-dragging:[box-shadow:var(--sortable-lifted-shadow)] data-dragging:*:bg-(color:--sortable-lifted-bg)',
+      'data-dragging:[box-shadow:var(--sortable-lifted-shadow)] data-dragging:*:bg-(color:--color-surface)',
       'data-dragging:[transition:box-shadow_var(--duration-press)_var(--ease-press)]',
       'data-dragging:starting:[box-shadow:none]',
       'motion-reduce:[transition:none]',
       // 入る場所（DragOverlay で写しを描くとき）: セルの中身を消し、点線の枠を残す
       'data-drag-source:[outline-style:dashed] data-drag-source:*:text-transparent data-drag-source:*:*:opacity-0',
-      'data-drag-source:[outline-width:var(--sortable-source-line-width)] data-drag-source:[outline-color:var(--sortable-source-line-color)]',
-      'data-drag-source:[outline-offset:calc(var(--sortable-source-line-width)*-1)]',
+      'data-drag-source:[outline-width:var(--border-width-medium)] data-drag-source:[outline-color:var(--color-line-strong)]',
+      'data-drag-source:[outline-offset:calc(var(--border-width-medium)*-1)]',
     ],
     // 動かさない行（SortableSeparator）。見出しの文字だけで、上の空きで分ける（Menu のまとまりの見出しと同じ考え方）
     separator: [
@@ -124,16 +124,16 @@ const sortable = tv({
       // グレーの塗り。入力欄と同じ、書き換えられる値の見た目（原則8）。持ち上げると白い面に変わる
       fill: {
         list: 'gap-(--sortable-gap)',
-        item: 'rounded-(--sortable-item-radius) [--sortable-item-bg:var(--color-field)] [--sortable-item-hover-bg:var(--color-field-hover)] [--sortable-item-shadow:none]',
+        item: 'rounded-(--radius-control) [--sortable-item-bg:var(--color-field)] [--sortable-item-hover-bg:var(--color-field-hover)] [--sortable-item-shadow:none]',
       },
       // 白い面と細い輪郭（既定）。影は付けない（ページと同じレイヤー。原則1）
       card: {
         list: 'gap-(--sortable-gap)',
-        item: 'rounded-(--sortable-item-radius) [--sortable-item-bg:var(--color-surface)] [--sortable-item-hover-bg:var(--color-field)] [--sortable-item-shadow:inset_0_0_0_var(--border-width-thin)_var(--color-surface-line)]',
+        item: 'rounded-(--radius-control) [--sortable-item-bg:var(--color-surface)] [--sortable-item-hover-bg:var(--color-field)] [--sortable-item-shadow:inset_0_0_0_var(--border-width-thin)_var(--color-surface-line)]',
       },
       // 1 つの枠の中で、項目を細い線で区切る（表の行と同じ）
       divided: {
-        list: 'rounded-(--sortable-item-radius) border-(length:--border-width-thin) border-line',
+        list: 'rounded-(--radius-control) border-(length:--border-width-thin) border-line',
         // 枠の中では、見出しの頭を項目の文字の端にそろえ、線は項目と同じ区切りの線（下の辺）だけにする
         separator: [
           'px-(--spacing-control-x) pb-(--sortable-separator-pt) after:hidden',
@@ -142,8 +142,8 @@ const sortable = tv({
         item: [
           '[--sortable-item-bg:var(--color-surface)] [--sortable-item-hover-bg:var(--color-field)] [--sortable-item-shadow:none]',
           'not-last:border-b-(length:--border-width-thin) not-last:border-line',
-          'first:rounded-t-[calc(var(--sortable-item-radius)-var(--border-width-thin))] last:rounded-b-[calc(var(--sortable-item-radius)-var(--border-width-thin))]',
-          'data-dragging:rounded-(--sortable-item-radius) data-dragging:border-b-0',
+          'first:rounded-t-[calc(var(--radius-control)-var(--border-width-thin))] last:rounded-b-[calc(var(--radius-control)-var(--border-width-thin))]',
+          'data-dragging:rounded-(--radius-control) data-dragging:border-b-0',
         ],
       },
     },

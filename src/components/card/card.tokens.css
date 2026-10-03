@@ -22,7 +22,6 @@
   /* 選んでいる見た目（selected）— 軸 413。線と面の色は color（primary・secondary・neutral）から部品が作る
      selected-line-width: 輪郭の上に重ねる線の太さ。寸法は変えない
      selected-hover-mix: 塗った面（selectedIndicator="fill"）の hover で、線の色を面に混ぜる割合 */
-  --card-selected-line-width: var(--border-width-thick);
   --card-selected-hover-mix: 6%;
   /* 頭の帯（CardHeader）— 軸 414。塗り（variant）と下の線（hideDivider）は部品が決める
      header-padding-y: 帯の上下の余白。header-gap: 帯の中の並びの間 */

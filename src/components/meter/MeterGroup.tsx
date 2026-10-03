@@ -20,7 +20,7 @@ const meterGroup = tv({
     track: 'flex gap-(--bar-group-gap)',
     segment: [
       'h-full min-w-0 shrink grow-0 bg-(color:--bar-segment)',
-      'transition-[flex-basis] duration-(--duration-bar) ease-press motion-reduce:transition-none',
+      'transition-[flex-basis] duration-(--duration-normal) ease-press motion-reduce:transition-none',
     ],
     legend: [
       'col-span-full flex flex-wrap gap-x-4 gap-y-1',

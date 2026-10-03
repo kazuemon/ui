@@ -44,23 +44,23 @@ export const listStyles = {
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[right:calc(100%+var(--list-marker-gap))]',
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[top:calc((var(--list-leading,var(--leading-body))-var(--list-task-size))/2)]',
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:size-(--list-task-size) [:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:rounded-sm [:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:bg-transparent',
-    '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[box-shadow:inset_0_0_0_var(--list-task-ring)_var(--color-list-task-ring)]',
+    '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[box-shadow:inset_0_0_0_var(--border-width-medium)_var(--color-line-strong)]',
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:shadow-none [:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:[background:var(--list-task-mark-checked)_center/100%_no-repeat]',
     // 済んだ項目の文
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li.task-list-item:has(>input:checked)]:[color:var(--color-list-task-done)]',
   ],
   ul: [
     '[:where(&:not([data-prose]),&_ul)]:[--lm-align:center] [:where(&:not([data-prose]),&_ul)]:[--lm-color:currentColor] [:where(&:not([data-prose]),&_ul)]:[--lm-content:""] [:where(&:not([data-prose]),&_ul)]:[--lm-pad-x:0px] [:where(&:not([data-prose]),&_ul)]:[--lm-text:1em] [:where(&:not([data-prose]),&_ul)]:[--lm-weight:400]',
-    '[:where(&:not([data-prose]),&_ul)]:[--lm-h:var(--list-bullet-height)] [:where(&:not([data-prose]),&_ul)]:[--lm-radius:var(--list-bullet-radius)] [:where(&:not([data-prose]),&_ul)]:[--lm-w:var(--list-bullet-width)]',
+    '[:where(&:not([data-prose]),&_ul)]:[--lm-h:var(--list-bullet-height)] [:where(&:not([data-prose]),&_ul)]:[--lm-radius:var(--radius-pill)] [:where(&:not([data-prose]),&_ul)]:[--lm-w:var(--list-bullet-width)]',
     '[:where(&:not([data-prose]),&_ul)]:[--lm-bg:var(--color-list-bullet)] [:where(&:not([data-prose]),&_ul)]:[--lm-ring-color:var(--color-list-bullet-ring)] [:where(&:not([data-prose]),&_ul)]:[--lm-ring:var(--list-bullet-ring)]',
     // 入れ子の箇条書き（li の中の ul）
-    '[:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-h:var(--list-bullet-nested-height)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-radius:var(--list-bullet-nested-radius)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-w:var(--list-bullet-nested-width)]',
+    '[:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-h:var(--list-bullet-nested-height)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-radius:var(--radius-pill)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-w:var(--list-bullet-nested-width)]',
     '[:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-bg:var(--color-list-bullet-nested)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-ring-color:var(--color-list-bullet-nested-ring)] [:where(&:not([data-prose]),&_ul):is(li_*)]:[--lm-ring:var(--list-bullet-nested-ring)]',
   ],
   ol: [
     '[:where(&:not([data-prose]),&_ol)]:[--lm-align:flex-end] [:where(&:not([data-prose]),&_ol)]:[--lm-content:counter(list-item)_"."]',
     '[:where(&:not([data-prose]),&_ol)]:[--lm-h:1lh] [:where(&:not([data-prose]),&_ol)]:[--lm-pad-x:0px] [:where(&:not([data-prose]),&_ol)]:[--lm-radius:0px] [:where(&:not([data-prose]),&_ol)]:[--lm-w:var(--list-number-width)]',
     '[:where(&:not([data-prose]),&_ol)]:[--lm-bg:transparent] [:where(&:not([data-prose]),&_ol)]:[--lm-ring-color:transparent] [:where(&:not([data-prose]),&_ol)]:[--lm-ring:0px]',
-    '[:where(&:not([data-prose]),&_ol)]:[--lm-color:var(--color-list-number)] [:where(&:not([data-prose]),&_ol)]:[--lm-text:1em] [:where(&:not([data-prose]),&_ol)]:[--lm-weight:400]',
+    '[:where(&:not([data-prose]),&_ol)]:[--lm-color:var(--color-fg-subtle)] [:where(&:not([data-prose]),&_ol)]:[--lm-text:1em] [:where(&:not([data-prose]),&_ol)]:[--lm-weight:400]',
   ],
 } as const;

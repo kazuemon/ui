@@ -32,7 +32,7 @@ const tooltipPopup = tv({
   base: [
     'relative rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none',
     popupMotionClass,
-    'max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--tooltip-padding-y) text-(length:--text-caption) leading-(--leading-caption) [box-shadow:var(--shadow-tooltip)]',
+    'max-w-(--tooltip-max-width) px-(--tooltip-padding-x) py-(--spacing) text-(length:--text-caption) leading-(--leading-caption) [box-shadow:var(--shadow-tooltip)]',
   ],
   variants: {
     shadow: {

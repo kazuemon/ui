@@ -8,13 +8,10 @@
      indent: 入れ子の 1 段の字下げ。guide-width: 段ごとの細い線（guides のときだけ引く。ADR-0184） */
   --toc-gap: calc(var(--spacing) * 2);
   --toc-item-px: calc(var(--spacing) * 2);
-  --toc-item-py: var(--spacing);
   --toc-item-color: var(--color-fg-muted);
   --toc-track-width: var(--border-width-thin);
-  --toc-track-color: var(--color-line);
   --toc-track-gap: calc(var(--spacing) * 1.5);
   --toc-current-fg: var(--color-fg);
-  --toc-current-bar-width: var(--border-width-thick);
   --toc-current-bar-color: var(--color-fg);
   --toc-indent: calc(var(--spacing) * 3);
   --toc-guide-width: var(--border-width-thin);

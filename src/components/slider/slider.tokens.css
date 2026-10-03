@@ -10,7 +10,6 @@
   --slider-track-height: var(--bar-height-md);
   --slider-thumb-size-fine: calc(var(--spacing) * 5); /* 20px */
   --slider-thumb-size-coarse: calc(var(--spacing) * 6); /* 24px */
-  --slider-thumb-shadow: var(--shadow-raised);
   /* 押しているあいだ（つまみかトラックを押してから離すまで）の手応え。部品の pressEffect で選ぶ — ADR-0317
      grow（既定）: つまみを grow-scale 倍に膨らませる
      halo: つまみの外側に、塗りの色を halo-mix の濃さにした幅 halo-width の輪を出す

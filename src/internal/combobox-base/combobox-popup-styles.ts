@@ -70,8 +70,8 @@ export function comboboxPopupStyle({
 }
 
 /** 当たる選択肢がないときの行を包む箱（Base UI の Empty）。文がなくても要素は残すので、空のときは余白も持たない */
-export const comboboxEmptyClass = '[&:not(:empty)]:py-(--select-popup-padding)';
+export const comboboxEmptyClass = '[&:not(:empty)]:py-(--spacing)';
 
 /** シートの見出しの下に置く打つ欄の、左右と上下の余白 */
 export const comboboxSheetInputClass =
-  'px-[calc(var(--sheet-padding-x)-var(--select-popup-padding))] pt-2 pb-(--select-popup-padding)';
+  'px-[calc(var(--sheet-padding-x)-var(--spacing))] pt-2 pb-(--spacing)';

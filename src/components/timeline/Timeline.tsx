@@ -80,7 +80,7 @@ const inner = tv({
     'after:start-[calc(var(--tl-gutter)+var(--tl-axis)/2-var(--timeline-line-width)/2)]',
     'after:top-[calc(var(--tl-marker-top)+var(--tl-own)+var(--timeline-line-gap))]',
     'after:bottom-[calc(var(--timeline-line-gap)-var(--timeline-gap)-var(--tl-marker-top))]',
-    'after:[border-inline-start:var(--timeline-line-width)_var(--tl-line-style)_var(--color-timeline-line)]',
+    'after:[border-inline-start:var(--timeline-line-width)_var(--tl-line-style)_var(--color-line)]',
   ],
   variants: {
     // 点の大きさ。日付の小さな文字と釣り合う大きさを既定にする
@@ -93,15 +93,15 @@ const inner = tv({
     //   on・subtle・fg は、アイコンの丸（icon）に使う塗りに載せる色・淡い面・前景の色
     markerType: {
       neutral: [
-        '[--tl-marker-color:var(--color-timeline-marker)]',
+        '[--tl-marker-color:var(--color-line-strong)]',
         '[--tl-marker-bg:var(--tl-marker-color)]',
         '[--tl-marker-ring-color:transparent] [--tl-marker-ring:0px]',
         '[--tl-marker-fg:var(--color-fg-muted)] [--tl-marker-on:var(--color-bg)] [--tl-marker-subtle:var(--color-field)]',
       ],
       outline: [
-        '[--tl-marker-color:var(--color-timeline-marker)]',
+        '[--tl-marker-color:var(--color-line-strong)]',
         '[--tl-marker-bg:var(--color-bg)]',
-        '[--tl-marker-ring-color:var(--tl-marker-color)] [--tl-marker-ring:var(--timeline-marker-ring)]',
+        '[--tl-marker-ring-color:var(--tl-marker-color)] [--tl-marker-ring:var(--border-width-medium)]',
         '[--tl-marker-fg:var(--color-fg-muted)] [--tl-marker-on:var(--color-bg)] [--tl-marker-subtle:var(--color-field)]',
       ],
       primary: [
@@ -111,7 +111,7 @@ const inner = tv({
         '[--tl-marker-fg:var(--color-on-primary-subtle)] [--tl-marker-on:var(--color-on-primary)] [--tl-marker-subtle:var(--color-primary-subtle)]',
       ],
       success: [
-        '[--tl-marker-color:var(--color-timeline-marker-success)]',
+        '[--tl-marker-color:var(--color-success)]',
         '[--tl-marker-bg:var(--tl-marker-color)]',
         '[--tl-marker-ring-color:transparent] [--tl-marker-ring:0px]',
         '[--tl-marker-fg:var(--color-fg-success)] [--tl-marker-on:var(--color-on-success)] [--tl-marker-subtle:var(--color-success-subtle)]',
@@ -123,7 +123,7 @@ const inner = tv({
         '[--tl-marker-fg:var(--color-fg-warning)] [--tl-marker-on:var(--color-timeline-marker-on-warning)] [--tl-marker-subtle:var(--color-warning-subtle)]',
       ],
       danger: [
-        '[--tl-marker-color:var(--color-timeline-marker-danger)]',
+        '[--tl-marker-color:var(--color-danger)]',
         '[--tl-marker-bg:var(--tl-marker-color)]',
         '[--tl-marker-ring-color:transparent] [--tl-marker-ring:0px]',
         '[--tl-marker-fg:var(--color-fg-danger)] [--tl-marker-on:var(--color-on-danger)] [--tl-marker-subtle:var(--color-danger-subtle)]',
@@ -142,7 +142,7 @@ const inner = tv({
       solid: '[--tl-line-style:solid]',
       dotted: [
         '[--tl-line-style:dotted]',
-        '[--timeline-line-gap:var(--timeline-line-dotted-gap)] [--timeline-line-width:var(--timeline-line-dotted-width)]',
+        '[--timeline-line-gap:var(--timeline-line-dotted-gap)] [--timeline-line-width:var(--border-width-thick)]',
       ],
       none: 'after:content-none',
     },
@@ -152,7 +152,7 @@ const inner = tv({
       dotted: [
         '[li:last-child>&]:after:bottom-auto [li:last-child>&]:after:h-(--timeline-tail-length)',
         '[li:last-child>&]:[--tl-line-style:dotted]',
-        '[li:last-child>&]:[--timeline-line-gap:var(--timeline-line-dotted-gap)] [li:last-child>&]:[--timeline-line-width:var(--timeline-line-dotted-width)]',
+        '[li:last-child>&]:[--timeline-line-gap:var(--timeline-line-dotted-gap)] [li:last-child>&]:[--timeline-line-width:var(--border-width-thick)]',
       ],
     },
     // 1 行目の高さ（点をそろえる行）。題の大きさ、題がないときは日付か説明
@@ -210,7 +210,7 @@ const iconMarker = tv({
       filled: 'bg-(--tl-marker-color) text-(--tl-marker-on) [&_svg]:size-(--timeline-icon-size)',
       soft: 'bg-(--tl-marker-subtle) text-(--tl-marker-fg) [&_svg]:size-(--timeline-icon-size-lg)',
       outline:
-        'bg-bg text-(--tl-marker-fg) [--tl-icon-ring:var(--timeline-marker-ring)] [&_svg]:size-(--timeline-icon-size-lg)',
+        'bg-bg text-(--tl-marker-fg) [--tl-icon-ring:var(--border-width-medium)] [&_svg]:size-(--timeline-icon-size-lg)',
       plain: 'text-(--tl-marker-fg) [&_svg]:size-(--timeline-icon-plain-size)',
     },
   },
@@ -257,7 +257,7 @@ const body = tv({
   base: [
     '[&>*:not(:first-child)]:mt-(--prose-block-gap) [&>p+p:not(:first-child)]:mt-(--prose-paragraph-gap)',
     // 説明の直下のリストは、項目の li の中にあっても入れ子の印にしない
-    '[&>ul]:[--lm-h:var(--list-bullet-height)] [&>ul]:[--lm-radius:var(--list-bullet-radius)] [&>ul]:[--lm-w:var(--list-bullet-width)]',
+    '[&>ul]:[--lm-h:var(--list-bullet-height)] [&>ul]:[--lm-radius:var(--radius-pill)] [&>ul]:[--lm-w:var(--list-bullet-width)]',
     '[&>ul]:[--lm-bg:var(--color-list-bullet)] [&>ul]:[--lm-ring-color:var(--color-list-bullet-ring)] [&>ul]:[--lm-ring:var(--list-bullet-ring)]',
   ],
   variants: {

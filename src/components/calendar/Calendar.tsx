@@ -83,8 +83,8 @@ const calendar = tv({
       'h-8 p-0 text-center align-middle font-normal',
       'text-(length:--text-caption) leading-(--leading-caption)',
       'text-[color:color-mix(in_oklab,var(--day-weekend)_calc(var(--day-weekend-k)*100%),var(--color-fg-subtle))]',
-      'data-[weekday=0]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=0]:[--day-weekend:var(--color-calendar-sunday)]',
-      'data-[weekday=6]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=6]:[--day-weekend:var(--color-calendar-saturday)]',
+      'data-[weekday=0]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=0]:[--day-weekend:var(--color-fg-danger)]',
+      'data-[weekday=6]:[--day-weekend-k:var(--cal-weekend-k)] data-[weekday=6]:[--day-weekend:var(--color-fg-info)]',
     ],
     day: [
       'group/day relative rounded-(--cal-radius) p-0 text-center',
@@ -98,8 +98,8 @@ const calendar = tv({
       // 押せない日と同じ色に取り消し線を足し、もとから押せない日（isDateDisabled など）と見分ける
       'data-[look=constrained]:[--day-base:transparent] data-[look=constrained]:[--day-ink:var(--color-on-field-disabled)] data-[look=constrained]:[--day-strike:line-through]',
       // 日曜・祝日と土曜（ADR-0137・0140）。祝日の土曜は日曜の色。weekendColor={false} のときは色を混ぜない
-      'data-[tone=sun]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sun]:[--day-weekend:var(--color-calendar-sunday)]',
-      'data-[tone=sat]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sat]:[--day-weekend:var(--color-calendar-saturday)]',
+      'data-[tone=sun]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sun]:[--day-weekend:var(--color-fg-danger)]',
+      'data-[tone=sat]:[--day-weekend-k:var(--cal-weekend-k)] data-[tone=sat]:[--day-weekend:var(--color-fg-info)]',
       // 今日（ADR-0135）: 太字と、数字の下の短い線
       'data-today:[--day-mark:1] data-today:[--day-weight-today:700]',
       // 期間の帯。始まりと終わりの日は、日の中央から外へ伸ばす。週の端では日の角で丸める
@@ -148,7 +148,7 @@ const calendar = tv({
         root: '[--cal-accent:var(--color-fg-secondary)] [--cal-on-accent:var(--color-on-secondary)] [--cal-on-subtle:var(--color-on-secondary-subtle)] [--cal-subtle:var(--color-secondary-subtle)] [--color-own-focus:var(--color-fg-secondary)]',
       },
       neutral: {
-        root: '[--cal-accent:var(--color-neutral-strong)] [--cal-on-accent:var(--color-on-neutral-strong)] [--cal-on-subtle:var(--color-fg)] [--cal-subtle:var(--color-calendar-neutral-subtle)]',
+        root: '[--cal-accent:var(--color-neutral-strong)] [--cal-on-accent:var(--color-on-neutral-strong)] [--cal-on-subtle:var(--color-fg)] [--cal-subtle:var(--palette-gray-200)]',
       },
     },
     // 日の形（ADR-0134）。square は部品の角（既定）、circle は丸

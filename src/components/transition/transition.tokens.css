@@ -5,10 +5,8 @@
      shift・scale: preset を書かないときの出方。下に shift ずれた位置・scale の大きさから、濃さと一緒に定位置へ戻る
      preset-shift: fade-up・fade-down のずれ。preset-scale: scale のはじめの大きさ
      動きを減らす設定では、どの形も動かさずにすぐ出す・消す（原則3） */
-  --transition-duration-enter: var(--popup-duration-in);
+  --transition-duration-enter: var(--duration-normal);
   --transition-duration-exit: var(--popup-duration-out);
-  --transition-ease-enter: var(--popup-ease);
-  --transition-ease-exit: var(--popup-ease);
   --transition-shift: var(--popup-shift);
   --transition-scale: 1;
   --transition-preset-shift: var(--popup-shift);

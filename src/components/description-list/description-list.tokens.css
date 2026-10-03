@@ -7,7 +7,6 @@
      用語: 名前なので太字（原則4）。大きさは本文か、Field のラベルと同じ 14px（termStyle="label"） */
   --description-item-gap: calc(var(--spacing) * 3); /* 行のあいだ（区切りの線を出さないとき） */
   --description-column-gap: calc(var(--spacing) * 4); /* 横に並べたときの、用語と説明のあいだ */
-  --description-row-gap: var(--spacing); /* 縦に並べたときの、用語と説明のあいだ */
   --description-direction: row;
   --description-item-align: baseline;
   --description-term-width: calc(var(--spacing) * 32); /* 128px。用語の列の幅（横のときだけ効く） */
@@ -21,11 +20,9 @@
   --description-pad-y: 0px;
   --description-divider-width: 0px;
   --description-frame-width: 0px;
-  --color-description-line: var(--color-line);
   /* 用語の右から説明までをつなぐ線（divider="leader-dotted"・"leader-solid"）。目次の点線 */
   --description-leader-display: none;
   --description-leader-gap: calc(var(--spacing) * 2); /* 線と、用語・説明のあいだ */
   --description-leader-style: dotted; /* leader-solid は solid に差し替える */
   --description-leader-width: var(--border-width-thin);
-  --color-description-leader: var(--color-line);
 }

@@ -6,7 +6,7 @@ export const popupSurfaceClass =
   'rounded-control border-(length:--border-width-thin) border-surface-line bg-surface text-fg outline-none';
 
 export const popupMotionClass = [
-  'transition-[opacity,translate] duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:duration-(--popup-duration-out)',
+  'transition-[opacity,translate] duration-(--duration-normal) ease-(--ease-sheet) data-ending-style:duration-(--popup-duration-out)',
   'data-ending-style:opacity-0 data-starting-style:opacity-0',
   'data-[side=bottom]:data-ending-style:[translate:0_calc(var(--popup-shift)*-1)] data-[side=bottom]:data-starting-style:[translate:0_calc(var(--popup-shift)*-1)]',
   'data-[side=top]:data-ending-style:[translate:0_var(--popup-shift)] data-[side=top]:data-starting-style:[translate:0_var(--popup-shift)]',

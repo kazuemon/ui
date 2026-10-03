@@ -157,7 +157,7 @@ export const sidebar = tv({
     sectionPanel: [
       'flex flex-col gap-0.5',
       'h-(--collapsible-panel-height) [overflow:clip] [overflow-clip-margin:var(--sidebar-panel-clip-margin)]',
-      'transition-[height] duration-(--collapsible-duration) ease-(--collapsible-ease)',
+      'transition-[height] duration-(--duration-normal) ease-(--ease-sheet)',
       'data-ending-style:h-0 data-starting-style:h-0',
       'motion-reduce:[transition:none]',
     ],
@@ -166,7 +166,7 @@ export const sidebar = tv({
       // 行の塗りは案内線に着けず、Tree と同じ間（--sidebar-nested-gap）だけ離す
       'relative ms-[calc(var(--sidebar-row-px)+var(--spacing-icon)/2)] flex flex-col gap-0.5 border-s border-line ps-(--sidebar-nested-gap)',
       'h-(--collapsible-panel-height) [overflow:clip] [overflow-clip-margin:var(--sidebar-panel-clip-margin)]',
-      'transition-[height] duration-(--collapsible-duration) ease-(--collapsible-ease)',
+      'transition-[height] duration-(--duration-normal) ease-(--ease-sheet)',
       'data-ending-style:h-0 data-starting-style:h-0',
       'motion-reduce:[transition:none]',
     ],

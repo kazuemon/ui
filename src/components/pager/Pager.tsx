@@ -28,7 +28,7 @@ const styles = tv({
     list: 'grid gap-(--pager-gap)',
     item: [
       'group/pager-item flex cursor-pointer items-center gap-(--pager-item-gap) no-underline',
-      'active:translate-y-(--pager-press-depth)',
+      'active:translate-y-(--press-depth)',
       // キーボードで操作したときだけ線を出す（原則2）。色を持たない部品なので、線は本文と同じ濃紺
       ...focusRing,
     ],
@@ -45,9 +45,9 @@ const styles = tv({
     variant: {
       card: {
         item: [
-          'rounded-(--pager-card-radius) border-(length:--pager-card-line-width) border-(color:--pager-card-line)',
+          'rounded-(--radius-card) border-(length:--pager-card-line-width) border-(color:--color-surface-line)',
           'px-(--pager-card-padding-inline) py-(--pager-card-padding-block)',
-          'bg-(color:--flat-bg) shadow-raised [--flat-bg:var(--pager-card-fill)]',
+          'bg-(color:--flat-bg) shadow-raised [--flat-bg:var(--color-surface)]',
           'hover:shadow-raised-hover hover:[--flat-bg:var(--pager-card-fill-hover)]',
           'active:shadow-(--shadow-raised-press) active:[--flat-bg:var(--pager-card-fill-press)]',
           '[transition:--flat-bg_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
@@ -56,14 +56,14 @@ const styles = tv({
       },
       text: {
         item: [
-          'rounded-(--pager-text-radius)',
+          'rounded-(--radius-control)',
           '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
           'motion-reduce:[transition:none]',
         ],
         title: [
           'underline [text-decoration-color:var(--pager-text-underline)] decoration-1 underline-offset-4',
           'group-hover/pager-item:[text-decoration-color:var(--pager-text-underline-hover)]',
-          '[transition:text-decoration-color_var(--pager-text-underline-duration)_var(--pager-text-underline-ease)]',
+          '[transition:text-decoration-color_var(--duration-normal)_var(--pager-text-underline-ease)]',
           'motion-reduce:[transition:none]',
         ],
       },

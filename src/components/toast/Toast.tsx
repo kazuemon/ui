@@ -75,17 +75,17 @@ const toastStyles = tv({
     // 1 枚ずつの箱。位置と動きだけを持ち、面は content が持つ
     root: [
       // 重ねるときは transform、並べるときは translate で動かすので、どちらも移り変わりに入れる
-      'w-full [transition:transform_var(--toast-duration)_var(--toast-ease),translate_var(--toast-duration)_var(--toast-ease),opacity_var(--toast-duration)_var(--toast-ease),height_var(--duration-fast)_var(--toast-ease)]',
+      'w-full [transition:transform_var(--duration-slow)_var(--ease-sheet),translate_var(--duration-slow)_var(--ease-sheet),opacity_var(--duration-slow)_var(--ease-sheet),height_var(--duration-fast)_var(--ease-sheet)]',
       'motion-reduce:[transition:none]',
       'data-ending-style:opacity-0 data-limited:opacity-0 data-starting-style:opacity-0',
       'data-swiping:[transition:none]',
     ],
     content: [
-      'relative w-full [box-shadow:var(--toast-shadow),inset_0_0_0_var(--border-width-thin)_var(--toast-line)]',
+      'relative w-full [box-shadow:var(--shadow-overlay),inset_0_0_0_var(--border-width-thin)_var(--toast-line)]',
       // 残り時間の線の色は、題とアイコンと同じ状態の色。お知らせの面が置く変数なので、面の要素で受け取る
       //   （:root のトークンに書くと、そこで解決されてしまい色が決まらない）
       '[--toast-progress-color:var(--notice-icon-color)]',
-      '[transition:opacity_var(--toast-duration)_var(--toast-ease)] motion-reduce:[transition:none]',
+      '[transition:opacity_var(--duration-slow)_var(--ease-sheet)] motion-reduce:[transition:none]',
     ],
     text: 'flex min-w-0 flex-1 flex-col gap-0.5',
     // 残り時間の線（消えるまでの時間を決めたときだけ出す）。面の下の端に、角丸に沿って引く

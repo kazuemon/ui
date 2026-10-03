@@ -15,7 +15,6 @@
   --carousel-gap: calc(var(--spacing) * 4);
   --carousel-snap-align: start;
   --carousel-track-inset: 0px;
-  --carousel-radius: var(--radius-card);
   --carousel-controls-gap: calc(var(--spacing) * 3);
   --carousel-controls-columns: auto 1fr auto;
   --carousel-controls-areas: 'prev indicator next';
@@ -26,9 +25,6 @@
   --carousel-dot-size: calc(var(--spacing) * 2);
   --carousel-dot-current-width: calc(var(--spacing) * 5);
   --carousel-dot-gap: calc(var(--spacing) * 1.5);
-  --carousel-dot-color: var(--color-line-strong);
-  --carousel-dot-current-color: var(--color-neutral-strong);
-  --carousel-count-gap: var(--spacing);
   /* per-view-gap: 1 画面に複数枚（slidesPerView）のときのスライドのあいだ（軸 452）
      autoplay-inline-gap: 自動の送りを止めるボタンと位置の印のあいだ（軸 451）
      thumbnails-side-gap: Thumbnails を枠の横に置くとき（thumbnailsPlacement の start・end）の、帯と枠のあいだ */

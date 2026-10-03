@@ -9,7 +9,6 @@
        backdrop-bg・backdrop-blur: stickyBackdrop="blur" の、透ける面と後ろのぼかし */
   --navbar-height: calc(var(--spacing) * 16);
   --navbar-gap: calc(var(--spacing) * 6);
-  --navbar-item-gap: var(--spacing);
   --navbar-current-bar: calc(var(--spacing) / 2);
   --navbar-sticky-shadow: 0 4px 16px rgb(from var(--color-shadow) r g b / 0.08);
   --navbar-backdrop-bg: color-mix(in oklab, var(--color-bg) 80%, transparent);
@@ -32,5 +31,4 @@
   --navbar-text-shadow-fg-muted: oklch(1 0 0 / 0.85);
   --navbar-text-shadow: 0 1px 3px oklch(0 0 0 / 0.4);
   --navbar-on-image-focus-ring: var(--navbar-on-image-fg);
-  --navbar-backdrop-duration: var(--duration-normal);
 }

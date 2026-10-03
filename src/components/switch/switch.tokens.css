@@ -29,12 +29,11 @@
      --switch-row-gap: card を続けて置いたときの間
      塗りの動きはADR-0067 の A: 押しているあいだも行を濃くせず、hover と同じ塗りのまま。押したことはノブの縮みで伝える
        指で操作するとき（hover なし）は、押した瞬間に行が塗られる（押すときの動きは 0ms。離して戻るときは入力欄と同じ長さ）
-     行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-switch-off。ADR-0067 の D）。hover の塗りに溶けない（1.17:1） */
+     行の中の OFF のトラックは、行の外と同じ一段濃いグレー（--color-field-addon。ADR-0067 の D）。hover の塗りに溶けない（1.17:1） */
   --switch-row-gap: calc(var(--spacing) * 2);
   /* OFF のトグルのトラック（押せるとき）。入力欄の prefix・suffix と同じ一段濃いグレー — ADR-0067 の D
      行全体を押せるトグルの hover の塗り（入力欄の塗り）に溶けないよう、ADR-0067 の D で行の中だけに付けた色を、どこでも既定にした。
      チェックボックス・ラジオの選んでいない箱（--color-choice）も同じ色にそろえる */
-  --color-switch-off: var(--color-field-addon);
   /* 押せない OFF のトラックは、押せない箱（--color-choice-disabled）と同じく、ふだんより薄い入力欄の塗りのグレー — adr/0029
      押せる OFF を一段濃いグレーにしたので、押せないグレーのままでは押せる OFF と同じ色になる */
   --color-switch-off-disabled: var(--color-field);
@@ -42,9 +41,7 @@
      ON のトラックは押せない OFF と同じ地（#F2F4F4）。押せないものは ON も OFF も同じ地で、状態はノブの位置で見せる
      （押せる OFF と同じ #E1E3E4 では、押せない ON が押せる OFF と紛れるため） */
   --color-switch-neutral-on-disabled: var(--color-switch-off-disabled);
-  --color-switch-neutral-disabled-knob: var(--color-on-neutral-disabled);
   /* 色つき（primary・secondary）の押せない OFF のノブ — ADR-0069 の A
      色によらず、色なしの押せないノブと同じグレー（地 #F2F4F4 の上で 2.24:1）
      白いノブ（押せる OFF と同じ）は地 #F2F4F4 の上で 1.10:1 で、ほぼ見えなかった */
-  --color-switch-off-disabled-knob: var(--color-switch-neutral-disabled-knob);
 }

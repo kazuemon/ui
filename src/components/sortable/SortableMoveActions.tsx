@@ -22,7 +22,7 @@ const actions = tv({
     ],
     // 平らな押すもの（原則3）。つまみと同じ幅・手応え・内側のフォーカスの線
     button: [
-      'inline-flex w-(--sortable-handle-width) items-center justify-center rounded-(--sortable-handle-radius) text-fg-muted',
+      'inline-flex w-(--sortable-handle-width) items-center justify-center rounded-(--radius-control) text-fg-muted',
       'bg-(color:--flat-bg) [--flat-bg:transparent]',
       'enabled:hover:[--flat-bg:var(--color-flat-hover)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--flat-bg:var(--color-flat-press)]',
       'disabled:text-on-field-disabled',

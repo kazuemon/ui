@@ -71,7 +71,7 @@ import { tv } from '../../internal/tv';
 // 押せないとき（disabled — design/adr/0046）: href のない <a>。Tab で止まらず、押しても何もしない。hover と押下は data-disabled で止める
 //   文字のリンク: ただの文字と同じ見た目。下線・↗ を付けず、色は周りの文字を受け継ぐ（color: inherit）。カーソルも周りの文字と同じ（auto）
 //     読み上げでもただの文字にする。role・aria-disabled を付けない（href のない <a> は HTML-AAM では generic になり、リンクと読まれない）
-//   枠線のリンク: 押せないグレーの枠線のボタンと同じ（文字 --color-outline-neutral-disabled-text、枠線 --color-outline-neutral-disabled-line — design/adr/0029）
+//   枠線のリンク: 押せないグレーの枠線のボタンと同じ（文字 --color-on-neutral-disabled、枠線 --color-line — design/adr/0029）
 //     読み上げでは「リンク、利用不可」（role="link" aria-disabled="true"）
 // アイコンだけのリンクの形と余白（shape）: 部品の高さの正方形にし、左右の余白をなくす（アイコンだけのボタンと同じ — design/adr/0127）
 //   枠線のリンクの既定は丸（circle）。枠線のリンクは pill なので、アイコンだけになっても丸のままにする（原則5）
@@ -84,7 +84,7 @@ const iconOnlyOutline = {
 } as const;
 
 const link = tv({
-  // キーボードで操作したときのフォーカス（design/adr/0031）。線は角丸（文字のリンクは --link-text-radius）に沿う
+  // キーボードで操作したときのフォーカス（design/adr/0031）。線は角丸（文字のリンクは --radius-md）に沿う
   base: ['cursor-pointer text-(color:--link-color)', ...focusRing],
   variants: {
     variant: {
@@ -101,7 +101,7 @@ const link = tv({
       ],
       // 枠線のリンク。枠線のボタンと同じく、文字の色を淡く敷く
       outline: [
-        // pill（原則5）。文字のリンクの角丸は --link-text-radius（フォーカスの線が沿う — design/adr/0031）
+        // pill（原則5）。文字のリンクの角丸は --radius-md（フォーカスの線が沿う — design/adr/0031）
         'inline-flex h-(--spacing-control) items-center gap-2 rounded-pill border-(length:--border-width-medium) border-current px-(--spacing-control-x) whitespace-nowrap',
         'text-(length:--text-control) leading-(--leading-control) font-bold',
         // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
@@ -111,8 +111,8 @@ const link = tv({
         '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
         'motion-reduce:[transition:none]',
         // 押せないとき: 押せないグレーの枠線のボタンと同じ文字と枠線（design/adr/0029）
-        'data-disabled:cursor-not-allowed data-disabled:[--link-color:var(--color-outline-neutral-disabled-text)]',
-        'data-disabled:border-(color:--color-outline-neutral-disabled-line)',
+        'data-disabled:cursor-not-allowed data-disabled:[--link-color:var(--color-on-neutral-disabled)]',
+        'data-disabled:border-(color:--color-line)',
       ],
       // ボタンの見た目のリンクと下線のリンク。見た目は Button に任せるので、ここには置かない（下の Link が Button を描く）
       button: '',
@@ -262,7 +262,7 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
 const TextNewTabArrow = () => (
   <span aria-hidden="true" className="whitespace-nowrap">
     {'\u2060'}
-    <span className="[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch)] text-transparent normal-nums group-hover/link:-ms-px group-hover/link:[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch_+_1px)] group-hover/link:[transition:margin-inline-start_0s_linear_var(--link-underline-duration),letter-spacing_0s_linear_var(--link-underline-duration)] before:content-['0'] motion-reduce:group-hover/link:[transition:none]" />
+    <span className="[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch)] text-transparent normal-nums group-hover/link:-ms-px group-hover/link:[letter-spacing:calc(var(--link-external-icon-size)*200/256_-_1ch_+_1px)] group-hover/link:[transition:margin-inline-start_0s_linear_var(--duration-normal),letter-spacing_0s_linear_var(--duration-normal)] before:content-['0'] motion-reduce:group-hover/link:[transition:none]" />
     <ArrowUpRightIcon className="-ms-[calc(var(--link-external-icon-size)*200/256)] inline-block size-(--link-external-icon-size) align-[calc(var(--link-external-icon-size)*-56/256)]" />
   </span>
 );

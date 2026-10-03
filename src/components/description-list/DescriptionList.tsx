@@ -34,17 +34,17 @@ const descriptionList = tv({
   slots: {
     root: [
       'flex min-w-0 flex-col gap-(--description-item-gap) rounded-control',
-      '[border-width:var(--description-frame-width)] [border-color:var(--color-description-line)]',
+      '[border-width:var(--description-frame-width)] [border-color:var(--color-line)]',
       // 列に並べるときだけ使う値。入れ子の DescriptionList が外の値を受け継がないよう、自分の要素で決め直す
       '[--description-divider-shift:0px] [--description-first-divider-width:0px] [--description-first-row:0]',
     ],
     item: [
-      'flex min-w-0 gap-x-(--description-column-gap) gap-y-(--description-row-gap)',
+      'flex min-w-0 gap-x-(--description-column-gap) gap-y-(--spacing)',
       '[flex-direction:var(--description-direction)] [align-items:var(--description-item-align)]',
       'px-(--description-pad-x) py-(--description-pad-y)',
       // --description-first-row は、列に並べたときの 1 行目の組だけ 1（firstRowClasses）
       '[border-top-width:calc(var(--description-divider-width)*(1-var(--description-first-row)))]',
-      '[border-top-color:var(--color-description-line)]',
+      '[border-top-color:var(--color-line)]',
       'first:[border-top-width:var(--description-first-divider-width)]',
       'mt-[calc(var(--description-divider-shift)*(var(--description-first-row)-1))]',
     ],
@@ -58,7 +58,7 @@ const descriptionList = tv({
       "after:[display:var(--description-leader-display)] after:grow after:content-['']",
       'after:[border-bottom-width:var(--description-leader-width)]',
       'after:[border-bottom-style:var(--description-leader-style)]',
-      'after:[border-bottom-color:var(--color-description-leader)]',
+      'after:[border-bottom-color:var(--color-line)]',
     ],
     details: 'min-w-0 [flex:var(--description-details-flex)] text-body text-fg',
   },

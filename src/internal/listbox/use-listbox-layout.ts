@@ -58,7 +58,7 @@ export function useListboxLayout({
     popup.style.setProperty('--cue-top', String(Math.min(1, list.scrollTop / CUE_RAMP)));
     popup.style.setProperty('--cue-bottom', String(Math.min(1, rest / CUE_RAMP)));
     const scrollbar = list.offsetWidth - list.clientWidth;
-    const bleed = 'calc(var(--select-popup-padding) * -1)';
+    const bleed = 'calc(var(--spacing) * -1)';
     popup.style.setProperty('--cue-left', bleed);
     popup.style.setProperty('--cue-right', scrollbar > 0 ? `${scrollbar}px` : bleed);
   }, []);

@@ -25,17 +25,13 @@
   --timeline-marker-size-md: calc(var(--spacing) * 2.5); /* 10px */
   --timeline-marker-size-lg: calc(var(--spacing) * 3.5); /* 14px */
   --timeline-marker-gap: calc(var(--spacing) * 3);
-  --timeline-marker-ring: var(--border-width-medium);
-  --color-timeline-marker: var(--color-line-strong);
   --timeline-emphasis-scale: 1.2;
   --timeline-emphasis-halo: calc(var(--spacing) * 1);
   --timeline-emphasis-halo-mix: 45%;
   --timeline-line-width: var(--border-width-thin);
   --timeline-line-gap: calc(var(--spacing) * 1);
-  --timeline-line-dotted-width: var(--border-width-thick);
   --timeline-line-dotted-gap: calc(var(--spacing) * 1.5);
   --timeline-tail-length: calc(var(--spacing) * 5);
-  --color-timeline-line: var(--color-line);
   /* 状態の色の点（markerType の success・warning・danger）
        color-marker-*: 点の色。警告の黄色は白地で 1.2:1 と見えにくいので、前景用のオリーブ色を既定にする（warningColor="yellow" で黄色の塗り）
        color-marker-on-warning: 警告の点の色の上に載せるアイコンの色（オリーブなら白、黄色なら濃紺）
@@ -43,10 +39,8 @@
        icon-marker-size・icon-size: filled の丸とアイコンの大きさ
        icon-marker-size-lg・icon-size-lg: soft・outline の丸とアイコンの大きさ（淡い面・輪郭は塗りより軽く見えるので一回り大きく）
        icon-plain-size: plain（丸なし）のアイコンの大きさ */
-  --color-timeline-marker-success: var(--color-success);
   --color-timeline-marker-warning: var(--color-fg-warning);
   --color-timeline-marker-on-warning: var(--palette-white);
-  --color-timeline-marker-danger: var(--color-danger);
   --timeline-icon-marker-size: calc(var(--spacing) * 6);
   --timeline-icon-size: calc(var(--spacing) * 3.5);
   --timeline-icon-marker-size-lg: calc(var(--spacing) * 7);

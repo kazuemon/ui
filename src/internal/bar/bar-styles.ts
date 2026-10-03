@@ -15,7 +15,7 @@ import { tv } from '../tv';
 //     状態の色ごとの淡い面と文字の色は --bar-status-{subtle,fg} に置く。ほかの色ではグレーと一段淡い色なので、trackColor・valueColor は効かない
 //   ピンクは面用（文字を載せない塗り — 原則12）。トグルの ON と同じ
 //   部品の色は --bar-own に置き、塗りは --bar-fill で描く。Meter は範囲ごとに --bar-fill を差し替える
-// 値が変わったときは、塗りを --duration-bar で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
+// 値が変わったときは、塗りを --duration-normal で伸び縮みさせる。動きを減らす設定では、すぐ切り替える
 export const barStyles = tv({
   slots: {
     root: [
@@ -29,7 +29,7 @@ export const barStyles = tv({
       'relative col-span-full h-(--bar-height) overflow-hidden rounded-pill bg-(color:--bar-track)',
     indicator: [
       'absolute inset-y-0 rounded-pill bg-(color:--bar-fill)',
-      'transition-[width,background-color] duration-(--duration-bar) ease-press motion-reduce:transition-none',
+      'transition-[width,background-color] duration-(--duration-normal) ease-press motion-reduce:transition-none',
     ],
     caption:
       'col-span-full text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
@@ -55,7 +55,7 @@ export const barStyles = tv({
       color: { root: '[--bar-value-color:var(--bar-status-fg)]' },
     },
     size: {
-      sm: { root: '[--bar-height:var(--bar-height-sm)]' },
+      sm: { root: '[--bar-height:var(--spacing)]' },
       md: { root: '[--bar-height:var(--bar-height-md)]' },
       lg: { root: '[--bar-height:var(--bar-height-lg)]' },
     },

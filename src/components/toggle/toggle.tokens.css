@@ -7,12 +7,10 @@
        --toggle-accent・--toggle-accent-fg・--toggle-accent-subtle・--toggle-accent-subtle-fg は color が決め、--toggle-on-* は variant がそこから選ぶ
        枠線の太さは常に --border-width-medium を確保し、色（--toggle-border-color）だけを透明⇄部品の色で切り替える。
        幅で切り替えると outline の ON で auto width の文字ボタンが膨らんで見えるため（軸270の直し）
-     角丸（--toggle-radius）は control で決定（軸267）
+     角丸（--radius-control）は control で決定（軸267）
      ToggleGroup の詰め方（frame。gap・connected）は既定 connected、gap も選べる（軸269で決定。inset は候補から外した）
        connected は仕切りの細い線（--color-line）で区切り、両端だけ角丸を残す
        Toggle は in-data-[frame=…] で、自分が属する ToggleGroup の frame を読み、connected のときだけ自分の角丸を変える */
-  --toggle-radius: var(--radius-control);
-  --toggle-off-bg: var(--color-neutral);
   --toggle-off-fg: var(--color-fg-muted);
   --toggle-off-hover-bg: var(--color-field-hover);
   --toggle-group-gap: calc(var(--spacing) * 2);

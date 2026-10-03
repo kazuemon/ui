@@ -19,15 +19,12 @@
   --image-zoom-backdrop-blur: calc(var(--spacing) * 2);
   --image-zoom-padding-x: calc(var(--spacing) * 4);
   --image-zoom-padding-y: calc(var(--spacing) * 4);
-  --image-zoom-radius: var(--radius-card);
   --image-zoom-outline: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --image-zoom-caption-color: var(--color-fg);
   --image-zoom-caption-gap: calc(var(--spacing) * 3);
   /* variant="dark" の後ろの面（色・ぼかし）とキャプション・× の色（軸 284・決定: I。濃紺 70%・ぼかし 8px・白い文字）。白い地には黒い文字、暗い地には白い文字（原則2） */
   --image-zoom-dark-backdrop: rgb(from var(--color-shadow) r g b / 0.7);
   --image-zoom-dark-backdrop-blur: calc(var(--spacing) * 2);
-  --image-zoom-dark-caption-color: var(--palette-white);
-  --image-zoom-dark-close-fg: var(--palette-white);
   --image-zoom-close-inset: calc(var(--spacing) * 2);
   --image-zoom-close-fg: var(--color-fg-muted);
   --image-zoom-close-bg: transparent;

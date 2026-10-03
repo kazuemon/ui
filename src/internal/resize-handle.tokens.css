@@ -6,13 +6,7 @@
      rest は既定では出さず（境の線だけ）、DataTable の列では淡い線（line）に差し替える。表の列の境は線が薄いか無く、幅を変えられることに気づけないため
      grip-*: ふだんから見せる小さな縦のつまみ（Sidebar の resizeHandle="grip"）の色と大きさ */
   --resize-handle-hit: calc(var(--spacing) * 2); /* 8px */
-  --resize-handle-line-width: var(--border-width-thick);
   --resize-handle-line-inset: 0; /* 線の上下の空き。表の列はセルの上下の余白の分だけ空ける */
   --resize-handle-rest: transparent;
-  --resize-handle-hover: var(--color-line-strong);
-  --resize-handle-active: var(--color-line-strong);
-  --resize-handle-focus: var(--color-primary);
-  --resize-handle-grip: var(--color-line-strong);
-  --resize-handle-grip-width: var(--spacing); /* 4px */
   --resize-handle-grip-height: calc(var(--spacing) * 8); /* 32px */
 }

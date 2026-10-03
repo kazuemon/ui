@@ -4,12 +4,10 @@
      項目の hover（キーボードで選んでいるときも同じ）は入力欄の塗り。選んだ項目は部品の色に従う
      押せない ▼ と、選べない理由の文は、プレースホルダの場所の文と同じ --color-fg-subtle（押せない欄の塗りの上で 3.51:1）。
      --color-on-field-disabled（1.92:1）は、選んだ値と選べない選択肢のラベルだけに使う（値が入った押せない欄と、文を出している押せない欄を見分ける） */
-  --select-popup-padding: var(--spacing);
   /* 選んだ項目の印は、部品の色（color。primary・secondary・neutral、既定 neutral）に従う — adr/0047、ADR-0053
-     色から面・文字・チェックを部品が作る。面は利用者が選ぶ色の淡い面（neutral は --color-select-neutral-selected）、
+     色から面・文字・チェックを部品が作る。面は利用者が選ぶ色の淡い面（neutral は --palette-gray-200）、
      文字とチェックはその上の文字（neutral は濃紺）。選んだ項目の hover は、面に文字の色を 8% 混ぜて一段濃くする */
   --select-item-selected-weight: 700; /* ADR-0053: B（淡い面＋チェック）に太字を足す */
-  --color-select-neutral-selected: var(--palette-gray-200);
   /* 選択肢に付く文（ラベルの下の2行目）と、選べない選択肢 — adr/0044
      reason: 選べない理由。キャプションと同じ灰色で、アイコンなし（白地 4.52）
      選べない選択肢のラベルは、押せない文字の色（#A3A5A6 — adr/0026。白地 2.47）。マウスの hover では塗らない

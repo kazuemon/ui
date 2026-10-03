@@ -16,7 +16,5 @@
   --steps-marker-number-text: 20px;
   --steps-line-width: var(--border-width-thin);
   --steps-line-gap: calc(var(--spacing) * 1);
-  --steps-line-dotted-width: var(--border-width-thick);
   --steps-line-dotted-gap: calc(var(--spacing) * 1.5);
-  --color-steps-line: var(--color-line);
 }

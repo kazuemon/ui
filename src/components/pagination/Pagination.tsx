@@ -38,7 +38,7 @@ import { PaginationPageInput } from './PaginationPageInput';
 const styles = tv({
   slots: {
     root: '@container/pagination text-fg',
-    list: 'flex items-center gap-(--pagination-gap)',
+    list: 'flex items-center gap-(--spacing)',
     // 広い並び（いまのページの左右の番号あり）・狭い並び・いちばん狭い並び（「5 / 10」だけ）
     wideList: 'hidden @md/pagination:flex',
     narrowList: '',
@@ -61,8 +61,8 @@ const styles = tv({
       'aria-[current=page]:font-bold aria-[current=page]:text-(color:--pagination-current-fg)',
       'aria-[current=page]:[--pagination-item-ink:var(--pagination-current-fg)] aria-[current=page]:[--pagination-item-rest:var(--pagination-current-bg)]',
       // 押せない（端のページの前へ・次へ）: 押せない枠線のグレーのボタンと同じ文字の色（原則13）
-      'disabled:cursor-not-allowed disabled:text-(color:--color-outline-neutral-disabled-text)',
-      'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-outline-neutral-disabled-text)',
+      'disabled:cursor-not-allowed disabled:text-(color:--color-on-neutral-disabled)',
+      'data-disabled:cursor-not-allowed data-disabled:text-(color:--color-on-neutral-disabled)',
     ],
     // 前へ・次へ。広いところでは矢印と文字、狭いところでは矢印だけ（正方形）
     step: [
@@ -73,11 +73,11 @@ const styles = tv({
     stepLabel: 'sr-only @lg/pagination:not-sr-only',
     ellipsis: [
       'inline-flex h-(--spacing-control) w-(--pagination-ellipsis-width) shrink-0 items-center justify-center',
-      'text-(length:--text-control) leading-(--leading-control) text-(color:--pagination-ellipsis-color) select-none',
+      'text-(length:--text-control) leading-(--leading-control) text-(color:--color-fg-subtle) select-none',
     ],
     // いちばん狭いところの「5 / 10」
     count: [
-      'inline-flex h-(--spacing-control) shrink-0 items-center justify-center gap-(--pagination-count-gap)',
+      'inline-flex h-(--spacing-control) shrink-0 items-center justify-center gap-(--spacing)',
       'px-(--pagination-item-px) text-(length:--text-control) leading-(--leading-control) whitespace-nowrap tabular-nums',
     ],
     countCurrent: 'font-bold text-fg',

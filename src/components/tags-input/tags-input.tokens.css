@@ -14,7 +14,6 @@
      間違いというより「もうある」ことなので、エラーの赤ではなく、落ち着いたグレーの面にする
      duration は部品も読む（use-tags-flash.ts） */
   --tags-input-flash-duration: 900ms;
-  --tags-input-flash-bg: var(--color-neutral);
   --tags-input-flash-fg: var(--color-fg);
   --tags-input-flash-border-color: var(--color-fg-muted);
 }
@@ -25,7 +24,7 @@
   0%,
   55% {
     border-color: var(--tags-input-flash-border-color);
-    background-color: var(--tags-input-flash-bg);
+    background-color: var(--color-neutral);
     color: var(--tags-input-flash-fg);
   }
 }

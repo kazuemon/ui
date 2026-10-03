@@ -91,7 +91,7 @@ const navbar = tv({
       'flex shrink-0 items-center text-(length:--text-control) leading-(--leading-control) font-bold',
     // 中身（children）を並べる場所。まとまりの間はロゴ・操作との間と同じ
     content: 'flex min-w-0 flex-1 items-center gap-(--navbar-gap)',
-    barList: 'flex items-center gap-(--navbar-item-gap)',
+    barList: 'flex items-center gap-(--spacing)',
     end: 'ms-auto flex shrink-0 items-center gap-2',
     menuButton: '@3xl/navbar:hidden',
     // メニューの面の中身。まとまりを縦に積む。まとまりに入れずに置いたものは隠す（帯にだけ出す）
@@ -133,7 +133,7 @@ const navbar = tv({
       class: {
         root: [
           'not-data-scrolled:border-transparent not-data-scrolled:shadow-none',
-          '[transition:background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press),translate_var(--duration-normal)_var(--ease-press)]',
+          '[transition:background-color_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press),translate_var(--duration-normal)_var(--ease-press)]',
         ],
       },
     },
@@ -205,7 +205,7 @@ const navbar = tv({
         root: [
           'translate-y-[calc(var(--navbar-follow-offset,0px)*-1)]',
           'data-hidden:-translate-y-[calc(100%+var(--navbar-hide-shadow-room))]',
-          '[transition:translate_var(--duration-normal)_var(--ease-press),background-color_var(--navbar-backdrop-duration)_var(--ease-press),border-color_var(--navbar-backdrop-duration)_var(--ease-press),box-shadow_var(--navbar-backdrop-duration)_var(--ease-press)]',
+          '[transition:translate_var(--duration-normal)_var(--ease-press),background-color_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press)]',
           'data-following:transition-none motion-reduce:transition-none',
         ],
       },
@@ -515,7 +515,7 @@ const navbarGroup = tv({
   variants: {
     placement: {
       // 帯の中: 横に並べる
-      bar: 'flex items-center gap-(--navbar-item-gap)',
+      bar: 'flex items-center gap-(--spacing)',
       // メニューの中: 縦に積み、幅いっぱいに広げる
       menu: 'flex flex-col items-stretch gap-2',
     },

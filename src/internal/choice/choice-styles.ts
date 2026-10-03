@@ -50,8 +50,8 @@ export const choiceStyles = tv({
       'data-disabled:cursor-not-allowed data-disabled:[--color-choice-hover:var(--color-choice-disabled)] data-disabled:[--color-choice:var(--color-choice-disabled)]',
       // エラーの箱の内側の線（後半の軸 50 で比べている途中。既定は太さ 0 で引かない）。選んでいない、押せる箱だけ
       //   inset の影で描き、寸法を変えない。フォーカスの ring とは Tailwind の影の枠が別なので、重ねて描ける
-      'shadow-[inset_0_0_0_var(--choice-invalid-line,0px)_var(--color-choice-invalid-line)]',
-      'data-invalid:[&:where(:not([data-disabled],[data-checked],[data-indeterminate]))]:[--choice-invalid-line:var(--choice-invalid-line-width)]',
+      'shadow-[inset_0_0_0_var(--choice-invalid-line,0px)_var(--color-fg-danger)]',
+      'data-invalid:[&:where(:not([data-disabled],[data-checked],[data-indeterminate]))]:[--choice-invalid-line:var(--border-width-medium)]',
       // 選んだ箱（中間も）は部品の色。hover では変えない（トグルの ON と同じ）
       // 押しているあいだは --choice-on-pressed（下）。押していないときは置かないので、部品の色のまま
       'data-checked:bg-[var(--choice-on-pressed,var(--choice-on))] data-indeterminate:bg-[var(--choice-on-pressed,var(--choice-on))]',
@@ -108,7 +108,7 @@ export const choiceStyles = tv({
       neutral: {
         box: [
           '[--choice-disabled-opacity:1] [--choice-on:var(--color-neutral-strong)]',
-          'data-disabled:[--choice-mark:var(--color-choice-neutral-mark-disabled)] data-disabled:[--choice-on:var(--color-choice-neutral-on-disabled)]',
+          'data-disabled:[--choice-mark:var(--color-on-neutral-disabled)] data-disabled:[--choice-on:var(--color-choice-neutral-on-disabled)]',
         ],
       },
     },
@@ -183,7 +183,7 @@ export type RadioGroupFrame = 'none' | 'card';
  *   押せる範囲: 横の文字の ::after をカードいっぱいに広げる（文字を押すと選ばれるので、カードのどこを押しても選ばれる）
  *   hover: 押せるカードと同じ淡い塗り（--card-fill-hover）。読み取り専用のときは塗らない（原則 13）
  *   中に置いたリンク・ボタンは、押せる範囲の広がりより上に出し、マウスでも押せるようにする
- *   選んでいる: 輪郭の上に Card の選んでいる線（--card-selected-line-width）を重ねる（寸法は変えない）。selectedIndicator="fill" では面も色（color）の淡い面にする
+ *   選んでいる: 輪郭の上に Card の選んでいる線（--border-width-thick）を重ねる（寸法は変えない）。selectedIndicator="fill" では面も色（color）の淡い面にする
  *   フォーカス: キーボードのとき、丸ではなくカードの外に線を引く（押せる範囲の外形に出す）
  *   押せない: 面は白のまま、hover しない。横の文字は丸と一緒にグレー
  *   横の文字の右に labelAside（値段など）を置ける
@@ -199,7 +199,7 @@ export const radioCard = tv({
       // 中に置いたリンク・ボタン（丸を除く）は、横の文字の広がり（label の ::after）より上に出す
       '[&_:is(a,button):not([role=radio])]:relative [&_:is(a,button):not([role=radio])]:z-2',
       "after:pointer-events-none after:absolute after:-inset-(--border-width-thin) after:z-1 after:rounded-card after:border-(color:--radio-card-line) after:content-['']",
-      'after:border-0 has-data-checked:after:border-(length:--card-selected-line-width)',
+      'after:border-0 has-data-checked:after:border-(length:--border-width-thick)',
       'has-data-disabled:has-data-checked:after:opacity-(--disabled-opacity)',
       '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
       'has-[[role=radio]:focus-visible]:[outline-width:var(--focus-ring-width)] has-[[role=radio]:focus-visible]:[outline-style:solid]',
@@ -229,7 +229,7 @@ export const radioCard = tv({
         item: '[--radio-card-line:var(--color-fg-secondary)] [--radio-card-tint:var(--color-secondary-subtle)]',
       },
       neutral: {
-        item: '[--radio-card-line:var(--color-neutral-strong)] [--radio-card-tint:var(--color-select-neutral-selected)]',
+        item: '[--radio-card-line:var(--color-neutral-strong)] [--radio-card-tint:var(--palette-gray-200)]',
       },
     },
     // 選んでいる見た目の形（Card の selectedIndicator と同じ語）。line は面を白のまま線だけ、fill は面も色の淡い面にする

@@ -560,7 +560,7 @@ export function MenuSurface({
                   'max-h-(--available-height) max-w-(--available-width) min-w-[max(var(--anchor-width),var(--menu-min-width))] overflow-clip shadow-overlay',
                   // 入れ子の面は、親の項目の横から滑る向きが data-side（inline-end など）になるので、動きは濃さだけ
                   nested
-                    ? 'transition-opacity duration-(--popup-duration-in) ease-(--popup-ease) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:[transition:none]'
+                    ? 'transition-opacity duration-(--duration-normal) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:[transition:none]'
                     : popupMotionClass,
                 ].join(' '),
             cn(className, popupClassName),

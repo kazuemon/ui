@@ -9,6 +9,5 @@
   --embed-shadow: none;
   --embed-outline-width: var(--border-width-thin);
   --embed-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
-  --embed-idle-shadow: var(--shadow-raised);
   --embed-idle-outline-width: 0px;
 }

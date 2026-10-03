@@ -27,5 +27,5 @@ export const kbdStyles = [
   '[:where(&:not([data-prose]),&_kbd)]:inline-block [:where(&:not([data-prose]),&_kbd)]:min-w-(--kbd-min-width) [:where(&:not([data-prose]),&_kbd)]:rounded-sm [:where(&:not([data-prose]),&_kbd)]:px-(--kbd-pad-x) [:where(&:not([data-prose]),&_kbd)]:text-center [:where(&:not([data-prose]),&_kbd)]:align-[0.05em]',
   '[:where(&:not([data-prose]),&_kbd)]:text-(length:--kbd-size) [:where(&:not([data-prose]),&_kbd)]:leading-[1.6] [:where(&:not([data-prose]),&_kbd)]:font-semibold [:where(&:not([data-prose]),&_kbd)]:whitespace-nowrap',
   '[:where(&:not([data-prose]),&_kbd)]:bg-surface [:where(&:not([data-prose]),&_kbd)]:text-fg-muted',
-  '[:where(&:not([data-prose]),&_kbd)]:border [:where(&:not([data-prose]),&_kbd)]:border-b-(length:--kbd-line-bottom-width) [:where(&:not([data-prose]),&_kbd)]:border-surface-line',
+  '[:where(&:not([data-prose]),&_kbd)]:border [:where(&:not([data-prose]),&_kbd)]:border-b-(length:--border-width-thick) [:where(&:not([data-prose]),&_kbd)]:border-surface-line',
 ];

@@ -31,7 +31,7 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 //     フォーカスの線が枠で切れないよう、枠を外へ広げ、同じだけ内側に余白を取る（--tabs-ring-room）
 //   押せないタブは、色を持たない押すものと同じく薄いグレーの文字（原則1）
 //   フォーカスの線（軸 120・決定、ADR-0148）: タブは内側に引く（--tabs-tab-focus-offset。外に離すと下の印・並びの線を越える）
-//     パネルは全体と同じ離れで、角を小さくする（--tabs-panel-radius。1 行のパネルでも pill に見えない）
+//     パネルは全体と同じ離れで、角を小さくする（--radius-md。1 行のパネルでも pill に見えない）
 //   はじめに選んでおいたタブが見えている範囲の外にあるとき、マウント時にその位置までスクロールする（動きを減らす設定では滑らせない）
 //     縦向きのときはしない（縦の並びは横にあふれず、外の枠まで動いてしまう）
 
@@ -80,7 +80,7 @@ const tabs = tv({
       'in-data-[orientation=vertical]:after:left-[calc(100%-var(--tabs-ring-room)-var(--tabs-line-width))]',
     ],
     list: [
-      'relative isolate flex w-max items-center gap-(--tabs-gap)',
+      'relative isolate flex w-max items-center gap-(--spacing)',
       // 溝（segmented）: 並びにグレーを敷き、内側に余白を取る。角は小物の pill
       'rounded-pill bg-(color:--tabs-list-bg) p-(--tabs-list-pad)',
       // 縦向き: タブを縦に積む。並びの幅は listWidth（--tabs-vertical-list-width）、寄せは tabAlign（--tabs-vertical-tab-align）
@@ -91,7 +91,7 @@ const tabs = tv({
     ],
     tab: [
       'relative z-1 inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap select-none',
-      'h-[calc(var(--spacing-control)-var(--tabs-list-pad)*2)] rounded-(--tabs-tab-radius) px-(--spacing-control-x)',
+      'h-[calc(var(--spacing-control)-var(--tabs-list-pad)*2)] rounded-(--radius-pill) px-(--spacing-control-x)',
       'text-(length:--text-control) leading-(--leading-control) text-fg-muted',
       // 選んだタブ: 太く、indicator が選ぶ色（--tabs-tab-color。本文の色か部品の色）
       'data-active:cursor-default data-active:font-bold data-active:text-(color:--tabs-tab-color)',
@@ -119,22 +119,22 @@ const tabs = tv({
       // 位置は Base UI が書く --active-tab-*（並びの左上から）
       'right-(--active-tab-right) left-(--active-tab-left)',
       // --active-tab-* は Base UI がこの要素にだけ書くので、位置はここで解く。--tabs-indicator-full が 1 ならタブ全体、0 なら下の線
-      '[top:calc(var(--active-tab-top)+(var(--active-tab-height)-var(--tabs-indicator-bar))*(1-var(--tabs-indicator-full)))]',
-      '[height:calc(var(--tabs-indicator-bar)+(var(--active-tab-height)-var(--tabs-indicator-bar))*var(--tabs-indicator-full))]',
+      '[top:calc(var(--active-tab-top)+(var(--active-tab-height)-var(--border-width-thick))*(1-var(--tabs-indicator-full)))]',
+      '[height:calc(var(--border-width-thick)+(var(--active-tab-height)-var(--border-width-thick))*var(--tabs-indicator-full))]',
       // 縦向き: 印はタブの高さいっぱいの縦の棒（full が 1 ならタブ全体）。棒は並びの右端（中身側）に立てる（ADR-0258）
       //   横向きで並びの線の上に乗るのと同じで、タブが幅いっぱいでなくても線と同じ位置に立つ
       'data-[orientation=vertical]:[top:var(--active-tab-top)] data-[orientation=vertical]:[bottom:var(--active-tab-bottom)] data-[orientation=vertical]:[height:auto]',
-      'data-[orientation=vertical]:[left:calc(var(--active-tab-left)*var(--tabs-indicator-full)+(1-var(--tabs-indicator-full))*(100%-var(--tabs-indicator-bar)))]',
+      'data-[orientation=vertical]:[left:calc(var(--active-tab-left)*var(--tabs-indicator-full)+(1-var(--tabs-indicator-full))*(100%-var(--border-width-thick)))]',
       'data-[orientation=vertical]:[right:calc(var(--active-tab-right)*var(--tabs-indicator-full))]',
-      'rounded-(--tabs-indicator-radius) opacity-(--tabs-indicator-opacity) shadow-(--tabs-indicator-shadow)',
+      'rounded-(--radius-pill) opacity-(--tabs-indicator-opacity) shadow-(--tabs-indicator-shadow)',
       'bg-(color:--tabs-indicator-bg)',
-      '[transition:left_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),right_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),top_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),bottom_var(--tabs-indicator-duration)_var(--tabs-indicator-ease),height_var(--tabs-indicator-duration)_var(--tabs-indicator-ease)]',
+      '[transition:left_var(--tabs-indicator-duration)_var(--ease-press),right_var(--tabs-indicator-duration)_var(--ease-press),top_var(--tabs-indicator-duration)_var(--ease-press),bottom_var(--tabs-indicator-duration)_var(--ease-press),height_var(--tabs-indicator-duration)_var(--ease-press)]',
       'motion-reduce:[transition:none]',
     ],
     panel: [
       // 角は小さく、1 行でもフォーカスの線が pill に見えない（軸 120）
       // 並びと中身のあいだの余白は panelGap（既定は Stack の md と同じ 16px）。Tabs が --tabs-panel-pad に配る（ADR-0254 の M-04）
-      'mt-(--tabs-panel-pad) rounded-(--tabs-panel-radius)',
+      'mt-(--tabs-panel-pad) rounded-(--radius-md)',
       // 縦向き: 中身は並びの右。上の余白を横の余白に置き換える
       'data-[orientation=vertical]:mt-0 data-[orientation=vertical]:ml-(--tabs-panel-pad)',
       'data-[orientation=vertical]:min-w-0 data-[orientation=vertical]:flex-1',

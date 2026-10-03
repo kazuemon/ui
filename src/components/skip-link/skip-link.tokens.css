@@ -7,11 +7,5 @@
   --skip-link-top: calc(var(--spacing) * 3);
   --skip-link-left: calc(var(--spacing) * 3);
   --skip-link-right: auto;
-  --skip-link-radius: var(--radius-pill);
-  --skip-link-bg: var(--color-surface);
-  --skip-link-fg: var(--color-primary);
-  --skip-link-line: var(--color-surface-line);
-  --skip-link-shadow: var(--shadow-overlay);
   --skip-link-focus-ring-offset: var(--focus-ring-offset);
-  --skip-link-focus-ring-color: var(--color-primary);
 }

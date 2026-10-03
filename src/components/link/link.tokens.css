@@ -4,10 +4,8 @@
   --color-link-underline: color-mix(in oklab, currentColor 35%, transparent);
   --color-link-underline-hover: color-mix(in oklab, currentColor, black 30%);
   /* 下線の色の変化の長さと緩急。ゆっくり始めてゆっくり終える — adr/0030 */
-  --link-underline-duration: var(--duration-normal);
   --link-underline-ease: var(--ease-in-out);
   /* 文字のリンクの角丸。フォーカスの線がこの角丸に沿う — adr/0031 */
-  --link-text-radius: var(--radius-md);
   /* 文字のリンクで、新しいタブで開くときに部品が付ける ↗ の大きさ。周りの文字に対する比（em）— adr/0046
      下線を ↗ の線の右端まで続ける幅と、線の下端を基線にそろえる量は、部品がこの値から計算する（どの大きさでも成り立つ） */
   --link-external-icon-size: 0.85em;

@@ -15,7 +15,6 @@
   --skeleton-sweep-viewport: skeleton-sweep-rest 2.8s ease-in-out infinite;
   --skeleton-pulse: var(--animate-pulse);
   --skeleton-text-bar: 1em;
-  --skeleton-text-radius: var(--radius-sm);
   --skeleton-last-line: 60%;
 }
 

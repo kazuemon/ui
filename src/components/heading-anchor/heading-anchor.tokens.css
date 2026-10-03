@@ -9,7 +9,4 @@
   --heading-anchor-gap: 0.4em;
   --heading-anchor-rest-opacity: 0;
   --heading-anchor-touch-opacity: 1;
-  --heading-anchor-color: var(--color-fg-subtle);
-  --heading-anchor-color-hover: var(--color-primary);
-  --heading-anchor-duration: var(--duration-fast);
 }

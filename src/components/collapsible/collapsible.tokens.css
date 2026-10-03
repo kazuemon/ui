@@ -7,9 +7,6 @@
      中身: 高さを動かす長さと緩急（どの見た目も同じ）、出はじめの濃さ（1 で濃さは動かさない）
        上下の余白は行の上下の余白と同じ（部品で計算する）。塗った行の面の下端から中身までが、面の中の余白とそろう */
   --collapsible-gap: calc(var(--spacing) * 2);
-  --collapsible-row-gap: var(--spacing);
-  --collapsible-duration: var(--duration-normal);
-  --collapsible-ease: var(--ease-sheet);
   --collapsible-start-opacity: 0;
   /* 枠付きのカードの形（variant="card"）— 軸 416。角・輪郭・面はカードと同じで、部品が決める
      開いた行は塗らない（openFilled で open-filled と同じグレーを敷ける）

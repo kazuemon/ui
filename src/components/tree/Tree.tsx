@@ -55,7 +55,7 @@ const tree = tv({
       'relative flex flex-col',
       // 字下げの案内線（軸 149）。親の印の中心にそろえて縦線を引く
       // 行の塗り（hover・いまいる行）より手前に置く。線は行のうしろに隠れない
-      "before:absolute before:inset-y-0 before:left-[calc(var(--tree-indent)*var(--tree-depth)+var(--tree-guide-left))] before:z-1 before:w-(--tree-guide-width) before:bg-(color:--tree-guide-color) before:content-['']",
+      "before:absolute before:inset-y-0 before:left-[calc(var(--tree-indent)*var(--tree-depth)+var(--tree-guide-left))] before:z-1 before:w-(--tree-guide-width) before:bg-(color:--color-line) before:content-['']",
     ],
     row: [
       'group/tree-row relative flex h-(--spacing-control) cursor-pointer items-center gap-(--tree-gap)',
@@ -142,7 +142,7 @@ const tree = tv({
           'h-(--collapsible-panel-height)',
           // 高さを動かすあいだ、中身をはみ出させない。フォーカスの線が切れないよう、切る場所はその外側に取る
           '[overflow:clip] [overflow-clip-margin:var(--tree-panel-clip-margin)]',
-          'transition-[height] duration-(--collapsible-duration) ease-(--collapsible-ease)',
+          'transition-[height] duration-(--duration-normal) ease-(--ease-sheet)',
           'data-ending-style:h-0 data-starting-style:h-0',
           'motion-reduce:[transition:none]',
         ],

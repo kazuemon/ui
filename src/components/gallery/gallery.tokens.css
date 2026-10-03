@@ -16,7 +16,6 @@
        nav-bg・nav-shadow: ボタンの面と影。counter-width: 下の帯で、位置の数（3 / 6）に取る幅
        位置の点（indicator="dots"）の形と間は Carousel と同じ --carousel-dot-*（internal/position-indicator.tsx） */
   --gallery-gap: var(--stack-gap-sm);
-  --gallery-radius: var(--radius-card);
   --gallery-ratio: 4 / 3;
   --gallery-slide-distance: 0.12;
   --gallery-slide-fade: 1;
