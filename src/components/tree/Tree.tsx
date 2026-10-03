@@ -9,6 +9,7 @@ import {
   type ReactElement,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -40,6 +41,8 @@ import { Skeleton } from '../skeleton/Skeleton';
 //     行き先（href）を渡した行はリンクになり、Enter で移る。子を持つ行は Space で開け閉めする
 //   子をあとから読み込む行（hasChildren・loading）: children がまだなくても開け閉めできる行にし、開いたら使う側が読み込む
 //     読み込んでいるあいだは、行に aria-busy を付け、読み上げにだけ届ける文（loadingText）を説明にする。見える印は読み上げに出さない
+//     読み込みが始まったことは、木のそばにいつも置いた status の箱が 1 回だけ伝える（原則15）。行の説明は、あとで行に戻ったとき用に残す
+//       終わったときは知らせない（子の行が現れることで分かる）。箱は空に戻すだけ
 //     見える印は、閉じられるか（loadingBehavior）で替える（軸 454・決定）
 //       non-blocking（既定）: 読み込んでいるあいだも閉じられる。行の右端に回る円を出す（開閉の印は閉じるために残す）
 //       blocking: 読み込み終わるまで閉じられない。開閉の印を回る円に替える（閉じる印を見せない）
@@ -171,6 +174,14 @@ interface TreeContextValue {
   rootRef: React.RefObject<HTMLUListElement | null>;
   /** 型あたり（文字を打って行へ移る）の、打っている途中の文字。木で 1 つ持つ */
   typeaheadRef: React.RefObject<Typeahead>;
+  /** 読み込みが始まったことを、木の status の箱で 1 回だけ伝える。text が空のときは箱を空に戻す */
+  announce: (text: string) => void;
+}
+
+/** 木の status の箱の中身。count は、同じ文を続けて知らせるときに中身を入れ替えるための番号 */
+interface TreeAnnouncement {
+  text: string;
+  count: number;
 }
 
 /** 型あたりの状態。text は打っている途中の語、time は最後に打った時刻 */
@@ -300,6 +311,12 @@ export function Tree({
   // 型あたりの途中の文字は、木で 1 つ持つ（どの行で打っても同じ語になる）
   const typeaheadRef = useRef<Typeahead>({ text: '', time: 0 });
   const [active, setActive] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<TreeAnnouncement>({ text: '', count: 0 });
+  // 同じ文が続いても読まれるよう、知らせるたびに中身の要素を入れ替える（key）
+  const announce = useCallback(
+    (text: string) => setAnnouncement((prev) => ({ text, count: prev.count + 1 })),
+    []
+  );
   // Tab で止まる行を 1 つ決める（roving tabindex）。いまいる行、なければ最初の行
   useEffect(() => {
     if (active !== null) return;
@@ -308,7 +325,7 @@ export function Tree({
     if (target) setActive(target.id);
   }, [active]);
   return (
-    <TreeContext value={{ depth: 0, slots, active, setActive, rootRef, typeaheadRef }}>
+    <TreeContext value={{ depth: 0, slots, active, setActive, rootRef, typeaheadRef, announce }}>
       <ul
         {...props}
         ref={mergedRef}
@@ -319,6 +336,10 @@ export function Tree({
       >
         {children}
       </ul>
+      {/* 読み込みの知らせ。木を描いているあいだずっと置く、見えない status の箱（木の外。tree の中には行と並びしか置けない） */}
+      <span role="status" data-slot="tree-status" className="sr-only">
+        {announcement.text && <span key={announcement.count}>{announcement.text}</span>}
+      </span>
     </TreeContext>
   );
 }
@@ -382,7 +403,7 @@ export interface TreeItemProps extends Omit<
    */
   loadingPlaceholder?: TreeLoadingPlaceholder;
   /**
-   * 読み込んでいるあいだ、読み上げにだけ届ける文
+   * 読み込んでいるあいだ、読み上げにだけ届ける文。読み込みが始まったときに 1 回だけ知らせ、行に戻ったときは行の説明として読みます
    * @default '読み込んでいます'
    */
   loadingText?: string;
@@ -425,11 +446,19 @@ export function TreeItem({
   const groupId = `${id}-group`;
   const [uncontrolled, setUncontrolled] = useState(defaultExpanded);
   if (!context) throw new Error('TreeItem は Tree の中に置いてください');
-  const { depth, slots, active, setActive, rootRef, typeaheadRef } = context;
+  const { depth, slots, active, setActive, rootRef, typeaheadRef, announce } = context;
   const hasChildren = hasChildrenProp || (children != null && children !== false);
   const busy = hasChildren && loading;
   const blocking = busy && loadingBehavior === 'blocking';
   const open = expanded ?? uncontrolled;
+
+  // 読み込みが始まったときだけ、木の status の箱で知らせる。はじめから読み込んでいる行は知らせない。終わったら箱を空に戻す
+  const wasBusy = useRef(busy);
+  useEffect(() => {
+    if (busy === wasBusy.current) return;
+    wasBusy.current = busy;
+    announce(busy ? loadingText : '');
+  }, [busy, loadingText, announce]);
 
   const setOpen = (next: boolean) => {
     // blocking で読み込んでいるあいだは閉じない
