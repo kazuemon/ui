@@ -545,6 +545,7 @@ function ControlledColumnWidths() {
             <DataTableHeader
               resizable
               width={width}
+              defaultWidth={160}
               maxWidth={176}
               onWidthChange={(next) => {
                 columnWidthChange(next);
@@ -579,7 +580,7 @@ export const ResizableColumnsControlled: Story = {
     docs: {
       description: {
         story:
-          '`resizable` の列に数の `width` を渡すと、幅を外で持つ形になります。`onWidthChange` で受けた幅を `width` に渡し直します（TanStack Table では `header.getSize()` と `table.setColumnSizing`）。',
+          '`resizable` の列に数の `width` を渡すと、幅を外で持つ形になります。`onWidthChange` で受けた幅を `width` に渡し直します（TanStack Table では `header.getSize()` と `table.setColumnSizing`）。ダブルクリックで戻す先として、`defaultWidth` も渡します（TanStack Table では `header.column.columnDef.size`）。',
       },
     },
   },
@@ -597,6 +598,10 @@ export const ResizableColumnsControlled: Story = {
     await expect(columnWidthChange).toHaveBeenLastCalledWith(176);
     await userEvent.keyboard('{Home}');
     await expect(handle).toHaveAttribute('aria-valuenow', '48');
+    // ダブルクリックで defaultWidth に戻す
+    await userEvent.dblClick(handle);
+    await expect(columnWidthChange).toHaveBeenLastCalledWith(160);
+    await expect(handle).toHaveAttribute('aria-valuenow', '160');
     // 最後の列は表の端なので、resizable でもつまみを出さない（読み上げにも出ない）
     await expect(canvas.queryByRole('separator', { name: '金額の列の幅' })).toBeNull();
     const scroller = canvas.getByRole('region', { name: '注文' });

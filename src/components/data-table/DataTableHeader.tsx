@@ -60,7 +60,10 @@ export interface DataTableHeaderProps extends TableHeaderProps {
    * @default false
    */
   resizable?: boolean;
-  /** resizable のときの、はじめの幅（px。非制御） */
+  /**
+   * resizable のときの、はじめの幅（px）。ダブルクリックでこの幅に戻ります。
+   * 幅を外で持つ（数の width を渡す）ときも、戻す先として渡します。渡さないと、ダブルクリックしても幅は変わりません（TanStack Table では `header.column.columnDef.size`）
+   */
   defaultWidth?: number;
   /** resizable で幅を変えたときに、次の幅（px）を渡して呼びます。TanStack Table では `table.setColumnSizing` につなぎます */
   onWidthChange?: (width: number) => void;
