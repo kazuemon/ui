@@ -229,7 +229,7 @@ export const TopWithForm: Story = {
     );
     // つまみは下の端（下の帯のボタンより下）に置く
     const handles = drawer.querySelectorAll<HTMLElement>('[data-slot="sheet-handle"]');
-    const bar = handles[handles.length - 1]!.firstElementChild!;
+    const bar = handles[handles.length - 1].firstElementChild!;
     await expect(bar.getBoundingClientRect().top).toBeGreaterThan(
       submit.getBoundingClientRect().bottom
     );
