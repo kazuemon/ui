@@ -379,8 +379,9 @@ export function CarouselView({
   const stops = Math.max(1, count - Math.max(1, visibleCount ?? 1) + 1);
   const position = Math.min(index, stops - 1);
   const wraps = loop && stops > 1;
-  const canPrev = engineCanPrev ?? (wraps || position > 0);
-  const canNext = engineCanNext ?? (wraps || position < stops - 1);
+  // 端でつながるときは、外のエンジンが端と言っても押せる（反対の端へ回す）
+  const canPrev = wraps || (engineCanPrev ?? position > 0);
+  const canNext = wraps || (engineCanNext ?? position < stops - 1);
   const indicator = indicatorProp ?? (thumbnails != null ? 'none' : 'dots');
   const perViewByBreakpoint = perViewCounts(slidesPerView);
   const perView = perViewByBreakpoint != null;
