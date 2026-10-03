@@ -156,11 +156,13 @@
 
 ### Navbar
 
-2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md) です。
+2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md)・[ADR-0454](./adr/0454-navbar-hide-on-scroll.md)〜[0456](./adr/0456-navbar-default-solid.md) です。
 
 - Navbar の行き先を、下に開くメニュー（NavigationMenu）にする形は決めていません
 - Navbar のメニューを開いたとき、actions（Contact などのボタン）をメニューの中にも出すかは決めていません
 - **貼り付けた（sticky）Navbar があるページで、アンカーリンクで移った見出しが帯の下に隠れます（2026-09-23、ドキュメントサイトで気づきました）。** 見出しに `scroll-margin-top`（Navbar の高さ + 下の線の太さ。`--navbar-height` + `--border-width-thin`）を付けるのは、いまは使う側の責任です（`apps/docs/app/globals.css` で対応）。見出しはライブラリのコンポーネントではなく、必要なオフセットは使う側の構成（sticky にするか、高さ）次第なので、いまはアプリ側に留めています。2つ目の消費者が同じ対応をするときは、レシピか公開のトークンにまとめるかを検討します
+- ヒーロー画像に Navbar を重ねる（`transparent-until-scroll`）には、ページ側で帯の高さを打ち消す必要があります（ストーリーでは `-mb-(--navbar-height)`）。部品で口を持つかは決めていません
+- 文字を白くする透かし（`transparentVariant` の scrim・text-shadow）で、白い文字に戻すのは入力欄と塗りのあるボタンだけです。自分の面を持つほかの部品（SegmentedControl・Tag など）を帯に置くと、白い面に白い文字が載ります（[ADR-0455](./adr/0455-navbar-transparent-top.md)）
 
 ### Tabs
 
@@ -185,7 +187,7 @@
 
 2026-09-19 に作りました。決定は [ADR-0175](./adr/0175-affix-surface-edge.md)・[ADR-0176](./adr/0176-affix-gap.md) です。
 
-- 貼り付けた Navbar の下に留めるのは `belowNavbar` で使う側が指定します。Navbar が貼り付いているかを部品が自分で読む形（Navbar が `data-sticky` を出し、`:has()` で読む）にするかは決めていません
+- 貼り付けた Navbar の下に留めるのは `belowNavbar` で使う側が指定します。Navbar が貼り付いているかを部品が自分で読む形（Navbar が `data-sticky` を出し、`:has()` で読む）にするかは決めていません また、帯を `stickyBehavior="hide-on-scroll"` で隠したときに、`belowNavbar` で留めたものが帯に追いつかず、空きが残ります。帯の動きに合わせて上へ寄せるかも、同じところで決めます
 - 留まった目次が画面より長いときの扱い（高さを画面に収めて中をスクロールさせるか）は、TableOfContents の側で決めます。上からの離れは `--affix-inset` で読めます
 - 記事の横の列そのもの（目次を置く列）は、Sidebar を部品にしたので、Sidebar で足りるか、別の部品にするかを決めます
 
@@ -877,4 +879,5 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `narrowPresentation="menu"`（[ADR-0364](./adr/0364-sidebar-narrow-menu.md)）では、件数は札ではなく、文字の後ろの「（n）」で出します。当面はこのままにします
 - Menu の項目にも、Sidebar の行と同じように件数（数字の札）や点を出せる口（MenuItem・MenuLinkItem・MenuSubmenu に Sidebar と同じ `badge` など）を作ります。できたら、`narrowPresentation="menu"` の件数もそれで出します
 - `SidebarLayout` の `resizable` で変えた幅は、部品の中では覚えません。使う側が `onWidthChange` で保存します
+- 子を持つ項目をリンクにする形（F96）は、将来見直すかもしれません。今は行全体で開け閉めし、まとめの行のページが要るときはまとめ方を変えます（[ADR-0469](./adr/0469-sidebar-parent-link.md)）。試作は `0ebd6bf` と ADR-0469 の画像にあります
 - 畳んだ列の横に出す面は、マウスが行と面の外に `closeDelay` のあいだ出ると閉じます。この見張りは、押して開いた面にも効き、ページのほかの Menu の上も「中」と数えます。どう開いたか（載せた・押した・キーボード）で見張るかを分けるかは、ブラウザで動きを確かめてから決めます

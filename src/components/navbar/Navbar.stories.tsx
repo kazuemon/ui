@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Navbar, NavbarGroup, NavbarLink, NavbarLinks, NavbarMenuList } from './Navbar';
-import { landscape } from '../../samples/images';
+import { landscape, night } from '../../samples/images';
 import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
@@ -59,7 +59,9 @@ const meta = {
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
           '- いまいるページの印は `currentIndicator` で選びます。`text`（既定）は文字を濃く太く、`neutral` はグレーの面、`primary` は淡い青の面、`underline` は文字の下に青い線です。',
-          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`）で選びます。',
+          '- `sticky` を付けると、スクロールしても画面の上に貼り付きます（既定は付けません）。下の内容との境目は `stickyEdge`（`line` 既定・`shadow`）、面は `stickyBackdrop`（`solid` 既定・`blur`・`transparent-until-scroll`）で選びます。`transparent-until-scroll` は、いちばん上では面と境目を消して後ろを見せ、スクロールすると `solid` と同じ面にします。',
+          '- 透かしているあいだの文字は `transparentVariant` で守ります。`plain`（既定）は面を敷かず本文の色のままで、明るい画像に向きます。`scrim` は上から暗い幕を敷いて文字を白く、`frosted` は白を薄く敷いて後ろをぼかし、`text-shadow` は面を敷かずに文字を白くして淡い影を落とします。暗い画像には `scrim` か `text-shadow` を使います。帯を画像に重ねるには、帯の下の余白を使う側で詰めます（`className="-mb-(--navbar-height)"` など）。',
+          '- `stickyBehavior="hide-on-scroll"` で、スクロールした量だけ帯を押し上げて隠し、上へ戻すと出します。スクロールを止めると、隠すか出すか近い方へ寄せます。帯の中にフォーカスがあるときと、メニューを開いているときは隠しません。',
           '- Next.js の `Link` は、`NavbarLink` の `render` に渡します。',
         ].join('\n'),
       },
@@ -71,6 +73,8 @@ const meta = {
     currentIndicator: 'text',
     stickyEdge: 'line',
     stickyBackdrop: 'solid',
+    stickyBehavior: 'always',
+    transparentVariant: 'plain',
     accessibleName: 'メイン',
     menuTitle: 'メニュー',
     menuSide: 'auto',
@@ -93,8 +97,18 @@ const meta = {
     },
     stickyBackdrop: {
       control: 'inline-radio',
-      options: ['solid', 'blur'],
+      options: ['solid', 'blur', 'transparent-until-scroll'],
       table: { defaultValue: { summary: "'solid'" } },
+    },
+    stickyBehavior: {
+      control: 'inline-radio',
+      options: ['always', 'hide-on-scroll'],
+      table: { defaultValue: { summary: "'always'" } },
+    },
+    transparentVariant: {
+      control: 'inline-radio',
+      options: ['plain', 'scrim', 'frosted', 'text-shadow'],
+      table: { defaultValue: { summary: "'plain'" } },
     },
     menuSide: {
       control: 'inline-radio',
@@ -287,6 +301,120 @@ export const Sticky: Story = {
       ))}
     </div>
   ),
+};
+
+const transparentVariants = ['plain', 'scrim', 'frosted', 'text-shadow'] as const;
+
+export const TransparentTop: Story = {
+  tags: ['visual'],
+  name: 'いちばん上で透かすとき',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`stickyBackdrop="transparent-until-scroll"` で、いちばん上にいるあいだの帯です。文字の守り方は `transparentVariant` で選びます。左は明るい画像、右は暗い画像の上です。`scrim`・`text-shadow` で白くするのは、帯に直接載る文字とアイコン（行き先・ロゴ・面のないボタン）とフォーカスの線です。検索の欄や塗りのボタンのように面を持つ部品の中は、元の色のままです（いちばん下の行）。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-4">
+      {transparentVariants.map((variant) => (
+        <div key={variant} className="flex items-center gap-6">
+          <span className="w-24 text-xs font-bold text-fg-subtle">{variant}</span>
+          {[landscape, night].map((image) => (
+            <div
+              key={image}
+              data-testid={`transparent-${variant}-${image === night ? 'dark' : 'light'}`}
+              className="h-40 w-[560px] overflow-y-auto border border-line bg-bg"
+            >
+              <Navbar
+                sticky
+                stickyBackdrop="transparent-until-scroll"
+                transparentVariant={variant}
+                className="-mb-(--navbar-height)"
+                brand={<span>k6n</span>}
+                actions={<Button variant="outline">Contact</Button>}
+              >
+                {links()}
+              </Navbar>
+              <img src={image} alt="" className="block h-48 w-full object-cover" />
+            </div>
+          ))}
+        </div>
+      ))}
+      <div className="flex items-center gap-6">
+        <span className="w-24 text-xs font-bold text-fg-subtle">欄・ボタン</span>
+        {(['scrim', 'text-shadow'] as const).map((variant) => (
+          <div
+            key={variant}
+            data-testid={`with-field-${variant}`}
+            className="h-40 w-[560px] overflow-y-auto border border-line bg-bg"
+          >
+            <Navbar
+              sticky
+              stickyBackdrop="transparent-until-scroll"
+              transparentVariant={variant}
+              className="-mb-(--navbar-height)"
+              brand={<span>k6n</span>}
+              actions={<Button color="white">Sign in</Button>}
+            >
+              {links()}
+              <NavbarGroup narrowPlacement="bar" className="min-w-0 flex-1">
+                <SearchField
+                  accessibleName="サイト内を検索"
+                  defaultValue="Navbar"
+                  className="min-w-0 flex-1"
+                />
+              </NavbarGroup>
+            </Navbar>
+            <img src={night} alt="" className="block h-48 w-full object-cover" />
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const white = 'oklch(1 0 0)';
+    const scrollTo = async (scroller: HTMLElement, top: number) => {
+      scroller.scrollTop = top;
+      scroller.dispatchEvent(new Event('scroll'));
+      const header = scroller.querySelector('header');
+      await waitFor(() =>
+        top > 0
+          ? expect(header).toHaveAttribute('data-scrolled')
+          : expect(header).not.toHaveAttribute('data-scrolled')
+      );
+    };
+    // 白い文字にするあいだは、フォーカスの線も白。スクロールして面になったら元の色に戻る
+    for (const variant of ['scrim', 'text-shadow']) {
+      const scroller = canvas.getByTestId(`transparent-${variant}-dark`);
+      // 帯に直接載る、面のないボタン（メニューのボタン）
+      const button = within(scroller).getByRole('button', { name: 'メニュー' });
+      await expect(getComputedStyle(button).color).toBe(white);
+      button.focus();
+      await waitFor(() => expect(getComputedStyle(button).outlineColor).toBe(white));
+      await scrollTo(scroller, scroller.scrollHeight);
+      await waitFor(() => expect(getComputedStyle(button).outlineColor).not.toBe(white));
+      await waitFor(() => expect(getComputedStyle(button).color).not.toBe(white));
+      button.blur();
+      await scrollTo(scroller, 0);
+    }
+    // 面を持つ部品（検索の欄・塗りのボタン）の中は、白くせず元の色のまま
+    for (const variant of ['scrim', 'text-shadow']) {
+      const box = within(canvas.getByTestId(`with-field-${variant}`));
+      const input = box.getByRole('searchbox', { name: 'サイト内を検索' });
+      const button = box.getByRole('button', { name: 'Sign in' });
+      await expect(getComputedStyle(box.getByRole('button', { name: 'メニュー' })).color).toBe(
+        white
+      );
+      await expect(getComputedStyle(input).color).not.toBe(white);
+      await expect(getComputedStyle(input).textShadow).toBe('none');
+      await expect(getComputedStyle(button).color).not.toBe(white);
+    }
+  },
 };
 
 export const Densities: Story = {
@@ -606,5 +734,64 @@ export const ControlledMenu: Story = {
     await userEvent.click(within(menu).getByRole('link', { name: 'About' }));
     await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
     await expect(canvas.getByTestId('menu-state')).toHaveTextContent('閉じている');
+  },
+};
+
+export const HideOnScroll: Story = {
+  name: 'スクロールで隠す',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`stickyBehavior="hide-on-scroll"` で、下へスクロールすると帯を隠し、上へ戻すと出します。`stickyBackdrop="transparent-until-scroll"` と合わせると、いちばん上では透けます。',
+      },
+    },
+  },
+  render: () => (
+    <div data-testid="scroller" className="h-60 w-[800px] overflow-y-auto border border-line bg-bg">
+      <Navbar
+        sticky
+        stickyBehavior="hide-on-scroll"
+        stickyBackdrop="transparent-until-scroll"
+        brand={brand}
+      >
+        {links()}
+      </Navbar>
+      <div className="h-[1600px]" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const scroller = canvas.getByTestId('scroller');
+    const header = canvasElement.querySelector('header')!;
+    const scrollTo = (top: number) => {
+      scroller.scrollTop = top;
+      scroller.dispatchEvent(new Event('scroll'));
+    };
+
+    // いちばん上では透かし、隠さない
+    await expect(header).not.toHaveAttribute('data-scrolled');
+    await expect(header).not.toHaveAttribute('data-hidden');
+
+    // 帯の高さより下へ送ると隠れ、面は不透明になる
+    scrollTo(400);
+    await waitFor(() => expect(header).toHaveAttribute('data-hidden'));
+    await expect(header).toHaveAttribute('data-scrolled');
+
+    // 上へ戻すと、止まったあとに出る
+    scrollTo(300);
+    await waitFor(() => expect(header).not.toHaveAttribute('data-hidden'));
+    await waitFor(() => expect(header).not.toHaveAttribute('data-following'));
+
+    // 隠したあとでも、帯の中にフォーカスが入ったら出し、フォーカスがあるあいだは隠さない
+    scrollTo(800);
+    await waitFor(() => expect(header).toHaveAttribute('data-hidden'));
+    canvas.getAllByRole('link')[0].focus();
+    await waitFor(() => expect(header).not.toHaveAttribute('data-hidden'));
+    scrollTo(1200);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect(header).not.toHaveAttribute('data-hidden');
   },
 };

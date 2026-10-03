@@ -403,7 +403,9 @@ export {
   type NavbarNarrowPlacement,
   type NavbarProps,
   type NavbarStickyBackdrop,
+  type NavbarStickyBehavior,
   type NavbarStickyEdge,
+  type NavbarTransparentVariant,
 } from './components/navbar/Navbar';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
