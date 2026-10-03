@@ -10,7 +10,7 @@ Stat に読み込み中（`loading`）を足すにあたり、数字の場所に
 
 ## 候補
 
-比較は、決めた時点のコミット `4caf6d4` の比較のストーリー（`design/stories/axis-431-stat-loading.stories.tsx`）です。
+比較は、決めた時点のコミット `42e7a75` の比較のストーリー（`design/stories/axis-431-stat-loading.stories.tsx`）です。
 
 | 案             | 帯                                                        |
 | -------------- | --------------------------------------------------------- |
@@ -41,7 +41,7 @@ B〜D は、見た目の差が小さいか、Skeleton の文字の行から外�
 ## 影響
 
 - `src/components/stat/Stat.tsx`: `loading`（既定 `false`）と `loadingText` を持ちます
-- 帯の長さは `--stat-loading-width`。太さ・角は Skeleton の文字の行のままで、比べるためだけに置いた太さ・角のトークンは消しました（実装のコミット `56a248f`）
+- 帯の長さは `--stat-loading-width`。太さ・角は Skeleton の文字の行のままで、比べるためだけに置いた太さ・角のトークンは消しました（実装のコミット `d91d94d`）
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -52,4 +52,4 @@ B〜D は、見た目の差が小さいか、Skeleton の文字の行から外�
 
 ![Stat の読み込み中の比較。現行版・A〜D を、既定の大きさ・読み込んだあと・小さい段・大きい段で並べたもの。現行版・A に採用の印](./assets/0430-stat-loading.png)
 
-決めた時点のコミットは、比較が `4caf6d4`、実装が `56a248f` です。`git checkout 4caf6d4 && pnpm storybook` で、比較のストーリー（`Design Review/431 数字の読み込み中`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `42e7a75`、実装が `d91d94d` です。`git checkout 42e7a75 && pnpm storybook` で、比較のストーリー（`Design Review/431 数字の読み込み中`）を決めたときの部品のまま開けます。

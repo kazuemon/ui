@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `4caf6d4` の比較のストーリー（`design/stories/axis-433-meter-group.stories.tsx`）です。
+比較は、決めた時点のコミット `42e7a75` の比較のストーリー（`design/stories/axis-433-meter-group.stories.tsx`）です。
 
 | 案        | 区切りの間        | 区切りの角              | 凡例の印       |
 | --------- | ----------------- | ----------------------- | -------------- |
@@ -39,7 +39,7 @@ B は境目が色の差だけになります。C は小物のようで軽さを�
 
 ## 影響
 
-- `src/components/meter/MeterGroup.tsx`: 区切りの間・角・凡例の印を畳みました。比べるためだけに置いたトークンは、実装のコミット（`56a248f`）で消しました
+- `src/components/meter/MeterGroup.tsx`: 区切りの間・角・凡例の印を畳みました。比べるためだけに置いたトークンは、実装のコミット（`d91d94d`）で消しました
 - 色は書かないとき primary・secondary・neutral の順で、4 つ目からは `color` で選びます
 - 比較のストーリーは消しました
 
@@ -51,4 +51,4 @@ B は境目が色の差だけになります。C は小物のようで軽さを�
 
 ![MeterGroup の比較。現行版・A〜D を、3 つの内訳・細い区切りがある場合・太さ・カードの上で並べたもの。A に採用の印](./assets/0432-meter-group.png)
 
-決めた時点のコミットは、比較が `4caf6d4`、実装が `56a248f` です。`git checkout 4caf6d4 && pnpm storybook` で、比較のストーリー（`Design Review/433 分けて塗るバー`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `42e7a75`、実装が `d91d94d` です。`git checkout 42e7a75 && pnpm storybook` で、比較のストーリー（`Design Review/433 分けて塗るバー`）を決めたときの部品のまま開けます。

@@ -10,7 +10,7 @@ Progress・Meter に成功（success）と失敗（danger）の色を足すに�
 
 ## 候補
 
-比較は、決めた時点のコミット `4caf6d4` の比較のストーリー（`design/stories/axis-432-bar-status-color.stories.tsx`）です。
+比較は、決めた時点のコミット `42e7a75` の比較のストーリー（`design/stories/axis-432-bar-status-color.stories.tsx`）です。
 
 | 案                | 塗り           | 地               | 値の文字   |
 | ----------------- | -------------- | ---------------- | ---------- |
@@ -41,7 +41,7 @@ Progress・Meter に成功（success）と失敗（danger）の色を足すに�
 - `src/internal/bar/bar-styles.ts`: `BarTrackColor`（`color`・`neutral`）と `BarValueColor`（`muted`・`color`）。Progress・Meter が共有します
 - `src/index.ts` から `BarColor`・`BarSize`・`BarTrackColor`・`BarValueColor` を出します
 - 警告と情報は足していません（Meter の範囲の色で警告は出せます）
-- 比べるためだけに置いた切り替えのトークンは、実装のコミット（`56a248f`）で畳んで消しました
+- 比べるためだけに置いた切り替えのトークンは、実装のコミット（`d91d94d`）で畳んで消しました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -52,4 +52,4 @@ Progress・Meter に成功（success）と失敗（danger）の色を足すに�
 
 ![Progress・Meter の成功・失敗の色の比較。現行版・A・B・C を、失敗・終了・上限超え・太さ・並び・終わりが分からない場合の列で並べたもの。A・B・C に採用の印](./assets/0431-bar-status-color.png)
 
-決めた時点のコミットは、比較が `4caf6d4`、実装が `56a248f` です。`git checkout 4caf6d4 && pnpm storybook` で、比較のストーリー（`Design Review/432 バーの成功・失敗の色`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `42e7a75`、実装が `d91d94d` です。`git checkout 42e7a75 && pnpm storybook` で、比較のストーリー（`Design Review/432 バーの成功・失敗の色`）を決めたときの部品のまま開けます。

@@ -10,7 +10,7 @@ Notice の操作を文の右に置く `actionsPlacement="end"` の、縦のそ�
 
 ## 候補
 
-比較は、決めた時点のコミット `4caf6d4` の比較のストーリー（`design/stories/axis-435-notice-actions-end.stories.tsx`）です。
+比較は、決めた時点のコミット `42e7a75` の比較のストーリー（`design/stories/axis-435-notice-actions-end.stories.tsx`）です。
 
 | 案                | 縦のそろえ方       | はみ出し                   | 狭いとき   |
 | ----------------- | ------------------ | -------------------------- | ---------- |
@@ -40,7 +40,7 @@ A は、ボタンの分だけお知らせが高くなるため採りませんで
 
 - `src/components/notice/Notice.tsx`: `actionsPlacement`（`bottom`・`end`。既定 `bottom`）、`narrowActionsPlacement`（`bottom`・`end`）
 - `src/components/notice/use-actions-wrapped.ts`: 文の列の幅から、操作が下に回るかを測ります
-- 比べるためだけに置いた縦のそろえ方とはみ出しのトークン（`--notice-actions-align`・`--notice-actions-margin-y`）は、実装のコミット（`56a248f`）で部品に畳んで消しました。残したのは `--notice-actions-gap` と `--notice-actions-text-min` です
+- 比べるためだけに置いた縦のそろえ方とはみ出しのトークン（`--notice-actions-align`・`--notice-actions-margin-y`）は、実装のコミット（`d91d94d`）で部品に畳んで消しました。残したのは `--notice-actions-gap` と `--notice-actions-text-min` です
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -51,4 +51,4 @@ A は、ボタンの分だけお知らせが高くなるため採りませんで
 
 ![Notice の操作を右に置く形の比較。現行版・A〜C を、1 行のお知らせと題・本文・ボタン 2 つのお知らせで並べたもの。B・C に採用の印](./assets/0434-notice-actions-end.png)
 
-決めた時点のコミットは、比較が `4caf6d4`、実装が `56a248f` です。`git checkout 4caf6d4 && pnpm storybook` で、比較のストーリー（`Design Review/435 お知らせの操作を右に置く`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `42e7a75`、実装が `d91d94d` です。`git checkout 42e7a75 && pnpm storybook` で、比較のストーリー（`Design Review/435 お知らせの操作を右に置く`）を決めたときの部品のまま開けます。

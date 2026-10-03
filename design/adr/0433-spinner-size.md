@@ -10,7 +10,7 @@
 
 ## 候補
 
-比較は、決めた時点のコミット `4caf6d4` の比較のストーリー（`design/stories/axis-434-spinner-size.stories.tsx`）です。
+比較は、決めた時点のコミット `42e7a75` の比較のストーリー（`design/stories/axis-434-spinner-size.stories.tsx`）です。
 
 | 案                | 段 sm・md・lg     | 線                   | 下地の輪 |
 | ----------------- | ----------------- | -------------------- | -------- |
@@ -40,7 +40,7 @@ A は面の真ん中に置くには小さいため、B は大きい段で線が�
 ## 影響
 
 - `src/components/loading/Loading.tsx`: `size`（`sm`・`md`・`lg`・`control`・`text`）、`accessibleName`、`hideTrack`（既定 `false`）
-- 比べるためだけに置いた切り替えのトークンは、実装のコミット（`56a248f`）で畳みました
+- 比べるためだけに置いた切り替えのトークンは、実装のコミット（`d91d94d`）で畳みました
 - 比較のストーリーは消しました
 
 ## 原則への反映
@@ -51,4 +51,4 @@ A は面の真ん中に置くには小さいため、B は大きい段で線が�
 
 ![Spinner の大きさの比較。現行版・A〜D を、段・カードの真ん中・文の横・ボタンの送信中で並べたもの。C・D に採用の印](./assets/0433-spinner-size.png)
 
-決めた時点のコミットは、比較が `4caf6d4`、実装が `56a248f` です。`git checkout 4caf6d4 && pnpm storybook` で、比較のストーリー（`Design Review/434 回る円の大きさ`）を決めたときの部品のまま開けます。
+決めた時点のコミットは、比較が `42e7a75`、実装が `d91d94d` です。`git checkout 42e7a75 && pnpm storybook` で、比較のストーリー（`Design Review/434 回る円の大きさ`）を決めたときの部品のまま開けます。
