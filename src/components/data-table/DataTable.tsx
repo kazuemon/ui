@@ -71,8 +71,15 @@ const dataTable = tv({
       banded: {
         table: [
           '[&_:is(th,td)]:px-4 [&_:is(th,td)]:py-3',
+          '[&_thead_th]:bg-(--data-table-banded-head-corner-fill)',
           "[&_thead_th]:before:pointer-events-none [&_thead_th]:before:absolute [&_thead_th]:before:inset-0 [&_thead_th]:before:-z-1 [&_thead_th]:before:bg-field [&_thead_th]:before:content-['']",
-          '[&_thead_th:first-child]:before:rounded-s-control [&_thead_th:last-child]:before:rounded-e-control',
+          '[&_thead_th:first-child]:before:rounded-ss-control [&_thead_th:last-child]:before:rounded-se-control',
+          '[&_thead_th:first-child]:before:rounded-es-(--data-table-banded-head-bottom-radius) [&_thead_th:last-child]:before:rounded-ee-(--data-table-banded-head-bottom-radius)',
+          '[--data-table-banded-head-bottom-radius:calc(var(--radius-control)*(1-var(--data-table-banded-head-square))*(1-var(--cue-top,0)*var(--data-table-banded-head-square-scrolled)))]',
+          // 影の両端
+          '[&_thead_th:first-child]:after:start-(--data-table-banded-shadow-inset) [&_thead_th:last-child]:after:end-(--data-table-banded-shadow-inset)',
+          '[&_thead_th:first-child]:after:[mask-image:linear-gradient(to_right,transparent,#000_var(--data-table-banded-shadow-taper))]',
+          '[&_thead_th:last-child]:after:[mask-image:linear-gradient(to_left,transparent,#000_var(--data-table-banded-shadow-taper))]',
         ],
       },
     },
