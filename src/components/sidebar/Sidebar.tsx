@@ -49,7 +49,7 @@ export type {
 // ページの横に並ぶ列 — ADR-0350〜0357
 //   広い画面: 本文の横に並ぶ列。畳むと幅が縮み、アイコンだけが残る（rail）。開け閉めで本文の幅が変わる
 //   狭い画面: 列をやめ、Drawer と同じ挙動（後ろを暗くする・外を押す／Esc／はじくで閉じる）で出す。行き先を押すと閉じる
-//   出す向きは narrowSide。auto は Navbar のメニューと同じ判定（指で操作していて画面が狭いときは下から、それ以外は左から）
+//   出す向きは narrowSide。auto は Navbar のメニューと同じ判定（ThemeProvider の presentation でシートになるときは下から、それ以外は左から）
 
 export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'title'> {
   /**
@@ -145,7 +145,7 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    */
   closeDelay?: number;
   /**
-   * 狭い画面で、Drawer を出す向き。auto は、指で操作していて画面が狭いときは下から、それ以外は左から出します
+   * 狭い画面で、Drawer を出す向き。auto は、ThemeProvider の presentation に従います。シートになるとき（既定の auto では、指で操作していて画面が狭いとき）は下から、それ以外は左から出します
    * @default 'left'
    */
   narrowSide?: SidebarNarrowSide;
@@ -193,7 +193,7 @@ export function Sidebar({
   const [resizing, setResizing] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const mergedRef = useMergedRefs(navRef, ref);
-  const sheet = useSheetPresentation('auto');
+  const sheet = useSheetPresentation(undefined);
   const side = narrowSide === 'auto' ? (sheet ? 'bottom' : 'left') : narrowSide;
   const s = sidebar({
     color,

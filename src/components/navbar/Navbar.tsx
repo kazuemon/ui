@@ -323,7 +323,7 @@ export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> 
    */
   menuTitle?: string;
   /**
-   * メニューを出す向き。auto は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです
+   * メニューを出す向き。auto は、ThemeProvider の presentation に従います。シートになるとき（既定の auto では、指で操作していて画面が狭いとき）は下から出すシート、それ以外は右から出すパネルです
    * @default 'auto'
    */
   menuSide?: 'auto' | SheetSide;
@@ -365,7 +365,7 @@ export function Navbar({
   ...props
 }: NavbarProps) {
   const s = navbar({ sticky, stickyEdge, stickyBackdrop, stickyBehavior, transparentVariant });
-  const sheet = useSheetPresentation('auto');
+  const sheet = useSheetPresentation(undefined);
   const side = menuSide === 'auto' ? (sheet ? 'bottom' : 'right') : menuSide;
   const [openState, setOpenState] = useState(false);
   const open = menuOpen ?? openState;
