@@ -421,7 +421,7 @@
 2026-09-23 に作りました。決定は [ADR-0261](./adr/0261-toggle-radius.md)〜[ADR-0282](./adr/0282-file-tree-static.md) です。
 
 - ImageZoom の `variant`（`light`・`dark`）の名前は、ダークモードの設計のとき再考が必要そうです（「ダークモードの設計のとき再考が必要そうですね」）。ThemeProvider のダークモードと名前がぶつからないかも一緒に見ます
-- Embed の `sandbox`（iframe の属性）の既定は決めていません。いまは `allow`・`allowFullScreen` だけを provider ごとに用意しています
+- Embed の `sandbox`（iframe の属性）の既定は決めていません。いまは `allow`・`allowFullScreen` だけを provider ごとに用意しています。lint の `react(iframe-missing-sandbox)` もここで出ています。provider ごとに各サービスが動く最小の許可を持たせるか、付けない理由を書いて警告を黙らせるかを決めます
 - Embed の provider（`youtube`・`vimeo`・`x`・`codepen`・`custom`）に、Spotify・Figma など足すものはまだ検討していません
 - ImageZoom の、iOS・Android の実機での指の操作（スワイプで閉じる・ピンチでの拡大縮小）は、実機で確かめていません。いまはスワイプで閉じる動きだけ作っています（ピンチでの拡大縮小はありません）
 - Toggle・ToggleGroup・FileTree・ImageZoom は、読み上げソフト（VoiceOver・NVDA など）での確かめをまだしていません
@@ -579,6 +579,13 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - RadioGroup・CheckboxGroup の横並びで、列の数を指定する `columns`（案: `columns?: 2 | 3 | 4`）を足すかは決めていません。`itemWidth="equal"` の列の数は、いまは入れ物の幅で決まります（[ADR-0392](./adr/0392-choice-group-item-width.md)）
 - ラベル付きの Divider で、ラベルを左に寄せる形は決めていません。いまは真ん中だけです（[ADR-0393](./adr/0393-divider-label.md)）
+
+### 書き方（2026-10 の全体監査で残したもの）
+
+- Accordion の `value`・`defaultValue` は `unknown[]`（AccordionItem の `value` は `unknown`）で、補完も検査も効きません。Tabs などと同じく `string` に絞るかを決めます。型を狭めるので破壊的な変更です
+- DatePicker・TimePicker の面（PickerOverlay）は、部品が決める `initialFocus` のあとに `popupProps` を広げるので、型にない props で上書きできます。TimePicker のストーリーは `popupProps={{ initialFocus: false } as never}` でそれに頼っています。部品の値をあとに書き、複数の面を同時に開くストーリーは別の形（`autoFocus` に当たる props か、1 つずつ撮る）で表すかを決めます
+- 開いた面を枠の中に描く `PopoverFrame` と、Docs では閉じて描く `openOnLoad` が、Select・Combobox・Autocomplete・TagsInput・DatePicker・TimePicker・Dialog・Popover・Menu などのストーリーに同じ中身で書かれています。`src/stories/story-parts.tsx`・`story-states.ts` に移すかを決めます
+- `src/internal/use-client.test.ts` のブラウザ専用の依存の一覧（`CLIENT_PACKAGES`）は手書きで、package.json の dependencies と突き合わせていません。依存を足したときに見直す注意を書くか、サーバーで動く依存を除いた残りを client とみなす形にするかを決めます
 
 ## レシピの案
 
