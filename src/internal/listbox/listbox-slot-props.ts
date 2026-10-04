@@ -19,3 +19,8 @@ export type ListboxInputProps = Omit<ComponentProps<'input'>, 'children'>;
 export function mergeSlotClass(base: string, extra?: string): string {
   return extra ? merge(base, extra) : base;
 }
+
+/** 利用者が inputProps で渡した説明の id のあとに、部品の説明（キャプション・状態の行）の id をつなぐ */
+export function joinIds(...ids: (string | undefined)[]): string | undefined {
+  return ids.filter(Boolean).join(' ') || undefined;
+}

@@ -249,13 +249,23 @@ const inputOnKeyDown = fn();
 const inputOnBlur = fn();
 export const InputPropsHandlers: Story = {
   name: 'inputProps のハンドラーも呼ぶ',
-  args: { label: '記事のタグ', inputProps: { onKeyDown: inputOnKeyDown, onBlur: inputOnBlur } },
+  args: {
+    label: '記事のタグ',
+    caption: 'Enter で足します',
+    inputProps: {
+      onKeyDown: inputOnKeyDown,
+      onBlur: inputOnBlur,
+      'aria-describedby': 'tags-extra-note',
+    },
+  },
   parameters: { controls: { disable: true } },
   decorators: [narrow],
   play: async ({ canvas }) => {
     inputOnKeyDown.mockClear();
     inputOnBlur.mockClear();
     const input = canvas.getByRole('combobox');
+    // inputProps の説明の id は、部品の説明の id と一緒につなぐ
+    await expect(input.getAttribute('aria-describedby')?.split(' ')).toContain('tags-extra-note');
     // 利用者のハンドラーを渡しても、Enter でタグになる
     await userEvent.type(input, '実装{Enter}');
     await expect(canvas.getByText('実装')).toBeVisible();

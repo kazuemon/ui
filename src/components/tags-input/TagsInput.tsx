@@ -61,6 +61,7 @@ import {
   type ListboxInputProps,
   type ListboxSlotProps,
   mergeSlotClass,
+  joinIds,
 } from '../../internal/listbox/listbox-slot-props';
 import type { ListboxItem } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
@@ -308,7 +309,8 @@ export interface TagsInputControlProps {
     Pick<ComponentProps<typeof BaseCombobox.Positioner>, 'collisionAvoidance' | 'anchor'>;
   /**
    * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
-   * className は部品のクラスに重ねます。onKeyDown などのハンドラーは、部品の処理の前に呼びます
+   * className は部品のクラスに重ねます。onKeyDown などのハンドラーは、部品の処理の前に呼びます。
+   * aria-describedby は、部品の説明（キャプション・状態の行）の前につなぎます
    */
   inputProps?: ListboxInputProps;
   /**
@@ -781,7 +783,7 @@ export function TagsInputControl({
             <BaseCombobox.Input
               // 利用者の props は先に広げ、部品の振る舞いと説明が上書きされないようにする。利用者のハンドラーは部品の処理の前に呼ぶ
               {...inputRest}
-              aria-describedby={messageIds}
+              aria-describedby={joinIds(inputRest['aria-describedby'], messageIds)}
               aria-required={required || undefined}
               aria-disabled={blocking || undefined}
               aria-busy={loading || undefined}
