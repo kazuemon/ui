@@ -15,7 +15,7 @@ import {
   useState,
 } from 'react';
 
-import { focusRing } from '../../internal/focus-styles';
+import { focusRing, focusRingForCardAction } from '../../internal/focus-styles';
 import {
   newTabNaming,
   opensNewTab,
@@ -152,10 +152,7 @@ const styles = tv({
     button: {
       true: {
         root: [
-          '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
-          '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
-          'has-[[data-slot=card-action]:focus-visible]:[outline-width:var(--focus-ring-width)] has-[[data-slot=card-action]:focus-visible]:[outline-style:solid]',
-          'has-[[data-slot=card-action]:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
+          ...focusRingForCardAction,
           // 詳細度を 0 にし（:where）、中の要素が自分で決めた位置・重ね順を上書きしない。位置を持たない素の a などは relative にする
           '[:where(&_:is(a[href],button,input,select,textarea,summary,label,[tabindex]):not([data-slot=card-action]))]:relative',
           '[:where(&_:is(a[href],button,input,select,textarea,summary,label,[tabindex]):not([data-slot=card-action]))]:z-2',

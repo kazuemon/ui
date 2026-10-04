@@ -24,3 +24,13 @@ export const focusRingInProse = [
   '[&_:is(a,table)]:focus-visible:[outline-style:solid] [&_:is(a,table)]:focus-visible:[outline-width:var(--focus-ring-width)]',
   '[&_:is(a,table)]:focus-visible:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
 ];
+
+// 押すカード（Card の onClick）の、カードの輪郭に出す同じフォーカスの線
+// 上の focusRing の focus-visible: を、中の button（data-slot=card-action）が :focus-visible のとき（has-[…]）に置き換えたもの
+// 2 つが同じであることは focus-styles.test.ts が確かめる
+export const focusRingForCardAction = [
+  '[outline-offset:var(--focus-ring-offset)] [outline-color:transparent]',
+  '[--focus-ring-own:color-mix(in_srgb,var(--color-own-focus)_calc(var(--focus-follow-color)*100%),var(--color-focus-ring))]',
+  'has-[[data-slot=card-action]:focus-visible]:[outline-style:solid] has-[[data-slot=card-action]:focus-visible]:[outline-width:var(--focus-ring-width)]',
+  'has-[[data-slot=card-action]:focus-visible]:[outline-color:var(--focus-ring-own,var(--color-focus-ring))]',
+];
