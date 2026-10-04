@@ -54,22 +54,22 @@ function Icon({
   );
 }
 
-export const XIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const XIcon = (props: IconProps) => (
+  <Icon {...props}>
     <line x1="200" y1="56" x2="56" y2="200" />
     <line x1="200" y1="200" x2="56" y2="56" />
   </Icon>
 );
 
-export const EyeIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const EyeIcon = (props: IconProps) => (
+  <Icon {...props}>
     <path d="M128,56C48,56,16,128,16,128s32,72,112,72,112-72,112-72S208,56,128,56Z" />
     <circle cx="128" cy="128" r="40" />
   </Icon>
 );
 
-export const EyeSlashIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const EyeSlashIcon = (props: IconProps) => (
+  <Icon {...props}>
     <line x1="48" y1="40" x2="208" y2="216" />
     <path d="M154.91,157.6a40,40,0,0,1-53.82-59.2" />
     <path d="M135.53,88.71a40,40,0,0,1,32.3,35.53" />
@@ -138,21 +138,21 @@ export const ArrowsHorizontalIcon = (props: IconProps) => (
   </Icon>
 );
 
-export const CaretRightIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const CaretRightIcon = (props: IconProps) => (
+  <Icon {...props}>
     <polyline points="96 48 176 128 96 208" />
   </Icon>
 );
 
-export const CaretLeftIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const CaretLeftIcon = (props: IconProps) => (
+  <Icon {...props}>
     <polyline points="160 208 80 128 160 48" />
   </Icon>
 );
 
 // 縦の三点（Phosphor の DotsThreeVertical）。Sidebar の行ごとのメニューを開くボタン
-export const DotsThreeVerticalIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const DotsThreeVerticalIcon = (props: IconProps) => (
+  <Icon {...props}>
     <circle cx="128" cy="60" r="12" fill="currentColor" stroke="none" />
     <circle cx="128" cy="128" r="12" fill="currentColor" stroke="none" />
     <circle cx="128" cy="196" r="12" fill="currentColor" stroke="none" />
@@ -160,15 +160,15 @@ export const DotsThreeVerticalIcon = ({ standalone }: IconProps) => (
 );
 
 // 左向き・右向きの矢印（Phosphor の ArrowLeft・ArrowRight）。Pager の前後の行き先が既定で使う
-export const ArrowLeftIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const ArrowLeftIcon = (props: IconProps) => (
+  <Icon {...props}>
     <line x1="216" y1="128" x2="40" y2="128" />
     <polyline points="112 56 40 128 112 200" />
   </Icon>
 );
 
-export const ArrowRightIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const ArrowRightIcon = (props: IconProps) => (
+  <Icon {...props}>
     <line x1="40" y1="128" x2="216" y2="128" />
     <polyline points="144 56 216 128 144 200" />
   </Icon>
@@ -247,8 +247,8 @@ export const ArrowUDownLeftIcon = (props: IconProps) => (
   </Icon>
 );
 
-export const ListIcon = ({ standalone }: IconProps) => (
-  <Icon standalone={standalone}>
+export const ListIcon = (props: IconProps) => (
+  <Icon {...props}>
     <line x1="40" y1="128" x2="216" y2="128" />
     <line x1="40" y1="64" x2="216" y2="64" />
     <line x1="40" y1="192" x2="216" y2="192" />
