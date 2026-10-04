@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { prefersReducedMotion } from '../../internal/reduced-motion';
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 import type { CarouselEngine, CarouselEngineOptions } from './carousel-engine';
 
 // scroll-snap で送る仕組み（Carousel の既定）。依存を足さず、ブラウザの横スクロールと scroll-snap に任せる
@@ -13,8 +15,6 @@ import type { CarouselEngine, CarouselEngineOptions } from './carousel-engine';
 //   枠の幅が変わったら、いまの 1 枚の位置に置き直す
 //   並んで見えている枚数（slidesPerView）を、枠と 1 枚の幅から測って visibleCount で返す。枠か 1 枚の幅が変わったら測り直す
 // 端でつながる（loop）・自動で送る（autoPlay）は、見た目の側（CarouselView）が index を変えて行う。ここは送る先へ送るだけ
-
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // スクロールが止まったとみなすまでの間（scrollend を持たないブラウザのため）
 const SETTLE_MS = 150;
@@ -68,9 +68,6 @@ function measureVisible(viewport: HTMLElement) {
   return Math.min(Math.max(fits, 1), slides.length);
 }
 
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 export function useScrollSnapEngine({
   index,
   count,
@@ -107,7 +104,7 @@ export function useScrollSnapEngine({
     // 指で動かしている途中に、止まる先が変わって知らせたとき。ブラウザの scroll-snap に任せ、動きを奪わない
     if (!first && target.current === null && nearestIndex(viewport) === index) return;
     target.current = index;
-    viewport.scrollTo({ left, behavior: first || reducedMotion() ? 'instant' : 'smooth' });
+    viewport.scrollTo({ left, behavior: first || prefersReducedMotion() ? 'instant' : 'smooth' });
   }, [index, viewport, count]);
 
   // 位置 → index

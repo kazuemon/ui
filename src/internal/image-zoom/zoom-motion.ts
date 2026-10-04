@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from '../reduced-motion';
 import { flipFrame, restFrame, toMilliseconds } from './zoom-geometry';
 
 // 拡大と縮小の動き。長さ・緩急・動き方はトークン（--image-zoom-*）から読み、Web Animations で動かす
@@ -50,10 +51,6 @@ const captionIn = (to: number): Keyframe[] => [
   { opacity: 0, offset: CAPTION_IN_START },
   { opacity: to, offset: 1 },
 ];
-
-export function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 export function readZoomMotion(el: HTMLElement): {
   motion: ZoomMotion;

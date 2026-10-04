@@ -30,7 +30,8 @@ import { useMergedRefs } from '../use-merged-refs';
 import { playSlide, readSlideMotion, slides, translateX } from './slide-motion';
 import { type SwipeNavigate, useSwipeClose } from './use-swipe-close';
 import { fitSize, type Size } from './zoom-geometry';
-import { type CaptionMotion, hidesOrigin, playZoom, prefersReducedMotion } from './zoom-motion';
+import { prefersReducedMotion } from '../reduced-motion';
+import { type CaptionMotion, hidesOrigin, playZoom } from './zoom-motion';
 
 // 画像を画面いっぱいに拡大して見せる面。ImageZoom が 1 枚を、Gallery が複数枚を送って見せるのに使う
 //   開閉は外から決める（open・onOpenChange）。開く口（押した画像）は getOrigin で受け、広がる動きの始まりと終わりにする
