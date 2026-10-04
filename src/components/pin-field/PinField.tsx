@@ -120,8 +120,11 @@ export interface PinFieldControlProps extends Pick<InputFieldProps, 'hideSuccess
   slotName?: (index: number, length: number) => string;
   /** 箱の列を包む要素への ref */
   ref?: Ref<HTMLDivElement>;
-  /** 1 桁ずつの input に渡すもの（class・data-* など） */
-  inputProps?: ComponentProps<'input'>;
+  /**
+   * 1 桁ずつの input に渡すもの（class・data-* など、どの桁にも同じでよいもの）。
+   * すべての桁に同じものを配るので、id と ref は受けません（id は欄全体の id、ref は箱の列への ref を使います）
+   */
+  inputProps?: Omit<ComponentProps<'input'>, 'id' | 'ref'>;
   /** 箱の列と印（回る円・チェック）を包む要素に付くクラス */
   className?: string;
 }
@@ -296,8 +299,11 @@ export type PinFieldBaseProps = Omit<PinFieldControlProps, 'className'> &
      * @default false
      */
     required?: boolean;
-    /** 1 桁ずつの input に渡すもの（class・data-* など）。欄の外枠には className を使います */
-    inputProps?: ComponentProps<'input'>;
+    /**
+     * 1 桁ずつの input に渡すもの（class・data-* など、どの桁にも同じでよいもの）。欄の外枠には className を使います。
+     * すべての桁に同じものを配るので、id と ref は受けません
+     */
+    inputProps?: Omit<ComponentProps<'input'>, 'id' | 'ref'>;
   };
 
 /** PinField の props。label か accessibleName のどちらかが要ります */
