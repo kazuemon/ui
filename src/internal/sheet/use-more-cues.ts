@@ -2,8 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 
-// 続きの印が最も濃くなるまでのスクロールの量（px）。Select と同じ — adr/0037
-const CUE_RAMP = 24;
+import { cueStrength } from '../cue-strength';
 
 // スクロールする中身の上下に続きがあるかを、親（面）の --cue-top・--cue-bottom（0〜1）に書く（SheetMoreCue が読む）
 // スクロールできるか（中身が枠より長いか）は --cue-scrollable（1 か 0）
@@ -19,8 +18,8 @@ export function useMoreCues() {
       const surface = scroller.parentElement;
       if (!surface) return;
       const rest = Math.max(0, scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight);
-      surface.style.setProperty('--cue-top', String(Math.min(1, scroller.scrollTop / CUE_RAMP)));
-      surface.style.setProperty('--cue-bottom', String(Math.min(1, rest / CUE_RAMP)));
+      surface.style.setProperty('--cue-top', cueStrength(scroller.scrollTop));
+      surface.style.setProperty('--cue-bottom', cueStrength(rest));
       const scrollable = scroller.scrollHeight > scroller.clientHeight + 1;
       surface.style.setProperty('--cue-scrollable', scrollable ? '1' : '0');
       const scrollbar = scroller.offsetWidth - scroller.clientWidth;

@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { cueStrength } from '../cue-strength';
 import type { SheetMetrics } from '../sheet/use-sheet-drag';
 import {
-  CUE_RAMP,
   listContentLength,
   loadingRowLength,
   optionHeights,
@@ -55,8 +55,8 @@ export function useListboxLayout({
     const popup = list?.parentElement;
     if (!list || !popup) return;
     const rest = Math.max(0, list.scrollHeight - list.scrollTop - list.clientHeight);
-    popup.style.setProperty('--cue-top', String(Math.min(1, list.scrollTop / CUE_RAMP)));
-    popup.style.setProperty('--cue-bottom', String(Math.min(1, rest / CUE_RAMP)));
+    popup.style.setProperty('--cue-top', cueStrength(list.scrollTop));
+    popup.style.setProperty('--cue-bottom', cueStrength(rest));
     const scrollbar = list.offsetWidth - list.clientWidth;
     const bleed = 'calc(var(--spacing) * -1)';
     popup.style.setProperty('--cue-left', bleed);

@@ -19,7 +19,12 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 import { VisuallyHidden } from '../visually-hidden/VisuallyHidden';
 import { ItemContext, ListContext, type SortableMoveActions } from './sortable-context';
 import { ItemMoveActions } from './SortableMoveActions';
-import { defaultMovedText, useSortableList } from './use-sortable-list';
+import {
+  DEFAULT_INSTRUCTION_TEXT,
+  DEFAULT_MOVE_LABELS,
+  defaultMovedText,
+  useSortableList,
+} from './use-sortable-list';
 
 export type { SortableMoveActions } from './sortable-context';
 export { type SortableItemActionsValue, useSortableItemActions } from './SortableMoveActions';
@@ -312,13 +317,13 @@ export function Sortable({
   grabArea = 'handle',
   disabled = false,
   movedText = defaultMovedText,
-  instructionText = '上下の矢印キーで並べ替えます',
+  instructionText = DEFAULT_INSTRUCTION_TEXT,
   moveActions = 'none',
-  moveUpLabel = '上へ移動',
-  moveDownLabel = '下へ移動',
-  moveFirstLabel = '先頭へ移動',
-  moveLastLabel = '末尾へ移動',
-  moveMenuName = '移動',
+  moveUpLabel = DEFAULT_MOVE_LABELS.up,
+  moveDownLabel = DEFAULT_MOVE_LABELS.down,
+  moveFirstLabel = DEFAULT_MOVE_LABELS.first,
+  moveLastLabel = DEFAULT_MOVE_LABELS.last,
+  moveMenuName = DEFAULT_MOVE_LABELS.menu,
   hideMoveItems = false,
   className,
   children,

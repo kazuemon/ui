@@ -46,7 +46,6 @@ import {
 import { XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
-import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import {
   type ListboxFieldProps,
   defaultLoadedSuggestionsText,
@@ -91,7 +90,7 @@ import { chipHeightValue } from '../../internal/small-parts-size';
 import { usePortalContainer } from '../../internal/ui-config';
 import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
-import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import {
@@ -714,7 +713,7 @@ export function TagsInputControl({
       open={open}
       onOpenChange={(next, details) => {
         // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
           details.cancel();
           return;
         }

@@ -12,6 +12,16 @@ import { useMoveAnimation } from './use-move-animation';
 export const defaultMovedText = (position: number, total: number) =>
   `${position} 番目に移しました（${total} 件中）`;
 
+// Sortable と SortableTableBody の既定の文（どちらも同じ）
+export const DEFAULT_INSTRUCTION_TEXT = '上下の矢印キーで並べ替えます';
+export const DEFAULT_MOVE_LABELS = {
+  up: '上へ移動',
+  down: '下へ移動',
+  first: '先頭へ移動',
+  last: '末尾へ移動',
+  menu: '移動',
+} as const;
+
 export interface SortableListOptions {
   value: string[];
   onValueChange?: (value: string[]) => void;
