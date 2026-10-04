@@ -42,6 +42,41 @@ function restoreMatchMedia() {
   originalMatchMedia = null;
 }
 
+// 動きを減らす設定を、play の途中で切り替えられる偽物（change を知らせる）
+let reducedMotion = false;
+const reducedMotionListeners = new Set<() => void>();
+function fakeSwitchableReducedMotion() {
+  originalMatchMedia = window.matchMedia.bind(window);
+  const original = originalMatchMedia;
+  window.matchMedia = (query: string) => {
+    if (!query.includes('prefers-reduced-motion')) return original(query);
+    const list = {
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => true,
+    } as MediaQueryList;
+    // matches は読むたびにいまの値を返し、change は setReducedMotion で知らせる
+    Object.defineProperty(list, 'matches', { get: () => reducedMotion });
+    return Object.assign(list, {
+      addEventListener: (_type: string, listener: () => void) => {
+        reducedMotionListeners.add(listener);
+      },
+      removeEventListener: (_type: string, listener: () => void) => {
+        reducedMotionListeners.delete(listener);
+      },
+    });
+  };
+}
+function setReducedMotion(next: boolean) {
+  reducedMotion = next;
+  reducedMotionListeners.forEach((listener) => listener());
+}
+
 const meta = {
   title: 'Components/Video',
   component: Video,
@@ -236,6 +271,46 @@ export const AutoPlayReducedMotion: Story = {
       // 動きを減らす設定に押されて、標準の controls が出る（渡した controls={false} より優先）
       await waitFor(() => expect(video).toHaveAttribute('controls'));
       await expect(video.paused).toBe(true);
+    } finally {
+      restoreMatchMedia();
+    }
+  },
+};
+
+export const AutoPlayReducedMotionChange: Story = {
+  name: '自動再生（動きを減らす設定を途中で変える）',
+  tags: ['!autodocs'],
+  decorators: [narrow],
+  render: () => {
+    reducedMotion = false;
+    fakeSwitchableReducedMotion();
+    return (
+      <Video
+        ratio={16 / 9}
+        src={sample}
+        poster={poster}
+        fit="cover"
+        controls={false}
+        autoPlay
+        loop
+        muted
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    try {
+      const video = canvasElement.querySelector('video')!;
+      const playButton = () => canvasElement.querySelector('[data-slot="video-play"]');
+      await expect(video).toHaveAttribute('autoplay');
+      await expect(playButton()).toBeNull();
+      // 設定を入れると止まり、標準の controls を強制する
+      setReducedMotion(true);
+      await waitFor(() => expect(video).toHaveAttribute('controls'));
+      await expect(video.paused).toBe(true);
+      // 設定を戻すと controls は外れ、止まったままなので、押して再生するボタンを重ねる
+      setReducedMotion(false);
+      await waitFor(() => expect(video).not.toHaveAttribute('controls'));
+      await expect(playButton()).not.toBeNull();
     } finally {
       restoreMatchMedia();
     }

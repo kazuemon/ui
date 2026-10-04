@@ -270,8 +270,14 @@ export function Video({
     else setStatus('loading');
   }, []);
 
+  // 動きを減らす設定に変わったら、まだ再生していないことにする。設定を戻したとき（コントロールを強制しなくなる）に、
+  //   大きな再生ボタンを重ねて、押して再生できるようにする（描画の中で前の値と比べて直す）
+  const [prevSuppressed, setPrevSuppressed] = useState(autoPlaySuppressed);
+  if (prevSuppressed !== autoPlaySuppressed) {
+    setPrevSuppressed(autoPlaySuppressed);
+    if (autoPlaySuppressed) setStarted(false);
+  }
   // 再生を始めたあとに動きを減らす設定へ変わったとき（サーバーで描いた autoplay が効いたときも）は止める
-  //   止めているあいだはコントロールを強制するので、大きな再生ボタン（started）は重ねない
   useEffect(() => {
     if (autoPlaySuppressed) videoRef.current?.pause();
   }, [autoPlaySuppressed]);
