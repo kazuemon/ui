@@ -287,6 +287,11 @@ export const ChangeChildren: Story = {
     await expectSpans(5);
     await userEvent.click(canvas.getByRole('button', { name: '逆に並べる' }));
     await expectSpans(5);
+    // 並べ替えた順に描く
+    const texts = [...root.querySelectorAll('[data-slot="masonry-item"]')].map(
+      (item) => item.textContent
+    );
+    await expect(texts).toEqual(['6', '5', '4', '3', '2']);
     await userEvent.click(canvas.getByRole('button', { name: '先頭に足す' }));
     await expectSpans(6);
   },
