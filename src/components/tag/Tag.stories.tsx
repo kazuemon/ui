@@ -229,7 +229,7 @@ export const LinkResolution: Story = {
       <Tag {...args} href="https://example.com" target="_blank">
         新しいタブ
       </Tag>
-      <Tag {...args} render={<a href="https://example.com" />} link target="_blank">
+      <Tag {...args} render={<a href="https://example.com" target="_blank" />} link>
         render で新しいタブ
       </Tag>
       <Tag {...args} href="https://example.com" target="_blank" newTabIcon={false}>
