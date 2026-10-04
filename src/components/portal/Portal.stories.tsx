@@ -73,7 +73,7 @@ const meta = {
           '- Select・Dialog・Popover・Tooltip・Drawer は自分で描く場所を移すので、Portal で包みません。描く場所を変えるときは、それぞれの `portalContainer`（ThemeProvider でまとめて決めることもできます）を使います。',
           '- 自前の重なるもの（画面の下に貼り付く操作の帯、全画面の画像など）を、スクロールする枠や `overflow: hidden` の外に出したいときに使います。',
           '- `container`（既定は ThemeProvider の `portalContainer`、なければ `document.body`）で描く場所を決めます。',
-          '- 書いた場所の祖先の密度（`data-density`）を、描く場所でも引き継ぎます。',
+          '- 書いた場所の祖先の密度（`data-density`）を、描く場所でも引き継ぎます。引き継ぐのは描いた時点の密度で、あとから祖先の密度を変えても移りません。',
           '- サーバーでは描かず、ブラウザで描いたあとに出します。',
         ].join('\n'),
       },

@@ -22,6 +22,7 @@ export interface PortalProps {
  * Select・Dialog・Popover・Tooltip・Drawer は自分で描く場所を移すので、包まなくて構いません。
  * 自前の重なるもの（画面の下に貼り付く操作の帯、全画面の画像など）に使います。
  * 書いた場所の祖先の密度（data-density・coarse-large）を、描く場所でも引き継ぎます。
+ * 密度は描いた時点のものです。あとから祖先の密度を変えても、描いた中身には移りません
  */
 export function Portal({ container, children }: PortalProps) {
   const target = usePortalContainer(container);
