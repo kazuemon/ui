@@ -21,6 +21,7 @@ import {
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { ResizeHandle } from '../../internal/resize-handle/ResizeHandle';
 import { focusTargetRef, type OverlayFocusTarget } from '../../internal/overlay/overlay-props';
+import { readCssLength } from '../../internal/overlay/popup-styles';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { OverlayActionsLayout } from '../../internal/sheet/SheetPopup';
@@ -101,7 +102,7 @@ export interface InspectorProps extends Omit<
   width?: number | string;
   /**
    * 本文との境のつまみをドラッグして、幅を変えられるか。キーボードでは、つまみにフォーカスして ← → で 16px ずつ、Home・End で最小・最大。
-   * ダブルクリックで defaultWidth（なければ部品の幅）に戻ります
+   * ダブルクリックで defaultWidth（なければ部品の幅）に戻り、その幅（px）で onWidthChange を呼びます
    * @default false
    */
   resizable?: boolean;
@@ -267,7 +268,17 @@ export function Inspector({
         onResizingChange={setResizing}
         onReset={() => {
           if (!controlledWidth) setWidthState(defaultWidth);
-          if (defaultWidth !== undefined) onWidthChange?.(defaultWidth);
+          // defaultWidth がないときは、部品の幅（文字の width か --inspector-width）を、枠を置く場所で px に読んで返す
+          const frameParent = panelRef.current?.closest(
+            '[data-slot="inspector-frame"]'
+          )?.parentElement;
+          onWidthChange?.(
+            defaultWidth ??
+              readCssLength(
+                typeof width === 'string' ? width : 'var(--inspector-width)',
+                frameParent
+              )
+          );
         }}
       />
     ) : null;

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Inspector, InspectorActions, type InspectorProps } from './Inspector';
@@ -330,6 +330,52 @@ export const Resizable: Story = {
     // ダブルクリックで、はじめの幅に戻る
     await userEvent.dblClick(handle);
     await expect(handle).toHaveAttribute('aria-valuenow', '320');
+  },
+};
+
+const controlledResizeChange = fn();
+
+function ControlledWidthExample(args: InspectorProps) {
+  const [width, setWidth] = useState(300);
+  return (
+    <Area
+      inspector={
+        <Inspector
+          {...args}
+          resizable
+          width={width}
+          onWidthChange={(next) => {
+            controlledResizeChange(next);
+            setWidth(next);
+          }}
+        >
+          {details}
+        </Inspector>
+      }
+    />
+  );
+}
+
+export const ControlledWidth: Story = {
+  name: '幅を外で持つ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`width` に数値を渡すと、幅を外で持ちます。`onWidthChange` で受けた幅を渡し直します。つまみのダブルクリックでは、`defaultWidth`（なければ部品の幅）を `onWidthChange` で受け取ります。',
+      },
+    },
+  },
+  render: (args) => <ControlledWidthExample {...args} />,
+  play: async ({ canvas }) => {
+    controlledResizeChange.mockClear();
+    const handle = await canvas.findByRole('separator', { name: 'パネルの幅' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '300');
+    // defaultWidth がなくても、ダブルクリックで部品の幅に戻る
+    await userEvent.dblClick(handle);
+    await expect(controlledResizeChange).toHaveBeenLastCalledWith(360);
+    await waitFor(() => expect(handle).toHaveAttribute('aria-valuenow', '360'));
   },
 };
 
