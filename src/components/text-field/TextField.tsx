@@ -127,7 +127,6 @@ export function TextFieldControl({
         value={value}
         onClear={() => change('')}
         readOnly={readOnly}
-        disabled={Boolean(field?.loading && field.loadingBehavior === 'blocking')}
         aria-label={clearName}
       />
     ) : null;

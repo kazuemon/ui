@@ -150,7 +150,7 @@ export function SearchFieldControl({
           value={value}
           onClear={clear}
           readOnly={readOnly}
-          disabled={disabled || Boolean(field?.loading && field.loadingBehavior === 'blocking')}
+          disabled={disabled}
           aria-label={clearName}
         />
       }
