@@ -7,6 +7,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { CodeGroup } from './CodeGroup';
 import { bunHtml, jsxHtml, npmHtml, pnpmHtml, tsxHtml, yarnHtml } from './fixtures';
 import { CodeBlock } from '../code-block/CodeBlock';
+import { CopiedPreviewContext } from '../../internal/copy/use-copy';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 import { type PreviewState, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
@@ -158,10 +159,25 @@ export const CopyError: Story = {
     docs: {
       description: {
         story:
-          'クリップボードを使えなくして押しています。印は変わらず、淡い赤の吹き出しで知らせます。濃い地の上でも、吹き出しは同じ色です。',
+          '写せなかったあと（2 秒のあいだ）の見た目に止めています。印は変わらず、淡い赤の吹き出しで知らせます。濃い地の上でも、吹き出しは同じ色です。',
       },
     },
   },
+  decorators: [
+    (Story) => (
+      <CopiedPreviewContext value="failed">
+        <Story />
+      </CopiedPreviewContext>
+    ),
+  ],
+};
+
+export const CopyErrorFlow: Story = {
+  name: 'コピーできなかったときの流れ',
+  // 確かめだけのストーリー。ドキュメントのページには出さない
+  tags: ['!autodocs'],
+  args: { variant: 'dark' },
+  parameters: { controls: { disable: true } },
   play: async ({ canvas, canvasElement }) => {
     const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
     Object.defineProperty(navigator, 'clipboard', {
