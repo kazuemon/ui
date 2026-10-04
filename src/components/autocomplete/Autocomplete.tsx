@@ -610,7 +610,9 @@ export function AutocompleteControl<Value = string>({
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
   const popupOwnRef = sheet ? measure : popoverFit ? observeCues : undefined;
-  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
+  // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
+  const popupElementRef = useRef<HTMLDivElement>(null);
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
 
   const renderSheetClose = () => (
     <ComboboxSheetClose
@@ -913,9 +915,9 @@ export function AutocompleteControl<Value = string>({
             initialFocus={
               inputInSheet && focusInputOnOpen
                 ? () =>
-                    document.querySelector<HTMLElement>(
-                      '[data-slot="autocomplete-popup"] [data-slot="autocomplete-sheet-input"] input'
-                    )
+                    popupElementRef.current?.querySelector<HTMLElement>(
+                      '[data-slot="autocomplete-sheet-input"] input'
+                    ) ?? null
                 : undefined
             }
             {...popupRest}

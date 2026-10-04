@@ -1,7 +1,7 @@
 'use client';
 
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
-import { type ComponentProps, type ReactNode, useMemo, useState } from 'react';
+import { type ComponentProps, type ReactNode, useMemo, useRef, useState } from 'react';
 
 import { ComboboxChips, ComboboxTriggerChips } from '../../internal/combobox-base/ComboboxChips';
 import {
@@ -637,7 +637,9 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
   const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
-  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
+  // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
+  const popupElementRef = useRef<HTMLDivElement>(null);
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
 
   // 欄の中身（入力欄・チップ）。multiple ではチップと入力欄を Chips の中に並べる（← で チップへ移れる）
   const inputClass = comboboxInputClass({ blocking, readOnly });
@@ -940,9 +942,9 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
             initialFocus={
               inputInSheet && focusInputOnOpen
                 ? () =>
-                    document.querySelector<HTMLElement>(
-                      '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
-                    )
+                    popupElementRef.current?.querySelector<HTMLElement>(
+                      '[data-slot="combobox-sheet-input"] input'
+                    ) ?? null
                 : undefined
             }
             {...popupRest}
