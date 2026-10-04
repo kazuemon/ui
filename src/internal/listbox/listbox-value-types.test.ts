@@ -168,7 +168,7 @@ describe('値の型（型の確かめ）', () => {
       Autocomplete({
         label: '市区町村',
         items: ['札幌市', '仙台市'],
-        onSelect: (item) => expectTypeOf(item).toEqualTypeOf<ListboxItem<string>>(),
+        onSelect: (item) => expectTypeOf(item).toEqualTypeOf<ListboxItem>(),
         onValueChange: (text) => expectTypeOf(text).toEqualTypeOf<string>(),
       });
       Autocomplete({

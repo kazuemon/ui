@@ -252,7 +252,7 @@ function BlogListScreen({
             // 一覧の探し方（題＋本文）と同じ条件で候補を絞る
             filter={(item, q) => {
               const post = posts.find((p) => p.title === item.value);
-              const haystack = post ? post.title + post.excerpt : String(item.label ?? '');
+              const haystack = post ? post.title + post.excerpt : (item.label ?? '');
               return haystack.toLowerCase().includes(q.toLowerCase());
             }}
             clearable

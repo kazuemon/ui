@@ -115,6 +115,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const undo = <Link href="#">元に戻す</Link>;
+
 function Buttons() {
   const toast = useToast();
   return (
@@ -138,7 +140,7 @@ function Buttons() {
           toast.show({
             status: 'info',
             title: '下書きを保存しました',
-            actions: <Link href="#">元に戻す</Link>,
+            actions: undo,
           })
         }
       >

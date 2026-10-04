@@ -71,7 +71,7 @@ function Control({
       label={control.label}
       caption={control.caption}
       value={typeof value === 'string' ? value : ''}
-      onValueChange={(next) => onChange(control.name, String(next))}
+      onValueChange={(next) => onChange(control.name, next)}
     >
       {control.options.map((option) => (
         <Radio
@@ -237,11 +237,7 @@ export function ExampleFrame({ slug }: { slug: string }) {
                 </Button>
               </div>
             </div>
-            <RadioGroup
-              label="密度"
-              value={density}
-              onValueChange={(next) => setDensity(next as Density)}
-            >
+            <RadioGroup label="密度" value={density} onValueChange={(next) => setDensity(next)}>
               <Radio
                 value="auto"
                 label="auto"

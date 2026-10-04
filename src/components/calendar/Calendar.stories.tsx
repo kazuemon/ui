@@ -215,13 +215,13 @@ export const Options: Story = {
         />
       </Specimen>
       <Specimen label='navPlacement="end"'>
-        <Calendar {...(args as CalendarSingleProps)} navPlacement="end" />
+        <Calendar {...args} navPlacement="end" />
       </Specimen>
       <Specimen label="weekendColor={false}">
-        <Calendar {...(args as CalendarSingleProps)} weekendColor={false} />
+        <Calendar {...args} weekendColor={false} />
       </Specimen>
       <Specimen label="hideOutsideDays">
-        <Calendar {...(args as CalendarSingleProps)} hideOutsideDays />
+        <Calendar {...args} hideOutsideDays />
       </Specimen>
     </Gallery>
   ),
@@ -332,14 +332,11 @@ export const DayContent: Story = {
   render: (args) => (
     <Gallery columnWidth="20rem">
       <Specimen label="点の印">
-        <Calendar
-          {...(args as CalendarSingleProps)}
-          renderDayContent={dotContent}
-          getDayContentLabel={dotLabel}
-        />
+        <Calendar {...args} renderDayContent={dotContent} getDayContentLabel={dotLabel} />
       </Specimen>
       <Specimen label="文字の印・選んだ日">
         <Calendar
+          /* oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- 同上 */
           {...(args as CalendarSingleProps)}
           defaultValue={Temporal.PlainDate.from('2026-09-16')}
           renderDayContent={textContent}
@@ -364,7 +361,7 @@ export const DayContentOutside: Story = {
   name: '前後の月の日の印',
   render: (args) => (
     <Calendar
-      {...(args as CalendarSingleProps)}
+      {...args}
       renderDayContent={(date) =>
         date.month === 10 ? <span className="size-1.5 rounded-full bg-current" /> : null
       }
@@ -383,6 +380,7 @@ export const Densities: Story = {
   render: (args) => (
     <DensityPair>
       <Calendar
+        /* oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- defaultValue を足すので、range との和のままでは型が合わない（oxlint の誤検知） */
         {...(args as CalendarSingleProps)}
         defaultValue={Temporal.PlainDate.from('2026-09-24')}
       />

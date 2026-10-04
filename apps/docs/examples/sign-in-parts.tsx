@@ -203,6 +203,7 @@ export function SignUpScreen({
   // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
     if (scenario === 'invalid') queueMicrotask(() => formRef.current?.requestSubmit());
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- errorSummary が変わったら送り直す（本体では読まない）
   }, [scenario, errorSummary]);
   const [submitting, setSubmitting] = useState(scenario === 'submitting');
   const [done, setDone] = useState(scenario === 'success');

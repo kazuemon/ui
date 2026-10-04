@@ -27,7 +27,7 @@ export function useMergedRefs<T>(...refs: (Ref<T> | undefined)[]): RefCallback<T
   return useCallback((node: T | null) => {
     const cleanups = refs.map((ref) => assign(ref, node));
     // 片づけの関数を返す ref が 1 つでもあれば、React は外すとき null を渡さない。ほかの ref には自分で null を渡す
-    if (!cleanups.some(Boolean)) return;
+    if (!cleanups.some(Boolean)) return undefined;
     return () => {
       refs.forEach((ref, index) => {
         const cleanup = cleanups[index];
