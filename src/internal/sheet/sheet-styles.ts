@@ -1,15 +1,30 @@
 import { focusRing } from '../focus-styles';
+import { tv } from '../tv';
 
 // 閉じる × の見た目。アイコンだけのボタンなので線は Bold（adr/0018）。hover と押下は平らなボタンと同じ（adr/0027）
-export const sheetCloseButtonClass = [
-  'flex size-(--spacing-control) cursor-pointer items-center justify-center rounded-(--sheet-close-radius) text-fg-muted',
-  ...focusRing,
-  // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
-  //   登録した変数は currentColor を補間できないので、文字の色（--color-fg-muted）を --flat-hover-mix・--flat-press-mix で混ぜる（--color-flat-* と同じ色）
-  '[--flat-bg:transparent] bg-(color:--flat-bg)',
-  '[transition:--flat-bg_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press)]',
-  'hover:[--flat-bg:color-mix(in_oklab,var(--color-fg-muted)_var(--flat-hover-mix),transparent)] active:[--flat-bg:color-mix(in_oklab,var(--color-fg-muted)_var(--flat-press-mix),transparent)] motion-reduce:[transition:none]',
-].join(' ');
+// withText: 文字を添えた閉じるボタン（Combobox などのシートの「完了」）。高さは同じで、幅は文字に合わせて伸ばし、文字は太字
+//   文字の色は × と同じ --color-fg-muted
+export const sheetCloseButton = tv({
+  base: [
+    'flex cursor-pointer items-center justify-center rounded-(--sheet-close-radius) text-fg-muted',
+    ...focusRing,
+    // 塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
+    //   登録した変数は currentColor を補間できないので、文字の色（--color-fg-muted）を --flat-hover-mix・--flat-press-mix で混ぜる（--color-flat-* と同じ色）
+    'bg-(color:--flat-bg) [--flat-bg:transparent]',
+    '[transition:--flat-bg_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press)]',
+    'hover:[--flat-bg:color-mix(in_oklab,var(--color-fg-muted)_var(--flat-hover-mix),transparent)] active:[--flat-bg:color-mix(in_oklab,var(--color-fg-muted)_var(--flat-press-mix),transparent)] motion-reduce:[transition:none]',
+  ],
+  variants: {
+    withText: {
+      false: 'size-(--spacing-control)',
+      true: 'h-(--spacing-control) min-w-(--spacing-control) gap-1 px-3 font-bold',
+    },
+  },
+  defaultVariants: { withText: false },
+});
+
+/** アイコンだけの閉じる × のクラス */
+export const sheetCloseButtonClass = sheetCloseButton();
 
 // Dialog・Drawer・Popover の題（太字）と説明。大きさは --overlay-title-*・--overlay-description-*（密度で変わる — src/styles/theme.css）
 // 見出しの × を題の行の中央にそろえるため、面に --sheet-title-leading として題の行の高さを渡す（overlayTitleLeading）
