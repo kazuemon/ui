@@ -69,6 +69,8 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
     if (!running) return undefined;
     const timer = window.setTimeout(() => onTickRef.current(), interval);
     return () => window.clearTimeout(timer);
+    // position は中で読まないが、送ったら（手で送ったときも）間を数え直すために、変わったらタイマーを張り直す
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
   }, [running, interval, position]);
 
   return {
@@ -95,7 +97,7 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
         if ((event.target as Element).matches(':focus-visible')) setFocused(true);
       },
       onBlur: (event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       },
     },
   };
