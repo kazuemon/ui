@@ -115,7 +115,7 @@ export const sidebar = tv({
       'shadow-[0_0_0_var(--border-width-thick)_var(--sidebar-bg)]',
     ],
     railCount: [
-      'pointer-events-none absolute -end-2.5 -top-2 h-4 min-w-4 rounded-pill px-1 text-center text-[10px] leading-4 font-bold tabular-nums',
+      'pointer-events-none absolute -end-2.5 -top-2 h-4 min-w-4 rounded-pill px-1 text-center text-(length:--sidebar-mark-text) leading-4 font-bold tabular-nums',
       'bg-(color:--sidebar-mark-bg) text-(color:--sidebar-mark-fg)',
       'shadow-[0_0_0_var(--border-width-thick)_var(--sidebar-bg)]',
     ],

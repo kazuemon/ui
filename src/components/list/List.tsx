@@ -17,8 +17,8 @@ const list = tv({
     markerType: {
       dash: '',
       dot: [
-        '[--color-list-bullet:var(--color-fg)] [--list-bullet-height:6px] [--list-bullet-width:6px]',
-        '[--color-list-bullet-nested-ring:var(--color-fg)] [--color-list-bullet-nested:transparent] [--list-bullet-nested-height:6px] [--list-bullet-nested-ring:var(--border-width-medium)] [--list-bullet-nested-width:6px]',
+        '[--color-list-bullet:var(--color-fg)] [--list-bullet-height:var(--list-bullet-dot-size)] [--list-bullet-width:var(--list-bullet-dot-size)]',
+        '[--color-list-bullet-nested-ring:var(--color-fg)] [--color-list-bullet-nested:transparent] [--list-bullet-nested-height:var(--list-bullet-dot-size)] [--list-bullet-nested-ring:var(--border-width-medium)] [--list-bullet-nested-width:var(--list-bullet-dot-size)]',
       ],
     },
     // 済んだ項目の文。subtle は薄く（既定）、default は本文と同じ色

@@ -11,7 +11,7 @@
 //   番号: content に counter(list-item) と後ろの「.」。<ol start> は list-item の数に効く
 //     箱は最小の幅（--list-number-width）を持ち、中は右揃え
 // チェックリストの箱は <input type="checkbox" disabled> そのもの。appearance: none にして、印の位置に置く
-//   押せないので、hover・押下の変化は付けない。塗らずに細い輪郭の四角にし、済んだ項目は輪郭を消して ✓（--list-task-mark-checked）だけにする
+//   押せないので、hover・押下の変化は付けない。塗らずに細い輪郭の四角にし、済んだ項目は輪郭を消して ✓ だけにする（箱を文字の薄い色で塗り、✓ の形 --list-task-mark-checked で mask する）
 //
 // 文字の大きさは読む文字（--text-body）。脚注の一覧のように小さくするときは、外側で --list-text・--list-leading を置く
 //
@@ -45,7 +45,7 @@ export const listStyles = {
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[top:calc((var(--list-leading,var(--leading-body))-var(--list-task-size))/2)]',
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:size-(--list-task-size) [:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:rounded-sm [:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:bg-transparent',
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input]:[box-shadow:inset_0_0_0_var(--border-width-medium)_var(--color-line-strong)]',
-    '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:shadow-none [:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:[background:var(--list-task-mark-checked)_center/100%_no-repeat]',
+    '[:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:shadow-none [:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:bg-fg-subtle [:where(&:not([data-prose]),&_:is(ul,ol))>li>input:checked]:[mask:var(--list-task-mark-checked)_center/100%_no-repeat]',
     // 済んだ項目の文
     '[:where(&:not([data-prose]),&_:is(ul,ol))>li.task-list-item:has(>input:checked)]:[color:var(--color-list-task-done)]',
   ],

@@ -4,7 +4,8 @@
      marker-*: 番号の印。題の 1 行目の中央にそろえる。marker-gap は印と題・本文のあいだ
        marker-text は丸の中の数字、marker-number-text は丸を置かないときの数字
      line-*: 段をつなぐ縦の線（印の中心の下から次の印の上まで）。line-gap は印と線の端のあいだ
-       line-dotted-* は点線のときの太さと印とのあいだ */
+       line-dotted-* は点線のときの太さと印とのあいだ
+     数字の大きさは、密度で変わらない文字の尺度がない（役割の文字は密度で変わる）ので px で置く */
   --steps-gap: calc(var(--spacing) * 8);
   --steps-title-gap: calc(var(--spacing) * 1);
   --steps-marker-size: calc(var(--spacing) * 7);

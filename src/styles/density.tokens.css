@@ -1,6 +1,6 @@
 :root {
   /* 密度 — ADR-0004・0020・0045・0368
-     寸法は入力方式（coarse = 指、fine = マウス）で切り替える。--spacing-control などへの解決は src/styles/globals.css */
+     寸法は入力方式（coarse = 指、fine = マウス）で切り替える。--spacing-control などへの解決は src/styles/theme.css */
   /* 部品の高さ: マウスも指も 44px。.coarse-large を付けた要素の中の指用だけ 52px */
   --spacing-control-coarse: 44px;
   --spacing-control-coarse-large: 52px;

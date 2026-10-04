@@ -99,7 +99,7 @@ export function PaginationPageInput({
           if (pending.current) commit();
         }}
         onBlur={revert}
-        className="h-full w-[calc(var(--pagination-input-chars)*1ch+2px)] min-w-0 bg-transparent text-center tabular-nums outline-none"
+        className="h-full w-[calc(var(--pagination-input-chars)*1ch+var(--pagination-input-caret))] min-w-0 bg-transparent text-center tabular-nums outline-none"
       />
     </div>
   );

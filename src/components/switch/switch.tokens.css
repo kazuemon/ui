@@ -1,17 +1,17 @@
 :root {
   /* Switch（トグル）— ADR-0049・0065〜0069
      トラックの大きさは密度で変わる */
-  --switch-w-coarse: 48px;
-  --switch-h-coarse: 28px;
-  --switch-knob-coarse: 22px;
+  --switch-w-coarse: calc(var(--spacing) * 12); /* 48px */
+  --switch-h-coarse: calc(var(--spacing) * 7); /* 28px */
+  --switch-knob-coarse: calc(var(--spacing) * 5.5); /* 22px */
   /* 大きい指用。部品の高さ 52px に合わせて幅を 1.3 倍 */
-  --switch-w-coarse-large: 52px;
-  --switch-h-coarse-large: 28px;
-  --switch-knob-coarse-large: 22px;
-  --switch-w-fine: 40px;
-  --switch-h-fine: 22px;
-  --switch-knob-fine: 16px;
-  --switch-inset: 3px; /* トラックとノブの隙間 */
+  --switch-w-coarse-large: calc(var(--spacing) * 13); /* 52px */
+  --switch-h-coarse-large: calc(var(--spacing) * 7); /* 28px */
+  --switch-knob-coarse-large: calc(var(--spacing) * 5.5); /* 22px */
+  --switch-w-fine: calc(var(--spacing) * 10); /* 40px */
+  --switch-h-fine: calc(var(--spacing) * 5.5); /* 22px */
+  --switch-knob-fine: calc(var(--spacing) * 4); /* 16px */
+  --switch-inset: calc(var(--spacing) * 0.75); /* 3px。トラックとノブの隙間 */
   /* ノブの影。押せることの記号なので、押せないときはなくす */
   --shadow-switch-knob: 0 1px 2px rgb(from var(--color-shadow) r g b / 0.3);
   /* 行の並び。--switch-gap: トラックと文字の間。--switch-columns-*: 格子の列（トラックが左・右）。列は線の名前 track・label・row で指す

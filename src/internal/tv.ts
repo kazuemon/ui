@@ -11,7 +11,7 @@ import { createTV } from 'tailwind-variants';
 //   className で h-full を渡しても h-control が残る（上書きが効かない）。text-caption は色のクラスとみなされ、text-fg-subtle と並べると消える
 // 色（bg-primary など）は、知らない名前も色として扱うので、並べなくてよい
 // 角丸の xs〜4xl は tailwind-merge が既に知っているので、並べなくてよい
-// 名前の一覧は tokens.css と同じにする（src/components/tv.test.ts が確かめる）
+// 名前の一覧は tokens.css と同じにする（src/internal/tv.test.ts が確かめる）
 
 /**
  * tailwind-merge の設定。@kazuemon/ui のクラス（h-control・text-caption・rounded-control など）の名前を知らせます。

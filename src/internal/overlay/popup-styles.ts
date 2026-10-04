@@ -16,6 +16,12 @@ export const popupMotionClass = [
 ].join(' ');
 
 /**
+ * 浮かぶ面（Popover・Menu・Tooltip）が画面の端に当たったとき、端との間に空ける距離（px）。尺度の余白の 2 段（--spacing の 2 倍）。
+ * Base UI の collisionPadding は数（または辺ごとの数）しか受け取らず、sideOffset と違って関数で後から読ませられないので、数で持つ
+ */
+export const popupCollisionPadding = 8;
+
+/**
  * 浮かぶ面と本体の間を、tokens.css の長さから px で読む。Base UI の sideOffset は数で受け取るため
  * calc() のままの値もあるので、見えない要素の幅にして測る。基準は浮かぶ面を描く場所（密度で値が変わらない長さに使う）
  */

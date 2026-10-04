@@ -4,6 +4,9 @@
 //   lg: 部品の高さ（今の単体 Chip。左右は部品の左右の余白）
 //   inherit: 段を持たず、周りの文字の大きさに従う（em）。Prose の中などで使う
 //
+// 寸法は尺度の余白（--spacing）の段で書く。Tag・Chip の sm の高さは small-parts.tokens.css の --small-parts-height-sm を共有する。
+// Badge の lg の文字（14px）は、文字に密度で変わらない尺度がない（役割の文字は密度で変わる）ので px で置く
+//
 // クラスは、値ごとに 1 本の文字列として書きます（Tailwind はソースのテキストをそのまま読むので、
 // テンプレート文字列の組み立てでは見つけられません。tv() の他の variants と同じく、ここも完成した文字列で持ちます）
 
@@ -11,7 +14,7 @@ export type SmallPartsSize = 'sm' | 'md' | 'lg' | 'inherit';
 
 /** Tag の tv の size 変化に渡すクラス */
 export const tagSizeClass: Record<SmallPartsSize, string> = {
-  sm: '[--tag-height:20px] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-caption)] [--tag-leading:var(--leading-caption)]',
+  sm: '[--tag-height:var(--small-parts-height-sm)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-caption)] [--tag-leading:var(--leading-caption)]',
   md: '[--tag-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)]',
   lg: '[--tag-height:var(--spacing-control)] [--tag-pad-x:var(--spacing-control-x)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)]',
   inherit:
@@ -20,7 +23,7 @@ export const tagSizeClass: Record<SmallPartsSize, string> = {
 
 /** Chip の tv の size 変化に渡すクラス */
 export const chipSizeClass: Record<SmallPartsSize, string> = {
-  sm: '[--chip-height:20px] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-caption)] [--chip-leading:var(--leading-caption)]',
+  sm: '[--chip-height:var(--small-parts-height-sm)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-caption)] [--chip-leading:var(--leading-caption)]',
   md: '[--chip-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)]',
   lg: '[--chip-height:var(--spacing-control)] [--chip-pad-x:var(--spacing-control-x)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)]',
   inherit: '[--chip-height:2em] [--chip-pad-x:0.5em] [--chip-font:1em] [--chip-leading:1.5em]',
@@ -28,9 +31,9 @@ export const chipSizeClass: Record<SmallPartsSize, string> = {
 
 /** Badge の tv の size 変化に渡すクラス */
 export const badgeSizeClass: Record<SmallPartsSize, string> = {
-  sm: '[--badge-size:16px] [--badge-dot:8px] [--badge-pad-x:var(--spacing)] [--badge-font:var(--text-caption)]',
-  md: '[--badge-size:20px] [--badge-dot:10px] [--badge-pad-x:calc(var(--spacing)_*_1.5)] [--badge-font:var(--text-caption)]',
-  lg: '[--badge-size:24px] [--badge-dot:12px] [--badge-pad-x:calc(var(--spacing)_*_2)] [--badge-font:14px]',
+  sm: '[--badge-size:calc(var(--spacing)_*_4)] [--badge-dot:calc(var(--spacing)_*_2)] [--badge-pad-x:var(--spacing)] [--badge-font:var(--text-caption)]',
+  md: '[--badge-size:calc(var(--spacing)_*_5)] [--badge-dot:calc(var(--spacing)_*_2.5)] [--badge-pad-x:calc(var(--spacing)_*_1.5)] [--badge-font:var(--text-caption)]',
+  lg: '[--badge-size:calc(var(--spacing)_*_6)] [--badge-dot:calc(var(--spacing)_*_3)] [--badge-pad-x:calc(var(--spacing)_*_2)] [--badge-font:14px]',
   inherit:
     '[--badge-size:1.3334em] [--badge-dot:0.5em] [--badge-pad-x:0.3334em] [--badge-font:0.75em]',
 };
@@ -41,7 +44,7 @@ export const badgeSizeClass: Record<SmallPartsSize, string> = {
  * ここはクラス名ではなく実行時の値として使うだけなので、tagSizeClass などと違ってスキャンされる必要はありません
  */
 export const chipHeightValue: Record<Exclude<SmallPartsSize, 'inherit'>, string> = {
-  sm: '20px',
+  sm: 'var(--small-parts-height-sm)',
   md: 'calc(var(--spacing-control) - var(--spacing) * 3)',
   lg: 'var(--spacing-control)',
 };

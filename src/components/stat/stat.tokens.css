@@ -2,7 +2,7 @@
   /* Stat（数字とラベル）
      並びは Field・バーと同じ 3 層: 上にラベル（太字）、真ん中に数字、下にキャプション（小さくグレー）
      数字の大きさ: --stat-value-text・--stat-value-leading（size が文字の尺度の段を差し替える。密度でも一緒に変わる）
-     増減: 矢印の有無（deltaIcon）と淡い面の有無（deltaFill）は部品が持つ。色は tone（成功の緑・危険の赤・グレー） */
+     増減: 矢印の有無（hideDeltaIcon）と淡い面の有無（deltaFill）は部品が持つ。色は trend（成功の緑・危険の赤・グレー） */
   --stat-value-text: var(--text-heading-2xl);
   --stat-value-leading: var(--leading-heading-2xl);
   --stat-value-gap: calc(var(--spacing) * 2); /* 数字と、単位・増減のあいだ */

@@ -15,6 +15,7 @@ import {
   type PositionerProps,
 } from '../../internal/overlay/overlay-props';
 import {
+  popupCollisionPadding,
   popupMotionClass,
   popupSurfaceClass,
   readTokenLength,
@@ -258,7 +259,7 @@ function FloatingPopover({
             side={side}
             align={align}
             sideOffset={() => readTokenLength('--popover-offset')}
-            collisionPadding={8}
+            collisionPadding={popupCollisionPadding}
             data-density={scope.density}
             {...restPositionerProps}
             ref={positionerRef}

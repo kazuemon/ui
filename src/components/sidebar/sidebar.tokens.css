@@ -31,6 +31,9 @@
   --sidebar-count-fg: var(--color-fg-muted);
   --sidebar-mark-bg: var(--color-neutral-strong);
   --sidebar-mark-fg: var(--color-on-neutral-strong);
+  /* 畳んだ列の札の数字。高さ 16px の札に収める小さい数字で、キャプションより小さい。
+     文字には密度で変わらない尺度がない（役割の文字は密度で変わる）ので px で置く */
+  --sidebar-mark-text: 10px;
   /* 行ごとのメニューのボタンと、畳める節の印。ふだん淡く置くとき（subtle。既定）の濃さ。DataTable の並べ替えの印と同じ */
   --sidebar-indicator-subtle-opacity: 0.5;
 }

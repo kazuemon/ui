@@ -1,7 +1,10 @@
 :root {
   /* 小物（Tag・Badge・Chip）の大きさ — ADR-0259
      sm・md・lg・inherit の値は small-parts-size.ts にあり、各部品の tv の size が --tag-*・--badge-*・--chip-* を差し替える。
-     ここには大きさ以外のトークン（Badge の重ねる縁・内側の寄せなど）を置く */
+     ここには、段をまたいで共有する高さと、大きさ以外のトークン（アイコン・アバターの寄せなど）を置く */
+
+  /* Tag・Chip の sm の高さ。Combobox・TagsInput が欄の中のチップにそろえるときも、small-parts-size.ts の chipHeightValue から同じ値を読む */
+  --small-parts-height-sm: calc(var(--spacing) * 5);
 
   /* Tag・Chip の先頭のアイコン・アバター — ADR-0399・0400
      icon-gap: アイコンと文字の間。avatar-inset: アバターの上下と左の余白（アバターは高さから上下の余白を引いた大きさ）
