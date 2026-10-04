@@ -22,10 +22,8 @@ type NotInPassword =
   | 'warnRemaining'
   | 'showCount';
 
-export interface PasswordFieldBaseProps extends Omit<
-  TextFieldBaseProps,
-  'type' | 'suffix' | NotInPassword
-> {
+/** パスワードの欄だけが持つ props。外枠（PasswordField）と本体（PasswordFieldControl）が同じものを受けます */
+interface PasswordOwnProps {
   /**
    * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
    * @default 'current-password'
@@ -38,22 +36,16 @@ export interface PasswordFieldBaseProps extends Omit<
   toggleName?: string;
 }
 
+export interface PasswordFieldBaseProps
+  extends
+    Omit<TextFieldBaseProps, 'type' | 'suffix' | NotInPassword | keyof PasswordOwnProps>,
+    PasswordOwnProps {}
+
 /** PasswordField の本体（PasswordFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
-export interface PasswordFieldControlProps extends Omit<
-  TextFieldControlProps,
-  'type' | 'suffix' | 'autoComplete' | NotInPassword
-> {
-  /**
-   * ブラウザとパスワード管理の補完。ログインの欄は current-password、登録や変更で新しく決める欄は new-password にします
-   * @default 'current-password'
-   */
-  autoComplete?: string;
-  /**
-   * 表示の切り替えのボタンの、読み上げの名前。押しているかは aria-pressed で伝えるので、名前は変えません
-   * @default 'パスワードを表示'
-   */
-  toggleName?: string;
-}
+export interface PasswordFieldControlProps
+  extends
+    Omit<TextFieldControlProps, 'type' | 'suffix' | NotInPassword | keyof PasswordOwnProps>,
+    PasswordOwnProps {}
 
 /** PasswordField の props。label か accessibleName のどちらかが要ります */
 export type PasswordFieldProps = FieldNamed<PasswordFieldBaseProps>;
