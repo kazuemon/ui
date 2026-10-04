@@ -11,14 +11,13 @@ import { isDateOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
 import { dateSegmentColorClass } from '../../internal/date-segments/colors';
 import {
+  DateFieldControl,
   type DateFieldControlProps,
-  DateFieldControlInner,
-  type DateFieldControlInnerProps,
-} from '../../internal/date-segments/DateFieldControlInner';
+} from '../../internal/date-segments/DateFieldControl';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
-import { useHalfWidthNotice } from '../../internal/half-width';
+import { HalfWidthNoticedContext, useHalfWidthNotice } from '../../internal/half-width';
 import { CalendarBlankIcon, XIcon } from '../../internal/icons';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
 import {
@@ -178,11 +177,7 @@ function useDateValue(
  * 日付を打つ欄に、カレンダーを開くボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
  * 押せない・待っている・エラー・必須の状態と、説明のつながりは、包む Field から受け取ります。カレンダーの面の名前は Field のラベルです
  */
-export function DatePickerControl(props: DatePickerControlProps) {
-  return <DatePickerControlInner {...props} />;
-}
-
-function DatePickerControlInner({
+export function DatePickerControl({
   variant = 'field',
   open: openProp,
   defaultOpen = false,
@@ -216,7 +211,7 @@ function DatePickerControlInner({
   locale: localeProp,
   timeZone: timeZoneProp,
   ...control
-}: DatePickerControlProps & Pick<DateFieldControlInnerProps, 'onHalfWidth'>) {
+}: DatePickerControlProps) {
   const field = useFieldState();
   const { locale, timeZone } = useLocale(localeProp, timeZoneProp);
   const today = todayProp ?? todayIn(timeZone);
@@ -322,7 +317,7 @@ function DatePickerControlInner({
             renderTrigger={renderTrigger}
           />
         ) : (
-          <DateFieldControlInner
+          <DateFieldControl
             {...control}
             value={value}
             onValueChange={changeValue}
@@ -375,12 +370,9 @@ export function DatePicker(props: DatePickerProps) {
       nativeLabel={false}
     >
       {() => (
-        <DatePickerControlInner
-          {...control}
-          value={value}
-          onValueChange={setValue}
-          onHalfWidth={noticed}
-        />
+        <HalfWidthNoticedContext value={noticed}>
+          <DatePickerControl {...control} value={value} onValueChange={setValue} />
+        </HalfWidthNoticedContext>
       )}
     </Field>
   );

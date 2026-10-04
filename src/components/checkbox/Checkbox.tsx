@@ -13,14 +13,10 @@ import {
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
-import {
-  type FieldValidate,
-  type FieldValidationMode,
-  FieldMessageLine,
-  mergeBaseFieldError,
-  useFormFieldErrors,
-} from '../../internal/field/Field';
-import { FieldsetContext, withFieldsetErrors } from '../../internal/field/fieldset-context';
+import { type FieldValidate, type FieldValidationMode } from '../../internal/field/Field';
+import { fieldMessageIds } from '../../internal/field/field-messages';
+import { FieldsetContext } from '../../internal/field/fieldset-context';
+import { SoloFieldValidity } from '../../internal/field/SoloFieldValidity';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
@@ -248,13 +244,7 @@ export function Checkbox({
   // 1つだけ置くときは自分の Field.Root。エラー・警告・情報の行（入力欄と同じ — design/adr/0041・0044）を箱の行の下に置き、
   // 箱の説明を見た目の順（キャプション → エラー → 警告 → 情報）でつなぐ
   // data-slot="field-label": Form のエラーの一覧が、欄の名前として読む（Field と同じ）
-  const ids = {
-    caption: `${id}caption`,
-    error: `${id}error`,
-    warning: `${id}warning`,
-    success: `${id}success`,
-    info: `${id}info`,
-  };
+  const ids = fieldMessageIds(id);
   return (
     <BaseField.Root
       // Form のエラーの一覧が、欄の名前をこの根の中のラベルから読む（form-dom.ts）
@@ -268,87 +258,19 @@ export function Checkbox({
         className: [soloRows(caption), ...choiceMessagePull, className],
       })}
     >
-      <ChoiceSoloFields
-        box={box}
-        label={label}
-        labelReadOnly={labelReadOnly}
-        required={required}
-        requiredMark={requiredMark}
-        optionalMark={optionalMark}
+      <SoloFieldValidity
+        ids={ids}
+        name={name}
+        disabled={disabled || fieldset.disabled}
         caption={caption}
         errorText={errorText}
         warningText={warningText}
         successText={successText}
         infoText={infoText}
-        ids={ids}
         ariaDescribedBy={ariaDescribedBy}
-        s={s}
-        name={name}
-        disabled={disabled || fieldset.disabled}
-      />
-    </BaseField.Root>
-  );
-}
-
-// BaseField.Root の子。BaseField.Validity（公開 API）で、Base UI 自身が見つけたエラーを読む（design/adr/0255）
-// validate など、Base UI 自身が見つけたエラーも、errorText と同じ行に出す（errorText があれば、そちらを優先）
-// 説明（aria-describedby）も、ここで決まったエラーの有無を見て組む
-function ChoiceSoloFields({
-  box,
-  label,
-  labelReadOnly,
-  required,
-  requiredMark,
-  optionalMark,
-  caption,
-  errorText,
-  warningText,
-  successText,
-  infoText,
-  ids,
-  ariaDescribedBy,
-  s,
-  name,
-  disabled,
-}: {
-  box: (describedBy: string | undefined) => ReactNode;
-  label: ReactNode;
-  labelReadOnly: string | undefined;
-  required?: boolean;
-  requiredMark?: FieldMarkProps['requiredMark'];
-  optionalMark?: FieldMarkProps['optionalMark'];
-  caption: ReactNode;
-  errorText?: FieldMessage;
-  warningText?: FieldMessage;
-  successText?: FieldMessage;
-  infoText?: FieldMessage;
-  ids: { caption: string; error: string; warning: string; success: string; info: string };
-  ariaDescribedBy: string | undefined;
-  s: ReturnType<typeof choiceStyles>;
-  name: string | undefined;
-  disabled: boolean | undefined;
-}) {
-  const formErrors = useFormFieldErrors();
-  const fieldsetErrorIds = useContext(FieldsetContext).errorIds;
-  return (
-    <BaseField.Validity>
-      {(validity) => {
-        const baseError = mergeBaseFieldError({ name, disabled, formErrors, validity });
-        const error = errorText ?? baseError;
-        const describedBy = withFieldsetErrors(
-          fieldsetErrorIds,
-          [
-            ariaDescribedBy,
-            caption && ids.caption,
-            error && ids.error,
-            warningText && ids.warning,
-            successText && ids.success,
-            infoText && ids.info,
-          ]
-            .filter(Boolean)
-            .join(' ') || undefined
-        );
-        return (
+        messageClassName={s.message()}
+      >
+        {(describedBy) => (
           <>
             {box(describedBy)}
             <BaseField.Label
@@ -367,33 +289,9 @@ function ChoiceSoloFields({
                 {caption}
               </BaseField.Description>
             )}
-            <FieldMessageLine
-              kind="error"
-              content={error}
-              id={ids.error}
-              className={s.message({ className: 'row-start-[-5]' })}
-            />
-            <FieldMessageLine
-              kind="warning"
-              content={warningText}
-              id={ids.warning}
-              className={s.message({ className: 'row-start-[-4]' })}
-            />
-            <FieldMessageLine
-              kind="success"
-              content={successText}
-              id={ids.success}
-              className={s.message({ className: 'row-start-[-3]' })}
-            />
-            <FieldMessageLine
-              kind="info"
-              content={infoText}
-              id={ids.info}
-              className={s.message({ className: 'row-start-[-2]' })}
-            />
           </>
-        );
-      }}
-    </BaseField.Validity>
+        )}
+      </SoloFieldValidity>
+    </BaseField.Root>
   );
 }

@@ -36,6 +36,10 @@ import { cn, tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { useAutoHeight } from './use-auto-height';
 
+// 右下のつまみとみなす角の幅（px）。つまみはブラウザが描く（resize: vertical）ので、トークンや密度では変わらない。
+//   押した位置との比べに使うので、CSS の値ではなく JS の数で持つ
+const RESIZE_GRIP_HIT = 20;
+
 // 本体は TextField と同じ（原則8: 編集できる欄はグレーの塗り。フォーカス・エラー・押せない・止めているあいだも controlBox）
 // 高さ（軸 98）: textarea は中身の高さに伸ばし（field-sizing: content。対応していないブラウザは use-auto-height）、
 //   外側のスクロールする枠（Base UI の ScrollArea）を minRows〜maxRows の高さにする。maxRows を超えたら枠の中でスクロールし、
@@ -198,8 +202,11 @@ export function TextareaControl({
   const onViewportPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const corner = 20;
-    if (canResize && event.clientX > rect.right - corner && event.clientY > rect.bottom - corner) {
+    if (
+      canResize &&
+      event.clientX > rect.right - RESIZE_GRIP_HIT &&
+      event.clientY > rect.bottom - RESIZE_GRIP_HIT
+    ) {
       setManual(true);
       return;
     }

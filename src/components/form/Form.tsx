@@ -4,7 +4,6 @@ import { Form as BaseForm } from '@base-ui/react/form';
 import {
   type ComponentProps,
   type ReactNode,
-  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -19,6 +18,7 @@ import type { OptionalMark, RequiredMark } from '../../internal/field/FieldMark'
 import { focusRing } from '../../internal/focus-styles';
 import { FormSubmitContext, type FormSubmittingBehavior } from '../../internal/form-context';
 import { UIConfigContext, useUIConfig } from '../../internal/ui-config';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Link } from '../link/Link';
 import { Notice } from '../notice/Notice';
 import {
@@ -94,7 +94,6 @@ export interface FormProps extends ComponentProps<'form'> {
    * Enter で送ったときは、フォームの最初の送信のボタンに出します（ブラウザの既定と同じ）。
    * true から false に戻した描画でエラーの行があれば、送信したときと同じく、最初のエラーの欄（showErrorSummary のときはエラーの一覧）へフォーカスを移します。
    * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡してください。先に渡すと、送っているあいだに読み上げられ、フォーカスが移った先でもう一度読まれます。あとに渡すと、フォーカスは移りません。
-   * サーバーから返ってきたエラーは、submitting を false にするのと同じ描画で渡します。
    * 送ったときの場所（押した送信のボタン、Enter を押した欄）にフォーカスが残っているときだけ移し、送っているあいだに別の欄へ移っていたら、フォーカスは動かさず、行を読み上げで知らせます
    * @default false
    */
@@ -165,14 +164,7 @@ export function Form({
     formErrorRef.current = hasFormError;
     submittingRef.current = submitting;
   });
-  const setRefs = useCallback(
-    (node: HTMLFormElement | null) => {
-      formRef.current = node;
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
-    },
-    [ref]
-  );
+  const setRefs = useMergedRefs(formRef, ref);
 
   // アプリの onSubmit（各欄のエラーを決める）と送信の回数を、同じ描画で反映する
   // 送っているあいだの送信（Enter など）は、onSubmit を呼ばずに止める（二重に送らない）

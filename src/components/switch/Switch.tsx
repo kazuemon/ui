@@ -9,12 +9,11 @@ import {
   type CaptionPlacement,
   type FieldValidate,
   type FieldValidationMode,
-  FieldMessageLine,
-  mergeBaseFieldError,
-  useFormFieldErrors,
 } from '../../internal/field/Field';
-import { FieldsetContext, withFieldsetErrors } from '../../internal/field/fieldset-context';
+import { fieldMessageIds } from '../../internal/field/field-messages';
+import { FieldsetContext } from '../../internal/field/fieldset-context';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
+import { SoloFieldValidity } from '../../internal/field/SoloFieldValidity';
 import type { FieldMessage } from '../../internal/field/input-field-props';
 import { focusRing } from '../../internal/focus-styles';
 import { useAppInvalid, useChoiceLock } from '../../internal/form-context';
@@ -409,19 +408,12 @@ export function Switch({
   // Fieldset のまとまりのエラーと押せない状態も受ける（Field を通らないので、ここで足す）
   const fieldset = useContext(FieldsetContext);
   const appInvalid = useAppInvalid(errorText || fieldset.invalid);
-  const formErrors = useFormFieldErrors();
   // 行を明示する（ラベルの行・キャプションの行・エラー・警告・成功・情報の行）。
   // 囲みのあるトラックの row-[1/-5] の -5 は明示した行の線を指すので、行を明示しないと数が合わない
   const rows = caption
     ? 'grid-rows-[auto_auto_auto_auto_auto_auto]'
     : 'grid-rows-[auto_auto_auto_auto_auto]';
-  const ids = {
-    caption: `${id}caption`,
-    error: `${id}error`,
-    warning: `${id}warning`,
-    success: `${id}success`,
-    info: `${id}info`,
-  };
+  const ids = fieldMessageIds(id);
   // キャプションは、top ではラベルの列（トラックの横）、bottom では行の下に幅いっぱいで置く
   const captionNode = caption ? (
     <BaseField.Description
@@ -458,89 +450,48 @@ export function Switch({
         <FieldMark required={required} requiredMark={requiredMark} optionalMark={optionalMark} />
       </BaseField.Label>
       {captionNode}
-      {/* BaseField.Validity（公開 API）で、validate・Form の errors から Base UI が見つけたエラーを読む（design/adr/0255）
-          errorText があれば、そちらを優先する。説明（aria-describedby）も、ここで決まったエラーの有無を見て組む */}
-      <BaseField.Validity>
-        {(validity) => {
-          const error =
-            errorText ??
-            mergeBaseFieldError({
-              name,
-              disabled: disabled || fieldset.disabled,
-              formErrors,
-              validity,
-            });
-          // 説明は見た目の順（キャプション → エラー → 警告 → 成功 → 情報）でつなぐ（design/adr/0041）
-          const describedBy = withFieldsetErrors(
-            fieldset.errorIds,
-            [
-              ariaDescribedBy,
-              caption && ids.caption,
-              error && ids.error,
-              warningText && ids.warning,
-              successText && ids.success,
-              infoText && ids.info,
-            ]
-              .filter(Boolean)
-              .join(' ') || undefined
-          );
-          return (
-            <>
-              <BaseSwitch.Root
-                className={s.track({
-                  className: locked.readOnlyLook ? switchReadOnly.track : undefined,
-                })}
-                checked={checked}
-                defaultChecked={defaultChecked}
-                onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
-                value={value}
-                uncheckedValue={uncheckedValue}
-                name={name}
-                form={form}
-                id={idProp}
-                inputRef={inputRef}
-                disabled={disabled}
-                // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
-                // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
-                required={false}
-                aria-required={required || undefined}
-                readOnly={locked.readOnly}
-                aria-describedby={describedBy}
-                aria-disabled={locked.ariaDisabled || ariaDisabled}
-                {...locked.data}
-                {...props}
-              >
-                <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
-              </BaseSwitch.Root>
-              {/* エラー・警告・成功・情報の行（入力欄と同じ — design/adr/0041・0044）。行の最後の4行に置く */}
-              <FieldMessageLine
-                kind="error"
-                content={error}
-                id={ids.error}
-                className="col-span-full row-start-[-5] mt-0 data-open:mt-0"
-              />
-              <FieldMessageLine
-                kind="warning"
-                content={warningText}
-                id={ids.warning}
-                className="col-span-full row-start-[-4] mt-0 data-open:mt-0"
-              />
-              <FieldMessageLine
-                kind="success"
-                content={successText}
-                id={ids.success}
-                className="col-span-full row-start-[-3] mt-0 data-open:mt-0"
-              />
-              <FieldMessageLine
-                kind="info"
-                content={infoText}
-                id={ids.info}
-                className="col-span-full row-start-[-2] mt-0 data-open:mt-0"
-              />
-            </>
-          );
-        }}
-      </BaseField.Validity>
+      {/* エラー・警告・成功・情報の行（入力欄と同じ）は、行の最後の4行に置く */}
+      <SoloFieldValidity
+        ids={ids}
+        name={name}
+        disabled={disabled || fieldset.disabled}
+        caption={caption}
+        errorText={errorText}
+        warningText={warningText}
+        successText={successText}
+        infoText={infoText}
+        ariaDescribedBy={ariaDescribedBy}
+        messageClassName="col-span-full mt-0 data-open:mt-0"
+      >
+        {(describedBy) => (
+          <BaseSwitch.Root
+            className={s.track({
+              className: locked.readOnlyLook ? switchReadOnly.track : undefined,
+            })}
+            checked={checked}
+            defaultChecked={defaultChecked}
+            onCheckedChange={onCheckedChange ? (next) => onCheckedChange(next) : undefined}
+            value={value}
+            uncheckedValue={uncheckedValue}
+            name={name}
+            form={form}
+            id={idProp}
+            inputRef={inputRef}
+            disabled={disabled}
+            // required は Base UI の隠れた input にネイティブの required を付け、送信時にブラウザが確かめて止めてしまう
+            // （design/adr/0255 の影響）。渡さず、aria-required だけで必須であることを伝える
+            required={false}
+            aria-required={required || undefined}
+            readOnly={locked.readOnly}
+            aria-describedby={describedBy}
+            aria-disabled={locked.ariaDisabled || ariaDisabled}
+            {...locked.data}
+            {...props}
+          >
+            <BaseSwitch.Thumb className={s.thumb()} {...locked.data} />
+          </BaseSwitch.Root>
+        )}
+      </SoloFieldValidity>
     </BaseField.Root>
   );
 }

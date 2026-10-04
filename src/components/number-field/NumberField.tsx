@@ -1,15 +1,7 @@
 'use client';
 
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field';
-import {
-  type ComponentProps,
-  createContext,
-  type ReactNode,
-  type Ref,
-  useContext,
-  useId,
-  useState,
-} from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useId, useState } from 'react';
 
 import { ArrowsHorizontalIcon } from '../../internal/icons';
 import { SplitStepButton, StackedStepper, type StepperNames } from './NumberFieldStepper';
@@ -17,10 +9,11 @@ import { FieldAddon } from '../field-addon/FieldAddon';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
 import {
-  type HalfWidthKind,
   type HalfWidthNoticeProps,
   halfWidthKind,
+  HalfWidthNoticedContext,
   useHalfWidthNotice,
+  useHalfWidthNoticed,
 } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -140,6 +133,11 @@ export interface NumberFieldControlProps extends Pick<
 
 const defaultStepperNames: StepperNames = { increment: '増やす', decrement: '減らす' };
 
+/** scrub の既定。ボタンを置かない形（stepper="none"）だけ、ラベルを左右に動かして値を変える。外枠（Field に relative を付けるか）と本体で共有する */
+function scrubOf(scrub: boolean | undefined, stepper: NumberFieldStepper | undefined) {
+  return scrub ?? stepper === 'none';
+}
+
 /**
  * 数を入力する欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
  * 押せない・待っている・エラー・成功の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
@@ -156,7 +154,7 @@ export function NumberFieldControl({
   readOnly,
   placeholder,
   stepper = 'split',
-  scrub = stepper === 'none',
+  scrub: scrubProp,
   allowWheelScrub = stepper === 'none',
   stepperNames = defaultStepperNames,
   value,
@@ -181,6 +179,7 @@ export function NumberFieldControl({
   'aria-disabled': ariaDisabled,
   'aria-busy': ariaBusy,
 }: NumberFieldControlProps) {
+  const scrub = scrubOf(scrubProp, stepper);
   const field = useFieldState();
   const disabled = field?.disabled ?? false;
   const loading = field?.loading ?? false;
@@ -189,7 +188,7 @@ export function NumberFieldControl({
   const uid = useId();
   // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき）。直すのは Base UI（フォーカスが外れたときに半角の形になる）なので、
   //   打った文字に全角の英数字が入っていたかだけを見る。値が空になったら知らせを消す
-  const noticed = useContext(HalfWidthNoticedContext);
+  const noticed = useHalfWidthNoticed();
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const blocking = field?.blocking ?? false;
   const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
@@ -346,7 +345,7 @@ export function NumberFieldControl({
               style={
                 hasInlineText
                   ? (state) => ({
-                      width: `calc(${Math.max(state.inputValue.length, placeholder?.length ?? 0, 1)}ch + 2px)`,
+                      width: `calc(${Math.max(state.inputValue.length, placeholder?.length ?? 0, 1)}ch + var(--number-field-inline-slack))`,
                     })
                   : undefined
               }
@@ -366,11 +365,6 @@ export function NumberFieldControl({
     </BaseNumberField.Root>
   );
 }
-
-// 内蔵の形（NumberField）が、全角を直したことの知らせを受け取る口。知らせは Field の情報の行に出す
-const HalfWidthNoticedContext = createContext<
-  ((kind: HalfWidthKind | null, empty: boolean) => void) | null
->(null);
 
 /** NumberField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type NumberFieldBaseProps = Omit<NumberFieldControlProps, 'className'> &
@@ -392,7 +386,7 @@ export function NumberField(props: NumberFieldProps) {
   );
   // 全角を半角に直したことの知らせ（既定は知らせない）。infoText を渡したときは、そちらを出す
   const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
-  const scrub = control.scrub ?? control.stepper === 'none';
+  const scrub = scrubOf(control.scrub, control.stepper);
   return (
     <Field
       {...field}

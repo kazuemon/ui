@@ -3,8 +3,8 @@
 import type { MouseEvent } from 'react';
 
 import { FieldAddonButton } from '../../components/field-addon/FieldAddon';
-import { useFormSubmittingLock } from '../form-context';
 import { XIcon } from '../icons';
+import { useFieldState } from './Field';
 
 export interface FieldClearButtonProps {
   /** 欄のいまの値。空なら出さない */
@@ -14,8 +14,8 @@ export interface FieldClearButtonProps {
   /** 欄が読み取り専用。値を変えられない欄には消す操作がないので、出さない */
   readOnly?: boolean;
   /**
-   * 欄を止めている（押せない・loadingBehavior="blocking"）。押せない形で出す。
-   * Form の送信中（blocking）はこの部品が自分で読む
+   * 欄が押せない。押せない形で出す。
+   * 止めているあいだ（loadingBehavior="blocking"・Form の送信中）は、この部品が包む Field から読む
    */
   disabled?: boolean;
   /** 読み上げの名前 */
@@ -36,7 +36,7 @@ export function FieldClearButton({
   disabled,
   'aria-label': ariaLabel = '入力内容を消去',
 }: FieldClearButtonProps) {
-  const formLock = useFormSubmittingLock();
+  const field = useFieldState();
   if (value === '' || readOnly) return null;
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     const input = event.currentTarget
@@ -49,7 +49,7 @@ export function FieldClearButton({
     <FieldAddonButton
       aria-label={ariaLabel}
       // 押せない欄では FieldAddonButton が欄の disabled を受け継ぐ。止めているあいだの分をここで足す
-      disabled={disabled || formLock.blocking || undefined}
+      disabled={disabled || field?.blocking || undefined}
       onClick={handleClick}
     >
       <XIcon standalone />

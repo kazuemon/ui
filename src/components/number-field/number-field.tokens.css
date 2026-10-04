@@ -3,4 +3,6 @@
      縦積み（stepper="stacked"）の塊の幅と、▲▼ の大きさ。高さは本体（--spacing-control）を 2 つに割る。▲▼ は半分の高さに収まる大きさ */
   --number-field-stepper-width: calc(var(--spacing) * 8); /* 32px */
   --number-field-stepper-icon: calc(var(--spacing) * 3.5); /* 14px */
+  /* 値の横に文字（prefix・suffix の文字）を置くとき、値の長さ（ch）に合わせた欄の幅に足す余り。末尾のカーソルが切れないように */
+  --number-field-inline-slack: calc(var(--spacing) * 0.5); /* 2px */
 }

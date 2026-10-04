@@ -2,7 +2,7 @@
 
 import { Field as BaseField } from '@base-ui/react/field';
 import { Mask, type MaskTokens } from 'maska';
-import { type ComponentProps, createContext, useContext, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, useMemo, useRef, useState } from 'react';
 
 import { Field, useFieldState } from '../../internal/field/Field';
 import { useFormReset } from '../../internal/field/use-form-reset';
@@ -11,7 +11,9 @@ import {
   type HalfWidthKind,
   type HalfWidthNoticeProps,
   toHalfWidth,
+  HalfWidthNoticedContext,
   useHalfWidthNotice,
+  useHalfWidthNoticed,
 } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -179,7 +181,7 @@ export function MaskFieldControl({
   // IME で打っているあいだ（変換を確定する前）の生の値。確定するまで書式を当てない
   const [draft, setDraft] = useState<string | null>(null);
   // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき。値が空になるまで残す）
-  const noticed = useContext(HalfWidthNoticedContext);
+  const noticed = useHalfWidthNoticed();
   const composing = useRef(false);
 
   const value = draft ?? (valueProp !== undefined ? format(valueProp) : innerValue);
@@ -348,11 +350,6 @@ export function MaskFieldControl({
     </FieldBox>
   );
 }
-
-// 内蔵の形（MaskField）が、全角を直したことの知らせを受け取る口。知らせは Field の情報の行に出す
-const HalfWidthNoticedContext = createContext<
-  ((kind: HalfWidthKind | null, empty: boolean) => void) | null
->(null);
 
 /** MaskField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type MaskFieldBaseProps = Omit<MaskFieldControlProps, 'className'> &

@@ -13,7 +13,6 @@ import { useLocale } from '../date/use-locale';
 import { useFieldControlKind, useFieldState } from '../field/Field';
 import { FieldBox } from '../field/FieldBox';
 import type { InputFieldProps } from '../field/input-field-props';
-import type { HalfWidthKind } from '../half-width';
 import { cn } from '../tv';
 
 // 日付の区切りの欄の本体。DateField（DateFieldControl）と DatePicker が使う。公開の入口には並べない
@@ -76,12 +75,12 @@ export interface DateFieldControlProps extends Pick<
   className?: string;
 }
 
-/** 本体の中だけで使う口。内蔵の形（DateField・DatePicker）が、全角を直したことを Field の info に渡すために使います */
-export interface DateFieldControlInnerProps extends DateFieldControlProps {
-  onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
-}
-
-export function DateFieldControlInner({
+/**
+ * 日付の区切りの欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・成功・必須の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * フォームに送る名前は Field の name です。min・max の外の値は区切りを aria-invalid にしますが、欄の枠線を赤くするには Field に errorText を渡します
+ */
+export function DateFieldControl({
   hideSuccessMark = false,
   readOnly,
   autoFocus,
@@ -103,10 +102,9 @@ export function DateFieldControlInner({
   timeZone: timeZoneProp,
   color = 'neutral',
   onParseFailed,
-  onHalfWidth,
   className,
   'aria-describedby': ariaDescribedBy,
-}: DateFieldControlInnerProps) {
+}: DateFieldControlProps) {
   // ラベルは <label> にしない（本体は区切りの group で、ラベルは aria-labelledby でつなぐ）
   useFieldControlKind({ nativeLabel: false });
   const field = useFieldState();
@@ -159,7 +157,6 @@ export function DateFieldControlInner({
             return parsed && { ...parsed };
           }}
           onParseFailed={onParseFailed}
-          onHalfWidth={onHalfWidth}
           toFormValue={(date) => date?.toString() ?? ''}
           id={id}
           form={form}

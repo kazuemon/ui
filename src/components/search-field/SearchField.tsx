@@ -22,10 +22,8 @@ type InputEventOf<K extends 'onChange' | 'onKeyDown'> = Parameters<
 // 検索の欄が持たない TextField の props。消すボタンはいつも出し、文字数は数えない
 type NotInSearch = 'clearable' | 'maxCount' | 'overCountInvalid' | 'warnRemaining' | 'showCount';
 
-export interface SearchFieldBaseProps extends Omit<
-  TextFieldBaseProps,
-  'type' | 'prefix' | 'suffix' | NotInSearch
-> {
+/** 検索の欄だけが持つ props。外枠（SearchField）と本体（SearchFieldControl）が同じものを受けます */
+interface SearchOwnProps {
   /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
   value?: string;
   /** はじめの値（非制御） */
@@ -49,29 +47,10 @@ export interface SearchFieldBaseProps extends Omit<
   clearName?: string;
 }
 
-/** 検索の欄だけが持つ props。外枠（SearchField）と本体（SearchFieldControl）が同じものを受けます */
-interface SearchOwnProps {
-  /** 値（制御）。消去のボタンと Esc で消したときも onValueChange('') で知らせます */
-  value?: string;
-  /** はじめの値（非制御） */
-  defaultValue?: string;
-  /** 値が変わるときに、次の値を渡して呼びます */
-  onValueChange?: (value: string) => void;
-  /** 消去のボタンか Esc で値を消したあとに呼びます。onValueChange('') のあとです */
-  onCleared?: () => void;
-  /**
-   * 本体の内側の虫眼鏡を隠すか。虫眼鏡は検索の欄だと伝える印で、押せません
-   * @default false
-   */
-  hideSearchIcon?: boolean;
-  /** 欄の前に付くもの。hideSearchIcon のときだけ置けます（虫眼鏡と同じ場所のため） */
-  prefix?: ReactNode;
-  /**
-   * 消去のボタンの読み上げの名前
-   * @default '入力内容を消去'
-   */
-  clearName?: string;
-}
+export interface SearchFieldBaseProps
+  extends
+    Omit<TextFieldBaseProps, 'type' | 'prefix' | 'suffix' | NotInSearch | keyof SearchOwnProps>,
+    SearchOwnProps {}
 
 /** SearchField の本体（SearchFieldControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
 export interface SearchFieldControlProps
@@ -171,7 +150,7 @@ export function SearchFieldControl({
           value={value}
           onClear={clear}
           readOnly={readOnly}
-          disabled={disabled || Boolean(field?.loading && field.loadingBehavior === 'blocking')}
+          disabled={disabled}
           aria-label={clearName}
         />
       }

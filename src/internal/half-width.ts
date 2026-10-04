@@ -2,7 +2,7 @@
 
 // 全角の英数字を半角に直す処理と、直したことを知らせる仕組み（MaskField・NumberField・PinField・DateField・TimeField で共有）
 // 直すこと自体は黙って行い、知らせるかは使う側が halfWidthNotice で決める（既定は知らせない）
-import { type ReactNode, useCallback, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
 
 /** 直した文字の種類。digit は数字だけ、alnum は英字も含む */
 export type HalfWidthKind = 'digit' | 'alnum';
@@ -42,20 +42,34 @@ export interface HalfWidthNoticeProps {
   /**
    * 全角の英数字を半角に直したときに、本体の下に情報の行で知らせるか。
    * true で「全角の数字を半角に直しました」（英字を直したときは「全角の英数字を半角に直しました」）、文を渡すとその文を出します。
-   * `info` を渡したときは `info` を出します
+   * `infoText` を渡したときは `infoText` を出します
    * @default false
    */
   halfWidthNotice?: ReactNode;
 }
 
+/** 値が変わるたびに、直した文字の種類（直していなければ null）と、値が空になったかを渡す */
+export type HalfWidthNoticed = (kind: HalfWidthKind | null, empty: boolean) => void;
+
+/**
+ * 内蔵の形（MaskField など）が、本体から全角を直したことを受け取る口。外枠が useHalfWidthNotice の noticed を渡す
+ * 組み立ての形（本体だけを置いたとき）は null で、知らせない
+ */
+export const HalfWidthNoticedContext = createContext<HalfWidthNoticed | null>(null);
+
+/** 本体が、直したことを外枠へ知らせる関数を読む。組み立ての形では null */
+export function useHalfWidthNoticed() {
+  return useContext(HalfWidthNoticedContext);
+}
+
 /**
  * 全角を半角に直したことの知らせ。値が空になるまで知らせを残し、英字を直したら文を英数字に上げる
- * 返す notice は、Field の info にそのまま渡す（使う側が info を渡したときは、info を優先する）
+ * 返す notice は、Field の info にそのまま渡す（使う側が infoText を渡したときは、そちらを優先する）
  */
 export function useHalfWidthNotice(halfWidthNotice: ReactNode) {
   const [converted, setConverted] = useState<HalfWidthKind | null>(null);
   // 値が変わるたびに呼ぶ。empty（値が空になった）で知らせを消す
-  const noticed = useCallback((kind: HalfWidthKind | null, empty: boolean) => {
+  const noticed = useCallback<HalfWidthNoticed>((kind, empty) => {
     if (empty) setConverted(null);
     else if (kind) setConverted((current) => (current === 'alnum' ? current : kind));
   }, []);

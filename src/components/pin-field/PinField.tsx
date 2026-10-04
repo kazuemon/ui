@@ -1,15 +1,7 @@
 'use client';
 
 import { OTPField } from '@base-ui/react/otp-field';
-import {
-  type ComponentProps,
-  createContext,
-  Fragment,
-  type ReactNode,
-  type Ref,
-  useContext,
-  useRef,
-} from 'react';
+import { type ComponentProps, Fragment, type ReactNode, type Ref, useRef } from 'react';
 
 import { Field, FieldSpinner, FieldSuccessMark, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
@@ -17,7 +9,9 @@ import {
   type HalfWidthKind,
   type HalfWidthNoticeProps,
   toHalfWidth,
+  HalfWidthNoticedContext,
   useHalfWidthNotice,
+  useHalfWidthNoticed,
 } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -194,7 +188,7 @@ export function PinFieldControl({
   const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
   // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき）。値を直す normalizeValue は描くときにも呼ばれるので、
   //   ここでは種類を覚えるだけにして、値が変わったとき（onValueChange）に知らせる
-  const noticed = useContext(HalfWidthNoticedContext);
+  const noticed = useHalfWidthNoticed();
   const pending = useRef<HalfWidthKind | null>(null);
   // 文字の種類は部品の側で絞る。Base UI の numeric は全角の数字を直す前に捨ててしまうため
   const normalize = (value: string) => {
@@ -276,11 +270,6 @@ export function PinFieldControl({
     </div>
   );
 }
-
-// 内蔵の形（PinField）が、全角を直したことの知らせを受け取る口。知らせは Field の情報の行に出す
-const HalfWidthNoticedContext = createContext<
-  ((kind: HalfWidthKind | null, empty: boolean) => void) | null
->(null);
 
 /** PinField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type PinFieldBaseProps = Omit<PinFieldControlProps, 'className'> &
