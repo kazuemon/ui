@@ -153,7 +153,7 @@ function PagerItem({
   destination: PagerDestination;
 }) {
   const s = styles({ variant, direction });
-  const { href, title, label, icon, render, ...rest } = destination;
+  const { href, title, label, icon, render, className, ...rest } = destination;
   // 矢印は外向き（前は左、次は右）。利用者がアイコンを渡したときは、置き場所は変えずに差し替える
   const arrow = (
     <span aria-hidden="true" className={s.arrow()}>
@@ -177,7 +177,8 @@ function PagerItem({
       'data-slot': 'pager-item',
       'data-variant': variant,
       'data-direction': direction,
-      className: s.item(),
+      // 利用者の className は、項目のクラスに重ねる
+      className: s.item({ className }),
       children:
         direction === 'prev' ? (
           <>

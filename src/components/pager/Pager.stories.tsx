@@ -288,3 +288,23 @@ export const Accessibility: Story = {
     await expect(nextLink).toHaveAccessibleName(/カードの押し心地を詰める/);
   },
 };
+
+export const ItemClassName: Story = {
+  name: '項目の className',
+  parameters: { controls: { disable: true } },
+  render: (args) =>
+    frame(
+      <Pager
+        {...args}
+        prev={{ href: '#prev', title: 'トークンの決め方', className: 'pager-prev-test' }}
+        next={{ href: '#next', title: 'カードの押し心地を詰める', className: 'pager-next-test' }}
+      />
+    ),
+  play: async ({ canvas }) => {
+    // 前後の className は、項目（リンク）のクラスに重なる
+    const prevLink = canvas.getByRole('link', { name: /前の記事/ });
+    await expect(prevLink).toHaveClass('pager-prev-test');
+    await expect(prevLink.className).toMatch(/justify-start/);
+    await expect(canvas.getByRole('link', { name: /次の記事/ })).toHaveClass('pager-next-test');
+  },
+};
