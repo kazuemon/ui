@@ -440,6 +440,38 @@ export const FieldValidation: Story = {
   },
 };
 
+export const SuccessWithValidationError: Story = {
+  name: '成功の行と検証のエラー',
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <Form {...args} className="flex max-w-sm flex-col gap-5">
+      <TextField
+        name="username"
+        label="ユーザー名"
+        successText="使えるユーザー名です"
+        autoComplete="off"
+        validationMode="onBlur"
+        validate={(value) => (value ? null : 'ユーザー名を入力してください')}
+      />
+      <Button type="submit" color="primary">
+        送る
+      </Button>
+    </Form>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const field = canvasElement.querySelector('[data-slot="field"]');
+    await expect(field).toHaveAttribute('data-success');
+    // validate のエラーが出ているあいだは、成功の見た目を外す（エラーを優先する）
+    await userEvent.click(canvas.getByRole('button', { name: '送る' }));
+    await expect(await canvas.findByText('ユーザー名を入力してください')).toBeInTheDocument();
+    await expect(field).not.toHaveAttribute('data-success');
+    // 直してエラーが消えると、成功の見た目に戻る
+    await userEvent.type(canvas.getByLabelText('ユーザー名'), 'kazuemon');
+    await userEvent.tab();
+    await waitFor(() => expect(field).toHaveAttribute('data-success'));
+  },
+};
+
 export const Submitting: Story = {
   tags: ['visual'],
   name: '送っているあいだ',

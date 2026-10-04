@@ -514,7 +514,13 @@ export function Field({
       data-label-placement={placement}
       data-loading={loadingState}
       // 成功の見た目（後半の軸 37）。エラーのときはエラーを優先する
-      data-success={success && !error ? '' : undefined}
+      // errorText だけでなく、validate・Form の errors で無効になったとき（Base UI の valid が false）も外す
+      render={(rootProps, rootState) => (
+        <div
+          {...rootProps}
+          data-success={success && !error && rootState.valid !== false ? '' : undefined}
+        />
+      )}
       className={styles.root({ start: placement === 'start', narrow, size, className })}
     >
       <FieldBody
