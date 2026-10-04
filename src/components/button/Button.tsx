@@ -6,7 +6,6 @@ import {
   type ReactElement,
   type ReactNode,
   use,
-  useCallback,
   useId,
   useState,
 } from 'react';
@@ -29,6 +28,7 @@ import {
 import { type LoadingIndicator, LoadingBar, Spinner } from '../loading/Loading';
 import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // 原則1: 影は「押せること」の記号。塗りのボタンにだけ付ける（design/adr/0006）
 // 原則3: hover で影が輪郭だけになり、押下で 1px 沈む（design/adr/0009）。押しても輪郭の線は残す（design/adr/0033）
@@ -580,14 +580,7 @@ function NativeButton({
   const submit = form !== null && type === 'submit';
   // 送信のボタンは、自分の要素を覚えて、Form の submitter と比べる（ref は利用者のものにもつなぐ）
   const [self, setSelf] = useState<HTMLButtonElement | null>(null);
-  const setRefs = useCallback(
-    (node: HTMLButtonElement | null) => {
-      setSelf(node);
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
-    },
-    [ref]
-  );
+  const setRefs = useMergedRefs<HTMLButtonElement>(setSelf, ref);
   const formBusy = submit && loading === undefined && form.submitting;
   // busy: 押せない見た目にし、押しても何もしない。marked: 送信中の印（回る円・線）を出す
   const busy = loading ?? formBusy;

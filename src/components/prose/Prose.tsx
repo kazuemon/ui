@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, type Ref, useCallback, useRef } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useRef } from 'react';
 
 import { focusRingInProse } from '../../internal/focus-styles';
 import { blockquoteStyles, dividerStyles, figureImageStyles } from '../../internal/reading/blocks';
@@ -17,6 +17,7 @@ import {
   textLinkStyles,
 } from '../../internal/reading/text-link';
 import { inlineStyles } from '../../internal/reading/inline';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { useScrollTabStops } from '../../internal/use-scrollable';
 
 // 記事の本文。Markdown を変換した素の HTML（h1〜h6・p・a・strong・em・del・mark・code・kbd・br・ul・ol・li・チェックリスト・
@@ -165,14 +166,7 @@ export function Prose({ as: Tag = 'div', className, ref, ...props }: ProseProps)
   // 横にはみ出している表とコードだけ、キーボードで止まるようにする（原則15）
   // 素の表は display: block で横にスクロールし、Shiki の pre は短いコードにも tabindex を付けるので、はみ出していないものからは外す
   useScrollTabStops(rootRef, scrollers);
-  const setRefs = useCallback(
-    (node: HTMLElement | null) => {
-      rootRef.current = node;
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
-    },
-    [ref]
-  );
+  const setRefs = useMergedRefs(rootRef, ref);
   return (
     <Tag
       data-prose=""

@@ -43,6 +43,7 @@ import {
 } from '../../internal/field/input-field-props';
 import { useChoiceLock } from '../../internal/form-context';
 import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 export type {
   DropzoneRejectReason,
@@ -225,12 +226,7 @@ export function DropzoneControl({
   // 利用者の inputRef（HTMLInputElement）を、BaseField.Control の ref（HTMLElement）につなぐ
   // （既定で <input> を描くので、実体は必ず HTMLInputElement）
   const inputElRef = useRef<HTMLInputElement | null>(null);
-  const setControlRef = (node: HTMLElement | null) => {
-    const input = node as HTMLInputElement | null;
-    inputElRef.current = input;
-    if (typeof inputRef === 'function') inputRef(input);
-    else if (inputRef) Object.assign(inputRef, { current: input });
-  };
+  const setControlRef = useMergedRefs(inputElRef, inputRef);
 
   // 値が外から変わったとき（value で親が 1 つ外した、など）も、Form に送る input.files を値に合わせる
   useEffect(() => {
