@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { type ReactNode, useEffect, useRef } from 'react';
-import { expect, userEvent, waitFor } from 'storybook/test';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import {
   ToastProvider,
@@ -485,5 +485,47 @@ export const Accessibility: Story = {
     await waitFor(async () => {
       await expect(canvas.queryAllByText('保存しました')).toHaveLength(0);
     });
+  },
+};
+
+// 描き直しても、トーストが増えても、useToast() の関数が同じものかを数える見本
+const toastIdentities = new Set<unknown>();
+const showIdentities = new Set<unknown>();
+function CountToastIdentity() {
+  const toast = useToast();
+  toastIdentities.add(toast);
+  showIdentities.add(toast.show);
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <Button onClick={() => setCount(count + 1)}>描き直す（{count}）</Button>
+      <Button onClick={() => toast.show({ title: '保存しました', timeout: 0 })}>出す</Button>
+    </>
+  );
+}
+
+export const StableUseToast: Story = {
+  name: 'useToast の関数は描き直しても同じ',
+  tags: ['!autodocs'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ToastProvider>
+      <CountToastIdentity />
+    </ToastProvider>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    toastIdentities.clear();
+    showIdentities.clear();
+    await userEvent.click(canvas.getByRole('button', { name: /描き直す/ }));
+    await userEvent.click(canvas.getByRole('button', { name: /描き直す（1）/ }));
+    await expect(canvas.getByRole('button', { name: /描き直す（2）/ })).toBeVisible();
+    // 描き直しただけでは、返すオブジェクトも同じ
+    await expect(toastIdentities.size).toBe(1);
+    // トーストが増えると toasts が変わるのでオブジェクトは新しくなるが、show などの関数は同じ
+    await userEvent.click(canvas.getByRole('button', { name: '出す' }));
+    const body = within(canvasElement.ownerDocument.body);
+    await body.findByText('保存しました');
+    await expect(toastIdentities.size).toBeGreaterThan(1);
+    await expect(showIdentities.size).toBe(1);
   },
 };

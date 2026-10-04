@@ -5,7 +5,7 @@ import {
   type ToastManagerUpdateOptions,
   type ToastObject,
 } from '@base-ui/react/toast';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { useNarrowScreen } from '../../internal/sheet/use-narrow-screen';
@@ -69,8 +69,8 @@ const toastStyles = tv({
   slots: {
     viewport: [
       'group/toast-viewport fixed z-50 flex w-(--toast-width) max-w-[calc(100vw-var(--toast-inset)*2)]',
-      // 画面が狭いときは、左右の余白を残して幅いっぱい（原則11）
-      'max-[480px]:w-[calc(100vw-var(--toast-inset)*2)]',
+      // 画面が狭いとき（下の中央に出すのと同じ判定）は、左右の余白を残して幅いっぱい（原則11）
+      'data-narrow:w-[calc(100vw-var(--toast-inset)*2)]',
     ],
     // 1 枚ずつの箱。位置と動きだけを持ち、面は content が持つ
     root: [
@@ -362,6 +362,7 @@ function ToastViewport({
   return (
     <BaseToast.Viewport
       data-slot="toast-viewport"
+      data-narrow={narrow || undefined}
       className={s.viewport()}
       // 端からの離れは、出入りの動き（画面の外まで動かす距離）にも使うので、変数ごと差し替える
       style={offset === undefined ? undefined : { ['--toast-inset' as string]: `${offset}px` }}
@@ -511,47 +512,65 @@ function fromBase(toast: ToastObject<ToastData>): ToastOptions {
  * トーストを出す・閉じる・書き換える。`ToastProvider` の中で使います
  *
  * 危険（`status: 'danger'`）だけは読み上げに割り込み、ほかは静かに知らせます（原則6）。
- * `show`・`update`・`promise` は、どれも `ToastOptions` と同じ形で受けます
+ * `show`・`update`・`promise` は、どれも `ToastOptions` と同じ形で受けます。
+ * `show`・`close`・`update`・`promise` は描き直しても同じ関数です。effect の依存には、返したオブジェクトではなくこれらを入れます
+ * （オブジェクトは、出ているトースト `toasts` が変わると新しくなります）
  */
 export function useToast() {
-  const manager = BaseToast.useToastManager<ToastData>();
-  return {
-    /** トーストを出す。返る id で、あとから閉じたり書き換えたりできます */
-    show: ({ id, ...options }: ToastOptions) => manager.add({ id, ...toBase(options) }),
-    /** トーストを閉じる。id を渡さないと、出ているものをすべて閉じます */
-    close: manager.close,
-    /**
-     * 出したトーストを書き換える。渡したものだけが変わります。
-     * status を変えると、色と読み上げの割り込み（危険だけが割り込む）も変わります。
-     * 前の内容から作るときは、前の内容（`ToastOptions`）を受け取る関数を渡します
-     */
-    update: (
-      id: string,
-      options: ToastUpdateOptions | ((prev: ToastOptions) => ToastUpdateOptions)
-    ) =>
-      manager.update(id, (prev) =>
-        toBase(typeof options === 'function' ? options(fromBase(prev)) : options, prev.data ?? {})
-      ),
-    /**
-     * Promise の間、待ち・成功・失敗のトーストを順に出します。
-     * それぞれに `ToastOptions` と同じ形か、文字だけ（本文になります）を渡します。
-     * 状態を書かないときは、待ちはグレー、成功は success、失敗は danger です。返るのは、渡した Promise の結果です
-     */
-    promise: <Value,>(promise: Promise<Value>, options: ToastPromiseOptions<Value>) => {
-      const { loading, success, error } = options;
-      return manager.promise(promise, {
-        loading: toPromiseStage(loading, undefined),
-        success:
-          typeof success === 'function'
-            ? (result: Value) => toPromiseStage(success(result), 'success')
-            : toPromiseStage(success, 'success'),
-        error:
-          typeof error === 'function'
-            ? (reason: unknown) => toPromiseStage(error(reason), 'danger')
-            : toPromiseStage(error, 'danger'),
-      });
-    },
-    /** いま出ているトースト */
-    toasts: manager.toasts,
-  };
+  const {
+    toasts,
+    add,
+    close: closeToast,
+    update: updateToast,
+    promise: promiseToast,
+  } = BaseToast.useToastManager<ToastData>();
+  // 出す・閉じる・書き換える関数は、トーストが増えたり減ったりしても同じものを保つ（effect の依存に入れても走り直さない）
+  const methods = useMemo(
+    () => ({
+      /** トーストを出す。返る id で、あとから閉じたり書き換えたりできます */
+      show: ({ id, ...options }: ToastOptions) => add({ id, ...toBase(options) }),
+      /** トーストを閉じる。id を渡さないと、出ているものをすべて閉じます */
+      close: closeToast,
+      /**
+       * 出したトーストを書き換える。渡したものだけが変わります。
+       * status を変えると、色と読み上げの割り込み（危険だけが割り込む）も変わります。
+       * 前の内容から作るときは、前の内容（`ToastOptions`）を受け取る関数を渡します
+       */
+      update: (
+        id: string,
+        options: ToastUpdateOptions | ((prev: ToastOptions) => ToastUpdateOptions)
+      ) =>
+        updateToast(id, (prev) =>
+          toBase(typeof options === 'function' ? options(fromBase(prev)) : options, prev.data ?? {})
+        ),
+      /**
+       * Promise の間、待ち・成功・失敗のトーストを順に出します。
+       * それぞれに `ToastOptions` と同じ形か、文字だけ（本文になります）を渡します。
+       * 状態を書かないときは、待ちはグレー、成功は success、失敗は danger です。返るのは、渡した Promise の結果です
+       */
+      promise: <Value,>(promise: Promise<Value>, options: ToastPromiseOptions<Value>) => {
+        const { loading, success, error } = options;
+        return promiseToast(promise, {
+          loading: toPromiseStage(loading, undefined),
+          success:
+            typeof success === 'function'
+              ? (result: Value) => toPromiseStage(success(result), 'success')
+              : toPromiseStage(success, 'success'),
+          error:
+            typeof error === 'function'
+              ? (reason: unknown) => toPromiseStage(error(reason), 'danger')
+              : toPromiseStage(error, 'danger'),
+        });
+      },
+    }),
+    [add, closeToast, updateToast, promiseToast]
+  );
+  return useMemo(
+    () => ({
+      ...methods,
+      /** いま出ているトースト。トーストが変わると、返すオブジェクトも新しくなります */
+      toasts,
+    }),
+    [methods, toasts]
+  );
 }
