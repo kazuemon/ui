@@ -49,6 +49,8 @@ export function TimeListbox({
   const [hovered, setHovered] = useState<string | null>(null);
   const highlighted = hovered ?? focused;
   const rescrollRef = useRef<(() => void) | null>(null);
+  // キーで動かしたあとは、開いたときの送り直しをしない。次の描画を待つあいだに押されたキーの行き先を、選んでいる項目へ戻さない
+  const movedRef = useRef(false);
 
   // 開いたときに、選んでいる項目（なければ近い項目）を一覧の中央へ送る
   //   面の位置と高さの上限（--available-height）が決まってから測り直すので、次の描画でもう一度送る
@@ -56,6 +58,7 @@ export function TimeListbox({
     const viewport = viewportRef.current;
     if (!viewport) return undefined;
     const scroll = () => {
+      if (movedRef.current) return;
       const target = viewport.querySelector<HTMLElement>(`[data-key="${initialKey}"]`);
       if (!target) return;
       const padding = Number.parseFloat(getComputedStyle(viewport).paddingTop) || 0;
@@ -83,6 +86,7 @@ export function TimeListbox({
   const moveTo = (index: number) => {
     const next = options[Math.max(0, Math.min(options.length - 1, index))];
     if (!next) return;
+    movedRef.current = true;
     setActive(next.key);
     setHovered(null);
     viewportRef.current

@@ -418,6 +418,46 @@ export const PickFromList: Story = {
   },
 };
 
+export const KeyRightAfterOpen: Story = {
+  name: '開いた直後に動かす',
+  // 確かめだけのストーリー。ドキュメントのページには出さない
+  tags: ['!autodocs'],
+  args: { onValueChange: fn(), defaultValue: time },
+  parameters: { controls: { disable: true } },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, args, canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const body = within(doc.body);
+    // フォーカスが選んでいる時刻に移ったその場で ↓ を押す（一覧を中央へ送り直す処理より先）
+    const pressed = new Promise<void>((resolve) => {
+      const onFocusIn = (event: FocusEvent) => {
+        const { target } = event;
+        if (!(target instanceof HTMLElement) || target.getAttribute('role') !== 'option') return;
+        doc.removeEventListener('focusin', onFocusIn);
+        queueMicrotask(() => {
+          target.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+          resolve();
+        });
+      };
+      doc.addEventListener('focusin', onFocusIn);
+    });
+    await userEvent.click(canvas.getByRole('button', { name: '時刻を選ぶ' }));
+    await pressed;
+    const listbox = await body.findByRole('listbox', { name: '時刻を選ぶ' });
+    // 送り直しは次の描画で走る。2 フレーム待っても、動かした先からフォーカスを戻さない
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await expect(within(listbox).getByRole('option', { name: '10:45' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(Temporal.PlainTime.from('10:45'));
+  },
+};
+
 export const PickFromColumns: Story = {
   name: '列から選ぶ',
   args: { variant: 'columns', minuteStep: 5, onValueChange: fn(), name: 'start' },
