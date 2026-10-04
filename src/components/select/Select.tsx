@@ -1,7 +1,7 @@
 'use client';
 
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { type ComponentProps, type ReactNode, type Ref, useEffect, useMemo, useState } from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useMemo, useState } from 'react';
 
 import {
   comboboxPositionerClass,
@@ -428,12 +428,8 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   // 選んだ・Esc・×・つまみで閉じたときは、フォーカスが本体に戻るまで、開いているときと同じ見た目を保つ（data-closing）
   // Base UI は閉じる動きが終わってからフォーカスを本体に戻すので、そのあいだ本体の青い枠線が一瞬消えていた
   // 外を押して閉じたときは、押した先にフォーカスが移るので保たない
+  // 本体にフォーカスが戻ったとき（onFocus）に消す。戻らなかったときのために、閉じる動きが終わったあと（onOpenChangeComplete）にも消す
   const [closing, setClosing] = useState(false);
-  useEffect(() => {
-    if (!closing) return undefined;
-    const id = setTimeout(() => setClosing(false), 600);
-    return () => clearTimeout(id);
-  }, [closing]);
 
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
@@ -646,7 +642,11 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       }}
       // つまみで閉じたときに残した高さは、閉じる動きが終わってから消す
       onOpenChangeComplete={(next) => {
-        if (!next) drag.clearDragHeight();
+        if (!next) {
+          drag.clearDragHeight();
+          // フォーカスは、閉じる動きが終わって面を外したあとに戻る。戻すまでの描画で枠線が消えないよう、1 枚描いてから消す
+          requestAnimationFrame(() => requestAnimationFrame(() => setClosing(false)));
+        }
         onOpenChangeComplete?.(next);
       }}
     >
