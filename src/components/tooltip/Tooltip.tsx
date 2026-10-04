@@ -240,6 +240,12 @@ export function Tooltip({
     setOpenState(next);
     onOpenChange?.(next);
   };
+  // effect の中からは、いまの changeOpen を読む（毎回新しい onOpenChange を渡されても、effect を貼り直さない）
+  //   peer の React は 19.0 からなので、useEffectEvent（19.2）は使わない
+  const changeOpenRef = useRef(changeOpen);
+  useEffect(() => {
+    changeOpenRef.current = changeOpen;
+  });
 
   // 指で長押ししたときに出す（Base UI の Tooltip は指では出ないため、ここで開く） — 原則11
   //   長押しで出したあとは、指を離して起きる click で本体を実行せず（押したつもりではないため）、閉じもしない
@@ -261,12 +267,11 @@ export function Tooltip({
     const onPointerDown = (event: PointerEvent) => {
       if (event.target instanceof Node && anchorRef.current?.contains(event.target)) return;
       setLongPressed(false);
-      setOpenState(false);
-      onOpenChange?.(false);
+      changeOpenRef.current(false);
     };
     document.addEventListener('pointerdown', onPointerDown, true);
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
-  }, [longPressed, anchorRef, onOpenChange]);
+  }, [longPressed, anchorRef]);
 
   return (
     <BaseTooltip.Root
