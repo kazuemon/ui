@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { toMediaSize } from '../../internal/media-size';
 import { useDensityScope } from '../../internal/density-scope';
 import { ImagePlaceholderAnimationContext } from '../../internal/image-placeholder-context';
 import { MagnifyingGlassPlusIcon } from '../../internal/image-zoom/image-zoom-icons';
@@ -293,12 +294,6 @@ export interface GalleryProps extends Omit<ComponentProps<'div'>, 'children'> {
   className?: string;
 }
 
-// width・height から画像本来の大きさを読む（数か、数だけの文字のとき）
-const toSize = (value: unknown) => {
-  const n = typeof value === 'string' ? Number(value) : value;
-  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
-};
-
 // 送ったときに読み上げで知らせる文（画像の名前と位置）
 const announce = (alt: string | undefined, current: number, total: number) => {
   const position = `${total} 枚中 ${current} 枚目`;
@@ -416,8 +411,8 @@ export function Gallery({
     loadedSrcs[index] ??
     item?.src ??
     (typeof renderProps.src === 'string' ? renderProps.src : undefined);
-  const width = toSize(renderProps.width ?? item?.width);
-  const height = toSize(renderProps.height ?? item?.height);
+  const width = toMediaSize(renderProps.width ?? item?.width);
+  const height = toMediaSize(renderProps.height ?? item?.height);
   const alt = item?.alt ?? (typeof renderProps.alt === 'string' ? renderProps.alt : '');
   const s = styles({ columns, gap });
   const t = zoomTriggerStyles({ showZoomIcon });

@@ -1,16 +1,14 @@
-'use client';
-
-import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, CSSProperties, ReactElement, ReactNode } from 'react';
 
 import { columnsClasses, breakpointVars, type GridColumns } from '../../internal/breakpoints';
+import { renderElement } from '../../internal/render-element';
 import { tv } from '../../internal/tv';
 
 export type { GridBreakpoint, GridColumns } from '../../internal/breakpoints';
 
 // 子を格子（行と列）に並べる枠（ADR-0308〜0312）
 //   Stack は 1 列、Grid は列を並べる。Masonry と違い隙間なく積まないので、CSS Grid だけで描ける（子の高さを測らない）
-//   'use client' は、render を受けるための useRender（Base UI）のため。Stack・Container と同じ
+//   フックを使わない（render は src/internal/render-element.ts で重ねる）ので、サーバーのまま描ける。Stack・Container と同じ
 //   列の数の決め方
 //     columns なし: 入れ物の幅を minColumnWidth で割った数だけ列にする（子が少ないときは auto-fill で空いた列を残し、子を伸ばさない。ADR-0309）
 //     columns だけ: 入れ物の幅によらず列の数を固定する（Masonry と同じ。ADR-0310）
@@ -127,18 +125,14 @@ export function Grid({
   ...props
 }: GridProps) {
   const layout = columns == null ? 'fill' : minColumnWidth == null ? 'fixed' : 'capped';
-  return useRender({
-    render,
-    defaultTagName: 'div',
-    props: {
-      ...props,
-      'data-slot': 'grid',
-      className: grid({ layout, gap, rowGap, columnGap, align, className }),
-      style: {
-        ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
-        ...breakpointVars('columns', columns),
-        ...style,
-      } satisfies TokenStyle,
-    },
+  return renderElement('div', render, {
+    ...props,
+    'data-slot': 'grid',
+    className: grid({ layout, gap, rowGap, columnGap, align, className }),
+    style: {
+      ...(minColumnWidth != null && { '--grid-min': `${minColumnWidth}px` }),
+      ...breakpointVars('columns', columns),
+      ...style,
+    } satisfies TokenStyle,
   });
 }

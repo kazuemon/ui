@@ -7,13 +7,12 @@ import {
   type ReactElement,
   type SyntheticEvent,
   useContext,
-  useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 import { ImagePlaceholderAnimationContext } from '../../internal/image-placeholder-context';
 import { toMediaSize } from '../../internal/media-size';
 import { figureImageStyles } from '../../internal/reading/blocks';
@@ -35,9 +34,6 @@ import { ImageBrokenIcon } from './image-icons';
 //   素の画像のまま出す（面を置かないだけで、画像は隠さない）
 
 type ImageStatus = 'idle' | 'loading' | 'loaded' | 'error';
-
-// サーバーで描くときは useLayoutEffect が警告を出すので、ブラウザでだけ使う
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 const styles = tv({
   slots: {

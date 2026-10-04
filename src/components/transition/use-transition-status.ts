@@ -1,14 +1,14 @@
 'use client';
 
-import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type RefObject, useRef, useState } from 'react';
+
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 
 // 出入りの状態。Base UI の重なる部品と同じ段を、公開の API にないので小さく持つ
 //   starting: 描いた直後。data-starting-style を付けて出はじめの姿にし、次のフレームで外して動かす
 //   open: 出ている。ending: data-ending-style を付けて消える動きの途中。closed: 消えた
 //   動きの終わりは、要素の動き（getAnimations）が全部終わるのを待つ。動きを減らす設定では動きがないので、すぐ終わる
 export type TransitionStatus = 'starting' | 'open' | 'ending' | 'closed';
-
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 function waitAnimations(element: HTMLElement | null) {
   if (!element || typeof element.getAnimations !== 'function') return Promise.resolve();

@@ -1,6 +1,3 @@
-'use client';
-
-import { useRender } from '@base-ui/react/use-render';
 import {
   Children,
   cloneElement,
@@ -18,6 +15,7 @@ import {
   isListElement,
   type Responsive,
 } from '../../internal/breakpoints';
+import { renderElement } from '../../internal/render-element';
 import { tv } from '../../internal/tv';
 
 // 子を縦・横に一定の間隔で並べる枠 — 軸 230
@@ -194,35 +192,31 @@ export function Stack({
   // 読み上げの線の向きは、いちばん狭い画面の向きで決める（段ごとには変えられない）
   const orientation = directions.base === 'horizontal' ? 'vertical' : 'horizontal';
   const list = isListElement(render);
-  return useRender({
-    render,
-    defaultTagName: 'div',
-    props: {
-      ...props,
-      'data-slot': 'stack',
-      className: stack({
-        gap,
-        align,
-        justify,
-        listDivider: list && showDivider,
-        className: [...responsive, className],
-      }),
-      children:
-        showDivider && !list
-          ? flatten(children).map((child, i) => (
-              <Fragment key={isValidElement(child) && child.key != null ? child.key : i}>
-                {i > 0 && (
-                  <div
-                    role="separator"
-                    aria-orientation={orientation}
-                    data-slot="stack-separator"
-                    className={separator}
-                  />
-                )}
-                {child}
-              </Fragment>
-            ))
-          : children,
-    },
+  return renderElement('div', render, {
+    ...props,
+    'data-slot': 'stack',
+    className: stack({
+      gap,
+      align,
+      justify,
+      listDivider: list && showDivider,
+      className: [...responsive, className],
+    }),
+    children:
+      showDivider && !list
+        ? flatten(children).map((child, i) => (
+            <Fragment key={isValidElement(child) && child.key != null ? child.key : i}>
+              {i > 0 && (
+                <div
+                  role="separator"
+                  aria-orientation={orientation}
+                  data-slot="stack-separator"
+                  className={separator}
+                />
+              )}
+              {child}
+            </Fragment>
+          ))
+        : children,
   });
 }

@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { toMediaSize } from '../../internal/media-size';
 import { useDensityScope } from '../../internal/density-scope';
 import type {
   OverlayFocusTarget,
@@ -39,12 +40,6 @@ export type {
 // 画像の部分は Image（読み込み中の面・失敗の表示・render・ratio を持つ）。キャプションを付けると Figure と同じ形（figure・figcaption）
 // 押す口（画像を包むボタンと虫眼鏡の印）の見た目は src/internal/image-zoom/zoom-trigger.ts（Gallery と共有）
 // 拡大した面は src/internal/image-zoom の ImageZoomViewer（Gallery も同じ面を使う）
-
-// width・height から画像本来の大きさを読む（数か、数だけの文字のとき）
-const toSize = (value: unknown) => {
-  const n = typeof value === 'string' ? Number(value) : value;
-  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
-};
 
 export interface ImageZoomProps extends ImageProps {
   /** 拡大したときに読み込む、大きな画像の URL。書かないときは、ページに出している画像をそのまま拡大します */
@@ -209,8 +204,8 @@ export function ImageZoom({
   const [failed, setFailed] = useState(false);
   const renderProps: { alt?: unknown; width?: unknown; height?: unknown } = render?.props ?? {};
 
-  const width = toSize(renderProps.width ?? imageProps.width);
-  const height = toSize(renderProps.height ?? imageProps.height);
+  const width = toMediaSize(renderProps.width ?? imageProps.width);
+  const height = toMediaSize(renderProps.height ?? imageProps.height);
   const title = alt ?? (typeof renderProps.alt === 'string' ? renderProps.alt : '');
   const s = zoomTriggerStyles({ radius, showZoomIcon });
 

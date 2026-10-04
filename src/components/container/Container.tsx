@@ -1,8 +1,6 @@
-'use client';
-
-import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
+import { renderElement } from '../../internal/render-element';
 import { tv } from '../../internal/tv';
 
 // 本文の幅と左右の余白を決める枠 — 軸 94
@@ -89,14 +87,10 @@ export function Container({
   render,
   ...props
 }: ContainerProps) {
-  return useRender({
-    render,
-    defaultTagName: 'div',
-    props: {
-      ...props,
-      'data-slot': 'container',
-      'data-reading': reading ? '' : undefined,
-      className: container({ size, py, gutter: !hideGutter, className }),
-    },
+  return renderElement('div', render, {
+    ...props,
+    'data-slot': 'container',
+    'data-reading': reading ? '' : undefined,
+    className: container({ size, py, gutter: !hideGutter, className }),
   });
 }

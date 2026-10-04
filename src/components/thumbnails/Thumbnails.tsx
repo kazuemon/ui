@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 
+import { prefersReducedMotion } from '../../internal/reduced-motion';
 import { CarouselSelectionContext } from '../../internal/carousel-context';
 import { focusRing } from '../../internal/focus-styles';
 import { ScrollFrame } from '../../internal/ScrollFrame';
@@ -197,9 +198,6 @@ export interface ThumbnailsProps extends Omit<
 const clamp = (value: number, count: number) =>
   Math.min(Math.max(value, 0), Math.max(count - 1, 0));
 
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 /**
  * 小さな画像を並べ、押して切り替える帯。Carousel の `thumbnails` に渡すと、いまの 1 枚を示して切り替えます
  *
@@ -256,7 +254,7 @@ export function Thumbnails({
     if (delta === 0) return;
     viewport.scrollBy({
       [start]: delta,
-      behavior: first || reducedMotion() ? 'instant' : 'smooth',
+      behavior: first || prefersReducedMotion() ? 'instant' : 'smooth',
     });
   }, [selected, viewport, vertical]);
 

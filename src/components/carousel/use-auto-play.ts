@@ -1,13 +1,9 @@
 'use client';
 
-import {
-  type FocusEvent,
-  type PointerEvent,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type FocusEvent, type PointerEvent, useEffect, useRef, useState } from 'react';
+
+import { prefersReducedMotion } from '../../internal/reduced-motion';
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 
 // Carousel の自動の送り（autoPlay）。WAI-ARIA の Carousel パターン（自動で回るもの）にならう
 //   止める手段を持つ（WCAG 2.2.2）: 止めるボタン（playing を切り替える）と、載せたとき・中にキーボードのフォーカスがあるあいだの一時停止
@@ -17,11 +13,6 @@ import {
 //   動きを減らす設定では、止めた状態で始める（Video の autoPlay と同じ — ADR-0307）。押せば送りはじめる（滑らせずに送る）
 //   ページが隠れているあいだ（別のタブ）も止める
 //   送ったら（手で送ったときも）、間を数え直す
-
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
-
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export interface AutoPlayOptions {
   /** 自動で送るか（autoPlay） */
@@ -61,7 +52,7 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
 
   // 動きを減らす設定では、止めた状態で始める。autoPlay を付け外ししたときも、はじめの状態に戻す
   useIsomorphicLayoutEffect(() => {
-    setPlaying(enabled && !reducedMotion());
+    setPlaying(enabled && !prefersReducedMotion());
   }, [enabled]);
 
   useEffect(() => {
@@ -78,6 +69,8 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
     if (!running) return undefined;
     const timer = window.setTimeout(() => onTickRef.current(), interval);
     return () => window.clearTimeout(timer);
+    // position は中で読まないが、送ったら（手で送ったときも）間を数え直すために、変わったらタイマーを張り直す
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
   }, [running, interval, position]);
 
   return {
@@ -104,7 +97,7 @@ export function useAutoPlay({ enabled, interval, position, onTick }: AutoPlayOpt
         if ((event.target as Element).matches(':focus-visible')) setFocused(true);
       },
       onBlur: (event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       },
     },
   };

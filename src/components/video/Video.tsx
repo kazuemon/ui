@@ -5,39 +5,22 @@ import {
   type ReactNode,
   type SyntheticEvent,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 import { focusRing } from '../../internal/focus-styles';
 import { PlayIcon } from '../../internal/icons';
 import { toMediaSize } from '../../internal/media-size';
 import { skeletonMotion, skeletonSurface } from '../../internal/skeleton-styles';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
+import { usePrefersReducedMotion } from '../../internal/use-prefers-reduced-motion';
 import { AspectRatio, type MediaFit } from '../aspect-ratio/AspectRatio';
 import { figureCaptionClass, figureClass } from '../figure/Figure';
 import { VideoBrokenIcon } from './video-icons';
-
-const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
-
-function subscribeReducedMotion(onChange: () => void) {
-  const mql = window.matchMedia(reducedMotionQuery);
-  mql.addEventListener('change', onChange);
-  return () => mql.removeEventListener('change', onChange);
-}
-
-/** 動きを減らす設定か。はじめの描画から同期で読む（サーバーでは false） */
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia(reducedMotionQuery).matches,
-    () => false
-  );
-}
 
 // 動画（軸 297〜299）。手元の動画ファイル（mp4・webm など）を記事や作品ページに置いて再生する。
 //   外部サービスの埋め込みは Embed（iframe）が受け持つので、これは <video> だけの部品
@@ -56,9 +39,6 @@ function usePrefersReducedMotion() {
 // キャプションは Figure と同じ figureClass・figureCaptionClass を共有する。枠の角・輪郭は Image と同じ考え方（原則5）
 
 type VideoStatus = 'idle' | 'loading' | 'loaded' | 'error';
-
-// サーバーで描くときは useLayoutEffect が警告を出すので、ブラウザでだけ使う（Image と同じ）
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 const styles = tv({
   slots: {

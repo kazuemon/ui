@@ -10,7 +10,6 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -21,6 +20,7 @@ import {
   type GridColumns,
   isListElement,
 } from '../../internal/breakpoints';
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 import { tv } from '../../internal/tv';
 
 // 縦横の比率が違う子を、列に振り分けて隙間なく積む枠 — 軸 294〜296
@@ -97,9 +97,6 @@ export interface MasonryProps extends ComponentProps<'div'> {
   /** 根の要素（render を渡したときはその要素）に付きます */
   className?: string;
 }
-
-// サーバーで描くときは useLayoutEffect が警告を出すので、ブラウザでだけ使う（Image.tsx と同じ）
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 interface MasonryItemProps {
   /** 子を包む要素。ul・ol のときは li */

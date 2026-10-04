@@ -2,7 +2,8 @@
 
 import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react';
 
-import { prefersReducedMotion, readZoomMotion } from './zoom-motion';
+import { prefersReducedMotion } from '../reduced-motion';
+import { readZoomMotion } from './zoom-motion';
 
 // 指で上下に引いて閉じる。拡大した画像は指について動き、後ろの面とキャプションは引いた分だけ薄くなる
 //   離したとき、十分に引いた（または素早くはじいた）なら閉じる。閉じる動きは引いた位置から始まる（zoom-motion.ts）

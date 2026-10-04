@@ -1,5 +1,5 @@
 import { toMilliseconds } from './zoom-geometry';
-import { prefersReducedMotion } from './zoom-motion';
+import { prefersReducedMotion } from '../reduced-motion';
 
 // 拡大した面で、前後の画像へ送るときの動き（Gallery）。長さ・緩急・動き方はトークン（--gallery-slide-*）から読む
 //   前の画像（leaving）は送る向きの反対へ出ていき、次の画像（box）は送る向きから入ってくる
