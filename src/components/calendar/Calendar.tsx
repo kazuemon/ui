@@ -119,7 +119,7 @@ const calendar = tv({
       'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press)))]',
       // 今日の下線（ADR-0135）。文字の色なので、選んだ日の上では白くなる
       // 印を持つ日がある月では、下線は数字のすぐ下（数字と印のあいだ）に引く（dayNumber）
-      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--cal-month-content)))]',
+      'after:absolute after:bottom-(--calendar-today-mark-bottom) after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--cal-month-content)))]',
       'enabled:hover:[--day-hover:var(--flat-hover-mix)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--day-press:var(--flat-press-mix)]',
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため

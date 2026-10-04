@@ -37,3 +37,11 @@ export const overlayTitleLeading = '[--sheet-title-leading:var(--overlay-title-l
 // シートの後ろを暗くする面（Base UI の Backdrop）。出入りはシートと同じ長さと緩急で、塗りの濃さだけを動かす
 export const sheetBackdropClass =
   'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none';
+
+// 欄のシートの見出しで、ヘルプテキストの 1 行と、その上の間（SheetHeader の題のまとまりの gap-0.5）を足した高さの半分
+//   閉じるボタンを題とヘルプテキストのまとまりの上下中央にそろえるとき（Combobox・Autocomplete）と、
+//   ヘルプテキストの行だけを空けるとき（SheetFieldTitle の reserveCaption）に使う
+const sheetCaptionGap = 'var(--spacing) * 0.5';
+export const sheetCaptionRowHalf = `calc((var(--leading-caption) + ${sheetCaptionGap}) / 2)`;
+/** ヘルプテキストの行だけを空けるときの、題の下に置く空きの高さ（空けた行から、題の上に足した分と間を引いたもの） */
+export const sheetCaptionSpacerHeight = `calc((var(--leading-caption) - ${sheetCaptionGap}) / 2)`;

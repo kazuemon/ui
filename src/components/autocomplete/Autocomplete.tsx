@@ -77,7 +77,7 @@ import {
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
-import { sheetBackdropClass } from '../../internal/sheet/sheet-styles';
+import { sheetBackdropClass, sheetCaptionRowHalf } from '../../internal/sheet/sheet-styles';
 import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
 import { SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -957,9 +957,7 @@ export function AutocompleteControl<Value = string>({
                   className={long ? 'cursor-grab touch-none' : undefined}
                   close={
                     caption || inputInSheet ? (
-                      <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
-                        {renderSheetClose()}
-                      </div>
+                      <div style={{ marginTop: sheetCaptionRowHalf }}>{renderSheetClose()}</div>
                     ) : (
                       renderSheetClose()
                     )

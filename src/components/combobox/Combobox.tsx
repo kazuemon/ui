@@ -83,7 +83,7 @@ import {
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
-import { sheetBackdropClass } from '../../internal/sheet/sheet-styles';
+import { sheetBackdropClass, sheetCaptionRowHalf } from '../../internal/sheet/sheet-styles';
 import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
 import { SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
@@ -980,9 +980,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
                     // 閉じるは、見出しとヘルプテキストのまとまりの上下中央に置く。
                     // 見出しの行の中央からは、ヘルプテキストの行（と間の 2px）の半分だけ下がる。エラー・警告の行は数えない（出入りで動かないように）
                     caption || inputInSheet ? (
-                      <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
-                        {renderSheetClose()}
-                      </div>
+                      <div style={{ marginTop: sheetCaptionRowHalf }}>{renderSheetClose()}</div>
                     ) : (
                       renderSheetClose()
                     )

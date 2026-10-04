@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { fieldStyles } from '../field/field-styles';
 import { WarningCircleIcon, WarningIcon } from '../icons';
+import { sheetCaptionRowHalf, sheetCaptionSpacerHeight } from './sheet-styles';
 
 /** シートの見出しに出す欄のエラー・警告の行 */
 export interface SheetMessage {
@@ -47,11 +48,7 @@ export function SheetFieldTitle({
         aria-hidden
         className={titleClass}
         // ヘルプテキストの行だけを空けているとき、見出しは、空けた行を含めたまとまりの上下中央に置く
-        style={
-          !caption && reserveCaption
-            ? { marginTop: 'calc((var(--leading-caption) + 2px) / 2)' }
-            : undefined
-        }
+        style={!caption && reserveCaption ? { marginTop: sheetCaptionRowHalf } : undefined}
       >
         {label}
       </div>
@@ -64,7 +61,7 @@ export function SheetFieldTitle({
           <div
             aria-hidden
             data-slot="sheet-caption-spacer"
-            style={{ height: 'calc((var(--leading-caption) - 2px) / 2)' }}
+            style={{ height: sheetCaptionSpacerHeight }}
           />
         )
       )}

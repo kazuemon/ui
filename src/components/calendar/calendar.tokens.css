@@ -9,6 +9,8 @@
   --calendar-day-content-bottom: calc(var(--spacing) * 1.75);
   --calendar-day-content-text: 10px;
   --calendar-day-number-shift: calc(var(--spacing) * -2.25);
+  /* 今日の下線の、日のボタンの下端からの位置 */
+  --calendar-today-mark-bottom: calc(var(--spacing) * 1.25);
   /* 印を持つ日がある月で、今日の下線を引く、数字の行の下からの位置（数字と印のあいだ） */
   --calendar-today-mark-offset: calc(var(--spacing) * -0.75);
 }
