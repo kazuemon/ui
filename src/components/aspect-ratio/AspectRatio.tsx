@@ -1,6 +1,21 @@
 import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 import { renderElement } from '../../internal/render-element';
+import { tv } from '../../internal/tv';
+
+// 最初の子を枠いっぱいに広げる。2 つ目からの子（重ねる印・読み込み中の面）は、自分で置き方を決める
+// 詳細度は子の 1 クラスと同じ（:where）。ただし同じ詳細度では variant 付きのこのクラスが後に出て勝つので、
+// 子の側で変えるときは variant 付きのクラス（Image の group-data-natural のような）か style で上書きする
+const aspectRatio = tv({
+  base: 'relative w-full overflow-hidden [&>:where(:first-child)]:absolute [&>:where(:first-child)]:inset-0 [&>:where(:first-child)]:size-full',
+  variants: {
+    fit: {
+      cover: '[&>:where(:first-child)]:object-cover',
+      contain: '[&>:where(:first-child)]:object-contain',
+    },
+  },
+  defaultVariants: { fit: 'cover' },
+});
 
 /** 画像・動画の収め方。cover は枠に合わせてはみ出た分を切り、contain は切らずに枠へ収めて余白を残します */
 export type MediaFit = 'cover' | 'contain';
@@ -40,18 +55,7 @@ export function AspectRatio({
 }: AspectRatioProps) {
   return renderElement('div', render, {
     ...props,
-    // 最初の子を枠いっぱいに広げる。2 つ目からの子（重ねる印・読み込み中の面）は、自分で置き方を決める
-    // 詳細度は子の 1 クラスと同じ（:where）。ただし同じ詳細度では variant 付きのこのクラスが後に出て勝つので、
-    // 子の側で変えるときは variant 付きのクラス（Image の group-data-natural のような）か style で上書きする
-    className: [
-      'relative w-full overflow-hidden [&>:where(:first-child)]:absolute [&>:where(:first-child)]:inset-0 [&>:where(:first-child)]:size-full',
-      fit === 'contain'
-        ? '[&>:where(:first-child)]:object-contain'
-        : '[&>:where(:first-child)]:object-cover',
-      className,
-    ]
-      .filter(Boolean)
-      .join(' '),
+    className: aspectRatio({ fit, className }),
     style: { aspectRatio: String(ratio), ...style },
   });
 }
