@@ -8,8 +8,11 @@ import {
 import type { VariantProps } from 'tailwind-variants';
 
 import { focusRing } from '../../internal/focus-styles';
+import { ArrowUpRightIcon } from '../../internal/icons';
 import {
+  endsWithElement,
   NewTabNote,
+  opensNewTab,
   resolveLink,
   warnOnce,
   withoutLinkAttributes,
@@ -38,6 +41,13 @@ import { tv } from '../../internal/tv';
 //   Tag はサーバーのまま描けるよう、フックを使わない（render は cloneElement で重ねる）
 // 先頭のアイコン・アバター（icon・avatar）— ADR-0399・0400。置き方は src/internal/small-parts-leading.ts（Chip と共有）
 //   アイコンは文字と同じ大きさで、色は既定で文字の色。iconColor で color と同じ色から選べる（solid では文字の色のまま）
+// 新しいタブで開くタグ（target="_blank"）は、文字の後ろに ↗ を付ける（Link と同じ決まり。newTabIcon で上書き）
+//   大きさと間隔は先頭のアイコンと同じ（文字と同じ大きさ、間隔 --small-parts-icon-gap）。色は文字の色
+//   hover の下線は文字だけに引く（↗ の下には引かない）
+//   利用者が最後に ArrowUpRightIcon を置いたときは足さない
+const newTabIconClass =
+  'ms-(--small-parts-icon-gap) inline-flex shrink-0 items-center [&_svg]:size-[1em]';
+
 const tag = tv({
   base: [
     'relative inline-flex items-center rounded-pill font-bold whitespace-nowrap no-underline',
@@ -158,6 +168,14 @@ export interface TagProps
   iconColor?: TagColor;
   /** 文字の前に置くアバター（`<Avatar src="…" name="…" />`）。大きさはタグの高さから決めます */
   avatar?: ReactNode;
+  /**
+   * 文字の後ろに右上向きの矢印（↗）を付けるか。リンクのタグだけに効きます。
+   * 渡さないときは、新しいタブで開くとき（target="_blank"）だけ付きます。
+   * true にすると同じタブで開くリンクにも付き、false にすると新しいタブで開くリンクにも付きません。
+   * 「新しいタブで開きます」の読み上げは、この値にかかわらず新しいタブで開くときに付きます
+   * @default 新しいタブで開くときは true
+   */
+  newTabIcon?: boolean;
   /** タグの文字（分類や「公開中」などの状態） */
   children?: ReactNode;
   /** タグ（span。リンクのときは a か render の要素）に付きます */
@@ -179,6 +197,7 @@ export function Tag({
   icon,
   iconColor,
   avatar,
+  newTabIcon,
   className,
   children,
   ...props
@@ -188,7 +207,9 @@ export function Tag({
     warnOnce('Tag: link を付けたタグには、href か、リンクの要素（render）を渡します');
   // 開き方（target・rel）は、リンクのときだけ a か render の要素（ルーターのリンク）に渡す。
   // 書いていない属性は渡さない（render の側の値を消さない）
-  const newTab = isLink && target === '_blank';
+  // Tag の target は render の要素の target を上書きするので、渡されたときはそちらで決める
+  const newTab = isLink && (target != null ? target === '_blank' : opensNewTab(render));
+  const arrow = isLink && (newTabIcon ?? newTab) && !endsWithElement(children, ArrowUpRightIcon);
   const linkRel = newTab ? (rel ?? 'noopener noreferrer') : rel;
   const own = {
     // link={false} のときは、リンクだけの属性（download など）も描く要素に渡さない
@@ -216,6 +237,11 @@ export function Tag({
           </span>
         )}
         {children}
+        {arrow && (
+          <span data-slot="tag-new-tab-icon" aria-hidden="true" className={newTabIconClass}>
+            <ArrowUpRightIcon />
+          </span>
+        )}
         {newTab && <NewTabNote />}
       </>
     ),
