@@ -12,6 +12,7 @@ import { focusRing } from '../../internal/focus-styles';
 import { CodeIcon, PlayIcon, XLogoIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
+import { figureCaptionClass, figureClass } from '../figure/Figure';
 
 // 埋め込み（軸 271〜274）。記事に YouTube・X の投稿・CodePen などの外部コンテンツを iframe で埋める
 // サードパーティの script（widgets.js など）は部品に抱え込まない。iframe で埋められるものだけを対象にする（src はいつも使う側が渡す）
@@ -71,7 +72,6 @@ const embedProviders: Record<EmbedProvider, EmbedProviderConfig> = {
 
 const styles = tv({
   slots: {
-    root: 'm-0 flex flex-col gap-2',
     // frame は AspectRatio の className に渡す。position・overflow-hidden・子を絶対配置で重ねる指定は
     //   AspectRatio 自身が既に持つ（src/components/aspect-ratio/AspectRatio.tsx）ので、ここでは角・影・輪郭だけを足す
     // 角は常にカードの角（Image・Figure と同じ）。idle（clickToLoad でまだ押していないあいだ）だけ、
@@ -102,8 +102,6 @@ const styles = tv({
     icon: 'size-8 shrink-0 text-fg-subtle',
     label: 'text-body-sm font-bold text-fg',
     sub: 'line-clamp-1 max-w-full text-caption text-fg-subtle',
-    // キャプションは Figure と同じ、下・中央（軸273）
-    caption: 'text-center text-body-sm text-fg-subtle',
   },
 });
 
@@ -251,11 +249,12 @@ export function Embed({
   );
 
   // キャプションがないときは figure で包まない（Figure・ImageZoom と同じ）
+  // figure・キャプション（下・中央。軸273）の見た目は Figure のものを使う
   if (caption == null) return frame;
   return (
-    <figure {...figureProps} className={s.root({ className: figureProps?.className })}>
+    <figure {...figureProps} className={figureClass(figureProps?.className)}>
       {frame}
-      <figcaption className={s.caption()}>{caption}</figcaption>
+      <figcaption className={figureCaptionClass}>{caption}</figcaption>
     </figure>
   );
 }
