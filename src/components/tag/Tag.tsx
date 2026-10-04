@@ -207,7 +207,8 @@ export function Tag({
     warnOnce('Tag: link を付けたタグには、href か、リンクの要素（render）を渡します');
   // 開き方（target・rel）は、リンクのときだけ a か render の要素（ルーターのリンク）に渡す。
   // 書いていない属性は渡さない（render の側の値を消さない）
-  const newTab = isLink && (target === '_blank' || opensNewTab(render));
+  // Tag の target は render の要素の target を上書きするので、渡されたときはそちらで決める
+  const newTab = isLink && (target != null ? target === '_blank' : opensNewTab(render));
   const arrow = isLink && (newTabIcon ?? newTab) && !endsWithElement(children, ArrowUpRightIcon);
   const linkRel = newTab ? (rel ?? 'noopener noreferrer') : rel;
   const own = {

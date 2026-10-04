@@ -238,6 +238,14 @@ export const LinkResolution: Story = {
       <Tag {...args} href="#tags/design" onClick={stay} newTabIcon>
         同じタブで矢印
       </Tag>
+      <Tag
+        {...args}
+        render={<a href="#tags/design" target="_blank" onClick={stay} />}
+        link
+        target="_self"
+      >
+        Tag の target が勝つ
+      </Tag>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -258,7 +266,7 @@ export const LinkResolution: Story = {
     const renderNewTab = canvas.getByRole('link', { name: /^render で新しいタブ\s*（/ });
     await expect(renderNewTab).toHaveAttribute('target', '_blank');
     await expect(renderNewTab).toHaveAttribute('rel', 'noopener noreferrer');
-    await expect(canvas.getAllByRole('link')).toHaveLength(6);
+    await expect(canvas.getAllByRole('link')).toHaveLength(7);
     // ↗: 新しいタブで開くタグに付き（render の target も見る）、読み上げには入らない。newTabIcon で上書きできる
     const arrow = (element: Element | null | undefined) =>
       element?.querySelector('[data-slot="tag-new-tab-icon"]');
@@ -268,6 +276,10 @@ export const LinkResolution: Story = {
     await expect(arrow(withHref)).toBeNull();
     await expect(arrow(canvas.getByRole('link', { name: /^矢印なし\s*（/ }))).toBeNull();
     await expect(arrow(canvas.getByRole('link', { name: '同じタブで矢印' }))).not.toBeNull();
+    // Tag の target は render の target より勝つ。同じタブなら ↗ も読み上げの文も付けない
+    const selfTarget = canvas.getByRole('link', { name: 'Tag の target が勝つ' });
+    await expect(selfTarget).toHaveAttribute('target', '_self');
+    await expect(arrow(selfTarget)).toBeNull();
 
     // link だけ（href も render もない）: 開発中に警告する
     const warn = spyOn(console, 'warn').mockImplementation(() => {});
