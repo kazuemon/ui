@@ -5,10 +5,10 @@ import type { VariantProps } from 'tailwind-variants';
 
 import { formatFileSize } from './dropzone-utils';
 import { Button } from '../button/Button';
+import { Link } from '../link/Link';
 import { Progress } from '../progress/Progress';
-import { focusRing } from '../../internal/focus-styles';
 import { FileIcon, XIcon } from '../../internal/icons';
-import { NewTabNote } from '../../internal/link-parts';
+import { textLinkSizeReset } from '../../internal/reading/text-link';
 import { tv } from '../../internal/tv';
 
 // Dropzone で選んだファイルの一覧。Dropzone 自身は選ぶ場所だけを持つので、見せ方はこちらに分ける（アップロードは行わない）
@@ -16,13 +16,6 @@ import { tv } from '../../internal/tv';
 //   渡せば進み具合（Progress）・失敗の文を持てる
 // 保存済みのファイル（file を持たず、name・size・url で書いた項目）は、いま選んだものと同じ行で並べる（軸 491）
 //   url があれば名前を下線のリンクにする。それが見分けになる。「保存済み」などの文は部品が付けず、項目の caption で使う側が添える
-const savedLink = [
-  'rounded-xs text-inherit underline underline-offset-[0.2em]',
-  'decoration-(--color-link-underline) hover:decoration-(--color-link-underline-hover)',
-  'transition-[outline-color,outline-offset] duration-(--focus-ring-duration)',
-  ...focusRing,
-];
-
 const row = tv({
   slots: {
     root: 'flex flex-col gap-2',
@@ -34,7 +27,6 @@ const row = tv({
     meta: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
     error: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-danger',
     remove: 'shrink-0',
-    link: savedLink,
   },
   variants: {
     variant: {
@@ -54,7 +46,6 @@ const tile = tv({
     ],
     caption:
       'truncate bg-surface px-2 py-1 text-(length:--text-caption) leading-(--leading-caption) text-fg',
-    link: savedLink,
     // 項目の caption。左上に小さな札で置き、長ければ切る
     mark: 'absolute top-1 left-1 max-w-[calc(100%-var(--spacing)*2)] rounded-pill bg-surface px-2 py-0.5 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
     // 切るのは中の文。札の中に置いたリンクのフォーカスの線が切れないよう、内側に余白を取り、外側の余白で打ち消す。
@@ -127,15 +118,23 @@ function defaultRemoveName(entry: DropzoneFileEntry) {
   return `${entry.file ? '外す' : '削除'}: ${entryName(entry)}`;
 }
 
-/** 項目の名前。保存済みで url があればリンクにする（新しいタブで開く） */
-function EntryName({ entry, className }: { entry: DropzoneFileEntry; className: string }) {
+/**
+ * 項目の名前。保存済みで url があれば文字のリンク（Link）にする（新しいタブで開く）
+ * 色と大きさは周りの名前の文字のまま。行の中で見分けは下線だけで足りるので、↗ は付けない
+ */
+function EntryName({ entry }: { entry: DropzoneFileEntry }) {
   const name = entryName(entry);
   if (entry.file || !entry.url) return name;
   return (
-    <a href={entry.url} target="_blank" rel="noreferrer" className={`relative ${className}`}>
+    <Link
+      href={entry.url}
+      target="_blank"
+      color="inherit"
+      newTabIcon={false}
+      className={textLinkSizeReset}
+    >
       {name}
-      <NewTabNote />
-    </a>
+    </Link>
   );
 }
 
@@ -217,7 +216,7 @@ export function DropzoneFileList({
                   <FileIcon className={s.icon()} />
                   <div className={s.body()}>
                     <span className={s.name()}>
-                      <EntryName entry={entry} className={s.link()} />
+                      <EntryName entry={entry} />
                     </span>
                     <span className={s.meta()}>
                       {size != null && formatFileSize(size)}
@@ -278,7 +277,7 @@ export function DropzoneFileList({
                   </Button>
                 )}
                 <span className={t.caption()}>
-                  <EntryName entry={entry} className={t.link()} />
+                  <EntryName entry={entry} />
                 </span>
                 {progress != null && (
                   <Progress
