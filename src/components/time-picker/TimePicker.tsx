@@ -34,6 +34,7 @@ import {
 } from '../../internal/picker/PickerOverlay';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { cn } from '../../internal/tv';
+import { useControlled } from '../../internal/use-controlled';
 
 export type { TimePickerVariant } from './TimePickerPanel';
 export type { TimePickerColumnNames } from './time-options';
@@ -123,20 +124,6 @@ export interface TimePickerControlProps extends Omit<
   positionerProps?: PositionerProps;
 }
 
-/** 値（制御・非制御）をまとめて持つ */
-function useTimeValue(
-  value: PlainTime | null | undefined,
-  defaultValue: PlainTime | null | undefined,
-  onValueChange?: (value: PlainTime | null) => void
-) {
-  const [inner, setInner] = useState<PlainTime | null>(defaultValue ?? null);
-  const current = value !== undefined ? value : inner;
-  const change = (next: PlainTime | null) => {
-    setInner(next);
-    onValueChange?.(next);
-  };
-  return [current, change] as const;
-}
 
 /**
  * 時刻を打つ欄に、一覧から選ぶボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます
@@ -176,7 +163,11 @@ export function TimePickerControl({
     warnOnce(
       `TimePicker: minuteStep={${minuteStep}} の一覧は項目が多く重くなります。細かい刻みでは variant="columns" を使ってください`
     );
-  const [value, setValue] = useTimeValue(valueProp, defaultValue, onValueChange);
+  const [value, setValue] = useControlled<PlainTime | null>(
+    valueProp,
+    defaultValue ?? null,
+    onValueChange
+  );
   const fieldState = useFieldState();
   // 読み取り専用・押せない（Fieldset から受けたものも含む）・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
   //   defaultOpen・制御の open で開こうとしても、面を出さない
@@ -302,9 +293,9 @@ export function TimePicker(props: TimePickerProps) {
   );
   const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   // 範囲の外のときは欄をエラーの見た目にする。いまの値を外枠でも持つ（TimeField と同じ）
-  const [value, setValue] = useTimeValue(
+  const [value, setValue] = useControlled<PlainTime | null>(
     control.value,
-    control.defaultValue,
+    control.defaultValue ?? null,
     control.onValueChange
   );
   const outOfRange = isTimeOutOfRange(value, control.min, control.max);

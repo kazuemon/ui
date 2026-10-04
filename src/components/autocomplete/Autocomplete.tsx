@@ -84,6 +84,7 @@ import {
 } from '../../internal/sheet/use-narrow-screen';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { AddonShape } from '../field-addon/field-addon-context';
@@ -547,8 +548,7 @@ export function AutocompleteControl<Value = string>({
   };
 
   // 打った文字（制御しないときも、消去のボタンを出すために持つ）
-  const [innerValue, setInnerValue] = useState(defaultValue ?? '');
-  const text = value ?? innerValue;
+  const [text, change] = useControlled(value, defaultValue ?? '', onValueChange);
 
   // 候補から選ぶとき、どの候補かを onSelect に渡す。押した候補（onPress）を覚えておき、Base UI の値の変更で使う
   //   値だけで渡された候補は { label, value } にそろえる（ラベルは値の文字）
@@ -634,11 +634,6 @@ export function AutocompleteControl<Value = string>({
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
   const popupOwnRef = sheet ? measure : popoverFit ? observeCues : undefined;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
-
-  const change = (next: string) => {
-    if (value === undefined) setInnerValue(next);
-    onValueChange?.(next);
-  };
 
   const renderSheetClose = () => (
     <ComboboxSheetClose

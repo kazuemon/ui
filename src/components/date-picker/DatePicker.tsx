@@ -27,6 +27,7 @@ import {
 } from '../../internal/picker/PickerOverlay';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { cn } from '../../internal/tv';
+import { useControlled } from '../../internal/use-controlled';
 
 export type { DatePickerCalendarProps } from './DatePickerPanel';
 
@@ -158,21 +159,6 @@ export type DatePickerBaseProps = Omit<DateFieldBaseProps, 'suffix'> & DatePicke
 /** DatePicker の props。label か accessibleName のどちらかが要ります */
 export type DatePickerProps = FieldNamed<DatePickerBaseProps>;
 
-/** 値（制御・非制御）をまとめて持つ */
-function useDateValue(
-  value: PlainDate | null | undefined,
-  defaultValue: PlainDate | null | undefined,
-  onValueChange?: (value: PlainDate | null) => void
-) {
-  const [inner, setInner] = useState<PlainDate | null>(defaultValue ?? null);
-  const current = value !== undefined ? value : inner;
-  const change = (next: PlainDate | null) => {
-    setInner(next);
-    onValueChange?.(next);
-  };
-  return [current, change] as const;
-}
-
 /**
  * 日付を打つ欄に、カレンダーを開くボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
  * 押せない・待っている・エラー・必須の状態と、説明のつながりは、包む Field から受け取ります。カレンダーの面の名前は Field のラベルです
@@ -217,7 +203,11 @@ export function DatePickerControl({
   const today = todayProp ?? todayIn(timeZone);
   // 欄の端のボタンはアイコン単体なので太い線、ボタンの中の印は文字と並ぶので細い線（ADR-0018）
   const icon = iconProp ?? <CalendarBlankIcon standalone={variant === 'field'} />;
-  const [value, changeValue] = useDateValue(valueProp, defaultValue, onValueChange);
+  const [value, changeValue] = useControlled<PlainDate | null>(
+    valueProp,
+    defaultValue ?? null,
+    onValueChange
+  );
 
   // 読み取り専用・押せない（Fieldset から受けたものも含む）・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
   //   defaultOpen・制御の open で開こうとしても、面を出さない
@@ -355,9 +345,9 @@ export function DatePicker(props: DatePickerProps) {
   // 全角を半角に直したことの知らせ（DateField と同じ。既定は知らせない）
   const { notice, noticed } = useHalfWidthNotice(halfWidthNotice);
   // 範囲の外のときは欄をエラーの見た目にする。いまの値を外枠でも持つ（DateField と同じ）
-  const [value, setValue] = useDateValue(
+  const [value, setValue] = useControlled<PlainDate | null>(
     control.value,
-    control.defaultValue,
+    control.defaultValue ?? null,
     control.onValueChange
   );
   return (

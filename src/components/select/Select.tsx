@@ -66,6 +66,7 @@ import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFi
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import {
@@ -522,15 +523,11 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
 
   // 値は部品の中でも持つ（消すボタンで空に戻すため。value を渡されたときはそちらに従う）
   const emptyValue: ListboxValue | ListboxValue[] | null = multiple ? [] : null;
-  const [valueState, setValueState] = useState<ListboxValue | ListboxValue[] | null>(
-    (defaultValue as ListboxValue | ListboxValue[] | null | undefined) ?? emptyValue
+  const [currentValue, changeValue] = useControlled<ListboxValue | ListboxValue[] | null>(
+    value as ListboxValue | ListboxValue[] | null | undefined,
+    (defaultValue as ListboxValue | ListboxValue[] | null | undefined) ?? emptyValue,
+    onValueChange ? (next) => emitValue(onValueChange, next) : undefined
   );
-  const currentValue =
-    value !== undefined ? (value as ListboxValue | ListboxValue[] | null) : valueState;
-  const changeValue = (next: ListboxValue | ListboxValue[] | null) => {
-    setValueState(next);
-    if (onValueChange) emitValue(onValueChange, next);
-  };
   const hasValue = Array.isArray(currentValue) ? currentValue.length > 0 : currentValue != null;
   // 消すボタン。本体はボタンなので、中にボタンを置けない。本体と × を包み、× は本体の上に重ねる
   //   本体は右端に × の分の場所を空け、▼ は × の左に来る

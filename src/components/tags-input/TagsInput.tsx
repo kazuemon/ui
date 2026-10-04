@@ -86,6 +86,7 @@ import {
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { chipHeightValue } from '../../internal/small-parts-size';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
@@ -516,18 +517,16 @@ export function TagsInputControl({
   const hasItems = items !== undefined;
 
   // 値は部品の中でも持てる（制御しないとき）
-  const [valueState, setValueState] = useState<string[]>(() => defaultValue ?? []);
-  const values = valueProp ?? valueState;
-  const setValues = (next: string[]) => {
-    if (valueProp === undefined) setValueState(next);
-    onValueChange?.(next);
-  };
-  const [textState, setTextState] = useState(() => defaultInputValue ?? '');
-  const text = inputValueProp ?? textState;
-  const setText = (next: string) => {
-    if (inputValueProp === undefined) setTextState(next);
-    onInputValueChange?.(next);
-  };
+  const [values, setValues] = useControlled<string[]>(
+    valueProp,
+    () => defaultValue ?? [],
+    onValueChange
+  );
+  const [text, setText] = useControlled(
+    inputValueProp,
+    () => defaultInputValue ?? '',
+    onInputValueChange
+  );
 
   // IME の変換中（変換中の Enter と区切りの文字では確定しない）
   const composing = useRef(false);
