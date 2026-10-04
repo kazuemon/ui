@@ -17,6 +17,7 @@ import {
   useState,
 } from 'react';
 
+import { narrowerThanCollapse } from '../../internal/collapse-width';
 import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon, ListIcon } from '../../internal/icons';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
@@ -54,9 +55,6 @@ import { useNavbarScroll } from './use-navbar-scroll';
 //       text（既定）は文字を本文の色で太く。neutral はグレー、primary は淡い青の pill を敷く。underline は文字の下に青い線
 //       メニューの中の行では、underline は text と同じ（行の下に線を引くと区切り線に見えるため）
 //     塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
-
-// 行き先を帯に並べる幅（rem）。これより狭いと畳む。クラスの @3xl/navbar（48rem）と同じ値
-const WIDE_REM = 48;
 
 type Placement = 'bar' | 'menu';
 
@@ -395,8 +393,7 @@ export function Navbar({
     const root = rootRef.current;
     if (!open || !root) return undefined;
     const observer = new ResizeObserver(() => {
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      if (root.offsetWidth >= WIDE_REM * rem) closeRef.current();
+      if (!narrowerThanCollapse(root)) closeRef.current();
     });
     observer.observe(root);
     return () => observer.disconnect();

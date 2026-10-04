@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { narrowerThanCollapse } from '../../internal/collapse-width';
 import { ListIcon } from '../../internal/icons';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Button } from '../button/Button';
@@ -24,9 +25,6 @@ import { layout } from './sidebar-styles';
 // 列のあるページの骨組み — ADR-0350（置き方）・0351（狭い画面）・0352（開閉の動き）・0362（幅を変える）
 //   置き方: under-header は Header が端から端まで通り、その下で列と本文が並ぶ（既定）。full-height は列が上から下まで通り、Header は本文の側に入る
 //   置かれた面の幅が 48rem より狭いと、列をやめて Drawer にする。Navbar と同じく、画面ではなく面の幅で決める（コンテナ）
-
-// 列を出す幅（rem）。これより狭いと Drawer にする。Navbar の畳む幅と同じ
-const WIDE_REM = 48;
 
 export interface SidebarLayoutProps extends Omit<ComponentProps<'div'>, 'children'> {
   /** 列（Sidebar） */
@@ -159,8 +157,7 @@ export function SidebarLayout({
     const root = rootRef.current;
     if (!root) return undefined;
     const read = () => {
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const next = root.offsetWidth < WIDE_REM * rem;
+      const next = narrowerThanCollapse(root);
       setNarrow(next);
       // 面が広がって列に戻ったら、開いていた Drawer を閉じる
       if (!next) closeDrawerRef.current();

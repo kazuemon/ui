@@ -4,7 +4,7 @@ import type { DensityScope } from '../density-scope';
 import { SHEET_FULL } from '../listbox/listbox-measure';
 import type { SheetDetent } from '../sheet/use-sheet-drag';
 
-// 打って選ぶ入力欄（Combobox・Autocomplete）の、浮かぶ選択肢とシートの外枠 — design/adr/0037・ADR-0221
+// 選ぶ入力欄（Select・Combobox・Autocomplete・TagsInput）の、浮かぶ選択肢とシートの外枠 — design/adr/0037・ADR-0221
 //   シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
 //   ソフトウェアキーボードが隠している分（keyboardInset）だけ持ち上げ、縮んだ残りの高さ（keyboardShrink）に収める
 //   本体の祖先に付いた data-density・coarse-large を写し、項目の高さと文字を本体とそろえる（readDensityScope）

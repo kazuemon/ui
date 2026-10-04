@@ -30,6 +30,7 @@ import {
 import { useLocale } from '../../internal/date/use-locale';
 import { focusRing } from '../../internal/focus-styles';
 import { tv } from '../../internal/tv';
+import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 
 // 月の日を並べて、日か期間を選ぶ。振る舞い（キーボード・読み上げ・範囲の選び方）は react-day-picker（@daypicker/react）— ADR-0133
@@ -118,7 +119,7 @@ const calendar = tv({
       'bg-[color-mix(in_oklab,var(--day-base),var(--day-ink)_max(var(--day-hover),var(--day-press)))]',
       // 今日の下線（ADR-0135）。文字の色なので、選んだ日の上では白くなる
       // 印を持つ日がある月では、下線は数字のすぐ下（数字と印のあいだ）に引く（dayNumber）
-      'after:absolute after:bottom-[5px] after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--cal-month-content)))]',
+      'after:absolute after:bottom-(--calendar-today-mark-bottom) after:left-1/2 after:h-0.5 after:w-3.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:opacity-[calc(var(--day-mark)*(1-var(--cal-month-content)))]',
       'enabled:hover:[--day-hover:var(--flat-hover-mix)] enabled:active:translate-y-(--flat-press-depth) enabled:active:[--day-press:var(--flat-press-mix)]',
       '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       // キーボードで日を動かしたとき（ADR-0136）: ボタンと同じフォーカスの線。フォーカスそのものが日から日へ移るため
@@ -542,11 +543,6 @@ function constrainedDays(
   };
 }
 
-function useControlled<T>(value: T | undefined, defaultValue: T) {
-  const [inner, setInner] = useState(defaultValue);
-  return [value !== undefined ? value : inner, setInner] as const;
-}
-
 /**
  * 月の日を並べて、1 日か期間を選ぶカレンダー。値は Temporal.PlainDate で受け渡します
  */
@@ -579,11 +575,13 @@ export function Calendar(props: CalendarProps) {
 
   const [single, setSingle] = useControlled<PlainDate | null>(
     props.mode === 'range' ? undefined : props.value,
-    props.mode === 'range' ? null : (props.defaultValue ?? null)
+    props.mode === 'range' ? null : (props.defaultValue ?? null),
+    props.mode === 'range' ? undefined : props.onValueChange
   );
   const [range, setRange] = useControlled<CalendarRange | null>(
     props.mode === 'range' ? props.value : undefined,
-    props.mode === 'range' ? (props.defaultValue ?? null) : null
+    props.mode === 'range' ? (props.defaultValue ?? null) : null,
+    props.mode === 'range' ? props.onValueChange : undefined
   );
 
   const today = todayProp ?? todayIn(timeZone);
@@ -591,7 +589,8 @@ export function Calendar(props: CalendarProps) {
     month,
     defaultMonth ??
       (props.mode === 'range' ? range?.start : single)?.toPlainYearMonth() ??
-      today.toPlainYearMonth()
+      today.toPlainYearMonth(),
+    onMonthChange
   );
   // 期間の始まりだけを選んだあと、マウスを載せた日・キーボードで移った日（ADR-0141）
   const [pointed, setPointed] = useState<string | null>(null);
@@ -640,11 +639,7 @@ export function Calendar(props: CalendarProps) {
     endMonth: max ? toDate(max) : undefined,
     'aria-label': props['aria-label'],
     month: monthToDate(shownMonth),
-    onMonthChange: (date: Date) => {
-      const next = monthFromDate(date);
-      setShownMonth(next);
-      onMonthChange?.(next);
-    },
+    onMonthChange: (date: Date) => setShownMonth(monthFromDate(date)),
     animate: fade,
     components,
     classNames: {
@@ -729,7 +724,6 @@ export function Calendar(props: CalendarProps) {
       if (range && !range.end && date.equals(range.start) && (props.minRangeDays ?? 1) > 1) {
         setRange(null);
         setPointed(null);
-        props.onValueChange?.(null);
         return;
       }
       const value: CalendarRange =
@@ -740,7 +734,6 @@ export function Calendar(props: CalendarProps) {
           : { start: date, end: null };
       setRange(value);
       setPointed(null);
-      props.onValueChange?.(value);
     };
     return (
       <CalendarContext value={context}>
@@ -770,7 +763,6 @@ export function Calendar(props: CalendarProps) {
   const onSelect = (next: Date | undefined) => {
     const value = next ? fromDate(next) : null;
     setSingle(value);
-    props.onValueChange?.(value);
   };
   return (
     <CalendarContext value={context}>

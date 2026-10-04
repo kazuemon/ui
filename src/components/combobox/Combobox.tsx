@@ -1,7 +1,7 @@
 'use client';
 
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
-import { type ComponentProps, type ReactNode, useId, useMemo, useState } from 'react';
+import { type ComponentProps, type ReactNode, useMemo, useRef, useState } from 'react';
 
 import { ComboboxChips, ComboboxTriggerChips } from '../../internal/combobox-base/ComboboxChips';
 import {
@@ -47,7 +47,11 @@ import {
 import { CaretDownIcon, XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
-import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
+import {
+  type ListboxFieldProps,
+  emitListboxValue,
+  defaultLoadedOptionsText,
+} from '../../internal/listbox/listbox-field-props';
 import {
   type ListboxItems,
   type NormalizedListboxGroup,
@@ -78,7 +82,9 @@ import {
 } from '../../internal/listbox/listbox-styles';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
-import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { sheetBackdropClass, sheetCaptionRowHalf } from '../../internal/sheet/sheet-styles';
+import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
 import { SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
@@ -90,7 +96,7 @@ import {
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
-import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
@@ -393,31 +399,7 @@ export interface ComboboxControlProps<Value = string, Multiple extends boolean =
 }
 
 /** Combobox の外枠（Field）が受け持つ props */
-interface ComboboxFieldProps extends Pick<
-  InputFieldProps,
-  | 'label'
-  | 'accessibleName'
-  | 'size'
-  | 'caption'
-  | 'captionPlacement'
-  | 'infoText'
-  | 'validate'
-  | 'validationMode'
-  | 'validationDebounceTime'
-  | 'required'
-  | 'requiredMark'
-  | 'optionalMark'
-  | 'labelPlacement'
-  | 'labelVariant'
-  | 'narrowLabelPlacement'
-> {
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
+interface ComboboxFieldProps extends ListboxFieldProps, Pick<InputFieldProps, 'validate'> {
   /**
    * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の ▼ の左（回る円の場所）にもチェックを置きます。
    * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
@@ -443,8 +425,6 @@ interface ComboboxFieldProps extends Pick<
    * @default 'non-blocking'
    */
   loadingBehavior?: FieldLoadingBehavior;
-  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
-  className?: string;
 }
 
 /** Combobox の props から、label・accessibleName の組み合わせの決まりを外したもの。Combobox を包む部品が継ぎます */
@@ -458,19 +438,7 @@ export type ComboboxProps<Value = string, Multiple extends boolean = false> = Fi
   ComboboxBaseProps<Value, Multiple>
 >;
 
-const defaultLoadedText = (count: number) => `${count} 件の選択肢`;
 const defaultChipRemoveName = (label: string) => `${label} を外す`;
-
-/**
- * Base UI から来た値を onValueChange に渡す
- * 値の型は multiple の有無で決まるので（ComboboxValue）、Base UI 側の広い型からここで橋渡しする
- */
-function emitValue<Value, Multiple extends boolean>(
-  onValueChange: (value: ComboboxValue<Value, Multiple>) => void,
-  next: ListboxValue | ListboxValue[] | null
-) {
-  (onValueChange as (value: ListboxValue | ListboxValue[] | null) => void)(next);
-}
 
 /**
  * 選択肢を打って絞り込み、選ぶ欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
@@ -526,7 +494,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
-  loadedText = defaultLoadedText,
+  loadedText = defaultLoadedOptionsText,
   hideCaretOnDisabled = false,
   chevron = 'always',
   chipMaxWidth,
@@ -564,12 +532,12 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   useFieldControlKind({ nativeLabel: !inputInSheet });
   const sheetDetent: SheetDetent = sheetDetentProp ?? (sheetInput === 'inside' ? 'full' : 'half');
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ。両方渡したときはエラー → 警告の順
-  const sheetId = useId();
-  const sheetCaptionId = `${sheetId}caption`;
-  const sheetMessages: SheetMessage[] = [];
-  if (errorText) sheetMessages.push({ kind: 'error', content: errorText, id: `${sheetId}error` });
-  if (warningText)
-    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
+  const {
+    id: sheetId,
+    captionId: sheetCaptionId,
+    messages: sheetMessages,
+    listDescribedBy: sheetListDescribedBy,
+  } = useSheetMessages({ error: errorText, warning: warningText, caption });
 
   // 開閉は部品の中でも持つ（止めているあいだ開かせないため・シートの × とつまみで閉じるため）
   // 開いているあいだは本体をフォーカス中と同じ見た目にする
@@ -669,7 +637,9 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
   const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
-  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
+  // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
+  const popupElementRef = useRef<HTMLDivElement>(null);
+  const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
 
   // 欄の中身（入力欄・チップ）。multiple ではチップと入力欄を Chips の中に並べる（← で チップへ移れる）
   const inputClass = comboboxInputClass({ blocking, readOnly });
@@ -905,7 +875,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
       multiple={multiple}
       value={value as ListboxValue | ListboxValue[] | null | undefined}
       defaultValue={defaultValue as ListboxValue | ListboxValue[] | null | undefined}
-      onValueChange={onValueChange ? (next) => emitValue(onValueChange, next) : undefined}
+      onValueChange={onValueChange ? (next) => emitListboxValue(onValueChange, next) : undefined}
       inputValue={inputValue}
       defaultInputValue={defaultInputValue}
       onInputValueChange={(next) => onInputValueChange?.(next)}
@@ -924,7 +894,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
       open={open}
       onOpenChange={(next, details) => {
         // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
           details.cancel();
           return;
         }
@@ -948,9 +918,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
       <BaseCombobox.Portal container={portalContainer}>
         {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする（design/adr/0037）
                 欄に打つ欄を残すとき（sheetInput="field"）は暗くしない。欄はシートの外にあり、打っているあいだも読めるようにするため */}
-        {inputInSheet && (
-          <BaseCombobox.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-        )}
+        {inputInSheet && <BaseCombobox.Backdrop className={sheetBackdropClass} />}
         {/* シートのときは、Base UI が付ける位置（インラインの style）を上書きして、画面の下に固定する
                 ソフトウェアキーボードが隠している分（--visualViewport）だけ持ち上げ、残りの高さに収める */}
         <BaseCombobox.Positioner
@@ -974,9 +942,9 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
             initialFocus={
               inputInSheet && focusInputOnOpen
                 ? () =>
-                    document.querySelector<HTMLElement>(
-                      '[data-slot="combobox-popup"] [data-slot="combobox-sheet-input"] input'
-                    )
+                    popupElementRef.current?.querySelector<HTMLElement>(
+                      '[data-slot="combobox-sheet-input"] input'
+                    ) ?? null
                 : undefined
             }
             {...popupRest}
@@ -1012,9 +980,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
                     // 閉じるは、見出しとヘルプテキストのまとまりの上下中央に置く。
                     // 見出しの行の中央からは、ヘルプテキストの行（と間の 2px）の半分だけ下がる。エラー・警告の行は数えない（出入りで動かないように）
                     caption || inputInSheet ? (
-                      <div className="mt-[calc((var(--leading-caption)+2px)/2)]">
-                        {renderSheetClose()}
-                      </div>
+                      <div style={{ marginTop: sheetCaptionRowHalf }}>{renderSheetClose()}</div>
                     ) : (
                       renderSheetClose()
                     )
@@ -1042,13 +1008,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
                     シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
             <BaseCombobox.List
               ref={listRef}
-              aria-describedby={
-                sheet
-                  ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-                      .filter(Boolean)
-                      .join(' ') || undefined
-                  : fieldDescribedBy
-              }
+              aria-describedby={sheet ? sheetListDescribedBy : fieldDescribedBy}
               onScroll={sheet || popoverCue ? updateCues : undefined}
               className={listboxList({
                 presentation: listPresentation,

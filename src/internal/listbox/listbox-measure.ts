@@ -5,8 +5,6 @@
 // シートの高さの上限と、半分で開くときの目安（画面の高さに対する割合）
 export const SHEET_FULL = 0.85;
 export const SHEET_HALF = 0.5;
-// 続きの印が最も濃くなるまでのスクロールの量（px）
-export const CUE_RAMP = 24;
 // 浮かぶ選択肢の高さの上限（画面の高さに対する割合）。popoverMaxHeight="screen" のとき
 export const POPOVER_MAX = 0.5;
 

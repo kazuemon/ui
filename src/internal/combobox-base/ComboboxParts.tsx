@@ -12,7 +12,7 @@ import {
   listboxSeparatorClass,
 } from '../listbox/listbox-styles';
 import type { ListboxItem, ListboxValue } from '../listbox/use-listbox-option';
-import { sheetCloseButtonClass } from '../sheet/sheet-styles';
+import { sheetCloseButton } from '../sheet/sheet-styles';
 import { comboboxEmptyClass } from './combobox-popup-styles';
 
 // 打って選ぶ入力欄（Combobox・Autocomplete・TagsInput）の、浮かぶ選択肢の中の部品 — ADR-0214・0221
@@ -49,14 +49,7 @@ export function ComboboxSheetClose({
       tabIndex={-1}
       aria-label={hasText ? undefined : '閉じる'}
       onClick={onClose}
-      className={
-        hasText
-          ? sheetCloseButtonClass.replace(
-              'size-(--spacing-control)',
-              'h-(--spacing-control) min-w-(--spacing-control) gap-1 px-3 font-bold text-fg'
-            )
-          : sheetCloseButtonClass
-      }
+      className={sheetCloseButton({ withText: hasText })}
     >
       {Icon && <Icon standalone />}
       {hasText && text}

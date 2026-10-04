@@ -6,7 +6,6 @@ import {
   type CSSProperties,
   type ReactNode,
   useContext,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -42,13 +41,15 @@ import {
 import {
   type FieldMessage,
   type FieldNamed,
-  type InputFieldProps,
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { XIcon } from '../../internal/icons';
 import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
-import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
+import {
+  type ListboxFieldProps,
+  defaultLoadedSuggestionsText,
+} from '../../internal/listbox/listbox-field-props';
 import {
   type ListboxItems,
   type NormalizedListboxGroup,
@@ -74,7 +75,8 @@ import {
 } from '../../internal/listbox/listbox-styles';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
-import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
 import { SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
@@ -86,8 +88,9 @@ import {
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { chipHeightValue } from '../../internal/small-parts-size';
 import { usePortalContainer } from '../../internal/ui-config';
+import { useControlled } from '../../internal/use-controlled';
 import { useMergedRefs } from '../../internal/use-merged-refs';
-import { ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
 import {
@@ -112,7 +115,6 @@ export type TagsInputFilter = (
 ) => boolean;
 
 const defaultSeparators = [','];
-const defaultLoadedText = (count: number) => `${count} 件の候補`;
 const defaultChipRemoveName = (label: string) => `${label} を外す`;
 // 貼り付けでは、区切りの文字に加えて、改行とタブでも分ける
 const pasteBreaks = ['\r\n', '\n', '\r', '\t'];
@@ -362,30 +364,7 @@ export interface TagsInputControlProps {
 }
 
 /** TagsInput の外枠（Field）が受け持つ props */
-interface TagsInputFieldProps extends Pick<
-  InputFieldProps,
-  | 'label'
-  | 'accessibleName'
-  | 'size'
-  | 'caption'
-  | 'captionPlacement'
-  | 'infoText'
-  | 'validationMode'
-  | 'validationDebounceTime'
-  | 'required'
-  | 'requiredMark'
-  | 'optionalMark'
-  | 'labelPlacement'
-  | 'labelVariant'
-  | 'narrowLabelPlacement'
-> {
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
+interface TagsInputFieldProps extends ListboxFieldProps {
   /**
    * 成功の内容。本体の下に丸のチェックと緑の文字で出し、本体の端（回る円の場所）にもチェックを置きます。
    * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
@@ -416,8 +395,6 @@ interface TagsInputFieldProps extends Pick<
    * @default 'non-blocking'
    */
   loadingBehavior?: FieldLoadingBehavior;
-  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
-  className?: string;
 }
 
 /** TagsInput の props から、label・accessibleName の組み合わせの決まりを外したもの。TagsInput を包む部品が継ぎます */
@@ -483,7 +460,7 @@ export function TagsInputControl({
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
-  loadedText = defaultLoadedText,
+  loadedText = defaultLoadedSuggestionsText,
   form,
 }: TagsInputControlProps) {
   const field = useFieldState();
@@ -516,18 +493,16 @@ export function TagsInputControl({
   const hasItems = items !== undefined;
 
   // 値は部品の中でも持てる（制御しないとき）
-  const [valueState, setValueState] = useState<string[]>(() => defaultValue ?? []);
-  const values = valueProp ?? valueState;
-  const setValues = (next: string[]) => {
-    if (valueProp === undefined) setValueState(next);
-    onValueChange?.(next);
-  };
-  const [textState, setTextState] = useState(() => defaultInputValue ?? '');
-  const text = inputValueProp ?? textState;
-  const setText = (next: string) => {
-    if (inputValueProp === undefined) setTextState(next);
-    onInputValueChange?.(next);
-  };
+  const [values, setValues] = useControlled<string[]>(
+    valueProp,
+    () => defaultValue ?? [],
+    onValueChange
+  );
+  const [text, setText] = useControlled(
+    inputValueProp,
+    () => defaultInputValue ?? '',
+    onInputValueChange
+  );
 
   // IME の変換中（変換中の Enter と区切りの文字では確定しない）
   const composing = useRef(false);
@@ -624,18 +599,17 @@ export function TagsInputControl({
   const labelOf = useMemo(() => labelMap(flat), [flat]);
 
   // シートの見出しに出す欄の文（design/adr/0044）。本体の下の行と同じ
-  const sheetId = useId();
-  const sheetCaptionId = `${sheetId}caption`;
   const shownError = field?.messages.error ?? invalidMessage;
   const rejectText = tagsRejectText(flash, rejectMessage);
   // 弾いた文の読み上げ。内蔵の形では、利用者が info を渡していて、同じ行の文が入れ替わるときだけ、見えない箱で知らせる
   //   （下の TagsInput を参照）。組み立てでは下の行に出ないので、いつも見えない箱を置き、validateTag を通らなかった文も知らせる
   const announceReject = outer ? Boolean(rejectMessage) && Boolean(infoText) : true;
   const statusText = outer ? rejectText : (rejectText ?? invalidMessage);
-  const sheetMessages: SheetMessage[] = [];
-  if (shownError) sheetMessages.push({ kind: 'error', content: shownError, id: `${sheetId}error` });
-  if (warningText)
-    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
+  const {
+    captionId: sheetCaptionId,
+    messages: sheetMessages,
+    listDescribedBy: sheetListDescribedBy,
+  } = useSheetMessages({ error: shownError, warning: warningText, caption });
 
   // 候補の出し方（design/adr/0037・原則16）。打つ欄は欄に残り、候補だけがシートに出る
   const sheet = useSheetPresentation(presentation) && hasItems;
@@ -739,7 +713,7 @@ export function TagsInputControl({
       open={open}
       onOpenChange={(next, details) => {
         // 外を押して閉じない・Esc で閉じない設定のときは、閉じる合図を取り消す（ADR-0251）
-        if (!next && !dismissible && OUTSIDE_REASONS.has(details.reason)) {
+        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
           details.cancel();
           return;
         }
@@ -964,13 +938,7 @@ export function TagsInputControl({
                 )}
                 <BaseCombobox.List
                   ref={listRef}
-                  aria-describedby={
-                    sheet
-                      ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-                          .filter(Boolean)
-                          .join(' ') || undefined
-                      : messageIds
-                  }
+                  aria-describedby={sheet ? sheetListDescribedBy : messageIds}
                   onScroll={sheet || popoverCue ? updateCues : undefined}
                   className={listboxList({
                     presentation: listPresentation,

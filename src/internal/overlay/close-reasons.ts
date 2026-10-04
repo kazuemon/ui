@@ -6,4 +6,5 @@ export const ESCAPE_REASONS = new Set<string>(['escape-key', 'close-watcher']);
 
 // 外を押して閉じない設定（dismissible={false}・modal="passive"）のときに取り消すもの
 // 外の押下と、裏を止めない面でフォーカスが外へ出たとき（Base UI の disablePointerDismissal と同じ組）
+// Base UI の Select・Combobox・Autocomplete には disablePointerDismissal がないので、選ぶ欄もこの組を見て取り消す
 export const DISMISS_REASONS = new Set<string>(['outside-press', 'focus-out']);
