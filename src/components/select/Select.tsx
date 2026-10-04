@@ -3,6 +3,10 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { type ComponentProps, type ReactNode, type Ref, useEffect, useMemo, useState } from 'react';
 
+import {
+  comboboxPositionerClass,
+  comboboxPositionerStyle,
+} from '../../internal/combobox-base/combobox-popup-styles';
 import { useDensityScope } from '../../internal/density-scope';
 import {
   Field,
@@ -525,7 +529,20 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
     style: popupStyle,
     ...popupRest
   } = popupProps ?? {};
-  const { className: positionerClassName, ...positionerRest } = positionerProps ?? {};
+  const {
+    className: positionerClassName,
+    style: positionerStyle,
+    ...positionerRest
+  } = positionerProps ?? {};
+  // 浮かぶ選択肢とシートの外枠（Combobox と共有）。打つ欄がないのでソフトウェアキーボードは出ず、持ち上げない
+  //   full でも外枠の高さは決めず、中身の高さで開く（高さの上限だけ）
+  const popupShell = {
+    sheet,
+    densityScope,
+    keyboardInset: 0,
+    keyboardShrink: 0,
+    sheetDetent: 'half',
+  } as const;
   const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
@@ -673,17 +690,8 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
           {...positionerRest}
           data-presentation={listPresentation}
           data-density={densityScope.density}
-          className={mergeSlotClass(
-            [
-              'z-10 outline-none',
-              densityScope.large && 'coarse-large',
-              sheet &&
-                'inset-x-0! top-auto! bottom-0! left-0! flex max-h-[85%] flex-col [position:fixed]! [transform:none]!',
-            ]
-              .filter(Boolean)
-              .join(' '),
-            positionerClassName
-          )}
+          style={{ ...comboboxPositionerStyle(popupShell), ...positionerStyle }}
+          className={mergeSlotClass(comboboxPositionerClass(popupShell), positionerClassName)}
         >
           <BaseSelect.Popup
             {...popupRest}
