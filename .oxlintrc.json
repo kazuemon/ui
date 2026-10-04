@@ -15,6 +15,11 @@
     "react/react-in-jsx-scope": "off",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+    // Fast Refresh のための規則。部品と一緒に useField・figureClass などを export する作りは
+    // CLAUDE.md「部品を作る」が認めているので、切る
+    "react/only-export-components": "off",
+    // Select・Combobox・Autocomplete の総称型を ListboxValue に落とす as など、型の設計上避けられない
+    // 断定が多い。実行時の確かめは play と型のテストで持つので、切る
+    "typescript/no-unsafe-type-assertion": "off"
   }
 }
