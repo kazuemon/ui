@@ -1,7 +1,15 @@
 'use client';
 
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { type ComponentProps, type ReactNode, type Ref, useMemo, useState } from 'react';
+import {
+  type ComponentProps,
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   comboboxPositionerClass,
@@ -430,6 +438,18 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   // 外を押して閉じたときは、押した先にフォーカスが移るので保たない
   // 本体にフォーカスが戻ったとき（onFocus）に消す。戻らなかったときのために、閉じる動きが終わったあと（onOpenChangeComplete）にも消す
   const [closing, setClosing] = useState(false);
+  // 閉じ終わったあとに data-closing を消す、待っているフレーム。次に開閉したとき・外れたときは取り消す
+  const closingFrame = useRef<number | null>(null);
+  const cancelClosingFrame = () => {
+    if (closingFrame.current != null) cancelAnimationFrame(closingFrame.current);
+    closingFrame.current = null;
+  };
+  useEffect(
+    () => () => {
+      if (closingFrame.current != null) cancelAnimationFrame(closingFrame.current);
+    },
+    []
+  );
 
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
@@ -450,6 +470,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   const changeOpen = (next: boolean, reason?: string) => {
     if (next && locked) return;
     if (next) drag.reset();
+    cancelClosingFrame();
     setOpenState(next);
     onOpenChange?.(next);
     setClosing(!next && reason !== 'outside-press' && reason !== 'focus-out');
@@ -645,7 +666,13 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
         if (!next) {
           drag.clearDragHeight();
           // フォーカスは、閉じる動きが終わって面を外したあとに戻る。戻すまでの描画で枠線が消えないよう、1 枚描いてから消す
-          requestAnimationFrame(() => requestAnimationFrame(() => setClosing(false)));
+          cancelClosingFrame();
+          closingFrame.current = requestAnimationFrame(() => {
+            closingFrame.current = requestAnimationFrame(() => {
+              closingFrame.current = null;
+              setClosing(false);
+            });
+          });
         }
         onOpenChangeComplete?.(next);
       }}
