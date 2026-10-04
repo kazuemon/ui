@@ -7,31 +7,29 @@
 
 * Heading の size は数字（1〜4）から md〜5xl の名前に変わる（size={2} は size="xl"）。 Stat の size の値も変わる。トークン --text-heading-1〜4 は --text-heading-2xl・xl・lg・md になる。
 
+### 新しいコンポーネント
+
+* AvatarGroup ([#71](https://github.com/kazuemon/ui/issues/71)) ([52b673c](https://github.com/kazuemon/ui/commit/52b673c9efe32340645da8126a03a52e7e3204af))
+* ButtonGroup ([#72](https://github.com/kazuemon/ui/issues/72)) ([032ec89](https://github.com/kazuemon/ui/commit/032ec89f32471a93a1b410205648253cfa3656a9))
+* DataTable: データの表。TanStack Table でつなぐレシピ付き ([#85](https://github.com/kazuemon/ui/issues/85)) ([c2f33ee](https://github.com/kazuemon/ui/commit/c2f33ee743489f1194649526fdebd786eda9d189), [6dab745](https://github.com/kazuemon/ui/commit/6dab7450ee8173044b298e8f27489e9b9ffd32c3))
+* Dropzone: ファイルを落として選ぶ欄と、選んだファイルの一覧 ([3a1ff10](https://github.com/kazuemon/ui/commit/3a1ff10e656f1bf75d7972919506a3ef499548e7))
+* Fieldset: 欄のまとまり ([#91](https://github.com/kazuemon/ui/issues/91)) ([4137781](https://github.com/kazuemon/ui/commit/4137781954b9dd9cefd9acb989d51ae790da413a), [2383f80](https://github.com/kazuemon/ui/commit/2383f8066ba04909fd6422017fa7fc3170bc53c6))
+* Inspector ([#77](https://github.com/kazuemon/ui/issues/77)) ([b33bde7](https://github.com/kazuemon/ui/commit/b33bde7d41f1d2bd0a10968d79737441c5f181bf), [176cf8d](https://github.com/kazuemon/ui/commit/176cf8d268c87f36ca85197bcb6d69fd85288d96))
+* SearchFieldControl・PasswordFieldControl ([bdeaccb](https://github.com/kazuemon/ui/commit/bdeaccb2d6157fe48239302032f3bc996f259ff0))
+* Sidebar: 押しのける列・rail・Drawer／Menu のシート ([19daaab](https://github.com/kazuemon/ui/commit/19daaab379a14c57f6fbccf792b96303856aaab5))
+* Slider: 横向き・単一値 ([#70](https://github.com/kazuemon/ui/issues/70)) ([5bbf173](https://github.com/kazuemon/ui/commit/5bbf173e22b1bfda6f2d15d9539f98a89294175c), [d633c70](https://github.com/kazuemon/ui/commit/d633c7034ff432fbb7a4a026240036ad61fe5c10))
+* Sortable: 並べ替えられるリスト。dnd-kit でつなぐレシピ付き ([435d0ab](https://github.com/kazuemon/ui/commit/435d0ab86af3fc5d4882c1fae236cf3645477b92))
+* StatusPanel ([#78](https://github.com/kazuemon/ui/issues/78)) ([be8c3ca](https://github.com/kazuemon/ui/commit/be8c3cac7ed408dacb63610bc940931806fe7be5))
+* Stepper ([#76](https://github.com/kazuemon/ui/issues/76)) ([5b11e73](https://github.com/kazuemon/ui/commit/5b11e73cdd5fc58afcc71be8f7972eebf04bf1df), [faddd0a](https://github.com/kazuemon/ui/commit/faddd0a9f7c54fe1074ebab9ce1b1262b1ee7f3f))
+
+
 ### 新しくできること
 
-* AvatarGroup を足す ([#71](https://github.com/kazuemon/ui/issues/71)) ([52b673c](https://github.com/kazuemon/ui/commit/52b673c9efe32340645da8126a03a52e7e3204af))
-* ButtonGroup を足す ([#72](https://github.com/kazuemon/ui/issues/72)) ([032ec89](https://github.com/kazuemon/ui/commit/032ec89f32471a93a1b410205648253cfa3656a9))
-* **data-table:** データの表 DataTable と、TanStack Table でつなぐレシピを足す ([6dab745](https://github.com/kazuemon/ui/commit/6dab7450ee8173044b298e8f27489e9b9ffd32c3))
-* DataTable を足す（TanStack Table でつなぐレシピ） ([c2f33ee](https://github.com/kazuemon/ui/commit/c2f33ee743489f1194649526fdebd786eda9d189))
 * **docs:** 見本のページを追加・細かい不具合を修正 ([#87](https://github.com/kazuemon/ui/issues/87)) ([5c33924](https://github.com/kazuemon/ui/commit/5c33924f63ec09218b07a77fde02bb0053918df3))
-* **dropzone:** ファイルを落として選ぶ Dropzone と、選んだファイルの一覧を足す ([3a1ff10](https://github.com/kazuemon/ui/commit/3a1ff10e656f1bf75d7972919506a3ef499548e7))
 * **fieldset:** 見出しの大きさを Heading の段で選べる labelSize を足す ([b0beb74](https://github.com/kazuemon/ui/commit/b0beb745c069d5cf67cb145df4b9e796ec18da95))
-* Inspector を足す ([b33bde7](https://github.com/kazuemon/ui/commit/b33bde7d41f1d2bd0a10968d79737441c5f181bf))
-* Inspector を足す ([176cf8d](https://github.com/kazuemon/ui/commit/176cf8d268c87f36ca85197bcb6d69fd85288d96))
-* SearchFieldControl と PasswordFieldControl を足す（CodeRabbit） ([bdeaccb](https://github.com/kazuemon/ui/commit/bdeaccb2d6157fe48239302032f3bc996f259ff0))
-* Sidebar を足す（押しのける列・rail・Drawer／Menu のシート） ([19daaab](https://github.com/kazuemon/ui/commit/19daaab379a14c57f6fbccf792b96303856aaab5))
 * **sidebar:** 上下に固定する行・件数・行ごとの操作・列の地・幅を変えるつまみ・畳める節・Menu のシートを足す ([93d44f5](https://github.com/kazuemon/ui/commit/93d44f5966fcc2c8a2619131ecefb2a4c947ac8f))
-* Slider を足す ([5bbf173](https://github.com/kazuemon/ui/commit/5bbf173e22b1bfda6f2d15d9539f98a89294175c))
-* **slider:** Slider を足す（横向き・単一値） ([d633c70](https://github.com/kazuemon/ui/commit/d633c7034ff432fbb7a4a026240036ad61fe5c10))
-* **sortable:** 並べ替えられるリスト Sortable と、dnd-kit でつなぐレシピを足す ([435d0ab](https://github.com/kazuemon/ui/commit/435d0ab86af3fc5d4882c1fae236cf3645477b92))
-* StatusPanel を足す ([#78](https://github.com/kazuemon/ui/issues/78)) ([be8c3ca](https://github.com/kazuemon/ui/commit/be8c3cac7ed408dacb63610bc940931806fe7be5))
-* Stepper を足す ([5b11e73](https://github.com/kazuemon/ui/commit/5b11e73cdd5fc58afcc71be8f7972eebf04bf1df))
-* Stepper を足す ([faddd0a](https://github.com/kazuemon/ui/commit/faddd0a9f7c54fe1074ebab9ce1b1262b1ee7f3f))
-* 入力欄のラベルを横に置く・出さない形と、Field で組み立てる形を足す ([6665fe5](https://github.com/kazuemon/ui/commit/6665fe5d400e3bf5cab774af7c3afac24b482984))
-* 入力欄のラベルを横に置く・出さない形と、Field で組み立てる形を足す ([3309cf4](https://github.com/kazuemon/ui/commit/3309cf4407efb570215ef6c77e33be83f75ac7e3))
+* 入力欄のラベルを横に置く・出さない形と、Field で組み立てる形を足す ([#89](https://github.com/kazuemon/ui/issues/89)) ([6665fe5](https://github.com/kazuemon/ui/commit/6665fe5d400e3bf5cab774af7c3afac24b482984), [3309cf4](https://github.com/kazuemon/ui/commit/3309cf4407efb570215ef6c77e33be83f75ac7e3))
 * 文字の大きさの段を xs〜5xl にし、見出しの大きい 3 段（Hero）を足す ([f7ae802](https://github.com/kazuemon/ui/commit/f7ae8028d563451d8a6b773be6bb06136867dadb))
-* 欄のまとまり Fieldset を足す ([4137781](https://github.com/kazuemon/ui/commit/4137781954b9dd9cefd9acb989d51ae790da413a))
-* 欄のまとまり Fieldset を足す ([2383f80](https://github.com/kazuemon/ui/commit/2383f8066ba04909fd6422017fa7fc3170bc53c6))
 
 
 ### 直したこと
