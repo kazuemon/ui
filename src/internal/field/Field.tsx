@@ -295,8 +295,8 @@ export type FieldNameProps =
       accessibleName: string;
     };
 
-/** 欄の状態。Field が文脈で部位と本体に渡す */
-export interface FieldState {
+/** 欄の状態。Field が文脈で部位と本体に渡す（内部の形。公開の useField が返す FieldState とは別） */
+export interface FieldContextValue {
   /** キャプションと、出ている状態の行の id。本体の aria-describedby に渡す（見た目の順） */
   describedBy: string | undefined;
   /** フォームの中でこの欄を識別する名前（Field の name） */
@@ -346,13 +346,13 @@ export interface FieldControlKind {
   registerCaption?: boolean;
 }
 
-export const FieldContext = createContext<FieldState | null>(null);
+export const FieldContext = createContext<FieldContextValue | null>(null);
 
 /**
  * Field の中の状態を読みます。本体（XxxControl・FieldControl）が使います
  * Field の外では null を返し、開発時に知らせます（名前・押せない状態・送る名前が本体に届かないため）
  */
-export function useFieldState(): FieldState | null {
+export function useFieldState(): FieldContextValue | null {
   const field = useContext(FieldContext);
   if (!field)
     warnOnce(
@@ -659,7 +659,7 @@ function FieldBody({
             .filter(Boolean)
             .join(' ') || undefined
         );
-        const state: FieldState = {
+        const state: FieldContextValue = {
           describedBy,
           name,
           captionId,
