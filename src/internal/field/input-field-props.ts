@@ -224,7 +224,7 @@ export function splitFieldProps<P extends Partial<Record<FieldOwnKey, unknown>>>
       labelPlacement,
       labelVariant,
       narrowLabelPlacement,
-    } as Omit<FieldProps, 'children'>,
-    control as Omit<P, FieldOwnKey>,
+    },
+    control,
   ];
 }
