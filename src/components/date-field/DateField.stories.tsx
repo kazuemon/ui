@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent, within } from 'storybook/test';
 
@@ -481,6 +481,21 @@ export const InputPropsFocusBlur: Story = {
     await userEvent.tab({ shift: true });
     await userEvent.tab({ shift: true });
     await expect(groupOnBlur).toHaveBeenCalled();
+  },
+};
+
+const datefieldRef = createRef<HTMLDivElement>();
+const datefieldInputPropsRef = createRef<HTMLDivElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <DateField label="生年月日" ref={datefieldRef} inputProps={{ ref: datefieldInputPropsRef }} />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByRole('group', { name: '生年月日' });
+    await expect(datefieldRef.current).toBe(element);
+    await expect(datefieldInputPropsRef.current).toBe(element);
   },
 };
 

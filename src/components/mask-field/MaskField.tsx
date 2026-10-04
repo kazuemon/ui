@@ -26,6 +26,7 @@ import {
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { hintRest } from './mask-hint';
 
 type InputProps = ComponentProps<'input'>;
@@ -171,7 +172,8 @@ export function MaskFieldControl({
   const disabled = field?.disabled ?? false;
   const loading = field?.loading ?? false;
   const blocking = field?.blocking ?? false;
-  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
+  const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
+  const inputRef = useMergedRefs(inputPropsRef, props.ref);
   // 書式を当てる処理。配列の書式は、中身が同じなら作り直さない
   const maskKey = typeof mask === 'function' ? mask : JSON.stringify(mask);
   const masker = useMemo(
@@ -316,6 +318,7 @@ export function MaskFieldControl({
             spellCheck={false}
             {...inputPropsRest}
             {...props}
+            ref={inputRef}
             aria-describedby={describedBy}
             onChange={handleChange}
             onCompositionStart={handleCompositionStart}

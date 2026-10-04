@@ -6,7 +6,6 @@ import {
   type ComponentProps,
   type CSSProperties,
   type PointerEvent,
-  useCallback,
   useRef,
   useState,
 } from 'react';
@@ -33,6 +32,7 @@ import {
 } from '../../internal/field/input-field-props';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { useAutoHeight } from './use-auto-height';
 
 // 本体は TextField と同じ（原則8: 編集できる欄はグレーの塗り。フォーカス・エラー・押せない・止めているあいだも controlBox）
@@ -181,15 +181,7 @@ export function TextareaControl({
 
   const { ref: autoHeightRef, fit } = useAutoHeight();
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const setInput = useCallback(
-    (element: HTMLTextAreaElement | null) => {
-      inputRef.current = element;
-      autoHeightRef(element);
-      if (typeof ref === 'function') ref(element);
-      else if (ref) ref.current = element;
-    },
-    [autoHeightRef, ref]
-  );
+  const setInput = useMergedRefs(inputRef, autoHeightRef, inputProps?.ref, ref);
 
   // 枠の上を押したとき。右下のつまみなら、利用者が高さを決めたとみなす。
   // それ以外（つまみで広げて、中身の下に空いたところ）は、欄にフォーカスを移す

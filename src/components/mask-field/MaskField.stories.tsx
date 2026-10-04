@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent } from 'storybook/test';
 
@@ -462,5 +462,25 @@ export const Composition: Story = {
     await expect(input.getAttribute('aria-describedby')).toBeTruthy();
     await userEvent.type(input, '1500042');
     await expect(input).toHaveValue('150-0042');
+  },
+};
+
+const maskfieldRef = createRef<HTMLInputElement>();
+const maskfieldInputPropsRef = createRef<HTMLInputElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <MaskField
+      label="郵便番号"
+      mask="###-####"
+      ref={maskfieldRef}
+      inputProps={{ ref: maskfieldInputPropsRef }}
+    />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByLabelText('郵便番号');
+    await expect(maskfieldRef.current).toBe(element);
+    await expect(maskfieldInputPropsRef.current).toBe(element);
   },
 };

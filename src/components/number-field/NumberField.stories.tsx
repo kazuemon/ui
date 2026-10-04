@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
@@ -488,6 +488,21 @@ export const InputPropsOnChange: Story = {
     await userEvent.click(canvas.getByLabelText('数量'));
     await userEvent.keyboard('12');
     await expect(inputOnChange).toHaveBeenCalledTimes(2);
+  },
+};
+
+const numberfieldRef = createRef<HTMLInputElement>();
+const numberfieldInputPropsRef = createRef<HTMLInputElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <NumberField label="数量" ref={numberfieldRef} inputProps={{ ref: numberfieldInputPropsRef }} />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByLabelText('数量');
+    await expect(numberfieldRef.current).toBe(element);
+    await expect(numberfieldInputPropsRef.current).toBe(element);
   },
 };
 

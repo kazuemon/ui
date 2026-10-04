@@ -27,6 +27,7 @@ import {
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { cn } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 
 /** 増減ボタンの置き方。stacked: 右端に上下で縦積み、split: 左に −・右に ＋、none: ボタンなし */
 export type NumberFieldStepper = 'stacked' | 'split' | 'none';
@@ -189,7 +190,8 @@ export function NumberFieldControl({
   const noticed = useContext(HalfWidthNoticedContext);
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const blocking = field?.blocking ?? false;
-  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
+  const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
+  const inputRef = useMergedRefs(inputPropsRef, ref);
   // 読み取り専用ではボタンを出さない（押せないボタンを並べても、値を読む邪魔になる）
   const showStepper = stepper !== 'none' && !readOnly;
   // split の並び（値を中央に寄せ、prefix・suffix を値の横に置く）は、読み取り専用でボタンを外しても変えない
@@ -314,7 +316,7 @@ export function NumberFieldControl({
               aria-disabled={blocking || ariaDisabled}
               aria-busy={loading || ariaBusy}
               {...inputPropsRest}
-              ref={ref}
+              ref={inputRef}
               aria-describedby={describedBy}
               onChange={(event) => {
                 const raw = event.currentTarget.value;

@@ -13,6 +13,7 @@ import {
 import { type SegmentLayout, segmentRange, type SegmentType } from './segments';
 import { type DateSegmentsOptions, useDateSegments } from './use-date-segments';
 import { cn, tv } from '../tv';
+import { useMergedRefs } from '../use-merged-refs';
 
 // 区切りの欄（DateField・TimeField）の本体。FieldBox（controlBox）の中に置く
 // 区切りは role="spinbutton"、全体は role="group" でラベルにつなぐ
@@ -91,6 +92,7 @@ export function DateSegmentGroup<T>({
   ...options
 }: DateSegmentGroupProps<T>) {
   const id = useId();
+  const groupRef = useMergedRefs(groupProps?.ref, ref);
   const editable = !disabled && !readOnly && !blocking;
   const segments = useDateSegments({ ...options, layout, editable });
   const styles = segmentStyles();
@@ -137,7 +139,7 @@ export function DateSegmentGroup<T>({
         <>
           <div
             {...groupProps}
-            ref={ref}
+            ref={groupRef}
             role="group"
             id={control.id}
             aria-labelledby={control['aria-labelledby']}

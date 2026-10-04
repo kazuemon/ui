@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { createRef } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, userEvent } from 'storybook/test';
@@ -538,5 +539,20 @@ export const Composition: Story = {
     // 文字数・キャプション・エラーの行が説明につながる
     const describedBy = textarea.getAttribute('aria-describedby')?.split(' ') ?? [];
     await expect(describedBy.length).toBe(3);
+  },
+};
+
+const textareaRef = createRef<HTMLTextAreaElement>();
+const textareaInputPropsRef = createRef<HTMLTextAreaElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Textarea label="メモ" ref={textareaRef} inputProps={{ ref: textareaInputPropsRef }} />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByLabelText('メモ');
+    await expect(textareaRef.current).toBe(element);
+    await expect(textareaInputPropsRef.current).toBe(element);
   },
 };
