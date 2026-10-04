@@ -149,6 +149,48 @@ export function FieldLoadingBar() {
 /** 本体の下の行の種類。並びもこの順（重いものが上） */
 export type MessageKind = 'error' | 'warning' | 'success' | 'info';
 
+const messageKinds: MessageKind[] = ['error', 'warning', 'success', 'info'];
+
+/** キャプションと状態の行の id。Field と、1 つだけ置く選択肢（Checkbox・Switch）で同じ形にする */
+export function fieldMessageIds(id: string): { caption: string } & Record<MessageKind, string> {
+  return {
+    caption: `${id}caption`,
+    error: `${id}error`,
+    warning: `${id}warning`,
+    success: `${id}success`,
+    info: `${id}info`,
+  };
+}
+
+/**
+ * 本体の説明（aria-describedby）。見た目の順（利用者が足した説明 → キャプション → エラー → 警告 → 成功 → 情報）でつなぎ、
+ * 出ている行の id だけを入れる。Fieldset のまとまりのエラーがあれば前に足す。警告・成功・情報もつなぐが、欄をエラーの状態にはしない
+ */
+export function fieldDescribedBy({
+  fieldsetErrorIds,
+  ariaDescribedBy,
+  caption,
+  messages,
+  ids,
+}: {
+  fieldsetErrorIds: string | undefined;
+  ariaDescribedBy?: string;
+  caption: ReactNode;
+  messages: Record<MessageKind, ReactNode>;
+  ids: { caption: string } & Record<MessageKind, string>;
+}): string | undefined {
+  return withFieldsetErrors(
+    fieldsetErrorIds,
+    [
+      ariaDescribedBy,
+      caption && ids.caption,
+      ...messageKinds.map((kind) => (messages[kind] ? ids[kind] : null)),
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined
+  );
+}
+
 // 行のアイコンと文字の色（原則6: 情報は丸の「i」、成功は丸のチェック、警告は三角、危険は丸の「!」）
 // 白地の文字: エラー --color-danger（6.71）、警告 --color-fg-warning（5.09）、成功 --color-fg-success（5.02）、情報 --color-fg-info（5.10）
 const messageLook: Record<MessageKind, { Icon: typeof WarningIcon; tone: string }> = {
@@ -633,13 +675,7 @@ function FieldBody({
       );
   }, [composed]);
   const registerCaption = registerCaptionProp ?? controlKind.registerCaption ?? true;
-  const captionId = `${id}caption`;
-  const ids: Record<MessageKind, string> = {
-    error: `${id}error`,
-    warning: `${id}warning`,
-    success: `${id}success`,
-    info: `${id}info`,
-  };
+  const { caption: captionId, ...ids } = fieldMessageIds(id);
   return (
     <BaseField.Validity>
       {(validity) => {
@@ -651,14 +687,12 @@ function FieldBody({
           success,
           info,
         };
-        const kinds = Object.keys(messages) as MessageKind[];
-        // 警告・成功・情報も説明につなぐが、欄をエラーの状態にしない
-        const describedBy = withFieldsetErrors(
+        const describedBy = fieldDescribedBy({
           fieldsetErrorIds,
-          [caption && captionId, ...kinds.map((kind) => (messages[kind] ? ids[kind] : null))]
-            .filter(Boolean)
-            .join(' ') || undefined
-        );
+          caption,
+          messages,
+          ids: { caption: captionId, ...ids },
+        });
         const state: FieldContextValue = {
           describedBy,
           name,
