@@ -20,10 +20,18 @@ export const popupMotionClass = [
  * calc() のままの値もあるので、見えない要素の幅にして測る。基準は浮かぶ面を描く場所（密度で値が変わらない長さに使う）
  */
 export function readTokenLength(name: string) {
+  return readCssLength(`var(${name})`);
+}
+
+/**
+ * CSS の長さ（'var(--x)'・'24rem'・calc() など）を px で読む。見えない要素の幅にして測る
+ * container を渡すと、その中で測る（その場所で上書きしたトークンや、% の基準を使う）
+ */
+export function readCssLength(value: string, container?: Element | null) {
   if (typeof document === 'undefined') return 0;
   const probe = document.createElement('div');
-  probe.style.cssText = `position:absolute;visibility:hidden;width:var(${name})`;
-  document.body.append(probe);
+  probe.style.cssText = `position:absolute;visibility:hidden;width:${value}`;
+  (container ?? document.body).append(probe);
   const width = probe.getBoundingClientRect().width;
   probe.remove();
   return width;
