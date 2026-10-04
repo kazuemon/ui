@@ -1,8 +1,6 @@
-'use client';
-
-import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, ReactElement } from 'react';
 
+import { renderElement } from '../../internal/render-element';
 import { tv } from '../../internal/tv';
 
 // 本文の幅の外へ出す枠 — 軸 100
@@ -27,9 +25,9 @@ export interface BleedProps extends ComponentProps<'div'> {
  * Container の中の本文（Prose の中など）に置きます。本文の幅いっぱいの要素の直下に置いてください。
  */
 export function Bleed({ className, render, ...props }: BleedProps) {
-  return useRender({
-    render,
-    defaultTagName: 'div',
-    props: { ...props, 'data-slot': 'bleed', className: bleed({ className }) },
+  return renderElement('div', render, {
+    ...props,
+    'data-slot': 'bleed',
+    className: bleed({ className }),
   });
 }

@@ -1,8 +1,6 @@
-'use client';
-
-import { useRender } from '@base-ui/react/use-render';
 import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
+import { renderElement } from '../../internal/render-element';
 import { tv } from '../../internal/tv';
 
 // 画面には出さず、読み上げにだけ届ける。focusable は、キーボードでフォーカスが来たときだけ見せる（本文へ飛ぶリンクなど）
@@ -38,9 +36,8 @@ export interface VisuallyHiddenProps extends ComponentProps<'span'> {
  * 名前だけなら aria-label でも足ります。文の途中に補足を挟むときや、見えている文字に続けて読ませたいときに使います。
  */
 export function VisuallyHidden({ focusable, className, render, ...props }: VisuallyHiddenProps) {
-  return useRender({
-    render,
-    defaultTagName: 'span',
-    props: { ...props, className: visuallyHidden({ focusable, className }) },
+  return renderElement('span', render, {
+    ...props,
+    className: visuallyHidden({ focusable, className }),
   });
 }

@@ -14,6 +14,8 @@ const SRC = fileURLToPath(new URL('..', import.meta.url));
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 // ブラウザでしか動かない外の部品（Base UI は自分で 'use client' を持つが、読む側も client になる）
 const CLIENT_PACKAGES = ['@base-ui/react', '@daypicker/react', 'maska'];
+// そのうち、ブラウザが要らない関数だけのもの（'use client' を持たない）。サーバーのまま読める
+const SERVER_SAFE = ['@base-ui/react/merge-props'];
 // ストーリーと、その中だけで使う道具。利用者には渡らない
 const IGNORED = /\.stories\.|\.test\.|\.d\.ts$/;
 
@@ -57,7 +59,9 @@ function valueImports(source: string) {
 function signals(source: string) {
   const found: string[] = [];
   const imports = valueImports(source);
-  if (imports.some((s) => CLIENT_PACKAGES.some((p) => s === p || s.startsWith(`${p}/`)))) {
+  const isClientPackage = (s: string) =>
+    !SERVER_SAFE.includes(s) && CLIENT_PACKAGES.some((p) => s === p || s.startsWith(`${p}/`));
+  if (imports.some(isClientPackage)) {
     found.push('ブラウザでしか動かない外の部品');
   }
   // フックの呼び出し（自分で書いた use-*.ts を呼ぶ側も含む）
