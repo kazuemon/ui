@@ -1,5 +1,6 @@
 import { mergeProps } from '@base-ui/react/merge-props';
 import {
+  Children,
   cloneElement,
   createElement,
   isValidElement,
@@ -36,11 +37,24 @@ export function mergeRefs(a: Ref<unknown> | undefined, b: Ref<unknown> | undefin
   return merged;
 }
 
+// Server Component で作った render の要素は、Flight が lazy の包みで渡すことがある（.props も .ref もない）
+//   Base UI の useRender と同じく、Children.toArray で包みを解いてから読む（https://github.com/react/react/issues/32392）
+const REACT_LAZY_TYPE = Symbol.for('react.lazy');
+
+function unwrapLazyRender(render: ReactElement | undefined): ReactElement | undefined {
+  // $$typeof は React の内部の印で、公開の型にはない
+  if ((render as { $$typeof?: symbol } | undefined)?.$$typeof !== REACT_LAZY_TYPE) return render;
+  // 要素に解けたときだけ差し替える（解けないものは、そのまま正しくない render として扱う）
+  const unwrapped = Children.toArray(render)[0];
+  return isValidElement(unwrapped) ? unwrapped : render;
+}
+
 /** render があればその要素に props を重ね、なければ tag の要素を描く */
 export function renderElement(tag: string, render: ReactElement | undefined, props: AnyProps) {
-  if (!isValidElement<AnyProps>(render)) return createElement(tag, props);
-  const own = render.props;
+  const element = unwrapLazyRender(render);
+  if (!isValidElement<AnyProps>(element)) return createElement(tag, props);
+  const own = element.props;
   const merged: AnyProps = mergeProps(props, own);
   merged.ref = mergeRefs(props.ref, own.ref);
-  return cloneElement(render, merged);
+  return cloneElement(element, merged);
 }
