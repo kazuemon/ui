@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
-import { expect, waitFor } from 'storybook/test';
+import { type ReactNode, useState } from 'react';
+import { expect, userEvent, waitFor } from 'storybook/test';
 
+import { Button } from '../button/Button';
 import { Card, CardBody, CardImage } from '../card/Card';
 import { Heading } from '../heading/Heading';
 import { Text } from '../text/Text';
@@ -229,6 +230,65 @@ export const Accessibility: Story = {
     for (const [i, item] of items.entries()) {
       await expect(item.textContent).toBe(String(i + 1));
     }
+  },
+};
+
+// 子を外す・並べ替える・足す。key 付きの子は、位置が変わっても自分の高さで積まれる
+function ChangingChildren() {
+  const [ids, setIds] = useState([0, 1, 2, 3, 4, 5]);
+  return (
+    <div className="flex w-96 flex-col gap-4">
+      <div className="flex gap-2">
+        <Button size="sm" onClick={() => setIds((prev) => prev.slice(1))}>
+          先頭を外す
+        </Button>
+        <Button size="sm" onClick={() => setIds((prev) => [...prev].reverse())}>
+          逆に並べる
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => setIds((prev) => [Math.max(...prev, -1) + 1, ...prev].slice(0, 9))}
+        >
+          先頭に足す
+        </Button>
+      </div>
+      <Masonry gap="sm" columns={3} data-testid="masonry">
+        {ids.map((id) => (
+          <div key={id} style={{ height: heights[id % heights.length] }}>
+            <Block>{id + 1}</Block>
+          </div>
+        ))}
+      </Masonry>
+    </div>
+  );
+}
+
+export const ChangeChildren: Story = {
+  name: '子を入れ替える',
+  render: () => <ChangingChildren />,
+  play: async ({ canvasElement, canvas }) => {
+    const root = canvas.getByTestId('masonry');
+    // 各子の span が、その子自身の高さ（＋間隔）から求めた行の数と一致するか
+    const expectSpans = async (count: number) => {
+      await waitFor(async () => {
+        await expect(root).toHaveAttribute('data-measured');
+        const items = [...root.querySelectorAll<HTMLElement>('[data-slot="masonry-item"]')];
+        await expect(items).toHaveLength(count);
+        const gap = parseFloat(getComputedStyle(root).columnGap);
+        for (const item of items) {
+          const span = Math.max(1, Math.ceil((item.offsetHeight + gap) / 2));
+          await expect(item.style.gridRowEnd).toBe(`span ${span}`);
+        }
+      });
+    };
+    await waitMeasured(canvasElement);
+    await expectSpans(6);
+    await userEvent.click(canvas.getByRole('button', { name: '先頭を外す' }));
+    await expectSpans(5);
+    await userEvent.click(canvas.getByRole('button', { name: '逆に並べる' }));
+    await expectSpans(5);
+    await userEvent.click(canvas.getByRole('button', { name: '先頭に足す' }));
+    await expectSpans(6);
   },
 };
 

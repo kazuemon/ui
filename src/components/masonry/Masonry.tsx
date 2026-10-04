@@ -106,11 +106,23 @@ interface MasonryItemProps {
   as: 'div' | 'li';
   measured: boolean;
   span: number | undefined;
-  onResize: (height: number) => void;
+  /** 高さを親に返すときの名前（子の key）。子を外す・並べ替えても、その子の高さに対応させる */
+  itemKey: string;
+  onResize: (key: string, height: number) => void;
+  /** 子を外したとき（key が変わったとき）に、その子の高さを捨てる */
+  onRemove: (key: string) => void;
   children: ReactNode;
 }
 
-function MasonryItem({ as: Tag, measured, span, onResize, children }: MasonryItemProps) {
+function MasonryItem({
+  as: Tag,
+  measured,
+  span,
+  itemKey,
+  onResize,
+  onRemove,
+  children,
+}: MasonryItemProps) {
   // div と li のどちらでも受けられる型にする（高さを測るだけ）
   const ref = useRef<HTMLDivElement & HTMLLIElement>(null);
 
@@ -119,12 +131,14 @@ function MasonryItem({ as: Tag, measured, span, onResize, children }: MasonryIte
     if (!el) return undefined;
     const observer = new ResizeObserver((entries) => {
       const height = entries[0]?.contentRect.height;
-      if (height != null) onResize(height);
+      if (height != null) onResize(itemKey, height);
     });
     observer.observe(el);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onResize は index を閉じ込めた安定した関数
-  }, []);
+    return () => {
+      observer.disconnect();
+      onRemove(itemKey);
+    };
+  }, [itemKey, onResize, onRemove]);
 
   return (
     <Tag
@@ -153,20 +167,27 @@ export function Masonry({
 }: MasonryProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const items = Children.toArray(children);
-  const [heights, setHeights] = useState<number[]>([]);
+  // 子の高さは、並びの位置（index）でなく子の key ごとに持つ。子を外す・並べ替えると位置がずれるため。
+  // key は Children.toArray が付けたもの（key のない子にも位置から付く）。文字・数の子は位置で数える
+  const keys = items.map((child, i) =>
+    isValidElement(child) && child.key != null ? child.key : `#${i}`
+  );
+  const [heights, setHeights] = useState<ReadonlyMap<string, number>>(() => new Map());
   const [gapPx, setGapPx] = useState(0);
 
-  // 渡した子の数が変わったら測り直す（測っていない子は grid-auto-rows: auto の並びに戻す）
-  useEffect(() => {
-    setHeights((prev) => (prev.length === items.length ? prev : items.map((_, i) => prev[i])));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 数だけを見る
-  }, [items.length]);
-
-  const handleResize = useCallback((index: number, height: number) => {
+  const handleResize = useCallback((key: string, height: number) => {
     setHeights((prev) => {
-      if (prev[index] === height) return prev;
-      const next = prev.slice();
-      next[index] = height;
+      if (prev.get(key) === height) return prev;
+      return new Map(prev).set(key, height);
+    });
+  }, []);
+
+  // 外した子の高さを捨てる（足した子は、測るまで grid-auto-rows: auto の並びに戻す）
+  const handleRemove = useCallback((key: string) => {
+    setHeights((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Map(prev);
+      next.delete(key);
       return next;
     });
   }, []);
@@ -180,8 +201,7 @@ export function Masonry({
   }, [gap]);
 
   const itemTag = isListElement(render) ? 'li' : 'div';
-  const measured =
-    items.length > 0 && heights.length === items.length && heights.every((h) => h != null);
+  const measured = items.length > 0 && keys.every((key) => heights.has(key));
 
   return useRender({
     render,
@@ -199,21 +219,25 @@ export function Masonry({
         gridAutoRows: measured ? 'var(--masonry-row-unit)' : 'auto',
         ...(measured && { rowGap: 0 }),
       } satisfies TokenStyle,
-      children: items.map((child, i) => (
-        <MasonryItem
-          as={itemTag}
-          key={isValidElement(child) && child.key != null ? child.key : i}
-          measured={measured}
-          span={
-            heights[i] != null
-              ? Math.max(1, Math.ceil((heights[i] + gapPx) / ROW_UNIT_PX))
-              : undefined
-          }
-          onResize={(height) => handleResize(i, height)}
-        >
-          {child}
-        </MasonryItem>
-      )),
+      children: items.map((child, i) => {
+        const key = keys[i];
+        const height = heights.get(key);
+        return (
+          <MasonryItem
+            as={itemTag}
+            key={key}
+            itemKey={key}
+            measured={measured}
+            span={
+              height != null ? Math.max(1, Math.ceil((height + gapPx) / ROW_UNIT_PX)) : undefined
+            }
+            onResize={handleResize}
+            onRemove={handleRemove}
+          >
+            {child}
+          </MasonryItem>
+        );
+      }),
     },
   });
 }
