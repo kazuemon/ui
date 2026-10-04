@@ -1,7 +1,7 @@
 'use client';
 
 import { Autocomplete as BaseAutocomplete } from '@base-ui/react/autocomplete';
-import { type ComponentProps, type ReactNode, useId, useMemo, useRef, useState } from 'react';
+import { type ComponentProps, type ReactNode, useMemo, useRef, useState } from 'react';
 
 import {
   comboboxControl,
@@ -45,6 +45,10 @@ import { ComboboxOption } from '../../internal/listbox/ComboboxOption';
 import { type ListboxColor, selectedTokens } from '../../internal/listbox/listbox-colors';
 import { OUTSIDE_REASONS } from '../../internal/listbox/listbox-dismiss';
 import {
+  type ListboxFieldProps,
+  defaultLoadedSuggestionsText,
+} from '../../internal/listbox/listbox-field-props';
+import {
   type ListboxItems,
   type NormalizedListboxGroup,
   flattenItems,
@@ -73,7 +77,9 @@ import {
 } from '../../internal/listbox/listbox-styles';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
-import { type SheetMessage, SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
+import { sheetBackdropClass } from '../../internal/sheet/sheet-styles';
+import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
 import { SheetHeader } from '../../internal/sheet/SheetHeader';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { SheetMoreCue as SheetMoreCueKind } from '../../internal/sheet/SheetMoreCue';
@@ -381,31 +387,7 @@ export interface AutocompleteControlProps<Value = string> {
 }
 
 /** Autocomplete の外枠（Field）が受け持つ props */
-interface AutocompleteFieldProps extends Pick<
-  InputFieldProps,
-  | 'label'
-  | 'accessibleName'
-  | 'size'
-  | 'caption'
-  | 'captionPlacement'
-  | 'infoText'
-  | 'validate'
-  | 'validationMode'
-  | 'validationDebounceTime'
-  | 'required'
-  | 'requiredMark'
-  | 'optionalMark'
-  | 'labelPlacement'
-  | 'labelVariant'
-  | 'narrowLabelPlacement'
-> {
-  /** エラーの内容。本体の下に丸の「!」と赤い文字で出し、欄をエラーの状態にする */
-  errorText?: FieldMessage;
-  /**
-   * 警告の内容。本体の下に三角とオリーブ色の文字で出す。欄の見た目は変えない
-   * errorText と両方あるときは、エラーの行の下に出す
-   */
-  warningText?: FieldMessage;
+interface AutocompleteFieldProps extends ListboxFieldProps, Pick<InputFieldProps, 'validate'> {
   /**
    * 成功の内容。本体の下に丸のチェックと緑の文字で出し、欄の端（回る円の場所）にもチェックを置きます。
    * 欄の枠線は変えません。errorText があるときは、欄の見た目はエラーを優先します
@@ -431,8 +413,6 @@ interface AutocompleteFieldProps extends Pick<
    * @default 'non-blocking'
    */
   loadingBehavior?: FieldLoadingBehavior;
-  /** 欄の外枠（ラベル・本体・下の行をまとめた縦の並び）に付きます */
-  className?: string;
 }
 
 /** Autocomplete の props から、label・accessibleName の組み合わせの決まりを外したもの。Autocomplete を包む部品が継ぎます */
@@ -441,8 +421,6 @@ export type AutocompleteBaseProps<Value = string> = AutocompleteControlProps<Val
 
 /** Autocomplete の props。label か accessibleName のどちらかが要ります */
 export type AutocompleteProps<Value = string> = FieldNamed<AutocompleteBaseProps<Value>>;
-
-const defaultLoadedText = (count: number) => `${count} 件の候補`;
 
 /**
  * 候補を提案する入力欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
@@ -495,7 +473,7 @@ export function AutocompleteControl<Value = string>({
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
-  loadedText = defaultLoadedText,
+  loadedText = defaultLoadedSuggestionsText,
   form,
 }: AutocompleteControlProps<Value> & ListboxValueCheck<Value>) {
   const field = useFieldState();
@@ -527,12 +505,12 @@ export function AutocompleteControl<Value = string>({
   useFieldControlKind({ nativeLabel: !inputInSheet });
   const sheetDetent: SheetDetent = sheetDetentProp ?? (sheetInput === 'inside' ? 'full' : 'half');
   // シートの見出しに出す欄の文。本体の下の行と同じ。両方渡したときはエラー → 警告の順
-  const sheetId = useId();
-  const sheetCaptionId = `${sheetId}caption`;
-  const sheetMessages: SheetMessage[] = [];
-  if (errorText) sheetMessages.push({ kind: 'error', content: errorText, id: `${sheetId}error` });
-  if (warningText)
-    sheetMessages.push({ kind: 'warning', content: warningText, id: `${sheetId}warning` });
+  const {
+    id: sheetId,
+    captionId: sheetCaptionId,
+    messages: sheetMessages,
+    listDescribedBy: sheetListDescribedBy,
+  } = useSheetMessages({ error: errorText, warning: warningText, caption });
 
   // 開閉は部品の中でも持つ（止めているあいだ開かせないため・フォーカスで開くため・シートの × とつまみで閉じるため）
   const [openState, setOpenState] = useState(defaultOpen);
@@ -810,13 +788,7 @@ export function AutocompleteControl<Value = string>({
   const renderList = (messageIds: string | undefined) => (
     <BaseAutocomplete.List
       ref={sheet ? listRef : undefined}
-      aria-describedby={
-        sheet
-          ? [caption && sheetCaptionId, ...sheetMessages.map((message) => message.id)]
-              .filter(Boolean)
-              .join(' ') || undefined
-          : messageIds
-      }
+      aria-describedby={sheet ? sheetListDescribedBy : messageIds}
       onScroll={sheet ? updateCues : undefined}
       className={
         sheet
@@ -920,9 +892,7 @@ export function AutocompleteControl<Value = string>({
       </BaseAutocomplete.Status>
       <BaseAutocomplete.Portal container={portalContainer}>
         {/* シートの中に打つ欄を移したときは、後ろの画面を暗くする。欄に打つ欄を残すときは暗くしない */}
-        {inputInSheet && (
-          <BaseAutocomplete.Backdrop className="fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-        )}
+        {inputInSheet && <BaseAutocomplete.Backdrop className={sheetBackdropClass} />}
         <BaseAutocomplete.Positioner
           sideOffset={() => popupSideOffset(fieldRef.current)}
           {...positionerRest}

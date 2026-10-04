@@ -18,3 +18,7 @@ export const sheetTitleClass =
 export const sheetDescriptionClass =
   'text-(length:--overlay-description-size) leading-(--overlay-description-leading) text-fg-subtle';
 export const overlayTitleLeading = '[--sheet-title-leading:var(--overlay-title-leading)]';
+
+// シートの後ろを暗くする面（Base UI の Backdrop）。出入りはシートと同じ長さと緩急で、塗りの濃さだけを動かす
+export const sheetBackdropClass =
+  'fixed inset-0 z-10 bg-backdrop transition-opacity duration-(--duration-sheet) ease-(--ease-sheet) data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none';
