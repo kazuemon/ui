@@ -8,6 +8,7 @@ import {
   use,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -21,6 +22,9 @@ import { cn, tv } from '../../internal/tv';
 import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
+
+// サーバーで描くときは useLayoutEffect が警告を出すので、ブラウザでだけ使う（Image・Video と同じ）
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 export type TooltipAlign = 'start' | 'center' | 'end';
@@ -242,8 +246,9 @@ export function Tooltip({
   };
   // effect の中からは、いまの changeOpen を読む（毎回新しい onOpenChange を渡されても、effect を貼り直さない）
   //   peer の React は 19.0 からなので、useEffectEvent（19.2）は使わない
+  //   描いたあと、次のブラウザのイベントより前に入れ替わるよう、layout effect（コミットのとき）で書く
   const changeOpenRef = useRef(changeOpen);
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     changeOpenRef.current = changeOpen;
   });
 
