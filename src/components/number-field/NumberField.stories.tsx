@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Button } from '../button/Button';
 import { NumberField, NumberFieldControl, type NumberFieldProps } from './NumberField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import {
@@ -491,6 +492,21 @@ export const InputPropsOnChange: Story = {
   },
 };
 
+const numberfieldRef = createRef<HTMLInputElement>();
+const numberfieldInputPropsRef = createRef<HTMLInputElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <NumberField label="数量" ref={numberfieldRef} inputProps={{ ref: numberfieldInputPropsRef }} />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByLabelText('数量');
+    await expect(numberfieldRef.current).toBe(element);
+    await expect(numberfieldInputPropsRef.current).toBe(element);
+  },
+};
+
 export const OutsideForm: Story = {
   name: 'フォームの外に置く',
   parameters: {
@@ -511,6 +527,38 @@ export const OutsideForm: Story = {
   play: async ({ canvasElement }) => {
     // 外に置いた欄の値も、form で指したフォームの値に入る
     const form = canvasElement.querySelector<HTMLFormElement>('#number-field-outside-form');
+    await expect(form && new FormData(form).get('quantity')).toBe('3');
+  },
+};
+
+const numberReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームを戻す（reset）と、はじめの値に戻り、`onValueChange` でも知らせます。',
+      },
+    },
+  },
+  render: () => (
+    <form id="number-field-reset-form" className="flex max-w-xs flex-col items-start gap-3">
+      <NumberField label="数量" name="quantity" defaultValue={3} onValueChange={numberReset} />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const input = canvas.getByLabelText('数量');
+    await userEvent.click(input);
+    await userEvent.keyboard('{ArrowUp}');
+    await expect(input).toHaveValue('4');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(input).toHaveValue('3'));
+    await expect(numberReset).toHaveBeenLastCalledWith(3, expect.anything());
+    const form = canvasElement.querySelector<HTMLFormElement>('#number-field-reset-form');
     await expect(form && new FormData(form).get('quantity')).toBe('3');
   },
 };

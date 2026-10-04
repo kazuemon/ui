@@ -13,6 +13,8 @@ import {
 import { type SegmentLayout, segmentRange, type SegmentType } from './segments';
 import { type DateSegmentsOptions, useDateSegments } from './use-date-segments';
 import { cn, tv } from '../tv';
+import { useMergedRefs } from '../use-merged-refs';
+import { useFormReset } from '../field/use-form-reset';
 
 // 区切りの欄（DateField・TimeField）の本体。FieldBox（controlBox）の中に置く
 // 区切りは role="spinbutton"、全体は role="group" でラベルにつなぐ
@@ -91,8 +93,11 @@ export function DateSegmentGroup<T>({
   ...options
 }: DateSegmentGroupProps<T>) {
   const id = useId();
+  const groupRef = useMergedRefs(groupProps?.ref, ref);
   const editable = !disabled && !readOnly && !blocking;
   const segments = useDateSegments({ ...options, layout, editable });
+  // 値を渡されないときは、form を戻したら（reset）区切りをはじめの値に戻す。ref は form に送る隠れた input に付ける
+  const resetRef = useFormReset(segments.reset, options.value === undefined);
   const styles = segmentStyles();
   // IME で確定した文字は、ブラウザが区切りの中に書き込んでしまう。確定したら中身を描き直す
   const [composed, setComposed] = useState(0);
@@ -130,6 +135,7 @@ export function DateSegmentGroup<T>({
 
   return (
     <BaseField.Control
+      ref={resetRef}
       id={idProp}
       value={formValue}
       disabled={disabled}
@@ -137,7 +143,7 @@ export function DateSegmentGroup<T>({
         <>
           <div
             {...groupProps}
-            ref={ref}
+            ref={groupRef}
             role="group"
             id={control.id}
             aria-labelledby={control['aria-labelledby']}

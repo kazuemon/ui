@@ -6,7 +6,6 @@ import {
   type ComponentProps,
   type CSSProperties,
   type PointerEvent,
-  useCallback,
   useRef,
   useState,
 } from 'react';
@@ -26,6 +25,7 @@ import {
   useTypedCount,
 } from '../../internal/field/use-field-count';
 import { controlBox } from '../../internal/field/field-styles';
+import { useFormReset } from '../../internal/field/use-form-reset';
 import {
   type FieldNamed,
   type InputFieldProps,
@@ -33,6 +33,7 @@ import {
 } from '../../internal/field/input-field-props';
 import { scrollAreaStyles } from '../../internal/scroll-area-styles';
 import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { useAutoHeight } from './use-auto-height';
 
 // 本体は TextField と同じ（原則8: 編集できる欄はグレーの塗り。フォーカス・エラー・押せない・止めているあいだも controlBox）
@@ -181,15 +182,16 @@ export function TextareaControl({
 
   const { ref: autoHeightRef, fit } = useAutoHeight();
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const setInput = useCallback(
-    (element: HTMLTextAreaElement | null) => {
-      inputRef.current = element;
-      autoHeightRef(element);
-      if (typeof ref === 'function') ref(element);
-      else if (ref) ref.current = element;
-    },
-    [autoHeightRef, ref]
-  );
+  // 文字数。値を渡されたときはその長さ、渡されないときは打った長さを数える。数えるのは見えている文字（書記素）
+  const { length, onTyped } = useTypedCount(value, defaultValue);
+  // 値を渡されないときは、form を戻したら（reset）文字数と高さもはじめの値に合わせ、onValueChange でも知らせる
+  //   （ブラウザは textarea の文字だけを戻し、change を起こさない）
+  const resetRef = useFormReset(() => {
+    onTyped(defaultValue ?? '');
+    fit();
+    onValueChange?.(defaultValue ?? '');
+  }, value === undefined);
+  const setInput = useMergedRefs(inputRef, autoHeightRef, inputProps?.ref, ref, resetRef);
 
   // 枠の上を押したとき。右下のつまみなら、利用者が高さを決めたとみなす。
   // それ以外（つまみで広げて、中身の下に空いたところ）は、欄にフォーカスを移す
@@ -205,8 +207,6 @@ export function TextareaControl({
     inputRef.current?.focus();
   };
 
-  // 文字数。値を渡されたときはその長さ、渡されないときは打った長さを数える。数えるのは見えている文字（書記素）
-  const { length, onTyped } = useTypedCount(value, defaultValue);
   const {
     over,
     describedBy: countDescribedBy,

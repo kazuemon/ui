@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { Button } from '../button/Button';
 
 import { DateField, DateFieldControl, type DateFieldProps } from './DateField';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
@@ -484,6 +485,21 @@ export const InputPropsFocusBlur: Story = {
   },
 };
 
+const datefieldRef = createRef<HTMLDivElement>();
+const datefieldInputPropsRef = createRef<HTMLDivElement>();
+export const RefAndInputPropsRef: Story = {
+  name: 'ref・inputProps.ref の両方に渡す',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <DateField label="生年月日" ref={datefieldRef} inputProps={{ ref: datefieldInputPropsRef }} />
+  ),
+  play: async ({ canvas }) => {
+    const element = canvas.getByRole('group', { name: '生年月日' });
+    await expect(datefieldRef.current).toBe(element);
+    await expect(datefieldInputPropsRef.current).toBe(element);
+  },
+};
+
 export const OutsideForm: Story = {
   name: 'フォームの外に置く',
   parameters: {
@@ -509,6 +525,47 @@ export const OutsideForm: Story = {
   play: async ({ canvasElement }) => {
     // 外に置いた欄の値も、form で指したフォームの値に入る
     const form = canvasElement.querySelector<HTMLFormElement>('#date-field-outside-form');
+    await expect(form && new FormData(form).get('birthday')).toBe('2026-09-20');
+  },
+};
+
+const dateReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'フォームを戻す（reset）と、はじめの値に戻り、`onValueChange` でも知らせます。範囲の外のエラーの見た目も消えます。',
+      },
+    },
+  },
+  render: () => (
+    <form id="date-field-reset-form" className="flex max-w-xs flex-col items-start gap-3">
+      <DateField
+        label="生年月日"
+        name="birthday"
+        defaultValue={day}
+        max={day}
+        onValueChange={(next) => dateReset(next?.toString() ?? null)}
+      />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const dayField = canvas.getByRole('spinbutton', { name: /^日/ });
+    await userEvent.click(dayField);
+    await userEvent.keyboard('{ArrowUp}');
+    await expect(dateReset).toHaveBeenLastCalledWith('2026-09-21');
+    await expect(dayField).toHaveAttribute('aria-invalid', 'true');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(dateReset).toHaveBeenLastCalledWith('2026-09-20'));
+    await expect(dayField).toHaveAttribute('aria-valuenow', '20');
+    await expect(dayField).not.toHaveAttribute('aria-invalid', 'true');
+    const form = canvasElement.querySelector<HTMLFormElement>('#date-field-reset-form');
     await expect(form && new FormData(form).get('birthday')).toBe('2026-09-20');
   },
 };

@@ -258,6 +258,14 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
     return { text: formatSegment(type, value, layout), placeholder: false };
   };
 
+  /** はじめの値に戻す（form の reset）。値が変わったら onValueChange で知らせ、全角を直したことの知らせも消す */
+  const reset = () => {
+    const next = options.defaultValue ?? null;
+    setState({ values: fromValue(next), buffer: null, emitted: next });
+    options.onHalfWidth?.(null, true);
+    if (!same(next, state.emitted, equals)) options.onValueChange?.(next);
+  };
+
   return {
     values: state.values,
     value: state.emitted,
@@ -269,5 +277,6 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
     leave,
     onKeyDown,
     text,
+    reset,
   };
 }

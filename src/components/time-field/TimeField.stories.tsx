@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { Button } from '../button/Button';
 
 import { TimeField, TimeFieldControl, type TimeFieldProps } from './TimeField';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
@@ -420,5 +421,46 @@ export const OutsideForm: Story = {
     // 外に置いた欄の値も、form で指したフォームの値に入る
     const form = canvasElement.querySelector<HTMLFormElement>('#time-field-outside-form');
     await expect(form && new FormData(form).get('start')).toBe('15:05');
+  },
+};
+
+const timeReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'フォームを戻す（reset）と、はじめの値に戻り、`onValueChange` でも知らせます。範囲の外のエラーの見た目も消えます。',
+      },
+    },
+  },
+  render: () => (
+    <form id="time-field-reset-form" className="flex max-w-xs flex-col items-start gap-3">
+      <TimeField
+        label="開始"
+        name="start"
+        defaultValue={Temporal.PlainTime.from('12:00')}
+        max={Temporal.PlainTime.from('12:00')}
+        onValueChange={(next) => timeReset(next?.toString({ smallestUnit: 'minute' }) ?? null)}
+      />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const hour = canvas.getByRole('spinbutton', { name: /^時/ });
+    await userEvent.click(hour);
+    await userEvent.keyboard('{ArrowUp}');
+    await expect(timeReset).toHaveBeenLastCalledWith('13:00');
+    await expect(hour).toHaveAttribute('aria-invalid', 'true');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(timeReset).toHaveBeenLastCalledWith('12:00'));
+    await expect(hour).toHaveAttribute('aria-valuenow', '12');
+    await expect(hour).not.toHaveAttribute('aria-invalid', 'true');
+    const form = canvasElement.querySelector<HTMLFormElement>('#time-field-reset-form');
+    await expect(form && new FormData(form).get('start')).toBe('12:00');
   },
 };

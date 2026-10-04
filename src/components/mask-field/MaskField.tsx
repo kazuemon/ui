@@ -2,17 +2,10 @@
 
 import { Field as BaseField } from '@base-ui/react/field';
 import { Mask, type MaskTokens } from 'maska';
-import {
-  type ComponentProps,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type ComponentProps, createContext, useContext, useMemo, useRef, useState } from 'react';
 
 import { Field, useFieldState } from '../../internal/field/Field';
+import { useFormReset } from '../../internal/field/use-form-reset';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
 import {
   type HalfWidthKind,
@@ -26,6 +19,7 @@ import {
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { cn, tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { hintRest } from './mask-hint';
 
 type InputProps = ComponentProps<'input'>;
@@ -171,7 +165,7 @@ export function MaskFieldControl({
   const disabled = field?.disabled ?? false;
   const loading = field?.loading ?? false;
   const blocking = field?.blocking ?? false;
-  const { className: _inputClassName, ...inputPropsRest } = inputProps ?? {};
+  const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
   // 書式を当てる処理。配列の書式は、中身が同じなら作り直さない
   const maskKey = typeof mask === 'function' ? mask : JSON.stringify(mask);
   const masker = useMemo(
@@ -187,30 +181,25 @@ export function MaskFieldControl({
   // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき。値が空になるまで残す）
   const noticed = useContext(HalfWidthNoticedContext);
   const composing = useRef(false);
-  const wrapper = useRef<HTMLDivElement>(null);
 
   const value = draft ?? (valueProp !== undefined ? format(valueProp) : innerValue);
-
-  // 制御しない欄では、フォームを戻したら（reset）はじめの値に戻す
-  const defaultRef = useRef(defaultValue);
-  defaultRef.current = defaultValue;
-  useEffect(() => {
-    const form = wrapper.current?.querySelector('input')?.form;
-    if (!form || valueProp !== undefined) return undefined;
-    const reset = () => {
-      setInnerValue(format(defaultRef.current));
-      noticed?.(null, true);
-    };
-    form.addEventListener('reset', reset);
-    return () => form.removeEventListener('reset', reset);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 書式が変わっても登録し直さなくてよい
-  }, [valueProp === undefined]);
 
   const commit = (next: string, wasConverted: HalfWidthKind | null) => {
     if (valueProp === undefined) setInnerValue(next);
     noticed?.(wasConverted, next === '');
     onValueChange?.(next, { unmasked: masker.unmasked(next), completed: masker.completed(next) });
   };
+
+  // 制御しない欄では、フォームを戻したら（reset）はじめの値に（いまの書式で）戻し、onValueChange でも知らせる。
+  //   全角を直したことの知らせも消す
+  const resetRef = useFormReset(() => {
+    const next = format(defaultValue);
+    setDraft(null);
+    setInnerValue(next);
+    noticed?.(null, true);
+    onValueChange?.(next, { unmasked: masker.unmasked(next), completed: masker.completed(next) });
+  }, valueProp === undefined);
+  const inputRef = useMergedRefs(inputPropsRef, props.ref, resetRef);
 
   // 書式を当て、カーソルの位置を直す（maska の MaskInput と同じ考え方）
   //   input の値をここで書き換えるので、React が値を入れ直さず、カーソルが末尾へ飛ばない
@@ -288,7 +277,7 @@ export function MaskFieldControl({
       className={cn('group/mask', className)}
     >
       {(describedBy) => (
-        <div ref={wrapper} className="relative flex h-full min-w-0 flex-1 items-center">
+        <div className="relative flex h-full min-w-0 flex-1 items-center">
           <BaseField.Control
             className={cn(
               'h-full w-full min-w-0 bg-transparent outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
@@ -316,6 +305,7 @@ export function MaskFieldControl({
             spellCheck={false}
             {...inputPropsRest}
             {...props}
+            ref={inputRef}
             aria-describedby={describedBy}
             onChange={handleChange}
             onCompositionStart={handleCompositionStart}
