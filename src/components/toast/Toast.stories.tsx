@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 
 import {
@@ -485,5 +485,33 @@ export const Accessibility: Story = {
     await waitFor(async () => {
       await expect(canvas.queryAllByText('保存しました')).toHaveLength(0);
     });
+  },
+};
+
+// 描き直しても useToast() が同じものを返すかを数える見本
+const toastIdentities = new Set<unknown>();
+function CountToastIdentity() {
+  const toast = useToast();
+  toastIdentities.add(toast);
+  const [count, setCount] = useState(0);
+  return <Button onClick={() => setCount(count + 1)}>描き直す（{count}）</Button>;
+}
+
+export const StableUseToast: Story = {
+  name: 'useToast の返り値は描き直しても同じ',
+  tags: ['!autodocs'],
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ToastProvider>
+      <CountToastIdentity />
+    </ToastProvider>
+  ),
+  play: async ({ canvas }) => {
+    toastIdentities.clear();
+    await userEvent.click(canvas.getByRole('button', { name: /描き直す/ }));
+    await userEvent.click(canvas.getByRole('button', { name: /描き直す（1）/ }));
+    await expect(canvas.getByRole('button', { name: /描き直す（2）/ })).toBeVisible();
+    // effect の依存に入れても、描くたびに走らない
+    await expect(toastIdentities.size).toBe(1);
   },
 };
