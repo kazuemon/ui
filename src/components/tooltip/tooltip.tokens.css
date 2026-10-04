@@ -1,6 +1,6 @@
 :root {
   /* Tooltip — ADR-0106
-     面は浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（shadow={false} で外せる）。文字はキャプションと同じ大きさ */
+     面は浮かぶ面と同じ白・細い輪郭。影は --shadow-tooltip（hideShadow で外せる）。文字はキャプションと同じ大きさ */
   --tooltip-padding-x: calc(var(--spacing) * 2);
   --tooltip-max-width: calc(var(--spacing) * 60);
   --tooltip-offset: calc(var(--spacing) * 2);

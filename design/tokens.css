@@ -11,7 +11,7 @@
  *
  * 公開するもの（利用者が Tailwind のクラスで使い、上書きしてよいもの）は @theme に置く。
  *   値・尺度・役割。名前はこの先変えない。Tailwind の名前空間に沿う名前は、そのままクラスになる（bg-primary・rounded-control・h-control）
- *   密度で変わる値は @theme reference に置く。クラスは作るが、値は src/styles/globals.css の密度の規則が入れる
+ *   密度で変わる値は @theme reference に置く。クラスは作るが、値は src/styles/theme.css の密度の規則が入れる
  * 部品の層（:root）は部品の中だけで使い、名前も値も予告なく変える。
  *
  * 色は「面用」と「前景用」の2段（ADR-0002）。
@@ -317,7 +317,7 @@
 }
 
 /* ── 役割の層: 密度で変わる寸法（原則 11）───────
-   値は入力方式で切り替わる。src/styles/globals.css が、下の :root の指用（-coarse）とマウス用（-fine）から、
+   値は入力方式で切り替わる。src/styles/theme.css が、下の :root の指用（-coarse）とマウス用（-fine）から、
    ページ全体と data-density を付けた要素の中で入れる。ここはクラス（h-control・px-control-x・text-label など）を作るだけで、
    CSS 変数は書き出さない（密度の規則がないところでは、クラスはマウス用の値になる）
      --spacing-control     部品の高さ（ボタン・入力欄・Select の選択肢・トグルの行）
