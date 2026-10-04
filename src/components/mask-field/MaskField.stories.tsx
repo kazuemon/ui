@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { createRef, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
-import { expect, fn, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { Button } from '../button/Button';
 
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
 import {
@@ -482,5 +483,44 @@ export const RefAndInputPropsRef: Story = {
     const element = canvas.getByLabelText('郵便番号');
     await expect(maskfieldRef.current).toBe(element);
     await expect(maskfieldInputPropsRef.current).toBe(element);
+  },
+};
+
+const maskReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームを戻す（reset）と、はじめの値に戻り、`onValueChange` でも知らせます。',
+      },
+    },
+  },
+  render: () => (
+    <form className="flex max-w-sm flex-col items-start gap-3">
+      <MaskField
+        label="郵便番号"
+        name="zip"
+        mask="###-####"
+        defaultValue="1500042"
+        onValueChange={maskReset}
+      />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByLabelText('郵便番号');
+    await userEvent.clear(input);
+    await userEvent.type(input, '1000001');
+    await expect(input).toHaveValue('100-0001');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(input).toHaveValue('150-0042'));
+    await expect(maskReset).toHaveBeenLastCalledWith('150-0042', {
+      unmasked: '1500042',
+      completed: true,
+    });
   },
 };

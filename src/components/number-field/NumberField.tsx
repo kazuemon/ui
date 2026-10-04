@@ -8,6 +8,7 @@ import {
   type Ref,
   useContext,
   useId,
+  useState,
 } from 'react';
 
 import { ArrowsHorizontalIcon } from '../../internal/icons';
@@ -28,13 +29,14 @@ import {
 } from '../../internal/field/input-field-props';
 import { cn } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
+import { useFormReset } from '../../internal/field/use-form-reset';
 
 /** 増減ボタンの置き方。stacked: 右端に上下で縦積み、split: 左に −・右に ＋、none: ボタンなし */
 export type NumberFieldStepper = 'stacked' | 'split' | 'none';
 
 /**
  * 値が変わったわけ。input- は打った文字から、increment-press・decrement-press はボタン、
- * keyboard は ↑↓ キー、wheel はホイール、scrub はラベルを左右に動かしたときです
+ * keyboard は ↑↓ キー、wheel はホイール、scrub はラベルを左右に動かしたとき、none はフォームを戻した（reset）ときなどです
  */
 export type NumberFieldChangeReason =
   | 'input-change'
@@ -191,7 +193,16 @@ export function NumberFieldControl({
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const blocking = field?.blocking ?? false;
   const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
-  const inputRef = useMergedRefs(inputPropsRef, ref);
+  // 値を渡されないときも、値はここで持つ（Base UI には制御で渡す）。form を戻したら（reset）はじめの値に戻し、
+  //   onValueChange でも知らせる（ブラウザは input の文字だけを戻し、Base UI はそれを拾わない）
+  const [innerValue, setInnerValue] = useState<number | null>(defaultValue ?? null);
+  const resetRef = useFormReset(() => {
+    const next = defaultValue ?? null;
+    setInnerValue(next);
+    noticed?.(null, true);
+    onValueChange?.(next, { reason: 'none' });
+  }, value === undefined);
+  const inputRef = useMergedRefs(inputPropsRef, ref, resetRef);
   // 読み取り専用ではボタンを出さない（押せないボタンを並べても、値を読む邪魔になる）
   const showStepper = stepper !== 'none' && !readOnly;
   // split の並び（値を中央に寄せ、prefix・suffix を値の横に置く）は、読み取り専用でボタンを外しても変えない
@@ -252,9 +263,9 @@ export function NumberFieldControl({
     <BaseNumberField.Root
       id={id}
       form={form}
-      value={value}
-      defaultValue={defaultValue}
+      value={value !== undefined ? value : innerValue}
       onValueChange={(next, details) => {
+        if (value === undefined) setInnerValue(next);
         // 値が空になったら、全角を直したことの知らせも消す
         if (next === null) noticed?.(null, true);
         onValueChange?.(next, { reason: details.reason });

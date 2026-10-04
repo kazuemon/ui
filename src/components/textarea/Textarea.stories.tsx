@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { createRef } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
 // 引数の userEvent は、LAN の IP で開いたとき（clipboard のない環境）は空になり、click などが呼べない
-import { expect, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
+import { Button } from '../button/Button';
 
 import { TextField } from '../text-field/TextField';
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
@@ -554,5 +555,37 @@ export const RefAndInputPropsRef: Story = {
     const element = canvas.getByLabelText('メモ');
     await expect(textareaRef.current).toBe(element);
     await expect(textareaInputPropsRef.current).toBe(element);
+  },
+};
+
+const textareaReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'フォームを戻す（reset）と、はじめの値に戻ります。文字数も数え直し、`onValueChange` でも知らせます。',
+      },
+    },
+  },
+  render: () => (
+    <form className="flex max-w-sm flex-col items-start gap-3">
+      <Textarea label="ひとこと" maxCount={5} showCount onValueChange={textareaReset} />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const note = canvas.getByLabelText('ひとこと');
+    await userEvent.type(note, 'あいうえおか');
+    await expect(note).toHaveAttribute('aria-invalid', 'true');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await expect(note).toHaveValue('');
+    // 文字数も戻る（上限を超えたエラーの見た目が残らない）
+    await waitFor(() => expect(note).not.toHaveAttribute('aria-invalid', 'true'));
+    await expect(textareaReset).toHaveBeenLastCalledWith('');
   },
 };

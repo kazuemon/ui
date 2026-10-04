@@ -5,6 +5,7 @@ import { createRef, useState } from 'react';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
 
 import { Field, FieldCaption, FieldLabel, FieldMessages } from '../field/Field';
+import { Button } from '../button/Button';
 import { NumberField, NumberFieldControl, type NumberFieldProps } from './NumberField';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import {
@@ -526,6 +527,38 @@ export const OutsideForm: Story = {
   play: async ({ canvasElement }) => {
     // 外に置いた欄の値も、form で指したフォームの値に入る
     const form = canvasElement.querySelector<HTMLFormElement>('#number-field-outside-form');
+    await expect(form && new FormData(form).get('quantity')).toBe('3');
+  },
+};
+
+const numberReset = fn();
+export const FormReset: Story = {
+  name: 'フォームを戻す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story: 'フォームを戻す（reset）と、はじめの値に戻り、`onValueChange` でも知らせます。',
+      },
+    },
+  },
+  render: () => (
+    <form id="number-field-reset-form" className="flex max-w-xs flex-col items-start gap-3">
+      <NumberField label="数量" name="quantity" defaultValue={3} onValueChange={numberReset} />
+      <Button type="reset" variant="outline">
+        元に戻す
+      </Button>
+    </form>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const input = canvas.getByLabelText('数量');
+    await userEvent.click(input);
+    await userEvent.keyboard('{ArrowUp}');
+    await expect(input).toHaveValue('4');
+    await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
+    await waitFor(() => expect(input).toHaveValue('3'));
+    await expect(numberReset).toHaveBeenLastCalledWith(3, expect.anything());
+    const form = canvasElement.querySelector<HTMLFormElement>('#number-field-reset-form');
     await expect(form && new FormData(form).get('quantity')).toBe('3');
   },
 };
