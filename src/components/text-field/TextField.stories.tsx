@@ -97,7 +97,7 @@ const meta = {
           '- 文字数の上限は `maxCount` です。`showCount` で本体の右下の下に「12 / 30」の形で文字数を出し、上限に近づくと数を警告の色に、超えると赤にします（Textarea と同じ）。',
           '- `clearable` を付けると、文字があるあいだ右端に文字を消すボタン（×）を出します。読み上げの名前は `clearName` で変えられます。suffix と一緒には使えません。',
           '- 押せない欄（`disabled`）の文字は選べません。値を読んで写せるようにするときは `readOnly` を使います。読み取り専用の欄はフォーカスでき、値を選んで写せます。',
-          '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、`<input>` に required が付きます。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決め、フォーム全体は `Form`・`ThemeProvider` でそろえられます。',
+          '- `required` を付けると、ラベルの後ろに印（既定は「必須」のタグ）が出て、`<input>` に aria-required が付きます（ブラウザの `required` は付けないので、送信をブラウザが止めることはありません）。印は読み上げから外れます。印の形は `requiredMark`、任意の欄の「任意」は `optionalMark` で決め、フォーム全体は `Form`・`ThemeProvider` でそろえられます。',
           '- `placeholder` は、値と見分けられるよう「例: かずえもん」のように見本だと分かる書き方にします。色は文字の基準を保つ淡さまでしか淡くできないので、書き方でも値と区別します。',
           '- そのほかの props（`name`・`defaultValue`・`onChange` など）は `<input>` に渡ります。`<input>` の class や `data-*` だけを足したいときは `inputProps` を使います（`className` は欄の外枠に付きます）。',
         ].join('\n'),
