@@ -69,8 +69,8 @@ const toastStyles = tv({
   slots: {
     viewport: [
       'group/toast-viewport fixed z-50 flex w-(--toast-width) max-w-[calc(100vw-var(--toast-inset)*2)]',
-      // 画面が狭いときは、左右の余白を残して幅いっぱい（原則11）
-      'max-[480px]:w-[calc(100vw-var(--toast-inset)*2)]',
+      // 画面が狭いとき（下の中央に出すのと同じ判定）は、左右の余白を残して幅いっぱい（原則11）
+      'data-narrow:w-[calc(100vw-var(--toast-inset)*2)]',
     ],
     // 1 枚ずつの箱。位置と動きだけを持ち、面は content が持つ
     root: [
@@ -362,6 +362,7 @@ function ToastViewport({
   return (
     <BaseToast.Viewport
       data-slot="toast-viewport"
+      data-narrow={narrow || undefined}
       className={s.viewport()}
       // 端からの離れは、出入りの動き（画面の外まで動かす距離）にも使うので、変数ごと差し替える
       style={offset === undefined ? undefined : { ['--toast-inset' as string]: `${offset}px` }}
