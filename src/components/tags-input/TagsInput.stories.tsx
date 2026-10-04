@@ -245,6 +245,29 @@ export const Paste: Story = {
   },
 };
 
+const inputOnKeyDown = fn();
+const inputOnBlur = fn();
+export const InputPropsHandlers: Story = {
+  name: 'inputProps のハンドラーも呼ぶ',
+  args: { label: '記事のタグ', inputProps: { onKeyDown: inputOnKeyDown, onBlur: inputOnBlur } },
+  parameters: { controls: { disable: true } },
+  decorators: [narrow],
+  play: async ({ canvas }) => {
+    inputOnKeyDown.mockClear();
+    inputOnBlur.mockClear();
+    const input = canvas.getByRole('combobox');
+    // 利用者のハンドラーを渡しても、Enter でタグになる
+    await userEvent.type(input, '実装{Enter}');
+    await expect(canvas.getByText('実装')).toBeVisible();
+    await expect(inputOnKeyDown).toHaveBeenCalled();
+    // 欄の外へフォーカスが外れたときも、打っていた文字をタグにする
+    await userEvent.type(input, '設計');
+    input.blur();
+    await expect(await canvas.findByText('設計')).toBeVisible();
+    await expect(inputOnBlur).toHaveBeenCalled();
+  },
+};
+
 export const Duplicates: Story = {
   name: '同じタグを足したとき',
   args: { label: '記事のタグ', defaultValue: ['デザイン', '実装'] },

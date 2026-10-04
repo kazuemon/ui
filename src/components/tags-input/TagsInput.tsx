@@ -308,7 +308,7 @@ export interface TagsInputControlProps {
     Pick<ComponentProps<typeof BaseCombobox.Positioner>, 'collisionAvoidance' | 'anchor'>;
   /**
    * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
-   * className は部品のクラスに重ねます
+   * className は部品のクラスに重ねます。onKeyDown などのハンドラーは、部品の処理の前に呼びます
    */
   inputProps?: ListboxInputProps;
   /**
@@ -779,6 +779,8 @@ export function TagsInputControl({
         >
           {(chips) => (
             <BaseCombobox.Input
+              // 利用者の props は先に広げ、部品の振る舞いと説明が上書きされないようにする。利用者のハンドラーは部品の処理の前に呼ぶ
+              {...inputRest}
               aria-describedby={messageIds}
               aria-required={required || undefined}
               aria-disabled={blocking || undefined}
@@ -786,15 +788,18 @@ export function TagsInputControl({
               // ソフトウェアキーボードの実行キー。既定では Enter を送るキーにする（enterKeyHint）
               enterKeyHint={enterKeyHint}
               placeholder={loadingBlocking ? loadingText : chips.length > 0 ? '' : placeholder}
-              onCompositionStart={() => {
+              onCompositionStart={(event) => {
+                inputRest.onCompositionStart?.(event);
                 composing.current = true;
               }}
               onCompositionEnd={(event) => {
+                inputRest.onCompositionEnd?.(event);
                 composing.current = false;
                 // 変換が終わった文字にも区切りが混ざりうる（「、」を区切りにしたときなど）
                 changeText(event.currentTarget.value);
               }}
               onKeyDown={(event) => {
+                inputRest.onKeyDown?.(event);
                 if (locked) return;
                 // IME の変換中は、Enter も区切りの文字も確定に使わない
                 //   Android の IME は、変換していないあいだも keyCode に 229 を送ることがあるので、
@@ -830,6 +835,7 @@ export function TagsInputControl({
                 }
               }}
               onPaste={(event) => {
+                inputRest.onPaste?.(event);
                 if (locked) return;
                 const clip = event.clipboardData?.getData('text') ?? '';
                 const parts = splitBySeparators(clip, [...separators, ...pasteBreaks])
@@ -841,6 +847,7 @@ export function TagsInputControl({
                 addTags(parts);
               }}
               onBlur={(event) => {
+                inputRest.onBlur?.(event);
                 if (!commitOnBlur || locked) return;
                 const next = event.relatedTarget;
                 // チップ・× や候補へ移ったときは、まだ欄の中にいる
@@ -852,7 +859,6 @@ export function TagsInputControl({
                   return;
                 commitText();
               }}
-              {...inputRest}
               className={mergeSlotClass(
                 `${inputClass} h-(--combobox-chip-height) min-w-16`,
                 inputClassName

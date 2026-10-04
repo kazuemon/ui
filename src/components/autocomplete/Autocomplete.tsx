@@ -304,7 +304,7 @@ export interface AutocompleteControlProps<Value = string> {
     Pick<ComponentProps<typeof BaseAutocomplete.Positioner>, 'collisionAvoidance' | 'anchor'>;
   /**
    * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
-   * className は部品のクラスに重ねます
+   * className は部品のクラスに重ねます。onKeyDown などのハンドラーは、部品の処理の前に呼びます
    */
   inputProps?: ListboxInputProps;
   /**
@@ -703,6 +703,8 @@ export function AutocompleteControl<Value = string>({
           </span>
         )}
         <BaseAutocomplete.Input
+          // 利用者の props は先に広げ、部品の振る舞いと説明が上書きされないようにする。利用者のハンドラーは部品の処理の前に呼ぶ
+          {...inputRest}
           enterKeyHint={enterKeyHint}
           aria-describedby={messageIds}
           aria-required={required || undefined}
@@ -710,14 +712,15 @@ export function AutocompleteControl<Value = string>({
           aria-busy={loading || undefined}
           placeholder={loadingBlocking ? loadingText : placeholder}
           // フォーカスで開く契機。シートの中の打つ欄は、すでに開いているので何もしない
-          onFocus={() => {
+          onFocus={(event) => {
+            inputRest.onFocus?.(event);
             if (effectiveOpenOn === 'focus' && !inSheet && !open) changeOpen(true);
           }}
           onKeyDown={(event) => {
+            inputRest.onKeyDown?.(event);
             // Esc は、開いていれば閉じるだけで、打った文字は消さない。閉じていれば何もしない（外の Esc に任せる）
             if (event.key === 'Escape' && !open) event.preventBaseUIHandler();
           }}
-          {...inputRest}
           className={mergeSlotClass(
             `${inputClass} h-full ${icon ? 'ps-(--search-field-icon-gap) pe-(--spacing-control-x)' : controlInset}`,
             inputClassName
