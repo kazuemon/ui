@@ -529,7 +529,8 @@ export function MenuSurface({
           data-slot="menu"
           data-submenu-sheet={nestedSheet ?? undefined}
           data-dragging={drag.dragging || undefined}
-          aria-labelledby={labelled ? titleId : undefined}
+          // 題を出すシートだけ題に結ぶ。ほかは Base UI が結ぶ、開いたボタンの名前を残す（undefined を渡すと消える）
+          {...(labelled && { 'aria-labelledby': titleId })}
           {...restPopupProps}
           ref={popupRef}
           style={
