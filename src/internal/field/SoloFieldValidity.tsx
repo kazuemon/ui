@@ -4,13 +4,12 @@ import { Field as BaseField } from '@base-ui/react/field';
 import { type ReactNode, useContext } from 'react';
 
 import {
-  fieldDescribedBy,
-  type fieldMessageIds,
   FieldMessageLine,
   type MessageKind,
   mergeBaseFieldError,
   useFormFieldErrors,
 } from './Field';
+import { fieldDescribedBy, type fieldMessageIds, messageKinds } from './field-messages';
 import { FieldsetContext } from './fieldset-context';
 import type { FieldMessage } from './input-field-props';
 import { cn } from '../tv';
@@ -77,7 +76,7 @@ export function SoloFieldValidity({
         return (
           <>
             {children(describedBy)}
-            {(Object.keys(messageRows) as MessageKind[]).map((kind) => (
+            {messageKinds.map((kind) => (
               <FieldMessageLine
                 key={kind}
                 kind={kind}

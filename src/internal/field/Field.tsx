@@ -19,7 +19,8 @@ import {
 } from 'react';
 
 import { FieldLayoutContext } from './field-layout';
-import { FieldsetContext, withFieldsetErrors } from './fieldset-context';
+import { fieldDescribedBy, fieldMessageIds, messageKinds } from './field-messages';
+import { FieldsetContext } from './fieldset-context';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
@@ -148,48 +149,6 @@ export function FieldLoadingBar() {
 
 /** 本体の下の行の種類。並びもこの順（重いものが上） */
 export type MessageKind = 'error' | 'warning' | 'success' | 'info';
-
-const messageKinds: MessageKind[] = ['error', 'warning', 'success', 'info'];
-
-/** キャプションと状態の行の id。Field と、1 つだけ置く選択肢（Checkbox・Switch）で同じ形にする */
-export function fieldMessageIds(id: string): { caption: string } & Record<MessageKind, string> {
-  return {
-    caption: `${id}caption`,
-    error: `${id}error`,
-    warning: `${id}warning`,
-    success: `${id}success`,
-    info: `${id}info`,
-  };
-}
-
-/**
- * 本体の説明（aria-describedby）。見た目の順（利用者が足した説明 → キャプション → エラー → 警告 → 成功 → 情報）でつなぎ、
- * 出ている行の id だけを入れる。Fieldset のまとまりのエラーがあれば前に足す。警告・成功・情報もつなぐが、欄をエラーの状態にはしない
- */
-export function fieldDescribedBy({
-  fieldsetErrorIds,
-  ariaDescribedBy,
-  caption,
-  messages,
-  ids,
-}: {
-  fieldsetErrorIds: string | undefined;
-  ariaDescribedBy?: string;
-  caption: ReactNode;
-  messages: Record<MessageKind, ReactNode>;
-  ids: { caption: string } & Record<MessageKind, string>;
-}): string | undefined {
-  return withFieldsetErrors(
-    fieldsetErrorIds,
-    [
-      ariaDescribedBy,
-      caption && ids.caption,
-      ...messageKinds.map((kind) => (messages[kind] ? ids[kind] : null)),
-    ]
-      .filter(Boolean)
-      .join(' ') || undefined
-  );
-}
 
 // 行のアイコンと文字の色（原則6: 情報は丸の「i」、成功は丸のチェック、警告は三角、危険は丸の「!」）
 // 白地の文字: エラー --color-danger（6.71）、警告 --color-fg-warning（5.09）、成功 --color-fg-success（5.02）、情報 --color-fg-info（5.10）
@@ -872,11 +831,10 @@ export function FieldMessages(_props: FieldMessagesProps) {
   const field = useContext(FieldContext);
   useFieldPart('messages');
   if (!field) return null;
-  const kinds = Object.keys(field.messages) as MessageKind[];
   return (
     // 箱は contents にし、行の箱を親の並び（間 --spacing-field-gap）に直に置く。行の箱が上の間を打ち消す仕組みを保つ
     <div data-slot="field-messages" className="contents">
-      {kinds.map((kind) => (
+      {messageKinds.map((kind) => (
         <FieldMessageLine
           key={kind}
           kind={kind}

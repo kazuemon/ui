@@ -13,11 +13,8 @@ import {
   choiceRows,
   choiceStyles,
 } from '../../internal/choice/choice-styles';
-import {
-  type FieldValidate,
-  type FieldValidationMode,
-  fieldMessageIds,
-} from '../../internal/field/Field';
+import { type FieldValidate, type FieldValidationMode } from '../../internal/field/Field';
+import { fieldMessageIds } from '../../internal/field/field-messages';
 import { FieldsetContext } from '../../internal/field/fieldset-context';
 import { SoloFieldValidity } from '../../internal/field/SoloFieldValidity';
 import { FieldMark, type FieldMarkProps } from '../../internal/field/FieldMark';
