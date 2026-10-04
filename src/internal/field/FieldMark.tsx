@@ -43,7 +43,7 @@ export type OptionalMark = 'text' | 'none';
 /** ラベルの印に関わる props。Field を通る部品が共通で持つ */
 export interface FieldMarkProps {
   /**
-   * 必須の欄にします。ラベルの後ろに印を出し、欄に required（aria-required）を付けます
+   * 必須の欄にします。ラベルの後ろに印を出し、欄に aria-required を付けます（ブラウザの required は付けません）
    * @default false
    */
   required?: boolean;
