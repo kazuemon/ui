@@ -154,7 +154,10 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    * @default document.body
    */
   portalContainer?: HTMLElement | null;
-  /** いちばん外の要素（nav）に付きます */
+  /**
+   * いちばん外の要素（nav）に付きます。狭い画面の narrowPresentation="menu" では、nav の代わりにシートの面に付きます。
+   * ref・id・data-* などの props も同じ要素に付きます（menu のシートの面には style は付きません）
+   */
   className?: string;
 }
 
@@ -221,6 +224,9 @@ export function Sidebar({
         color={color}
         returnFocus={layout.triggerRef}
         portalContainer={portalContainer}
+        // nav の代わりに、シートの面（menu）に className・id・ref・DOM の props を付ける（style は面が自分で決める）
+        className={className}
+        popupProps={{ ...props, id: navId, ref: mergedRef }}
       >
         <SidebarNavContext value={{ ...navValue, mode: 'flyout', depth: 0, sheet: true }}>
           {header}
@@ -247,7 +253,8 @@ export function Sidebar({
         <SidebarNavContext value={{ ...navValue, mode: 'drawer', depth: 0 }}>
           <nav
             {...props}
-            ref={ref}
+            ref={mergedRef}
+            id={navId}
             aria-label={drawerLabel}
             data-slot="sidebar"
             className={s.drawer({ className })}

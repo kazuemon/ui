@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { type ReactNode, useState } from 'react';
+import { createRef, type ReactNode, useState } from 'react';
 
 import { Button } from '../button/Button';
 import { Text } from '../text/Text';
@@ -398,6 +398,59 @@ export const NarrowSideFromTheme: Story = {
     const body = within(canvasElement.ownerDocument.body);
     const drawer = await body.findByRole('dialog', { name: 'メニュー' });
     await expect(drawer).toHaveAttribute('data-side', 'bottom');
+  },
+};
+
+const narrowRefs = { drawer: createRef<HTMLElement>(), menu: createRef<HTMLElement>() };
+
+export const NarrowProps: Story = {
+  name: '狭い画面でも className と ref を渡す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '狭い画面でも、`className`・`ref`・`data-*` などは列の要素に付きます。Drawer では中の nav に、`narrowPresentation="menu"` ではシートの面に付きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-6 p-6">
+      {(['drawer', 'menu'] as const).map((presentation) => (
+        <div key={presentation} data-testid={presentation}>
+          <Frame
+            width={400}
+            height={320}
+            sidebar={
+              <Sidebar
+                narrowPresentation={presentation}
+                ref={narrowRefs[presentation]}
+                className="sidebar-test"
+                data-testid={`sidebar-${presentation}`}
+              >
+                <TournamentItems />
+              </Sidebar>
+            }
+          />
+        </div>
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    for (const presentation of ['drawer', 'menu'] as const) {
+      await userEvent.click(
+        within(canvas.getByTestId(presentation)).getByRole('button', { name: 'メニューを開閉する' })
+      );
+      const surface = await body.findByTestId(`sidebar-${presentation}`);
+      await expect(surface).toHaveClass('sidebar-test');
+      await expect(narrowRefs[presentation].current).toBe(surface);
+      // 広い列と同じく、部品が付ける id も持つ
+      await expect(surface.id).not.toBe('');
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(body.queryByTestId(`sidebar-${presentation}`)).toBeNull());
+    }
   },
 };
 
