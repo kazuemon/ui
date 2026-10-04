@@ -42,7 +42,7 @@ export interface HalfWidthNoticeProps {
   /**
    * 全角の英数字を半角に直したときに、本体の下に情報の行で知らせるか。
    * true で「全角の数字を半角に直しました」（英字を直したときは「全角の英数字を半角に直しました」）、文を渡すとその文を出します。
-   * `info` を渡したときは `info` を出します
+   * `infoText` を渡したときは `infoText` を出します
    * @default false
    */
   halfWidthNotice?: ReactNode;
@@ -64,7 +64,7 @@ export function useHalfWidthNoticed() {
 
 /**
  * 全角を半角に直したことの知らせ。値が空になるまで知らせを残し、英字を直したら文を英数字に上げる
- * 返す notice は、Field の info にそのまま渡す（使う側が info を渡したときは、info を優先する）
+ * 返す notice は、Field の info にそのまま渡す（使う側が infoText を渡したときは、そちらを優先する）
  */
 export function useHalfWidthNotice(halfWidthNotice: ReactNode) {
   const [converted, setConverted] = useState<HalfWidthKind | null>(null);
