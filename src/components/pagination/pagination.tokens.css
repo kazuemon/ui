@@ -12,4 +12,6 @@
   --pagination-step-gap: calc(var(--spacing) * 2);
   --pagination-item-color: var(--color-fg-muted);
   --pagination-ellipsis-width: calc(var(--spacing) * 6);
+  /* ページを打つ欄の、桁数ぶんの幅に足す余り（打っている文字の後ろのカーソルが切れないための分） */
+  --pagination-input-caret: calc(var(--spacing) * 0.5);
 }

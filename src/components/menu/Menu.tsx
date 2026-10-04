@@ -21,6 +21,7 @@ import {
   type PositionerProps,
 } from '../../internal/overlay/overlay-props';
 import {
+  popupCollisionPadding,
   popupMotionClass,
   popupSurfaceClass,
   readTokenLength,
@@ -509,7 +510,7 @@ export function MenuSurface({
             ? -(readTokenLength('--menu-popup-padding') + readTokenLength('--border-width-thin'))
             : 0
         }
-        collisionPadding={8}
+        collisionPadding={popupCollisionPadding}
         data-density={densityScope.density}
         data-presentation={sheet ? 'sheet' : 'popover'}
         {...restPositionerProps}

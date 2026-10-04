@@ -16,7 +16,11 @@ import { createPortal } from 'react-dom';
 
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
-import { popupMotionClass, readTokenLength } from '../../internal/overlay/popup-styles';
+import {
+  popupCollisionPadding,
+  popupMotionClass,
+  readTokenLength,
+} from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
 import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
 import { useMergedRefs } from '../../internal/use-merged-refs';
@@ -331,7 +335,7 @@ export function Tooltip({
           side={longPressed && longPressSide ? longPressSide : side}
           align={align}
           sideOffset={() => readTokenLength('--tooltip-offset')}
-          collisionPadding={8}
+          collisionPadding={popupCollisionPadding}
           data-density={scope.density}
           {...restPositionerProps}
           ref={positionerRef}

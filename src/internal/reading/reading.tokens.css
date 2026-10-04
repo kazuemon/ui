@@ -9,6 +9,7 @@
   /* 引用（Blockquote）
      既定は左にグレーの線。color で線の色、variant="surface" で入力欄の塗りの面
      線の端は丸めない */
+  /* 線の太さの尺度（1・1.5・2px）より太く、引用の印として目立たせる。尺度にない値なので px で置く */
   --blockquote-line-width: 3px;
 
   /* 複数行のコード（CodeBlock）
@@ -63,18 +64,21 @@
   --list-item-gap-loose: calc(
     var(--spacing) * 3
   ); /* ゆるいリスト（li の中に p）の項目の間と段落の間 */
-  --list-bullet-width: 8px;
-  --list-bullet-height: 1.5px;
+  --list-bullet-width: calc(var(--spacing) * 2);
+  --list-bullet-height: var(--border-width-medium);
   --list-bullet-ring: 0px;
   --color-list-bullet: var(--color-fg-subtle);
   --color-list-bullet-ring: transparent;
-  --list-bullet-nested-width: 4px;
-  --list-bullet-nested-height: 4px;
+  --list-bullet-nested-width: var(--spacing);
+  --list-bullet-nested-height: var(--spacing);
   --list-bullet-nested-ring: 0px;
   --color-list-bullet-nested: var(--color-fg-subtle);
   --color-list-bullet-nested-ring: transparent;
+  --list-bullet-dot-size: calc(
+    var(--spacing) * 1.5
+  ); /* markerType="dot" の丸（入れ子の白抜きの丸も同じ大きさ） */
   --list-number-width: 1.4em; /* 番号の箱の最小の幅。中は右揃え */
-  --list-task-size: 16px;
+  --list-task-size: calc(var(--spacing) * 4);
   /* ✓ の形。色は持たず、部品が mask にして文字の薄い色で塗る（脚注の矢印と同じ持ち方） */
   --list-task-mark-checked: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 8.5 6.75 11.25 12 5.5'/%3E%3C/svg%3E");
   --color-list-task-done: var(--color-fg-subtle); /* 済んだ項目の文 */

@@ -3,7 +3,8 @@
      gap: 段と段のあいだ（ol の flex gap。横並びは列のあいだ、縦並びは行のあいだ）
      label-gap: マーカーと文（ラベル・説明）のあいだ
      marker-size: マーカー（丸）の直径。marker-text: 中の数字の大きさ。marker-icon-size: チェック・警告の印の大きさ
-     line-width: 連結線の太さ。line-gap: 縦並びで、線と次のマーカーの上下のあいだ（線がマーカーに接しないための余白） */
+     line-width: 連結線の太さ。line-gap: 縦並びで、線と次のマーカーの上下のあいだ（線がマーカーに接しないための余白）
+     文字の大きさと行の高さは、密度で変わらない文字の尺度がない（役割の文字は密度で変わる）ので px で置く */
   --stepper-gap: calc(var(--spacing) * 8); /* 32px */
   --stepper-label-gap: calc(var(--spacing) * 3); /* 12px */
   --stepper-marker-size: calc(var(--spacing) * 8); /* 32px */
