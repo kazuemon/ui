@@ -3,13 +3,17 @@
 import { useState } from 'react';
 
 import {
+  DateFieldControl,
   type DateFieldControlProps,
-  DateFieldControlInner,
-} from '../../internal/date-segments/DateFieldControlInner';
+} from '../../internal/date-segments/DateFieldControl';
 import type { PlainDate } from '../../internal/date/plain-date';
 import { isDateOutOfRange } from '../../internal/date/range';
 import { Field } from '../../internal/field/Field';
-import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
+import {
+  HalfWidthNoticedContext,
+  type HalfWidthNoticeProps,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import {
   type FieldNamed,
   type InputFieldProps,
@@ -17,16 +21,8 @@ import {
 } from '../../internal/field/input-field-props';
 
 export type { SegmentPlaceholder } from '../../internal/date-segments/labels';
-export type { DateFieldControlProps } from '../../internal/date-segments/DateFieldControlInner';
-
-/**
- * 日付の区切りの欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
- * 押せない・待っている・エラー・成功・必須の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
- * フォームに送る名前は Field の name です。min・max の外の値は区切りを aria-invalid にしますが、欄の枠線を赤くするには Field に errorText を渡します
- */
-export function DateFieldControl(props: DateFieldControlProps) {
-  return <DateFieldControlInner {...props} />;
-}
+export type { DateFieldControlProps } from '../../internal/date-segments/DateFieldControl';
+export { DateFieldControl };
 
 /** DateField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type DateFieldBaseProps = Omit<DateFieldControlProps, 'className'> &
@@ -61,14 +57,15 @@ export function DateField(props: DateFieldProps) {
   return (
     <Field {...field} info={field.info ?? notice} invalid={outOfRange} nativeLabel={false}>
       {() => (
-        <DateFieldControlInner
-          {...control}
-          onValueChange={(next) => {
-            setInner(next);
-            onValueChange?.(next);
-          }}
-          onHalfWidth={noticed}
-        />
+        <HalfWidthNoticedContext value={noticed}>
+          <DateFieldControl
+            {...control}
+            onValueChange={(next) => {
+              setInner(next);
+              onValueChange?.(next);
+            }}
+          />
+        </HalfWidthNoticedContext>
       )}
     </Field>
   );

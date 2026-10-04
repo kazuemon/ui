@@ -13,7 +13,6 @@ import { useLocale } from '../date/use-locale';
 import { useFieldControlKind, useFieldState } from '../field/Field';
 import { FieldBox } from '../field/FieldBox';
 import type { InputFieldProps } from '../field/input-field-props';
-import type { HalfWidthKind } from '../half-width';
 import { cn } from '../tv';
 
 // 時刻の区切りの欄の本体。TimeField（TimeFieldControl）と TimePicker が使う。公開の入口には並べない
@@ -87,14 +86,11 @@ export interface TimeFieldControlProps extends Pick<
 }
 
 /**
- * 本体の中だけで使う口。内蔵の形（TimeField・TimePicker）が、全角を直したことを Field の info に渡すために使います。
- * 公開の入口には並べません
+ * 時刻の区切りの欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
+ * 押せない・待っている・エラー・成功・必須の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
+ * フォームに送る名前は Field の name です。min・max の外の値は区切りを aria-invalid にしますが、欄の枠線を赤くするには Field に errorText を渡します
  */
-export interface TimeFieldControlInnerProps extends TimeFieldControlProps {
-  onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
-}
-
-export function TimeFieldControlInner({
+export function TimeFieldControl({
   hideSuccessMark = false,
   readOnly,
   autoFocus,
@@ -118,10 +114,9 @@ export function TimeFieldControlInner({
   locale: localeProp,
   color = 'neutral',
   onParseFailed,
-  onHalfWidth,
   className,
   'aria-describedby': ariaDescribedBy,
-}: TimeFieldControlInnerProps) {
+}: TimeFieldControlProps) {
   // ラベルは <label> にしない（本体は区切りの group で、ラベルは aria-labelledby でつなぐ）
   useFieldControlKind({ nativeLabel: false });
   const field = useFieldState();
@@ -176,7 +171,6 @@ export function TimeFieldControlInner({
           }}
           steps={{ minute: minuteStep }}
           onParseFailed={onParseFailed}
-          onHalfWidth={onHalfWidth}
           toFormValue={(time) =>
             time?.toString({ smallestUnit: showSeconds ? 'second' : 'minute' }) ?? ''
           }

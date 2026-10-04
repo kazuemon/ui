@@ -6,15 +6,18 @@ import { TimePickerPanel, type TimePickerVariant } from './TimePickerPanel';
 import { DEFAULT_COLUMN_NAMES, type TimePickerColumnNames } from './time-options';
 import { timeLayout } from '../../internal/date-segments/segments';
 import {
-  TimeFieldControlInner,
-  type TimeFieldControlInnerProps,
+  TimeFieldControl,
   type TimeFieldControlProps,
-} from '../../internal/date-segments/TimeFieldControlInner';
+} from '../../internal/date-segments/TimeFieldControl';
 import { type PlainTime, Temporal } from '../../internal/date/plain-date';
 import { isTimeOutOfRange } from '../../internal/date/range';
 import { useLocale } from '../../internal/date/use-locale';
 import { Field, useFieldState } from '../../internal/field/Field';
-import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
+import {
+  HalfWidthNoticedContext,
+  type HalfWidthNoticeProps,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import {
   type FieldNamed,
   type InputFieldProps,
@@ -120,9 +123,6 @@ export interface TimePickerControlProps extends Omit<
   positionerProps?: PositionerProps;
 }
 
-type TimePickerControlInnerProps = TimePickerControlProps &
-  Pick<TimeFieldControlInnerProps, 'onHalfWidth'>;
-
 /** 値（制御・非制御）をまとめて持つ */
 function useTimeValue(
   value: PlainTime | null | undefined,
@@ -141,11 +141,7 @@ function useTimeValue(
 /**
  * 時刻を打つ欄に、一覧から選ぶボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます
  */
-export function TimePickerControl(props: TimePickerControlProps) {
-  return <TimePickerControlInner {...props} />;
-}
-
-function TimePickerControlInner({
+export function TimePickerControl({
   variant = 'list',
   minuteStep = 15,
   value: valueProp,
@@ -174,7 +170,7 @@ function TimePickerControlInner({
   max,
   locale: localeProp,
   ...field
-}: TimePickerControlInnerProps) {
+}: TimePickerControlProps) {
   // 1 列の形は刻みごとの時刻をすべて描く。5 分より細かいと項目が多すぎて重いので、列の形を勧める
   if (variant === 'list' && minuteStep < 5)
     warnOnce(
@@ -253,7 +249,7 @@ function TimePickerControlInner({
       closeName={closeName}
     >
       {(renderTrigger) => (
-        <TimeFieldControlInner
+        <TimeFieldControl
           {...field}
           value={value}
           onValueChange={setValue}
@@ -322,12 +318,9 @@ export function TimePicker(props: TimePickerProps) {
       nativeLabel={false}
     >
       {() => (
-        <TimePickerControlInner
-          {...control}
-          value={value}
-          onValueChange={setValue}
-          onHalfWidth={noticed}
-        />
+        <HalfWidthNoticedContext value={noticed}>
+          <TimePickerControl {...control} value={value} onValueChange={setValue} />
+        </HalfWidthNoticedContext>
       )}
     </Field>
   );

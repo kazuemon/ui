@@ -3,29 +3,25 @@
 import { useState } from 'react';
 
 import {
+  TimeFieldControl,
   type TimeFieldControlProps,
-  TimeFieldControlInner,
-} from '../../internal/date-segments/TimeFieldControlInner';
+} from '../../internal/date-segments/TimeFieldControl';
 import type { PlainTime } from '../../internal/date/plain-date';
 import { isTimeOutOfRange } from '../../internal/date/range';
 import { Field } from '../../internal/field/Field';
-import { type HalfWidthNoticeProps, useHalfWidthNotice } from '../../internal/half-width';
+import {
+  HalfWidthNoticedContext,
+  type HalfWidthNoticeProps,
+  useHalfWidthNotice,
+} from '../../internal/half-width';
 import {
   type FieldNamed,
   type InputFieldProps,
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 
-export type { TimeFieldControlProps } from '../../internal/date-segments/TimeFieldControlInner';
-
-/**
- * 時刻の区切りの欄の本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます。
- * 押せない・待っている・エラー・成功・必須の状態と、説明のつながり（aria-describedby）は、包む Field から受け取ります。
- * フォームに送る名前は Field の name です。min・max の外の値は区切りを aria-invalid にしますが、欄の枠線を赤くするには Field に errorText を渡します
- */
-export function TimeFieldControl(props: TimeFieldControlProps) {
-  return <TimeFieldControlInner {...props} />;
-}
+export type { TimeFieldControlProps } from '../../internal/date-segments/TimeFieldControl';
+export { TimeFieldControl };
 
 /** TimeField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type TimeFieldBaseProps = Omit<TimeFieldControlProps, 'className'> &
@@ -60,14 +56,15 @@ export function TimeField(props: TimeFieldProps) {
   return (
     <Field {...field} info={field.info ?? notice} invalid={outOfRange} nativeLabel={false}>
       {() => (
-        <TimeFieldControlInner
-          {...control}
-          onValueChange={(next) => {
-            setInner(next);
-            onValueChange?.(next);
-          }}
-          onHalfWidth={noticed}
-        />
+        <HalfWidthNoticedContext value={noticed}>
+          <TimeFieldControl
+            {...control}
+            onValueChange={(next) => {
+              setInner(next);
+              onValueChange?.(next);
+            }}
+          />
+        </HalfWidthNoticedContext>
       )}
     </Field>
   );

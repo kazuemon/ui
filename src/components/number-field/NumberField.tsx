@@ -1,15 +1,7 @@
 'use client';
 
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field';
-import {
-  type ComponentProps,
-  createContext,
-  type ReactNode,
-  type Ref,
-  useContext,
-  useId,
-  useState,
-} from 'react';
+import { type ComponentProps, type ReactNode, type Ref, useId, useState } from 'react';
 
 import { ArrowsHorizontalIcon } from '../../internal/icons';
 import { SplitStepButton, StackedStepper, type StepperNames } from './NumberFieldStepper';
@@ -17,10 +9,11 @@ import { FieldAddon } from '../field-addon/FieldAddon';
 import { Field, useFieldState } from '../../internal/field/Field';
 import { FieldBox, fieldInset } from '../../internal/field/FieldBox';
 import {
-  type HalfWidthKind,
   type HalfWidthNoticeProps,
   halfWidthKind,
+  HalfWidthNoticedContext,
   useHalfWidthNotice,
+  useHalfWidthNoticed,
 } from '../../internal/half-width';
 import {
   type FieldNamed,
@@ -189,7 +182,7 @@ export function NumberFieldControl({
   const uid = useId();
   // 全角を半角に直したことの知らせ（内蔵の形で halfWidthNotice を渡したとき）。直すのは Base UI（フォーカスが外れたときに半角の形になる）なので、
   //   打った文字に全角の英数字が入っていたかだけを見る。値が空になったら知らせを消す
-  const noticed = useContext(HalfWidthNoticedContext);
+  const noticed = useHalfWidthNoticed();
   // Form の送信中・blocking の待ちは、TextField と同じく書き換えを止める（フォーカスは外さない）
   const blocking = field?.blocking ?? false;
   const { className: _inputClassName, ref: inputPropsRef, ...inputPropsRest } = inputProps ?? {};
@@ -366,11 +359,6 @@ export function NumberFieldControl({
     </BaseNumberField.Root>
   );
 }
-
-// 内蔵の形（NumberField）が、全角を直したことの知らせを受け取る口。知らせは Field の情報の行に出す
-const HalfWidthNoticedContext = createContext<
-  ((kind: HalfWidthKind | null, empty: boolean) => void) | null
->(null);
 
 /** NumberField の props から、label・accessibleName の組み合わせの決まりを外したもの */
 export type NumberFieldBaseProps = Omit<NumberFieldControlProps, 'className'> &

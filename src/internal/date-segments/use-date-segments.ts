@@ -3,7 +3,7 @@
 // 区切りの欄の状態とキー操作（DateField・TimeField）。値の形（PlainDate・PlainTime）は呼ぶ側が決める
 import { useRef, useState } from 'react';
 
-import { type HalfWidthKind, halfWidthKind } from '../half-width';
+import { type HalfWidthKind, halfWidthKind, useHalfWidthNoticed } from '../half-width';
 import {
   constrainDay,
   formatSegment,
@@ -46,11 +46,6 @@ export interface DateSegmentsOptions<T> {
   editable: boolean;
   /** 貼り付けた文字が読めなかったとき */
   onParseFailed?: (text: string) => void;
-  /**
-   * 値が変わったとき、全角の英数字を半角に直したか（直していなければ null）と、区切りがすべて空になったかを渡す
-   * 直すのは NFKC（input）で、これは知らせのためだけに呼ぶ
-   */
-  onHalfWidth?: (kind: HalfWidthKind | null, empty: boolean) => void;
 }
 
 const SEPARATORS = new Set(['/', '-', '.', ':', ',', ' ', '年', '月', '日', '時', '分', '秒']);
@@ -85,6 +80,9 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
     setState({ values: fromValue(options.value), buffer: null, emitted: options.value });
   }
   const refs = useRef(new Map<SegmentType, HTMLElement>());
+  // 全角の英数字を半角に直したか（直していなければ null）と、区切りがすべて空になったかを、内蔵の形の外枠へ知らせる
+  // 直すのは NFKC（input）で、これは知らせのためだけに呼ぶ
+  const noticed = useHalfWidthNoticed();
 
   const focus = (type: SegmentType | undefined) => {
     if (type) refs.current.get(type)?.focus();
@@ -94,7 +92,7 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
   const commit = (model: Model, converted: HalfWidthKind | null = null) => {
     const next = toValue(model.values);
     setState({ ...model, emitted: next });
-    options.onHalfWidth?.(converted, Object.keys(model.values).length === 0);
+    noticed?.(converted, Object.keys(model.values).length === 0);
     if (!same(next, state.emitted, equals)) options.onValueChange?.(next);
   };
 
@@ -262,7 +260,7 @@ export function useDateSegments<T>(options: DateSegmentsOptions<T>) {
   const reset = () => {
     const next = options.defaultValue ?? null;
     setState({ values: fromValue(next), buffer: null, emitted: next });
-    options.onHalfWidth?.(null, true);
+    noticed?.(null, true);
     if (!same(next, state.emitted, equals)) options.onValueChange?.(next);
   };
 
