@@ -230,6 +230,9 @@ export const AutoPlayReducedMotion: Story = {
   play: async ({ canvasElement }) => {
     try {
       const video = canvasElement.querySelector('video')!;
+      // はじめの描画から autoplay を付けない（描いた直後に一瞬だけ動くことがない）
+      await expect(video).not.toHaveAttribute('autoplay');
+      await expect(video.paused).toBe(true);
       // 動きを減らす設定に押されて、標準の controls が出る（渡した controls={false} より優先）
       await waitFor(() => expect(video).toHaveAttribute('controls'));
       await expect(video.paused).toBe(true);

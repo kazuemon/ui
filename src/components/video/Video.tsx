@@ -8,6 +8,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
@@ -20,6 +21,23 @@ import { useMergedRefs } from '../../internal/use-merged-refs';
 import { AspectRatio, type MediaFit } from '../aspect-ratio/AspectRatio';
 import { figureCaptionClass, figureClass } from '../figure/Figure';
 import { VideoBrokenIcon } from './video-icons';
+
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+
+function subscribeReducedMotion(onChange: () => void) {
+  const mql = window.matchMedia(reducedMotionQuery);
+  mql.addEventListener('change', onChange);
+  return () => mql.removeEventListener('change', onChange);
+}
+
+/** 動きを減らす設定か。はじめの描画から同期で読む（サーバーでは false） */
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(reducedMotionQuery).matches,
+    () => false
+  );
+}
 
 // 動画（軸 297〜299）。手元の動画ファイル（mp4・webm など）を記事や作品ページに置いて再生する。
 //   外部サービスの埋め込みは Embed（iframe）が受け持つので、これは <video> だけの部品
@@ -232,10 +250,12 @@ export function Video({
   ...props
 }: VideoProps) {
   const [status, setStatus] = useState<VideoStatus>('idle');
-  // 自動再生の要求を、動きを減らす設定で止めたか。止めたときはコントロールを強制し、再生ボタンも出す
-  const [autoPlaySuppressed, setAutoPlaySuppressed] = useState(false);
+  // 自動再生の要求を、動きを減らす設定で止めたか。止めたときは autoplay を付けず、コントロールを強制し、再生ボタンも出す
+  //   はじめの描画から読むので、描いた直後に一瞬だけ再生が始まることはない
+  const reducedMotion = usePrefersReducedMotion();
+  const autoPlaySuppressed = autoPlay && reducedMotion;
   // 再生を一度でも始めたか。始めるまでは、大きな再生ボタンを重ねる
-  const [started, setStarted] = useState(autoPlay);
+  const [started, setStarted] = useState(autoPlay && !autoPlaySuppressed);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mergedRef = useMergedRefs(videoRef, ref);
 
@@ -250,20 +270,11 @@ export function Video({
     else setStatus('loading');
   }, []);
 
+  // 再生を始めたあとに動きを減らす設定へ変わったとき（サーバーで描いた autoplay が効いたときも）は止める
+  //   止めているあいだはコントロールを強制するので、大きな再生ボタン（started）は重ねない
   useEffect(() => {
-    if (!autoPlay) return undefined;
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => {
-      setAutoPlaySuppressed(mql.matches);
-      if (mql.matches) {
-        videoRef.current?.pause();
-        setStarted(false);
-      }
-    };
-    apply();
-    mql.addEventListener('change', apply);
-    return () => mql.removeEventListener('change', apply);
-  }, [autoPlay]);
+    if (autoPlaySuppressed) videoRef.current?.pause();
+  }, [autoPlaySuppressed]);
 
   const widthValue = toMediaSize(width);
   const heightValue = toMediaSize(height);
@@ -288,7 +299,7 @@ export function Video({
         height={height}
         poster={poster}
         controls={effectiveControls}
-        autoPlay={autoPlay}
+        autoPlay={autoPlay && !autoPlaySuppressed}
         loop={loop}
         muted={muted}
         playsInline={playsInline}
