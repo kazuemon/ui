@@ -37,6 +37,9 @@ jobs:
         run: pnpm lint
       - name: Format
         run: pnpm format:check
+      - name: Check principles
+        # principles.md の禁止語
+        run: pnpm check:principles
       - name: Build
         run: pnpm build
       - name: Check dist

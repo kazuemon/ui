@@ -224,7 +224,7 @@ function SnsScreen({
     setLoading(initialLoading);
   }
   useEffect(() => {
-    if (!loading) return;
+    if (!loading) return undefined;
     const id = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(id);
   }, [loading]);

@@ -330,7 +330,7 @@ function NewTaskForm({
         label="状態"
         items={statuses.map((s) => ({ label: statusLabel[s], value: s }))}
         value={status}
-        onValueChange={(value) => value && setStatus(value as TaskStatus)}
+        onValueChange={(value) => value && setStatus(value)}
       />
       <DateField
         label="期日"
@@ -350,7 +350,7 @@ function NewTaskForm({
           value: p,
         }))}
         value={priority}
-        onValueChange={(value) => value && setPriority(value as TaskPriority)}
+        onValueChange={(value) => value && setPriority(value)}
       />
       <Textarea label="メモ" value={note} onValueChange={setNote} />
     </form>
@@ -377,7 +377,7 @@ function TaskDetails({
         label="状態"
         items={statuses.map((s) => ({ label: statusLabel[s], value: s }))}
         value={status}
-        onValueChange={(value) => value && onStatusChange(value as TaskStatus)}
+        onValueChange={(value) => value && onStatusChange(value)}
       />
       {/* 打っている途中（年・月・日がそろわない）は null が来るので、欄に値を持たせ、そろったときだけ書き戻す */}
       <DateField

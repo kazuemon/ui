@@ -223,7 +223,7 @@ function clampColumns(columns: GridColumns | undefined): GridColumns | undefined
   if (typeof columns === 'number') return clamp(columns);
   return Object.fromEntries(
     Object.entries(columns).map(([bp, n]) => [bp, n == null ? n : clamp(n)])
-  ) as GridColumns;
+  );
 }
 
 function firstRow(columns: GridColumns | undefined) {

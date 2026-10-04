@@ -14,7 +14,7 @@ function pngBytes(): ArrayBuffer {
   const binary = atob(TRANSPARENT_PNG_BASE64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer as ArrayBuffer;
+  return bytes.buffer;
 }
 
 function makeFile(name: string, size: number, type = 'image/png') {

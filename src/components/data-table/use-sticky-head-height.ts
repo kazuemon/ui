@@ -8,9 +8,9 @@ import { type RefObject, useEffect } from 'react';
 export function useStickyHeadHeight(frameRef: RefObject<HTMLDivElement | null>, enabled: boolean) {
   useEffect(() => {
     const frame = frameRef.current;
-    if (!enabled || !frame) return;
+    if (!enabled || !frame) return undefined;
     const table = frame.querySelector('table');
-    if (!table) return;
+    if (!table) return undefined;
     const write = () => {
       const height = table.tHead?.getBoundingClientRect().height ?? 0;
       frame.style.setProperty('--data-table-head-height', `${height}px`);

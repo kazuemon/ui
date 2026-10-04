@@ -145,6 +145,7 @@ function InputStep({
   // effect の中で直に送ると、Form が送信の中で描く（flushSync）ときに React の描画と重なるので、描き終えてから送る
   useEffect(() => {
     if (initialErrors) queueMicrotask(() => formRef.current?.requestSubmit());
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- resubmit が変わったら送り直す（本体では読まない）
   }, [initialErrors, resubmit]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -189,7 +190,7 @@ function InputStep({
         label="参加のしかた"
         required
         value={values.attend}
-        onValueChange={(value) => set('attend', value as string)}
+        onValueChange={(value) => set('attend', value)}
         errorText={errors.attend}
       >
         <Radio value="venue" label="会場で参加" caption="東京・渋谷の会場です。定員は 40 人" />

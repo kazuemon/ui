@@ -209,6 +209,7 @@ function ListPage({
   // 横スクロールの位置は DOM を触る必要があるので、こちらは effect で戻す
   useEffect(() => {
     tableWrapRef.current?.querySelector('[data-slot="table-scroll"]')?.scrollTo({ left: 0 });
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- 絞り込みが変わったら位置を戻す（本体では読まない）
   }, [query, status]);
 
   return (
