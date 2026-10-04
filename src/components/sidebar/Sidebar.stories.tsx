@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { type ReactNode, useState } from 'react';
+import { createRef, type ReactNode, useState } from 'react';
 
 import { Button } from '../button/Button';
 import { Text } from '../text/Text';
+import { ThemeProvider } from '../theme-provider/ThemeProvider';
 import {
   AccountItems,
   DemoNavbar,
@@ -30,7 +31,7 @@ const meta = {
           '- 開け閉めのボタンは SidebarTrigger です。帯の中などに置きます。`collapseButton` を付けると、列の下端にも畳む・開くボタンが出ます。',
           '- 行は SidebarSection で節に分けられます（節は何個でも並べられます）。節の題は、列の中身と一緒にスクロールし、Drawer の中にも出ます。畳んだ列では題を出さず、節のあいだに線を引きます。',
           '- 畳むと、アイコンだけが残ります。入れ子のある行は、載せる（か押す）と横に面が出て、入れ子を開きます。畳んだ列の行にはアイコンを置いてください。',
-          '- 置かれた面の幅が 48rem より狭いときは、列をやめて Drawer に切り替わります（Drawer の題は `drawerLabel`）。出す向きは `narrowSide`（`left` が既定、`right`・`bottom`、指の画面だけ下から出す `auto`）です。',
+          '- 置かれた面の幅が 48rem より狭いときは、列をやめて Drawer に切り替わります（Drawer の題は `drawerLabel`）。出す向きは `narrowSide`（`left` が既定、`right`・`bottom`、ThemeProvider の `presentation` に従う `auto`）です。`auto` は、シートになるとき（既定では指の画面が狭いとき）だけ下から出します。',
           '- `color` は、いまいる行の色です。指定しないときはグレーです。',
           '- 入れ子に足す操作（グループの作成など）は、入れ子の末尾に「作成」の行（行き先を持たない SidebarItem）として置きます。`target="_blank"` の行には、右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。',
           '- 行が縦に収まらないときは、列の中がスクロールします。',
@@ -362,6 +363,94 @@ export const Narrow: Story = {
       'aria-current',
       'page'
     );
+  },
+};
+
+export const NarrowSideFromTheme: Story = {
+  name: '狭い画面の向きを ThemeProvider で決める',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`narrowSide="auto"` は、ThemeProvider の `presentation` に従います。`presentation="sheet"` の中では、下から出します。',
+      },
+    },
+  },
+  render: () => (
+    <div className="p-6">
+      <ThemeProvider presentation="sheet">
+        <Frame
+          width={400}
+          height={560}
+          sidebar={
+            <Sidebar narrowSide="auto">
+              <TournamentItems />
+            </Sidebar>
+          }
+        />
+      </ThemeProvider>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'メニューを開閉する' }));
+    const body = within(canvasElement.ownerDocument.body);
+    const drawer = await body.findByRole('dialog', { name: 'メニュー' });
+    await expect(drawer).toHaveAttribute('data-side', 'bottom');
+  },
+};
+
+const narrowRefs = { drawer: createRef<HTMLElement>(), menu: createRef<HTMLElement>() };
+
+export const NarrowProps: Story = {
+  name: '狭い画面でも className と ref を渡す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '狭い画面でも、`className`・`ref`・`data-*` などは列の要素に付きます。Drawer では中の nav に、`narrowPresentation="menu"` ではシートの面に付きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-6 p-6">
+      {(['drawer', 'menu'] as const).map((presentation) => (
+        <div key={presentation} data-testid={presentation}>
+          <Frame
+            width={400}
+            height={320}
+            sidebar={
+              <Sidebar
+                narrowPresentation={presentation}
+                ref={narrowRefs[presentation]}
+                className="sidebar-test"
+                data-testid={`sidebar-${presentation}`}
+              >
+                <TournamentItems />
+              </Sidebar>
+            }
+          />
+        </div>
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    for (const presentation of ['drawer', 'menu'] as const) {
+      await userEvent.click(
+        within(canvas.getByTestId(presentation)).getByRole('button', { name: 'メニューを開閉する' })
+      );
+      const surface = await body.findByTestId(`sidebar-${presentation}`);
+      await expect(surface).toHaveClass('sidebar-test');
+      await expect(narrowRefs[presentation].current).toBe(surface);
+      // 広い列と同じく、部品が付ける id も持つ
+      await expect(surface.id).not.toBe('');
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(body.queryByTestId(`sidebar-${presentation}`)).toBeNull());
+    }
   },
 };
 

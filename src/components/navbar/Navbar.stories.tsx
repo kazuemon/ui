@@ -8,6 +8,7 @@ import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import { type MatrixColumn, sourceCode, statePseudo } from '../../stories/story-states';
 import { Button } from '../button/Button';
 import { SearchField } from '../search-field/SearchField';
+import { ThemeProvider } from '../theme-provider/ThemeProvider';
 
 const pages = [
   { label: 'Works', href: '#works' },
@@ -54,7 +55,7 @@ const meta = {
           '- `narrowPlacement` が `menu` のまとまりは、帯とメニューの 2 か所に描かれます。検索の欄など状態を持つものを入れるときは、`value` と `onValueChange` で外から状態を渡すと、帯とメニューで同じ値になります。',
           '- `brand` には、トップへのリンクにしたロゴやサイトの名前を渡します。`actions` には、帯の右端に置くボタンなどを渡します。',
           '- 帯の幅が 768px より狭いときは、行き先をメニューのボタンに畳みます。`NavbarLinks`・`NavbarGroup` ごとに `narrowPlacement` で、メニューに畳む（`menu`。既定）・帯に残す（`bar`）・隠す（`hidden`）を選べます。畳むかどうかは画面の幅ではなく帯そのものの幅で決まるので、画面の一部に置いた帯も、置いた幅に合わせて畳まれます。押すと、行き先を縦に並べた面が開きます。行き先を押すと面は閉じます。',
-          '- メニューの面は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです。`menuSide` で固定できます。',
+          '- メニューの面は、指で操作していて画面が狭いときは下から出すシート、それ以外は右から出すパネルです。ThemeProvider の `presentation` でまとめて決められ、`menuSide` で固定できます。',
           '- メニューの開閉を外から決めるときは `menuOpen` と `onMenuOpenChange` を使います（ページを移ったあとに閉じるときなど）。',
           '- 外のサイトへの行き先は `target="_blank"` を付けます。右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入り、`rel="noopener noreferrer"` も付きます（Link と同じ扱いです）。',
           '- `size` は中身の幅の上限で、Container と同じです。本文の Container と同じ値にすると、端がそろいます。',
@@ -683,6 +684,50 @@ export const Accessibility: Story = {
     // 行き先を押すと閉じる
     await userEvent.click(within(nav).getByRole('link', { name: 'About' }));
     await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+  },
+};
+
+export const PresentationFromTheme: Story = {
+  name: 'ThemeProvider の presentation に従う',
+  parameters: {
+    layout: 'padded',
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`menuSide` を書かない（`auto`）ときは、ThemeProvider の `presentation` に従います。`presentation="sheet"` の中では、いつも下から出すシートになります。`menuSide` で向きを書いたときは、そちらが勝ちます。',
+      },
+    },
+  },
+  render: () => (
+    <ThemeProvider presentation="sheet">
+      <div className="flex flex-col gap-4">
+        <div data-testid="auto" className="w-[375px] border border-line">
+          <Navbar brand={brand}>{links()}</Navbar>
+        </div>
+        <div data-testid="fixed" className="w-[375px] border border-line">
+          <Navbar brand={brand} menuSide="right">
+            {links()}
+          </Navbar>
+        </div>
+      </div>
+    </ThemeProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    for (const [testId, side] of [
+      ['auto', 'bottom'],
+      ['fixed', 'right'],
+    ] as const) {
+      await userEvent.click(
+        within(canvas.getByTestId(testId)).getByRole('button', { name: 'メニュー' })
+      );
+      const menu = await body.findByRole('dialog', { name: 'メニュー' });
+      await expect(menu).toHaveAttribute('data-side', side);
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(body.queryByRole('dialog', { name: 'メニュー' })).toBeNull());
+    }
   },
 };
 

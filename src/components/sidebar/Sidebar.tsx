@@ -49,7 +49,7 @@ export type {
 // ページの横に並ぶ列 — ADR-0350〜0357
 //   広い画面: 本文の横に並ぶ列。畳むと幅が縮み、アイコンだけが残る（rail）。開け閉めで本文の幅が変わる
 //   狭い画面: 列をやめ、Drawer と同じ挙動（後ろを暗くする・外を押す／Esc／はじくで閉じる）で出す。行き先を押すと閉じる
-//   出す向きは narrowSide。auto は Navbar のメニューと同じ判定（指で操作していて画面が狭いときは下から、それ以外は左から）
+//   出す向きは narrowSide。auto は Navbar のメニューと同じ判定（ThemeProvider の presentation でシートになるときは下から、それ以外は左から）
 
 export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'title'> {
   /**
@@ -145,7 +145,7 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    */
   closeDelay?: number;
   /**
-   * 狭い画面で、Drawer を出す向き。auto は、指で操作していて画面が狭いときは下から、それ以外は左から出します
+   * 狭い画面で、Drawer を出す向き。auto は、ThemeProvider の presentation に従います。シートになるとき（既定の auto では、指で操作していて画面が狭いとき）は下から、それ以外は左から出します
    * @default 'left'
    */
   narrowSide?: SidebarNarrowSide;
@@ -154,7 +154,10 @@ export interface SidebarProps extends Omit<ComponentProps<'nav'>, 'color' | 'tit
    * @default document.body
    */
   portalContainer?: HTMLElement | null;
-  /** いちばん外の要素（nav）に付きます */
+  /**
+   * いちばん外の要素（nav）に付きます。狭い画面の narrowPresentation="menu" では、nav の代わりにシートの面に付きます。
+   * ref・id・data-* などの props も同じ要素に付きます（menu のシートの面には style は付きません）
+   */
   className?: string;
 }
 
@@ -193,7 +196,7 @@ export function Sidebar({
   const [resizing, setResizing] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const mergedRef = useMergedRefs(navRef, ref);
-  const sheet = useSheetPresentation('auto');
+  const sheet = useSheetPresentation(undefined);
   const side = narrowSide === 'auto' ? (sheet ? 'bottom' : 'left') : narrowSide;
   const s = sidebar({
     color,
@@ -221,6 +224,9 @@ export function Sidebar({
         color={color}
         returnFocus={layout.triggerRef}
         portalContainer={portalContainer}
+        // nav の代わりに、シートの面（menu）に className・id・ref・DOM の props を付ける（style は面が自分で決める）
+        className={className}
+        popupProps={{ ...props, id: navId, ref: mergedRef }}
       >
         <SidebarNavContext value={{ ...navValue, mode: 'flyout', depth: 0, sheet: true }}>
           {header}
@@ -247,7 +253,8 @@ export function Sidebar({
         <SidebarNavContext value={{ ...navValue, mode: 'drawer', depth: 0 }}>
           <nav
             {...props}
-            ref={ref}
+            ref={mergedRef}
+            id={navId}
             aria-label={drawerLabel}
             data-slot="sidebar"
             className={s.drawer({ className })}
