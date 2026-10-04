@@ -522,6 +522,36 @@ export const OpenOnFocus: Story = {
   },
 };
 
+const inputOnFocus = fn();
+const inputOnKeyDown = fn();
+export const InputPropsHandlers: Story = {
+  name: 'inputProps のハンドラーも呼ぶ',
+  args: {
+    label: '最近の検索',
+    openOn: 'focus',
+    inputProps: { onFocus: inputOnFocus, onKeyDown: inputOnKeyDown },
+  },
+  parameters: { controls: { disable: true } },
+  decorators: [narrow],
+  play: async ({ canvasElement }) => {
+    inputOnFocus.mockClear();
+    inputOnKeyDown.mockClear();
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const input = canvas.getByRole('combobox');
+    // 利用者のハンドラーを渡しても、フォーカスで開く（押さずに、フォーカスを移すだけで開く）
+    input.focus();
+    await waitFor(() => expect(page.getByRole('option', { name: '札幌市' })).toBeVisible());
+    await expect(inputOnFocus).toHaveBeenCalled();
+    // Esc は閉じるだけで、打った文字は消さない
+    await userEvent.type(input, '京');
+    await userEvent.keyboard('{Escape}');
+    await expect(input).toHaveAttribute('aria-expanded', 'false');
+    await expect(input).toHaveValue('京');
+    await expect(inputOnKeyDown).toHaveBeenCalled();
+  },
+};
+
 export const Keyboard: Story = {
   name: 'キーボード',
   parameters: {

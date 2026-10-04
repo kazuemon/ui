@@ -60,6 +60,7 @@ import {
   type ListboxInputProps,
   type ListboxSlotProps,
   mergeSlotClass,
+  joinIds,
 } from '../../internal/listbox/listbox-slot-props';
 import type {
   ListboxItem,
@@ -287,7 +288,8 @@ export interface ComboboxControlProps<Value = string, Multiple extends boolean =
     Pick<ComponentProps<typeof BaseCombobox.Positioner>, 'collisionAvoidance' | 'anchor'>;
   /**
    * 欄の中の打つ欄（input）に広げる props。autoComplete・inputMode・ref などを渡します。
-   * className は部品のクラスに重ねます
+   * className は部品のクラスに重ねます。onKeyDown などのハンドラーは、部品の処理の前に呼びます。
+   * aria-describedby は、部品の説明（キャプション・状態の行）の前につなぎます
    */
   inputProps?: ListboxInputProps;
   /**
@@ -749,13 +751,14 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
           >
             {(values) => (
               <BaseCombobox.Input
-                aria-describedby={messageIds}
+                // 利用者の props は先に広げ、部品が決める説明・状態で上書きされないようにする
+                {...inputRest}
+                aria-describedby={joinIds(inputRest['aria-describedby'], messageIds)}
                 aria-required={required || undefined}
                 enterKeyHint={enterKeyHint}
                 aria-disabled={blocking || undefined}
                 aria-busy={loading || undefined}
                 placeholder={loadingBlocking ? loadingText : values.length > 0 ? '' : placeholder}
-                {...inputRest}
                 className={mergeSlotClass(
                   `${inputClass} h-(--combobox-chip-height) min-w-16`,
                   inputClassName
@@ -765,13 +768,13 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
           </ComboboxChips>
         ) : (
           <BaseCombobox.Input
-            aria-describedby={messageIds}
+            {...inputRest}
+            aria-describedby={joinIds(inputRest['aria-describedby'], messageIds)}
             aria-required={required || undefined}
             enterKeyHint={enterKeyHint}
             aria-disabled={blocking || undefined}
             aria-busy={loading || undefined}
             placeholder={loadingBlocking ? loadingText : placeholder}
-            {...inputRest}
             className={mergeSlotClass(`${inputClass} h-full ${controlInset}`, inputClassName)}
           />
         )}
