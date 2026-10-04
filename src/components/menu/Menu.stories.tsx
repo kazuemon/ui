@@ -385,6 +385,8 @@ export const AlignMarks: Story = {
     async function labelLeft(triggerName: string, itemName: string) {
       await userEvent.click(canvas.getByRole('button', { name: triggerName }));
       const menu = await body.findByRole('menu');
+      // 浮かべたメニューは、開いたボタンの名前で読む
+      await expect(menu).toHaveAccessibleName(triggerName);
       const label = within(menu).getByText(itemName);
       const left = label.getBoundingClientRect().left;
       await userEvent.keyboard('{Escape}');
