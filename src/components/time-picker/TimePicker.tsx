@@ -124,7 +124,6 @@ export interface TimePickerControlProps extends Omit<
   positionerProps?: PositionerProps;
 }
 
-
 /**
  * 時刻を打つ欄に、一覧から選ぶボタンを付けた本体（組み立て用）。Field の中に置き、ラベル・キャプション・状態の行は FieldLabel などで並べます
  */
