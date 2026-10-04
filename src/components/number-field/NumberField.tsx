@@ -345,7 +345,7 @@ export function NumberFieldControl({
               style={
                 hasInlineText
                   ? (state) => ({
-                      width: `calc(${Math.max(state.inputValue.length, placeholder?.length ?? 0, 1)}ch + 2px)`,
+                      width: `calc(${Math.max(state.inputValue.length, placeholder?.length ?? 0, 1)}ch + var(--number-field-inline-slack))`,
                     })
                   : undefined
               }
