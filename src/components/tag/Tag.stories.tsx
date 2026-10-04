@@ -168,6 +168,8 @@ export const Links: Story = {
           '```tsx',
           '<Tag render={<NextLink href="/tags/design" />} link>デザイン</Tag>',
           '```',
+          '',
+          '新しいタブで開く（`target="_blank"`）タグは、文字の後ろに ↗ が付きます。`newTabIcon` で付けるかを変えられます。',
         ].join('\n'),
       },
     },
@@ -176,12 +178,21 @@ export const Links: Story = {
     <Matrix
       rows={variants}
       columns={pressColumns.filter((column) => !column.disabled)}
-      columnWidth="8rem"
+      columnWidth="15rem"
       rowLabel={(variant) => variant}
       renderCell={(variant) => (
         <div className="flex gap-2">
           <Tag {...args} variant={variant} />
           <Tag {...args} variant={variant} color="primary" />
+          <Tag
+            {...args}
+            variant={variant}
+            color="primary"
+            icon={<Icon icon={HashIcon} />}
+            target="_blank"
+          >
+            新しいタブ
+          </Tag>
         </div>
       )}
     />
@@ -221,6 +232,12 @@ export const LinkResolution: Story = {
       <Tag {...args} render={<a href="https://example.com" />} link target="_blank">
         render で新しいタブ
       </Tag>
+      <Tag {...args} href="https://example.com" target="_blank" newTabIcon={false}>
+        矢印なし
+      </Tag>
+      <Tag {...args} href="#tags/design" onClick={stay} newTabIcon>
+        同じタブで矢印
+      </Tag>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -241,7 +258,16 @@ export const LinkResolution: Story = {
     const renderNewTab = canvas.getByRole('link', { name: /^render で新しいタブ\s*（/ });
     await expect(renderNewTab).toHaveAttribute('target', '_blank');
     await expect(renderNewTab).toHaveAttribute('rel', 'noopener noreferrer');
-    await expect(canvas.getAllByRole('link')).toHaveLength(4);
+    await expect(canvas.getAllByRole('link')).toHaveLength(6);
+    // ↗: 新しいタブで開くタグに付き（render の target も見る）、読み上げには入らない。newTabIcon で上書きできる
+    const arrow = (element: Element | null | undefined) =>
+      element?.querySelector('[data-slot="tag-new-tab-icon"]');
+    await expect(arrow(newTab)).toHaveAttribute('aria-hidden', 'true');
+    await expect(arrow(renderNewTab)).not.toBeNull();
+    await expect(arrow(off)).toBeNull();
+    await expect(arrow(withHref)).toBeNull();
+    await expect(arrow(canvas.getByRole('link', { name: /^矢印なし\s*（/ }))).toBeNull();
+    await expect(arrow(canvas.getByRole('link', { name: '同じタブで矢印' }))).not.toBeNull();
 
     // link だけ（href も render もない）: 開発中に警告する
     const warn = spyOn(console, 'warn').mockImplementation(() => {});
