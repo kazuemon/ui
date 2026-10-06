@@ -490,11 +490,15 @@ export const Accessibility: Story = {
   },
 };
 
-// 描き直しても、トーストが増えても、useToast() の関数が同じものかを数える見本
+// useToast() だけを呼ぶ部品の描いた回数と、返すものが同じかを数える見本
 const toastIdentities = new Set<unknown>();
 const showIdentities = new Set<unknown>();
+const renders = { count: 0 };
 function CountToastIdentity() {
   const toast = useToast();
+  useEffect(() => {
+    renders.count += 1;
+  });
   toastIdentities.add(toast);
   showIdentities.add(toast.show);
   const [count, setCount] = useState(0);
@@ -507,7 +511,7 @@ function CountToastIdentity() {
 }
 
 export const StableUseToast: Story = {
-  name: 'useToast の関数は描き直しても同じ',
+  name: 'useToast は知らせの増減で描き直されない',
   tags: ['!autodocs'],
   parameters: { controls: { disable: true } },
   render: () => (
@@ -523,11 +527,22 @@ export const StableUseToast: Story = {
     await expect(canvas.getByRole('button', { name: /描き直す（2）/ })).toBeVisible();
     // 描き直しただけでは、返すオブジェクトも同じ
     await expect(toastIdentities.size).toBe(1);
-    // トーストが増えると toasts が変わるのでオブジェクトは新しくなるが、show などの関数は同じ
+    // トーストを出して閉じても、描き直されず、返すものも同じ
+    const before = renders.count;
     await userEvent.click(canvas.getByRole('button', { name: '出す' }));
     const body = within(canvasElement.ownerDocument.body);
     await body.findByText('保存しました');
-    await expect(toastIdentities.size).toBeGreaterThan(1);
+    // 出ているあいだ、中の操作は読み上げから外れているので、要素を直に押す
+    const close = canvasElement.ownerDocument.querySelector<HTMLButtonElement>(
+      '[data-slot="toast"] button'
+    );
+    await expect(close).not.toBeNull();
+    await userEvent.click(close!);
+    await waitFor(async () => {
+      await expect(body.queryAllByText('保存しました')).toHaveLength(0);
+    });
+    await expect(renders.count).toBe(before);
+    await expect(toastIdentities.size).toBe(1);
     await expect(showIdentities.size).toBe(1);
   },
 };
