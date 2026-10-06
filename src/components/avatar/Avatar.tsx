@@ -35,37 +35,38 @@ const avatar = tv({
     fallbackContent: 'contents',
   },
   variants: {
-    // 大きさの段。四角（square・tile）のときの角も、段ごとに持つ
+    // 大きさの段。四角のときの角も、段ごとに持つ — ADR-0474
+    //   square は大きさのおよそ 1/4 の角、tile はどの段も小さい角（xs だけさらに小さい）。Tag・Chip の中の角（small-parts-size.ts）も同じ値
     size: {
       // xs（軸 463）: 小さい文字（キャプション・表の小さい文字）の横に置く段
       xs: {
         root: [
           '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
-          '[--avatar-radius-square:var(--avatar-radius-square-xs)] [--avatar-radius-tile:var(--avatar-radius-tile-xs)]',
+          '[--avatar-radius-square:var(--radius-sm)] [--avatar-radius-tile:var(--radius-xs)]',
         ],
       },
       sm: {
         root: [
           '[--avatar-size:var(--avatar-size-sm)] [--avatar-text:var(--avatar-text-sm)]',
-          '[--avatar-radius-square:var(--avatar-radius-square-sm)] [--avatar-radius-tile:var(--avatar-radius-tile-sm)]',
+          '[--avatar-radius-square:var(--radius-md)] [--avatar-radius-tile:var(--radius-sm)]',
         ],
       },
       md: {
         root: [
           '[--avatar-size:var(--avatar-size-md)] [--avatar-text:var(--avatar-text-md)]',
-          '[--avatar-radius-square:var(--avatar-radius-square-md)] [--avatar-radius-tile:var(--avatar-radius-tile-md)]',
+          '[--avatar-radius-square:var(--radius-lg)] [--avatar-radius-tile:var(--radius-sm)]',
         ],
       },
       lg: {
         root: [
           '[--avatar-size:var(--avatar-size-lg)] [--avatar-text:var(--avatar-text-lg)]',
-          '[--avatar-radius-square:var(--avatar-radius-square-lg)] [--avatar-radius-tile:var(--avatar-radius-tile-lg)]',
+          '[--avatar-radius-square:var(--radius-xl)] [--avatar-radius-tile:var(--radius-sm)]',
         ],
       },
       xl: {
         root: [
           '[--avatar-size:var(--avatar-size-xl)] [--avatar-text:var(--avatar-text-xl)]',
-          '[--avatar-radius-square:var(--avatar-radius-square-xl)] [--avatar-radius-tile:var(--avatar-radius-tile-xl)]',
+          '[--avatar-radius-square:var(--radius-2xl)] [--avatar-radius-tile:var(--radius-sm)]',
         ],
       },
     },

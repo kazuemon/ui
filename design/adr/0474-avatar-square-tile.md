@@ -47,8 +47,7 @@ hane（大会運営のアプリ）から、Avatar の `shape="square"` が sm・
 
 ## 影響
 
-- `src/components/avatar/Avatar.tsx`: `shape` に `tile` を足し、四角の角を段ごとのトークンから読むようにしました。根の要素に `data-shape` を付けました（Tag・Chip が形を見分けるため）
-- `src/components/avatar/avatar.tokens.css`: `--avatar-radius-square-*`（C）と `--avatar-radius-tile-*`（B）を置きました
+- `src/components/avatar/Avatar.tsx`: `shape` に `tile` を足し、四角の角を段ごとに決め打ちました（角の尺度を直接指します）。根の要素に `data-shape` を付けました（Tag・Chip が形を見分けるため）
 - `design/props.md`: `shape` の値に、Avatar だけの `tile` を足しました
 - 実装のコミット `858415c` で、比べるためだけに置いたものを畳みました。比較のストーリーは消しました
 - hane は、スキンの部品の角の上書きをやめ、`shape="tile"` に書き換えます
