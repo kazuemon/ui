@@ -6,16 +6,12 @@
   /* Tag・Chip の sm の高さ。Combobox・TagsInput が欄の中のチップにそろえるときも、small-parts-size.ts の chipHeightValue から同じ値を読む */
   --small-parts-height-sm: calc(var(--spacing) * 5);
 
-  /* Tag・Chip の先頭のアイコン・アバター — ADR-0399・0400
+  /* Tag・Chip の先頭のアイコン・アバター — ADR-0399・0400・0475
      icon-gap: アイコンと文字の間。avatar-inset: アバターの上下と左の余白（アバターは高さから上下の余白を引いた大きさ）
-     avatar-edge-gap: 四角いアバターの角と、札の外周（縁の線の外側）とのあいだの最小の離れ。角が外周に接さないよう、
-       部品が上下と左の余白を avatar-inset より広げる（丸いアバターは札と同心なので広げない）
+     avatar-inset-square: 四角いアバター（square・tile）の上下の余白。四角は札の丸い端の曲がりより右に置く（ADR-0475）
      avatar-gap: アバターと文字の間（顔と文字が詰まらないよう、アイコンより広い） */
   --small-parts-icon-gap: calc(var(--spacing) * 1);
   --small-parts-avatar-inset: calc(var(--spacing) * 1);
-  --small-parts-avatar-edge-gap: var(--small-parts-avatar-inset);
-  --small-parts-avatar-concentric: 0;
-  --small-parts-avatar-shift: 0;
-  --small-parts-avatar-shift-inset: var(--small-parts-avatar-inset);
+  --small-parts-avatar-inset-square: calc(var(--spacing) * 1.5);
   --small-parts-avatar-gap: calc(var(--spacing) * 1.5);
 }

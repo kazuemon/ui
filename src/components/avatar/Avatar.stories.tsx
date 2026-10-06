@@ -21,7 +21,7 @@ const palePhoto = svg(
 const broken = 'data:image/png;base64,AAAA';
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
-const shapes = ['circle', 'square'] as const;
+const shapes = ['circle', 'square', 'tile'] as const;
 const colors = ['neutral', 'primary', 'secondary'] as const;
 const fallbacks = ['initials', 'icon'] as const;
 
@@ -35,6 +35,7 @@ const sizeColumns: SizeColumn[] = [
   { label: '頭文字（丸）', shape: 'circle', kind: 'initials' },
   { label: '画像（四角）', shape: 'square', kind: 'image' },
   { label: '頭文字（四角）', shape: 'square', kind: 'initials' },
+  { label: '画像（タイル）', shape: 'tile', kind: 'image' },
 ];
 
 const meta = {
@@ -52,7 +53,7 @@ const meta = {
           '- `name` を渡すと、画像がないとき・読み込めないときに頭文字を出します。和文は 1 文字、欧文は語頭 2 文字までです（「かずえもん」→「か」、`Kazuya Miyamoto` → `KM`）。',
           '- `fallback` は、画像がないとき・読み込めないときに出すものです。`initials`（既定）は頭文字、`icon` は人のアイコンです。ほかのものを置くときは `children` に渡します。',
           '- `size` は大きさの段です（`xs`・`sm`・`md`（既定）・`lg`・`xl`）。`xs` はキャプションや表の小さい文字の横に置く段です。押すものではないので、入力方式では変わりません。',
-          '- `shape` は形です。`circle`（既定）は丸、`square` は四角です。四角の角は大きさの段に従い、`xs` は小さい角、`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角になります。',
+          '- `shape` は形です。`circle`（既定）は丸、`square` は角を丸めた四角、`tile` は角の小さい四角です。四角の角は大きさの段に従います。ドット絵（ゲームのスキンなど）のように四角く見せたい画像は `tile` にします。',
           '- `color` は頭文字の色です。`neutral`（既定）はグレー、`primary`・`secondary` は淡い面に濃い文字です。名前から色を自動で決めることはしません。',
           '- 細い輪郭は既定で付きます。白っぽい画像が白地に溶けないようにするためです。`hideOutline` で消せます。',
         ].join('\n'),
@@ -117,12 +118,13 @@ export const Sizes: Story = {
     docs: {
       description: {
         story:
-          '四角（`shape="square"`）の角は大きさの段に従います。`sm`・`md` は部品と同じ角、`lg`・`xl` はカードと同じ角です。',
+          '四角の角は大きさの段に従います。`shape="square"` は大きさのおよそ 1/4 の角、`shape="tile"` はどの段も小さい角です。ドット絵などの四角い画像には `tile` が合います。',
       },
       source: sourceCode(`
         <Avatar size="lg" src={photo} alt="かずえもん" />
         <Avatar size="lg" name="かずえもん" />
         <Avatar size="lg" shape="square" src={photo} alt="かずえもん" />
+        <Avatar size="lg" shape="tile" src={photo} alt="かずえもん" />
       `),
     },
   },

@@ -33,7 +33,7 @@ const chip = tv({
     // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — ADR-0400）
     '[--small-parts-host-height:var(--chip-height)]',
     'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-offset-x)_-_var(--chip-border-width)))]',
-    // 先頭のアバターの角と余白（四角の角が外周に接さないように）
+    // 先頭のアバターの角と余白（四角は、丸い端の曲がりより右に置く — ADR-0475）
     smallPartsAvatarClass,
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う

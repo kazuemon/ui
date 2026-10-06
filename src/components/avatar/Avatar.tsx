@@ -35,45 +35,45 @@ const avatar = tv({
     fallbackContent: 'contents',
   },
   variants: {
-    // 大きさの段。四角のときの角も、段ごとに持つ（小さい段は部品の角、大きい段はカードの角）
+    // 大きさの段。四角（square・tile）のときの角も、段ごとに持つ
     size: {
       // xs（軸 463）: 小さい文字（キャプション・表の小さい文字）の横に置く段
       xs: {
         root: [
           '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xs)] [--avatar-radius-square:var(--avatar-radius-square-xs)]',
+          '[--avatar-radius-square:var(--avatar-radius-square-xs)] [--avatar-radius-tile:var(--avatar-radius-tile-xs)]',
         ],
       },
       sm: {
         root: [
           '[--avatar-size:var(--avatar-size-sm)] [--avatar-text:var(--avatar-text-sm)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-sm)] [--avatar-radius-square:var(--avatar-radius-square-sm)]',
+          '[--avatar-radius-square:var(--avatar-radius-square-sm)] [--avatar-radius-tile:var(--avatar-radius-tile-sm)]',
         ],
       },
       md: {
         root: [
           '[--avatar-size:var(--avatar-size-md)] [--avatar-text:var(--avatar-text-md)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-md)] [--avatar-radius-square:var(--avatar-radius-square-md)]',
+          '[--avatar-radius-square:var(--avatar-radius-square-md)] [--avatar-radius-tile:var(--avatar-radius-tile-md)]',
         ],
       },
       lg: {
         root: [
           '[--avatar-size:var(--avatar-size-lg)] [--avatar-text:var(--avatar-text-lg)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-lg)] [--avatar-radius-square:var(--avatar-radius-square-lg)]',
+          '[--avatar-radius-square:var(--avatar-radius-square-lg)] [--avatar-radius-tile:var(--avatar-radius-tile-lg)]',
         ],
       },
       xl: {
         root: [
           '[--avatar-size:var(--avatar-size-xl)] [--avatar-text:var(--avatar-text-xl)]',
-          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xl)] [--avatar-radius-square:var(--avatar-radius-square-xl)]',
+          '[--avatar-radius-square:var(--avatar-radius-square-xl)] [--avatar-radius-tile:var(--avatar-radius-tile-xl)]',
         ],
       },
     },
-    // 形（原則5）: circle は小物の丸、square は角の小さい四角、rounded は角を丸めた四角（角は大きさの段ごと — 軸 525）
+    // 形（原則5）: circle は小物の丸、square は角を丸めた四角、tile は角の小さい四角（角は大きさの段ごと — ADR-0474）
     shape: {
       circle: { root: '[--avatar-radius:var(--radius-pill)]' },
       square: { root: '[--avatar-radius:var(--avatar-radius-square)]' },
-      rounded: { root: '[--avatar-radius:var(--avatar-radius-rounded)]' },
+      tile: { root: '[--avatar-radius:var(--avatar-radius-tile)]' },
     },
     // 頭文字の面と文字（原則6）。指定しないときはグレー
     color: {
@@ -131,7 +131,7 @@ export interface AvatarProps
    */
   size?: VariantProps<typeof avatar>['size'];
   /**
-   * 形。circle は丸、square は角の小さい四角（ドット絵などの四角い画像に）、rounded は角を丸めた四角です。角は大きさの段ごとに決まっています
+   * 形。circle は丸、square は角を丸めた四角、tile は角の小さい四角（ドット絵などの四角い画像に）です。角は大きさの段ごとに決まっています
    * @default 'circle'
    */
   shape?: VariantProps<typeof avatar>['shape'];

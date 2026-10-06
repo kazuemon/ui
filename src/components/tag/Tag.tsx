@@ -65,7 +65,7 @@ const tag = tv({
     '[border:var(--tag-border-width)_var(--tag-border-style)_var(--tag-border-color)]',
     // 先頭のアバターは、左の余白をアバターの周りの余白（--small-parts-avatar-inset）にする
     'has-data-[slot=tag-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-offset-x)_-_var(--tag-border-width)))]',
-    // 先頭のアバターの角と余白（四角の角が外周に接さないように）
+    // 先頭のアバターの角と余白（四角は、丸い端の曲がりより右に置く — ADR-0475）
     smallPartsAvatarClass,
   ],
   variants: {

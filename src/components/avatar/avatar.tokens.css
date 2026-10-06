@@ -4,8 +4,8 @@
      text-*: 頭文字の大きさ。段のおよそ 0.4 倍。密度で変わらない文字の尺度がない（役割の文字は密度で変わる）ので px で置く
      outline-width・outline-color: 白っぽい画像が白地に溶けないための細い輪郭。濃さは Image の輪郭と同じ
      icon-scale: fallback="icon" のアイコンの、段に対する割合
-     radius-square-*: shape="square" の角。どの段も小さい角（xs だけさらに小さい）で、四角に見える（軸 525 の B）
-     radius-rounded-*: shape="rounded" の角。段ごとに決め打った、大きさのおよそ 1/4 の角（軸 525 の C）。丸は pill */
+     radius-square-*: shape="square" の角。段ごとに決め打った、大きさのおよそ 1/4 の角（ADR-0474）
+     radius-tile-*: shape="tile" の角。どの段も小さい角（xs だけさらに小さい）で、ドット絵などの四角い画像が四角に見える（ADR-0474）。丸は pill */
   --avatar-size-xs: calc(
     var(--spacing) * 5
   ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す */
@@ -21,14 +21,14 @@
   --avatar-outline-width: var(--border-width-thin);
   --avatar-outline-color: color-mix(in oklab, var(--color-fg) 12%, transparent);
   --avatar-icon-scale: 0.6;
-  --avatar-radius-square-xs: var(--radius-xs);
-  --avatar-radius-square-sm: var(--radius-sm);
-  --avatar-radius-square-md: var(--radius-sm);
-  --avatar-radius-square-lg: var(--radius-sm);
-  --avatar-radius-square-xl: var(--radius-sm);
-  --avatar-radius-rounded-xs: var(--radius-sm);
-  --avatar-radius-rounded-sm: var(--radius-md);
-  --avatar-radius-rounded-md: var(--radius-lg);
-  --avatar-radius-rounded-lg: var(--radius-xl);
-  --avatar-radius-rounded-xl: var(--radius-2xl);
+  --avatar-radius-square-xs: var(--radius-sm);
+  --avatar-radius-square-sm: var(--radius-md);
+  --avatar-radius-square-md: var(--radius-lg);
+  --avatar-radius-square-lg: var(--radius-xl);
+  --avatar-radius-square-xl: var(--radius-2xl);
+  --avatar-radius-tile-xs: var(--radius-xs);
+  --avatar-radius-tile-sm: var(--radius-sm);
+  --avatar-radius-tile-md: var(--radius-sm);
+  --avatar-radius-tile-lg: var(--radius-sm);
+  --avatar-radius-tile-xl: var(--radius-sm);
 }
