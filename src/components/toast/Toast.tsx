@@ -5,7 +5,7 @@ import {
   type ToastManagerUpdateOptions,
   type ToastObject,
 } from '@base-ui/react/toast';
-import { type ReactNode, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useContext, useLayoutEffect, useState } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
 import { useNarrowScreen } from '../../internal/sheet/use-narrow-screen';
@@ -299,9 +299,11 @@ export function ToastProvider({
   portalContainer,
 }: ToastProviderProps) {
   const target = usePortalContainer(portalContainer);
+  const [{ actions, connect }] = useState(createToastActions);
   return (
     <BaseToast.Provider timeout={timeout} limit={limit} toastManager={toastManager}>
-      {children}
+      <ToastActionsBridge connect={connect} />
+      <ToastActionsContext.Provider value={actions}>{children}</ToastActionsContext.Provider>
       <BaseToast.Portal container={target}>
         <ToastViewport
           position={position}
@@ -506,69 +508,111 @@ function fromBase(toast: ToastObject<ToastData>): ToastOptions {
   };
 }
 
+type BaseActions = Pick<
+  ReturnType<typeof BaseToast.useToastManager<ToastData>>,
+  'add' | 'close' | 'update' | 'promise'
+>;
+
+/** `useToast()` が返すもの */
+export interface ToastActions {
+  /** トーストを出す。返る id で、あとから閉じたり書き換えたりできます */
+  show: (options: ToastOptions) => string;
+  /** トーストを閉じる。id を渡さないと、出ているものをすべて閉じます */
+  close: (id?: string) => void;
+  /**
+   * 出したトーストを書き換える。渡したものだけが変わります。
+   * status を変えると、色と読み上げの割り込み（危険だけが割り込む）も変わります。
+   * 前の内容から作るときは、前の内容（`ToastOptions`）を受け取る関数を渡します
+   */
+  update: (
+    id: string,
+    options: ToastUpdateOptions | ((prev: ToastOptions) => ToastUpdateOptions)
+  ) => void;
+  /**
+   * Promise の間、待ち・成功・失敗のトーストを順に出します。
+   * それぞれに `ToastOptions` と同じ形か、文字だけ（本文になります）を渡します。
+   * 状態を書かないときは、待ちはグレー、成功は success、失敗は danger です。返るのは、渡した Promise の結果です
+   */
+  promise: <Value>(promise: Promise<Value>, options: ToastPromiseOptions<Value>) => Promise<Value>;
+}
+
+// Provider の中で、Base UI の道具（出す・閉じる…）を取り出して、渡し先の ref に置く。
+// 子の effect より前（layout の段）に置くので、マウント直後の show も取りこぼさない
+function ToastActionsBridge({ connect }: { connect: (base: BaseActions) => void }) {
+  // 一覧は読まないが、この部品だけは Base UI の hook を通す。何も描かないので、描き直しても軽い
+  const { add, close, update, promise } = BaseToast.useToastManager<ToastData>();
+  useLayoutEffect(() => {
+    connect({ add, close, update, promise });
+  }, [connect, add, close, update, promise]);
+  return null;
+}
+
+// 作った時点では Base UI の道具につながっていない。connect でつなぐと、渡した道具に向かう
+//   返す actions は 1 つで、つなぎ直しても変わらない
+function createToastActions(): {
+  actions: ToastActions;
+  connect: (base: BaseActions) => void;
+} {
+  let source: BaseActions | null = null;
+  const base = () => {
+    if (!source) {
+      throw new Error('useToast must be used within <ToastProvider>.');
+    }
+    return source;
+  };
+  const actions: ToastActions = {
+    show: ({ id, ...options }) => base().add({ id, ...toBase(options) }),
+    close: (id) => base().close(id),
+    update: (id, options) =>
+      base().update(id, (prev) =>
+        toBase(typeof options === 'function' ? options(fromBase(prev)) : options, prev.data ?? {})
+      ),
+    promise: (promise, options) => {
+      const { loading, success, error } = options;
+      return base().promise(promise, {
+        loading: toPromiseStage(loading, undefined),
+        success:
+          typeof success === 'function'
+            ? (result) => toPromiseStage(success(result), 'success')
+            : toPromiseStage(success, 'success'),
+        error:
+          typeof error === 'function'
+            ? (reason: unknown) => toPromiseStage(error(reason), 'danger')
+            : toPromiseStage(error, 'danger'),
+      });
+    },
+  };
+  return {
+    actions,
+    connect: (next) => {
+      source = next;
+    },
+  };
+}
+
+const ToastActionsContext = createContext<ToastActions | null>(null);
+
 /**
- * トーストを出す・閉じる・書き換える。`ToastProvider` の中で使います
+ * トーストを出す・閉じる・書き換える。`ToastProvider` の中で使います（外で呼ぶとエラーになります）
  *
  * 危険（`status: 'danger'`）だけは読み上げに割り込み、ほかは静かに知らせます（原則6）。
  * `show`・`update`・`promise` は、どれも `ToastOptions` と同じ形で受けます。
- * `show`・`close`・`update`・`promise` は描き直しても同じ関数です。effect の依存には、返したオブジェクトではなくこれらを入れます
- * （オブジェクトは、出ているトースト `toasts` が変わると新しくなります）
+ * 出ているトーストの一覧は購読しないので、トーストが出ても消えても、呼んだ部品は描き直されません。
+ * 返すオブジェクトも、`show`・`close`・`update`・`promise` も、描き直しても同じものです（effect の依存に入れても走り直しません）。
+ * 出ているトーストの一覧が要るときは `useToasts()` を使います
  */
-export function useToast() {
-  const {
-    toasts,
-    add,
-    close: closeToast,
-    update: updateToast,
-    promise: promiseToast,
-  } = BaseToast.useToastManager<ToastData>();
-  // 出す・閉じる・書き換える関数は、トーストが増えたり減ったりしても同じものを保つ（effect の依存に入れても走り直さない）
-  const methods = useMemo(
-    () => ({
-      /** トーストを出す。返る id で、あとから閉じたり書き換えたりできます */
-      show: ({ id, ...options }: ToastOptions) => add({ id, ...toBase(options) }),
-      /** トーストを閉じる。id を渡さないと、出ているものをすべて閉じます */
-      close: closeToast,
-      /**
-       * 出したトーストを書き換える。渡したものだけが変わります。
-       * status を変えると、色と読み上げの割り込み（危険だけが割り込む）も変わります。
-       * 前の内容から作るときは、前の内容（`ToastOptions`）を受け取る関数を渡します
-       */
-      update: (
-        id: string,
-        options: ToastUpdateOptions | ((prev: ToastOptions) => ToastUpdateOptions)
-      ) =>
-        updateToast(id, (prev) =>
-          toBase(typeof options === 'function' ? options(fromBase(prev)) : options, prev.data ?? {})
-        ),
-      /**
-       * Promise の間、待ち・成功・失敗のトーストを順に出します。
-       * それぞれに `ToastOptions` と同じ形か、文字だけ（本文になります）を渡します。
-       * 状態を書かないときは、待ちはグレー、成功は success、失敗は danger です。返るのは、渡した Promise の結果です
-       */
-      promise: <Value,>(promise: Promise<Value>, options: ToastPromiseOptions<Value>) => {
-        const { loading, success, error } = options;
-        return promiseToast(promise, {
-          loading: toPromiseStage(loading, undefined),
-          success:
-            typeof success === 'function'
-              ? (result: Value) => toPromiseStage(success(result), 'success')
-              : toPromiseStage(success, 'success'),
-          error:
-            typeof error === 'function'
-              ? (reason: unknown) => toPromiseStage(error(reason), 'danger')
-              : toPromiseStage(error, 'danger'),
-        });
-      },
-    }),
-    [add, closeToast, updateToast, promiseToast]
-  );
-  return useMemo(
-    () => ({
-      ...methods,
-      /** いま出ているトースト。トーストが変わると、返すオブジェクトも新しくなります */
-      toasts,
-    }),
-    [methods, toasts]
-  );
+export function useToast(): ToastActions {
+  const actions = useContext(ToastActionsContext);
+  if (!actions) {
+    throw new Error('useToast must be used within <ToastProvider>.');
+  }
+  return actions;
+}
+
+/**
+ * いま出ているトーストの一覧。トーストが変わるたびに、呼んだ部品が描き直されます。
+ * 出す・閉じるだけなら、購読しない `useToast()` を使います。`ToastProvider` の中で使います
+ */
+export function useToasts() {
+  return BaseToast.useToastManager<ToastData>().toasts;
 }

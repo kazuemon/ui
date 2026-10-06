@@ -750,7 +750,9 @@ export {
   type ToastStack,
   type ToastUpdateOptions,
   type ToastVariant,
+  type ToastActions,
   useToast,
+  useToasts,
 } from './components/toast/Toast';
 export {
   type TooltipAlign,
