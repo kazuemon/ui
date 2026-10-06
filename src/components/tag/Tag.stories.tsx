@@ -307,6 +307,7 @@ export const IconAndAvatar: Story = {
         story: [
           '- `icon` は文字の前に置くアイコンです。大きさは文字と同じで、色は既定で文字の色です。`iconColor` で `color` と同じ色から選べます（`solid` では文字の色のままです）。',
           '- `avatar` は文字の前に置く人の顔（`Avatar`）です。大きさはタグの高さから決まり、Avatar の `size` は使いません。',
+          '- 四角いアバター（`shape="square"`・`"tile"`）は、角がタグの丸い端にかからないよう、丸より上下を空け、丸い端の曲がりより右に置きます。角の丸さはタグの大きさで決まります。',
         ].join('\n'),
       },
     },
@@ -341,6 +342,21 @@ export const IconAndAvatar: Story = {
               {...args}
               size={size}
               avatar={<Avatar src={photo} name="かずえもん" alt="" />}
+            >
+              かずえもん
+            </Tag>
+          ))}
+        </div>
+      </Specimen>
+      <Specimen label="avatar（四角）">
+        <div className="flex flex-col items-start gap-2">
+          {(['sm', 'md', 'lg'] as const).map((size) => (
+            <Tag
+              key={size}
+              {...args}
+              size={size}
+              variant="outline"
+              avatar={<Avatar shape={size === 'md' ? 'square' : 'tile'} src={photo} alt="" />}
             >
               かずえもん
             </Tag>

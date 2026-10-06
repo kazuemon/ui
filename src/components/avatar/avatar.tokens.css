@@ -3,8 +3,7 @@
      size-*: 大きさの段（正方形）。入力方式では変えない（Badge と同じ）
      text-*: 頭文字の大きさ。段のおよそ 0.4 倍。密度で変わらない文字の尺度がない（役割の文字は密度で変わる）ので px で置く
      outline-width・outline-color: 白っぽい画像が白地に溶けないための細い輪郭。濃さは Image の輪郭と同じ
-     icon-scale: fallback="icon" のアイコンの、段に対する割合
-     radius: 丸は pill、shape="square" は小さい段（sm・md）が部品の角、大きい段（lg・xl）がカードの角 */
+     icon-scale: fallback="icon" のアイコンの、段に対する割合 */
   --avatar-size-xs: calc(
     var(--spacing) * 5
   ); /* 20px。小さい文字の横に並べる。キャプションの行からは少しはみ出す */

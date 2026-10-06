@@ -6,7 +6,11 @@ import type { VariantProps } from 'tailwind-variants';
 import { focusRing } from '../../internal/focus-styles';
 import { XIcon } from '../../internal/icons';
 import { warnOnce } from '../../internal/link-parts';
-import { leadingAvatarClass, leadingIcon } from '../../internal/small-parts-leading';
+import {
+  leadingAvatarClass,
+  leadingIcon,
+  smallPartsAvatarClass,
+} from '../../internal/small-parts-leading';
 import { chipSizeClass, type SmallPartsSize } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
@@ -28,7 +32,9 @@ const chip = tv({
     'pr-[var(--chip-pad-x)] has-data-[slot=chip-remove]:gap-1 has-data-[slot=chip-remove]:pr-1.5 has-data-[slot=chip-remove]:[--small-parts-inner-gap:calc(var(--spacing)_*_1)]',
     // 先頭のアバターは、左の余白をアバターの周りの余白にする（Tag と同じ。値は --small-parts-avatar-* — ADR-0400）
     '[--small-parts-host-height:var(--chip-height)]',
-    'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--chip-border-width)))]',
+    'has-data-[slot=chip-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-offset-x)_-_var(--chip-border-width)))]',
+    // 先頭のアバターの角と余白（四角は、丸い端の曲がりより右に置く — ADR-0475）
+    smallPartsAvatarClass,
     'data-disabled:cursor-not-allowed data-disabled:opacity-(--disabled-opacity)',
     // 見た目は --chip-*（tokens.css）で差し替えられる。未設定なら、色ごとの面と文字（--chip-color-*）を使う
     'bg-(--color-surface,var(--chip-color-bg)) text-(color:--chip-fg,var(--chip-color-fg))',
