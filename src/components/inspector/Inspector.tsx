@@ -202,8 +202,15 @@ export function Inspector({
   const wasOpen = useRef(false);
   // 焦点を移すまで待っている描画。開閉が変わったときと、外したときにだけ取りやめる
   //   （待つあいだに描き直して props が変わっても取りやめない。重い画面では待つあいだに描き直しが入るため）
+  //   外したときは閉じていたものに戻す。開発時の StrictMode は外して付け直すので、付け直したときに予約し直せるように
   const focusFrame = useRef(0);
-  useEffect(() => () => cancelAnimationFrame(focusFrame.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(focusFrame.current);
+      wasOpen.current = false;
+    },
+    []
+  );
   useLayoutEffect(() => {
     if (wasOpen.current === open) return;
     wasOpen.current = open;
