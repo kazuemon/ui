@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -56,6 +57,9 @@ export type InspectorOverlayEdge = 'flush' | 'floating';
  * none: 動かさず、すぐに切り替えます
  */
 export type InspectorMotion = 'slide' | 'none';
+
+/** 開いたとき、焦点を移せるまで待つ描画の数の上限（60fps で約 1 秒） */
+const FOCUS_TRIES = 60;
 
 export interface InspectorProps extends Omit<
   ComponentProps<'aside'>,
@@ -196,24 +200,41 @@ export function Inspector({
   // 閉じると inert で中の焦点が外れるので、外れる前（DOM を書き換えた直後）に確かめる
   // はじめは閉じていたものとして扱い、はじめから開いているときも autoFocus を効かせる
   const wasOpen = useRef(false);
+  // 焦点を移すまで待っている描画。開閉が変わったときと、外したときにだけ取りやめる
+  //   （待つあいだに描き直して props が変わっても取りやめない。重い画面では待つあいだに描き直しが入るため）
+  const focusFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(focusFrame.current), []);
   useLayoutEffect(() => {
-    if (wasOpen.current === open) return undefined;
+    if (wasOpen.current === open) return;
     wasOpen.current = open;
+    cancelAnimationFrame(focusFrame.current);
     const panel = panelRef.current;
     if (open) {
       const target = focusTargetRef(autoFocus);
-      if (!target) return undefined;
+      if (!target) return;
       // 閉じているあいだは visibility で隠しているので、見えるようになってから移す
-      let frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => target.current?.focus());
+      //   描くのが重いと、2 回待っても隠れたままのことがあるので、移れるまで次の描画を待つ（上限あり）
+      //   待つあいだに利用者が焦点を別の場所へ動かしたら、奪わない
+      const from = document.activeElement;
+      let tries = 0;
+      const move = () => {
+        const element = target.current;
+        if (!element) return;
+        const active = element.ownerDocument.activeElement;
+        if (active !== from && active !== element.ownerDocument.body) return;
+        element.focus();
+        if (element.ownerDocument.activeElement !== element && ++tries < FOCUS_TRIES)
+          focusFrame.current = requestAnimationFrame(move);
+      };
+      focusFrame.current = requestAnimationFrame(() => {
+        focusFrame.current = requestAnimationFrame(move);
       });
-      return () => cancelAnimationFrame(frame);
+      return;
     }
     if (panel && panel.contains(document.activeElement)) {
       const target = focusTargetRef(returnFocus);
       if (target !== false) (target?.current ?? triggerRef.current)?.focus();
     }
-    return undefined;
   }, [open, autoFocus, returnFocus, triggerRef]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {

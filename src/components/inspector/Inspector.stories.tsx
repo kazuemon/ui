@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Inspector, InspectorActions, type InspectorProps } from './Inspector';
@@ -405,6 +405,39 @@ export const AutoFocus: Story = {
   },
   render: (args) => <AutoFocusExample {...args} />,
   play: async ({ canvas }) => {
+    const button = await canvas.findByRole('button', { name: '書き出す' });
+    await waitFor(() => expect(button).toHaveFocus());
+  },
+};
+
+// 開いた直後に描き直しが続く画面（読み込みのたびに props が新しくなるなど）
+function AutoFocusWhileRerenderingExample(args: InspectorProps) {
+  const target = useRef<HTMLButtonElement>(null);
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((tick) => tick + 1), 5);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <Area
+      defaultOpen={false}
+      inspector={
+        // 描き直すたびに新しい値になる props
+        <Inspector {...args} autoFocus={target} returnFocus={{ current: null }}>
+          <Button ref={target}>書き出す</Button>
+        </Inspector>
+      }
+    />
+  );
+}
+
+export const AutoFocusWhileRerendering: Story = {
+  name: '開いた直後の焦点（描き直しが続くとき）',
+  tags: ['!autodocs'],
+  parameters: { controls: { include: ['variant'] } },
+  render: (args) => <AutoFocusWhileRerenderingExample {...args} />,
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: '詳細' }));
     const button = await canvas.findByRole('button', { name: '書き出す' });
     await waitFor(() => expect(button).toHaveFocus());
   },
