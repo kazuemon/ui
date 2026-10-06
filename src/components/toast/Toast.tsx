@@ -89,13 +89,11 @@ const toastStyles = tv({
     ],
     text: 'flex min-w-0 flex-1 flex-col gap-0.5',
     // 残り時間の線（消えるまでの時間を決めたときだけ出す）。面の下の端に、角丸に沿って引く
-    progress: [
-      'pointer-events-none absolute inset-x-0 bottom-0 h-(--toast-progress-height) overflow-hidden',
-      'rounded-b-control',
-    ],
+    //   線の高さの箱に角丸を付けると、角丸が高さに合わせて縮んで面の角からはみ出すので、面と同じ大きさの箱で切り取る
+    progress: 'pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]',
     // 時間いっぱいから 0 へ縮む。読んでいるあいだ（載せる・触れる・キーボードで入る）は、Base UI が時間を止めるので線も止める
     progressBar: [
-      'h-full w-full origin-left bg-(color:--toast-progress-color) opacity-(--toast-progress-opacity)',
+      'absolute inset-x-0 bottom-0 h-(--toast-progress-height) origin-left bg-(color:--toast-progress-color) opacity-(--toast-progress-opacity)',
       '[animation:toast-progress_var(--toast-progress-duration)_linear_forwards]',
       'group-data-expanded/toast-viewport:[animation-play-state:paused]',
     ],
