@@ -22,7 +22,7 @@
 | `variant` | その部品の見た目の型。面の見せ方（塗り・枠線・下線）、線の長さ、罫線、配色、隠し方、複数の軸をまとめた既定の組（Text の label・caption・濃さ）など、部品ごとに 1 つの軸にまとめます。値の意味は部品ごとで、型名 `<部品>Variant` で区別します | 部品ごと                                                                                    |
 | `weight`  | 文字の太さ                                                                                                                                                                                                                                   | `normal`・`medium`・`bold`                                                                  |
 | `size`    | 大きさの段。意味のある段はその名前で持ち（`prose`・`wide`・`full`、見出しの段）、ただの大小は Tailwind の尺度名で持ちます                                                                                                                    | `xs`〜`xl`、または意味のある名前                                                            |
-| `shape`   | 輪郭の形                                                                                                                                                                                                                                     | `circle`・`square`                                                                          |
+| `shape`   | 輪郭の形                                                                                                                                                                                                                                     | `circle`・`square`（Avatar は `tile` も）                                                   |
 | `radius`  | 面の角丸                                                                                                                                                                                                                                     | `card`・`control`・`pill`・`none`                                                           |
 | `density` | 入力方式で決まる詰め方。ThemeProvider だけが持ちます                                                                                                                                                                                         | `auto`・`coarse`・`fine`                                                                    |
 | `frame`   | 選択肢の囲み方。値は部品ごとで、型名（`SwitchFrame`・`ChoiceFrame`）で区別します                                                                                                                                                             | 部品ごと                                                                                    |
@@ -124,7 +124,7 @@ Stat の増減の良し悪しは `trend` です。値の意味（増えたこと
 
 `size` は、意味のある段はその名前で持ちます。Container・Navbar の `prose`・`default`・`wide`・`full` は中身の幅の上限、ただの大小は Tailwind の尺度名（`xs`〜`xl`）です。文字の大きさ（Text・Heading・Stat の `size`）は、共有する 1 本の段 `xs`〜`5xl` です（`md` が本文。ADR-0369）。トークンとクラスは、見出しの段が `heading-md`〜`heading-5xl`、本文が `body`・`body-sm`、`xs` がキャプション（`caption`）で、Tailwind の既定の `text-xl` などは上書きしません。小物（Tag・Badge・Chip）の大きさは 1 本の軸 `size`（`sm`・`md`・`lg`）で、周りの文字に従わせるときは `inherit` です。Combobox 系の `chipSize` も同じ段です。
 
-`shape` は輪郭の形で、値は `circle`・`square` です。文字のあるボタンの `circle` は両端が丸い形（pill）です。
+`shape` は輪郭の形で、値は `circle`・`square` です。文字のあるボタンの `circle` は両端が丸い形（pill）です。`square` は角を丸めた四角です。Avatar だけは、角の小さい四角（ドット絵などの四角い画像のため）を `tile` で選べます（[ADR-0474](./adr/0474-avatar-square-tile.md)）。
 
 ## 出す／出さないの真偽値
 

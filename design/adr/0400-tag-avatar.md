@@ -1,6 +1,6 @@
 # 0400. Tag・Chip の先頭のアバターは、上下と左に 4px、文字との間は 6px
 
-- ステータス: Accepted
+- ステータス: Accepted（四角いアバターの余白は [ADR-0475](./0475-small-parts-square-avatar.md) で置き換え）
 - 日付: 2026-10-01
 - ラウンド: 後半 軸 420
 
