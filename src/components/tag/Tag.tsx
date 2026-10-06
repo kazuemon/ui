@@ -17,7 +17,11 @@ import {
   warnOnce,
   withoutLinkAttributes,
 } from '../../internal/link-parts';
-import { leadingAvatarClass, leadingIcon } from '../../internal/small-parts-leading';
+import {
+  leadingAvatarClass,
+  leadingIcon,
+  smallPartsAvatarClass,
+} from '../../internal/small-parts-leading';
 import { type SmallPartsSize, tagSizeClass } from '../../internal/small-parts-size';
 import { tv } from '../../internal/tv';
 
@@ -60,7 +64,9 @@ const tag = tv({
     'bg-(color:--tag-bg) text-(color:--tag-fg) [--small-parts-host-height:var(--tag-height)]',
     '[border:var(--tag-border-width)_var(--tag-border-style)_var(--tag-border-color)]',
     // 先頭のアバターは、左の余白をアバターの周りの余白（--small-parts-avatar-inset）にする
-    'has-data-[slot=tag-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-inset)_-_var(--tag-border-width)))]',
+    'has-data-[slot=tag-avatar]:pl-[max(0px,calc(var(--small-parts-avatar-offset-x)_-_var(--tag-border-width)))]',
+    // 先頭のアバターの角と余白（四角の角が外周に接さないように）
+    smallPartsAvatarClass,
   ],
   variants: {
     variant: {

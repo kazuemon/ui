@@ -41,38 +41,39 @@ const avatar = tv({
       xs: {
         root: [
           '[--avatar-size:var(--avatar-size-xs)] [--avatar-text:var(--avatar-text-xs)]',
-          '[--avatar-radius-rounded:var(--radius-sm)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xs)] [--avatar-radius-square:var(--avatar-radius-square-xs)]',
         ],
       },
       sm: {
         root: [
           '[--avatar-size:var(--avatar-size-sm)] [--avatar-text:var(--avatar-text-sm)]',
-          '[--avatar-radius-rounded:var(--radius-control)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-sm)] [--avatar-radius-square:var(--avatar-radius-square-sm)]',
         ],
       },
       md: {
         root: [
           '[--avatar-size:var(--avatar-size-md)] [--avatar-text:var(--avatar-text-md)]',
-          '[--avatar-radius-rounded:var(--radius-control)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-md)] [--avatar-radius-square:var(--avatar-radius-square-md)]',
         ],
       },
       lg: {
         root: [
           '[--avatar-size:var(--avatar-size-lg)] [--avatar-text:var(--avatar-text-lg)]',
-          '[--avatar-radius-rounded:var(--radius-card)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-lg)] [--avatar-radius-square:var(--avatar-radius-square-lg)]',
         ],
       },
       xl: {
         root: [
           '[--avatar-size:var(--avatar-size-xl)] [--avatar-text:var(--avatar-text-xl)]',
-          '[--avatar-radius-rounded:var(--radius-card)]',
+          '[--avatar-radius-rounded:var(--avatar-radius-rounded-xl)] [--avatar-radius-square:var(--avatar-radius-square-xl)]',
         ],
       },
     },
-    // 形（原則5）: circle は小物の丸、square は四角（角は大きさの段に従う）
+    // 形（原則5）: circle は小物の丸、square は角の小さい四角、rounded は角を丸めた四角（角は大きさの段ごと — 軸 525）
     shape: {
       circle: { root: '[--avatar-radius:var(--radius-pill)]' },
-      square: { root: '[--avatar-radius:var(--avatar-radius-rounded)]' },
+      square: { root: '[--avatar-radius:var(--avatar-radius-square)]' },
+      rounded: { root: '[--avatar-radius:var(--avatar-radius-rounded)]' },
     },
     // 頭文字の面と文字（原則6）。指定しないときはグレー
     color: {
@@ -130,7 +131,7 @@ export interface AvatarProps
    */
   size?: VariantProps<typeof avatar>['size'];
   /**
-   * 形。circle は丸、square は四角です。四角の角は大きさの段に従い、sm・md は部品と同じ角、lg・xl はカードと同じ角になります
+   * 形。circle は丸、square は角の小さい四角（ドット絵などの四角い画像に）、rounded は角を丸めた四角です。角は大きさの段ごとに決まっています
    * @default 'circle'
    */
   shape?: VariantProps<typeof avatar>['shape'];
@@ -198,7 +199,12 @@ export function Avatar({
   // 読み上げの名前。alt="" のときは、周りの文字に名前があるとみなして何も読ませない
   const label = alt ?? name ?? '';
   return (
-    <BaseAvatar.Root data-slot="avatar" className={styles.root({ className })} {...props}>
+    <BaseAvatar.Root
+      data-slot="avatar"
+      data-shape={shape ?? 'circle'}
+      className={styles.root({ className })}
+      {...props}
+    >
       {src && (
         <BaseAvatar.Image
           {...imageRest}

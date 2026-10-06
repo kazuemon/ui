@@ -4,6 +4,8 @@
 //   lg: 部品の高さ（今の単体 Chip。左右は部品の左右の余白）
 //   inherit: 段を持たず、周りの文字の大きさに従う（em）。Prose の中などで使う
 //
+// 先頭の四角いアバターの角は、札の中のアバターの大きさに近い Avatar の段の角を使う（sm の札は xs、md は sm、lg は md）
+//
 // 寸法は尺度の余白（--spacing）の段で書く。Tag・Chip の sm の高さは small-parts.tokens.css の --small-parts-height-sm を共有する。
 // Badge の lg の文字（14px）は、文字に密度で変わらない尺度がない（役割の文字は密度で変わる）ので px で置く
 //
@@ -14,19 +16,20 @@ export type SmallPartsSize = 'sm' | 'md' | 'lg' | 'inherit';
 
 /** Tag の tv の size 変化に渡すクラス */
 export const tagSizeClass: Record<SmallPartsSize, string> = {
-  sm: '[--tag-height:var(--small-parts-height-sm)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-caption)] [--tag-leading:var(--leading-caption)]',
-  md: '[--tag-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)]',
-  lg: '[--tag-height:var(--spacing-control)] [--tag-pad-x:var(--spacing-control-x)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)]',
+  sm: '[--tag-height:var(--small-parts-height-sm)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-caption)] [--tag-leading:var(--leading-caption)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-xs)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
+  md: '[--tag-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--tag-pad-x:calc(var(--spacing)_*_2)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-sm)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-sm)]',
+  lg: '[--tag-height:var(--spacing-control)] [--tag-pad-x:var(--spacing-control-x)] [--tag-font:var(--text-control)] [--tag-leading:var(--leading-control)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-md)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-md)]',
   inherit:
-    '[--tag-height:1.6667em] [--tag-pad-x:0.6667em] [--tag-font:0.75em] [--tag-leading:1.3334em]',
+    '[--tag-height:1.6667em] [--tag-pad-x:0.6667em] [--tag-font:0.75em] [--tag-leading:1.3334em] [--small-parts-avatar-radius-square:var(--avatar-radius-square-xs)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
 };
 
 /** Chip の tv の size 変化に渡すクラス */
 export const chipSizeClass: Record<SmallPartsSize, string> = {
-  sm: '[--chip-height:var(--small-parts-height-sm)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-caption)] [--chip-leading:var(--leading-caption)]',
-  md: '[--chip-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)]',
-  lg: '[--chip-height:var(--spacing-control)] [--chip-pad-x:var(--spacing-control-x)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)]',
-  inherit: '[--chip-height:2em] [--chip-pad-x:0.5em] [--chip-font:1em] [--chip-leading:1.5em]',
+  sm: '[--chip-height:var(--small-parts-height-sm)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-caption)] [--chip-leading:var(--leading-caption)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-xs)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
+  md: '[--chip-height:calc(var(--spacing-control)_-_var(--spacing)_*_3)] [--chip-pad-x:calc(var(--spacing)_*_2)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-sm)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-sm)]',
+  lg: '[--chip-height:var(--spacing-control)] [--chip-pad-x:var(--spacing-control-x)] [--chip-font:var(--text-control)] [--chip-leading:var(--leading-control)] [--small-parts-avatar-radius-square:var(--avatar-radius-square-md)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-md)]',
+  inherit:
+    '[--chip-height:2em] [--chip-pad-x:0.5em] [--chip-font:1em] [--chip-leading:1.5em] [--small-parts-avatar-radius-square:var(--avatar-radius-square-xs)] [--small-parts-avatar-radius-rounded:var(--avatar-radius-rounded-xs)]',
 };
 
 /** Badge の tv の size 変化に渡すクラス */
