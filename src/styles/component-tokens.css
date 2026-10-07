@@ -35,7 +35,6 @@
 @import '../components/loading/loading.tokens.css';
 @import '../components/mask-field/mask-field.tokens.css';
 @import '../components/masonry/masonry.tokens.css';
-@import '../components/menu/menu.tokens.css';
 @import '../components/navbar/navbar.tokens.css';
 @import '../components/navigation-menu/navigation-menu.tokens.css';
 @import '../components/notice/notice.tokens.css';
@@ -83,6 +82,7 @@
 @import '../internal/focus.tokens.css';
 @import '../internal/icons.tokens.css';
 @import '../internal/listbox/listbox.tokens.css';
+@import '../internal/menu/menu.tokens.css';
 @import '../internal/overlay/overlay.tokens.css';
 @import '../internal/reading/reading.tokens.css';
 @import '../internal/resize-handle.tokens.css';

@@ -4,6 +4,16 @@ import { ContextMenu as BaseContextMenu } from '@base-ui/react/context-menu';
 import { type ReactElement, type ReactNode, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
+import { menuChildrenHaveMarks } from '../../internal/menu/menu-marks';
+import {
+  type MenuColor,
+  MenuContext,
+  type MenuGroupLabelStyle,
+  type MenuMarkPlacement,
+  type MenuRadioMark,
+  type MenuSubmenuSheet,
+} from '../../internal/menu/menu-context';
+import { MenuSurface } from '../../internal/menu/MenuSurface';
 import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
 import type {
   OverlayFocusTarget,
@@ -13,16 +23,6 @@ import type {
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { usePortalContainer } from '../../internal/ui-config';
-import {
-  type MenuColor,
-  MenuContext,
-  type MenuGroupLabelStyle,
-  type MenuMarkPlacement,
-  type MenuRadioMark,
-  type MenuSubmenuSheet,
-} from '../menu/menu-context';
-import { MenuSurface } from '../menu/Menu';
-import { menuChildrenHaveMarks } from '../menu/MenuItem';
 
 // 印の色（Menu と同じ）は MenuSurface が context の color から作る
 export interface ContextMenuProps {

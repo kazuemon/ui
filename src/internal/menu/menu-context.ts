@@ -2,8 +2,14 @@
 
 import { createContext, use } from 'react';
 
-import type { DensityScope } from '../../internal/density-scope';
-import type { GroupLabelStyle } from '../../internal/listbox/listbox-styles';
+import type { DensityScope } from '../density-scope';
+import type { GroupLabelStyle } from '../listbox/listbox-styles';
+
+/** 面を本体のどちら側に出すか */
+export type MenuSide = 'top' | 'bottom' | 'left' | 'right';
+
+/** 面を本体のどこにそろえるか */
+export type MenuAlign = 'start' | 'center' | 'end';
 
 /** 選んだ印（チェック・ラジオ）の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（原則6） */
 export type MenuColor = 'primary' | 'secondary' | 'neutral';
