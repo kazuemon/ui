@@ -109,6 +109,8 @@ const meta = {
           '- いまいるページの行き先には `current` を付けます（`aria-current="page"`）。開いた面の中では題が太くなります。',
           '- `target="_blank"` の行き先は、題の後ろに右上向きの矢印が付き、読み上げに「新しいタブで開きます」が入ります。矢印は `newTabIcon` で付け外しできます。ルーターのリンクは `render` に渡します。',
           '- `Navbar` の帯が狭いときは、`narrowPlacement`（既定 `menu`）で `Navbar` のメニューへ畳みます。メニューの中では面を開かず、項目の名前を見出しにして、行き先を縦に並べます。',
+          '- 行き先のアイコンは `iconVariant` で見せ方を選べます。`plain`（既定）はアイコンだけ、`soft` は入力欄と同じグレーの角丸の箱に入れます。',
+          '- 項目を移ったときの動きは `switchMotion` で選べます。`slide`（既定）は面の大きさと中身が滑らかに変わり、`none` はすぐ切り替えます。動きを減らす設定では、どちらでも動かしません。',
           '- 開く項目を外から決めるときは、`NavigationMenuItem` の `value` と、`NavigationMenu` の `value`・`onValueChange` を使います。',
         ].join('\n'),
       },
@@ -119,6 +121,11 @@ const meta = {
       control: 'inline-radio',
       options: ['start', 'center', 'end'],
       table: { defaultValue: { summary: "'start'" } },
+    },
+    switchMotion: {
+      control: 'inline-radio',
+      options: ['slide', 'none'],
+      table: { defaultValue: { summary: "'slide'" } },
     },
     portalContainer: { control: false },
     popupProps: { control: false },
@@ -215,6 +222,108 @@ export const Groups: Story = {
   ),
 };
 
+export const IconBox: Story = {
+  tags: ['visual'],
+  name: 'アイコンを箱に入れる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`NavigationMenuLink` の `iconVariant="soft"` で、アイコンを入力欄と同じグレーの角丸の箱に入れたところです。箱が題と説明の 2 行の高さにそろい、行の頭がそろって見えます。',
+      },
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <ScreenFrame height="h-[440px]" width="w-[880px]">
+      {(frame) => (
+        <div className="-mx-6 -mt-6 w-[calc(100%+3rem)]">
+          <Navbar brand={brand}>
+            <NavigationMenu
+              defaultValue={openOnLoad(viewMode) ? 'works' : null}
+              portalContainer={frame}
+            >
+              <NavigationMenuItem label="Works" value="works">
+                <NavigationMenuLink
+                  href="#web"
+                  icon={<BrowserIcon />}
+                  iconVariant="soft"
+                  description="企業とイベントのサイト"
+                  current
+                >
+                  Web サイト
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  href="#apps"
+                  icon={<DeviceMobileIcon />}
+                  iconVariant="soft"
+                  description="iOS と Web のアプリ"
+                >
+                  アプリ
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  href="#illustrations"
+                  icon={<PaintBrushIcon />}
+                  iconVariant="soft"
+                  description="キャラクターと挿絵"
+                >
+                  イラスト
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  href="#talks"
+                  icon={<MicrophoneStageIcon />}
+                  iconVariant="soft"
+                  description="勉強会とカンファレンスの登壇"
+                >
+                  登壇
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuLink href="#about">About</NavigationMenuLink>
+            </NavigationMenu>
+          </Navbar>
+        </div>
+      )}
+    </ScreenFrame>
+  ),
+};
+
+export const SwitchMotion: Story = {
+  name: '項目を移る動き',
+  args: { switchMotion: 'none' },
+  parameters: {
+    layout: 'fullscreen',
+    controls: { include: ['switchMotion'] },
+    docs: {
+      description: {
+        story:
+          '`switchMotion="none"` では、面を開いたまま隣の項目へ移ったとき、面の大きさと中身をすぐ切り替えます。開くとき・閉じるときの動きは残ります。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="min-h-[420px]">
+      <Navbar brand={brand}>
+        <NavigationMenu {...args}>{items()}</NavigationMenu>
+      </Navbar>
+    </div>
+  ),
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Works' }));
+    const positioner = await waitFor(() => {
+      const popup = document.querySelector('[data-slot="navigation-menu-popup"]');
+      if (!popup?.parentElement) throw new Error('面が開いていません');
+      return popup.parentElement;
+    });
+    const duration = getComputedStyle(positioner)
+      .getPropertyValue('--navigation-menu-switch-duration')
+      .trim();
+    if (args.switchMotion === 'none') await expect(duration).toBe('0ms');
+    else await expect(duration).not.toBe('0ms');
+    await userEvent.keyboard('{Escape}');
+  },
+};
+
 const triggerColumns: MatrixColumn[] = [
   { label: '通常' },
   { label: 'hover', state: 'hover' },
@@ -234,7 +343,7 @@ export const TriggerStates: Story = {
     docs: {
       description: {
         story:
-          '開く項目は帯の行き先と同じ見た目に、▼ が付きます。開いているあいだは文字を濃くし、hover と同じ淡い塗りを残して ▼ を上向きにします。',
+          '開く項目は帯の行き先と同じ見た目に、▼ が付きます。開いているあいだは文字を濃くし、hover と同じ淡い塗りを残します（▼ は回しません）。',
       },
     },
   },

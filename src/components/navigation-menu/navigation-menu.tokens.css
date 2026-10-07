@@ -1,49 +1,26 @@
 :root {
   /* NavigationMenu（ページの上の帯から、行き先の一覧を下に開く）
-     面は Popover と同じ（白・細い輪郭・--shadow-overlay）。開閉は浮かぶ面と同じ動き（ADR-0054）
+     面は Popover と同じ（白・細い輪郭・部品の角・--shadow-overlay — ADR-0485）。開閉は浮かぶ面と同じ動き（ADR-0054）
 
-     面（軸 561）
+     面
        offset: 開くボタンと面の間。マウスがこの間を通っても閉じないよう、同じ高さの見えない橋を架ける
-       radius: 面の角。radius-top: 上の 2 つの角（帯から続く面では 0 にする）
-       border-top: 上の輪郭の太さ（帯から続く面では 0 にし、帯の下の線とつなぐ）
-     padding: 面の内側の余白。行の角と左右の余白は、ここから引いた同心の角と、文字が帯の文字とそろう余白
-     column-width: 1 列の幅。列の数は NavigationMenuItem の columns
+       padding: 面の内側の余白。行の角と左右の余白は、ここから引いた同心の角と、文字が帯の文字とそろう余白
+       column-width: 1 列の幅。列の数は NavigationMenuItem の columns
 
-     行き先の行（軸 562）
-       link-title-weight: 題の太さ
+     行き先の行（ADR-0486）
        link-icon-size: 前のアイコンの大きさ（一覧の項目の頭のアイコンは文字より一段大きい — 原則21）
-       link-icon-box・link-icon-bg・link-icon-radius: アイコンを置く箱の大きさ・塗り・角（塗りなしなら箱はアイコンと同じ大きさ）
+       link-icon-box: アイコンを置く箱の大きさ。iconVariant="soft" では、箱を 40px のグレーにしてアイコンを 20px にする
 
-     開いている項目の印（軸 563）
-       trigger-open-bg: 開いているあいだ、開くボタンに敷く塗り
-       caret-open-rotate: 開いているあいだの ▼ の回し方
-       trigger-open-bar: 開いているあいだ、文字の下に引く線の濃さ（0 で引かない）
-
-     動き（軸 564）
-       resize-duration: 項目を移ったとき、面の大きさと位置が変わる長さ
-       content-duration: 中身が入れ替わる長さ。content-shift: 入れ替わるとき、移った向きから滑らせる距離 */
+     動き（ADR-0488）
+       switch-duration: 項目を移ったとき、面の大きさ・位置と中身が変わる長さ。switch-shift: 中身を移った向きから滑らせる距離
+       switchMotion="none" では、どちらも 0 にする */
   --navigation-menu-offset: var(--spacing);
-  --navigation-menu-radius: var(--radius-control);
-  --navigation-menu-radius-top: var(--navigation-menu-radius);
-  --navigation-menu-border-top: var(--border-width-thin);
   --navigation-menu-padding: calc(var(--spacing) * 2);
   --navigation-menu-column-width: calc(var(--spacing) * 64);
 
-  --navigation-menu-link-title-weight: 400;
   --navigation-menu-link-icon-size: calc(var(--spacing-icon) + var(--spacing));
   --navigation-menu-link-icon-box: var(--navigation-menu-link-icon-size);
-  --navigation-menu-link-icon-bg: transparent;
-  --navigation-menu-link-icon-radius: 0px;
 
-  --navigation-menu-trigger-open-bg: color-mix(
-    in oklab,
-    var(--color-fg) var(--flat-hover-mix),
-    transparent
-  );
-  --navigation-menu-caret-open-rotate: 180deg;
-  --navigation-menu-trigger-open-bar: 0;
-
-  --navigation-menu-resize-duration: var(--duration-normal);
-  --navigation-menu-content-duration: var(--duration-normal);
-  --navigation-menu-content-shift: calc(var(--spacing) * 6);
+  --navigation-menu-switch-duration: var(--duration-normal);
+  --navigation-menu-switch-shift: calc(var(--spacing) * 6);
 }

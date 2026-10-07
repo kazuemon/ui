@@ -31,7 +31,7 @@ import {
   useNavbarGroup,
 } from '../navbar/Navbar';
 
-// ページの上の帯から、行き先の一覧を下に開くメニュー — 軸 561〜564
+// ページの上の帯から、行き先の一覧を下に開くメニュー — ADR-0485〜0488
 //   帯の項目（NavigationMenuItem）に載せる・押すと、題と説明つきの行き先（NavigationMenuLink）を並べた面が下に開く
 //   項目を移ると、面の大きさと位置が滑らかに変わり、中身は移った向きから入れ替わる（Base UI の Viewport）
 //   開くボタンと帯の行き先は NavbarLink と同じ平らな pill（原則5）。Navbar の中に置くと、いまいるページの印も Navbar に従う
@@ -53,24 +53,19 @@ const NavigationMenuContext = createContext<{
 const styles = tv({
   slots: {
     list: 'flex items-center gap-(--spacing)',
-    // 開くボタン（NavbarLink の帯の見た目に、▼ と開いているあいだの印を足す）
-    //   開いているあいだ: 文字を本文の色にし、--navigation-menu-trigger-open-bg を敷き、▼ を回す。文字の下の線は trigger-open-bar の濃さ
+    // 開くボタン（NavbarLink の帯の見た目に ▼ を足す）
+    //   開いているあいだ: 文字を本文の色にし、hover と同じ淡い塗りを残す。▼ は回さない（ADR-0487）
     trigger: [
-      'group/navigation-menu-trigger gap-1',
-      'data-popup-open:text-fg data-popup-open:[--flat-bg:var(--navigation-menu-trigger-open-bg)]',
-      "after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-(--navbar-current-bar) after:rounded-pill after:bg-primary after:opacity-0 after:content-['']",
-      'data-popup-open:after:opacity-(--navigation-menu-trigger-open-bar)',
+      'gap-1',
+      'data-popup-open:text-fg data-popup-open:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),transparent)]',
     ],
-    caret: [
-      'size-(--spacing-icon) shrink-0',
-      'transition-[rotate] duration-(--duration-normal) ease-(--ease-sheet) motion-reduce:[transition:none]',
-      'group-data-popup-open/navigation-menu-trigger:[rotate:var(--navigation-menu-caret-open-rotate)]',
-    ],
+    caret: 'size-(--spacing-icon) shrink-0',
     // 位置を決める要素。項目を移ると、面と同じ長さで滑る（data-instant: 開いた直後と閉じたあとは動かさない）
+    //   switchMotion="none" では、面の大きさ・位置と中身をすぐ切り替える（中の要素は、ここで 0 にした値を継ぐ）
     //   開くボタンと面の間に、同じ高さの見えない橋を架ける（マウスが間を通っても閉じない）
     positioner: [
       'z-10 outline-none',
-      '[transition:top_var(--navigation-menu-resize-duration)_var(--ease-sheet),left_var(--navigation-menu-resize-duration)_var(--ease-sheet),right_var(--navigation-menu-resize-duration)_var(--ease-sheet),bottom_var(--navigation-menu-resize-duration)_var(--ease-sheet)]',
+      '[transition:top_var(--navigation-menu-switch-duration)_var(--ease-sheet),left_var(--navigation-menu-switch-duration)_var(--ease-sheet),right_var(--navigation-menu-switch-duration)_var(--ease-sheet),bottom_var(--navigation-menu-switch-duration)_var(--ease-sheet)]',
       'data-instant:[transition:none] motion-reduce:[transition:none]',
       "before:absolute before:inset-x-0 before:content-['']",
       'data-[side=bottom]:before:top-[calc(var(--navigation-menu-offset)*-1)] data-[side=bottom]:before:h-(--navigation-menu-offset)',
@@ -80,10 +75,9 @@ const styles = tv({
     //   開閉は浮かぶ面と同じ（本体の側に寄った位置から、濃さと一緒に滑る — ADR-0054）
     popup: [
       'relative overflow-clip bg-surface text-fg shadow-overlay outline-none',
-      'border-(length:--border-width-thin) border-t-(length:--navigation-menu-border-top) border-surface-line',
-      'rounded-t-(--navigation-menu-radius-top) rounded-b-(--navigation-menu-radius)',
+      'rounded-control border-(length:--border-width-thin) border-surface-line',
       'h-(--popup-height) w-(--popup-width) max-w-(--available-width)',
-      '[transition:opacity_var(--duration-normal)_var(--ease-sheet),translate_var(--duration-normal)_var(--ease-sheet),width_var(--navigation-menu-resize-duration)_var(--ease-sheet),height_var(--navigation-menu-resize-duration)_var(--ease-sheet)]',
+      '[transition:opacity_var(--duration-normal)_var(--ease-sheet),translate_var(--duration-normal)_var(--ease-sheet),width_var(--navigation-menu-switch-duration)_var(--ease-sheet),height_var(--navigation-menu-switch-duration)_var(--ease-sheet)]',
       'data-ending-style:[transition-duration:var(--popup-duration-out)]',
       'data-ending-style:opacity-0 data-starting-style:opacity-0',
       'data-[side=bottom]:data-ending-style:[translate:0_calc(var(--popup-shift)*-1)] data-[side=bottom]:data-starting-style:[translate:0_calc(var(--popup-shift)*-1)]',
@@ -91,15 +85,15 @@ const styles = tv({
       'motion-reduce:[transition:none]',
     ],
     viewport: 'relative size-full overflow-hidden',
-    // 面の中身。項目を移ると、移った向きから content-shift だけ滑りながら入れ替わる
+    // 面の中身。項目を移ると、移った向きから switch-shift だけ滑りながら入れ替わる
     content: [
       'box-border w-max max-w-(--available-width) p-(--navigation-menu-padding)',
-      '[transition:opacity_calc(var(--navigation-menu-content-duration)/2)_ease,translate_var(--navigation-menu-content-duration)_var(--ease-sheet)]',
+      '[transition:opacity_calc(var(--navigation-menu-switch-duration)/2)_ease,translate_var(--navigation-menu-switch-duration)_var(--ease-sheet)]',
       'data-ending-style:opacity-0 data-starting-style:opacity-0',
-      'data-starting-style:data-[activation-direction=left]:[translate:calc(var(--navigation-menu-content-shift)*-1)_0]',
-      'data-starting-style:data-[activation-direction=right]:[translate:var(--navigation-menu-content-shift)_0]',
-      'data-ending-style:data-[activation-direction=left]:[translate:var(--navigation-menu-content-shift)_0]',
-      'data-ending-style:data-[activation-direction=right]:[translate:calc(var(--navigation-menu-content-shift)*-1)_0]',
+      'data-starting-style:data-[activation-direction=left]:[translate:calc(var(--navigation-menu-switch-shift)*-1)_0]',
+      'data-starting-style:data-[activation-direction=right]:[translate:var(--navigation-menu-switch-shift)_0]',
+      'data-ending-style:data-[activation-direction=left]:[translate:var(--navigation-menu-switch-shift)_0]',
+      'data-ending-style:data-[activation-direction=right]:[translate:calc(var(--navigation-menu-switch-shift)*-1)_0]',
       'motion-reduce:[transition:none]',
     ],
     // 行き先を列に並べる。列の幅は --navigation-menu-column-width、狭い画面では縮める
@@ -113,7 +107,7 @@ const styles = tv({
     //   角は面の角から余白を引いた同心の角、左右の余白は文字が帯の文字とそろう分（Menu の項目と同じ — 原則5）
     link: [
       'group/navigation-menu-link relative flex w-full min-w-0 cursor-pointer items-start gap-3 text-fg no-underline',
-      'rounded-[calc(var(--navigation-menu-radius)-var(--navigation-menu-padding))] px-[calc(var(--spacing-control-x)-var(--navigation-menu-padding))] py-2',
+      'rounded-[calc(var(--radius-control)-var(--navigation-menu-padding))] px-[calc(var(--spacing-control-x)-var(--navigation-menu-padding))] py-2',
       'bg-(color:--navigation-menu-link-bg) [--navigation-menu-link-bg:transparent]',
       'hover:[--navigation-menu-link-bg:var(--color-field)] focus-visible:[--navigation-menu-link-bg:var(--color-field)]',
       'transition-[background-color] duration-(--duration-press) ease-(--ease-press) motion-reduce:[transition:none]',
@@ -122,13 +116,12 @@ const styles = tv({
     // 前のアイコン。題の 1 行目と縦の中央をそろえる（箱が 1 行より高いときは、行の上にそろえる）
     linkIcon: [
       'flex size-(--navigation-menu-link-icon-box) shrink-0 items-center justify-center text-fg-muted',
-      'rounded-(--navigation-menu-link-icon-radius) bg-(color:--navigation-menu-link-icon-bg)',
       'mt-[max(0px,calc((var(--leading-control)-var(--navigation-menu-link-icon-box))/2))]',
       '[&>svg]:size-(--navigation-menu-link-icon-size)',
     ],
     linkText: 'flex min-w-0 flex-1 flex-col gap-0.5',
     linkTitle: [
-      'text-(length:--text-control) leading-(--leading-control) [font-weight:var(--navigation-menu-link-title-weight)]',
+      'text-(length:--text-control) leading-(--leading-control)',
       'group-aria-[current=page]/navigation-menu-link:font-bold',
     ],
     linkDescription: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
@@ -141,9 +134,30 @@ const styles = tv({
     menuSubHeading:
       'px-3 pt-1 text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle select-none',
   },
+  variants: {
+    // 項目を移ったときの動き（ADR-0488）。none は面の大きさ・位置と中身をすぐ切り替える（開閉の動きは残す）
+    switchMotion: {
+      slide: {},
+      none: {
+        positioner: '[--navigation-menu-switch-duration:0ms] [--navigation-menu-switch-shift:0px]',
+      },
+    },
+    // 前のアイコンの見せ方（ADR-0486）。soft は入力欄と同じグレーの角丸の箱（40px）に 20px のアイコンを入れる
+    iconVariant: {
+      plain: {},
+      soft: {
+        linkIcon: [
+          'rounded-[calc(var(--radius-control)-var(--spacing))] bg-field',
+          '[--navigation-menu-link-icon-box:calc(var(--spacing)*10)] [--navigation-menu-link-icon-size:var(--spacing-icon)]',
+        ],
+      },
+    },
+  },
 });
 
 export type NavigationMenuAlign = 'start' | 'center' | 'end';
+export type NavigationMenuSwitchMotion = 'slide' | 'none';
+export type NavigationMenuLinkIconVariant = 'plain' | 'soft';
 
 export interface NavigationMenuProps {
   /** 帯に並べるもの。開く項目は NavigationMenuItem、ただの行き先は NavigationMenuLink で並べます */
@@ -177,6 +191,12 @@ export interface NavigationMenuProps {
    * @default 'start'
    */
   align?: NavigationMenuAlign;
+  /**
+   * 面を開いたまま隣の項目へ移ったときの動き。slide は面の大きさと位置が滑らかに変わり、中身が移った向きから滑って入れ替わります。
+   * none はすぐ切り替えます（開くとき・閉じるときの動きは残ります）。動きを減らす設定では、値によらず動かしません
+   * @default 'slide'
+   */
+  switchMotion?: NavigationMenuSwitchMotion;
   /**
    * Navbar の中に置いたときの、帯が狭いときの行き先。menu は Navbar のメニューへ畳み（項目の名前を見出しにして行き先を縦に並べます）、
    * bar は帯に残し、hidden は隠します。Navbar の外では効きません
@@ -252,6 +272,7 @@ function BarNavigationMenu({
   delay,
   closeDelay,
   align = 'start',
+  switchMotion = 'slide',
   keepMounted = false,
   portalContainer: container,
   popupProps,
@@ -261,7 +282,7 @@ function BarNavigationMenu({
   indicator: NavbarCurrentIndicator;
   collapseClassName?: string;
 }) {
-  const s = styles();
+  const s = styles({ switchMotion });
   const [valueState, setValueState] = useState<string | null>(defaultValue);
   const value = valueProp === undefined ? valueState : valueProp;
   const portalContainer = usePortalContainer(container);
@@ -274,7 +295,7 @@ function BarNavigationMenu({
       value={value}
       onValueChange={(next) => {
         const nextValue = next ?? null;
-        setValueState(nextValue);
+        if (valueProp === undefined) setValueState(nextValue);
         onValueChange?.(nextValue);
       }}
       delay={delay}
@@ -426,6 +447,11 @@ export interface NavigationMenuLinkProps {
   description?: ReactNode;
   /** 題の前に置くアイコン（`<svg>`）。開いた面の中でだけ出します */
   icon?: ReactNode;
+  /**
+   * アイコンの見せ方。plain はアイコンだけを文字より一段大きく置き、soft は入力欄と同じグレーの角丸の箱に入れます（題と説明の 2 行の高さにそろいます）
+   * @default 'plain'
+   */
+  iconVariant?: NavigationMenuLinkIconVariant;
   /** 移る先 */
   href?: string;
   /** _blank のときは、題の後ろに右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します */
@@ -461,6 +487,7 @@ export function NavigationMenuLink({
   children,
   description,
   icon,
+  iconVariant = 'plain',
   href,
   target,
   rel,
@@ -549,7 +576,7 @@ export function NavigationMenuLink({
         className={s.link({ className })}
       >
         {icon != null && (
-          <span aria-hidden="true" className={s.linkIcon()}>
+          <span aria-hidden="true" className={s.linkIcon({ iconVariant })}>
             {icon}
           </span>
         )}

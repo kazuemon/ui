@@ -442,8 +442,10 @@ export {
   NavigationMenuItem,
   type NavigationMenuItemProps,
   NavigationMenuLink,
+  type NavigationMenuLinkIconVariant,
   type NavigationMenuLinkProps,
   type NavigationMenuProps,
+  type NavigationMenuSwitchMotion,
 } from './components/navigation-menu/NavigationMenu';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
