@@ -18,19 +18,18 @@ import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon, CaretDownIcon } from '../../internal/icons';
 import { type ItemIconVariant, softIconBoxClass } from '../../internal/menu/item-icon';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
+import {
+  type NavbarCurrentIndicator,
+  type NavbarNarrowPlacement,
+  useNavbarGroup,
+} from '../../internal/navbar/navbar-context';
+import { navbarLink, navbarLinks } from '../../internal/navbar/navbar-link-styles';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import type { PopupProps } from '../../internal/overlay/overlay-props';
 import { popupCollisionPadding, readCssLength } from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
 import { usePortalContainer } from '../../internal/ui-config';
 import { useMergedRefs } from '../../internal/use-merged-refs';
-import {
-  navbarLink,
-  navbarLinks,
-  type NavbarCurrentIndicator,
-  type NavbarNarrowPlacement,
-  useNavbarGroup,
-} from '../navbar/Navbar';
 
 // ページの上の帯から、行き先の一覧を下に開くメニュー — ADR-0485〜0488
 //   帯の項目（NavigationMenuItem）に載せる・押すと、題と説明つきの行き先（NavigationMenuLink）を並べた面が下に開く
