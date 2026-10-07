@@ -164,7 +164,7 @@ const meta = {
     groupLabelStyle: 'label',
     showGroupSeparator: false,
     hideCaretOnDisabled: false,
-    popoverMoreCue: 'shadow',
+    popoverScrollbar: 'scroll',
     popoverMaxHeight: 'screen',
     loading: false,
     loadingBehavior: 'non-blocking',
@@ -203,7 +203,7 @@ const meta = {
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
     showGroupSeparator: { control: 'boolean' },
     hideCaretOnDisabled: { control: 'boolean' },
-    popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
+    popoverScrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: behaviors },
@@ -395,7 +395,7 @@ export const Open: Story = {
   name: '開いた状態',
   args: { defaultValue: 'ward-3' },
   parameters: {
-    controls: { include: ['popoverMaxHeight', 'popoverMoreCue', 'color'] },
+    controls: { include: ['popoverMaxHeight', 'popoverScrollbar', 'color'] },
     docs: {
       description: {
         story:
@@ -419,8 +419,8 @@ export const Open: Story = {
     <PopoverFrame>
       {(container) => (
         <Combobox
-          // 高さの上限と影の指定を変えたときは、測り直すために描き直す
-          key={`${args.popoverMaxHeight}-${args.popoverMoreCue}-${args.color}`}
+          // 高さの上限を変えたときは、測り直すために描き直す
+          key={`${args.popoverMaxHeight}-${args.color}`}
           {...args}
           defaultOpen={openOnLoad(viewMode)}
           portalContainer={container}

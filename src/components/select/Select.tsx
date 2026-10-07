@@ -232,10 +232,11 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
    */
   sheetMoreCue?: SheetMoreCueKind;
   /**
-   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
-   * @default 'shadow'
+   * 浮かぶ選択肢が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
    */
-  popoverMoreCue?: 'none' | 'shadow';
+  popoverScrollbar?: 'scroll' | 'always';
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
@@ -385,7 +386,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
-  popoverMoreCue = 'shadow',
+  popoverScrollbar = 'scroll',
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
@@ -453,7 +454,6 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
 
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
   const { headerRef, listRef, loadingRowRef, metrics, updateCues, measure, observeCues } =
     useListboxLayout({
@@ -560,7 +560,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
     keyboardShrink: 0,
     sheetDetent: 'half',
   } as const;
-  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   const trigger = (
@@ -763,14 +763,15 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
               presentation={listPresentation}
               loadingRow={loadingRow}
               viewportRef={listRef}
-              onScroll={sheet || popoverCue ? updateCues : undefined}
+              onScroll={updateCues}
+              scrollbar={sheet ? 'scroll' : popoverScrollbar}
               before={
-                (long || popoverCue) && (
+                (long || !sheet) && (
                   <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )
               }
               after={
-                (long || popoverCue) && (
+                (long || !sheet) && (
                   <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )
               }

@@ -137,7 +137,7 @@ const meta = {
     autoHighlight: { control: 'boolean' },
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
     showGroupSeparator: { control: 'boolean' },
-    popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
+    popoverScrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: ['non-blocking', 'blocking'] },

@@ -334,10 +334,11 @@ export interface TagsInputControlProps {
    */
   sheetMoreCue?: SheetMoreCueKind;
   /**
-   * 浮かぶ候補で、上下に続きがあることを内側の影で見せるか。none は見せません
-   * @default 'shadow'
+   * 浮かぶ候補が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
    */
-  popoverMoreCue?: 'none' | 'shadow';
+  popoverScrollbar?: 'scroll' | 'always';
   /**
    * 浮かぶ候補の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分で、最後の候補を半分見せる
@@ -456,7 +457,7 @@ export function TagsInputControl({
   presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
-  popoverMoreCue = 'shadow',
+  popoverScrollbar = 'scroll',
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
@@ -614,7 +615,6 @@ export function TagsInputControl({
   // 候補の出し方（design/adr/0037・原則16）。打つ欄は欄に残り、候補だけがシートに出る
   const sheet = useSheetPresentation(presentation) && hasItems;
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
   const keyboardInset = useKeyboardInset(sheet);
   const keyboardShrink = useKeyboardShrink(sheet);
@@ -684,7 +684,7 @@ export function TagsInputControl({
     ...positionerRest
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
-  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   return (
@@ -937,15 +937,16 @@ export function TagsInputControl({
                   presentation={listPresentation}
                   loadingRow={loadingRow}
                   viewportRef={listRef}
-                  onScroll={sheet || popoverCue ? updateCues : undefined}
+                  onScroll={updateCues}
+                  scrollbar={sheet ? 'scroll' : popoverScrollbar}
                   viewportClassName="has-data-empty:py-0"
                   before={
-                    (long || popoverCue) && (
+                    (long || !sheet) && (
                       <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                     )
                   }
                   after={
-                    (long || popoverCue) && (
+                    (long || !sheet) && (
                       <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                     )
                   }

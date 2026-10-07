@@ -348,10 +348,11 @@ export interface ComboboxControlProps<Value = string, Multiple extends boolean =
    */
   sheetMoreCue?: SheetMoreCueKind;
   /**
-   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
-   * @default 'shadow'
+   * 浮かぶ選択肢が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
    */
-  popoverMoreCue?: 'none' | 'shadow';
+  popoverScrollbar?: 'scroll' | 'always';
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
@@ -490,7 +491,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   sheetCloseText = '完了',
   sheetDetent: sheetDetentProp,
   sheetMoreCue = 'divider-always-shadow',
-  popoverMoreCue = 'shadow',
+  popoverScrollbar = 'scroll',
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
@@ -578,7 +579,6 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
   // 浮かぶ選択肢の寸法（高さの上限・続きの印）
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
   // ソフトウェアキーボードが隠している高さ。シートは、その分だけ持ち上げて見えている範囲に収める
   const keyboardInset = useKeyboardInset(sheet);
@@ -636,7 +636,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
     ...positionerRest
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
-  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
   const popupElementRef = useRef<HTMLDivElement>(null);
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
@@ -1007,15 +1007,16 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
               presentation={listPresentation}
               loadingRow={loadingRow}
               viewportRef={listRef}
-              onScroll={sheet || popoverCue ? updateCues : undefined}
+              onScroll={updateCues}
+              scrollbar={sheet ? 'scroll' : popoverScrollbar}
               viewportClassName="has-data-empty:py-0"
               before={
-                (long || popoverCue) && (
+                (long || !sheet) && (
                   <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )
               }
               after={
-                (long || popoverCue) && (
+                (long || !sheet) && (
                   <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
                 )
               }
