@@ -53,8 +53,7 @@ export const scrollAreaStyles = tv({
       // 隠れているあいだは、つまみも押せない（指で端を触ってもつまみをつかまず、中身がスクロールする）
       scroll: {
         scrollbar: [
-          // 隠れているあいだの濃さ（--scroll-area-scrollbar-idle、既定 0）。軸 580・581 の比較用。決まったら畳む
-          'opacity-[var(--scroll-area-scrollbar-idle,0)] data-hovering:opacity-100 data-scrolling:opacity-100 data-scrolling:duration-0',
+          'opacity-0 data-hovering:opacity-100 data-scrolling:opacity-100 data-scrolling:duration-0',
           'group-has-[[data-scroll-viewport]:focus-visible]/scroll-area:opacity-100',
           // ストーリーの hover の固定（pseudo-states）でも出す
           'group-hover/scroll-area:opacity-100',

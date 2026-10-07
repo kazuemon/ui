@@ -8,26 +8,22 @@ import { ScrollFrame } from '../ScrollFrame';
 // 浮かぶ選択肢の一覧（Select・Combobox・TagsInput）・Menu・シート（Drawer・Inspector）・Dialog の中身が共有する
 //   スクロールする要素は ScrollArea と同じ中身（ScrollFrame）。続きの印は前後（before・after）に置き、
 //   濃さ（--cue-*）は viewportRef に付けた useMoreCues・updateCues が枠に書く
-//   スクロールする要素は、欄や面の中なので止まり先にしない（中の要素へ移ったときは、ブラウザが見える位置へ送る）
-// 軸 580（popover）・581（sheet）の比較用: ブラウザのスクロールバーと ScrollArea のつまみ、どちらを出すかをトークンで切り替える。決まったら畳む
-//   ブラウザのスクロールバーは Base UI が隠すので、隠す指定より強く scrollbar-width を戻す。色はブラウザの既定に近い灰色
-//   （scrollbar-color を決めないと、Base UI の ::-webkit-scrollbar の指定で隠れたままになる）
-const switches = {
-  popover: {
-    root: '[--scroll-area-scrollbar-idle:var(--listbox-scroll-thumb-idle)]',
-    viewport: '[scrollbar-color:#8e8e8e_#f8f8f8]! [scrollbar-width:var(--listbox-scroll-native)]!',
-    scrollbar: '[visibility:var(--listbox-scroll-thumb)]',
-  },
-  sheet: {
-    root: '[--scroll-area-scrollbar-idle:var(--sheet-scroll-thumb-idle)]',
-    viewport: '[scrollbar-color:#8e8e8e_#f8f8f8]! [scrollbar-width:var(--sheet-scroll-native)]!',
-    scrollbar: '[visibility:var(--sheet-scroll-thumb)]',
-  },
-} as const;
+//   スクロールバーは ScrollArea のつまみ（軸 580・581）。ブラウザのスクロールバーは出さない
+//   止まり先: 一覧は止まらない（項目へ矢印キーで移り、ブラウザが見える位置へ送る）。シート・Dialog の中身は、
+//   ブラウザのスクロールする箱と同じく、あふれていて中に止まれるものがないときだけ止まる（focusable="auto"）
 
 export interface MoreCueScrollProps {
-  /** どこのスクロールか。popover は浮かぶ面（軸 580）、sheet はシートと Dialog（軸 581） */
-  surface: 'popover' | 'sheet';
+  /**
+   * つまみの出し方。scroll は載せたとき・スクロール中だけ、always はいつも
+   * @default 'scroll'
+   */
+  scrollbar?: 'scroll' | 'always';
+  /**
+   * スクロールする要素をキーボードの止まり先にするか。auto は、あふれていて中に Tab で止まれるものがないときだけ止まる
+   * （ブラウザのスクロールする箱と同じ。シート・Dialog の中身）。選択肢やメニューの一覧は false（項目へ矢印キーで移る）
+   * @default false
+   */
+  focusable?: false | 'auto';
   /** スクロールする要素の前・後ろに置く続きの印 */
   before?: ReactNode;
   after?: ReactNode;
@@ -49,7 +45,8 @@ export interface MoreCueScrollProps {
 }
 
 export function MoreCueScroll({
-  surface,
+  scrollbar = 'scroll',
+  focusable = false,
   before,
   after,
   viewportRef,
@@ -62,22 +59,22 @@ export function MoreCueScroll({
   scrollbarClassName,
   children,
 }: MoreCueScrollProps) {
-  const s = switches[surface];
   return (
     <ScrollFrame
       slot="more-cue-scroll"
-      className={[s.root, className].filter(Boolean).join(' ')}
+      className={className}
       style={style}
-      focusable={false}
+      focusable={focusable}
+      scrollbar={scrollbar}
       edgeShadow={false}
       orientation="vertical"
-      viewportClassName={[viewportClassName, s.viewport].filter(Boolean).join(' ')}
+      viewportClassName={viewportClassName}
       viewportSlot={viewportSlot}
       viewportRender={viewportRender}
       viewportProps={{ ref: viewportRef, onScroll }}
       // Base UI の既定（min-width: fit-content）は、長い文字で中身を広げてしまうので、枠の幅に収める
       contentStyle={{ minWidth: 0 }}
-      scrollbarClassName={[s.scrollbar, scrollbarClassName].filter(Boolean).join(' ')}
+      scrollbarClassName={scrollbarClassName}
       before={before}
       after={after}
     >

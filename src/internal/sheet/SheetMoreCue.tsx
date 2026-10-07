@@ -84,8 +84,7 @@ export function SheetMoreCue({
             'absolute right-[calc(var(--sheet-inset,0px)*-1)] left-[calc(var(--sheet-inset,0px)*-1)] h-px bg-surface-line',
             top ? 'top-0' : 'bottom-0',
           ].join(' ')}
-          // --sheet-scroll-divider: 軸 581 の比較用（区切り線を出すか、0・1）。決まったら畳む
-          style={{ opacity: `calc(var(--sheet-scroll-divider, 1) * ${dividerOpacity})` }}
+          style={{ opacity: dividerOpacity }}
         />
       )}
     </div>

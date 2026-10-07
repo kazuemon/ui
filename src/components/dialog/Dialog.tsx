@@ -401,7 +401,7 @@ function CenteredDialog({
                   // 中身だけをスクロールさせる。ScrollArea と同じ枠。続きの印は枠の上下に置く
                   //   角は面の角に合わせて丸める（貼り付けた DialogActions の面が、面の下の角からはみ出さないように）
                   <MoreCueScroll
-                    surface="sheet"
+                    focusable="auto"
                     viewportRef={cues}
                     viewportSlot="dialog-content"
                     className="min-h-0 flex-1 rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]"

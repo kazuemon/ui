@@ -15,6 +15,7 @@ import { SheetMoreCue } from './sheet/SheetMoreCue';
 import { useMergedRefs } from './use-merged-refs';
 import { useMoreCues } from './sheet/use-more-cues';
 import { useInlineCues } from './use-inline-cues';
+import { useKeyboardScroller } from './use-keyboard-scroller';
 
 // スクロールする枠の中身（軸 93）。ScrollArea 部品と、部品の中でスクロールさせる場所が共有する
 //   ScrollArea: そのまま使う（枠はキーボードで止まり、上下左右の影と両向きのつまみを出す）
@@ -46,9 +47,11 @@ export interface ScrollFrameProps {
   /**
    * 枠をキーボードの止まり先にするか。欄や面の中に置くときは false にして、
    * その中にもう1つの止まり先を作らない（中の要素へ移ったときは、ブラウザが見える位置へ送る）
+   * auto は、ブラウザのスクロールする箱と同じく、あふれていて中に Tab で止まれるものがないときだけ止まる
+   * （シートや Dialog の中身。開いた直後のフォーカスは変えない — use-keyboard-scroller）
    * @default true
    */
-  focusable?: boolean;
+  focusable?: boolean | 'auto';
   /**
    * 続きがある端に、内側の影を落とすか
    * @default true
@@ -137,8 +140,10 @@ export function ScrollFrame({
     },
     [moreCues, inlineCues, edgeShadow, inlineEdges, onViewport]
   );
-  // 内部の ref（影の計算）と、使う側が渡した ref をつなぐ（ADR-0250）
-  const viewportRef = useMergedRefs(setViewport, ownViewportRef);
+  // focusable="auto": あふれていて中に止まり先がないときだけ止まる
+  const keyboard = useKeyboardScroller(focusable === 'auto');
+  // 内部の ref（影の計算・止まり先の判定）と、使う側が渡した ref をつなぐ（ADR-0250）
+  const viewportRef = useMergedRefs(setViewport, keyboard.ref, ownViewportRef);
   return (
     <BaseScrollArea.Root
       ref={ref}
@@ -152,8 +157,10 @@ export function ScrollFrame({
         {...viewportRest}
         ref={viewportRef}
         render={viewportRender}
-        // 止まり先にしないときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
-        {...(focusable ? {} : { tabIndex: -1 })}
+        // 止まり先にしないとき・auto のときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
+        {...(focusable === true
+          ? {}
+          : { tabIndex: focusable === 'auto' && keyboard.stop ? 0 : -1 })}
         data-slot={viewportSlot}
         // つまみを出す条件（キーボードで止まったとき）が読む印。data-slot は部品が変えることがあるので別に置く
         data-scroll-viewport=""

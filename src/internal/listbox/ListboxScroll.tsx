@@ -20,6 +20,7 @@ export function ListboxScroll({
   before,
   after,
   viewportClassName,
+  scrollbar = 'scroll',
   children,
 }: {
   presentation: ListboxPresentation;
@@ -32,13 +33,15 @@ export function ListboxScroll({
   after?: ReactNode;
   /** スクロールする要素に足すクラス */
   viewportClassName?: string;
+  /** つまみの出し方。scroll は載せたとき・スクロール中だけ、always はいつも */
+  scrollbar?: 'scroll' | 'always';
   /** 選択肢の一覧（Base UI の List） */
   children: ReactNode;
 }) {
   const sheet = presentation === 'sheet';
   return (
     <MoreCueScroll
-      surface={sheet ? 'sheet' : 'popover'}
+      scrollbar={scrollbar}
       className={['-mx-(--spacing) [--sheet-inset:0px]', sheet && 'min-h-0 flex-1']
         .filter(Boolean)
         .join(' ')}

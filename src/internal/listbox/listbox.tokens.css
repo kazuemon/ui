@@ -15,11 +15,4 @@
      画面の高さの半分のうち、最後の項目が半分見える高さにする（部品が計算して --select-popup-max-height に書く）
      大きな画面で長くなりすぎないよう、項目の数でも上限をかける。10.5 は「10 項目と、半分だけ見える 1 項目」 */
   --select-popup-max-rows: 10.5;
-  /* 軸 580 の比較用。決まったら畳む: 浮かぶ一覧（Select・Combobox・TagsInput・Menu）のスクロールの見た目
-     scroll-native: ブラウザのスクロールバー。auto で出す（現行版）、none で出さない
-     scroll-thumb: ScrollArea のつまみ。hidden で出さない（現行版）、visible で出す
-     scroll-thumb-idle: つまみの、載せていないときの濃さ。0 で載せたとき・スクロール中だけ出す、1 でいつも出す */
-  --listbox-scroll-native: auto;
-  --listbox-scroll-thumb: hidden;
-  --listbox-scroll-thumb-idle: 0;
 }

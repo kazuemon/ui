@@ -258,7 +258,7 @@ export function SheetPopup({
                   下に操作がないときは、下端の余白に端末の安全領域の分を空ける
                 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
             <MoreCueScroll
-              surface="sheet"
+              focusable="auto"
               viewportRef={cues}
               viewportSlot="sheet-content"
               viewportRender={<BaseDrawer.Content />}

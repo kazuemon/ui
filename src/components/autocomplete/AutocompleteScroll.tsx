@@ -14,12 +14,15 @@ import { ScrollFrame } from '../../internal/ScrollFrame';
 export function AutocompleteScroll({
   viewportRef,
   loadingRow,
+  scrollbar = 'scroll',
   children,
 }: {
   /** スクロールする要素を受け取る。useListboxLayout の listRef を渡す */
   viewportRef: RefObject<HTMLDivElement | null>;
   /** 一覧の下に読み込み中の行を出すか（下の余白をその行に持たせる） */
   loadingRow: boolean;
+  /** つまみの出し方。scroll は載せたとき・スクロール中だけ、always はいつも */
+  scrollbar?: 'scroll' | 'always';
   /** 選択肢の一覧（Base UI の List） */
   children: ReactNode;
 }) {
@@ -45,6 +48,7 @@ export function AutocompleteScroll({
       // 横にはスクロールしないので、左右の端の影とつまみは置かない
       inlineEdges={false}
       orientation="vertical"
+      scrollbar={scrollbar}
       // つまみは、最初の行の上端から最後の行の下端までの範囲を動く（面の角にかからない）
       scrollbarClassName="my-(--spacing)"
       onViewport={setViewport}

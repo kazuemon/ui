@@ -73,6 +73,7 @@ const meta = {
     groupLabelStyle: 'label',
     submenuSheet: 'fixed',
     closeOnSwipe: false,
+    popoverScrollbar: 'scroll',
     title: '操作',
   },
   argTypes: {
@@ -124,6 +125,11 @@ const meta = {
     closeOnSwipe: {
       control: 'boolean',
       table: { defaultValue: { summary: 'false' } },
+    },
+    popoverScrollbar: {
+      control: 'inline-radio',
+      options: ['scroll', 'always'],
+      table: { defaultValue: { summary: "'scroll'" } },
     },
     trigger: { control: false },
     children: { control: false },

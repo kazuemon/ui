@@ -193,6 +193,12 @@ export interface MenuProps {
    */
   closeOnSwipe?: boolean;
   /**
+   * 浮かべたときに、一覧が長くてスクロールするときのつまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。シートでは、スクロール中だけ出します
+   * @default 'scroll'
+   */
+  popoverScrollbar?: 'scroll' | 'always';
+  /**
    * シートの閉じる × の読み上げの名前
    * @default '閉じる'
    */
@@ -247,6 +253,7 @@ export function Menu({
   groupLabelStyle = 'label',
   submenuSheet = 'fixed',
   closeOnSwipe = false,
+  popoverScrollbar = 'scroll',
   closeName,
   backName,
   portalContainer: container,
@@ -309,6 +316,7 @@ export function Menu({
           groupLabelStyle,
           submenuSheet,
           closeOnSwipe,
+          popoverScrollbar,
           closeName,
           backName,
           closeAll: () => changeOpen(false),
@@ -439,6 +447,7 @@ export function MenuSurface({
     backName,
     submenuSheet,
     closeOnSwipe,
+    popoverScrollbar = 'scroll',
     closeAll,
   } = useMenuContext();
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
@@ -617,7 +626,7 @@ export function MenuSurface({
           )}
           {/* 一覧。スクロールするのは一覧を包む枠（MoreCueScroll）。続きの印は枠の上下に置く */}
           <MoreCueScroll
-            surface={sheet ? 'sheet' : 'popover'}
+            scrollbar={sheet ? 'scroll' : popoverScrollbar}
             viewportRef={cues}
             viewportSlot="menu-list"
             before={<SheetMoreCue edge="top" sheet={sheet} sheetMoreCue="divider-always-shadow" />}

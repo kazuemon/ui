@@ -365,7 +365,7 @@ export function Inspector({
             {/* 中身。スクロールする（ScrollArea と同じ枠）
                 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
             <MoreCueScroll
-              surface="sheet"
+              focusable="auto"
               viewportRef={cues}
               viewportSlot="inspector-content"
               className="min-h-0 flex-1"

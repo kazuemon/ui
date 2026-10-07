@@ -367,6 +367,12 @@ export interface AutocompleteControlProps<Value = string> {
    */
   popoverMaxHeight?: 'none' | 'screen';
   /**
+   * 浮かぶ候補が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
+   */
+  popoverScrollbar?: 'scroll' | 'always';
+  /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
    */
@@ -470,6 +476,7 @@ export function AutocompleteControl<Value = string>({
   sheetDetent: sheetDetentProp,
   sheetMoreCue = 'divider-always-shadow',
   popoverMaxHeight = 'screen',
+  popoverScrollbar = 'scroll',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   loadedText = defaultLoadedSuggestionsText,
@@ -982,7 +989,11 @@ export function AutocompleteControl<Value = string>({
             {sheet ? (
               renderList(fieldDescribedBy)
             ) : (
-              <AutocompleteScroll viewportRef={listRef} loadingRow={loadingRow}>
+              <AutocompleteScroll
+                viewportRef={listRef}
+                loadingRow={loadingRow}
+                scrollbar={popoverScrollbar}
+              >
                 {renderList(fieldDescribedBy)}
               </AutocompleteScroll>
             )}

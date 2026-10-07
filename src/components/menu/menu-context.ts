@@ -47,6 +47,8 @@ export interface MenuContextValue {
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;
+  /** 浮かべたときの、一覧のつまみの出し方（Menu の popoverScrollbar）。書かないときは scroll */
+  popoverScrollbar?: 'scroll' | 'always';
   closeName?: string;
   backName?: string;
   closeAll: () => void;
