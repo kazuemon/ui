@@ -470,6 +470,12 @@ export {
   type PopoverProps,
   type PopoverSide,
 } from './components/popover/Popover';
+export {
+  PreviewCard,
+  type PreviewCardAlign,
+  type PreviewCardProps,
+  type PreviewCardSide,
+} from './components/preview-card/PreviewCard';
 export { type CollisionAvoidance, type PositionerProps } from './internal/overlay/overlay-props';
 export { Portal, type PortalProps } from './components/portal/Portal';
 export { ThemeProvider, type ThemeProviderProps } from './components/theme-provider/ThemeProvider';

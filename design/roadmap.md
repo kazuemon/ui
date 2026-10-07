@@ -178,7 +178,7 @@
 - [x] Popover
 - [x] Tooltip
 - [x] AlertDialog
-- [ ] PreviewCard
+- [x] PreviewCard
 
 ### アプリの画面
 

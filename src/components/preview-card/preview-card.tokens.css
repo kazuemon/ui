@@ -1,0 +1,8 @@
+:root {
+  /* PreviewCard — 軸 571
+     面は Popover と同じ（白・細い輪郭・--shadow-overlay・部品の角）。幅は固定で、画面が狭いときだけ縮む
+     width: 面の幅。padding: 内側の余白（0 にすると、画像などを面の端まで広げられる）。offset: 本体との間 */
+  --preview-card-width: calc(var(--spacing) * 80);
+  --preview-card-padding: calc(var(--spacing) * 4);
+  --preview-card-offset: var(--spacing);
+}
