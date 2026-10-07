@@ -21,6 +21,7 @@ import {
   splitFieldProps,
 } from '../../internal/field/input-field-props';
 import { warnOnce } from '../../internal/link-parts';
+import { useToolbarSlots } from '../../internal/toolbar-slot';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { cn } from '../../internal/tv';
 
@@ -93,6 +94,8 @@ export function TextFieldControl({
   // 止めているあいだは、Disabled と同じく書き換えられない。disabled 属性は付けないので、フォーカスは外れない
   // （loadingBehavior="blocking" で待っているとき、Form の送信中 — 後半の軸 38）
   const blocking = field?.blocking ?? false;
+  // Toolbar の中では、input を帯の矢印キーの並びに入れる（左右の矢印キーは、文字の端まで来たときだけ隣の項目へ移る）
+  const toolbar = useToolbarSlots();
   const { className: inputClassName, ...restInputProps } = inputProps ?? {};
   // いまの文字。消すボタンと文字数が読む。値を渡されたときはその値、渡されないときは打った文字
   const [innerValue, setInnerValue] = useState(defaultValue ?? '');
@@ -148,6 +151,7 @@ export function TextFieldControl({
     >
       {(describedBy) => (
         <BaseField.Control
+          render={toolbar?.input(disabled)}
           className={cn(
             'h-full w-full min-w-0 bg-transparent outline-none placeholder:text-(color:--field-placeholder) disabled:cursor-not-allowed',
             fieldInset,

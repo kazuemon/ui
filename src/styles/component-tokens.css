@@ -70,6 +70,7 @@
 @import '../components/timeline/timeline.tokens.css';
 @import '../components/toast/toast.tokens.css';
 @import '../components/toggle/toggle.tokens.css';
+@import '../components/toolbar/toolbar.tokens.css';
 @import '../components/tooltip/tooltip.tokens.css';
 @import '../components/transition/transition.tokens.css';
 @import '../components/tree/tree.tokens.css';

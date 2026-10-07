@@ -16,6 +16,7 @@ import {
   comboboxPositionerStyle,
 } from '../../internal/combobox-base/combobox-popup-styles';
 import { useDensityScope } from '../../internal/density-scope';
+import { useToolbarSlots } from '../../internal/toolbar-slot';
 import {
   Field,
   type FieldLoadingBehavior,
@@ -401,6 +402,8 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   // 本体はボタンなので、ラベルを <label> にしない（組み立てで置いたときも）
   useFieldControlKind({ nativeLabel: false });
   const disabled = field?.disabled ?? false;
+  // Toolbar の中では、本体（Trigger）を帯の矢印キーの並びに入れる
+  const toolbar = useToolbarSlots();
   const loading = field?.loading ?? false;
   const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
   const label = field?.label ?? field?.accessibleName;
@@ -632,6 +635,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       {loading && loadingIndicator === 'bar' && <FieldLoadingBar />}
     </BaseSelect.Trigger>
   );
+  const triggerItem = toolbar ? toolbar.button(trigger, disabled) : trigger;
 
   return (
     <BaseSelect.Root<ListboxValue, boolean>
@@ -688,7 +692,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
       {/* clearable では、値の有無にかかわらず包む。× を消したときに本体を作り直すと、本体に戻したフォーカスが外れるため */}
       {clearable ? (
         <div data-slot="select-field" className={selectClearField}>
-          {trigger}
+          {triggerItem}
           {showClear && (
             <FieldAddonButton
               data-select-clear=""
@@ -702,7 +706,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
           )}
         </div>
       ) : (
-        trigger
+        triggerItem
       )}
       <BaseSelect.Portal container={portalContainer}>
         {/* シートのときは、後ろの画面を暗くする（--color-backdrop） */}
