@@ -392,6 +392,8 @@ interface MenuSurfaceProps {
   align?: MenuAlign;
   /** 入れ子のメニューの面か。入れ子は親の項目の横に出し、シートでは親のシートの上に重ねる */
   nested?: boolean;
+  /** 本体との間（side）と、そろえる向きのずれ（align）を px で返す。ContextMenu がポインタの位置からのずれに使う。書かないときは本体との間だけ */
+  offset?: () => { side: number; align: number };
   /** 閉じる。入れ子の面では親へ戻る */
   onClose: () => void;
   /** 閉じたあとに焦点を戻す要素 */
@@ -422,6 +424,7 @@ export function MenuSurface({
   side = 'bottom',
   align = 'start',
   nested = false,
+  offset,
   onClose,
   returnFocus,
   popupProps,
@@ -504,11 +507,11 @@ export function MenuSurface({
         // 入れ子の面は Base UI の既定（親の項目の横）に出す。最初の項目が親の項目と同じ高さに並ぶよう、面の余白と輪郭の分だけ上へずらす
         side={nested ? undefined : side}
         align={nested ? undefined : align}
-        sideOffset={() => (nested ? 0 : readTokenLength('--menu-offset'))}
+        sideOffset={() => (nested ? 0 : offset ? offset().side : readTokenLength('--menu-offset'))}
         alignOffset={() =>
           nested
             ? -(readTokenLength('--menu-popup-padding') + readTokenLength('--border-width-thin'))
-            : 0
+            : (offset?.().align ?? 0)
         }
         collisionPadding={popupCollisionPadding}
         data-density={densityScope.density}

@@ -167,6 +167,7 @@ export {
   type CodeGroupProps,
   type CodeGroupVariant,
 } from './components/code-group/CodeGroup';
+export { ContextMenu, type ContextMenuProps } from './components/context-menu/ContextMenu';
 export {
   Container,
   type ContainerPadding,

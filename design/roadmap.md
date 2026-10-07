@@ -83,7 +83,7 @@
 - [x] Menu
 - [x] Stepper
 - [ ] NavigationMenu
-- [ ] ContextMenu
+- [x] ContextMenu
 - [ ] Toolbar
 - [ ] CommandPalette
 - [ ] BackToTop

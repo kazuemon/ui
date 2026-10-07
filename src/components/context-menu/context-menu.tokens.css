@@ -1,0 +1,15 @@
+:root {
+  /* ContextMenu（右クリック・長押しで開く操作の一覧）
+     開いているあいだの、当てる範囲（trigger）の見せ方。何をしめす操作かを、範囲に残す
+     面の色（透明なら敷かない）・輪郭の太さ（0 なら出さない）・色・外への離れ */
+  --context-menu-area-bg: transparent;
+  --context-menu-area-ring-width: 0px;
+  --context-menu-area-ring-color: var(--color-line-strong);
+  --context-menu-area-ring-offset: 0px;
+  /* 一覧の角を置く場所の、ポインタからのずれ（下へ・右へ。0 ならポインタの位置に角を置く）。
+     overlap は一覧をポインタの下へ重ねる長さ（最初の項目がポインタの真下に来る） */
+  --context-menu-offset-y: 0px;
+  --context-menu-offset-x: 0px;
+  --context-menu-overlap-y: 0px;
+  --context-menu-overlap-x: 0px;
+}
