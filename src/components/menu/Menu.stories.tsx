@@ -32,6 +32,7 @@ const openOnLoad = (viewMode: string) => viewMode !== 'docs';
 // hover・キーボードの選択と同じ塗りに固定する（見た目の一覧で使う）
 const highlighted: CSSProperties & Record<`--${string}`, string> = {
   '--menu-item-bg': 'var(--menu-item-highlight)',
+  '--item-icon-box-current': 'var(--item-icon-box-bg-active)',
 };
 
 const meta = {

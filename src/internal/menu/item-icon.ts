@@ -7,4 +7,4 @@ export type ItemIconVariant = 'plain' | 'soft';
 
 /** soft の箱（大きさ・塗り・角・中のアイコンの大きさ）。箱の中央にアイコンを置く */
 export const softIconBoxClass =
-  'size-10 items-center justify-center rounded-[calc(var(--radius-control)-var(--spacing))] bg-[var(--item-icon-box-current,var(--item-icon-box-bg))] shadow-[inset_0_0_0_var(--item-icon-box-ring-width)_var(--item-icon-box-ring-color)] [&>svg]:size-(--spacing-icon)';
+  'size-10 items-center justify-center rounded-[calc(var(--radius-control)-var(--spacing))] bg-[var(--item-icon-box-current,var(--item-icon-box-bg))] [&>svg]:size-(--spacing-icon)';

@@ -62,6 +62,8 @@ export const menuItem = tv({
         root: [
           'gap-3 py-1.5',
           'data-highlighted:[--item-icon-box-current:var(--item-icon-box-bg-active)] data-popup-open:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
+          // 押せない項目は、行の塗りと同じく hover では濃くせず、キーボードで止まったときだけ濃くする
+          'data-disabled:data-highlighted:[--item-icon-box-current:var(--item-icon-box-bg)] data-disabled:data-highlighted:focus-visible:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
         ],
         icon: softIconBoxClass,
       },
