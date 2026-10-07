@@ -115,10 +115,41 @@ export function useDragScroll(enabled: boolean) {
         if (!drag) scroller.removeAttribute('data-drag-scroll');
       };
 
+      // 押してから離すまでを片づける。離したのが表の外でも届くよう、離す・取りやめは文書に付ける
+      //   （引っぱりを始める前は pointer を捕まえていないので、表の外で離すと表には届かない）
+      const doc = scroller.ownerDocument;
+      const end = (event?: PointerEvent) => {
+        if (!drag) return;
+        const { id, dragging } = drag;
+        drag = null;
+        doc.removeEventListener('pointerup', onUp);
+        doc.removeEventListener('pointercancel', onUp);
+        if (scroller.hasPointerCapture(id)) scroller.releasePointerCapture(id);
+        // 表の上にいるときは grab に戻し、外にいるときは外す（次に載せたときに onHover が付け直す）
+        if (scroller.matches(':hover')) scroller.setAttribute('data-drag-scroll', 'ready');
+        else scroller.removeAttribute('data-drag-scroll');
+        if (!dragging || event?.type !== 'pointerup') return;
+        // 引っぱったあとの click を、いちばん外（window）の捕まえる段階で止め、ページのどのリスナーにも届けない
+        window.addEventListener('click', swallowClick, { capture: true, once: true });
+        // click が来ないとき（押した要素の外で離したとき）に、次のクリックまで残さない
+        setTimeout(() => window.removeEventListener('click', swallowClick, { capture: true }));
+      };
+
+      // 引っぱったあとの click（押した要素に届く）を、一度だけ打ち消す
+      const swallowClick = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+
+      const onUp = (event: PointerEvent) => {
+        if (drag && event.pointerId === drag.id) end(event);
+      };
+
       const onDown = (event: PointerEvent) => {
         if (event.pointerType !== 'mouse' || event.button !== 0) return;
         if (!scrollableX(scroller)) return;
         if (!canDragFrom(event.target, event.clientX, event.clientY)) return;
+        end();
         // 押した既定の動き（枠に焦点を移す。マウスなので線は出ない）はそのまま。文字の選択だけを onSelectStart で止める
         drag = {
           id: event.pointerId,
@@ -126,10 +157,17 @@ export function useDragScroll(enabled: boolean) {
           scrollLeft: scroller.scrollLeft,
           dragging: false,
         };
+        doc.addEventListener('pointerup', onUp);
+        doc.addEventListener('pointercancel', onUp);
       };
 
       const onMove = (event: PointerEvent) => {
         if (!drag || event.pointerId !== drag.id) return;
+        // 左のボタンがもう離れている（離したことが届かなかった）なら、引っぱりを捨てる
+        if ((event.buttons & 1) === 0) {
+          end(event);
+          return;
+        }
         const dx = event.clientX - drag.x;
         if (!drag.dragging) {
           if (Math.abs(dx) < DRAG_THRESHOLD) return;
@@ -145,49 +183,30 @@ export function useDragScroll(enabled: boolean) {
         scroller.scrollLeft = drag.scrollLeft - dx;
       };
 
+      // 捕まえていた pointer を失った（ウィンドウの外へ出たなど）ときも片づける
+      const onLostCapture = () => end();
+
       // 余白から押したあいだは、文字の選択と、要素を持ち出すドラッグ（画像など）を始めない
       const onSelectStart = (event: Event) => {
         if (drag) event.preventDefault();
-      };
-
-      // 引っぱったあとの click（押した要素に届く）を、一度だけ打ち消す
-      const swallowClick = (event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-      };
-
-      const onUp = (event: PointerEvent) => {
-        if (!drag || event.pointerId !== drag.id) return;
-        const dragged = drag.dragging;
-        drag = null;
-        if (scroller.hasPointerCapture(event.pointerId)) {
-          scroller.releasePointerCapture(event.pointerId);
-        }
-        scroller.setAttribute('data-drag-scroll', 'ready');
-        if (!dragged) return;
-        // いちばん外（window）の捕まえる段階で止め、ページのどのリスナーにも届けない
-        window.addEventListener('click', swallowClick, { capture: true, once: true });
-        // click が来ないとき（押した要素の外で離したとき）に、次のクリックまで残さない
-        setTimeout(() => window.removeEventListener('click', swallowClick, { capture: true }));
       };
 
       scroller.addEventListener('pointermove', onHover);
       scroller.addEventListener('pointerleave', onLeave);
       scroller.addEventListener('pointerdown', onDown);
       scroller.addEventListener('pointermove', onMove);
-      scroller.addEventListener('pointerup', onUp);
-      scroller.addEventListener('pointercancel', onUp);
+      scroller.addEventListener('lostpointercapture', onLostCapture);
       scroller.addEventListener('selectstart', onSelectStart);
       scroller.addEventListener('dragstart', onSelectStart);
       cleanup.current = () => {
+        end();
         cancelAnimationFrame(hoverFrame);
         scroller.removeAttribute('data-drag-scroll');
         scroller.removeEventListener('pointermove', onHover);
         scroller.removeEventListener('pointerleave', onLeave);
         scroller.removeEventListener('pointerdown', onDown);
         scroller.removeEventListener('pointermove', onMove);
-        scroller.removeEventListener('pointerup', onUp);
-        scroller.removeEventListener('pointercancel', onUp);
+        scroller.removeEventListener('lostpointercapture', onLostCapture);
         scroller.removeEventListener('selectstart', onSelectStart);
         scroller.removeEventListener('dragstart', onSelectStart);
       };
