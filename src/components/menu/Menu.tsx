@@ -1,10 +1,8 @@
 'use client';
 
 import { Menu as BaseMenu } from '@base-ui/react/menu';
-import { type ReactElement, type ReactNode, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
-import { useDensityScope } from '../../internal/density-scope';
-import { menuChildrenHaveMarks } from '../../internal/menu/menu-marks';
 import {
   type MenuAlign,
   type MenuColor,
@@ -16,17 +14,13 @@ import {
   type MenuSubmenuSheet,
 } from '../../internal/menu/menu-context';
 import { MenuSurface } from '../../internal/menu/MenuSurface';
-import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { useMenuRoot } from '../../internal/menu/use-menu-root';
 import type {
   OverlayFocusTarget,
   PopupProps,
   PositionerProps,
 } from '../../internal/overlay/overlay-props';
-import {
-  type OverlayPresentation,
-  useSheetPresentation,
-} from '../../internal/sheet/use-narrow-screen';
-import { usePortalContainer } from '../../internal/ui-config';
+import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 
 export type {
   MenuAlign,
@@ -224,38 +218,29 @@ export function Menu({
   positionerProps,
   className,
 }: MenuProps) {
-  // 開閉はここで持つ（シートの × で閉じるため。出し方が開いたまま切り替わっても閉じないようにするため）
-  const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
-  const changeOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
-  const sheet = useSheetPresentation(presentation);
-  const portalContainer = usePortalContainer(container);
-  const { anchorRef, scope } = useDensityScope(open);
-  // 閉じ終えたら面を作り直す（slide のシートで開いていた入れ子を、次に開くときに持ち越さない）
-  const [generation, setGeneration] = useState(0);
-  const reserveMarkSpace = alignMarks && menuChildrenHaveMarks(children);
+  const { rootProps, anchorRef, context, generation, close } = useMenuRoot({
+    children,
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+    onOpenChangeComplete,
+    dismissible,
+    closeOnEscape,
+    presentation,
+    portalContainer: container,
+    color,
+    markPlacement,
+    radioMark,
+    alignMarks,
+    groupLabelStyle,
+    submenuSheet,
+    closeOnSwipe,
+    closeName,
+    backName,
+  });
   return (
     <BaseMenu.Root
-      open={open}
-      onOpenChange={(next, details) => {
-        // Esc で閉じない設定・外を押しても閉じない設定のときは、閉じる合図を取り消す
-        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-          details.cancel();
-          return;
-        }
-        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
-          details.cancel();
-          return;
-        }
-        changeOpen(next);
-      }}
-      onOpenChangeComplete={(next) => {
-        if (!next) setGeneration((current) => current + 1);
-        onOpenChangeComplete?.(next);
-      }}
+      {...rootProps}
       modal={modal}
       disabled={disabled}
       closeParentOnEsc={closeParentOnEsc}
@@ -267,29 +252,13 @@ export function Menu({
         delay={openDelay}
         closeDelay={closeDelay}
       />
-      <MenuContext
-        value={{
-          sheet,
-          container: portalContainer,
-          densityScope: scope,
-          color,
-          markPlacement,
-          radioMark,
-          reserveMarkSpace,
-          groupLabelStyle,
-          submenuSheet,
-          closeOnSwipe,
-          closeName,
-          backName,
-          closeAll: () => changeOpen(false),
-        }}
-      >
+      <MenuContext value={context}>
         <MenuSurface
           key={generation}
           title={title}
           side={side}
           align={align}
-          onClose={() => changeOpen(false)}
+          onClose={close}
           returnFocus={returnFocus}
           popupProps={popupProps}
           positionerProps={positionerProps}

@@ -1,10 +1,8 @@
 'use client';
 
 import { ContextMenu as BaseContextMenu } from '@base-ui/react/context-menu';
-import { type ReactElement, type ReactNode, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
-import { useDensityScope } from '../../internal/density-scope';
-import { menuChildrenHaveMarks } from '../../internal/menu/menu-marks';
 import {
   type MenuColor,
   MenuContext,
@@ -14,15 +12,13 @@ import {
   type MenuSubmenuSheet,
 } from '../../internal/menu/menu-context';
 import { MenuSurface } from '../../internal/menu/MenuSurface';
-import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-reasons';
+import { useMenuRoot } from '../../internal/menu/use-menu-root';
 import type {
   OverlayFocusTarget,
   PopupProps,
   PositionerProps,
 } from '../../internal/overlay/overlay-props';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
-import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
-import { usePortalContainer } from '../../internal/ui-config';
 
 // 印の色（Menu と同じ）は MenuSurface が context の color から作る
 export interface ContextMenuProps {
@@ -180,64 +176,39 @@ export function ContextMenu({
   positionerProps,
   className,
 }: ContextMenuProps) {
-  const [openState, setOpenState] = useState(defaultOpen);
-  const open = openProp ?? openState;
-  const changeOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
-  const sheet = useSheetPresentation(presentation);
-  const portalContainer = usePortalContainer(container);
-  const { anchorRef, scope } = useDensityScope<HTMLDivElement>(open);
-  const [generation, setGeneration] = useState(0);
-  const reserveMarkSpace = alignMarks && menuChildrenHaveMarks(children);
+  const { rootProps, anchorRef, context, generation, close } = useMenuRoot<HTMLDivElement>({
+    children,
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+    onOpenChangeComplete,
+    dismissible,
+    closeOnEscape,
+    presentation,
+    portalContainer: container,
+    color,
+    markPlacement,
+    radioMark,
+    alignMarks,
+    groupLabelStyle,
+    submenuSheet,
+    closeOnSwipe,
+    closeName,
+    backName,
+  });
   return (
-    <BaseContextMenu.Root
-      open={open}
-      onOpenChange={(next, details) => {
-        if (!next && !closeOnEscape && ESCAPE_REASONS.has(details.reason)) {
-          details.cancel();
-          return;
-        }
-        if (!next && !dismissible && DISMISS_REASONS.has(details.reason)) {
-          details.cancel();
-          return;
-        }
-        changeOpen(next);
-      }}
-      onOpenChangeComplete={(next) => {
-        if (!next) setGeneration((current) => current + 1);
-        onOpenChangeComplete?.(next);
-      }}
-      disabled={disabled}
-    >
+    <BaseContextMenu.Root {...rootProps} disabled={disabled}>
       <BaseContextMenu.Trigger
         ref={anchorRef}
         render={trigger}
-        className={highlightArea && open ? 'bg-field' : undefined}
+        className={highlightArea && rootProps.open ? 'bg-field' : undefined}
       />
-      <MenuContext
-        value={{
-          sheet,
-          container: portalContainer,
-          densityScope: scope,
-          color,
-          markPlacement,
-          radioMark,
-          reserveMarkSpace,
-          groupLabelStyle,
-          submenuSheet,
-          closeOnSwipe,
-          closeName,
-          backName,
-          closeAll: () => changeOpen(false),
-        }}
-      >
+      <MenuContext value={context}>
         <MenuSurface
           key={generation}
           title={title}
           offset={() => ({ side: offsetY, align: offsetX })}
-          onClose={() => changeOpen(false)}
+          onClose={close}
           returnFocus={returnFocus}
           popupProps={popupProps}
           positionerProps={positionerProps}
