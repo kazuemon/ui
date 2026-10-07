@@ -401,9 +401,10 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   const field = useFieldState();
   // 本体はボタンなので、ラベルを <label> にしない（組み立てで置いたときも）
   useFieldControlKind({ nativeLabel: false });
-  const disabled = field?.disabled ?? false;
   // Toolbar の中では、本体（Trigger）を帯の矢印キーの並びに入れる
   const toolbar = useToolbarSlots();
+  // Field を通さず直に置いたときも、帯・まとまりが押せないなら押せなくする
+  const disabled = (field?.disabled ?? false) || (toolbar?.disabled ?? false);
   const loading = field?.loading ?? false;
   const loadingBehavior: FieldLoadingBehavior = field?.loadingBehavior ?? 'non-blocking';
   const label = field?.label ?? field?.accessibleName;

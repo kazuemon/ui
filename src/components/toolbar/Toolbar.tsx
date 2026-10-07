@@ -20,26 +20,30 @@ import { tv } from '../../internal/tv';
 //     ToggleGroup は、Base UI がツールバーの中を見分けて、中の Toggle をそのまま矢印キーの並びに入れる
 //     SelectControl・TextFieldControl（SearchFieldControl など）は、この部品が配る口（internal/toolbar-slot）で自分の本体を包む
 //     Menu・Popover の開く口は ToolbarButton を trigger に渡す
-//   帯はページと同じレイヤーで、影を持たない（原則1）。面は細い線の枠と内側の余白、角は中の部品の角に余白を足した同心の角（原則5）
-//     帯の面・項目の間と区切り・はみ出したときの扱いは比べている途中（軸 551〜553）
+//   帯は面を持たない（枠・塗り・内側の余白なし — ADR-0481）。全幅に敷くなど置き方が場所ごとに違うので、面が要るときは使う側が className で敷く
+//   項目の間は ButtonGroup の gap と同じ（ADR-0482）。区切りの両側も同じ空き
+//   入りきらないときは既定で折り返し、wrap={false} で横にスクロールする（ADR-0483）
+//   ToolbarButton の既定の見た目は underline（ADR-0484）
 //   押せない項目は、押せないボタンの見た目のまま矢印キーで止まる（押せない理由を Tooltip で出せるように — 原則13）。
 //     Toggle と欄は押せないとき本体が止まれない（disabled 属性）ので、矢印キーで飛ばす
 const toolbar = tv({
   slots: {
-    // 帯の面（枠線・塗り・角）。折り返すときは帯そのもの、スクロールするときはスクロールの枠に付く
-    band: [
-      'rounded-(--toolbar-radius) border-(length:--toolbar-border-width) border-solid border-line bg-(color:--toolbar-bg)',
-    ],
+    // いちばん外の要素（className が付く）。折り返すときは帯そのもの、スクロールするときはスクロールの枠を包む要素
+    band: 'min-w-0',
+    // スクロールの枠（wrap={false}）。内側に余白がないので、端の項目のフォーカスの線（外に 4px）が枠で切れないよう、
+    //   枠を外へ広げて、並びの側で同じだけ空ける（Tabs と同じ）
+    frame:
+      '-m-(--toolbar-ring-room) [--toolbar-ring-room:calc(var(--focus-ring-offset)+var(--focus-ring-width))]',
     // 項目の並び（role="toolbar"）
     list: [
-      'flex items-center gap-(--toolbar-gap) p-(--toolbar-padding)',
+      'flex items-center gap-(--button-group-gap)',
       'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
     ],
   },
   variants: {
     wrap: {
       true: { list: 'flex-wrap' },
-      false: { list: 'flex-nowrap' },
+      false: { list: 'flex-nowrap p-(--toolbar-ring-room)' },
     },
     // 横の帯は置いた場所の幅いっぱいに伸び、縦の帯は中身の幅に合わせる
     orientation: {
@@ -53,18 +57,18 @@ const toolbar = tv({
 // 項目のまとまり。まとまりの中は折り返さず、まとまりごと次の行へ送る
 const groupStyles = tv({
   base: [
-    'flex shrink-0 items-center gap-(--toolbar-gap)',
+    'flex shrink-0 items-center gap-(--button-group-gap)',
     'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
   ],
 });
 
-// 区切りの線。横の帯では縦の線（項目の高さから上下を縮める）、縦の帯では横の線
+// 区切りの線。横の帯では縦の線（項目の高さから上下を縮める）、縦の帯では横の線。両側の空きは項目の間（gap）だけ
 //   Base UI の Separator は、帯と逆の向きを data-orientation に書く
 const separator = tv({
   base: [
     'shrink-0 self-stretch border-0 border-solid border-line',
-    'data-[orientation=vertical]:mx-(--toolbar-separator-space) data-[orientation=vertical]:my-(--toolbar-separator-inset) data-[orientation=vertical]:w-0 data-[orientation=vertical]:border-l-(length:--border-width-thin)',
-    'data-[orientation=horizontal]:mx-(--toolbar-separator-inset) data-[orientation=horizontal]:my-(--toolbar-separator-space) data-[orientation=horizontal]:h-0 data-[orientation=horizontal]:border-t-(length:--border-width-thin)',
+    'data-[orientation=vertical]:my-(--toolbar-separator-inset) data-[orientation=vertical]:w-0 data-[orientation=vertical]:border-l-(length:--border-width-thin)',
+    'data-[orientation=horizontal]:mx-(--toolbar-separator-inset) data-[orientation=horizontal]:h-0 data-[orientation=horizontal]:border-t-(length:--border-width-thin)',
   ],
 });
 
@@ -108,7 +112,10 @@ export interface ToolbarProps extends Omit<ComponentProps<'div'>, 'dir'> {
   wrap?: boolean;
   /** 帯の読み上げの名前（aria-label）。画面に帯が 2 つ以上あるときや、見出しが近くにないときに付けます */
   'aria-label'?: string;
-  /** 帯の面（枠線のある要素）に付きます。wrap={false} では、スクロールの枠に付きます */
+  /**
+   * 帯のいちばん外の要素に付きます。帯は面を持たないので、面が要るときはここで敷きます（`border border-line rounded-card p-1` など）。
+   * wrap={false} では、スクロールの枠を包む要素に付きます
+   */
   className?: string;
   /** 並べる項目（ToolbarButton・ToolbarToggle・ToolbarLink・ToolbarGroup・ToolbarSeparator・ToggleGroup・SelectControl・SearchFieldControl など） */
   children?: ReactNode;
@@ -147,14 +154,16 @@ export function Toolbar({
         list
       ) : (
         // はみ出した分はスクロールし、続きのある端に内側の影を落とす（原則1）。枠そのものは止まり先にしない
-        <ScrollFrame
-          slot="toolbar-frame"
-          focusable={false}
-          orientation={orientation}
-          className={s.band({ className })}
-        >
-          {list}
-        </ScrollFrame>
+        <div className={s.band({ className })}>
+          <ScrollFrame
+            slot="toolbar-frame"
+            focusable={false}
+            orientation={orientation}
+            className={s.frame()}
+          >
+            {list}
+          </ScrollFrame>
+        </div>
       )}
     </ToolbarSlotContext>
   );
@@ -198,13 +207,24 @@ export function ToolbarSeparator({ className, ...props }: ToolbarSeparatorProps)
   return <BaseToolbar.Separator {...props} className={separator({ className })} />;
 }
 
-/** 帯の中のボタンの props。Button の props から、キャプション（caption）を除いたものです */
-export type ToolbarButtonProps = Omit<ButtonProps, 'caption'>;
+interface ToolbarButtonVariantProps {
+  /**
+   * 見た目。帯の中では、塗りも枠線もない underline が既定です（アイコンだけのボタンは線のない平らな形で、hover で淡く敷きます）。
+   * 帯の中で目立たせたい操作は filled や outline、color で選びます
+   * @default 'underline'
+   */
+  variant?: ButtonProps['variant'];
+}
+
+/** 帯の中のボタンの props。Button の props から、キャプション（caption）を除いたものです。見た目（variant）の既定だけが違います */
+export interface ToolbarButtonProps
+  extends Omit<ButtonProps, 'caption' | 'variant'>, ToolbarButtonVariantProps {}
 /** 帯の中のアイコンだけのボタンの props。読み上げの名前（aria-label）が要ります */
-export type ToolbarButtonIconOnlyProps = Omit<ButtonIconOnlyProps, 'caption'>;
+export interface ToolbarButtonIconOnlyProps
+  extends Omit<ButtonIconOnlyProps, 'caption' | 'variant'>, ToolbarButtonVariantProps {}
 
 /**
- * 帯の中に置くボタンです。見た目と props は Button と同じで、帯の矢印キーの並びに入ります。
+ * 帯の中に置くボタンです。props は Button と同じで、帯の矢印キーの並びに入ります。見た目の既定は underline です。
  * 押せないときも矢印キーで止まり（focusableWhenDisabled の既定が true）、押せない理由を Tooltip で出せます。
  * Menu・Popover の開く口にするときは、この部品を trigger に渡します（`<Menu trigger={<ToolbarButton>…</ToolbarButton>}>`）
  */
@@ -213,6 +233,7 @@ export function ToolbarButton(props: ToolbarButtonProps): ReactElement;
 export function ToolbarButton({
   disabled,
   focusableWhenDisabled = true,
+  variant = 'underline',
   ref,
   ...props
 }: ToolbarButtonProps | ToolbarButtonIconOnlyProps) {
@@ -225,6 +246,7 @@ export function ToolbarButton({
       render={
         <Button
           {...(props as ButtonProps)}
+          variant={variant}
           focusableWhenDisabled={focusableWhenDisabled}
           data-slot="toolbar-button"
         />
@@ -240,6 +262,7 @@ export type ToolbarToggleIconOnlyProps = Omit<ToggleIconOnlyProps, 'value'>;
 
 /**
  * 帯の中に 1 つだけ置くトグルです。見た目と props は Toggle と同じで、帯の矢印キーの並びに入ります。
+ * OFF を下線のボタンと同じ塗りのない形にし、ON だけ色を付けるときは variant="underline" にします（ToggleGroup も同じ）。
  * いくつかのトグルから選ぶときは、ToggleGroup に Toggle を入れて、そのまま帯に置きます。
  * 押せないトグルは、矢印キーで飛ばします
  */
@@ -268,5 +291,12 @@ export type ToolbarLinkProps = Omit<LinkProps, 'caption' | 'disabled'>;
  * 別の場所へ移るもの（ヘルプのページなど）に使い、その場で実行するものは ToolbarButton にします
  */
 export function ToolbarLink({ ref, ...props }: ToolbarLinkProps) {
-  return <BaseToolbar.Link ref={ref} render={<Link {...props} data-slot="toolbar-link" />} />;
+  // 帯・まとまりが押せないときは、リンクも押せなくする（Base UI の Toolbar.Link は親の disabled を見ない）
+  const disabled = useToolbarSlots()?.disabled ?? false;
+  return (
+    <BaseToolbar.Link
+      ref={ref}
+      render={<Link {...props} disabled={disabled} data-slot="toolbar-link" />}
+    />
+  );
 }

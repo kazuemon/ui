@@ -1,13 +1,6 @@
 :root {
   /* Toolbar（ボタン・トグル・区切り・欄を 1 本の帯に並べ、矢印キーで移る）
-     帯はページと同じレイヤーなので影を持たない（原則1）。面は細い線の枠と内側の余白で、角は中の部品の角に余白を足した同心の角（原則5）
-     帯の面・項目の間・区切りは比べている途中（軸 551・552） */
-  --toolbar-padding: calc(var(--spacing) * 1);
-  --toolbar-gap: calc(var(--spacing) * 1);
-  --toolbar-radius: calc(var(--radius-control) + var(--toolbar-padding));
-  --toolbar-border-width: var(--border-width-thin);
-  --toolbar-bg: transparent;
-  /* 区切りの線（ToolbarSeparator）。項目の高さから上下を inset だけ縮め、左右に space だけ空ける（項目の間 gap に足す） */
+     帯は面を持たない（枠・塗り・内側の余白なし。面が要るときは使う側が敷く）。項目の間は ButtonGroup と同じ（--button-group-gap）
+     区切りの線（ToolbarSeparator）は、項目の高さから上下を inset だけ縮める。左右の空きは項目の間と同じ */
   --toolbar-separator-inset: calc(var(--spacing) * 2);
-  --toolbar-separator-space: calc(var(--spacing) * 1);
 }

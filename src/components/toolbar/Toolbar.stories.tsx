@@ -49,7 +49,9 @@ const meta = {
         component: [
           'ボタン・トグル・欄を 1 本の帯に並べます。Tab で止まるのは帯の中の 1 つだけで、帯の中は矢印キーで移ります（横の帯は左右、縦の帯は上下）。',
           '',
-          '- 中には `ToolbarButton`・`ToolbarToggle`・`ToolbarLink` を置きます。見た目と props は `Button`・`Toggle`・`Link` と同じです。',
+          '- 中には `ToolbarButton`・`ToolbarToggle`・`ToolbarLink` を置きます。props は `Button`・`Toggle`・`Link` と同じです。`ToolbarButton` の見た目の既定は、塗りも枠線もない `underline` です。',
+          '- 帯は面を持ちません（枠・塗り・内側の余白なし）。枠や塗りが要るときは、`className` で敷きます。',
+          '- トグルの OFF もボタンと同じ平らな形にし、ON だけ色を付けるときは、`ToolbarToggle`・`ToggleGroup` に `variant="underline"` を渡します。',
           '- いくつかのトグルから選ぶときは、`ToggleGroup` に `Toggle` を入れて、そのまま帯に置きます。',
           '- `Select`・`SearchField`（と、その本体の `SelectControl`・`SearchFieldControl`・`TextFieldControl`）は、そのまま帯に置けます。見えるラベルは置かず、`accessibleName` で名前を付け、幅は `className` で決めます。',
           '- `Menu`・`Popover` の開く口は、`ToolbarButton` を `trigger` に渡します。',
@@ -296,16 +298,111 @@ export const Focus: Story = {
     docs: {
       description: {
         story:
-          '帯の端の項目にキーボードで止まったときも、フォーカスの線は帯の枠の内側に収まります。',
+          '帯の端の項目にキーボードで止まったときも、フォーカスの線は切れません。横にスクロールする帯（`wrap={false}`）でも同じです。',
       },
     },
   },
   render: () => (
-    <div data-preview="focus" className="max-w-md">
+    <div data-preview="focus" className="flex max-w-md flex-col gap-6 p-4">
       <Toolbar aria-label="記録">
-        <ToolbarButton>記録する</ToolbarButton>
+        <ToolbarButton variant="filled">記録する</ToolbarButton>
         <ToolbarButton variant="outline">取り消す</ToolbarButton>
       </Toolbar>
+      <Toolbar aria-label="記録（スクロール）" wrap={false}>
+        <ToolbarButton variant="filled">記録する</ToolbarButton>
+        <ToolbarButton variant="outline">取り消す</ToolbarButton>
+      </Toolbar>
+    </div>
+  ),
+};
+
+export const ToggleLook: Story = {
+  name: 'トグルの OFF を平らにする',
+  tags: ['visual'],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '上は既定の見た目で、トグルの OFF はグレーの塗りです。下は `ToggleGroup`・`ToolbarToggle` に `variant="underline"` を渡したもので、OFF はボタンと同じ塗りのない形になり、ON だけ色が付きます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-3xl flex-col gap-6">
+      {(['filled', 'underline'] as const).map((variant) => (
+        <Toolbar key={variant} aria-label={`書式（${variant}）`}>
+          <ToolbarButton iconOnly aria-label="元に戻す">
+            <Icon icon={ArrowCounterClockwiseIcon} standalone />
+          </ToolbarButton>
+          <ToolbarButton iconOnly aria-label="やり直す">
+            <Icon icon={ArrowClockwiseIcon} standalone />
+          </ToolbarButton>
+          <ToolbarSeparator />
+          <ToggleGroup multiple variant={variant} aria-label="文字の書式" defaultValue={['bold']}>
+            <Toggle value="bold" iconOnly aria-label="太字">
+              <Icon icon={TextBIcon} standalone />
+            </Toggle>
+            <Toggle value="italic" iconOnly aria-label="斜体">
+              <Icon icon={TextItalicIcon} standalone />
+            </Toggle>
+            <Toggle value="underline" iconOnly aria-label="下線">
+              <Icon icon={TextUnderlineIcon} standalone />
+            </Toggle>
+          </ToggleGroup>
+          <ToolbarSeparator />
+          <ToolbarToggle variant={variant}>未読だけ</ToolbarToggle>
+          <ToolbarButton>
+            挿入
+            <Icon icon={CaretDownIcon} />
+          </ToolbarButton>
+        </Toolbar>
+      ))}
+    </div>
+  ),
+};
+
+export const WithSurface: Story = {
+  name: '面を敷く',
+  tags: ['visual'],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '帯は面を持たないので、置く場所に合わせて `className` で敷きます。上は細い線で囲んだ帯、下はエディタの上端に貼る、下にだけ線を引いた帯です。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-3xl flex-col gap-6">
+      <Toolbar aria-label="書式（囲む）" className="rounded-card border border-line p-1">
+        <ToolbarButton iconOnly aria-label="元に戻す">
+          <Icon icon={ArrowCounterClockwiseIcon} standalone />
+        </ToolbarButton>
+        <ToolbarSeparator />
+        <ToolbarToggle iconOnly aria-label="太字">
+          <Icon icon={TextBIcon} standalone />
+        </ToolbarToggle>
+        <ToolbarToggle iconOnly aria-label="斜体">
+          <Icon icon={TextItalicIcon} standalone />
+        </ToolbarToggle>
+      </Toolbar>
+      <div className="rounded-card border border-line">
+        <Toolbar aria-label="書式（上端）" className="border-b border-line p-1">
+          <ToolbarButton iconOnly aria-label="元に戻す">
+            <Icon icon={ArrowCounterClockwiseIcon} standalone />
+          </ToolbarButton>
+          <ToolbarSeparator />
+          <ToolbarToggle iconOnly aria-label="太字">
+            <Icon icon={TextBIcon} standalone />
+          </ToolbarToggle>
+          <ToolbarToggle iconOnly aria-label="斜体">
+            <Icon icon={TextItalicIcon} standalone />
+          </ToolbarToggle>
+        </Toolbar>
+        <p className="p-4">本文</p>
+      </div>
     </div>
   ),
 };
