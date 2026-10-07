@@ -87,7 +87,7 @@
 - [ ] Toolbar
 - [ ] CommandPalette
 - [ ] BackToTop
-- [ ] Menubar
+- [x] Menubar
 - [x] Tree
 - [ ] Tour
 

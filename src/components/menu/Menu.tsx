@@ -231,7 +231,8 @@ export function Menu({
   onOpenChange,
   onOpenChangeComplete,
   modal = true,
-  openOnHover = false,
+  // 既定は false。値を置かずに渡すのは、Menubar の中で Base UI が「隣が開いていれば hover で開く」を決めるため（undefined のときだけ働く）
+  openOnHover,
   openDelay = 100,
   closeDelay = 0,
   dismissible = true,

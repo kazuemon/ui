@@ -378,6 +378,13 @@ export {
   type MenuSubmenuProps,
 } from './components/menu/MenuItem';
 export {
+  Menubar,
+  MenubarMenu,
+  type MenubarMenuProps,
+  type MenubarOrientation,
+  type MenubarProps,
+} from './components/menubar/Menubar';
+export {
   LoadingBar,
   type LoadingIndicator,
   Spinner,
