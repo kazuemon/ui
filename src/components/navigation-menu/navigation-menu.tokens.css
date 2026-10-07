@@ -1,9 +1,8 @@
 :root {
   /* NavigationMenu（ページの上の帯から、行き先の一覧を下に開く）
-     面は Popover と同じ（白・細い輪郭・部品の角・--shadow-overlay — ADR-0485）。開閉は浮かぶ面と同じ動き（ADR-0054）
+     面は Popover と同じ（白・細い輪郭・部品の角・--shadow-overlay — ADR-0485）。開くボタンとの間も Popover と同じ（--popover-offset。マウスがこの間を通っても閉じないよう、同じ高さの見えない橋を架ける）。開閉は浮かぶ面と同じ動き（ADR-0054）
 
      面
-       offset: 開くボタンと面の間。マウスがこの間を通っても閉じないよう、同じ高さの見えない橋を架ける
        padding: 面の内側の余白。行の角と左右の余白は、ここから引いた同心の角と、文字が帯の文字とそろう余白
        column-width: 1 列の幅。列の数は NavigationMenuItem の columns
 
@@ -13,7 +12,6 @@
      動き（ADR-0488）
        switch-duration: 項目を移ったとき、面の大きさ・位置と中身が変わる長さ。switch-shift: 中身を移った向きから滑らせる距離
        switchMotion="none" では、どちらも 0 にする */
-  --navigation-menu-offset: var(--spacing);
   --navigation-menu-padding: calc(var(--spacing) * 2);
   --navigation-menu-column-width: calc(var(--spacing) * 64);
 

@@ -68,8 +68,8 @@ const styles = tv({
       '[transition:top_var(--navigation-menu-switch-duration)_var(--ease-sheet),left_var(--navigation-menu-switch-duration)_var(--ease-sheet),right_var(--navigation-menu-switch-duration)_var(--ease-sheet),bottom_var(--navigation-menu-switch-duration)_var(--ease-sheet)]',
       'data-instant:[transition:none] motion-reduce:[transition:none]',
       "before:absolute before:inset-x-0 before:content-['']",
-      'data-[side=bottom]:before:top-[calc(var(--navigation-menu-offset)*-1)] data-[side=bottom]:before:h-(--navigation-menu-offset)',
-      'data-[side=top]:before:bottom-[calc(var(--navigation-menu-offset)*-1)] data-[side=top]:before:h-(--navigation-menu-offset)',
+      'data-[side=bottom]:before:top-[calc(var(--popover-offset)*-1)] data-[side=bottom]:before:h-(--popover-offset)',
+      'data-[side=top]:before:bottom-[calc(var(--popover-offset)*-1)] data-[side=top]:before:h-(--popover-offset)',
     ],
     // 面。大きさは Base UI が測って --popup-width・--popup-height に入れ、項目を移るとそこへ滑る
     //   開閉は浮かぶ面と同じ（本体の側に寄った位置から、濃さと一緒に滑る — ADR-0054）
@@ -312,7 +312,7 @@ function BarNavigationMenu({
           align={align}
           // 面との間は帯の中（上書きしたトークンが効く場所）で測る
           sideOffset={() =>
-            readCssLength('var(--navigation-menu-offset)', anchorRef.current?.parentElement)
+            readCssLength('var(--popover-offset)', anchorRef.current?.parentElement)
           }
           collisionPadding={popupCollisionPadding}
           data-density={scope.density}
