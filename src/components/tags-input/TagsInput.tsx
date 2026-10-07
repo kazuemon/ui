@@ -69,10 +69,10 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
@@ -933,35 +933,38 @@ export function TagsInputControl({
                   </div>
                 )}
                 <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                )}
-                <BaseCombobox.List
-                  ref={listRef}
-                  aria-describedby={sheet ? sheetListDescribedBy : messageIds}
+                <ListboxScroll
+                  presentation={listPresentation}
+                  loadingRow={loadingRow}
+                  viewportRef={listRef}
                   onScroll={sheet || popoverCue ? updateCues : undefined}
-                  className={listboxList({
-                    presentation: listPresentation,
-                    loadingRow,
-                    className: 'data-empty:py-0',
-                  })}
+                  viewportClassName="has-data-empty:py-0"
+                  before={
+                    (long || popoverCue) && (
+                      <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                    )
+                  }
+                  after={
+                    (long || popoverCue) && (
+                      <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                    )
+                  }
                 >
-                  {grouped
-                    ? (group: NormalizedListboxGroup, index: number) => (
-                        <ComboboxGroupSection
-                          key={index}
-                          group={group}
-                          separator={showGroupSeparator && index > 0}
-                          labelStyle={groupLabelStyle}
-                        >
-                          {(item) => <ComboboxOption key={item.value} item={item} />}
-                        </ComboboxGroupSection>
-                      )
-                    : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
-                </BaseCombobox.List>
-                {(long || popoverCue) && (
-                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-                )}
+                  <BaseCombobox.List aria-describedby={sheet ? sheetListDescribedBy : messageIds}>
+                    {grouped
+                      ? (group: NormalizedListboxGroup, index: number) => (
+                          <ComboboxGroupSection
+                            key={index}
+                            group={group}
+                            separator={showGroupSeparator && index > 0}
+                            labelStyle={groupLabelStyle}
+                          >
+                            {(item) => <ComboboxOption key={item.value} item={item} />}
+                          </ComboboxGroupSection>
+                        )
+                      : (item: ListboxItem) => <ComboboxOption key={item.value} item={item} />}
+                  </BaseCombobox.List>
+                </ListboxScroll>
                 {loadingRow && (
                   <ListboxLoadingRow
                     ref={loadingRowRef}

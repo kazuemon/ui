@@ -57,7 +57,6 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
@@ -73,6 +72,7 @@ import { SelectGroupSection, SelectOption } from './SelectOption';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
 import { sheetBackdropClass } from '../../internal/sheet/sheet-styles';
 import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
@@ -755,33 +755,40 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
                 />
               </SheetHeader>
             )}
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
             {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                   シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す
-                  選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
-            <BaseSelect.List
-              ref={listRef}
-              aria-describedby={sheet ? sheetListDescribedBy : messageIds}
+                  選択肢に付く文（note）は、その選択肢の説明にあるので入れない
+                スクロールするのは一覧を包む枠（ListboxScroll）。続きの印は枠の上下に置く */}
+            <ListboxScroll
+              presentation={listPresentation}
+              loadingRow={loadingRow}
+              viewportRef={listRef}
               onScroll={sheet || popoverCue ? updateCues : undefined}
-              className={listboxList({ presentation: listPresentation, loadingRow })}
+              before={
+                (long || popoverCue) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+              after={
+                (long || popoverCue) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
             >
-              {isGroupedItems(shownItems)
-                ? shownItems.map((group, index) => (
-                    <SelectGroupSection
-                      // 見出しは文字とは限らないので、並びの番号を key にする
-                      key={index}
-                      group={group}
-                      separator={showGroupSeparator && index > 0}
-                      labelStyle={groupLabelStyle}
-                    />
-                  ))
-                : shownItems.map((item) => <SelectOption key={item.value} item={item} />)}
-            </BaseSelect.List>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
+              <BaseSelect.List aria-describedby={sheet ? sheetListDescribedBy : messageIds}>
+                {isGroupedItems(shownItems)
+                  ? shownItems.map((group, index) => (
+                      <SelectGroupSection
+                        // 見出しは文字とは限らないので、並びの番号を key にする
+                        key={index}
+                        group={group}
+                        separator={showGroupSeparator && index > 0}
+                        labelStyle={groupLabelStyle}
+                      />
+                    ))
+                  : shownItems.map((item) => <SelectOption key={item.value} item={item} />)}
+              </BaseSelect.List>
+            </ListboxScroll>
             {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）
                   読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため） */}
             {loadingRow && (

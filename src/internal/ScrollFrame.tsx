@@ -4,6 +4,7 @@ import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import {
   type ComponentProps,
   type CSSProperties,
+  type ReactElement,
   type ReactNode,
   type Ref,
   useCallback,
@@ -79,6 +80,16 @@ export interface ScrollFrameProps {
   label?: string;
   /** スクロールする要素を受け取る（影の計算のほかに要るとき）。付いたときとはずれたときに呼ばれる */
   onViewport?: (element: HTMLDivElement | null) => void;
+  /**
+   * スクロールする要素（Viewport）の印（data-slot）。部品の中身の印（sheet-content など）をそのまま残すときに渡す
+   * @default 'scroll-area-viewport'
+   */
+  viewportSlot?: string;
+  /** スクロールする要素を、別の部品（Base UI の Drawer.Content など）で描く */
+  viewportRender?: ReactElement;
+  /** 枠の中、スクロールする要素の前と後ろに置くもの（続きの印 SheetMoreCue など。枠に書く --cue-* を読める） */
+  before?: ReactNode;
+  after?: ReactNode;
 }
 
 export function ScrollFrame({
@@ -102,6 +113,10 @@ export function ScrollFrame({
   scrollbar = 'scroll',
   label,
   onViewport,
+  viewportSlot = 'scroll-area-viewport',
+  viewportRender,
+  before,
+  after,
 }: ScrollFrameProps) {
   const styles = scrollAreaStyles({ scrollbar });
   const { className: ownContentClassName, ...contentRest } = contentProps ?? {};
@@ -132,12 +147,16 @@ export function ScrollFrame({
       data-slot={slot}
       className={styles.root({ className })}
     >
+      {before}
       <BaseScrollArea.Viewport
         {...viewportRest}
         ref={viewportRef}
+        render={viewportRender}
         // 止まり先にしないときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
         {...(focusable ? {} : { tabIndex: -1 })}
-        data-slot="scroll-area-viewport"
+        data-slot={viewportSlot}
+        // つまみを出す条件（キーボードで止まったとき）が読む印。data-slot は部品が変えることがあるので別に置く
+        data-scroll-viewport=""
         className={styles.viewport({
           className: [viewportClassName, ownViewportClassName].filter(Boolean).join(' '),
         })}
@@ -151,6 +170,7 @@ export function ScrollFrame({
           {children}
         </BaseScrollArea.Content>
       </BaseScrollArea.Viewport>
+      {after}
       {edgeShadow && (
         <div className={styles.edges()}>
           {/* 上下の端の影。Select・シートと同じ部品で描く */}

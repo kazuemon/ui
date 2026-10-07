@@ -76,10 +76,10 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
@@ -1001,39 +1001,42 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
             )}
             {/* 当たる選択肢がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
             <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
             {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                     シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
-            <BaseCombobox.List
-              ref={listRef}
-              aria-describedby={sheet ? sheetListDescribedBy : fieldDescribedBy}
+            <ListboxScroll
+              presentation={listPresentation}
+              loadingRow={loadingRow}
+              viewportRef={listRef}
               onScroll={sheet || popoverCue ? updateCues : undefined}
-              className={listboxList({
-                presentation: listPresentation,
-                loadingRow,
-                className: 'data-empty:py-0',
-              })}
+              viewportClassName="has-data-empty:py-0"
+              before={
+                (long || popoverCue) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+              after={
+                (long || popoverCue) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
             >
-              {grouped
-                ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
-                    <ComboboxGroupSection
-                      key={index}
-                      group={group}
-                      separator={showGroupSeparator && index > 0}
-                      labelStyle={groupLabelStyle}
-                    >
-                      {(item) => <ComboboxOption key={item.value} item={item} />}
-                    </ComboboxGroupSection>
-                  )
-                : (item: ListboxItem<ListboxValue>) => (
-                    <ComboboxOption key={item.value} item={item} />
-                  )}
-            </BaseCombobox.List>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
+              <BaseCombobox.List aria-describedby={sheet ? sheetListDescribedBy : fieldDescribedBy}>
+                {grouped
+                  ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
+                      <ComboboxGroupSection
+                        key={index}
+                        group={group}
+                        separator={showGroupSeparator && index > 0}
+                        labelStyle={groupLabelStyle}
+                      >
+                        {(item) => <ComboboxOption key={item.value} item={item} />}
+                      </ComboboxGroupSection>
+                    )
+                  : (item: ListboxItem<ListboxValue>) => (
+                      <ComboboxOption key={item.value} item={item} />
+                    )}
+              </BaseCombobox.List>
+            </ListboxScroll>
             {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042） */}
             {loadingRow && (
               <ListboxLoadingRow

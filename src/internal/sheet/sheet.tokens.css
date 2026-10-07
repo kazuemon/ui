@@ -18,4 +18,13 @@
   --shadow-sheet-right: -8px 0 24px rgb(from var(--color-shadow) r g b / 0.12);
   /* 上から出すシート（Drawer の side="top"）の影。下から出すシートの影を下へ向けたもの */
   --shadow-sheet-top: 0 8px 24px rgb(from var(--color-shadow) r g b / 0.12);
+  /* 軸 581 の比較用。決まったら畳む: シート（Drawer・Inspector・選択肢やメニューのシート）と Dialog の中身のスクロールの見た目
+     scroll-native: ブラウザのスクロールバー。auto で出す（現行版）、none で出さない
+     scroll-thumb: ScrollArea のつまみ。hidden で出さない（現行版）、visible で出す
+     scroll-thumb-idle: つまみの、載せていないときの濃さ。0 で載せたとき・スクロール中だけ出す、1 でいつも出す
+     scroll-divider: 続きの印の区切り線。1 で出す（現行版）、0 で出さない（影だけにする） */
+  --sheet-scroll-native: auto;
+  --sheet-scroll-thumb: hidden;
+  --sheet-scroll-thumb-idle: 0;
+  --sheet-scroll-divider: 1;
 }

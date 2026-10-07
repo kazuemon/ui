@@ -24,6 +24,7 @@ import { ResizeHandle } from '../../internal/resize-handle/ResizeHandle';
 import { focusTargetRef, type OverlayFocusTarget } from '../../internal/overlay/overlay-props';
 import { readCssLength } from '../../internal/overlay/popup-styles';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
+import { MoreCueScroll } from '../../internal/sheet/MoreCueScroll';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import type { OverlayActionsLayout } from '../../internal/sheet/SheetPopup';
 import {
@@ -361,33 +362,40 @@ export function Inspector({
                 </p>
               )}
             </SheetHeader>
-            {/* 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
-            <SheetMoreCue
-              edge="top"
-              sheet
-              sheetMoreCue="divider-always-shadow"
-              divider="scrollable"
-            />
-            <div
-              ref={cues}
-              data-slot="inspector-content"
-              className={[
-                'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
+            {/* 中身。スクロールする（ScrollArea と同じ枠）
+                続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
+            <MoreCueScroll
+              surface="sheet"
+              viewportRef={cues}
+              viewportSlot="inspector-content"
+              className="min-h-0 flex-1"
+              viewportClassName={[
+                'overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
                 actions == null && !slot.placed && 'pb-(--sheet-padding-x)',
               ]
                 .filter(Boolean)
                 .join(' ')}
+              before={
+                <SheetMoreCue
+                  edge="top"
+                  sheet
+                  sheetMoreCue="divider-always-shadow"
+                  divider="scrollable"
+                />
+              }
+              after={
+                !slot.placed && (
+                  <SheetMoreCue
+                    edge="bottom"
+                    sheet
+                    sheetMoreCue="divider-always-shadow"
+                    divider={actions != null ? 'shadow' : undefined}
+                  />
+                )
+              }
             >
               <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
-            </div>
-            {!slot.placed && (
-              <SheetMoreCue
-                edge="bottom"
-                sheet
-                sheetMoreCue="divider-always-shadow"
-                divider={actions != null ? 'shadow' : undefined}
-              />
-            )}
+            </MoreCueScroll>
             {actions != null && (
               <div
                 data-slot="inspector-footer"
