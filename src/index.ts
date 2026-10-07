@@ -434,6 +434,17 @@ export {
   type NavbarStickyEdge,
   type NavbarTransparentVariant,
 } from './components/navbar/Navbar';
+export {
+  NavigationMenu,
+  type NavigationMenuAlign,
+  NavigationMenuGroup,
+  type NavigationMenuGroupProps,
+  NavigationMenuItem,
+  type NavigationMenuItemProps,
+  NavigationMenuLink,
+  type NavigationMenuLinkProps,
+  type NavigationMenuProps,
+} from './components/navigation-menu/NavigationMenu';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
 export {

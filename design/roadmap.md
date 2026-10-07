@@ -82,7 +82,7 @@
 - [x] Pagination
 - [x] Menu
 - [x] Stepper
-- [ ] NavigationMenu
+- [x] NavigationMenu
 - [x] ContextMenu
 - [x] Toolbar
 - [ ] CommandPalette

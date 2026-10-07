@@ -65,18 +65,23 @@ export type NavbarStickyBackdrop = 'solid' | 'blur' | 'transparent-until-scroll'
 export type NavbarStickyBehavior = 'always' | 'hide-on-scroll';
 export type NavbarTransparentVariant = 'plain' | 'scrim' | 'frosted' | 'text-shadow';
 
-const NavbarContext = createContext<{
+interface NavbarContextValue {
   placement: Placement;
   indicator: NavbarCurrentIndicator;
   accessibleName: string;
   /** メニューへ畳むまとまりが名乗り出る。戻り値で取り消す */
   registerMenuGroup: () => () => void;
-}>({
+}
+
+// Navbar の外に置いたときの値。NavigationMenu は、これかどうかで Navbar の中にいるかを見分ける
+const outsideNavbar: NavbarContextValue = {
   placement: 'bar',
   indicator: 'text',
   accessibleName: 'メイン',
   registerMenuGroup: () => () => {},
-});
+};
+
+const NavbarContext = createContext<NavbarContextValue>(outsideNavbar);
 
 const navbar = tv({
   slots: {
@@ -218,7 +223,8 @@ const navbar = tv({
   },
 });
 
-const navbarLink = tv({
+// NavigationMenu の開くボタンと行き先も、同じ見た目で描く
+export const navbarLink = tv({
   base: [
     'relative inline-flex h-(--spacing-control) cursor-pointer items-center whitespace-nowrap no-underline',
     'text-(length:--text-control) leading-(--leading-control)',
@@ -470,16 +476,21 @@ export function Navbar({
 
 const noRegister = () => () => {};
 
-// まとまり（NavbarLinks・NavbarGroup）の共通の処理
+// まとまり（NavbarLinks・NavbarGroup・NavigationMenu）の共通の処理
 //   帯の中で menu のものはメニューへ畳むと名乗り出る。メニューの中では menu のものだけを描く
-function useNavbarGroup(narrowPlacement: NavbarNarrowPlacement) {
+//   inNavbar: Navbar の中（帯かメニュー）に置かれているか。外では帯が狭いときに隠す指定（@3xl/navbar）を付けない
+export function useNavbarGroup(narrowPlacement: NavbarNarrowPlacement) {
   const context = use(NavbarContext);
   const { placement, registerMenuGroup } = context;
   useLayoutEffect(() => {
     if (placement !== 'bar' || narrowPlacement !== 'menu') return undefined;
     return registerMenuGroup();
   }, [placement, narrowPlacement, registerMenuGroup]);
-  return { ...context, visible: placement === 'bar' || narrowPlacement === 'menu' };
+  return {
+    ...context,
+    visible: placement === 'bar' || narrowPlacement === 'menu',
+    inNavbar: context !== outsideNavbar,
+  };
 }
 
 /**
@@ -528,8 +539,8 @@ const navbarGroup = tv({
   ],
 });
 
-// 行き先の並びの nav。並びの見た目は ul に置き、nav は出す／隠すだけを受け持つ
-const navbarLinks = tv({
+// 行き先の並びの nav。並びの見た目は ul に置き、nav は出す／隠すだけを受け持つ（NavigationMenu も使う）
+export const navbarLinks = tv({
   variants: {
     placement: { bar: 'block min-w-0', menu: '' },
     narrowPlacement: { menu: '', bar: '', hidden: '' },

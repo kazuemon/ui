@@ -37,6 +37,7 @@
 @import '../components/masonry/masonry.tokens.css';
 @import '../components/menu/menu.tokens.css';
 @import '../components/navbar/navbar.tokens.css';
+@import '../components/navigation-menu/navigation-menu.tokens.css';
 @import '../components/notice/notice.tokens.css';
 @import '../components/number-field/number-field.tokens.css';
 @import '../components/pager/pager.tokens.css';
