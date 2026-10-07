@@ -5,12 +5,17 @@ import { type ComponentProps, type CSSProperties, type ReactNode, useId, useRef 
 import { tableStyles } from '../../internal/reading/table';
 import { ScrollFrame } from '../../internal/ScrollFrame';
 import { tv } from '../../internal/tv';
+import { useMergedRefs } from '../../internal/use-merged-refs';
 import { useScrollable } from '../../internal/use-scrollable';
+import { useDragScroll } from './use-drag-scroll';
 
 // 表（軸 62）。Markdown（GFM）を変換した HTML と同じ要素・属性を出す（table・thead・tbody・tr・th・td、列の寄せは align 属性）
 // 見た目は table に置いた子孫のセレクタで付ける。Prose が素の HTML に同じセレクタを当てられる
 // ページと同じレイヤーなので影は付けない（原則1）
-// 本文の幅より広いときは、包み（scroll）だけが横にスクロールする。外枠と角丸は包みに付け、スクロールしても枠は動かない
+// 本文の幅より広いときは、表の外観ごと（外枠・角・見出しの面も含めて）横にスクロールする（軸 582）
+//   スクロールの包みは ScrollArea と同じ枠（ScrollFrame）。包み自体は枠を持たず、その中に外枠つきの表を置く
+//   続きがある左右の端に内側の影を落とし、つまみは載せたとき・スクロール中・キーボードで止まったときに出す（原則1）
+//   マウスでは、文字のない場所から引っぱって横に動かせる（use-drag-scroll。dragToScroll={false} で切る）
 // 文字はマウスで 16/28、指で 14/24。読みもの（data-reading）の中でも、指では小さくする（表は一度に見える列の数を優先する）
 //   値は --density-coarse（指 1・マウス 0。読みものの規則では変わらない）と、読む文字の -fine・-coarse から表の要素で計算する
 // 見た目（variant）: lines（既定）は行のあいだの横線と、見出しの下の線。framed は外枠（部品の角）と見出しのグレーの面（軸 62 の A）。
@@ -20,21 +25,19 @@ import { useScrollable } from '../../internal/use-scrollable';
 // 縞（showStripes）は偶数行にグレーを敷き、行のあいだの線は残す。線を消すのは hideRowDivider で、別に選ぶ
 // 合計の行（TableFoot）は上に濃く太い線を引いて太字にする。variant でグレーの面・二重線にもできる
 // maxHeight を渡すと、包みが縦にもスクロールし、見出しの行が上に貼り付く。見出しには地と同じ面を置き、下を通る本文を隠す
-// スクロールの包みは ScrollArea と同じ枠（ScrollFrame）。続きの見せ方は軸 582 で比べている途中で、
-//   既定は今までと同じ（ブラウザのスクロールバー、影なし）。--table-scroll-*（table.tokens.css）で ScrollArea の見た目に切り替わる
-//   縦にもスクロールするときは、枠の上の端の影は見出しに重なるので出さず、貼り付いた見出しの下に影を落とす（DataTable と同じ）
+//   縦も外観ごと動かす（横と同じ 1 つの包みでスクロールする）。縦のつまみがいつも包みの右端に見え、Tab の止まり先も 1 つのまま
+//   包みの上の端の影は見出しに重なるので出さず、貼り付いた見出しの下に影を落とす（DataTable と同じ）
 const table = tv({
   slots: {
     root: 'flex min-w-0 flex-col gap-2',
-    // スクロールの枠（ScrollFrame の根）。続きの影の色を、比べる切り替えのトークンで差し替える
-    scroll: '[--color-sheet-edge-shadow:var(--table-scroll-edge-shadow)]',
+    // スクロールの包み（ScrollFrame の根）
+    scroll: '',
     // スクロールする要素。relative は、セルの中の sr-only（position: absolute）が、包みの外へはみ出してページを横に伸ばさないため
-    //   ブラウザのスクロールバーは Base UI が隠す。比べる現行版では、width と color を両方置いて出し直す（color が auto だと隠れたまま）
+    //   引っぱれる場所では grab、引っぱっているあいだは grabbing（data-drag-scroll は use-drag-scroll が書く）
     viewport:
-      'relative [scrollbar-width:var(--table-scroll-native-width)]! [scrollbar-color:var(--table-scroll-native-color)]!',
-    // つまみの帯。現行版では隠す。ふだんの濃さ（rest）を 1 にすると、いつも出す
-    scrollbar:
-      '[visibility:var(--table-scroll-thumb-visibility)] opacity-(--table-scroll-thumb-rest)',
+      'relative data-[drag-scroll=dragging]:cursor-grabbing data-[drag-scroll=dragging]:select-none data-[drag-scroll=ready]:cursor-grab',
+    // 表の外観（framed の外枠と角）。見出しの面が角からはみ出さないよう切り抜く（clip は貼り付く見出しを妨げない）
+    frame: '',
     // 表とセルの見た目のクラス列は src/internal/reading/table.ts（Prose も同じものを使う）
     table: [...tableStyles.table, ...tableStyles.cells],
     caption: 'text-body-sm text-fg-subtle',
@@ -42,7 +45,7 @@ const table = tv({
   variants: {
     variant: {
       lines: { table: tableStyles.lines },
-      framed: { scroll: tableStyles.framedFrame, table: tableStyles.framed },
+      framed: { frame: [tableStyles.framedFrame, 'overflow-clip'], table: tableStyles.framed },
       banded: { table: tableStyles.banded },
     },
     showColumnDivider: {
@@ -168,6 +171,13 @@ export interface TableProps extends ComponentProps<'table'> {
    * 表の高さの上限（数は px、文字は CSS の長さ）。渡すと、はみ出した行は表の中で縦にスクロールし、見出しの行が上に貼り付きます
    */
   maxHeight?: number | string;
+  /**
+   * はみ出して横にスクロールできるとき、マウスで表を引っぱって動かせるようにします。
+   * 文字の上から引っぱると文字の選択に、ボタンやリンクの上では押す操作になり、文字のない場所（セルの余白や罫線）から引っぱったときだけ動きます。
+   * タッチでは、この指定によらずブラウザの標準のスクロールです
+   * @default true
+   */
+  dragToScroll?: boolean;
   /** 表の説明。表の下に小さく出し、表とスクロールの包みの名前にもします */
   caption?: ReactNode;
   /**
@@ -193,6 +203,7 @@ export function Table({
   showStripes,
   hideRowDivider,
   maxHeight,
+  dragToScroll = true,
   caption,
   accessibleName,
   className,
@@ -217,6 +228,8 @@ export function Table({
   const captionId = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollable = useScrollable(scrollRef);
+  const dragRef = useDragScroll(dragToScroll);
+  const viewportRef = useMergedRefs(scrollRef, dragRef);
   const labelledBy = caption == null ? undefined : captionId;
   const ariaLabel = caption == null ? accessibleName : undefined;
   return (
@@ -227,24 +240,25 @@ export function Table({
         className={styles.scroll()}
         style={style}
         viewportClassName={styles.viewport()}
-        scrollbarClassName={styles.scrollbar()}
         topEdge={!scrollY}
         orientation={scrollY ? 'both' : 'horizontal'}
         viewportProps={{
-          ref: scrollRef,
+          ref: viewportRef,
           ...(scrollable
             ? { role: 'region', 'aria-labelledby': labelledBy, 'aria-label': ariaLabel }
             : {}),
         }}
       >
-        <table
-          className={styles.table()}
-          aria-labelledby={labelledBy}
-          aria-label={ariaLabel}
-          {...props}
-        >
-          {children}
-        </table>
+        <div className={styles.frame()}>
+          <table
+            className={styles.table()}
+            aria-labelledby={labelledBy}
+            aria-label={ariaLabel}
+            {...props}
+          >
+            {children}
+          </table>
+        </div>
       </ScrollFrame>
       {caption == null ? null : (
         <figcaption id={captionId} className={styles.caption()}>

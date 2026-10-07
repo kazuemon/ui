@@ -30,8 +30,8 @@ import { useWrapIndent } from './use-wrap-indent';
 // スクロール: 横にはみ出した分も、最大の高さ（maxHeight）を超えた分も、ScrollFrame の中でスクロールさせる
 //   縦と横のどちらのスクロールも枠が受け持つので、pre は overflow: visible にし、pre の Tab の止まりを外す（枠が止まる）
 //   最大の高さを超えた分は、続きがある端に内側の影を落とす（原則1）
-//   最大の高さがないとき（横だけにスクロールするとき）の続きの見せ方は軸 582 で比べている途中で、
-//     既定は今までと同じ（ブラウザのスクロールバー、影なし）。--code-block-scroll-*（code-block.tokens.css）で ScrollArea の見た目に切り替わる
+//   外枠は動かさず、枠の中で中身だけがスクロールする（表は外観ごと動くが、コードは帯とコピーのボタンを残す — 軸 582）
+//   横にあふれたときも、続きがある左右の端に内側の影を落とし、つまみは載せたとき・スクロール中に出す
 // 折り返し（wrap — 軸 442）: 横にスクロールさせず、長い行を折り返す。続きの行は、その行のもとの字下げ（行頭の空白）と同じだけ下げる
 //   行頭の空白の桁数は use-wrap-indent が行ごとに --cb-line-indent へ書く。字下げのない行の続きは行の頭にそろう
 const codeBlock = tv({
@@ -39,9 +39,6 @@ const codeBlock = tv({
     root: [
       '[--cb-head-h:calc(var(--spacing-control)+var(--spacing)*2)]',
       'group/code-block relative flex min-w-0 flex-col',
-      // 横のスクロールバーが場所を取るとき（data-scrollbar）は、下の角を丸めない。丸めると、スクロールバーの端が角で切られてなじまない
-      //   重ねて出るスクロールバー（macOS の既定など）は場所を取らないので、角は丸いまま
-      'data-scrollbar:rounded-b-none',
       // スクロールは枠（ScrollFrame）が受け持つ
       '[&[data-slot=code-block]_pre]:overflow-visible',
       ...codeBlockStyles.surface,
@@ -155,16 +152,8 @@ const codeBlock = tv({
 });
 
 /** コードの面の見た目 */
-// 横だけにスクロールするときの枠（軸 582 の比較用。決まったら畳む）
-//   frame: 続きの影の色、viewport: ブラウザのスクロールバー（Base UI が隠すので、width と color を両方置いて出し直す）、
-//   scrollbar: つまみ（現行版では隠す。ふだんの濃さを 1 にすると、いつも出す）
-const xScroll = {
-  frame: '[--color-sheet-edge-shadow:var(--code-block-scroll-edge-shadow)]',
-  viewport:
-    '[scrollbar-width:var(--code-block-scroll-native-width)]! [scrollbar-color:var(--code-block-scroll-native-color)]!',
-  scrollbar:
-    '[visibility:var(--code-block-scroll-thumb-visibility)] opacity-(--code-block-scroll-thumb-rest)',
-};
+// スクロールする要素。外枠が overflow: clip なので、フォーカスの線を内側に引く（pre が止まり先だったときと同じ）
+const scrollViewportClass = 'focus-visible:[outline-offset:calc(var(--focus-ring-width)*-1)]';
 
 export type CodeBlockVariant = 'surface' | 'dark';
 
@@ -286,18 +275,9 @@ export function CodeBlock({
   const { copied, failed, copy } = useCopy(2000);
   useWrapIndent(bodyRef, wrap);
 
-  // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
-  // 判定は表・Prose と同じ internal/use-scrollable。中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
-  // ついでに、横のスクロールバーが場所を取っているか（pre の高さと中身の高さの差）を、外枠の data-scrollbar に書く
-  useScrollTabStops(bodyRef, 'pre', (pre) => {
-    const root = pre.closest('[data-slot="code-block"]');
-    // スクロールするのは枠（ScrollFrame）のスクロールする要素
-    const scroller = pre.closest<HTMLElement>('[data-slot="scroll-area-viewport"]') ?? pre;
-    if (scroller.offsetHeight - scroller.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
-    else root?.removeAttribute('data-scrollbar');
-    // 枠がスクロールしてキーボードで止まるので、pre は止まらない
-    pre.removeAttribute('tabindex');
-  });
+  // スクロールは枠（ScrollFrame）が受け持ち、スクロールできるときは枠が Tab で止まる。pre は止まらない
+  // （Shiki は pre にいつも tabindex="0" を付ける。中身が変わると pre が入れ替わるので、描くたびに外し直す）
+  useScrollTabStops(bodyRef, 'pre', (pre) => pre.removeAttribute('tabindex'));
 
   const start = typeof lineNumbers === 'number' ? lineNumbers - 1 : undefined;
   const hasTitle = title != null && title !== false;
@@ -358,9 +338,8 @@ export function CodeBlock({
       ) : null}
       <ScrollFrame
         slot="code-block-scroll"
-        className={scrollsInFrame ? 'max-h-(--cb-max-h)' : xScroll.frame}
-        viewportClassName={scrollsInFrame ? undefined : xScroll.viewport}
-        scrollbarClassName={scrollsInFrame ? undefined : xScroll.scrollbar}
+        className={scrollsInFrame ? 'max-h-(--cb-max-h)' : undefined}
+        viewportClassName={scrollViewportClass}
         // 折り返すときは、中身を枠の幅に収める（Base UI の既定の min-width: fit-content だと、折り返す前の幅に広がる）
         contentStyle={wrap ? { minWidth: 0 } : undefined}
         orientation={scrollsInFrame ? 'both' : 'horizontal'}
