@@ -194,7 +194,8 @@ export function Menu({
   defaultOpen = false,
   onOpenChange,
   onOpenChangeComplete,
-  modal = true,
+  // 既定は true（Base UI の既定）。値を置かずに渡すのは、Menubar の中では Base UI が帯の modal を使い、メニューごとの modal を受けないため（渡すと警告が出る）
+  modal,
   // 既定は false。値を置かずに渡すのは、Menubar の中で Base UI が「隣が開いていれば hover で開く」を決めるため（undefined のときだけ働く）
   openOnHover,
   openDelay = 100,
