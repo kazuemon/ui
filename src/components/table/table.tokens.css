@@ -3,4 +3,15 @@
      合計の行（TableFoot）は上に濃く太い線（--border-width-medium・--color-line-strong）と太字。variant で面（--color-field）か二重線にもできる
      foot-double-width: 二重線の太さ。1px の線 2 本と、あいだの 1px */
   --table-foot-double-width: calc(var(--border-width-thin) * 3); /* 3px */
+
+  /* 軸 582 の比較用。決まったら畳む
+     横（maxHeight のときは縦も）にあふれたときの続きの見せ方。既定は現行版（ブラウザのスクロールバー、影なし）
+     scroll-native-width・-color: ブラウザのスクロールバー。出すときは width を auto、color を auto 以外にする（Base UI の隠す指定を上書きする）
+     scroll-thumb-visibility: ScrollArea のつまみ。scroll-thumb-rest: ふだんのつまみの濃さ（1 でいつも出す）
+     scroll-edge-shadow: 続きがある端の内側の影の色（transparent で出さない） */
+  --table-scroll-native-width: auto;
+  --table-scroll-native-color: var(--color-line-strong) transparent;
+  --table-scroll-thumb-visibility: hidden;
+  --table-scroll-thumb-rest: 0;
+  --table-scroll-edge-shadow: transparent;
 }

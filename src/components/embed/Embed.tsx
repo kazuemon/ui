@@ -11,6 +11,7 @@ import {
 import { focusRing } from '../../internal/focus-styles';
 import { CodeIcon, PlayIcon, XLogoIcon } from '../../internal/icons';
 import { tv } from '../../internal/tv';
+import { ScrollFrame } from '../../internal/ScrollFrame';
 import { AspectRatio } from '../aspect-ratio/AspectRatio';
 import { figureCaptionClass, figureClass } from '../figure/Figure';
 
@@ -88,8 +89,9 @@ const styles = tv({
     // face は枠いっぱいに重ねる。AspectRatio が広げるのは最初の子だけで、読み込み中は iframe のあとに置くので、自分で置く。
     //   after: の光の帯は、この絶対配置そのものを基準にできる
     // 面は Skeleton と同じ塗り（軸271・決定 A）。光の帯は、クリック前（idle）は止め、読み込み中（loading）は動く（軸271・274）
+    // 中身が面より高いとき（低い比率に大きな children）は、中の ScrollFrame（faceScroll）がスクロールする
     face: [
-      'absolute inset-0 flex size-full flex-col items-center justify-center gap-1 overflow-auto p-4 text-center',
+      'absolute inset-0 flex size-full flex-col overflow-hidden',
       'bg-(--skeleton-fill)',
       'after:pointer-events-none after:absolute after:inset-0 after:[background-position:100%_0] after:bg-no-repeat',
       'after:animate-(--skeleton-sweep) after:bg-size-[300%_100%]',
@@ -99,6 +101,8 @@ const styles = tv({
       'group-data-[status=loaded]/embed:hidden',
       ...focusRing,
     ],
+    // 面の中身を並べる。収まるときは面の中央に置き、収まらないときは上から並べてスクロールする
+    faceContent: 'flex min-h-full flex-col items-center justify-center gap-1 p-4 text-center',
     icon: 'size-8 shrink-0 text-fg-subtle',
     label: 'text-body-sm font-bold text-fg',
     sub: 'line-clamp-1 max-w-full text-caption text-fg-subtle',
@@ -233,16 +237,20 @@ export function Embed({
           onKeyDown={onFaceKeyDown}
           className={s.face({ className: 'cursor-pointer' })}
         >
-          {children ?? <Icon className={s.icon()} />}
-          <span className={s.label()}>{loadLabel}</span>
-          {children == null && <span className={s.sub()}>{title}</span>}
+          <FaceScroll className={s.faceContent()}>
+            {children ?? <Icon className={s.icon()} />}
+            <span className={s.label()}>{loadLabel}</span>
+            {children == null && <span className={s.sub()}>{title}</span>}
+          </FaceScroll>
         </div>
       )}
       {status === 'loading' && (
         <div aria-busy data-slot="embed-loading" className={s.face()}>
           {/* 回る円は出さない。光の帯（after:）だけで進んでいることを伝える（軸274・決定 A） */}
-          {children}
-          <span className={s.label()}>{loadingText}</span>
+          <FaceScroll className={s.faceContent()}>
+            {children}
+            <span className={s.label()}>{loadingText}</span>
+          </FaceScroll>
         </div>
       )}
     </AspectRatio>
@@ -256,5 +264,22 @@ export function Embed({
       {frame}
       <figcaption className={figureCaptionClass}>{caption}</figcaption>
     </figure>
+  );
+}
+
+// 面の中身のスクロールの枠。ScrollArea と同じ見た目（原則1）
+//   面そのものが押せる要素（role="button"）なので、枠は止まり先にしない（ボタンの中に止まり場を増やさない）
+function FaceScroll({ className, children }: { className: string; children: ReactNode }) {
+  return (
+    <ScrollFrame
+      slot="embed-face-scroll"
+      className="size-full"
+      contentClassName={className}
+      focusable={false}
+      orientation="vertical"
+      inlineEdges={false}
+    >
+      {children}
+    </ScrollFrame>
   );
 }

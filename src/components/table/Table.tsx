@@ -2,8 +2,8 @@
 
 import { type ComponentProps, type CSSProperties, type ReactNode, useId, useRef } from 'react';
 
-import { focusRing } from '../../internal/focus-styles';
 import { tableStyles } from '../../internal/reading/table';
+import { ScrollFrame } from '../../internal/ScrollFrame';
 import { tv } from '../../internal/tv';
 import { useScrollable } from '../../internal/use-scrollable';
 
@@ -20,12 +20,21 @@ import { useScrollable } from '../../internal/use-scrollable';
 // 縞（showStripes）は偶数行にグレーを敷き、行のあいだの線は残す。線を消すのは hideRowDivider で、別に選ぶ
 // 合計の行（TableFoot）は上に濃く太い線を引いて太字にする。variant でグレーの面・二重線にもできる
 // maxHeight を渡すと、包みが縦にもスクロールし、見出しの行が上に貼り付く。見出しには地と同じ面を置き、下を通る本文を隠す
-//   Table は端の影の出る枠（ScrollFrame）を持たないので、貼り付いた見出しの下に影は落とさない（DataTable は落とす）
+// スクロールの包みは ScrollArea と同じ枠（ScrollFrame）。続きの見せ方は軸 582 で比べている途中で、
+//   既定は今までと同じ（ブラウザのスクロールバー、影なし）。--table-scroll-*（table.tokens.css）で ScrollArea の見た目に切り替わる
+//   縦にもスクロールするときは、枠の上の端の影は見出しに重なるので出さず、貼り付いた見出しの下に影を落とす（DataTable と同じ）
 const table = tv({
   slots: {
     root: 'flex min-w-0 flex-col gap-2',
-    // relative は、セルの中の sr-only（position: absolute）が、包みの外へはみ出してページを横に伸ばさないため
-    scroll: ['relative overflow-x-auto', ...focusRing],
+    // スクロールの枠（ScrollFrame の根）。続きの影の色を、比べる切り替えのトークンで差し替える
+    scroll: '[--color-sheet-edge-shadow:var(--table-scroll-edge-shadow)]',
+    // スクロールする要素。relative は、セルの中の sr-only（position: absolute）が、包みの外へはみ出してページを横に伸ばさないため
+    //   ブラウザのスクロールバーは Base UI が隠す。比べる現行版では、width と color を両方置いて出し直す（color が auto だと隠れたまま）
+    viewport:
+      'relative [scrollbar-width:var(--table-scroll-native-width)]! [scrollbar-color:var(--table-scroll-native-color)]!',
+    // つまみの帯。現行版では隠す。ふだんの濃さ（rest）を 1 にすると、いつも出す
+    scrollbar:
+      '[visibility:var(--table-scroll-thumb-visibility)] opacity-(--table-scroll-thumb-rest)',
     // 表とセルの見た目のクラス列は src/internal/reading/table.ts（Prose も同じものを使う）
     table: [...tableStyles.table, ...tableStyles.cells],
     caption: 'text-body-sm text-fg-subtle',
@@ -65,8 +74,14 @@ const table = tv({
     },
     scrollY: {
       true: {
-        scroll: 'max-h-(--table-max-height) overflow-y-auto',
-        table: '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
+        scroll: 'max-h-(--table-max-height)',
+        table: [
+          '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
+          // 貼り付いた見出しの下の影。スクロールした量（--cue-top）に合わせて濃くする（DataTable と同じ）
+          "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
+          '[&_thead_th]:after:bg-linear-to-b [&_thead_th]:after:from-(color:--color-sheet-edge-shadow) [&_thead_th]:after:to-transparent',
+          '[&_thead_th]:after:opacity-[var(--cue-top,0)]',
+        ],
       },
       false: {},
     },
@@ -206,14 +221,21 @@ export function Table({
   const ariaLabel = caption == null ? accessibleName : undefined;
   return (
     <figure className={styles.root({ className })}>
-      <div
-        ref={scrollRef}
+      {/* スクロールできるときだけ、枠は名前付きの領域になり、Tab で止まる（止まるかは Base UI が決める） */}
+      <ScrollFrame
+        slot="table-scroll"
         className={styles.scroll()}
         style={style}
-        data-slot="table-scroll"
-        {...(scrollable
-          ? { role: 'region', tabIndex: 0, 'aria-labelledby': labelledBy, 'aria-label': ariaLabel }
-          : {})}
+        viewportClassName={styles.viewport()}
+        scrollbarClassName={styles.scrollbar()}
+        topEdge={!scrollY}
+        orientation={scrollY ? 'both' : 'horizontal'}
+        viewportProps={{
+          ref: scrollRef,
+          ...(scrollable
+            ? { role: 'region', 'aria-labelledby': labelledBy, 'aria-label': ariaLabel }
+            : {}),
+        }}
       >
         <table
           className={styles.table()}
@@ -223,7 +245,7 @@ export function Table({
         >
           {children}
         </table>
-      </div>
+      </ScrollFrame>
       {caption == null ? null : (
         <figcaption id={captionId} className={styles.caption()}>
           {caption}
