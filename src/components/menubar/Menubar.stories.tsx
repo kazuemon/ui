@@ -99,6 +99,9 @@ const meta = {
           '- 縦に積むときは `orientation="vertical"` にします。メニューは右に開きます。',
           '- 1 つのメニューを押せなくするときは `MenubarMenu` の `disabled`、帯ごと押せなくするときは `Menubar` の `disabled` です。',
           '- 読み上げの名前は `accessibleName` で付けます。',
+          '- 帯は面（背景・枠・余白）を持たず、置いた場所の面にそのまま並びます。面が要るときは `className` で敷きます（例: `className="rounded-control border border-line bg-surface p-1"`）。',
+          '- 低く詰めたい帯は `size="sm"` にします（Button の `size` と同じ段。指で操作しても同じ高さのままです）。',
+          '- hover・押下・開いているトリガーに敷く色は `color` で変えます（`neutral`・`primary`・`secondary`・`danger`。Button と同じ語彙です）。開いているトリガーは、押したときと同じ濃さの塗りが残ります。',
         ].join('\n'),
       },
     },
@@ -106,6 +109,8 @@ const meta = {
   args: {
     accessibleName: 'アプリのメニュー',
     orientation: 'horizontal',
+    color: 'neutral',
+    size: 'md',
     disabled: false,
     modal: true,
     loopFocus: true,
@@ -116,6 +121,16 @@ const meta = {
       control: 'inline-radio',
       options: ['horizontal', 'vertical'],
       table: { defaultValue: { summary: "'horizontal'" } },
+    },
+    color: {
+      control: 'inline-radio',
+      options: ['neutral', 'primary', 'secondary', 'danger'],
+      table: { defaultValue: { summary: "'neutral'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['md', 'sm'],
+      table: { defaultValue: { summary: "'md'" } },
     },
   },
 } satisfies Meta<typeof Menubar>;
@@ -225,6 +240,89 @@ export const TriggerStates: Story = {
         </Menubar>
       )}
     />
+  ),
+};
+
+export const Colors: Story = {
+  tags: ['visual'],
+  name: '色',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`color` は、hover・押下・開いているトリガーに敷く色と、開いているときの文字の色です。左から neutral（既定）・primary・secondary・danger で、どれも「編集」を開いた状態です。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      {(['neutral', 'primary', 'secondary', 'danger'] as const).map((color) => (
+        <Menubar key={color} {...args} color={color} accessibleName={color}>
+          <MenubarMenu label="ファイル">
+            <MenuItem>新規</MenuItem>
+          </MenubarMenu>
+          <MenubarMenu label="編集" triggerProps={{ 'data-popup-open': '' }}>
+            <MenuItem>取り消す</MenuItem>
+          </MenubarMenu>
+          <MenubarMenu label="表示">
+            <MenuItem>ツールバー</MenuItem>
+          </MenubarMenu>
+        </Menubar>
+      ))}
+    </div>
+  ),
+};
+
+export const Sizes: Story = {
+  tags: ['visual'],
+  name: '大きさ',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は帯を低く詰めたいときの段です。指で操作するときも同じ高さのままで、押せる高さ（44px）より低くなります。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      {(['md', 'sm'] as const).map((size) => (
+        <Menubar key={size} {...args} size={size} accessibleName={size}>
+          <MenubarMenu label="ファイル">
+            <MenuItem>新規</MenuItem>
+          </MenubarMenu>
+          <MenubarMenu label="編集" triggerProps={{ 'data-popup-open': '' }}>
+            <MenuItem>取り消す</MenuItem>
+          </MenubarMenu>
+          <MenubarMenu label="表示">
+            <MenuItem>ツールバー</MenuItem>
+          </MenubarMenu>
+        </Menubar>
+      ))}
+    </div>
+  ),
+};
+
+export const WithSurface: Story = {
+  name: '面を敷く',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '帯は面を持ちません。白い面と細い輪郭、全幅の帯などが要るときは、`className` で敷きます。',
+      },
+      source: {
+        code: `<Menubar className="rounded-control border border-line bg-surface p-1" accessibleName="アプリのメニュー">…</Menubar>`,
+      },
+    },
+  },
+  render: (args) => (
+    <Menubar {...args} className="rounded-control border border-line bg-surface p-1">
+      <AppMenus />
+    </Menubar>
   ),
 };
 

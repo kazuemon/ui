@@ -379,10 +379,12 @@ export {
 } from './components/menu/MenuItem';
 export {
   Menubar,
+  type MenubarColor,
   MenubarMenu,
   type MenubarMenuProps,
   type MenubarOrientation,
   type MenubarProps,
+  type MenubarSize,
 } from './components/menubar/Menubar';
 export {
   LoadingBar,
