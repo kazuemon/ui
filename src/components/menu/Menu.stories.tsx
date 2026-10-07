@@ -47,6 +47,7 @@ const meta = {
           '- 開くボタンは `trigger` に要素（`Button` など）で渡します。',
           '- その場で実行する項目は `MenuItem`、別の場所へ移る項目は `MenuLinkItem` です。`MenuLinkItem` に `target="_blank"` を付けると、後ろに右上向きの矢印が付きます。',
           '- `MenuItem` には `icon`（前のアイコン）、`shortcut`（後ろのショートカットの文字）、`description`（2 行目）を付けられます。ショートカットは表示だけで、キーの操作は使う側で付けます。`MenuCheckboxItem` にも `shortcut` を付けられます。',
+          '- 項目のアイコンは `iconVariant` で見せ方を選べます。`plain`（既定）はアイコンだけ、`soft` は入力欄と同じグレーの角丸の箱に入れます。',
           '- `MenuLinkItem` の `onClick` は、移る前に呼びます（押したことを記録するときなど）。移るのを止めるときは `event.preventDefault()` を呼びます。',
           '- 削除のように取り消せない操作には `status="danger"` を付けます。文字が赤くなり、hover で赤を淡く敷きます。',
           '- 押せない項目は `disabled` にし、理由を `description` に書きます。`MenuLinkItem` も `disabled` にでき、押しても移りません。',
@@ -443,6 +444,60 @@ export const Links: Story = {
 
 // リンクの項目を押したことを受け取る見本（play で呼ばれたことを確かめる）
 const onSettingsClick = fn();
+
+export const IconVariant: Story = {
+  tags: ['visual'],
+  name: 'アイコンを箱に入れる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '項目の `iconVariant="soft"` で、アイコンを入力欄と同じグレーの角丸の箱に入れます（`NavigationMenuLink` の `iconVariant` と同じ見た目です）。箱の分だけ項目が高くなるので、`description` で 2 行目を添える一覧に向きます。',
+      },
+    },
+  },
+  render: (_args, { viewMode }) => (
+    <ScreenFrame height="h-[400px]">
+      {(frame) => (
+        <Menu
+          trigger={<Button variant="outline">共有</Button>}
+          presentation="popover"
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={frame}
+        >
+          <MenuItem
+            icon={<ShareNetworkIcon />}
+            iconVariant="soft"
+            description="リンクを知っている人が見られます"
+            style={highlighted}
+          >
+            リンクで共有
+          </MenuItem>
+          <MenuItem icon={<CopyIcon />} iconVariant="soft" description="同じ中身の下書きを作ります">
+            複製して共有
+          </MenuItem>
+          <MenuLinkItem
+            icon={<DownloadSimpleIcon />}
+            iconVariant="soft"
+            href="#"
+            description="PDF で書き出します"
+          >
+            書き出す
+          </MenuLinkItem>
+          <MenuItem
+            icon={<ArchiveIcon />}
+            iconVariant="soft"
+            disabled
+            description="公開してからアーカイブできます"
+          >
+            アーカイブ
+          </MenuItem>
+        </Menu>
+      )}
+    </ScreenFrame>
+  ),
+};
 
 export const LinkClickAndCheckboxShortcut: Story = {
   name: 'リンクの項目の onClick・チェックの項目のショートカット',

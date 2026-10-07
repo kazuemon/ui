@@ -442,7 +442,6 @@ export {
   NavigationMenuItem,
   type NavigationMenuItemProps,
   NavigationMenuLink,
-  type NavigationMenuLinkIconVariant,
   type NavigationMenuLinkProps,
   type NavigationMenuProps,
   type NavigationMenuSwitchMotion,
@@ -982,6 +981,7 @@ export type { ListboxColor } from './internal/listbox/listbox-colors';
 export type { ListboxGroup, ListboxItems } from './internal/listbox/listbox-items';
 export type { ListboxInputProps, ListboxSlotProps } from './internal/listbox/listbox-slot-props';
 export type { GroupLabelStyle } from './internal/listbox/listbox-styles';
+export type { ItemIconVariant } from './internal/menu/item-icon';
 export type {
   ListboxItem,
   ListboxItemNote,

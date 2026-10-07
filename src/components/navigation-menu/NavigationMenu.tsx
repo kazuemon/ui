@@ -16,6 +16,7 @@ import {
 import { useDensityScope } from '../../internal/density-scope';
 import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon, CaretDownIcon } from '../../internal/icons';
+import { type ItemIconVariant, softIconBoxClass } from '../../internal/menu/item-icon';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import type { PopupProps } from '../../internal/overlay/overlay-props';
@@ -115,8 +116,8 @@ const styles = tv({
     ],
     // 前のアイコン。題の 1 行目と縦の中央をそろえる（箱が 1 行より高いときは、行の上にそろえる）
     linkIcon: [
-      'flex size-(--navigation-menu-link-icon-box) shrink-0 items-center justify-center text-fg-muted',
-      'mt-[max(0px,calc((var(--leading-control)-var(--navigation-menu-link-icon-box))/2))]',
+      'flex size-(--navigation-menu-link-icon-size) shrink-0 items-center justify-center text-fg-muted',
+      'mt-[max(0px,calc((var(--leading-control)-var(--navigation-menu-link-icon-size))/2))]',
       '[&>svg]:size-(--navigation-menu-link-icon-size)',
     ],
     linkText: 'flex min-w-0 flex-1 flex-col gap-0.5',
@@ -142,22 +143,17 @@ const styles = tv({
         positioner: '[--navigation-menu-switch-duration:0ms] [--navigation-menu-switch-shift:0px]',
       },
     },
-    // 前のアイコンの見せ方（ADR-0486）。soft は入力欄と同じグレーの角丸の箱（40px）に 20px のアイコンを入れる
+    // 前のアイコンの見せ方（ADR-0486）。soft は Menu の項目と同じ箱（入力欄と同じグレーの角丸の箱に、部品の中のアイコンの大きさで入れる）
+    //   箱は題と説明の 2 行より高いので、行の上にそろえる
     iconVariant: {
       plain: {},
-      soft: {
-        linkIcon: [
-          'rounded-[calc(var(--radius-control)-var(--spacing))] bg-field',
-          '[--navigation-menu-link-icon-box:calc(var(--spacing)*10)] [--navigation-menu-link-icon-size:var(--spacing-icon)]',
-        ],
-      },
+      soft: { linkIcon: [softIconBoxClass, 'mt-0'] },
     },
   },
 });
 
 export type NavigationMenuAlign = 'start' | 'center' | 'end';
 export type NavigationMenuSwitchMotion = 'slide' | 'none';
-export type NavigationMenuLinkIconVariant = 'plain' | 'soft';
 
 export interface NavigationMenuProps {
   /** 帯に並べるもの。開く項目は NavigationMenuItem、ただの行き先は NavigationMenuLink で並べます */
@@ -451,7 +447,7 @@ export interface NavigationMenuLinkProps {
    * アイコンの見せ方。plain はアイコンだけを文字より一段大きく置き、soft は入力欄と同じグレーの角丸の箱に入れます（題と説明の 2 行の高さにそろいます）
    * @default 'plain'
    */
-  iconVariant?: NavigationMenuLinkIconVariant;
+  iconVariant?: ItemIconVariant;
   /** 移る先 */
   href?: string;
   /** _blank のときは、題の後ろに右上向きの矢印を付け、読み上げに「新しいタブで開きます」を足します */

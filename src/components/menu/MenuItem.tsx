@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 
 import { ArrowUpRightIcon, CaretRightIcon, CheckIcon } from '../../internal/icons';
 import { disabledAnchor, NewTabNote } from '../../internal/link-parts';
+import type { ItemIconVariant } from '../../internal/menu/item-icon';
 import { type MenuRadioMark, useMenuContext } from '../../internal/menu/menu-context';
 import { MenuSlidePanel } from '../../internal/menu/MenuSlide';
 import { MenuSurface } from '../../internal/menu/MenuSurface';
@@ -26,6 +27,11 @@ interface MenuItemBaseProps {
   children: ReactNode;
   /** 文字の前に置くアイコン（<svg>）。部品の中のアイコンの大きさにそろえます */
   icon?: ReactNode;
+  /**
+   * アイコンの見せ方。plain はアイコンだけを置き、soft は入力欄と同じグレーの角丸の箱に入れます（項目は箱の分だけ高くなります）
+   * @default 'plain'
+   */
+  iconVariant?: ItemIconVariant;
   /**
    * 文字の下の 2 行目。押せない項目では、押せない理由を書きます。読み上げでは項目の説明になります
    */
@@ -53,6 +59,7 @@ interface DisableableProps {
 // 印の場所は Menu の markPlacement（DOM では最後に置き、前に置くときは order で前へ出す）。2 行目とショートカットは、読み上げでは項目の説明
 function ItemContent({
   icon,
+  iconVariant,
   children,
   description,
   labelId,
@@ -64,6 +71,7 @@ function ItemContent({
   danger,
 }: {
   icon?: ReactNode;
+  iconVariant: ItemIconVariant;
   children: ReactNode;
   description?: ReactNode;
   labelId: string;
@@ -75,7 +83,7 @@ function ItemContent({
   danger?: boolean;
 }) {
   const { markPlacement, reserveMarkSpace } = useMenuContext();
-  const s = menuItem({ danger, described: description != null, markPlacement });
+  const s = menuItem({ danger, described: description != null, markPlacement, iconVariant });
   return (
     <>
       {icon != null && (
@@ -160,6 +168,7 @@ export interface MenuItemProps extends MenuItemBaseProps, DisableableProps {
 export function MenuItem({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   shortcut,
@@ -185,11 +194,16 @@ export function MenuItem({
       closeOnClick={closeOnClick}
       aria-labelledby={ids.labelledBy}
       aria-describedby={ids.describedBy}
-      className={menuItem({ danger, described: description != null }).root({ className })}
+      className={menuItem({
+        danger,
+        described: description != null,
+        iconVariant: icon != null ? iconVariant : 'plain',
+      }).root({ className })}
       style={style}
     >
       <ItemContent
         icon={icon}
+        iconVariant={iconVariant}
         description={description}
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
@@ -230,6 +244,7 @@ export interface MenuLinkItemProps extends MenuItemBaseProps, DisableableProps {
 export function MenuLinkItem({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   href,
@@ -258,11 +273,15 @@ export function MenuLinkItem({
       closeOnClick={disabled ? false : closeOnClick}
       aria-labelledby={ids.labelledBy}
       aria-describedby={ids.describedBy}
-      className={menuItem({ described: description != null }).root({ className })}
+      className={menuItem({
+        described: description != null,
+        iconVariant: icon != null ? iconVariant : 'plain',
+      }).root({ className })}
       style={style}
     >
       <ItemContent
         icon={icon}
+        iconVariant={iconVariant}
         description={description}
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
@@ -301,6 +320,7 @@ export interface MenuCheckboxItemProps extends MenuItemBaseProps, DisableablePro
 export function MenuCheckboxItem({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   disabled,
@@ -327,11 +347,15 @@ export function MenuCheckboxItem({
       closeOnClick={closeOnClick}
       aria-labelledby={ids.labelledBy}
       aria-describedby={ids.describedBy}
-      className={menuItem({ described: description != null }).root({ className })}
+      className={menuItem({
+        described: description != null,
+        iconVariant: icon != null ? iconVariant : 'plain',
+      }).root({ className })}
       style={style}
     >
       <ItemContent
         icon={icon}
+        iconVariant={iconVariant}
         description={description}
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
@@ -389,6 +413,7 @@ export interface MenuRadioItemProps extends MenuItemBaseProps, DisableableProps 
 export function MenuRadioItem({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   disabled,
@@ -408,11 +433,15 @@ export function MenuRadioItem({
       closeOnClick={closeOnClick}
       aria-labelledby={ids.labelledBy}
       aria-describedby={ids.describedBy}
-      className={menuItem({ described: description != null }).root({ className })}
+      className={menuItem({
+        described: description != null,
+        iconVariant: icon != null ? iconVariant : 'plain',
+      }).root({ className })}
       style={style}
     >
       <ItemContent
         icon={icon}
+        iconVariant={iconVariant}
         description={description}
         labelId={ids.labelId}
         descriptionId={ids.descriptionId}
@@ -507,6 +536,7 @@ export function MenuSubmenu(props: MenuSubmenuProps) {
 function PopupSubmenu({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   disabled,
@@ -527,10 +557,14 @@ function PopupSubmenu({
         openOnHover={!sheet}
         aria-labelledby={ids.labelledBy}
         aria-describedby={ids.describedBy}
-        className={menuItem({ described: description != null }).root({ className })}
+        className={menuItem({
+          described: description != null,
+          iconVariant: icon != null ? iconVariant : 'plain',
+        }).root({ className })}
       >
         <ItemContent
           icon={icon}
+          iconVariant={iconVariant}
           description={description}
           labelId={ids.labelId}
           descriptionId={ids.descriptionId}
@@ -554,6 +588,7 @@ function PopupSubmenu({
 function SlideSubmenu({
   children,
   icon,
+  iconVariant = 'plain',
   description,
   label,
   disabled,
@@ -604,10 +639,14 @@ function SlideSubmenu({
           }
         }}
         onClick={open}
-        className={menuItem({ described: description != null }).root({ className })}
+        className={menuItem({
+          described: description != null,
+          iconVariant: icon != null ? iconVariant : 'plain',
+        }).root({ className })}
       >
         <ItemContent
           icon={icon}
+          iconVariant={iconVariant}
           description={description}
           labelId={ids.labelId}
           descriptionId={ids.descriptionId}

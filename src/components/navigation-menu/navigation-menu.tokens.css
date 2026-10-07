@@ -8,8 +8,7 @@
        column-width: 1 列の幅。列の数は NavigationMenuItem の columns
 
      行き先の行（ADR-0486）
-       link-icon-size: 前のアイコンの大きさ（一覧の項目の頭のアイコンは文字より一段大きい — 原則21）
-       link-icon-box: アイコンを置く箱の大きさ。iconVariant="soft" では、箱を 40px のグレーにしてアイコンを 20px にする
+       link-icon-size: 前のアイコンの大きさ（一覧の項目の頭のアイコンは文字より一段大きい — 原則21）。iconVariant="soft" の箱は Menu の項目と共有（src/internal/menu/item-icon.ts）
 
      動き（ADR-0488）
        switch-duration: 項目を移ったとき、面の大きさ・位置と中身が変わる長さ。switch-shift: 中身を移った向きから滑らせる距離
@@ -19,7 +18,6 @@
   --navigation-menu-column-width: calc(var(--spacing) * 64);
 
   --navigation-menu-link-icon-size: calc(var(--spacing-icon) + var(--spacing));
-  --navigation-menu-link-icon-box: var(--navigation-menu-link-icon-size);
 
   --navigation-menu-switch-duration: var(--duration-normal);
   --navigation-menu-switch-shift: calc(var(--spacing) * 6);
