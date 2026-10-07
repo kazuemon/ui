@@ -58,4 +58,12 @@ export const tableStyles = {
     '[font-size:calc(var(--text-body-sm-fine)+var(--density-coarse)*(var(--text-body-sm-coarse)-var(--text-body-sm-fine)))]',
     '[line-height:calc(var(--leading-body-sm-fine)+var(--density-coarse)*(var(--leading-body-sm-coarse)-var(--leading-body-sm-fine)))]',
   ],
+  // 縦にスクロールする枠の上に貼り付く見出しの行と、その下の影（Table の maxHeight・DataTable）
+  //   影はスクロールした量（枠が書く --cue-top）に合わせて濃くする。色は ScrollArea の端の影と同じ。Prose は使わない
+  stickyHead: [
+    '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
+    "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
+    '[&_thead_th]:after:bg-linear-to-b [&_thead_th]:after:from-(color:--color-sheet-edge-shadow) [&_thead_th]:after:to-transparent',
+    '[&_thead_th]:after:opacity-[var(--cue-top,0)]',
+  ],
 } as const;

@@ -39,8 +39,8 @@ const codeBlock = tv({
     root: [
       '[--cb-head-h:calc(var(--spacing-control)+var(--spacing)*2)]',
       'group/code-block relative flex min-w-0 flex-col',
-      // スクロールは枠（ScrollFrame）が受け持つ
-      '[&[data-slot=code-block]_pre]:overflow-visible',
+      // スクロールは枠（ScrollFrame）が受け持つ。Prose と共有する本文の見た目（overflow-x-auto）より優先する
+      '[&_pre]:overflow-visible!',
       ...codeBlockStyles.surface,
       // 題がなくボタンを浮かせるときは、pre をボタンと上下 4px の高さまで伸ばし、行を縦の中央に置く（1 行でもボタンの上下がそろう）
       '[&[data-copy]:not([data-titled])_pre]:min-h-[calc(var(--spacing-control)+var(--spacing)*2)] [&[data-copy]:not([data-titled])_pre]:content-center',
@@ -58,6 +58,8 @@ const codeBlock = tv({
     language:
       'shrink-0 font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
     body: ['min-w-0', ...codeBlockStyles.body],
+    // スクロールする要素（ScrollFrame の Viewport）。外枠が overflow: clip なので、フォーカスの線を内側に引く（pre が止まり先だったときと同じ）
+    scrollViewport: '[--focus-ring-offset:calc(var(--focus-ring-width)*-1)]',
     copy: [
       // 最大の高さのスクロールのつまみ（z-2）より上に置く
       'absolute z-3 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
@@ -152,9 +154,6 @@ const codeBlock = tv({
 });
 
 /** コードの面の見た目 */
-// スクロールする要素。外枠が overflow: clip なので、フォーカスの線を内側に引く（pre が止まり先だったときと同じ）
-const scrollViewportClass = 'focus-visible:[outline-offset:calc(var(--focus-ring-width)*-1)]';
-
 export type CodeBlockVariant = 'surface' | 'dark';
 
 export interface CodeBlockProps extends Omit<ComponentProps<'figure'>, 'title' | 'children'> {
@@ -339,7 +338,7 @@ export function CodeBlock({
       <ScrollFrame
         slot="code-block-scroll"
         className={scrollsInFrame ? 'max-h-(--cb-max-h)' : undefined}
-        viewportClassName={scrollViewportClass}
+        viewportClassName={styles.scrollViewport()}
         // 折り返すときは、中身を枠の幅に収める（Base UI の既定の min-width: fit-content だと、折り返す前の幅に広がる）
         contentStyle={wrap ? { minWidth: 0 } : undefined}
         orientation={scrollsInFrame ? 'both' : 'horizontal'}

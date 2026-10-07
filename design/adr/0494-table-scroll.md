@@ -54,6 +54,7 @@ Table は、横にあふれると自分の中で横に送りますが、送れ�
 
 - `src/components/table/Table.tsx`: 外観ごとスクロールする包みを ScrollFrame にしました。`dragToScroll`（`@default true`）を足しました
 - `src/components/table/use-drag-scroll.ts`: マウスで引っぱる動きです
+- `src/internal/reading/table.ts`: 貼り付いた見出しとその下の影（`stickyHead`）を、DataTable と共有します
 - `src/components/table/table.tokens.css`: 比べるためだけの切り替えのトークンを畳んで消しました
 - `src/components/table/Table.stories.tsx`: 外観ごと動くこと・引っぱる動き・切れることを play で確かめます
 - 比較のストーリーは消しました。backlog から、Table の続きの見せ方の決まった部分を消しました（最初の列の固定は残します）

@@ -78,13 +78,8 @@ const table = tv({
     scrollY: {
       true: {
         scroll: 'max-h-(--table-max-height)',
-        table: [
-          '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
-          // 貼り付いた見出しの下の影。スクロールした量（--cue-top）に合わせて濃くする（DataTable と同じ）
-          "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
-          '[&_thead_th]:after:bg-linear-to-b [&_thead_th]:after:from-(color:--color-sheet-edge-shadow) [&_thead_th]:after:to-transparent',
-          '[&_thead_th]:after:opacity-[var(--cue-top,0)]',
-        ],
+        // 貼り付いた見出しと、その下の影（DataTable と同じ）
+        table: tableStyles.stickyHead,
       },
       false: {},
     },
