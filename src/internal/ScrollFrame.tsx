@@ -4,13 +4,14 @@ import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import {
   type ComponentProps,
   type CSSProperties,
+  type MouseEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
   useCallback,
 } from 'react';
 
-import { scrollAreaStyles } from './scroll-area-styles';
+import { type ScrollAreaScrollbar, scrollAreaStyles } from './scroll-area-styles';
 import { SheetMoreCue } from './sheet/SheetMoreCue';
 import { useMergedRefs } from './use-merged-refs';
 import { useMoreCues } from './sheet/use-more-cues';
@@ -78,7 +79,7 @@ export interface ScrollFrameProps {
    * つまみの出し方。scroll は枠に載せたとき・スクロール中・キーボードで止まったときだけ、always はいつも
    * @default 'scroll'
    */
-  scrollbar?: 'scroll' | 'always';
+  scrollbar?: ScrollAreaScrollbar;
   /** 枠の名前。付けると、枠は名前付きの領域（region）になる */
   label?: string;
   /** スクロールする要素を受け取る（影の計算のほかに要るとき）。付いたときとはずれたときに呼ばれる */
@@ -93,6 +94,28 @@ export interface ScrollFrameProps {
   /** 枠の中、スクロールする要素の前と後ろに置くもの（続きの印 SheetMoreCue など。枠に書く --cue-* を読める） */
   before?: ReactNode;
   after?: ReactNode;
+}
+
+// フォーカスを受ける要素（tabindex が負のものも含む。押すとフォーカスを受けるもの）
+const FOCUSABLE =
+  'a[href],button,input:not([type="hidden"]),select,textarea,summary,iframe,[tabindex],[contenteditable]:not([contenteditable="false"])';
+
+/**
+ * 止まり先にしない枠（focusable={false}）を押したとき、枠そのものにフォーカスを渡さない。
+ * 枠には tabIndex=-1 を置くので、そのままでは押すと枠がフォーカスを受け、欄（Combobox の打つ欄）や
+ * 面（Embed の押せる面）からフォーカスが抜ける。押した先がフォーカスできる要素でなければ、ブラウザが
+ * フォーカスできない箇所を押したときと同じく、枠の外のいちばん近いフォーカスできる要素へ渡す
+ * （いまのフォーカスがすでにその中にあれば動かさない）。押す操作（click）は止めない
+ */
+function keepFocusOffViewport(event: MouseEvent<HTMLDivElement>) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  const viewport = event.currentTarget;
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest(FOCUSABLE) !== viewport) return;
+  event.preventDefault();
+  const outer = viewport.parentElement?.closest<HTMLElement>(FOCUSABLE);
+  const active = viewport.ownerDocument.activeElement;
+  if (outer && !(active && outer.contains(active))) outer.focus({ preventScroll: true });
 }
 
 export function ScrollFrame({
@@ -155,6 +178,10 @@ export function ScrollFrame({
       {before}
       <BaseScrollArea.Viewport
         {...viewportRest}
+        onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
+          viewportRest.onMouseDown?.(event);
+          if (focusable === false) keepFocusOffViewport(event);
+        }}
         ref={viewportRef}
         render={viewportRender}
         // 止まり先にしないとき・auto のときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
