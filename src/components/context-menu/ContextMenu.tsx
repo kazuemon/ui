@@ -10,7 +10,6 @@ import type {
   PopupProps,
   PositionerProps,
 } from '../../internal/overlay/overlay-props';
-import { readCssLength } from '../../internal/overlay/popup-styles';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { usePortalContainer } from '../../internal/ui-config';
@@ -29,7 +28,7 @@ import { menuChildrenHaveMarks } from '../menu/MenuItem';
 export interface ContextMenuProps {
   /**
    * 右クリック・長押しを受ける範囲。要素（`div` など）を渡し、その中身は要素の子に書きます。
-   * 範囲そのものは、自分で大きさと見た目を決めます。部品を渡すときは、受け取った props を DOM の要素へ渡し、ref も受けます
+   * 範囲そのものは、自分で大きさと見た目を決めます。部品を渡すときは、受け取った props（className を含む）を DOM の要素へ渡し、ref も受けます
    */
   trigger: ReactElement;
   /** 項目（MenuItem・MenuLinkItem・MenuCheckboxItem・MenuRadioGroup・MenuGroup・MenuSeparator・MenuSubmenu） */
@@ -123,6 +122,21 @@ export interface ContextMenuProps {
    * @default document.body
    */
   portalContainer?: HTMLElement | null;
+  /**
+   * 開いているあいだ、範囲に入力欄と同じ淡い面を敷いて、どの範囲に対する操作かを示します。しないときは範囲を変えません
+   * @default false
+   */
+  highlightArea?: boolean;
+  /**
+   * 一覧の左上の角を、ポインタから右へずらす長さ（px）。負の値は左へ
+   * @default 0
+   */
+  offsetX?: number;
+  /**
+   * 一覧の左上の角を、ポインタから下へずらす長さ（px）。負の値は上へ
+   * @default 0
+   */
+  offsetY?: number;
   /** 面（Popup）に足す props（id・data-*・aria-*・ref など） */
   popupProps?: PopupProps;
   /** 位置を決める要素（Positioner）に足す props。anchor を渡すと、ポインタの位置ではなくその要素に出します */
@@ -130,10 +144,6 @@ export interface ContextMenuProps {
   /** 面（Popup）に足すクラス。幅を変えるときは w-*・min-w-* を渡す */
   className?: string;
 }
-
-// 開いているあいだの範囲の見せ方（トークンで差し替える）
-const areaClass =
-  'data-popup-open:bg-(--context-menu-area-bg) data-popup-open:outline-(length:--context-menu-area-ring-width) data-popup-open:outline-(--context-menu-area-ring-color) data-popup-open:outline-offset-(--context-menu-area-ring-offset) data-popup-open:outline-solid';
 
 /**
  * 範囲（trigger）を右クリック・長押しすると、ポインタの位置に開く、操作の一覧。
@@ -162,6 +172,9 @@ export function ContextMenu({
   closeOnSwipe = false,
   closeName,
   backName,
+  highlightArea = false,
+  offsetX = 0,
+  offsetY = 0,
   portalContainer: container,
   popupProps,
   positionerProps,
@@ -178,15 +191,6 @@ export function ContextMenu({
   const { anchorRef, scope } = useDensityScope<HTMLDivElement>(open);
   const [generation, setGeneration] = useState(0);
   const reserveMarkSpace = alignMarks && menuChildrenHaveMarks(children);
-  // ポインタの角から、一覧を置く位置のずれ（下へ・右へ。重ねる長さを引く）
-  // 範囲の中で測る（その場所で上書きしたトークンを使うため）
-  const offset = () => {
-    const read = (name: string) => readCssLength(`var(${name})`, anchorRef.current);
-    return {
-      side: read('--context-menu-offset-y') - read('--context-menu-overlap-y'),
-      align: read('--context-menu-offset-x') - read('--context-menu-overlap-x'),
-    };
-  };
   return (
     <BaseContextMenu.Root
       open={open}
@@ -207,7 +211,11 @@ export function ContextMenu({
       }}
       disabled={disabled}
     >
-      <BaseContextMenu.Trigger ref={anchorRef} render={trigger} className={areaClass} />
+      <BaseContextMenu.Trigger
+        ref={anchorRef}
+        render={trigger}
+        className={highlightArea && open ? 'bg-field' : undefined}
+      />
       <MenuContext
         value={{
           sheet,
@@ -228,7 +236,7 @@ export function ContextMenu({
         <MenuSurface
           key={generation}
           title={title}
-          offset={offset}
+          offset={() => ({ side: offsetY, align: offsetX })}
           onClose={() => changeOpen(false)}
           returnFocus={returnFocus}
           popupProps={popupProps}
