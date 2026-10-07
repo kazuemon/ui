@@ -88,6 +88,7 @@ const meta = {
     loadingIndicator: 'spinner',
     loadingText: '読み込んでいます',
     modal: false,
+    popoverScrollbar: 'scroll',
     onValueChange: fn(),
     onReject: fn(),
   },

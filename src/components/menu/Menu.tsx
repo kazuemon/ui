@@ -66,6 +66,7 @@ export type {
   MenuRadioMark,
   MenuSubmenuSheet,
 } from './menu-context';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 export type MenuSide = 'top' | 'bottom' | 'left' | 'right';
 export type MenuAlign = 'start' | 'center' | 'end';
 
@@ -197,7 +198,7 @@ export interface MenuProps {
    * always はいつも出します（ScrollArea の scrollbar と同じ）。シートでは、スクロール中だけ出します
    * @default 'scroll'
    */
-  popoverScrollbar?: 'scroll' | 'always';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * シートの閉じる × の読み上げの名前
    * @default '閉じる'
@@ -447,7 +448,7 @@ export function MenuSurface({
     backName,
     submenuSheet,
     closeOnSwipe,
-    popoverScrollbar = 'scroll',
+    popoverScrollbar,
     closeAll,
   } = useMenuContext();
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};

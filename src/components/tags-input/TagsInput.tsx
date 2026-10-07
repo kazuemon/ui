@@ -101,6 +101,7 @@ import {
 } from './tags-input-commit';
 import { TagsFeedbackContext, tagsRejectText, useTagsFeedback } from './tags-input-feedback';
 import { TagsInputChips } from './TagsInputChips';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 export type { TagsInputRejectReason } from './tags-input-commit';
 
@@ -338,7 +339,7 @@ export interface TagsInputControlProps {
    * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
    * @default 'scroll'
    */
-  popoverScrollbar?: 'scroll' | 'always';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 浮かぶ候補の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分で、最後の候補を半分見せる

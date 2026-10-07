@@ -4,6 +4,7 @@ import { createContext, use } from 'react';
 
 import type { DensityScope } from '../../internal/density-scope';
 import type { GroupLabelStyle } from '../../internal/listbox/listbox-styles';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 /** 選んだ印（チェック・ラジオ）の色。primary・secondary は利用者が選ぶ色、neutral は色を持たない（原則6） */
 export type MenuColor = 'primary' | 'secondary' | 'neutral';
@@ -47,8 +48,8 @@ export interface MenuContextValue {
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;
-  /** 浮かべたときの、一覧のつまみの出し方（Menu の popoverScrollbar）。書かないときは scroll */
-  popoverScrollbar?: 'scroll' | 'always';
+  /** 浮かべたときの、一覧のつまみの出し方（Menu の popoverScrollbar） */
+  popoverScrollbar: ScrollAreaScrollbar;
   closeName?: string;
   backName?: string;
   closeAll: () => void;

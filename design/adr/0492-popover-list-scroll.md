@@ -51,7 +51,7 @@
 ## 影響
 
 - `src/components/select/Select.tsx`・`src/components/combobox/Combobox.tsx`・`src/components/tags-input/TagsInput.tsx`: `popoverMoreCue` を外し、`popoverScrollbar` を足しました
-- `src/components/autocomplete/Autocomplete.tsx`・`src/components/menu/Menu.tsx`: `popoverScrollbar` を足しました
+- `src/components/autocomplete/Autocomplete.tsx`・`src/components/menu/Menu.tsx`: `popoverScrollbar` を足しました。Autocomplete の一覧は、ほかの選択肢と同じ `ListboxScroll` で描きます（`AutocompleteScroll.tsx` は消しました）
 - `src/internal/listbox/ListboxScroll.tsx`・`src/internal/ScrollFrame.tsx`: 一覧のスクロールを ScrollFrame で描きます
 - 比べるためだけの切り替えのトークンは畳んで消しました
 - 比較のストーリーは消しました。backlog から、Select・Combobox の一覧の行を消しました

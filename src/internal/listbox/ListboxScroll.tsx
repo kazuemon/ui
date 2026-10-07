@@ -4,6 +4,7 @@ import type { ReactNode, Ref, UIEventHandler } from 'react';
 
 import { type ListboxPresentation, listboxList } from './listbox-styles';
 import { MoreCueScroll } from '../sheet/MoreCueScroll';
+import type { ScrollAreaScrollbar } from '../scroll-area-styles';
 
 /**
  * 選択肢の一覧（Base UI の List）を包むスクロールの枠。Select・Combobox・TagsInput が共有する
@@ -34,7 +35,7 @@ export function ListboxScroll({
   /** スクロールする要素に足すクラス */
   viewportClassName?: string;
   /** つまみの出し方。scroll は載せたとき・スクロール中だけ、always はいつも */
-  scrollbar?: 'scroll' | 'always';
+  scrollbar?: ScrollAreaScrollbar;
   /** 選択肢の一覧（Base UI の List） */
   children: ReactNode;
 }) {

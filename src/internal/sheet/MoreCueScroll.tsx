@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactElement, ReactNode, Ref, UIEventHandler } from 'react';
 
 import { ScrollFrame } from '../ScrollFrame';
+import type { ScrollAreaScrollbar } from '../scroll-area-styles';
 
 // 続きの印（SheetMoreCue）を上下に挟んで、中身をスクロールさせる枠
 // 浮かぶ選択肢の一覧（Select・Combobox・TagsInput）・Menu・シート（Drawer・Inspector）・Dialog の中身が共有する
@@ -17,7 +18,7 @@ export interface MoreCueScrollProps {
    * つまみの出し方。scroll は載せたとき・スクロール中だけ、always はいつも
    * @default 'scroll'
    */
-  scrollbar?: 'scroll' | 'always';
+  scrollbar?: ScrollAreaScrollbar;
   /**
    * スクロールする要素をキーボードの止まり先にするか。auto は、あふれていて中に Tab で止まれるものがないときだけ止まる
    * （ブラウザのスクロールする箱と同じ。シート・Dialog の中身）。選択肢やメニューの一覧は false（項目へ矢印キーで移る）

@@ -100,6 +100,7 @@ import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-re
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -352,7 +353,7 @@ export interface ComboboxControlProps<Value = string, Multiple extends boolean =
    * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
    * @default 'scroll'
    */
-  popoverScrollbar?: 'scroll' | 'always';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる

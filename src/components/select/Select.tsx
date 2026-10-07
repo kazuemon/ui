@@ -85,6 +85,7 @@ import {
   type InputFieldProps,
   splitFieldProps,
 } from '../../internal/field/input-field-props';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
@@ -236,7 +237,7 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
    * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
    * @default 'scroll'
    */
-  popoverScrollbar?: 'scroll' | 'always';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる

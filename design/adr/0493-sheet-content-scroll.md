@@ -48,7 +48,7 @@
 
 - `src/internal/ScrollFrame.tsx`: `focusable="auto"` を足しました。あふれていて、中に止まり先がないときだけ Tab で止まります
 - `src/internal/use-keyboard-scroller.ts`: 上の判定を持つフックです
-- `src/components/dialog/Dialog.tsx`・`src/components/inspector/Inspector.tsx` と、Drawer・選択肢やメニューのシートの中身: ScrollFrame の `focusable="auto"` で描きます
+- `src/components/dialog/Dialog.tsx`・`src/components/inspector/Inspector.tsx`・`src/internal/sheet/SheetPopup.tsx`（Drawer）: 中身を `src/internal/sheet/MoreCueScroll.tsx`（ScrollFrame）の `focusable="auto"` で描きます。選択肢やメニューのシートの一覧は、項目へ矢印キーで移るので止まり先にしません
 - 比べるためだけの切り替えのトークンは畳んで消しました
 - 比較のストーリーは消しました。backlog から、シートのスクロールバーの行を消しました
 

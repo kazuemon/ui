@@ -324,7 +324,7 @@ export const Open: Story = {
   name: '開いた状態',
   args: { defaultValue: '市' },
   parameters: {
-    controls: { include: ['popoverMaxHeight', 'color'] },
+    controls: { include: ['popoverMaxHeight', 'popoverScrollbar', 'color'] },
     docs: {
       description: {
         story:

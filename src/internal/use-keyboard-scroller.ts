@@ -49,7 +49,11 @@ export function useKeyboardScroller(enabled: boolean) {
       doc.addEventListener('focusin', arm, { once: true });
       const timer = setTimeout(arm, ARM_DELAY);
       // 大きさが変わったとき（中身が伸びた・面の高さが変わった）と、中の要素が出入りしたときに測り直す
-      const resize = new ResizeObserver(() => requestAnimationFrame(update));
+      let frame = 0;
+      const resize = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(update);
+      });
       resize.observe(scroller);
       for (const child of scroller.children) resize.observe(child);
       const mutation = new MutationObserver(update);
@@ -62,6 +66,7 @@ export function useKeyboardScroller(enabled: boolean) {
       cleanup.current = () => {
         doc.removeEventListener('focusin', arm);
         clearTimeout(timer);
+        cancelAnimationFrame(frame);
         resize.disconnect();
         mutation.disconnect();
       };

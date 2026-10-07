@@ -70,10 +70,10 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
@@ -95,7 +95,7 @@ import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-re
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
-import { AutocompleteScroll } from './AutocompleteScroll';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -371,7 +371,7 @@ export interface AutocompleteControlProps<Value = string> {
    * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
    * @default 'scroll'
    */
-  popoverScrollbar?: 'scroll' | 'always';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 読み込んでいるあいだの印。spinner は回る円、bar は下端に流れる線です
    * @default 'spinner'
@@ -616,7 +616,7 @@ export function AutocompleteControl<Value = string>({
     ...positionerRest
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
-  const popupOwnRef = sheet ? measure : popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
   const popupElementRef = useRef<HTMLDivElement>(null);
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
@@ -792,18 +792,9 @@ export function AutocompleteControl<Value = string>({
     />
   );
 
-  // 候補の一覧（Base UI の List）。浮かべるときは、スクロールと余白を包む枠（AutocompleteScroll）の中に置く
+  // 候補の一覧（Base UI の List）。スクロールと余白は、包む枠（ListboxScroll）が持つ
   const renderList = (messageIds: string | undefined) => (
-    <BaseAutocomplete.List
-      ref={sheet ? listRef : undefined}
-      aria-describedby={sheet ? sheetListDescribedBy : messageIds}
-      onScroll={sheet ? updateCues : undefined}
-      className={
-        sheet
-          ? listboxList({ presentation: 'sheet', loadingRow, className: 'data-empty:py-0' })
-          : 'block'
-      }
-    >
+    <BaseAutocomplete.List aria-describedby={sheet ? sheetListDescribedBy : messageIds}>
       {grouped
         ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
             <ComboboxGroupSection
@@ -985,19 +976,26 @@ export function AutocompleteControl<Value = string>({
             )}
             {/* 当たる候補がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
             <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-            {long && <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
-            {sheet ? (
-              renderList(fieldDescribedBy)
-            ) : (
-              <AutocompleteScroll
-                viewportRef={listRef}
-                loadingRow={loadingRow}
-                scrollbar={popoverScrollbar}
-              >
-                {renderList(fieldDescribedBy)}
-              </AutocompleteScroll>
-            )}
-            {long && <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />}
+            <ListboxScroll
+              presentation={listPresentation}
+              loadingRow={loadingRow}
+              viewportRef={listRef}
+              onScroll={updateCues}
+              scrollbar={sheet ? 'scroll' : popoverScrollbar}
+              viewportClassName="has-data-empty:py-0"
+              before={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+              after={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+            >
+              {renderList(fieldDescribedBy)}
+            </ListboxScroll>
             {/* 止めずに読み込んでいるあいだ、候補の最後に出す行 */}
             {loadingRow && (
               <ListboxLoadingRow
