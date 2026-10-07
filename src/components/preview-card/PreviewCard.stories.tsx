@@ -20,9 +20,9 @@ const meta = {
           'リンクに載せる・フォーカスすると、行き先のプレビュー（画像・題・説明、人のプロフィールなど）が少し遅れて出ます。',
           '',
           '- リンクは `Link` と同じ見た目と props です（`href`・`variant`・`color`・`render` など）。文字は `children` に、プレビューの中身は `content` に渡します。押すと行き先へ移ります。',
-          '- 出るまでの待ちは `openDelay`（既定 600 ms）、離れてから閉じるまでは `closeDelay`（既定 300 ms）です。通りがかりのマウスでは出ません。キーボードでフォーカスしたときも、同じだけ待って出ます。',
+          '- 出るまでの待ちは `openDelay`（既定 400 ms）、離れてから閉じるまでは `closeDelay`（既定 200 ms）です。任意の数（ms）を渡せます。通りがかりのマウスでは出ません。キーボードでフォーカスしたときも、同じだけ待って出ます。',
           '- プレビューは、見える人が行き先を先に確かめるためのものです。読み上げには届かず、指でも出ません。欠かせない情報は、行き先のページに置きます。',
-          '- 面の余白を外して画像を端まで広げるときは、`popupClassName="p-0"` を渡します。幅を変えるときは `popupClassName` に `w-*` を渡します。',
+          '- 画像は `PreviewCardImage`、文は `PreviewCardBody` で `content` に置きます（Card の `CardImage`・`CardBody` と同じ）。`cardVariant` は Card の `variant` と同じ値で、既定の `default` は画像を面の端まで、`nested` は内側に角丸で収めます。幅を変えるときは `popupClassName` に `w-*` を渡します。',
           '- 押して開く面（設定など）は Popover、短い文の補足は Tooltip を使います。',
         ].join('\n'),
       },
@@ -31,7 +31,7 @@ const meta = {
   args: {
     href: 'https://example.com/articles/design-loop',
     children: '候補を並べて選ぶループ',
-    content: <ProfilePreview />,
+    content: <ArticlePreview />,
     side: 'bottom',
     align: 'center',
   },
@@ -47,6 +47,11 @@ const meta = {
       control: 'inline-radio',
       options: ['start', 'center', 'end'],
       table: { defaultValue: { summary: "'center'" } },
+    },
+    cardVariant: {
+      control: 'inline-radio',
+      options: ['default', 'nested'],
+      table: { defaultValue: { summary: "'default'" } },
     },
     openDelay: { control: { type: 'number', min: 0, step: 100 } },
     closeDelay: { control: { type: 'number', min: 0, step: 100 } },
@@ -80,11 +85,11 @@ export const Article: Story = {
   tags: ['visual'],
   name: '記事のプレビュー',
   parameters: {
-    controls: { include: ['side', 'align'] },
+    controls: { include: ['side', 'align', 'cardVariant'] },
     docs: {
       description: {
         story:
-          '行き先の記事を、画像・サイト・題・説明で見せます（リンクカードと同じ並び）。画像を端まで広げるので `popupClassName="p-0"` で余白を外しています。',
+          '行き先の記事を、画像・サイト・題・説明で見せます（リンクカードと同じ並び）。`cardVariant` で画像を端まで（default）か、内側に収める（nested）かを選べます。',
       },
     },
   },
@@ -96,7 +101,38 @@ export const Article: Story = {
             key={`${args.side}-${args.align}`}
             {...args}
             content={<ArticlePreview />}
-            popupClassName="p-0"
+            defaultOpen={openOnLoad(viewMode)}
+            portalContainer={frame}
+          >
+            {args.children}
+          </PreviewCard>
+        </div>
+      )}
+    </ScreenFrame>
+  ),
+};
+
+export const ImageInset: Story = {
+  tags: ['visual'],
+  name: '画像を内側に収める',
+  parameters: {
+    controls: { include: ['side', 'align'] },
+    docs: {
+      description: {
+        story:
+          '`cardVariant="nested"` で、画像を面の端まで広げず、文と同じ余白の内側に角丸で置きます。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <ScreenFrame height="h-[460px]">
+      {(frame) => (
+        <div className="flex w-full justify-center pt-4">
+          <PreviewCard
+            key={`${args.side}-${args.align}`}
+            {...args}
+            content={<ArticlePreview />}
+            cardVariant="nested"
             defaultOpen={openOnLoad(viewMode)}
             portalContainer={frame}
           >
@@ -115,7 +151,8 @@ export const Profile: Story = {
     controls: { include: ['side', 'align'] },
     docs: {
       description: {
-        story: '名前のリンクに載せると、その人のプロフィールを見せます。余白は面のものを使います。',
+        story:
+          '名前のリンクに載せると、その人のプロフィールを見せます。文は `PreviewCardBody` で余白を付けます。',
       },
     },
   },
@@ -142,6 +179,7 @@ export const Profile: Story = {
 export const Behavior: Story = {
   name: '載せる・フォーカス・離れる',
   parameters: { controls: { disable: true } },
+  args: { href: 'https://example.com/kazuemon' },
   render: (args) => (
     <p className="text-body">
       <PreviewCard {...args} openDelay={50} closeDelay={50} content={<ProfilePreview />}>
@@ -153,7 +191,7 @@ export const Behavior: Story = {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
     const link = canvas.getByRole('link', { name: '@kazuemon' });
-    await expect(link).toHaveAttribute('href', 'https://example.com/articles/design-loop');
+    await expect(link).toHaveAttribute('href', 'https://example.com/kazuemon');
     // 載せると出る
     await userEvent.hover(link);
     await body.findByText('2,431', {}, { timeout: 2000 });

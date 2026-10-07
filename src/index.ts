@@ -473,8 +473,13 @@ export {
 export {
   PreviewCard,
   type PreviewCardAlign,
+  PreviewCardBody,
+  type PreviewCardBodyProps,
+  PreviewCardImage,
+  type PreviewCardImageProps,
   type PreviewCardProps,
   type PreviewCardSide,
+  type PreviewCardVariant,
 } from './components/preview-card/PreviewCard';
 export { type CollisionAvoidance, type PositionerProps } from './internal/overlay/overlay-props';
 export { Portal, type PortalProps } from './components/portal/Portal';

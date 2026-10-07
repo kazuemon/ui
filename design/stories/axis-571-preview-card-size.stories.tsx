@@ -13,7 +13,7 @@ const meta = {
   title: 'Design Review/571 プレビューの面の大きさ',
   id: 'design-review-571-preview-card-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: 'current' },
+  args: { pick: '' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -104,8 +104,8 @@ function Cell({ column, candidate }: { column: Column; candidate: Candidate }) {
         <div className="flex w-full justify-center pt-4">
           <PreviewCard
             href="https://example.com/"
-            content={article ? <ArticlePreview bleed={!inside} /> : <ProfilePreview />}
-            popupClassName={article && !inside ? 'p-0' : undefined}
+            content={article ? <ArticlePreview /> : <ProfilePreview />}
+            cardVariant={inside ? 'nested' : 'default'}
             defaultOpen
             portalContainer={frame}
           >
@@ -127,7 +127,6 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => <Cell column={column} candidate={candidate} />}
     >
-      <p>決定: 幅 320・余白 16 は現行版のまま。サムネイルは Card と同じ設定ができ、既定も Card に揃える（ADR-0489）</p>
       <p>
         PreviewCard
         の面の幅と余白、画像の置き方を決めます。面の見た目（白・細い輪郭・影・角）は、Popover

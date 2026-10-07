@@ -1,7 +1,7 @@
 'use client';
 
 import { PreviewCard as BasePreviewCard } from '@base-ui/react/preview-card';
-import { type ReactNode, useState } from 'react';
+import { type ComponentProps, type ReactNode, createContext, useContext, useState } from 'react';
 
 import { useDensityScope } from '../../internal/density-scope';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
@@ -14,10 +14,17 @@ import {
 import { cn } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
+import { Image, type ImageProps } from '../image/Image';
 import { Link, type LinkProps } from '../link/Link';
 
 export type PreviewCardSide = 'top' | 'bottom' | 'left' | 'right';
 export type PreviewCardAlign = 'start' | 'center' | 'end';
+/** Card の variant の default（端まで）・nested（内側に収める）に当たる */
+export type PreviewCardVariant = 'default' | 'nested';
+
+const PreviewCardContext = createContext<{ cardVariant: PreviewCardVariant }>({
+  cardVariant: 'default',
+});
 
 export interface PreviewCardProps extends Omit<LinkProps, 'content'> {
   /**
@@ -40,13 +47,20 @@ export interface PreviewCardProps extends Omit<LinkProps, 'content'> {
    */
   align?: PreviewCardAlign;
   /**
-   * 載せてから出るまで（ms）。フォーカスしたときにも同じだけ待ちます。通りがかりのマウスでは出ない長さにします
-   * @default 600
+   * 面の中の置き方。Card の variant と同じ値で、既定も Card と同じです
+   * - default: 画像（PreviewCardImage）を面の端まで届かせます。文は PreviewCardBody で余白を付けて置きます
+   * - nested: 画像を面の内側に、余白を空けて角丸で収めます
+   * @default 'default'
+   */
+  cardVariant?: PreviewCardVariant;
+  /**
+   * 載せてから出るまで（ms）。任意の数を渡せます。フォーカスしたときにも同じだけ待ちます。通りがかりのマウスでは出ない長さにします
+   * @default 400
    */
   openDelay?: number;
   /**
-   * 離れてから閉じるまで（ms）。斜めに動いて、リンクから面へ移る間は閉じません。面の上にいるあいだは閉じません
-   * @default 300
+   * 離れてから閉じるまで（ms）。任意の数を渡せます。斜めに動いて、リンクから面へ移る間は閉じません。面の上にいるあいだは閉じません
+   * @default 200
    */
   closeDelay?: number;
   /** 開いているか（制御） */
@@ -86,8 +100,9 @@ export function PreviewCard({
   content,
   side = 'bottom',
   align = 'center',
-  openDelay = 600,
-  closeDelay = 300,
+  cardVariant = 'default',
+  openDelay = 400,
+  closeDelay = 200,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -112,8 +127,10 @@ export function PreviewCard({
   const positionerRef = useMergedRefs<HTMLDivElement>(userPositionerRef);
   return (
     <BasePreviewCard.Root
-      open={open}
+      // 押せないリンクでは、載せてもフォーカスしてもプレビューを開かない
+      open={open && !linkProps.disabled}
       onOpenChange={(next) => {
+        if (next && linkProps.disabled) return;
         setOpenState(next);
         onOpenChange?.(next);
       }}
@@ -134,9 +151,7 @@ export function PreviewCard({
           data-density={scope.density}
           {...restPositionerProps}
           ref={positionerRef}
-          className={['z-10 outline-none', scope.large && 'coarse-large', positionerClassName]
-            .filter(Boolean)
-            .join(' ')}
+          className={cn('z-10 outline-none', scope.large && 'coarse-large', positionerClassName)}
         >
           <BasePreviewCard.Popup
             data-slot="preview-card"
@@ -145,16 +160,68 @@ export function PreviewCard({
             className={[
               popupSurfaceClass,
               popupMotionClass,
-              'relative w-(--preview-card-width) max-w-(--available-width) overflow-hidden p-(--preview-card-padding) text-(length:--text-control) leading-(--leading-control) shadow-overlay',
+              'relative w-(--preview-card-width) max-w-(--available-width) overflow-hidden text-(length:--text-control) leading-(--leading-control) shadow-overlay',
+              cardVariant === 'nested'
+                ? 'p-(--card-nested-inset) [--preview-card-body-padding:calc(var(--preview-card-padding)-var(--card-nested-inset))]'
+                : '[--preview-card-body-padding:var(--preview-card-padding)]',
               cn(popupClassNameProp, popupClassName),
             ]
               .filter(Boolean)
               .join(' ')}
           >
-            {content}
+            <PreviewCardContext value={{ cardVariant }}>{content}</PreviewCardContext>
           </BasePreviewCard.Popup>
         </BasePreviewCard.Positioner>
       </BasePreviewCard.Portal>
     </BasePreviewCard.Root>
+  );
+}
+
+export interface PreviewCardBodyProps extends ComponentProps<'div'> {
+  /** プレビューの文。題・説明などを縦に並べます */
+  children?: ReactNode;
+}
+
+/**
+ * プレビューの文の部分。面の余白と、中の要素の縦の間を決めます（CardBody と同じ）。
+ * content には、文を PreviewCardBody で包んで渡します
+ */
+export function PreviewCardBody({ className, ...props }: PreviewCardBodyProps) {
+  return (
+    <div
+      data-slot="preview-card-body"
+      className={cn('flex flex-col gap-(--card-gap) p-(--preview-card-body-padding)', className)}
+      {...props}
+    />
+  );
+}
+
+export type PreviewCardImageProps = Omit<ImageProps, 'radius' | 'hideOutline'>;
+
+/**
+ * プレビューの画像（CardImage と同じ）。比率は Card と同じ 16:9 で、はみ出た分を切ります。
+ * 置き方は PreviewCard の cardVariant で決まります（default は面の端まで、nested は内側に角丸で）
+ */
+export function PreviewCardImage({
+  ratio = 'var(--card-media-aspect)',
+  frameProps,
+  ...props
+}: PreviewCardImageProps) {
+  const { cardVariant } = useContext(PreviewCardContext);
+  const nested = cardVariant === 'nested';
+  return (
+    <Image
+      ratio={ratio}
+      radius="none"
+      hideOutline={!nested}
+      {...props}
+      frameProps={{
+        ...frameProps,
+        className: cn(
+          nested && 'rounded-[max(0px,calc(var(--radius-control)-var(--card-nested-inset)))]',
+          frameProps?.className
+        ),
+      }}
+    />
   );
 }

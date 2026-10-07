@@ -1,7 +1,10 @@
+'use client';
+
 import type { ReactNode } from 'react';
 
 import { landscape, svg } from '../../samples/images';
 import { Avatar } from '../avatar/Avatar';
+import { PreviewCardBody, PreviewCardImage } from './PreviewCard';
 
 // ストーリーと比較で使う、プレビューの中身の見本（部品そのものではない）
 
@@ -16,23 +19,12 @@ const ogImage = svg(`
   <circle cx="1340" cy="660" r="100" fill="#fff6d6"/>
 `);
 
-/**
- * LinkCard 風のプレビュー（画像・サイト・題・説明）。画像を面の端まで広げるので、面の余白は popupClassName="p-0" で外して使う
- * bleed を false にすると、画像も面の余白の内側に置く
- */
-export function ArticlePreview({ bleed = true }: { bleed?: boolean }) {
+/** LinkCard 風のプレビュー（画像・サイト・題・説明）。PreviewCard の cardVariant に従って画像を置く */
+export function ArticlePreview() {
   return (
-    <div className="flex flex-col">
-      <img
-        src={ogImage}
-        alt=""
-        className={
-          bleed
-            ? 'aspect-video w-full object-cover'
-            : 'aspect-video w-full rounded-control object-cover'
-        }
-      />
-      <div className={`flex flex-col gap-1 ${bleed ? 'p-4' : 'pt-3'}`}>
+    <>
+      <PreviewCardImage src={ogImage} alt="" />
+      <PreviewCardBody>
         <p className="flex items-center gap-1.5 text-caption text-fg-subtle">
           <img src={favicon} alt="" className="size-4 rounded-xs" />
           zenn.dev
@@ -42,15 +34,15 @@ export function ArticlePreview({ bleed = true }: { bleed?: boolean }) {
           原則とトークンを先に決め、Storybook に候補を並べて 1
           軸ずつ選んでいく進め方と、その記録の残し方について。
         </p>
-      </div>
-    </div>
+      </PreviewCardBody>
+    </>
   );
 }
 
-/** 人のプロフィール（アイコン・名前・ひとこと・数）。面の余白の内側に置く */
+/** 人のプロフィール（アイコン・名前・ひとこと・数） */
 export function ProfilePreview(): ReactNode {
   return (
-    <div className="flex flex-col gap-3">
+    <PreviewCardBody className="gap-3">
       <div className="flex items-center gap-3">
         <Avatar name="かずえもん" src={landscape} alt="" size="lg" />
         <div className="flex min-w-0 flex-col">
@@ -70,6 +62,6 @@ export function ProfilePreview(): ReactNode {
           <b className="text-fg">2,431</b> フォロワー
         </span>
       </p>
-    </div>
+    </PreviewCardBody>
   );
 }
