@@ -24,7 +24,6 @@
 
 - `outline`・`white` のように自分の輪郭（枠線）を持つ variant を `connected` で並べると、仕切りの線とボタン自身の枠線が重なり、境界がほかの列より太く見えます（[ADR-0316](./adr/0316-button-group-frame.md) でも見え方として確かめましたが、直しは決めていません）。二重にならないよう、内側の枠線を消すかどうかは決めていません
 - 色・`variant` をグループでまとめて指定する props（ToggleGroup の `color`・`variant`）は持たせていません。ButtonGroup は選択状態を持たない素の並びなので、色をそろえたいかどうかは使う側にしか分からないと考えました（原則20）が、実際に使うとそろえたいことが多いかもしれません
-- 矢印キーでの移動は持たせず、ふつうに Tab で移る並びにしました。ボタンが多く並ぶ場面（ツールバーなど）で、ロービングタブインデックスが要るかは検討していません
 - アイコンだけのボタン（`iconOnly` の `shape="circle"`）を `connected` で並べたときの見た目は確かめていません（Toggle の circle と同じく、角丸が常に pill になり、連結の角丸の上書きを無視します）
 - **表示の切り替え（ボード・表など）には使えません。** 選んでいる状態を持たないためです。タスクボードの見本では ToggleGroup で作りましたが、**必ずどれかを選ぶ切り替えには、代わりに SegmentedControl を使います**（[ADR-0384](./adr/0384-segmented-control-foundation.md)。2026-09-30 に決定）。ButtonGroup に選択を持たせるかは決めていません。表示の切り替えに SegmentedControl を使うことは、SegmentedControl の Docs に書きました
 
@@ -159,7 +158,6 @@
 
 2026-09-19 に作りました。決定は [ADR-0130](./adr/0130-navbar-current.md)・[ADR-0131](./adr/0131-navbar-sticky.md)・[ADR-0454](./adr/0454-navbar-hide-on-scroll.md)〜[0456](./adr/0456-navbar-default-solid.md) です。
 
-- Navbar の行き先を、下に開くメニュー（NavigationMenu）にする形は決めていません
 - Navbar のメニューを開いたとき、actions（Contact などのボタン）をメニューの中にも出すかは決めていません
 - **貼り付けた（sticky）Navbar があるページで、アンカーリンクで移った見出しが帯の下に隠れます（2026-09-23、ドキュメントサイトで気づきました）。** 見出しに `scroll-margin-top`（Navbar の高さ + 下の線の太さ。`--navbar-height` + `--border-width-thin`）を付けるのは、いまは使う側の責任です（`apps/docs/app/globals.css` で対応）。見出しはライブラリのコンポーネントではなく、必要なオフセットは使う側の構成（sticky にするか、高さ）次第なので、いまはアプリ側に留めています。2つ目の消費者が同じ対応をするときは、レシピか公開のトークンにまとめるかを検討します
 - ヒーロー画像に Navbar を重ねる（`transparent-until-scroll`）には、ページ側で帯の高さを打ち消す必要があります（ストーリーでは `-mb-(--navbar-height)`）。部品で口を持つかは決めていません
@@ -314,7 +312,57 @@
 
 - Menu の項目のアイコンは一段淡い色のままで、選択肢（文字の色）と色がそろいません。そろえるかは決めていません（[ADR-0465](./adr/0465-listbox-item-icon.md)）
 - `MenuCheckboxItem`・`MenuRadioItem` は、選んだ行に面を敷きません（Select の選んだ項目は面を敷きます）
-- 右クリックで開けません（2026-10-01 のトリアージ、あとで）。`trigger` を当てる範囲にする ContextMenu で、ロードマップの ContextMenu をこれで済ませる案です。Base UI の ContextMenu を包みます
+
+### ContextMenu
+
+2026-10-07 に作りました。決定は [ADR-0476](./adr/0476-context-menu-area.md)・[ADR-0477](./adr/0477-context-menu-offset.md) です。
+
+- 長押し（タッチ）で開く動きを、実機で確かめていません
+- キーボードで開く（Shift+F10・Menu キー）動きを確かめていません
+- 右クリックを知らない人が開けるよう、`⋯` ボタンと対にして置くレシピを作っていません
+
+### Menubar
+
+2026-10-07 に作りました。決定は [ADR-0478](./adr/0478-menubar-surface.md)〜[ADR-0480](./adr/0480-menubar-open-trigger.md) です。
+
+- 指で使う狭い画面で、帯をどう畳むかを決めていません
+- アイコンだけのトリガーを作っていません
+- 開いたまま矢印キーで隣のメニューへ移ったときのフォーカスを、確かめていません
+- `Menubar` の `color`（トリガーの色）と `MenubarMenu` の `color`（一覧の印の色）が、同じ名前で別のものです
+- 読み上げの名前が、Toolbar は `aria-label`、Menubar と NavigationMenu は `accessibleName` で、そろっていません（Toolbar の rest は、一旦そのままにしています）
+
+### Toolbar
+
+2026-10-07 に作りました。決定は [ADR-0481](./adr/0481-toolbar-surface.md)〜[ADR-0484](./adr/0484-toolbar-button-look.md) です。
+
+- 折り返した行の端に、区切りの線が残ります
+- 押せない項目は、矢印キーで止まるもの（ToolbarButton）と、飛ばすもの（トグル・Select・欄）に分かれます
+- Home・End で端へ移れません（Base UI の挙動です）
+- 入りきらない項目を「…」に畳む形を作っていません
+- 素の `Button`・`ButtonGroup`・`clearable` の × は、並びに入りません
+- 縦の帯の中の、横向きの ButtonGroup の角が決まっていません
+
+### NavigationMenu
+
+2026-10-07 に作りました。決定は [ADR-0485](./adr/0485-navigation-menu-surface.md)〜[ADR-0488](./adr/0488-navigation-menu-motion.md)・[ADR-0491](./adr/0491-item-icon-box-active.md) です。
+
+- Drawer の中で、説明とアイコンを出すか（アコーディオン案）を決めていません
+- Navbar の外で、指・狭い画面のときにシートにするかを決めていません
+- 押せない行き先の見た目を決めていません
+- mega menu の帯（特集のカード）を作っていません
+- 開いているあいだ、ほかの項目に Playwright の `hover()` が届きません（テストの注意）
+
+### PreviewCard
+
+2026-10-07 に作りました。決定は [ADR-0489](./adr/0489-preview-card-size.md)・[ADR-0490](./adr/0490-preview-card-delay.md) です。
+
+- 指（タッチ）では開きません。長押しで開く案を決めていません
+- Card の `size="sm"` に当たる余白の段がありません
+- `nested` のときの画像の角の計算が、Card と別です
+
+### 浮かぶ面（Popover・Tooltip・Picker・PreviewCard・NavigationMenu）
+
+- 浮かぶ面の位置の要素に密度を写す書き方が、Popover・Tooltip・Picker・PreviewCard・NavigationMenu で重複しています
 
 ### 重なるもの（Dialog・Drawer・Popover・Tooltip）
 
@@ -324,7 +372,6 @@
 - 段（半分と高さいっぱい）があるシートでは、引いても後ろの暗さが変わりません。Base UI の引いた量が段の位置によらず 1 になるためです。閉じる方へ引くときだけ薄くするなら、引いた距離と面の高さから自分で割合を出す必要があります
 - 面に渡したトークン（`--sheet-padding-x` など）は、浮かぶ部分が祖先の密度を写し直すので、使う側が祖先で上書きしても面の中に伝わりません。密度で変わる値を面の外から差し替える仕組みは決めていません
 - Dialog の `size` に `full`（全画面）を足していません（F30、あとで。幅の段は [ADR-0458](./adr/0458-dialog-size.md)）。狭い画面だけ全画面にする形も合わせて決めます（余白は Viewport、`className` は Popup に付きます）
-- Popover を hover で開けません（2026-10-01 のトリアージ、あとで）。Menu と同じ `openOnHover`・`openDelay`・`closeDelay` を持たせる案で、ロードマップの PreviewCard と重なります。一緒に決めます
 
 ### Inspector
 

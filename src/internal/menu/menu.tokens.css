@@ -12,4 +12,13 @@
     var(--color-fg-danger) var(--flat-hover-mix),
     transparent
   );
+  /* 一覧の行の頭のアイコンの箱（soft。Menu の項目・NavigationMenuLink — ADR-0486・0491）
+     bg: ふだんの塗り（入力欄の塗り）。bg-active: 行が hover・キーボードで止まったときの塗り。
+     行の塗りも入力欄の塗りなので、本文の色を hover と同じ割合で重ねて 1 段濃くし、箱の形を残す */
+  --item-icon-box-bg: var(--color-field);
+  --item-icon-box-bg-active: color-mix(
+    in oklab,
+    var(--color-field),
+    var(--color-fg) var(--flat-hover-mix)
+  );
 }

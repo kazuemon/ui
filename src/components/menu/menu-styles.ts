@@ -1,3 +1,4 @@
+import { softIconBoxClass } from '../../internal/menu/item-icon';
 import { tv } from '../../internal/tv';
 
 // Menu の項目の見た目
@@ -52,8 +53,28 @@ export const menuItem = tv({
       true: { root: 'py-1.5' },
       false: {},
     },
+    // 前のアイコンの見せ方（NavigationMenuLink と同じ箱）。soft は箱の分だけ項目を高くし、
+    //   上下に 2 行目のある項目と同じ余白を足して、並んだ箱どうしが付かないようにする。文字との間は NavigationMenuLink の行と同じ
+    //   アイコンのない項目では plain として扱う（MenuItem.tsx）
+    iconVariant: {
+      plain: {},
+      soft: {
+        root: [
+          'gap-3 py-1.5',
+          'data-highlighted:[--item-icon-box-current:var(--item-icon-box-bg-active)] data-popup-open:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
+          // 押せない項目は、行の塗りと同じく hover では濃くせず、キーボードで止まったときだけ濃くする
+          'data-disabled:data-highlighted:[--item-icon-box-current:var(--item-icon-box-bg)] data-disabled:data-highlighted:focus-visible:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
+        ],
+        icon: softIconBoxClass,
+      },
+    },
   },
-  defaultVariants: { danger: false, described: false, markPlacement: 'start' },
+  defaultVariants: {
+    danger: false,
+    described: false,
+    markPlacement: 'start',
+    iconVariant: 'plain',
+  },
 });
 
 // グループの見出し。左は項目の文字とそろえる

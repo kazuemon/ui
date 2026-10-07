@@ -82,12 +82,12 @@
 - [x] Pagination
 - [x] Menu
 - [x] Stepper
-- [ ] NavigationMenu
-- [ ] ContextMenu
-- [ ] Toolbar
+- [x] NavigationMenu
+- [x] ContextMenu
+- [x] Toolbar
 - [ ] CommandPalette
 - [ ] BackToTop
-- [ ] Menubar
+- [x] Menubar
 - [x] Tree
 - [ ] Tour
 
@@ -178,7 +178,7 @@
 - [x] Popover
 - [x] Tooltip
 - [x] AlertDialog
-- [ ] PreviewCard
+- [x] PreviewCard
 
 ### アプリの画面
 

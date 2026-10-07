@@ -72,7 +72,7 @@ export interface ToggleGroupProps extends Omit<
    */
   color?: ToggleColor;
   /**
-   * 中の Toggle の、ON の塗りの強さ。Toggle ごとの variant で上書きできます
+   * 中の Toggle の、ON の塗りの強さ（underline は OFF も塗りのない形）。Toggle ごとの variant で上書きできます
    * @default 'filled'
    */
   variant?: ToggleVariant;
