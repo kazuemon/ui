@@ -58,7 +58,13 @@ export const menuItem = tv({
     //   アイコンのない項目では plain として扱う（MenuItem.tsx）
     iconVariant: {
       plain: {},
-      soft: { root: 'gap-3 py-1.5', icon: softIconBoxClass },
+      soft: {
+        root: [
+          'gap-3 py-1.5',
+          'data-highlighted:[--item-icon-box-current:var(--item-icon-box-bg-active)] data-popup-open:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
+        ],
+        icon: softIconBoxClass,
+      },
     },
   },
   defaultVariants: {

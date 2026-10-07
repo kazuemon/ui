@@ -12,4 +12,10 @@
     var(--color-fg-danger) var(--flat-hover-mix),
     transparent
   );
+  /* 一覧の行の頭のアイコンの箱（soft。Menu の項目・NavigationMenuLink — ADR-0486）
+     bg: ふだんの塗り。bg-active: 行が hover・キーボードで止まったときの塗り。ring: 箱の内側に引く線（0 なら引かない） */
+  --item-icon-box-bg: var(--color-field);
+  --item-icon-box-bg-active: var(--color-field);
+  --item-icon-box-ring-width: 0px;
+  --item-icon-box-ring-color: var(--color-line);
 }

@@ -146,7 +146,10 @@ const styles = tv({
     //   箱は題と説明の 2 行より高いので、行の上にそろえる
     iconVariant: {
       plain: {},
-      soft: { linkIcon: [softIconBoxClass, 'mt-0'] },
+      soft: {
+        link: 'hover:[--item-icon-box-current:var(--item-icon-box-bg-active)] focus-visible:[--item-icon-box-current:var(--item-icon-box-bg-active)]',
+        linkIcon: [softIconBoxClass, 'mt-0'],
+      },
     },
   },
 });
