@@ -66,12 +66,26 @@ const toggle = tv({
       ],
     },
     // ON の塗りの強さ。filled: 部品の色の濃い塗り（原則6）。soft: 淡い面（Chip・Tag と同じ）。outline: 淡い面に部品の色の枠線を足す
+    //   underline だけは OFF の形も変える（下）
     variant: {
       filled: '[--toggle-on-bg:var(--toggle-accent)] [--toggle-on-fg:var(--toggle-accent-fg)]',
       soft: '[--toggle-on-bg:var(--toggle-accent-subtle)] [--toggle-on-fg:var(--toggle-accent-subtle-fg)]',
       outline: [
         '[--toggle-on-bg:var(--toggle-accent-subtle)] [--toggle-on-fg:var(--toggle-accent-subtle-fg)]',
         '[--toggle-on-border-color:var(--toggle-accent)]',
+      ],
+      // underline: OFF を下線のボタン（Button の underline）と同じ平らな形にし、ON だけ部品の色の濃い塗り（filled と同じ）にする
+      //   OFF は塗りなし・本文の色で、文字にだけ淡い下線を引く。hover・押下は下線のボタンと同じ（文字の色を淡く敷き、押下で沈む）
+      //   帯（Toolbar）の中で、下線のボタンと並べたときに OFF のトグルだけがグレーの塊に見えないようにする
+      //   押せない OFF は塗りなしのまま、文字を押せない色にして下線を外す（下線のボタンと同じ）
+      underline: [
+        '[--toggle-on-bg:var(--toggle-accent)] [--toggle-on-fg:var(--toggle-accent-fg)]',
+        '[--toggle-bg:transparent] [--toggle-off-fg:var(--color-fg)]',
+        'not-data-pressed:underline not-data-pressed:[text-decoration-color:var(--color-link-underline)] not-data-pressed:decoration-1 not-data-pressed:underline-offset-4',
+        '[--toggle-off-hover-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),transparent)]',
+        'not-data-pressed:not-[:disabled,[data-disabled]]:active:[--toggle-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-press-mix),transparent)]',
+        'not-data-pressed:disabled:no-underline not-data-pressed:disabled:[--toggle-bg:transparent]',
+        'not-data-pressed:data-disabled:no-underline not-data-pressed:data-disabled:[--toggle-bg:transparent]',
       ],
     },
   },
@@ -90,7 +104,7 @@ export type ToggleShape = keyof typeof iconOnlyClass;
 /** ON になったときの色（原則6）。OFF は色を指定していても同じグレーです */
 export type ToggleColor = NonNullable<VariantProps<typeof toggle>['color']>;
 
-/** ON の塗りの強さ */
+/** ON の塗りの強さ（underline は OFF も塗りのない形にする） */
 export type ToggleVariant = NonNullable<VariantProps<typeof toggle>['variant']>;
 
 interface ToggleBaseProps extends Omit<ComponentProps<'button'>, 'color' | 'value' | 'onChange'> {
@@ -118,7 +132,9 @@ interface ToggleBaseProps extends Omit<ComponentProps<'button'>, 'color' | 'valu
   color?: ToggleColor;
   /**
    * ON の塗りの強さ。filled は部品の色の濃い塗り、soft は淡い面（Chip・Tag と同じ）、outline は淡い面に
-   * 部品の色の枠線を足します。ToggleGroup の中では、指定しなければ ToggleGroup の variant になります
+   * 部品の色の枠線を足します。underline は、OFF を下線のボタン（Button の underline）と同じ塗りのない形にし、
+   * ON だけ filled と同じ濃い塗りにします（帯の中で、下線のボタンと並べるとき）。
+   * ToggleGroup の中では、指定しなければ ToggleGroup の variant になります
    * @default 'filled'
    */
   variant?: ToggleVariant;

@@ -1,0 +1,8 @@
+:root {
+  /* PreviewCard — ADR-0489
+     面は Popover と同じ（白・細い輪郭・--shadow-overlay・部品の角）。幅は固定で、画面が狭いときだけ縮む
+     width: 面の幅。padding: 文（PreviewCardBody）の余白。画像の置き方・入れ子の余白は Card と同じ（--card-media-aspect・--card-nested-inset・--card-gap）。offset: 本体との間 */
+  --preview-card-width: calc(var(--spacing) * 80);
+  --preview-card-padding: calc(var(--spacing) * 4);
+  --preview-card-offset: var(--spacing);
+}

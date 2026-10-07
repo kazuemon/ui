@@ -21,6 +21,7 @@ import {
 import { FieldLayoutContext } from './field-layout';
 import { fieldDescribedBy, fieldMessageIds, messageKinds } from './field-messages';
 import { FieldsetContext } from './fieldset-context';
+import { useToolbarSlots } from '../toolbar-slot';
 import { FieldMark, type FieldMarkProps } from './FieldMark';
 import { fieldStyles } from './field-styles';
 import { FormSubmitContext, useAppInvalid, useFormSubmittingLock } from '../form-context';
@@ -491,9 +492,10 @@ export function Field({
   validationMode,
   validationDebounceTime,
 }: FieldProps) {
-  // Fieldset ごと押せないときは、中の欄も押せない
+  // Fieldset ごと押せないときは、中の欄も押せない。Toolbar（ToolbarGroup）ごと押せないときも同じ
   const fieldset = useContext(FieldsetContext);
-  const disabled = disabledProp || fieldset.disabled;
+  const toolbarDisabled = useToolbarSlots()?.disabled ?? false;
+  const disabled = disabledProp || fieldset.disabled || toolbarDisabled;
   const styles = fieldStyles();
   const id = useId();
   const formLock = useFormSubmittingLock();

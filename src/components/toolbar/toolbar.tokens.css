@@ -1,0 +1,6 @@
+:root {
+  /* Toolbar（ボタン・トグル・区切り・欄を 1 本の帯に並べ、矢印キーで移る）
+     帯は面を持たない（枠・塗り・内側の余白なし。面が要るときは使う側が敷く）。項目の間は ButtonGroup と同じ（--button-group-gap）
+     区切りの線（ToolbarSeparator）は、項目の高さから上下を inset だけ縮める。左右の空きは項目の間と同じ */
+  --toolbar-separator-inset: calc(var(--spacing) * 2);
+}

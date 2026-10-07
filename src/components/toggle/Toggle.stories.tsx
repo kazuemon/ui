@@ -8,6 +8,7 @@ import { DensityPair, Matrix } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
 const variants = ['filled', 'soft', 'outline'] as const;
+const allVariants = [...variants, 'underline'] as const;
 const colors = ['primary', 'secondary', 'neutral'] as const;
 const colorColumns = colors.map((color) => ({ label: color, color }));
 
@@ -23,6 +24,7 @@ const meta = {
           '',
           '- 押していない（OFF）ときは、`color` を指定していても同じグレーです。色が付くのは押した（ON）ときだけです。',
           '- ON の塗りの強さは `variant` で選びます。`filled`（既定）は部品の色の濃い塗り、`soft` は淡い面（Chip・Tag と同じ）、`outline` は淡い面に部品の色の枠線を足します。',
+          '- 帯（`Toolbar`）の中で下線のボタンと並べるときは、`variant="underline"` で OFF を下線のボタンと同じ塗りのない形にできます。ON は `filled` と同じ濃い塗りです。',
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
           '- アイコンだけのトグルは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="circle"` で丸にできます。',
         ].join('\n'),
@@ -42,7 +44,7 @@ const meta = {
     children: { control: 'text' },
     variant: {
       control: 'inline-radio',
-      options: variants,
+      options: allVariants,
       table: { defaultValue: { summary: "'filled'" } },
     },
     color: {
@@ -210,6 +212,60 @@ export const IconOnly: Story = {
     await expect(width).toBe(height);
     await expect(circle).toHaveAttribute('data-icon-only', 'circle');
   },
+};
+
+export const Underline: Story = {
+  name: 'OFF を平らにする',
+  tags: ['visual'],
+  parameters: {
+    pseudo: statePseudo({ hover: 'button', active: 'button', focusVisible: 'button' }),
+    controls: { exclude: ['variant', 'color', 'disabled'] },
+    docs: {
+      description: {
+        story:
+          '`variant="underline"` は、OFF を下線のボタン（`Button` の `underline`）と同じ形にします。塗りはなく、文字に淡い下線が付き、hover で淡く敷きます。ON は `filled` と同じ濃い塗りで、色が付くのは ON のときだけです。帯（`Toolbar`）の中で、下線のボタンと並べるときに使います。',
+      },
+      source: sourceCode(`
+        <Toggle variant="underline">太字</Toggle>
+        <Toggle variant="underline" color="primary" defaultPressed>
+          太字
+        </Toggle>
+        <Toggle variant="underline" iconOnly aria-label="表示を切り替える">
+          <EyeIcon standalone />
+        </Toggle>
+      `),
+    },
+  },
+  render: (args) => (
+    <Matrix
+      rows={[false, true] as const}
+      rowLabel={(pressed) => (pressed ? 'ON' : 'OFF')}
+      columns={pressColumns}
+      columnWidth="9rem"
+      renderCell={(pressed, { disabled }) => (
+        <div className="flex gap-2">
+          <Toggle
+            {...args}
+            variant="underline"
+            color="primary"
+            defaultPressed={pressed}
+            disabled={disabled}
+          />
+          <Toggle
+            {...args}
+            iconOnly
+            aria-label="表示を切り替える"
+            variant="underline"
+            color="primary"
+            defaultPressed={pressed}
+            disabled={disabled}
+          >
+            <EyeIcon standalone />
+          </Toggle>
+        </div>
+      )}
+    />
+  ),
 };
 
 export const Densities: Story = {

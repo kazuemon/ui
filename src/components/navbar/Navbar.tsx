@@ -4,7 +4,6 @@ import { useRender } from '@base-ui/react/use-render';
 import {
   Children,
   type ComponentProps,
-  createContext,
   type CSSProperties,
   type MouseEvent,
   type ReactElement,
@@ -18,9 +17,15 @@ import {
 } from 'react';
 
 import { narrowerThanCollapse } from '../../internal/collapse-width';
-import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon, ListIcon } from '../../internal/icons';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
+import {
+  type NavbarCurrentIndicator,
+  NavbarContext,
+  type NavbarNarrowPlacement,
+  useNavbarGroup,
+} from '../../internal/navbar/navbar-context';
+import { navbarLink, navbarLinks } from '../../internal/navbar/navbar-link-styles';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { OverlayCloseContext } from '../../internal/overlay/overlay-close-context';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
@@ -56,27 +61,14 @@ import { useNavbarScroll } from './use-navbar-scroll';
 //       メニューの中の行では、underline は text と同じ（行の下に線を引くと区切り線に見えるため）
 //     塗りは --flat-bg（theme.css で登録）に置き、background-color ではなく変数を動かす（ADR-0112）
 
-type Placement = 'bar' | 'menu';
-
-export type NavbarNarrowPlacement = 'menu' | 'bar' | 'hidden';
-export type NavbarCurrentIndicator = 'text' | 'neutral' | 'primary' | 'underline';
+export type {
+  NavbarCurrentIndicator,
+  NavbarNarrowPlacement,
+} from '../../internal/navbar/navbar-context';
 export type NavbarStickyEdge = 'line' | 'shadow';
 export type NavbarStickyBackdrop = 'solid' | 'blur' | 'transparent-until-scroll';
 export type NavbarStickyBehavior = 'always' | 'hide-on-scroll';
 export type NavbarTransparentVariant = 'plain' | 'scrim' | 'frosted' | 'text-shadow';
-
-const NavbarContext = createContext<{
-  placement: Placement;
-  indicator: NavbarCurrentIndicator;
-  accessibleName: string;
-  /** メニューへ畳むまとまりが名乗り出る。戻り値で取り消す */
-  registerMenuGroup: () => () => void;
-}>({
-  placement: 'bar',
-  indicator: 'text',
-  accessibleName: 'メイン',
-  registerMenuGroup: () => () => {},
-});
 
 const navbar = tv({
   slots: {
@@ -216,49 +208,6 @@ const navbar = tv({
     stickyBehavior: 'always',
     transparentVariant: 'plain',
   },
-});
-
-const navbarLink = tv({
-  base: [
-    'relative inline-flex h-(--spacing-control) cursor-pointer items-center whitespace-nowrap no-underline',
-    'text-(length:--text-control) leading-(--leading-control)',
-    'font-normal text-fg-muted',
-    // いまいるページ: 文字を本文の色で太く（どの印でも）
-    'aria-[current=page]:font-bold aria-[current=page]:text-fg',
-    // 塗り: ふだんは透明、pill の印では --navbar-item-rest に面の色を置く。hover と押下は、その上に本文の色を淡く敷く
-    '[--navbar-item-rest:transparent]',
-    'bg-(color:--flat-bg) [--flat-bg:var(--navbar-item-rest)]',
-    'hover:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),var(--navbar-item-rest))]',
-    'active:translate-y-(--flat-press-depth) active:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-press-mix),var(--navbar-item-rest))]',
-    '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
-    'motion-reduce:[transition:none]',
-    ...focusRing,
-  ],
-  variants: {
-    placement: {
-      // 帯の中: pill
-      bar: 'rounded-pill px-3',
-      // メニューの中: 幅いっぱいの行。角は部品の角（一覧の項目と同じ — 原則5）
-      menu: 'w-full rounded-control px-3',
-    },
-    indicator: {
-      text: '',
-      neutral: 'aria-[current=page]:[--navbar-item-rest:var(--color-neutral)]',
-      primary:
-        'aria-[current=page]:text-on-primary-subtle aria-[current=page]:[--navbar-item-rest:var(--color-primary-subtle)]',
-      underline: '',
-    },
-  },
-  compoundVariants: [
-    // 文字の幅の下の線。帯の中だけ
-    {
-      placement: 'bar',
-      indicator: 'underline',
-      class:
-        "aria-[current=page]:after:pointer-events-none aria-[current=page]:after:absolute aria-[current=page]:after:inset-x-3 aria-[current=page]:after:bottom-1 aria-[current=page]:after:h-(--navbar-current-bar) aria-[current=page]:after:rounded-pill aria-[current=page]:after:bg-primary aria-[current=page]:after:content-['']",
-    },
-  ],
-  defaultVariants: { placement: 'bar', indicator: 'text' },
 });
 
 export interface NavbarProps extends Omit<ComponentProps<'header'>, 'children'> {
@@ -470,18 +419,6 @@ export function Navbar({
 
 const noRegister = () => () => {};
 
-// まとまり（NavbarLinks・NavbarGroup）の共通の処理
-//   帯の中で menu のものはメニューへ畳むと名乗り出る。メニューの中では menu のものだけを描く
-function useNavbarGroup(narrowPlacement: NavbarNarrowPlacement) {
-  const context = use(NavbarContext);
-  const { placement, registerMenuGroup } = context;
-  useLayoutEffect(() => {
-    if (placement !== 'bar' || narrowPlacement !== 'menu') return undefined;
-    return registerMenuGroup();
-  }, [placement, narrowPlacement, registerMenuGroup]);
-  return { ...context, visible: placement === 'bar' || narrowPlacement === 'menu' };
-}
-
 /**
  * メニューの面の中身（まとまりを縦に積む）。Navbar が Drawer の中に描く。公開しない（ストーリーでも使う）
  */
@@ -524,21 +461,6 @@ const navbarGroup = tv({
       placement: 'bar',
       narrowPlacement: ['menu', 'hidden'],
       class: 'hidden @3xl/navbar:flex',
-    },
-  ],
-});
-
-// 行き先の並びの nav。並びの見た目は ul に置き、nav は出す／隠すだけを受け持つ
-const navbarLinks = tv({
-  variants: {
-    placement: { bar: 'block min-w-0', menu: '' },
-    narrowPlacement: { menu: '', bar: '', hidden: '' },
-  },
-  compoundVariants: [
-    {
-      placement: 'bar',
-      narrowPlacement: ['menu', 'hidden'],
-      class: 'hidden @3xl/navbar:block',
     },
   ],
 });

@@ -87,6 +87,23 @@ export {
   type ToggleGroupProps,
 } from './components/toggle/ToggleGroup';
 export {
+  Toolbar,
+  ToolbarButton,
+  type ToolbarButtonIconOnlyProps,
+  type ToolbarButtonProps,
+  ToolbarGroup,
+  type ToolbarGroupProps,
+  ToolbarLink,
+  type ToolbarLinkProps,
+  type ToolbarOrientation,
+  type ToolbarProps,
+  ToolbarSeparator,
+  type ToolbarSeparatorProps,
+  ToolbarToggle,
+  type ToolbarToggleIconOnlyProps,
+  type ToolbarToggleProps,
+} from './components/toolbar/Toolbar';
+export {
   Calendar,
   type CalendarLabels,
   type CalendarNavPlacement,
@@ -167,6 +184,7 @@ export {
   type CodeGroupProps,
   type CodeGroupVariant,
 } from './components/code-group/CodeGroup';
+export { ContextMenu, type ContextMenuProps } from './components/context-menu/ContextMenu';
 export {
   Container,
   type ContainerPadding,
@@ -377,6 +395,15 @@ export {
   type MenuSubmenuProps,
 } from './components/menu/MenuItem';
 export {
+  Menubar,
+  type MenubarColor,
+  MenubarMenu,
+  type MenubarMenuProps,
+  type MenubarOrientation,
+  type MenubarProps,
+  type MenubarSize,
+} from './components/menubar/Menubar';
+export {
   LoadingBar,
   type LoadingIndicator,
   Spinner,
@@ -407,6 +434,18 @@ export {
   type NavbarStickyEdge,
   type NavbarTransparentVariant,
 } from './components/navbar/Navbar';
+export {
+  NavigationMenu,
+  type NavigationMenuAlign,
+  NavigationMenuGroup,
+  type NavigationMenuGroupProps,
+  NavigationMenuItem,
+  type NavigationMenuItemProps,
+  NavigationMenuLink,
+  type NavigationMenuLinkProps,
+  type NavigationMenuProps,
+  type NavigationMenuSwitchMotion,
+} from './components/navigation-menu/NavigationMenu';
 export { NumberFormat, type NumberFormatProps } from './components/number-format/NumberFormat';
 export { OverlayClose, type OverlayCloseProps } from './internal/overlay/overlay-close';
 export {
@@ -430,6 +469,17 @@ export {
   type PopoverProps,
   type PopoverSide,
 } from './components/popover/Popover';
+export {
+  PreviewCard,
+  type PreviewCardAlign,
+  PreviewCardBody,
+  type PreviewCardBodyProps,
+  PreviewCardImage,
+  type PreviewCardImageProps,
+  type PreviewCardProps,
+  type PreviewCardSide,
+  type PreviewCardVariant,
+} from './components/preview-card/PreviewCard';
 export { type CollisionAvoidance, type PositionerProps } from './internal/overlay/overlay-props';
 export { Portal, type PortalProps } from './components/portal/Portal';
 export { ThemeProvider, type ThemeProviderProps } from './components/theme-provider/ThemeProvider';
@@ -931,6 +981,7 @@ export type { ListboxColor } from './internal/listbox/listbox-colors';
 export type { ListboxGroup, ListboxItems } from './internal/listbox/listbox-items';
 export type { ListboxInputProps, ListboxSlotProps } from './internal/listbox/listbox-slot-props';
 export type { GroupLabelStyle } from './internal/listbox/listbox-styles';
+export type { ItemIconVariant } from './internal/menu/item-icon';
 export type {
   ListboxItem,
   ListboxItemNote,
