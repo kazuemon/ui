@@ -40,7 +40,7 @@
 
 ## 影響
 
-- `src/components/code-block/CodeBlock.tsx`: 折り返さないときの中身を ScrollFrame（`focusable="auto"`）で描きます
+- `src/components/code-block/CodeBlock.tsx`: 折り返さないときの中身を ScrollFrame で描き、Tab の止まり先を pre から ScrollFrame の枠に移します
 - `src/components/code-block/code-block.tokens.css`: 比べるためだけの切り替えのトークンを畳んで消しました
 - 比較のストーリーは消しました。backlog から、CodeBlock の続きの見せ方の行を消しました
 
