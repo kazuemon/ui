@@ -85,7 +85,7 @@ function ProfileLink({ person, avatarShape }: { person: Person; avatarShape: Ava
             <div className="flex items-center gap-3">
               <Avatar name={person.name} shape={avatarShape} size="lg" />
               <div className="flex min-w-0 flex-col">
-                <Text as="span" className="font-bold">
+                <Text as="span" weight="bold">
                   {person.name}
                 </Text>
                 <Text as="span" size="sm" variant="subtle">
@@ -133,7 +133,7 @@ function Post({
       <Avatar name={person.name} shape={avatarShape} className="self-center" />
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Text as="span" className="font-bold">
+          <Text as="span" weight="bold">
             <ProfileLink person={person} avatarShape={avatarShape} />
           </Text>
           <Text as="span" size="sm" variant="subtle" className="truncate">
@@ -366,7 +366,7 @@ function SnsScreen({
           <div className="flex min-w-0 items-center gap-3">
             <Avatar name={taro.name} shape={avatarShape} />
             <div className="flex min-w-0 flex-col">
-              <Text as="span" className="font-bold">
+              <Text as="span" weight="bold">
                 <ProfileLink person={taro} avatarShape={avatarShape} />
               </Text>
               <Text as="span" size="sm" variant="subtle">

@@ -56,8 +56,14 @@ export function MarkdownPreview({ source }: { source: string }) {
     const heading = /^(#{1,3})\s+(.*)$/.exec(line);
     if (heading) {
       // 記事の題（h1）は本文の外に置くので、# も ## と同じ h2 にする
-      const Tag = `h${Math.max(2, heading[1].length)}` as 'h2' | 'h3';
-      blocks.push(<Tag key={blocks.length}>{inline(heading[2])}</Tag>);
+      //   読み上げでは、プレビューの題（3 段目）の下に来るよう 2 段下げる（見た目は記事の h2・h3 のまま）
+      const level = Math.max(2, heading[1].length);
+      const Tag = `h${level}` as 'h2' | 'h3';
+      blocks.push(
+        <Tag key={blocks.length} aria-level={level + 2}>
+          {inline(heading[2])}
+        </Tag>
+      );
       i += 1;
       continue;
     }

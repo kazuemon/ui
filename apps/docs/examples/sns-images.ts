@@ -1,25 +1,12 @@
 // SNS の見本の投稿に付ける画像（外に取りに行かないよう、SVG の data URL で作る）
 
-import { landscape, svg } from './images';
+import { sunset } from './article-images';
+import { landscape } from './images';
 
 const svgSized = (width: number, height: number, body: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">${body}</svg>`
   )}`;
-
-// 夕焼けの海
-const sunset = svg(`
-  <defs>
-    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f7a8c4"/><stop offset="1" stop-color="#ffe2b8"/>
-    </linearGradient>
-  </defs>
-  <rect width="1600" height="900" fill="url(#dusk)"/>
-  <circle cx="800" cy="560" r="150" fill="#ffd27a"/>
-  <rect y="560" width="1600" height="340" fill="#5a86b8"/>
-  <rect x="620" y="610" width="360" height="12" rx="6" fill="#ffd27a" opacity="0.7"/>
-  <rect x="680" y="660" width="240" height="10" rx="5" fill="#ffd27a" opacity="0.5"/>
-`);
 
 // 花（縦長）
 const flower = svgSized(

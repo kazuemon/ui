@@ -101,3 +101,13 @@ export const board: Site = {
     { label: 'メンバー', href: '#members' },
   ],
 };
+
+/** 個人の作品集 */
+export const studio: Site = {
+  name: 'Kazue Works',
+  nav: [
+    { label: '作品', href: '#works' },
+    { label: 'ブログ', href: '#blog' },
+    { label: 'プロフィール', href: '#about' },
+  ],
+};

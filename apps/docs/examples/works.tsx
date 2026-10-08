@@ -8,7 +8,6 @@ import {
   CardImage,
   CardTitle,
   Carousel,
-  Chip,
   Grid,
   Heading,
   Image,
@@ -26,23 +25,13 @@ import { useState } from 'react';
 
 import { screenshot } from './images';
 import { SamplePage } from './sample-page';
-import type { Site } from './sites';
+import { studio } from './sites';
 import type { Density, Example } from './types';
 import { type WorkCategory, activities, categories, featured, works } from './works-data';
 import { processVideo } from './works-video';
 
 // 作品集（ポートフォリオ）: 注目の作品を Carousel で見せ、制作の様子（動画・プロトタイプ）、
 // 分野で絞り込める作品の一覧（Masonry のカード）、ほかの活動（Grid のカード）を 1 ページに並べる
-
-/** 個人の作品集 */
-const studio: Site = {
-  name: 'Kazue Works',
-  nav: [
-    { label: '作品', href: '#works' },
-    { label: 'ブログ', href: '#blog' },
-    { label: 'プロフィール', href: '#about' },
-  ],
-};
 
 const labelOf = (value: WorkCategory) =>
   categories.find((category) => category.value === value)?.label ?? value;
@@ -112,29 +101,17 @@ function WorkList() {
           ))}
         </ToggleGroup>
       </div>
-      {selected.length > 0 && (
-        // 効いている絞り込み。× で 1 つずつ外せる
-        <div className="flex flex-wrap items-center gap-2">
-          <Text as="span" size="sm" variant="subtle">
-            絞り込み:
-          </Text>
-          {selected.map((value) => (
-            <Chip
-              key={value}
-              removeName={`${labelOf(value as WorkCategory)} の絞り込みを外す`}
-              onRemove={() => setSelected((current) => current.filter((item) => item !== value))}
-            >
-              {labelOf(value as WorkCategory)}
-            </Chip>
-          ))}
+      {/* 押した分野の Toggle が絞り込みの状態を見せるので、ここは件数と、まとめて外す操作だけにする */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Text size="sm" variant="subtle" aria-live="polite">
+          {shown.length} 件の作品
+        </Text>
+        {selected.length > 0 && (
           <Button variant="underline" size="sm" onClick={() => setSelected([])}>
             すべて外す
           </Button>
-        </div>
-      )}
-      <Text size="sm" variant="subtle" aria-live="polite">
-        {shown.length} 件の作品
-      </Text>
+        )}
+      </div>
       <Masonry minColumnWidth={220}>
         {shown.map((work) => (
           <Card key={work.slug} href={`#works/${work.slug}`}>

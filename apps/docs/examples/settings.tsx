@@ -305,7 +305,8 @@ function DataSection({ dangerTone }: { dangerTone: AlertDialogColor }) {
 function SettingsScreen({ args }: { args: SettingsArgs }) {
   return (
     <div className="flex gap-12">
-      <aside className="sticky top-6 hidden h-fit w-44 shrink-0 md:block">
+      {/* 目次は貼り付いた帯（Navbar）の下に、見出しへ移るときと同じ空きを取って留める */}
+      <aside className="sticky top-[calc(var(--navbar-height)+var(--border-width-thin)+var(--spacing)*4)] hidden h-fit w-44 shrink-0 md:block">
         <TableOfContents label="設定の項目" items={sections} />
       </aside>
       <Stack gap="xl" className="max-w-[560px] min-w-0 flex-1">

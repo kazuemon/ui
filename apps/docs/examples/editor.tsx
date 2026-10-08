@@ -45,14 +45,18 @@ import {
   ToolbarGroup,
   ToolbarSeparator,
   useToast,
+  VisuallyHidden,
 } from '@kazuemon/ui';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import { MarkdownPreview } from './editor-markdown';
 import type { Example } from './types';
 
 // 見本のページ: ブログの記事を書くエディタ「Kakuz」。上にメニューの帯と書式の帯を置き、本文（Markdown）とプレビューを並べ、
 // 右に記事の設定を置く。本文の上で右クリックすると、編集のメニューが開く
+
+// 見本のページ: ブログの記事を書くエディタ「Kakuz」。上にメニューの帯（Menubar）と書式の帯（Toolbar）、
+// 本文（Markdown）とプレビュー（Prose）を並べ、右に記事の設定を置く。狭い画面では本文とプレビューをタブで切り替える
 
 const initialBody = `## はじめに
 
@@ -148,9 +152,10 @@ function useWide() {
 }
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
+  const headingId = useId();
   return (
-    <section aria-label={title} className="flex min-w-0 flex-col gap-2">
-      <Heading level={2} size="md">
+    <section aria-labelledby={headingId} className="flex min-w-0 flex-col gap-2">
+      <Heading level={2} size="md" id={headingId}>
         {title}
       </Heading>
       {children}
@@ -210,7 +215,7 @@ function EditorScreen() {
     const text = body.value;
     const current = currentSelection();
     const lineStart = text.lastIndexOf('\n', current.start - 1) + 1;
-    const rest = text.slice(lineStart).replace(/^#{1,3}\s+/, '');
+    const rest = text.slice(lineStart).replace(/^#{1,3}[ \t]+/, '');
     const removed = text.length - lineStart - rest.length;
     const prefix = headingPrefix[level] ?? '';
     const shift = prefix.length - removed;
@@ -249,6 +254,9 @@ function EditorScreen() {
       toast.show({ status: 'danger', title: 'クリップボードを使えませんでした', timeout: 4000 });
     }
   };
+
+  const exportMarkdown = () =>
+    toast.show({ status: 'success', title: 'Markdown を書き出しました', timeout: 4000 });
 
   const save = () =>
     toast.show({
@@ -298,7 +306,8 @@ function EditorScreen() {
 
   const preview = (
     <Prose className="min-w-0 rounded-card border border-line p-6">
-      <h1>{title}</h1>
+      {/* 見た目は記事と同じ h1 のまま、読み上げではプレビューの見出し（h2）の下の段にする */}
+      <h1 aria-level={3}>{title}</h1>
       <MarkdownPreview source={body.value} />
     </Prose>
   );
@@ -307,6 +316,7 @@ function EditorScreen() {
     <div className="flex min-h-screen flex-col">
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2">
         <Text weight="bold">Kakuz</Text>
+        <VisuallyHidden render={<h1 />}>記事を書く</VisuallyHidden>
         <Menubar accessibleName="Kakuz のメニュー">
           <MenubarMenu label="ファイル">
             <MenuItem shortcut="Ctrl+N">新しい記事</MenuItem>
@@ -380,12 +390,15 @@ function EditorScreen() {
         <Text size="sm" variant="muted" className="ms-auto">
           {published ? '公開中' : '下書き'}
         </Text>
+        <Toggle variant="outline" pressed={showPreview} onPressedChange={setShowPreview}>
+          プレビュー
+        </Toggle>
         <ButtonGroup aria-label="記事の操作">
           <Button variant="outline" onClick={save}>
             保存
           </Button>
-          <Button variant="outline" onClick={() => setShowPreview((shown) => !shown)}>
-            {showPreview ? 'プレビューを閉じる' : 'プレビュー'}
+          <Button variant="outline" onClick={exportMarkdown}>
+            書き出す
           </Button>
         </ButtonGroup>
       </header>
