@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { Link } from '../components/link/Link';
+import { Container, type ContainerSize } from '../components/container/Container';
+import { Navbar, NavbarLink, NavbarLinks } from '../components/navbar/Navbar';
+import { SkipLink } from '../components/skip-link/SkipLink';
 import { Text } from '../components/text/Text';
 
 // 密度の値（--text-body など）は data-density を付けた要素で決まる。トークンを上書きして比べるときに効くよう、
@@ -9,6 +11,14 @@ export function densityOf(globals: Record<string, unknown>) {
   if (globals.density === 'coarse' || globals.density === 'fine') return globals.density;
   return window.matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine';
 }
+
+// 本文の幅。帯と本文の端をそろえるため、Navbar と Container に同じ size を渡す
+//   sm は Container の prose の中で、さらに細い列（480px）に寄せる（設定や SNS のような 1 列の画面）
+const sizes: Record<'sm' | 'md' | 'lg', ContainerSize> = {
+  sm: 'prose',
+  md: 'prose',
+  lg: 'default',
+};
 
 export function SamplePage({
   density,
@@ -19,13 +29,12 @@ export function SamplePage({
 }: {
   density: 'coarse' | 'fine';
   style?: CSSProperties;
-  /** 本文の幅。md は記事向け（720px）、sm は設定など細い画面（480px）、lg は一覧など広い画面 */
+  /** 本文の幅。md は記事向け（Container の prose）、sm は設定など細い画面（480px）、lg は一覧など広い画面（Container の default） */
   width?: 'sm' | 'md' | 'lg';
   /** true なら、ヘッダーとフッターを付けず、children が画面全体を作る（ドキュメントやサインインなど、独自の枠のとき） */
   bare?: boolean;
   children: ReactNode;
 }) {
-  const max = { sm: 'max-w-[480px]', md: 'max-w-[720px]', lg: 'max-w-[1080px]' }[width];
   if (bare) {
     return (
       <div style={style} data-density={density} className="min-h-screen bg-bg text-fg">
@@ -33,27 +42,33 @@ export function SamplePage({
       </div>
     );
   }
+  const size = sizes[width];
   return (
-    <div style={style} data-density={density} className="min-h-screen bg-bg text-fg">
-      <header className="border-b border-line">
-        <div className={`mx-auto flex ${max} items-center justify-between gap-4 px-5 py-3`}>
-          <Text as="span" className="font-heading text-fg-brand">
+    <div style={style} data-density={density} className="flex min-h-screen flex-col bg-bg text-fg">
+      <SkipLink href="#sample-main" />
+      <Navbar
+        size={size}
+        brand={
+          <a href="#top" className="font-heading text-fg-brand no-underline">
             kazuemon
-          </Text>
-          <nav className="flex gap-4">
-            <Link href="#works">Works</Link>
-            <Link href="#blog">Blog</Link>
-            <Link href="#about">About</Link>
-          </nav>
-        </div>
-      </header>
-      <main className={`mx-auto ${max} px-5 py-10`}>{children}</main>
+          </a>
+        }
+      >
+        <NavbarLinks>
+          <NavbarLink href="#works">Works</NavbarLink>
+          <NavbarLink href="#blog">Blog</NavbarLink>
+          <NavbarLink href="#about">About</NavbarLink>
+        </NavbarLinks>
+      </Navbar>
+      <Container size={size} py="xl" render={<main id="sample-main" />} className="flex-1">
+        {width === 'sm' ? <div className="mx-auto max-w-120">{children}</div> : children}
+      </Container>
       <footer className="border-t border-line">
-        <div className={`mx-auto ${max} px-5 py-6`}>
+        <Container size={size} py="lg">
           <Text size="sm" variant="subtle">
             © 2026 kazuemon
           </Text>
-        </div>
+        </Container>
       </footer>
     </div>
   );
