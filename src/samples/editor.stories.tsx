@@ -10,7 +10,7 @@ import {
   TextStrikethroughIcon,
 } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { Button } from '../components/button/Button';
@@ -257,6 +257,24 @@ function EditorScreen() {
       timeout: 4000,
     });
 
+  // メニューに出しているショートカット（元に戻す・やり直す・保存・リンクを挿入）を、本文の欄でも動かす
+  //   本文はこの見本が持つ値なので、ブラウザの取り消しではなく、見本の履歴で戻す。保存はブラウザの「ページを保存」を止める
+  const onShortcut = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    const key = event.key.toLowerCase();
+    if (key === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) body.redo();
+      else body.undo();
+    } else if (key === 's' && !event.shiftKey) {
+      event.preventDefault();
+      save();
+    } else if (key === 'k' && !event.shiftKey) {
+      event.preventDefault();
+      insertLink();
+    }
+  };
+
   // 本文の欄。右クリック（指では長押し）で、編集のメニューを開く
   const editorArea = (
     <ContextMenu
@@ -269,6 +287,7 @@ function EditorScreen() {
             onValueChange={body.set}
             ref={textarea}
             onSelect={readSelection}
+            onKeyDown={onShortcut}
             onKeyUp={readSelection}
             onMouseUp={readSelection}
             minRows={16}
@@ -549,6 +568,12 @@ export const Editor: Story = {
     // 元に戻すと、太字が外れる
     await userEvent.click(canvas.getByRole('button', { name: '元に戻す' }));
     await waitFor(() => expect((body as HTMLTextAreaElement).value).not.toContain('**はじめに**'));
+    // 本文の欄で Ctrl+S を押すと、メニューの保存と同じ知らせが出る
+    await userEvent.click(body);
+    await userEvent.keyboard('{Control>}s{/Control}');
+    await expect(
+      await within(canvasElement.ownerDocument.body).findByText('下書きを保存しました')
+    ).toBeInTheDocument();
     // 開いたときの見た目に、確かめで動かしたフォーカスを残さない
     (canvasElement.ownerDocument.activeElement as HTMLElement | null)?.blur();
   },

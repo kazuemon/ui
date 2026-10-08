@@ -47,7 +47,7 @@ import {
   useToast,
   VisuallyHidden,
 } from '@kazuemon/ui';
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import { MarkdownPreview } from './editor-markdown';
 import type { Example } from './types';
@@ -265,6 +265,24 @@ function EditorScreen() {
       timeout: 4000,
     });
 
+  // メニューに出しているショートカット（元に戻す・やり直す・保存・リンクを挿入）を、本文の欄でも動かす
+  //   本文はこの見本が持つ値なので、ブラウザの取り消しではなく、見本の履歴で戻す。保存はブラウザの「ページを保存」を止める
+  const onShortcut = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    const key = event.key.toLowerCase();
+    if (key === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) body.redo();
+      else body.undo();
+    } else if (key === 's' && !event.shiftKey) {
+      event.preventDefault();
+      save();
+    } else if (key === 'k' && !event.shiftKey) {
+      event.preventDefault();
+      insertLink();
+    }
+  };
+
   // 本文の欄。右クリック（指では長押し）で、編集のメニューを開く
   const editorArea = (
     <ContextMenu
@@ -277,6 +295,7 @@ function EditorScreen() {
             onValueChange={body.set}
             ref={textarea}
             onSelect={readSelection}
+            onKeyDown={onShortcut}
             onKeyUp={readSelection}
             onMouseUp={readSelection}
             minRows={16}
