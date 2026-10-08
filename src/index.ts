@@ -475,6 +475,11 @@ export {
   type PaginationShape,
 } from './components/pagination/Pagination';
 export {
+  Popconfirm,
+  type PopconfirmActionsLayout,
+  type PopconfirmProps,
+} from './components/popconfirm/Popconfirm';
+export {
   Popover,
   type PopoverAlign,
   type PopoverProps,

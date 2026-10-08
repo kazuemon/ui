@@ -188,7 +188,7 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [ ] VirtualList
 - [x] Sortable
 - [ ] Kanban
-- [ ] Popconfirm
+- [x] Popconfirm
 - [ ] ActionBar
 - [ ] Mentions
 - [ ] Cascader
