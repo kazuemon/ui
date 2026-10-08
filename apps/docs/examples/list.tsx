@@ -21,6 +21,7 @@ import {
   Dialog,
   Heading,
   Icon,
+  Link,
   Menu,
   MenuItem,
   MenuSeparator,
@@ -174,9 +175,16 @@ function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
             <div className="flex items-center gap-3">
               <Avatar name={member.name} size="sm" />
               <div className="flex min-w-0 flex-col">
-                <Button variant="underline" onClick={onOpen}>
+                {/* 名前は詳細へのリンクとして見せる（行の並びは文字のまま）。見本では詳細を Dialog で開く */}
+                <Link
+                  href={`#member-${member.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onOpen();
+                  }}
+                >
                   {member.name}
-                </Button>
+                </Link>
                 <Text as="span" size="sm" variant="subtle">
                   {member.email}
                 </Text>
