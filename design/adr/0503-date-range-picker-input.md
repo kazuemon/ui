@@ -47,7 +47,7 @@
 
 反映なし。
 
-決めた時点のコミットは `1d31a798` です。
+決めた時点のコミットは `1d31a798` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 1d31a798 && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 

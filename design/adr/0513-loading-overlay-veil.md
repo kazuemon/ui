@@ -74,7 +74,7 @@ props の名前についての返事です。はじめ `variant` を `frosted`�
 
 原則 14 に、領域に重ねる幕は暗くせず、後ろをぼかす文を足しました。
 
-決めた時点のコミットは `9fa2eb24` です。
+決めた時点のコミットは `9fa2eb24` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 9fa2eb24 && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 

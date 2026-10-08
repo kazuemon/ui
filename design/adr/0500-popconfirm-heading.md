@@ -48,7 +48,7 @@ Popconfirm の面の上に、何を出すかを決める必要がありました
 
 反映なし。
 
-決めた時点のコミットは `40b93e6d` です。
+決めた時点のコミットは `40b93e6d` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 40b93e6d && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 
