@@ -6,6 +6,9 @@
 
 - 名前は、この文書の語彙に寄せます。同じ意味の props は、どの部品でも同じ名前・同じ値です
 - 語彙にない名前が要るときは、いちばん近い語に寄せます。別の語のほうが適していそうなら、勝手に決めずにユーザーに確かめます
+- 名前を足す前に、この文書と、似た働きの部品の props を検索します（`clearable` と `dismissible`、`shape` と `radius` のように、近い語がすでにあることが多いためです）
+- 親の部品が持つ、項目（Item）に効く設定は、名前に `item` を含めます（`itemMenuIndicator`・`itemWidth`）
+- 並べて作った部品のあいだで props が食い違ったら（`value` と `index`、端のボタンの有無など）、統合するときに表にしてまとめてユーザーに確かめます
 - 「使ってはいけない語」の一覧は持ちません。`tone` を使わないのは禁止だからではなく、色は `color` に寄せているからです
 - 値の名前は、役割トークンの名前と同じ綴りにします（`color="primary"` は `--color-primary`、`radius="card"` は `--radius-card`）
 - 素の HTML と同じ綴りの props は、同じ意味で使います（`disabled`・`readOnly`・`required`・`placeholder`）。`isDisabled` のような接頭辞は付けません
