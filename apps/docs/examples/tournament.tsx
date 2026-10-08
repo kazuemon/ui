@@ -24,6 +24,7 @@ import {
   MenuItem,
   Navbar,
   NumberField,
+  OverlayClose,
   SegmentedControl,
   SegmentedControlItem,
   Sidebar,
@@ -187,8 +188,8 @@ function AddMatchDialog() {
       trigger={<Button color="primary">試合を追加</Button>}
       actions={
         <>
-          <Button variant="outline">やめる</Button>
-          <Button color="primary">追加する</Button>
+          <OverlayClose render={<Button variant="outline">やめる</Button>} />
+          <OverlayClose render={<Button color="primary">追加する</Button>} />
         </>
       }
     >

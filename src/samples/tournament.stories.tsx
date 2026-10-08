@@ -32,7 +32,7 @@ import { Tag } from '../components/tag/Tag';
 import { Text } from '../components/text/Text';
 import { TimePicker } from '../components/time-picker/TimePicker';
 import { Timeline, TimelineItem } from '../components/timeline/Timeline';
-import { Temporal } from '../index';
+import { OverlayClose, Temporal } from '../index';
 import {
   AccountItems,
   DemoNavbar,
@@ -154,8 +154,8 @@ function AddMatchDialog() {
       trigger={<Button color="primary">試合を追加</Button>}
       actions={
         <>
-          <Button variant="outline">やめる</Button>
-          <Button color="primary">追加する</Button>
+          <OverlayClose render={<Button variant="outline">やめる</Button>} />
+          <OverlayClose render={<Button color="primary">追加する</Button>} />
         </>
       }
     >
@@ -344,7 +344,15 @@ function GroupScreen() {
 
 const meta = {
   title: 'Overview/見本',
-  parameters: { layout: 'fullscreen' },
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component:
+          '大会の管理画面の見本です。左の列でステージ＞リーグ＞グループを選び、行を押すと横のパネルで試合の詳細と経過を見ます。シードは、つまみにフォーカスして矢印キーで動かすか、︙ のメニューで並べ替えます。密度はツールバーで切り替えます。',
+      },
+    },
+  },
 } satisfies Meta;
 
 export default meta;
