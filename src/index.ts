@@ -950,6 +950,18 @@ export {
   type DatePickerVariant,
 } from './components/date-picker/DatePicker';
 export {
+  DateRangePicker,
+  type DateRangePickerBaseProps,
+  type DateRangePickerCalendarProps,
+  DateRangePickerControl,
+  type DateRangePickerControlProps,
+  type DateRangePickerPresetsPlacement,
+  type DateRangePickerProps,
+  type DateRangePickerVariant,
+  type DateRangePreset,
+  type DateRangeValue,
+} from './components/date-range-picker/DateRangePicker';
+export {
   TimeField,
   type TimeFieldBaseProps,
   TimeFieldControl,

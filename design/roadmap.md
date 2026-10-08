@@ -154,7 +154,7 @@
 - [ ] ColorPicker
 - [ ] Rating
 - [x] Calendar
-- [ ] DateRangePicker
+- [x] DateRangePicker
 - [x] CheckboxGroup
 - [x] MaskField
 - [ ] Editable
