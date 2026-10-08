@@ -2,6 +2,7 @@
 import {
   Affix,
   Callout,
+  CodeBlock,
   Container,
   Grid,
   Link,
@@ -20,6 +21,21 @@ const STORYBOOK = 'https://story.ui.k6n.jp/';
 const REPOSITORY = 'https://github.com/kazuemon/ui';
 const PRINCIPLES = 'https://github.com/kazuemon/ui/blob/main/design/principles.md';
 const ADR = 'https://github.com/kazuemon/ui/blob/main/design/adr/README.md';
+const NPM = 'https://www.npmjs.com/package/@kazuemon/ui';
+const CHANGELOG = 'https://github.com/kazuemon/ui/blob/main/CHANGELOG.md';
+
+const INSTALL_SH = `pnpm add @kazuemon/ui
+
+# 日本語の推奨フォント（IBM Plex Sans JP）を使うときに必要です
+pnpm add @fontsource/ibm-plex-sans-jp
+
+# Icon などに Phosphor のアイコンを渡すときに必要です
+pnpm add @phosphor-icons/react`;
+
+const INSTALL_CSS = `@import 'tailwindcss';
+@import '@kazuemon/ui/tailwind.css';
+@import '@kazuemon/ui/fonts.css'; /* 欧文と等幅（Mulish・Geist Mono） */
+@import '@kazuemon/ui/fonts-ja.css'; /* 和文（IBM Plex Sans JP） */`;
 
 // トップページから見本への動線に出す 3 つ（記事・新規登録・ダッシュボード。画面の種類が伝わる組み合わせ）
 const FEATURED_EXAMPLE_SLUGS = ['article', 'sign-up', 'dashboard'];
@@ -28,6 +44,7 @@ const featuredExamples = FEATURED_EXAMPLE_SLUGS.map((slug) =>
 ).filter((example) => example !== undefined);
 
 const toc: TableOfContentsItem[] = [
+  { id: 'install', text: 'インストール', level: 2 },
   { id: 'motivation', text: 'なぜ作っているのか', level: 2 },
   { id: 'milestone', text: 'マイルストーン', level: 2 },
   { id: 'seen', text: 'いま見られるもの', level: 2 },
@@ -37,14 +54,16 @@ const toc: TableOfContentsItem[] = [
 ];
 
 const milestones = [
-  'ドキュメント整備（部品ごとのページと、使い方）',
-  'ダークモード',
-  '多言語',
-  'Tailwind なしでも使えるようにする',
-  'スタイルの衝突を避ける',
-  'ツリーシェイク',
-  'テーマの上書き（ブランドの色や角を差し替えられるようにする）',
-  'npm 公開 🎉',
+  { label: 'npm でのテスト公開（v0）', done: true },
+  { label: 'Server Components 対応', done: true },
+  { label: 'ツリーシェイク', done: true },
+  { label: 'ドキュメント整備（部品ごとのページと、使い方）', done: false },
+  { label: 'ダークモード', done: false },
+  { label: '多言語', done: false },
+  { label: 'Tailwind なしでも使えるようにする', done: false },
+  { label: 'スタイルの衝突を避ける', done: false },
+  { label: 'テーマの上書き（ブランドの色や角を差し替えられるようにする）', done: false },
+  { label: 'v1 の公開 🎉', done: false },
 ];
 
 const footerLinks = [
@@ -71,14 +90,36 @@ export default function Home() {
                 の UI コンポーネントライブラリです。
               </p>
 
-              <Callout status="info" title="現在開発中です">
+              <Callout status="warning" title="v0 としてテスト公開中です">
                 <p>
-                  @kazuemon/ui は、まだ公開していません！
-                  部品も、このサイトも作っている途中です。いまの部品と、その状態や props は{' '}
-                  <Link href={STORYBOOK}>Storybook</Link> で見られます。
+                  <Link href={NPM}>npm</Link> で v0 として公開しています。v1
+                  までは、版を上げるたびに props
+                  の名前や見た目を変える破壊的な変更が頻繁に入ります。使うときは版を固定し、上げる前に{' '}
+                  <Link href={CHANGELOG}>CHANGELOG</Link> を確かめてください。
                 </p>
               </Callout>
 
+              <h2 id="install">インストール</h2>
+
+              <p>Tailwind CSS v4 と React 19 が必要です。</p>
+            </Prose>
+
+            <CodeBlock language="sh" className="mt-4">
+              <code>{INSTALL_SH}</code>
+            </CodeBlock>
+
+            <Prose as="article" className="mt-6">
+              <p>
+                アプリの CSS で、<code>tailwindcss</code> のあとに読みます。部品のクラスは、アプリの
+                Tailwind がまとめて作ります。
+              </p>
+            </Prose>
+
+            <CodeBlock language="css" className="mt-4">
+              <code>{INSTALL_CSS}</code>
+            </CodeBlock>
+
+            <Prose as="article" className="mt-10">
               <h2 id="motivation">なぜ作っているのか</h2>
 
               <ul>
@@ -118,13 +159,13 @@ export default function Home() {
             <Prose as="article" className="mt-10">
               <h2 id="milestone">マイルストーン</h2>
 
-              <p>npm に公開するまでに、決めることと作るものです。</p>
+              <p>v1 を公開するまでに、決めることと作るものです。</p>
 
               {/* Markdown（GFM）のチェックリストと同じ形。見た目は Prose が当てる */}
               <ul className="contains-task-list">
-                {milestones.map((label) => (
+                {milestones.map(({ label, done }) => (
                   <li key={label} className="task-list-item">
-                    <input type="checkbox" disabled /> {label}
+                    <input type="checkbox" checked={done} disabled /> {label}
                   </li>
                 ))}
               </ul>
@@ -133,7 +174,9 @@ export default function Home() {
             <Prose as="article" className="mt-10">
               <h2 id="seen">いま見られるもの</h2>
 
-              <p>部品は 70 個ほどです。実際の画面に並べた見本、Storybook、GitHub で見られます。</p>
+              <p>
+                部品は 110 個あまりです。実際の画面に並べた見本、Storybook、GitHub で見られます。
+              </p>
 
               <h3 id="examples">見本のページ</h3>
 
