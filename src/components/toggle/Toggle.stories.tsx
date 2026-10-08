@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 // userEvent は play の引数ではなく storybook/test から読む
 import { expect, fn, userEvent } from 'storybook/test';
 
+import { Button } from '../button/Button';
 import { Toggle, type ToggleProps } from './Toggle';
 import { EyeIcon } from '../../internal/icons';
 import { DensityPair, Matrix } from '../../stories/story-parts';
@@ -26,6 +27,7 @@ const meta = {
           '- ON の塗りの強さは `variant` で選びます。`filled`（既定）は部品の色の濃い塗り、`soft` は淡い面（Chip・Tag と同じ）、`outline` は淡い面に部品の色の枠線を足します。',
           '- 帯（`Toolbar`）の中で下線のボタンと並べるときは、`variant="underline"` で OFF を下線のボタンと同じ塗りのない形にできます。ON は `filled` と同じ濃い塗りです。',
           '- 色は `color` で選びます。指定しないときはグレー（`neutral`）です。',
+          '- 表の行や小さな面の中では、`size="sm"` で一段小さくできます。Button の `size` と同じ段なので、`size="sm"` のボタンと並べると高さがそろいます。',
           '- アイコンだけのトグルは `iconOnly` を付け、`aria-label` で読み上げの名前を必ず付けます。部品の高さの正方形になります。`shape="circle"` で丸にできます。',
         ].join('\n'),
       },
@@ -36,6 +38,7 @@ const meta = {
     children: '太字',
     variant: 'filled',
     color: 'neutral',
+    size: 'md',
     disabled: false,
     defaultPressed: false,
     onPressedChange: fn(),
@@ -51,6 +54,11 @@ const meta = {
       control: 'inline-radio',
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['md', 'sm'],
+      table: { defaultValue: { summary: "'md'" } },
     },
     disabled: { control: 'boolean' },
   },
@@ -266,6 +274,60 @@ export const Underline: Story = {
       )}
     />
   ),
+};
+
+export const Sizes: Story = {
+  name: '大きさ',
+  tags: ['visual'],
+  parameters: {
+    controls: { include: ['children'] },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は高さ・文字・左右の余白・アイコンを一段小さくします。Button の `size` と同じ段で、各行の右端の `Button` と高さがそろいます。入力方式では変わらず、指で操作するときも同じ大きさです。',
+      },
+      source: sourceCode(`
+        <Toggle size="sm" variant="underline" color="primary">いいね</Toggle>
+        <Button size="sm" variant="underline">返信</Button>
+      `),
+    },
+  },
+  render: (args) => (
+    <DensityPair>
+      <div className="flex flex-col gap-3">
+        {(['md', 'sm'] as const).map((size) => (
+          <div key={size} data-size={size} className="flex flex-wrap items-center gap-3">
+            <Toggle {...args} size={size} color="primary" defaultPressed />
+            <Toggle {...args} size={size} variant="outline" color="primary" />
+            <Toggle {...args} size={size} variant="underline" color="primary" />
+            <Toggle
+              {...args}
+              size={size}
+              iconOnly
+              aria-label="表示を切り替える"
+              color="primary"
+              defaultPressed
+            >
+              <EyeIcon standalone />
+            </Toggle>
+            <Button size={size} variant="underline">
+              返信
+            </Button>
+          </div>
+        ))}
+      </div>
+    </DensityPair>
+  ),
+  play: async ({ canvasElement }) => {
+    // 同じ段の Toggle と Button は、同じ高さ
+    for (const size of ['md', 'sm']) {
+      const row = canvasElement.querySelector(`[data-size="${size}"]`)!;
+      const heights = [...row.querySelectorAll('button')].map(
+        (button) => button.getBoundingClientRect().height
+      );
+      await expect(new Set(heights).size).toBe(1);
+    }
+  },
 };
 
 export const Densities: Story = {

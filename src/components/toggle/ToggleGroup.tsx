@@ -4,7 +4,7 @@ import { ToggleGroup as BaseToggleGroup } from '@base-ui/react/toggle-group';
 import { type ComponentProps, type ReactNode, useMemo } from 'react';
 
 import { tv } from '../../internal/tv';
-import type { ToggleColor, ToggleVariant } from './Toggle';
+import type { ToggleColor, ToggleSize, ToggleVariant } from './Toggle';
 import { ToggleGroupContext } from './toggle-group-context';
 
 // ToggleGroup: 複数の Toggle をまとめる（Base UI の ToggleGroup。role="group"）。中には value 付きの Toggle を並べる
@@ -77,6 +77,11 @@ export interface ToggleGroupProps extends Omit<
    */
   variant?: ToggleVariant;
   /**
+   * 中の Toggle の大きさ。sm は一段小さいトグルです（Button の size と同じ段）。Toggle ごとの size で上書きできます
+   * @default 'md'
+   */
+  size?: ToggleSize;
+  /**
    * 詰め方。connected は隣り合わせて仕切りの細い線で区切り、両端だけ角丸を残します。gap はそれぞれ離して並べます
    * @default 'connected'
    */
@@ -103,11 +108,12 @@ export function ToggleGroup({
   loopFocus,
   color,
   variant,
+  size,
   frame,
   className,
   ...props
 }: ToggleGroupProps) {
-  const context = useMemo(() => ({ color, variant }), [color, variant]);
+  const context = useMemo(() => ({ color, variant, size }), [color, variant, size]);
   return (
     <ToggleGroupContext.Provider value={context}>
       <BaseToggleGroup
