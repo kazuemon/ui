@@ -205,12 +205,34 @@ function Toggle(props: Parameters<typeof LoadingOverlay>[0]) {
   );
 }
 
+/** 押すと読み込みを始め、同じ押下の中で 50ms 後に終える（押す速さに頼らない、一瞬の読み込み） */
+function Blink(props: Parameters<typeof LoadingOverlay>[0]) {
+  const [loading, setLoading] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <Button
+        onClick={() => {
+          setLoading(true);
+          timer.current = setTimeout(() => setLoading(false), 50);
+        }}
+      >
+        一瞬だけ読み込む
+      </Button>
+      <LoadingOverlay {...props} loading={loading} className="w-80 rounded-card">
+        <Sample />
+      </LoadingOverlay>
+    </div>
+  );
+}
+
 export const Flicker: Story = {
   name: '一瞬で終わる読み込みでは出ない',
   tags: ['!autodocs'],
-  // 待ち（delay）を長めにとり、2 回の押下のあいだに待ちが過ぎないようにする
+  // 読み込みは 50ms で終わり、待ち（delay）は 600ms。終わりは押下の速さによらず待ちより前に決まる
   args: { delay: 600, minDuration: 0 },
-  render: (args) => <Toggle {...args} />,
+  render: (args) => <Blink {...args} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     // 幕が一度でも描かれたかを見張る（消える動きのあとに残っていないだけでは、出なかったことにならない）
@@ -219,8 +241,7 @@ export const Flicker: Story = {
       if (canvasElement.querySelector('[data-slot="loading-overlay-veil"]')) appeared = true;
     });
     observer.observe(canvasElement, { childList: true, subtree: true });
-    await userEvent.click(canvas.getByRole('button', { name: '切り替える' }));
-    await userEvent.click(canvas.getByRole('button', { name: '切り替える' }));
+    await userEvent.click(canvas.getByRole('button', { name: '一瞬だけ読み込む' }));
     await new Promise((resolve) => setTimeout(resolve, 700));
     observer.disconnect();
     await expect(appeared).toBe(false);
