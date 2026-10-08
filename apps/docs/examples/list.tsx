@@ -1,38 +1,60 @@
 'use client';
 
-// 見本のページ: 管理画面ふうの一覧。検索・絞り込み、表、行のメニュー、詳細の Dialog、読み込み中と空の状態
+// 見本のページ: 管理画面ふうの一覧。数の要約、検索と絞り込みの帯、効いている絞り込み、表、行のメニュー（右クリックでも開く）、
+// 詳細の Dialog、読み込み中と空の状態
 
 import {
   Avatar,
+  AvatarGroup,
   Badge,
   Button,
+  Chip,
+  ContextMenu,
+  DataTable,
+  DataTableEmpty,
+  DataTableHeader,
+  DataTableLoading,
+  type DataTableProps,
+  DataTableRow,
+  DescriptionItem,
+  DescriptionList,
   Dialog,
   Heading,
-  Link,
   Icon,
+  Link,
   Menu,
   MenuItem,
   MenuSeparator,
-  Pagination,
+  NumberFormat,
   type OverlayPresentation,
+  Pagination,
   type PaginationCurrentIndicator,
   RelativeTime,
+  SearchField,
   Select,
-  Skeleton,
-  Table,
-  type TableProps,
+  Stack,
+  Stat,
+  StatusPanel,
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
   Tag,
   Text,
   ThemeProvider,
-  TextField,
+  Time,
+  Toolbar,
+  ToolbarButton,
+  ToolbarSeparator,
   Tooltip,
+  VisuallyHidden,
 } from '@kazuemon/ui';
-import { DotsThreeIcon, InfoIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
+import {
+  DotsThreeIcon,
+  MagnifyingGlassIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+} from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { SamplePage } from './sample-page';
@@ -110,6 +132,15 @@ const statusLabel: Record<Status, string> = {
 };
 const statusColor = { active: 'success', invited: 'info', suspended: 'danger' } as const;
 
+const statusItems = [
+  { label: 'すべて', value: 'all' },
+  { label: '有効', value: 'active' },
+  { label: '招待中', value: 'invited' },
+  { label: '停止中', value: 'suspended' },
+];
+
+const COLUMNS = 6;
+
 function StatusBadge({ status }: { status: Status }) {
   return (
     <span className="inline-flex items-center gap-2">
@@ -119,55 +150,85 @@ function StatusBadge({ status }: { status: Status }) {
   );
 }
 
-function RowMenu({ member, onOpen }: { member: Member; onOpen: () => void }) {
+// 行の操作。︙ のメニューと、行を右クリックしたときのメニューで同じ項目を出す
+function RowActions({ onOpen }: { onOpen: () => void }) {
   return (
-    <Menu
-      title={member.name}
-      align="end"
-      trigger={
-        <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
-          <Icon icon={DotsThreeIcon} standalone />
-        </Button>
-      }
-    >
-      <MenuItem icon={<InfoIcon />} onClick={onOpen}>
-        詳細を見る
-      </MenuItem>
+    <>
+      <MenuItem onClick={onOpen}>詳細を見る</MenuItem>
       <MenuItem icon={<PencilSimpleIcon />}>編集する</MenuItem>
       <MenuSeparator />
       <MenuItem icon={<TrashIcon />} status="danger">
         削除する
       </MenuItem>
-    </Menu>
+    </>
   );
 }
 
-function SkeletonRows() {
-  return Array.from({ length: 5 }, (_, i) => (
-    <TableRow key={i}>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <Skeleton variant="circle" className="size-8" />
-          <Skeleton variant="text" className="w-28" />
-        </div>
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" className="w-16" />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" className="w-16" />
-      </TableCell>
-      <TableCell>
-        <Skeleton radius="pill" className="h-5 w-16" />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" className="w-20" />
-      </TableCell>
-      <TableCell>
-        <Skeleton className="size-(--spacing-control)" />
-      </TableCell>
-    </TableRow>
-  ));
+function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
+  return (
+    <ContextMenu
+      title={member.name}
+      trigger={
+        <DataTableRow status={member.status === 'suspended' ? 'muted' : undefined}>
+          <TableCell>
+            <div className="flex items-center gap-3">
+              <Avatar name={member.name} size="sm" />
+              <div className="flex min-w-0 flex-col">
+                <Link
+                  href={`#member-${member.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onOpen();
+                  }}
+                >
+                  {member.name}
+                </Link>
+                <Text as="span" size="sm" variant="subtle">
+                  {member.email}
+                </Text>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell>{member.role}</TableCell>
+          <TableCell>
+            <StatusBadge status={member.status} />
+          </TableCell>
+          <TableCell>
+            <div className="flex flex-wrap gap-1">
+              {member.tags.length === 0 ? (
+                <Text as="span" size="sm" variant="subtle">
+                  なし
+                </Text>
+              ) : (
+                member.tags.map((t) => <Tag key={t}>{t}</Tag>)
+              )}
+            </div>
+          </TableCell>
+          <TableCell>
+            <Tooltip content={<Time dateTime={member.lastSeen} withTime />}>
+              <span>
+                <RelativeTime dateTime={member.lastSeen} now={now} />
+              </span>
+            </Tooltip>
+          </TableCell>
+          <TableCell align="end">
+            <Menu
+              title={member.name}
+              trigger={
+                <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
+                  <DotsThreeIcon />
+                </Button>
+              }
+            >
+              <RowActions onOpen={onOpen} />
+            </Menu>
+          </TableCell>
+        </DataTableRow>
+      }
+    >
+      <RowActions onOpen={onOpen} />
+    </ContextMenu>
+  );
 }
 
 function ListPage({
@@ -176,7 +237,7 @@ function ListPage({
   currentIndicator,
 }: {
   state: ListState;
-  tableAppearance: TableProps['variant'];
+  tableAppearance: DataTableProps['variant'];
   currentIndicator: PaginationCurrentIndicator;
 }) {
   const [query, setQuery] = useState('');
@@ -184,19 +245,20 @@ function ListPage({
   const [selected, setSelected] = useState<Member | null>(null);
   // 見本なので、ページを替えても行は替わらない（ページ送りの置き方だけを見る）
   const [page, setPage] = useState(1);
-  const tableWrapRef = useRef<HTMLDivElement>(null);
 
-  const shown =
-    state === 'empty'
-      ? []
-      : members.filter(
-          (m) =>
-            (status === 'all' || m.status === status) &&
-            (m.name + m.email).toLowerCase().includes(query.toLowerCase())
-        );
+  // 空の状態では、チームにまだ誰もいない
+  const all = state === 'empty' ? [] : members;
+  const shown = all.filter(
+    (m) =>
+      (status === 'all' || m.status === status) &&
+      (m.name + m.email).toLowerCase().includes(query.toLowerCase())
+  );
   const busy = state === 'loading';
+  const count = (s: Status) => all.filter((m) => m.status === s).length;
+  const statusName = statusItems.find((item) => item.value === status)?.label;
   // 見本の全体では 12 ページぶんある想定。絞り込むと件数が減るので、ページ数もそれに合わせて減らす
   const pageCount = Math.max(1, Math.ceil((shown.length / members.length) * 12));
+  const tableWrapRef = useRef<HTMLDivElement>(null);
 
   // 絞り込みが変わったら、ページを先頭に戻す（レンダー中に直接更新する。effect にすると 2 度描画になる）
   const filterKey = `${query}\0${status}`;
@@ -208,13 +270,13 @@ function ListPage({
 
   // 横スクロールの位置は DOM を触る必要があるので、こちらは effect で戻す
   useEffect(() => {
-    tableWrapRef.current?.querySelector('[data-slot="table-scroll"]')?.scrollTo({ left: 0 });
+    tableWrapRef.current?.querySelector('[data-scroll-viewport]')?.scrollTo({ left: 0 });
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- 絞り込みが変わったら位置を戻す（本体では読まない）
   }, [query, status]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <Stack gap="lg">
+      <Stack direction="horizontal" gap="md" justify="between" align="end">
         <div>
           <Heading level={1} size="xl">
             メンバー
@@ -223,117 +285,113 @@ function ListPage({
             チームに参加している人と、招待中の人です。
           </Text>
         </div>
-        <Button color="primary">メンバーを招待</Button>
+        <Stack direction="horizontal" gap="md" align="center">
+          <AvatarGroup max={4} aria-label="チームのメンバー">
+            {all.map((m) => (
+              <Avatar key={m.id} name={m.name} />
+            ))}
+          </AvatarGroup>
+          <Button color="primary">メンバーを招待</Button>
+        </Stack>
+      </Stack>
+
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <Stat
+          label="メンバー"
+          value={<NumberFormat value={all.length} />}
+          unit="人"
+          loading={busy}
+        />
+        <Stat
+          label="有効"
+          value={<NumberFormat value={count('active')} />}
+          unit="人"
+          loading={busy}
+        />
+        <Stat
+          label="招待中"
+          value={<NumberFormat value={count('invited')} />}
+          unit="人"
+          loading={busy}
+        />
+        <Stat
+          label="停止中"
+          value={<NumberFormat value={count('suspended')} />}
+          unit="人"
+          loading={busy}
+        />
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-48 flex-1">
-          <TextField
-            label="検索"
+      <Stack gap="sm">
+        <Toolbar aria-label="一覧の操作" disabled={busy}>
+          <SearchField
+            accessibleName="検索"
             placeholder="名前かメールアドレス"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            disabled={busy}
+            onValueChange={setQuery}
+            className="min-w-48 flex-1"
           />
-        </div>
-        <div className="w-full sm:w-44">
           <Select
-            label="状態"
+            accessibleName="状態"
             value={status}
             onValueChange={setStatus}
-            disabled={busy}
-            items={[
-              { label: 'すべて', value: 'all' },
-              { label: '有効', value: 'active' },
-              { label: '招待中', value: 'invited' },
-              { label: '停止中', value: 'suspended' },
-            ]}
+            items={statusItems}
+            className="w-40"
           />
-        </div>
-      </div>
+          <ToolbarSeparator />
+          <ToolbarButton variant="outline">書き出す</ToolbarButton>
+        </Toolbar>
+        {(query !== '' || status !== 'all') && (
+          <div className="flex flex-wrap gap-2" aria-label="効いている絞り込み" role="group">
+            {query !== '' && (
+              <Chip removeName={`「${query}」の絞り込みを外す`} onRemove={() => setQuery('')}>
+                「{query}」を含む
+              </Chip>
+            )}
+            {status !== 'all' && (
+              <Chip removeName={`${statusName}の絞り込みを外す`} onRemove={() => setStatus('all')}>
+                {statusName}
+              </Chip>
+            )}
+          </div>
+        )}
+      </Stack>
 
-      <div ref={tableWrapRef} aria-busy={busy}>
-        {/* 行の中身（アバター・タグ・ボタン）の高さがまちまちなので、セルは縦中央でそろえる
-        （ライブラリの表は、読みものに合わせて上そろえが既定） */}
-        {/* スマホでは、タグ・最終ログインの列を隠し、名前・役割・状態と操作だけを見せる（sm から全列） */}
-        <Table accessibleName="メンバーの一覧" variant={tableAppearance} verticalAlign="middle">
+      <div ref={tableWrapRef}>
+        <DataTable accessibleName="メンバーの一覧" loading={busy} variant={tableAppearance}>
           <TableHead>
             <TableRow>
-              <TableHeader>名前</TableHeader>
-              <TableHeader>役割</TableHeader>
-              <TableHeader>状態</TableHeader>
-              <TableHeader>タグ</TableHeader>
-              <TableHeader>最終ログイン</TableHeader>
-              <TableHeader>
-                <span className="sr-only">操作</span>
-              </TableHeader>
+              <DataTableHeader>名前</DataTableHeader>
+              <DataTableHeader>役割</DataTableHeader>
+              <DataTableHeader>状態</DataTableHeader>
+              <DataTableHeader>タグ</DataTableHeader>
+              <DataTableHeader>最終ログイン</DataTableHeader>
+              <DataTableHeader>
+                <VisuallyHidden>操作</VisuallyHidden>
+              </DataTableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {busy ? (
-              <SkeletonRows />
+              <DataTableLoading columns={COLUMNS} />
+            ) : shown.length === 0 ? (
+              <DataTableEmpty colSpan={COLUMNS}>
+                <StatusPanel
+                  size="sm"
+                  status="info"
+                  icon={<Icon icon={MagnifyingGlassIcon} size="lg" standalone />}
+                  title="見つかりませんでした"
+                  headingLevel={2}
+                  actions={<Button variant="outline">メンバーを招待</Button>}
+                >
+                  条件を変えるか、新しいメンバーを招待してください。
+                </StatusPanel>
+              </DataTableEmpty>
             ) : (
-              shown.map((m) => (
-                <TableRow key={m.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar name={m.name} size="sm" />
-                      {/* 狭い幅でも列を隠さず、名前とメールを折り返さないまま、表を横に送る */}
-                      <div className="flex flex-col whitespace-nowrap">
-                        <Link
-                          href={`#member-${m.id}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelected(m);
-                          }}
-                        >
-                          {m.name}
-                        </Link>
-                        <Text as="span" size="sm" variant="subtle">
-                          {m.email}
-                        </Text>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{m.role}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={m.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-nowrap gap-1">
-                      {m.tags.length === 0 ? (
-                        <Text as="span" size="sm" variant="subtle">
-                          なし
-                        </Text>
-                      ) : (
-                        m.tags.map((t) => <Tag key={t}>{t}</Tag>)
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <Tooltip content="ログインした日時">
-                      <span>
-                        <RelativeTime dateTime={m.lastSeen} now={now} />
-                      </span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell align="end">
-                    <RowMenu member={m} onOpen={() => setSelected(m)} />
-                  </TableCell>
-                </TableRow>
-              ))
+              shown.map((m) => <MemberRow key={m.id} member={m} onOpen={() => setSelected(m)} />)
             )}
           </TableBody>
-        </Table>
-        {!busy && shown.length === 0 && (
-          <div className="flex flex-col items-center gap-2 py-12 text-center">
-            <Heading level={2} size="md">
-              見つかりませんでした
-            </Heading>
-            <Text variant="muted">条件を変えるか、新しいメンバーを招待してください。</Text>
-            <Button variant="outline">メンバーを招待</Button>
-          </div>
-        )}
+        </DataTable>
       </div>
 
       {state === 'normal' && (
@@ -360,27 +418,19 @@ function ListPage({
         }
       >
         {selected && (
-          <dl className="flex flex-col gap-4">
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">役割</dt>
-              <dd>{selected.role}</dd>
-            </div>
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">状態</dt>
-              <dd>
-                <StatusBadge status={selected.status} />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-(length:--text-caption) text-fg-subtle">最終ログイン</dt>
-              <dd>
-                <RelativeTime dateTime={selected.lastSeen} now={now} />
-              </dd>
-            </div>
-          </dl>
+          <DescriptionList layout="stacked" termStyle="label">
+            <DescriptionItem term="役割">{selected.role}</DescriptionItem>
+            <DescriptionItem term="状態">
+              <StatusBadge status={selected.status} />
+            </DescriptionItem>
+            <DescriptionItem term="最終ログイン">
+              <Time dateTime={selected.lastSeen} withTime />（
+              <RelativeTime dateTime={selected.lastSeen} now={now} />）
+            </DescriptionItem>
+          </DescriptionList>
         )}
       </Dialog>
-    </div>
+    </Stack>
   );
 }
 
@@ -453,7 +503,7 @@ export const example: Example = {
       <ThemeProvider presentation={args.presentation as OverlayPresentation}>
         <ListPage
           state={args.state as ListState}
-          tableAppearance={args.tableAppearance as TableProps['variant']}
+          tableAppearance={args.tableAppearance as DataTableProps['variant']}
           currentIndicator={args.currentIndicator as PaginationCurrentIndicator}
         />
       </ThemeProvider>
