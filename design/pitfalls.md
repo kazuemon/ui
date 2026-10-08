@@ -5,8 +5,7 @@
 ## Tailwind
 
 - `tv` のクラスを template literal で組み立てない。Tailwind はソースの文字を読んでクラスを作るので、組み立てたクラスは CSS に出ません。クラスは文字のまま書きます
-- 任意の値の中にハイフンがあると、`data-[layout=stack-reverse]` はクラスが作られません。`data-[layout='stack-reverse']` と引用符で囲みます
-- `justify-[var(--x)]` は効きません。`[justify-content:var(--x)]` と書きます
+- `justify-[var(--x)]` はクラスとして拾われますが、CSS が作られません（`justify-content` の任意値にならない）。`[justify-content:var(--x)]` と書きます
 - tailwind-merge は、`decoration-1` の隣の `decoration-(color:…)` や、`text-fg-subtle` の隣の `text-caption` を同じ種類とみなして消します。部品の中では `text-(length:--text-caption)`・`h-(--spacing-control)` のように種類が分かる形で書きます。`@theme` に名前を足したら `twMergeConfig` にも足します
 - `src/styles/globals.css` は、Tailwind が読む場所を `src/` と `design/stories/` に絞っています。ほかの場所にクラスを書くなら `@source` を足します
 - dev server が動いている間に作ったファイルのクラスは、拾われないことがあります。`src/styles/globals.css` を touch し、配信された CSS にクラスがあるかを確かめてから見てもらいます

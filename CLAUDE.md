@@ -49,7 +49,7 @@ pnpm lint
 pnpm format                   # 書式をそろえる（CI は pnpm format:check）
 pnpm test                     # 全ストーリーを Vitest で描き、play の確かめと見た目の比較を走らせる
 pnpm test src/components/tag  # 1 つの部品だけ
-pnpm test -u src/components/tag  # 見た目の基準画像を撮り直す（意図して見た目を変えたとき。範囲を絞る）
+pnpm exec vitest run src/components/tag  # 見た目の基準画像を撮り直す: 対象の png を消してから流し、画像を見てもう一度流す（-u は範囲を絞れない。design/pitfalls.md）
 pnpm build                    # 配布物（dist/: JS・型・CSS）を作る
 pnpm check:dist               # 配布物を確かめる（'use client'・依存・ツリーシェイク）
 pnpm run fonts                # 和文フォントの補正 CSS を作り直す
