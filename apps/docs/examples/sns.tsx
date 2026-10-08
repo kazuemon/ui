@@ -63,6 +63,9 @@ const kazuemon: Person = {
   handle: '@kazuemon',
   bio: 'UI ライブラリを作っています。',
 };
+
+/** 見本を見ている人。いいねを押すのはこの人 */
+const viewer = kazuemon;
 const hanako: Person = { name: 'Hanako', handle: '@hanako', bio: 'デザインと読書が好きです。' };
 const taro: Person = { name: 'Taro', handle: '@taro', bio: 'フロントエンドエンジニア' };
 const mika: Person = { name: 'Mika', handle: '@mika', bio: '写真を撮っています。' };
@@ -123,10 +126,26 @@ function Post({
   /** 本文の下に置く画像やリンク */
   media?: ReactNode;
   likes: number;
-  /** いいねした人（先頭の数人の顔を出す） */
+  /** いいねした人（先頭の数人の顔を出す）。見ている人（kazuemon）が入っていれば、見ている人も押している */
   likedBy?: Person[];
+  /** 見ている人がいいねしているか。likes はこの人の分を含めた数 */
   liked?: boolean;
 }) {
+  // いいねは見ている人が押して変えられる。数と「〜さんたちがいいねしました」は、押した状態から作る
+  const others = likedBy.filter((liker) => liker.handle !== viewer.handle);
+  const initiallyLiked = liked || others.length < likedBy.length;
+  const [pressed, setPressed] = useState(initiallyLiked);
+  const count = likes - (initiallyLiked ? 1 : 0) + (pressed ? 1 : 0);
+  const likers = pressed ? [viewer, ...others] : others;
+  const first = others[0];
+  const honorific = others.length > 1 ? 'さんたち' : 'さん';
+  const likersText = pressed
+    ? first
+      ? `あなたと ${first.name} ${honorific}がいいねしました`
+      : 'あなたがいいねしました'
+    : first
+      ? `${first.name} ${honorific}がいいねしました`
+      : '';
   return (
     <article className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-3 border-b border-line py-4 first:pt-0">
       {/* アバター・名前・メニューは 1 行に並べ、縦は中央でそろえる（ボタンの高さが行の高さを決める） */}
@@ -167,15 +186,15 @@ function Post({
             ))}
           </div>
         )}
-        {likedBy.length > 0 && (
+        {likers.length > 0 && (
           <div className="flex items-center gap-2">
             <AvatarGroup size="xs" max={3}>
-              {likedBy.map((liker) => (
+              {likers.map((liker) => (
                 <Avatar key={liker.handle} name={liker.name} shape={avatarShape} />
               ))}
             </AvatarGroup>
             <Text as="span" size="sm" variant="subtle">
-              {likedBy[0]?.name} さんたちがいいねしました
+              {likersText}
             </Text>
           </div>
         )}
@@ -183,8 +202,14 @@ function Post({
           <Button variant="underline" size="sm">
             <Icon icon={ChatCircleIcon} /> 返信
           </Button>
-          <Toggle variant="underline" size="sm" color="primary" defaultPressed={liked}>
-            <Icon icon={HeartIcon} /> いいね <NumberFormat value={likes} />
+          <Toggle
+            variant="underline"
+            size="sm"
+            color="primary"
+            pressed={pressed}
+            onPressedChange={setPressed}
+          >
+            <Icon icon={HeartIcon} /> いいね <NumberFormat value={count} />
           </Toggle>
           <Button variant="underline" size="sm">
             <Icon icon={ShareNetworkIcon} /> 共有
