@@ -173,6 +173,16 @@ export {
   type ComboboxSheetInput,
   type ComboboxValue,
 } from './components/combobox/Combobox';
+export {
+  CommandPalette,
+  type CommandPaletteFilter,
+  type CommandPaletteGroup,
+  type CommandPaletteItem,
+  type CommandPaletteItems,
+  type CommandPaletteProps,
+  type CommandPaletteSelectEvent,
+  type CommandPaletteSize,
+} from './components/command-palette/CommandPalette';
 export { Code, type CodeProps } from './components/code/Code';
 export {
   CodeBlock,

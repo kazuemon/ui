@@ -85,7 +85,7 @@
 - [x] NavigationMenu
 - [x] ContextMenu
 - [x] Toolbar
-- [ ] CommandPalette
+- [x] CommandPalette
 - [ ] BackToTop
 - [x] Menubar
 - [x] Tree

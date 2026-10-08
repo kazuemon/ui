@@ -1,0 +1,17 @@
+:root {
+  /* CommandPalette: 打って探し、その場で実行する面
+     面は Dialog と同じ（白・細い輪郭・--shadow-overlay・カードの角）。行は Menu の項目と同じ
+     画面の上寄りに置く（打って候補が減っても、検索欄の位置が動かない）
+     width: 既定の幅（size="md"）。ショートカットと 2 行目が並んでも窮屈にならない幅
+       width-sm・width-lg は size="sm"・"lg"。sm は Dialog の既定と同じ幅
+     offset: 画面の上との間。狭い画面では Dialog と同じ余白まで詰める
+     list-max-height: 候補の一覧の高さの上限。超えた分はスクロールする（続きは内側の影で見せる） */
+  --command-palette-width-sm: var(--dialog-width); /* 480px */
+  --command-palette-width: calc(var(--spacing) * 140); /* 560px */
+  --command-palette-width-lg: calc(var(--spacing) * 160); /* 640px */
+  --command-palette-offset: max(var(--dialog-margin), 12dvh);
+  --command-palette-list-max-height: calc(var(--spacing) * 90); /* 360px */
+  /* 検索欄: 塗りも枠線も持たず面に溶かし、下の細い線で候補と分ける
+     input-height: 部品の高さより一段高くし、面の入口として目に入るようにする */
+  --command-palette-input-height: calc(var(--spacing) * 14); /* 56px */
+}
