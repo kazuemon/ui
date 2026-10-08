@@ -14,11 +14,15 @@ on:
 
 jobs:
   claude:
+    # bot（CodeRabbit など）の書き込みでは起動しない。contains() は大文字と小文字を区別しないので、
+    # CodeRabbit が書く「@CLAUDE.md」が '@claude' に一致し、action が bot を拒んで失敗の実行が残っていた
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      github.event.sender.type != 'Bot' && (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
