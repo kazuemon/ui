@@ -421,6 +421,10 @@ export {
   type SpinnerProps,
   type SpinnerSize,
 } from './components/loading/Loading';
+export {
+  LoadingOverlay,
+  type LoadingOverlayProps,
+} from './components/loading-overlay/LoadingOverlay';
 export type { BarColor, BarSize, BarTrackColor, BarValueColor } from './internal/bar/bar-styles';
 export {
   Notice,

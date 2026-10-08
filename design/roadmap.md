@@ -169,7 +169,7 @@
 - [x] Progress
 - [x] Skeleton
 - [x] StatusPanel
-- [ ] LoadingOverlay
+- [x] LoadingOverlay
 
 ### 重なるもの
 

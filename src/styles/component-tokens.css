@@ -36,6 +36,7 @@
 @import '../components/link-card/link-card.tokens.css';
 @import '../components/link/link.tokens.css';
 @import '../components/loading/loading.tokens.css';
+@import '../components/loading-overlay/loading-overlay.tokens.css';
 @import '../components/mask-field/mask-field.tokens.css';
 @import '../components/masonry/masonry.tokens.css';
 @import '../components/navbar/navbar.tokens.css';
