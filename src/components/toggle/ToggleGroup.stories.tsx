@@ -22,7 +22,7 @@ const meta = {
           '- `multiple`（既定 `false`）が `false` のときは、1つを押すとほかが外れます。`true` のときは、それぞれ独立して押せます。',
           '- 詰め方は `frame` で選びます。`connected`（既定）は隣り合わせて仕切りの細い線で区切り、`gap` はそれぞれ離して並べます。',
           '- 中の `Toggle` に `value` を付けて並べます。押している value の並びが `value`（`defaultValue`）です。',
-          '- `color`・`variant` はグループでまとめて指定でき、`Toggle` ごとに上書きできます。',
+          '- `color`・`variant`・`size` はグループでまとめて指定でき、`Toggle` ごとに上書きできます。',
         ].join('\n'),
       },
     },
@@ -31,6 +31,7 @@ const meta = {
     frame: 'connected',
     multiple: false,
     color: 'primary',
+    size: 'md',
     disabled: false,
     onValueChange: fn(),
   },
@@ -41,6 +42,11 @@ const meta = {
       table: { defaultValue: { summary: "'connected'" } },
     },
     multiple: { control: 'boolean', table: { defaultValue: { summary: 'false' } } },
+    size: {
+      control: 'inline-radio',
+      options: ['md', 'sm'],
+      table: { defaultValue: { summary: "'md'" } },
+    },
     disabled: { control: 'boolean' },
   },
 } satisfies Meta<ToggleGroupProps>;
@@ -114,6 +120,37 @@ export const Multiple: Story = {
           <ListIcon standalone />
         </Toggle>
       </ToggleGroup>
+    </div>
+  ),
+};
+
+export const Sizes: Story = {
+  name: '大きさ',
+  tags: ['visual'],
+  parameters: {
+    controls: { exclude: ['size'] },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` を付けると、中の `Toggle` がまとめて一段小さくなります（Button の `size` と同じ段）。',
+      },
+    },
+  },
+  render: (args) => (
+    <div className="flex flex-col gap-3">
+      {(['md', 'sm'] as const).map((size) => (
+        <ToggleGroup
+          key={size}
+          {...args}
+          size={size}
+          aria-label="文字の飾り"
+          defaultValue={['bold']}
+        >
+          <Toggle value="bold">太字</Toggle>
+          <Toggle value="italic">斜体</Toggle>
+          <Toggle value="underline">下線</Toggle>
+        </ToggleGroup>
+      ))}
     </div>
   ),
 };
