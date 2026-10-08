@@ -1,4 +1,4 @@
-// Dropzone の判定（accept・multiple・大きさ・数の上限）。DOM を読まない純粋な関数だけを置く
+// Dropzone と FileInput の判定（accept・multiple・大きさ・数の上限）。DOM を読まない純粋な関数だけを置く
 
 /**
  * ファイルを受け付けなかった理由。accept: 種類が違う、maxSize: 大きすぎる、maxFiles: 数の上限を超えた、

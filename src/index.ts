@@ -173,6 +173,16 @@ export {
   type ComboboxSheetInput,
   type ComboboxValue,
 } from './components/combobox/Combobox';
+export {
+  CommandPalette,
+  type CommandPaletteFilter,
+  type CommandPaletteGroup,
+  type CommandPaletteItem,
+  type CommandPaletteItems,
+  type CommandPaletteProps,
+  type CommandPaletteSelectEvent,
+  type CommandPaletteSize,
+} from './components/command-palette/CommandPalette';
 export { Code, type CodeProps } from './components/code/Code';
 export {
   CodeBlock,
@@ -411,6 +421,10 @@ export {
   type SpinnerProps,
   type SpinnerSize,
 } from './components/loading/Loading';
+export {
+  LoadingOverlay,
+  type LoadingOverlayProps,
+} from './components/loading-overlay/LoadingOverlay';
 export type { BarColor, BarSize, BarTrackColor, BarValueColor } from './internal/bar/bar-styles';
 export {
   Notice,
@@ -464,6 +478,11 @@ export {
   type PaginationProps,
   type PaginationShape,
 } from './components/pagination/Pagination';
+export {
+  Popconfirm,
+  type PopconfirmActionsLayout,
+  type PopconfirmProps,
+} from './components/popconfirm/Popconfirm';
 export {
   Popover,
   type PopoverAlign,
@@ -626,6 +645,18 @@ export {
   type DropzoneValidateFile,
   type DropzoneVariant,
 } from './components/dropzone/Dropzone';
+export {
+  FileInput,
+  type FileInputBaseProps,
+  FileInputControl,
+  type FileInputControlProps,
+  type FileInputMultipleDisplay,
+  type FileInputProps,
+  type FileInputRejection,
+  type FileInputRejectReason,
+  type FileInputValidateFile,
+  type FileInputVariant,
+} from './components/file-input/FileInput';
 export {
   type DropzoneFileEntry,
   DropzoneFileList,
@@ -888,6 +919,15 @@ export {
   type MaskFieldValueDetails,
 } from './components/mask-field/MaskField';
 export {
+  Editable,
+  type EditableBaseProps,
+  type EditableBlurBehavior,
+  EditableControl,
+  type EditableControlProps,
+  type EditableEditIndicator,
+  type EditableProps,
+} from './components/editable/Editable';
+export {
   NumberField,
   type NumberFieldBaseProps,
   NumberFieldControl,
@@ -934,6 +974,18 @@ export {
   type DatePickerProps,
   type DatePickerVariant,
 } from './components/date-picker/DatePicker';
+export {
+  DateRangePicker,
+  type DateRangePickerBaseProps,
+  type DateRangePickerCalendarProps,
+  DateRangePickerControl,
+  type DateRangePickerControlProps,
+  type DateRangePickerPresetsPlacement,
+  type DateRangePickerProps,
+  type DateRangePickerVariant,
+  type DateRangePreset,
+  type DateRangeValue,
+} from './components/date-range-picker/DateRangePicker';
 export {
   TimeField,
   type TimeFieldBaseProps,

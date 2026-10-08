@@ -1,0 +1,11 @@
+:root {
+  /* DateRangePicker。面と欄は DatePicker と同じ
+     popup-padding: 面の内側の余白（Popover にそろえる）
+     separator-gap: 始まりと終わりの日のあいだの記号（separator）の左右に空ける幅
+     presets-gap: 期間の候補の列（行）と、カレンダーのあいだ
+     presets-item-gap: 期間の候補どうしのあいだ */
+  --date-range-picker-popup-padding: var(--popover-padding);
+  --date-range-picker-separator-gap: calc(var(--spacing) * 1.5);
+  --date-range-picker-presets-gap: calc(var(--spacing) * 4);
+  --date-range-picker-presets-item-gap: calc(var(--spacing) * 1);
+}

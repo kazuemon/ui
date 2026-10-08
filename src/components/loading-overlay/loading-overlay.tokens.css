@@ -1,0 +1,30 @@
+:root {
+  /* LoadingOverlay
+     bg: 下の領域にかぶせる幕。面の色を透かして、下の内容が淡く見える（重なる面の幕 --color-backdrop は暗くするので、領域の上には重い）
+     blur: 幕の後ろをぼかす量
+     bg-unblurred・bg-dark: light でぼかさないとき（面の色 85%）と、dark（影の色 50%。円と文言は白）
+     duration-in・duration-out: 幕が出る長さ・消える長さ
+     fg: 円と文言の色
+     spinner-size・spinner-stroke: 真ん中の回る円の大きさと線の太さ（Spinner の lg と同じ） */
+  --loading-overlay-bg: rgb(from var(--color-surface) r g b / 0.6);
+  --loading-overlay-blur: 2px;
+  --loading-overlay-bg-unblurred: rgb(from var(--color-surface) r g b / 0.85);
+  --loading-overlay-bg-dark: rgb(from var(--color-shadow) r g b / 0.5);
+  --loading-overlay-duration-in: 0ms;
+  --loading-overlay-duration-out: 400ms;
+  --loading-overlay-fg: var(--color-fg-muted);
+  --loading-overlay-spinner-size: var(--spinner-size-lg);
+  --loading-overlay-spinner-stroke: var(--spinner-stroke-lg);
+}
+
+@keyframes loading-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes loading-overlay-out {
+  to {
+    opacity: 0;
+  }
+}

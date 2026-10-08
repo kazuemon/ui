@@ -163,6 +163,16 @@ const calendar = tv({
       false: { root: '[--cal-weekend-k:0]' },
     },
     // 月送りの置き方（ADR-0138）。sides は ‹ 月の名前 ›（既定）、end は 月の名前 ‹ ›
+    // 並べる月の数。2 は DateRangePicker が期間を見渡すために使う。月のあいだは --calendar-months-gap
+    // 2 か月では、月送りが前の月は左の月に、次の月は右の月にだけ付く。列を決めておき、月の名前を月の中央にそろえる
+    numberOfMonths: {
+      1: {},
+      2: {
+        root: 'w-[calc(var(--spacing-control)*14+var(--calendar-months-gap))]',
+        months: 'flex gap-(--calendar-months-gap)',
+        month: 'min-w-0 flex-1',
+      },
+    },
     navPlacement: {
       sides: {
         month: 'grid-cols-[auto_1fr_auto]',
@@ -176,7 +186,26 @@ const calendar = tv({
       },
     },
   },
-  defaultVariants: { color: 'neutral', shape: 'square', weekendColor: true, navPlacement: 'sides' },
+  compoundVariants: [
+    {
+      numberOfMonths: 2,
+      navPlacement: 'sides',
+      class: {
+        month:
+          'grid-cols-[minmax(var(--spacing-control),auto)_1fr_minmax(var(--spacing-control),auto)]',
+        caption: 'col-start-2 row-start-1',
+        previous: 'col-start-1 row-start-1',
+        next: 'col-start-3 row-start-1',
+      },
+    },
+  ],
+  defaultVariants: {
+    color: 'neutral',
+    shape: 'square',
+    weekendColor: true,
+    navPlacement: 'sides',
+    numberOfMonths: 1,
+  },
 });
 
 const styles = calendar();
@@ -244,6 +273,11 @@ interface CalendarBaseProps {
    * @default 'none'
    */
   monthTransition?: 'none' | 'fade';
+  /**
+   * 並べる月の数。2 では見せている月とその次の月を横に並べます。期間を選ぶときに、月をまたぐ期間を見渡せます
+   * @default 1
+   */
+  numberOfMonths?: 1 | 2;
   /** 選べるいちばん前の日。これより前の日は押せず、前の月へも送れません */
   min?: PlainDate;
   /** 選べるいちばん後の日。これより後の日は押せず、次の月へも送れません */
@@ -364,6 +398,7 @@ interface CalendarContextValue {
   /** 期間の始まりだけを選び、別の日を指しているときの仮の期間（YYYY-MM-DD。from が前）。pointed は指している側 */
   tentative: { from: string; to: string; pointed: 'from' | 'to' } | null;
   navPlacement: CalendarNavPlacement;
+  numberOfMonths: 1 | 2;
   /** 日ごとの印 */
   renderDayContent?: (date: PlainDate) => ReactNode;
   /** 期間の長さの制約で選べない日か（始まりだけを選んだあいだ） */
@@ -378,6 +413,7 @@ const CalendarContext = createContext<CalendarContextValue>({
   holidayOf: () => undefined,
   tentative: null,
   navPlacement: 'sides',
+  numberOfMonths: 1,
   isConstrained: () => false,
 });
 
@@ -397,19 +433,21 @@ function CalendarDay({ day, modifiers, className, ...props }: DayProps) {
         : day.outside
           ? 'outside'
           : 'plain';
-  const band = !rangeComplete
-    ? undefined
-    : modifiers.range_middle
-      ? 'middle'
-      : modifiers.range_start && !modifiers.range_end
-        ? 'start'
-        : modifiers.range_end && !modifiers.range_start
-          ? 'end'
-          : undefined;
+  // 隠した前後の月の日（hideOutsideDays）には、期間の帯を引かない
+  const band =
+    !rangeComplete || modifiers.hidden
+      ? undefined
+      : modifiers.range_middle
+        ? 'middle'
+        : modifiers.range_start && !modifiers.range_end
+          ? 'start'
+          : modifiers.range_end && !modifiers.range_start
+            ? 'end'
+            : undefined;
   // 仮の期間の帯。両端が決まるまでのあいだだけ
   // 始まりの日（塗ってある）は日の中央から、指している日（塗っていない）は日いっぱいに帯を引き、端を日の角で丸める
   const tentativeBand =
-    rangeComplete || !tentative
+    rangeComplete || !tentative || modifiers.hidden
       ? undefined
       : iso > tentative.from && iso < tentative.to
         ? 'middle'
@@ -470,13 +508,17 @@ function MonthButton({
   'aria-disabled': ariaDisabled,
   ...props
 }: PreviousMonthButtonProps & { direction: 'previous' | 'next' }) {
-  const { navPlacement } = use(CalendarContext);
+  const { navPlacement, numberOfMonths } = use(CalendarContext);
   return (
     <Button
       iconOnly
       variant="outline"
       aria-label={props['aria-label'] ?? ''}
-      className={direction === 'previous' ? styles.previous({ navPlacement }) : styles.next()}
+      className={
+        direction === 'previous'
+          ? styles.previous({ navPlacement, numberOfMonths })
+          : styles.next({ navPlacement, numberOfMonths })
+      }
       disabled={ariaDisabled === true || ariaDisabled === 'true'}
       onClick={props.onClick}
     >
@@ -554,6 +596,7 @@ export function Calendar(props: CalendarProps) {
     navPlacement = 'sides',
     hideOutsideDays = false,
     monthTransition = 'none',
+    numberOfMonths = 1,
     min,
     max,
     isDateDisabled,
@@ -633,6 +676,7 @@ export function Calendar(props: CalendarProps) {
     navLayout: 'around' as const,
     fixedWeeks: true,
     showOutsideDays: !hideOutsideDays,
+    numberOfMonths,
     autoFocus,
     disabled,
     startMonth: min ? toDate(min) : undefined,
@@ -643,10 +687,10 @@ export function Calendar(props: CalendarProps) {
     animate: fade,
     components,
     classNames: {
-      root: styles.root({ color, shape, weekendColor, className }),
-      months: styles.months(),
-      month: styles.month({ navPlacement }),
-      month_caption: styles.caption({ navPlacement }),
+      root: styles.root({ color, shape, weekendColor, numberOfMonths, className }),
+      months: styles.months({ numberOfMonths }),
+      month: styles.month({ navPlacement, numberOfMonths }),
+      month_caption: styles.caption({ navPlacement, numberOfMonths }),
       caption_label: styles.captionLabel(),
       month_grid: styles.grid(),
       day_button: styles.dayButton(),
@@ -694,6 +738,7 @@ export function Calendar(props: CalendarProps) {
           : { from: rangeStart, to: pointed, pointed: 'to' }
         : null,
     navPlacement,
+    numberOfMonths,
     renderDayContent,
     isConstrained,
     rootRef: ref,

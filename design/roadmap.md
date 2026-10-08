@@ -85,7 +85,7 @@
 - [x] NavigationMenu
 - [x] ContextMenu
 - [x] Toolbar
-- [ ] CommandPalette
+- [x] CommandPalette
 - [ ] BackToTop
 - [x] Menubar
 - [x] Tree
@@ -154,11 +154,11 @@
 - [ ] ColorPicker
 - [ ] Rating
 - [x] Calendar
-- [ ] DateRangePicker
+- [x] DateRangePicker
 - [x] CheckboxGroup
 - [x] MaskField
-- [ ] Editable
-- [ ] FileInput
+- [x] Editable
+- [x] FileInput
 
 ### 通知
 
@@ -169,7 +169,7 @@
 - [x] Progress
 - [x] Skeleton
 - [x] StatusPanel
-- [ ] LoadingOverlay
+- [x] LoadingOverlay
 
 ### 重なるもの
 
@@ -188,7 +188,7 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [ ] VirtualList
 - [x] Sortable
 - [ ] Kanban
-- [ ] Popconfirm
+- [x] Popconfirm
 - [ ] ActionBar
 - [ ] Mentions
 - [ ] Cascader
