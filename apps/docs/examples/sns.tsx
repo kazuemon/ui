@@ -2,38 +2,55 @@
 
 import {
   Avatar,
+  AvatarGroup,
   Badge,
   Button,
   Code,
   Dialog,
+  Gallery,
   Heading,
   Icon,
-  Link,
+  ImageZoom,
+  LinkCard,
   Menu,
   type OverlayPresentation,
   MenuItem,
   MenuSeparator,
+  NumberFormat,
   OverlayClose,
-  Popover,
+  PreviewCard,
+  PreviewCardBody,
+  RelativeTime,
   Skeleton,
+  Spoiler,
+  Stack,
   Tab,
   TabList,
   TabPanel,
   Tabs,
   type TabsColor,
   Tag,
+  TagsInput,
   Text,
   Textarea,
   ThemeProvider,
+  Toggle,
 } from '@kazuemon/ui';
 import { ChatCircleIcon, DotsThreeIcon, HeartIcon, ShareNetworkIcon } from '@phosphor-icons/react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
+import { landscape, screenshot } from './images';
 import { SamplePage } from './sample-page';
+import { postImages } from './sns-images';
 import { town } from './sites';
 import { environmentNote, type Density, type Example, type ExampleArgs } from './types';
 
-// SNS のタイムライン: 投稿の一覧、タブでの切り替え、投稿のメニュー、プロフィールのプレビュー、投稿を書くダイアログ、読み込み中
+// SNS のタイムライン: 投稿の一覧、タブでの切り替え、投稿のメニュー、プロフィールのプレビュー、
+// 画像・リンク・ネタバレの付いた投稿、いいね、投稿を書くダイアログ、読み込み中
+
+// 相対時刻の基準。見本の表示が日によって変わらないよう、いまの時刻を決めておく
+const NOW = new Date('2026-10-08T12:00:00+09:00');
+const hoursAgo = (hours: number) => new Date(NOW.getTime() - hours * 60 * 60 * 1000);
 
 interface Person {
   name: string;
@@ -46,74 +63,100 @@ const kazuemon: Person = {
   handle: '@kazuemon',
   bio: 'UI ライブラリを作っています。',
 };
+
+/** 見本を見ている人。いいねを押すのはこの人 */
+const viewer = kazuemon;
 const hanako: Person = { name: 'Hanako', handle: '@hanako', bio: 'デザインと読書が好きです。' };
 const taro: Person = { name: 'Taro', handle: '@taro', bio: 'フロントエンドエンジニア' };
+const mika: Person = { name: 'Mika', handle: '@mika', bio: '写真を撮っています。' };
+const ken: Person = { name: 'Ken', handle: '@ken', bio: '週末は山にいます。' };
+
+const tagSuggestions = ['kazuemonui', 'デザイン', '写真', '読書', '開発', 'お知らせ'];
 
 type AvatarShape = 'circle' | 'square';
 
-function ProfilePreview({
-  person,
-  avatarShape,
-  children,
-}: {
-  person: Person;
-  avatarShape: AvatarShape;
-  children: ReactNode;
-}) {
+// 名前のリンクに載せると、その人のプロフィールを出す
+function ProfileLink({ person, avatarShape }: { person: Person; avatarShape: AvatarShape }) {
   return (
-    <Popover
-      side="bottom"
+    <PreviewCard
+      href={`#${person.handle.slice(1)}`}
       align="start"
-      className="w-64"
-      trigger={
-        <button type="button" className="cursor-pointer rounded-control text-left hover:underline">
-          {children}
-        </button>
+      popupClassName="w-64"
+      content={
+        <PreviewCardBody>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <Avatar name={person.name} shape={avatarShape} size="lg" />
+              <div className="flex min-w-0 flex-col">
+                <Text as="span" weight="bold">
+                  {person.name}
+                </Text>
+                <Text as="span" size="sm" variant="subtle">
+                  {person.handle}
+                </Text>
+              </div>
+            </div>
+            <Text size="sm">{person.bio}</Text>
+          </div>
+        </PreviewCardBody>
       }
-      title={person.name}
     >
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <Avatar name={person.name} shape={avatarShape} size="lg" />
-          <Text size="sm" variant="subtle">
-            {person.handle}
-          </Text>
-        </div>
-        <Text size="sm">{person.bio}</Text>
-        <Button variant="outline" color="primary">
-          フォローする
-        </Button>
-      </div>
-    </Popover>
+      {person.name}
+    </PreviewCard>
   );
 }
 
 function Post({
   person,
-  time,
+  hours,
   avatarShape,
   children,
   tags,
+  media,
+  likes,
+  likedBy = [],
+  liked = false,
 }: {
   person: Person;
-  time: string;
+  /** 何時間前の投稿か */
+  hours: number;
   avatarShape: AvatarShape;
   children: ReactNode;
   tags?: string[];
+  /** 本文の下に置く画像やリンク */
+  media?: ReactNode;
+  likes: number;
+  /** いいねした人（先頭の数人の顔を出す）。見ている人（kazuemon）が入っていれば、見ている人も押している */
+  likedBy?: Person[];
+  /** 見ている人がいいねしているか。likes はこの人の分を含めた数 */
+  liked?: boolean;
 }) {
+  // いいねは見ている人が押して変えられる。数と「〜さんたちがいいねしました」は、押した状態から作る
+  const others = likedBy.filter((liker) => liker.handle !== viewer.handle);
+  const initiallyLiked = liked || others.length < likedBy.length;
+  const [pressed, setPressed] = useState(initiallyLiked);
+  const count = likes - (initiallyLiked ? 1 : 0) + (pressed ? 1 : 0);
+  const likers = pressed ? [viewer, ...others] : others;
+  const first = others[0];
+  const honorific = others.length > 1 ? 'さんたち' : 'さん';
+  const likersText = pressed
+    ? first
+      ? `あなたと ${first.name} ${honorific}がいいねしました`
+      : 'あなたがいいねしました'
+    : first
+      ? `${first.name} ${honorific}がいいねしました`
+      : '';
   return (
     <article className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-3 border-b border-line py-4 first:pt-0">
       {/* アバター・名前・メニューは 1 行に並べ、縦は中央でそろえる（ボタンの高さが行の高さを決める） */}
       <Avatar name={person.name} shape={avatarShape} className="self-center" />
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <ProfilePreview person={person} avatarShape={avatarShape}>
-            <Text as="span" className="font-bold">
-              {person.name}
-            </Text>
-          </ProfilePreview>
+          <Text as="span" weight="bold">
+            <ProfileLink person={person} avatarShape={avatarShape} />
+          </Text>
           <Text as="span" size="sm" variant="subtle" className="truncate">
-            {person.handle}・{time}
+            {person.handle}・<RelativeTime dateTime={hoursAgo(hours)} now={NOW} />
           </Text>
         </div>
         <Menu
@@ -133,6 +176,7 @@ function Post({
       </div>
       <div className="col-start-2 flex min-w-0 flex-col gap-3">
         <Text>{children}</Text>
+        {media}
         {tags && (
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
@@ -142,17 +186,34 @@ function Post({
             ))}
           </div>
         )}
-        <div className="-my-2 flex gap-4">
-          {/* 指で押す範囲を部品の高さまで広げる（見た目は文字のリンクのまま。負のマージンで行間への影響を消す） */}
-          <Link href="#reply" className="inline-flex h-(--spacing-control) items-center">
+        {likers.length > 0 && (
+          <div className="flex items-center gap-2">
+            <AvatarGroup size="xs" max={3}>
+              {likers.map((liker) => (
+                <Avatar key={liker.handle} name={liker.name} shape={avatarShape} />
+              ))}
+            </AvatarGroup>
+            <Text as="span" size="sm" variant="subtle">
+              {likersText}
+            </Text>
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="underline" size="sm">
             <Icon icon={ChatCircleIcon} /> 返信
-          </Link>
-          <Link href="#like" className="inline-flex h-(--spacing-control) items-center">
-            <Icon icon={HeartIcon} /> いいね
-          </Link>
-          <Link href="#share" className="inline-flex h-(--spacing-control) items-center">
+          </Button>
+          <Toggle
+            variant="underline"
+            size="sm"
+            color="primary"
+            pressed={pressed}
+            onPressedChange={setPressed}
+          >
+            <Icon icon={HeartIcon} /> いいね <NumberFormat value={count} />
+          </Toggle>
+          <Button variant="underline" size="sm">
             <Icon icon={ShareNetworkIcon} /> 共有
-          </Link>
+          </Button>
         </div>
       </div>
     </article>
@@ -201,7 +262,10 @@ function Compose() {
         </>
       }
     >
-      <Textarea label="いまどうしてる？" minRows={4} maxCount={280} showCount ref={textareaRef} />
+      <Stack gap="md">
+        <Textarea label="いまどうしてる？" minRows={4} maxCount={280} showCount ref={textareaRef} />
+        <TagsInput label="タグ" items={tagSuggestions} placeholder="打って Enter で足す" />
+      </Stack>
     </Dialog>
   );
 }
@@ -236,10 +300,12 @@ function SnsScreen({
           ホーム
         </Heading>
         <div className="flex items-center gap-2">
-          <span className="relative inline-flex">
-            <Button variant="outline">通知</Button>
-            <Badge count={3} color="secondary" className="absolute -top-1 -right-1" />
-          </span>
+          {/* 数は Badge の children に相手を入れて重ねる。読み上げは相手の名前に含める */}
+          <Badge count={3} color="secondary" aria-hidden="true">
+            <Button variant="outline" aria-label="通知（未読 3 件）">
+              通知
+            </Button>
+          </Badge>
           <Compose />
         </div>
       </div>
@@ -255,15 +321,38 @@ function SnsScreen({
               <>
                 <Post
                   person={kazuemon}
-                  time="2 時間前"
+                  hours={2}
                   avatarShape={avatarShape}
                   tags={['kazuemonui', 'デザイン']}
+                  likes={1280}
+                  likedBy={[hanako, taro, mika, ken]}
+                  liked
+                  media={
+                    <LinkCard
+                      href="https://example.com/articles/design-loop"
+                      title="候補を並べて選ぶループでデザインシステムを作る"
+                      description="原則とトークンを先に決め、Storybook に候補を並べて 1 軸ずつ選んでいく進め方。"
+                      image={screenshot}
+                    />
+                  }
                 >
-                  見出しと本文の大きさを決めています。<Code wrap="nowrap">--text-body</Code>{' '}
-                  は密度で変わります。
+                  見出しと本文の大きさを決めています。<Code>--text-body</Code>{' '}
+                  は密度で変わります。書いた記事はこちらです。
                 </Post>
-                <Post person={hanako} time="5 時間前" avatarShape={avatarShape}>
-                  スマホで読むと、行の間が広いほうが読みやすいですね。
+                <Post
+                  person={mika}
+                  hours={5}
+                  avatarShape={avatarShape}
+                  tags={['写真']}
+                  likes={342}
+                  likedBy={[kazuemon, ken]}
+                  media={<Gallery items={postImages} columns={3} />}
+                >
+                  週末に撮った写真です。押すと大きく見られます。
+                </Post>
+                <Post person={hanako} hours={9} avatarShape={avatarShape} likes={56}>
+                  読み終わりました。最後の章で、犯人は <Spoiler>図書館の司書</Spoiler>{' '}
+                  でした。まだの人は気をつけて。
                 </Post>
               </>
             }
@@ -273,8 +362,22 @@ function SnsScreen({
           <Timeline
             loading={loading}
             posts={
-              <Post person={taro} time="昨日" avatarShape={avatarShape}>
-                新しいプロジェクトを始めました。
+              <Post
+                person={ken}
+                hours={26}
+                avatarShape={avatarShape}
+                likes={18}
+                likedBy={[mika]}
+                media={
+                  <ImageZoom
+                    src={landscape}
+                    alt="山頂から見た山並みと空"
+                    width={1600}
+                    height={900}
+                  />
+                }
+              >
+                山頂に着きました。
               </Post>
             }
           />
@@ -288,8 +391,8 @@ function SnsScreen({
           <div className="flex min-w-0 items-center gap-3">
             <Avatar name={taro.name} shape={avatarShape} />
             <div className="flex min-w-0 flex-col">
-              <Text as="span" className="font-bold">
-                {taro.name}
+              <Text as="span" weight="bold">
+                <ProfileLink person={taro} avatarShape={avatarShape} />
               </Text>
               <Text as="span" size="sm" variant="subtle">
                 {taro.bio}
@@ -308,7 +411,8 @@ function SnsScreen({
 export const example: Example = {
   slug: 'sns',
   title: 'SNS',
-  description: '小さなコミュニティの SNS のタイムライン',
+  description:
+    '小さなコミュニティの SNS のタイムライン。画像・リンク・ネタバレの付いた投稿と、いいね',
   initialLabel: '読み込み中',
   presets: [{ label: '読み込み済み', args: { initialLoading: false } }],
   controls: [

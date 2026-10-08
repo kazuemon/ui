@@ -2,6 +2,7 @@
 
 import {
   Accordion,
+  Affix,
   type AccordionVariant,
   AccordionItem,
   Breadcrumb,
@@ -19,11 +20,13 @@ import {
   HeadingAnchor,
   Icon,
   Link,
+  LinkCard,
   Mark,
   Navbar,
   type NavbarCurrentIndicator,
-  NavbarLink,
-  NavbarLinks,
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
   Pager,
   Prose,
   ScrollArea,
@@ -37,15 +40,16 @@ import {
   Tree,
   TreeItem,
 } from '@kazuemon/ui';
-import { ListIcon } from '@phosphor-icons/react';
+import { BookOpenIcon, ListIcon, PaletteIcon, SquaresFourIcon } from '@phosphor-icons/react';
 import { type ReactNode, useState } from 'react';
 
 import { bunHtml, jsxHtml, npmHtml, pnpmHtml, tsxHtml, yarnHtml } from './code-group-fixtures';
 import { SamplePage } from './sample-page';
 import type { Example } from './types';
 
-// 見本のページ: ドキュメントサイト。先頭に本文へ飛ぶ SkipLink、上に Navbar、左に検索の欄と Tree の目次
-// （長いので ScrollArea の中。狭い幅では Drawer）、本文、右にページ内の目次（広い幅だけ）、下に Pager。
+// 見本のページ: ドキュメントサイト。先頭に本文へ飛ぶ SkipLink、上に Navbar（部品の一覧は NavigationMenu で開く）、
+// 左に検索の欄と Tree の目次（長いので ScrollArea の中。狭い幅では Drawer）、本文、右にページ内の目次（広い幅だけ）。
+// 左右の列は Affix で帯の下に留める。下に次に読むページ（LinkCard）と Pager。
 // 本文の見出しには HeadingAnchor、導入は Steps、ファイルの置き場所は FileTree で見せる。
 // 検索の欄に語を打つと、目次の代わりに一致したページを並べ、一致した語を Mark で目立たせる
 const tocItems = [
@@ -250,19 +254,49 @@ function DocsScreen({
             kazuemon/ui
           </a>
         }
-        actions={<Button variant="outline">GitHub</Button>}
+        actions={
+          <Link href="https://github.com/kazuemon/ui" variant="outline">
+            GitHub
+          </Link>
+        }
       >
-        <NavbarLinks>
-          <NavbarLink href="#docs" current>
+        <NavigationMenu>
+          <NavigationMenuLink href="#docs" current>
             ドキュメント
-          </NavbarLink>
-          <NavbarLink href="#components">部品</NavbarLink>
-          <NavbarLink href="#blog">ブログ</NavbarLink>
-        </NavbarLinks>
+          </NavigationMenuLink>
+          <NavigationMenuItem label="部品">
+            <NavigationMenuLink
+              href="#components"
+              icon={<SquaresFourIcon />}
+              description="ボタン・入力・表など、ひとつずつの部品"
+            >
+              部品の一覧
+            </NavigationMenuLink>
+            <NavigationMenuLink
+              href="#principles"
+              icon={<PaletteIcon />}
+              description="影・色・余白をどう決めているか"
+            >
+              デザイン原則
+            </NavigationMenuLink>
+            <NavigationMenuLink
+              href="#recipes"
+              icon={<BookOpenIcon />}
+              description="部品を組み合わせて作る画面の例"
+            >
+              レシピ
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuLink href="#blog">ブログ</NavigationMenuLink>
+        </NavigationMenu>
       </Navbar>
       <div className="mx-auto flex max-w-[1280px] gap-10 px-5 py-8">
         {/* 目次が画面より長いときは、ScrollArea の中だけをスクロールさせる（ページは動かさない） */}
-        <aside className="sticky top-20 hidden h-fit w-60 shrink-0 flex-col gap-4 lg:flex">
+        <Affix
+          belowNavbar={navbarSticky}
+          render={<aside />}
+          className="hidden h-fit w-60 shrink-0 flex-col gap-4 lg:flex"
+        >
           {search}
           <ScrollArea
             accessibleName={searching ? '検索の結果' : 'ドキュメントの目次'}
@@ -271,7 +305,7 @@ function DocsScreen({
           >
             {sidebarBody}
           </ScrollArea>
-        </aside>
+        </Affix>
         <main id="docs-main" className="min-w-0 flex-1">
           <div className="mb-4 lg:hidden">
             <Drawer
@@ -391,6 +425,23 @@ function DocsScreen({
               ThemeProvider で切り替えます。
             </AccordionItem>
           </Accordion>
+          <Heading level={2} size="lg" className="mt-12">
+            次に読む
+          </Heading>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <LinkCard
+              href="#tailwind"
+              title="Tailwind の設定"
+              description="@theme のトークンと、利用者の Tailwind を合わせる方法"
+              site={false}
+            />
+            <LinkCard
+              href="#theme"
+              title="テーマと密度"
+              description="ThemeProvider で、ダークモードと押しやすさの密度を切り替える"
+              site={false}
+            />
+          </div>
           {/* ページの終わりの行。更新日・リンクのコピー・編集への案内を並べる */}
           <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
             <Text size="sm" variant="subtle">
@@ -404,9 +455,13 @@ function DocsScreen({
             next={{ href: '#tailwind', title: 'Tailwind の設定' }}
           />
         </main>
-        <aside className="sticky top-20 hidden h-fit w-52 shrink-0 xl:block">
+        <Affix
+          belowNavbar={navbarSticky}
+          render={<aside />}
+          className="hidden h-fit w-52 shrink-0 xl:block"
+        >
           <TableOfContents label="このページの内容" items={tocItems} />
-        </aside>
+        </Affix>
       </div>
     </>
   );
@@ -415,7 +470,8 @@ function DocsScreen({
 export const example: Example = {
   slug: 'docs',
   title: 'ドキュメント',
-  description: '上の帯・左の目次・本文・ページ内の目次で組んだドキュメントサイト',
+  description:
+    '上の帯と部品のメニュー・左の目次・手順のある本文・ページ内の目次・次に読むページで組んだドキュメントサイト',
   controls: [
     {
       name: 'navbarCurrentIndicator',

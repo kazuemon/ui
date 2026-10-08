@@ -2,136 +2,275 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
 
 import { AlertDialog } from '../components/alert-dialog/AlertDialog';
+import { Avatar } from '../components/avatar/Avatar';
 import { Button } from '../components/button/Button';
 import { Checkbox } from '../components/checkbox/Checkbox';
 import { CheckboxGroup } from '../components/checkbox/CheckboxGroup';
+import { Combobox } from '../components/combobox/Combobox';
+import { Dropzone, type DropzoneRejection } from '../components/dropzone/Dropzone';
+import { Fieldset } from '../components/fieldset/Fieldset';
 import { Heading } from '../components/heading/Heading';
-import { Link } from '../components/link/Link';
+import { MaskField } from '../components/mask-field/MaskField';
+import { Meter } from '../components/meter/Meter';
 import { Notice } from '../components/notice/Notice';
-import { Radio, RadioGroup } from '../components/radio/Radio';
+import { PasswordField } from '../components/password-field/PasswordField';
+import { PinField } from '../components/pin-field/PinField';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '../components/segmented-control/SegmentedControl';
 import { Select } from '../components/select/Select';
+import { Slider } from '../components/slider/Slider';
 import { Stack } from '../components/stack/Stack';
 import { Switch } from '../components/switch/Switch';
-import { Tab, TabList, TabPanel, Tabs } from '../components/tabs/Tabs';
+import { TableOfContents } from '../components/table-of-contents/TableOfContents';
 import { Text } from '../components/text/Text';
 import { Textarea } from '../components/textarea/Textarea';
 import { TextField } from '../components/text-field/TextField';
+import { TimePicker } from '../components/time-picker/TimePicker';
 import { ToastProvider, useToast } from '../components/toast/Toast';
+import { Temporal } from '../index';
 import { SamplePage, densityOf } from './SamplePage';
 
-// 設定の画面: タブで分けた設定と、保存のお知らせ（Toast）、取り消せない操作の確認（AlertDialog）
+// 設定の画面: 1 枚の縦に長いページ。節ごとに保存し（Toast で知らせる）、左の目次で節へ飛ぶ
+// 取り消せない操作（アカウントの削除）は確認のダイアログを挟む
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+const sections = [
+  { id: 'profile', text: 'プロフィール', level: 2 },
+  { id: 'notification', text: '通知', level: 2 },
+  { id: 'display', text: '表示', level: 2 },
+  { id: 'security', text: 'セキュリティ', level: 2 },
+  { id: 'data', text: 'データとアカウント', level: 2 },
+] as const;
+
+const timeZones = [
+  { label: '東京（UTC+9）', value: 'Asia/Tokyo' },
+  { label: 'ソウル（UTC+9）', value: 'Asia/Seoul' },
+  { label: 'シンガポール（UTC+8）', value: 'Asia/Singapore' },
+  { label: 'ロンドン（UTC+0）', value: 'Europe/London' },
+  { label: 'ニューヨーク（UTC−5）', value: 'America/New_York' },
+  { label: 'ロサンゼルス（UTC−8）', value: 'America/Los_Angeles' },
+];
+
+function Section({
+  id,
+  title,
+  lead,
+  children,
+}: {
+  id: (typeof sections)[number]['id'];
+  title: string;
+  lead?: string;
+  children: ReactNode;
+}) {
   return (
-    <Stack gap="md" render={<section />}>
-      <Heading level={2} size="lg">
-        {title}
-      </Heading>
+    <Stack gap="lg" render={<section aria-labelledby={id} />}>
+      <Stack gap="xs">
+        <Heading level={2} size="lg" id={id} className="scroll-mt-6">
+          {title}
+        </Heading>
+        {lead && <Text variant="muted">{lead}</Text>}
+      </Stack>
       {children}
     </Stack>
   );
 }
 
-function SaveBar({ label = '保存する' }: { label?: string }) {
+function SaveBar() {
   const toast = useToast();
   return (
-    <Stack direction="horizontal" gap="sm">
+    <div>
       <Button
         color="primary"
         onClick={() => toast.show({ status: 'success', title: '保存しました', timeout: 4000 })}
       >
-        {label}
+        保存する
       </Button>
-      <Button variant="outline">キャンセル</Button>
-    </Stack>
-  );
-}
-
-function AccountPanel() {
-  return (
-    <div className="flex flex-col gap-8">
-      <Section title="プロフィール">
-        <TextField
-          label="表示名"
-          defaultValue="かずえもん"
-          caption="ほかの人に表示される名前です"
-        />
-        <TextField label="ユーザー名" defaultValue="kazuemon" caption="半角英数字で入力します" />
-        <Textarea
-          label="自己紹介"
-          defaultValue="UI ライブラリを作っています。"
-          caption="160 文字まで"
-          minRows={3}
-        />
-        <Select
-          label="言語"
-          items={[
-            { label: '日本語', value: 'ja' },
-            { label: 'English', value: 'en' },
-          ]}
-          defaultValue="ja"
-        />
-      </Section>
-      <Text size="sm" variant="subtle">
-        メールアドレスの変更は、<Link href="#security">セキュリティ</Link>から行います。
-      </Text>
-      <SaveBar />
     </div>
   );
 }
 
-function NotificationPanel() {
+// 受け付けなかった画像の理由。種類と大きさのほかは、まとめて使えないとだけ伝える
+function rejectionText(rejections: DropzoneRejection[]) {
+  const reason = rejections[0]?.reason;
+  if (reason === 'accept') return 'JPEG か PNG の画像を選んでください';
+  if (reason === 'maxSize') return '5MB までの画像を選んでください';
+  return 'この画像は使えません';
+}
+
+function ProfileSection() {
+  const [imageError, setImageError] = useState<string>();
   return (
-    <div className="flex flex-col gap-8">
-      <Section title="通知の方法">
-        <Stack gap="sm">
-          <Switch label="メールで受け取る" caption="週に 1 回、まとめて届きます" defaultChecked />
-          <Switch label="プッシュ通知" />
+    <Section id="profile" title="プロフィール" lead="ほかの人に表示される情報です。">
+      {/* 今の画像を箱の中に置き、箱のどこを押しても（落としても）替えられるようにする */}
+      <Dropzone
+        label="プロフィール画像"
+        caption="JPEG・PNG、5MB まで"
+        accept="image/png,image/jpeg"
+        maxSize={5 * 1000 * 1000}
+        variant="dashed"
+        // 種類や大きさが合わない画像は、理由を欄の下に出す。合う画像を選び直したら消す
+        errorText={imageError}
+        onFilesRejected={(rejections) => setImageError(rejectionText(rejections))}
+        onValueChange={(files) => {
+          if (files.length > 0) setImageError(undefined);
+        }}
+        // 中身は 1 行で収まるので、箱の最低の高さ（既定の中身の分）は外す
+        className="[--dropzone-min-height:0px]"
+      >
+        <Stack direction="horizontal" gap="md" align="center" className="w-full">
+          <Avatar name="かずえもん" size="xl" />
+          <Stack gap="xs" className="min-w-0 text-start">
+            <Text weight="bold">画像を替える</Text>
+            <Text size="sm" variant="muted">
+              ここに画像を落とすか、押して選びます
+            </Text>
+          </Stack>
         </Stack>
-      </Section>
-      <Section title="通知するできごと">
-        <CheckboxGroup
-          label="受け取る通知"
-          caption="1 つ以上選んでください"
-          defaultValue={['reply', 'follow']}
-        >
-          <Checkbox value="reply" label="返信" />
-          <Checkbox value="follow" label="フォロー" />
-          <Checkbox value="news" label="お知らせ" caption="新しい機能や、メンテナンスの予定です" />
-        </CheckboxGroup>
-      </Section>
+      </Dropzone>
+      <TextField label="表示名" defaultValue="かずえもん" />
+      <TextField
+        label="ユーザー名"
+        prefix="@"
+        defaultValue="kazuemon"
+        caption="半角英数字で入力します"
+      />
+      <TextField label="ウェブサイト" prefix="https://" defaultValue="kazuemon.dev" />
+      <Textarea
+        label="自己紹介"
+        defaultValue="UI ライブラリを作っています。"
+        maxCount={160}
+        showCount
+        minRows={3}
+      />
+      <MaskField
+        label="電話番号"
+        mask="###-####-####"
+        caption="本人の確かめにだけ使い、ほかの人には表示しません"
+      />
+      <Select
+        label="言語"
+        items={[
+          { label: '日本語', value: 'ja' },
+          { label: 'English', value: 'en' },
+        ]}
+        defaultValue="ja"
+      />
+      <Combobox
+        label="タイムゾーン"
+        items={timeZones}
+        defaultValue="Asia/Tokyo"
+        placeholder="都市の名前で探す"
+        emptyText="当てはまるタイムゾーンがありません"
+      />
       <SaveBar />
-    </div>
+    </Section>
   );
 }
 
-function DisplayPanel() {
+function NotificationSection() {
   return (
-    <div className="flex flex-col gap-8">
-      <Section title="表示">
-        <RadioGroup label="テーマ" defaultValue="system">
-          <Radio value="system" label="端末に合わせる" />
-          <Radio value="light" label="ライト" />
-          <Radio value="dark" label="ダーク" />
-        </RadioGroup>
-        <RadioGroup label="文字の大きさ" caption="読みやすい大きさを選びます" defaultValue="md">
-          <Radio value="sm" label="小" />
-          <Radio value="md" label="標準" />
-          <Radio value="lg" label="大" />
-        </RadioGroup>
-        <Switch label="動きを減らす" caption="画面の動きを小さくします" />
-      </Section>
+    <Section id="notification" title="通知">
+      <Stack gap="sm">
+        <Switch label="メールで受け取る" caption="週に 1 回、まとめて届きます" defaultChecked />
+        <Switch label="プッシュ通知" />
+      </Stack>
+      <CheckboxGroup
+        label="受け取る通知"
+        caption="1 つ以上選んでください"
+        defaultValue={['reply', 'follow']}
+      >
+        <Checkbox value="reply" label="返信" />
+        <Checkbox value="follow" label="フォロー" />
+        <Checkbox value="news" label="お知らせ" caption="新しい機能や、メンテナンスの予定です" />
+      </CheckboxGroup>
+      <Fieldset label="通知を止める時間帯" caption="この時間のあいだは、プッシュ通知を鳴らしません">
+        <Stack direction="horizontal" gap="md">
+          <TimePicker label="開始" defaultValue={Temporal.PlainTime.from('22:00')} />
+          <TimePicker label="終了" defaultValue={Temporal.PlainTime.from('07:00')} />
+        </Stack>
+      </Fieldset>
       <SaveBar />
-    </div>
+    </Section>
   );
 }
 
-function DangerPanel() {
+function DisplaySection() {
+  return (
+    <Section id="display" title="表示">
+      <SegmentedControl label="テーマ" defaultValue="system">
+        <SegmentedControlItem value="system">端末に合わせる</SegmentedControlItem>
+        <SegmentedControlItem value="light">ライト</SegmentedControlItem>
+        <SegmentedControlItem value="dark">ダーク</SegmentedControlItem>
+      </SegmentedControl>
+      <Slider
+        label="文字の大きさ"
+        caption="標準は 16 です"
+        min={12}
+        max={20}
+        defaultValue={16}
+        largeStep={2}
+      />
+      <Switch label="動きを減らす" caption="画面の動きを小さくします" />
+      <SaveBar />
+    </Section>
+  );
+}
+
+function SecuritySection() {
+  const [twoFactor, setTwoFactor] = useState(false);
+  return (
+    <Section id="security" title="セキュリティ">
+      <TextField
+        label="メールアドレス"
+        type="email"
+        defaultValue="kazuemon@example.com"
+        caption="変えると、新しいアドレスに確認のメールが届きます"
+      />
+      <Fieldset label="パスワードを変える">
+        <Stack gap="md">
+          <PasswordField label="いまのパスワード" autoComplete="current-password" />
+          <PasswordField
+            label="新しいパスワード"
+            caption="8 文字以上"
+            autoComplete="new-password"
+          />
+        </Stack>
+      </Fieldset>
+      <Fieldset label="2 段階認証">
+        <Stack gap="md">
+          <Switch
+            label="2 段階認証を使う"
+            caption="サインインのときに、認証アプリのコードも求めます"
+            checked={twoFactor}
+            onCheckedChange={setTwoFactor}
+          />
+          {twoFactor && (
+            <PinField
+              label="認証アプリのコード"
+              caption="認証アプリに表示された 6 桁のコードを入れて、設定を終えます"
+            />
+          )}
+        </Stack>
+      </Fieldset>
+      <SaveBar />
+    </Section>
+  );
+}
+
+function DataSection() {
   const [deleted, setDeleted] = useState(false);
   const toast = useToast();
   return (
-    <Stack gap="lg">
-      <Notice status="warning" title="この操作は元に戻せません">
+    <Section id="data" title="データとアカウント">
+      <Meter
+        label="保存容量"
+        value={7.2}
+        max={10}
+        high={8}
+        caption="10 GB のうち 7.2 GB を使っています"
+      />
+      <Notice status="warning" title="アカウントの削除は元に戻せません">
         アカウントを削除すると、投稿と設定がすべて消えます。
       </Notice>
       {deleted ? (
@@ -150,42 +289,30 @@ function DangerPanel() {
           />
         </div>
       )}
-    </Stack>
+    </Section>
   );
 }
 
 function SettingsScreen() {
   return (
-    <Stack gap="lg">
-      <div>
-        <Heading level={1} size="xl">
-          設定
-        </Heading>
-        <Text variant="muted" className="mt-1">
-          アカウントと通知、表示の設定です。
-        </Text>
-      </div>
-      <Tabs defaultValue="account">
-        <TabList aria-label="設定の項目">
-          <Tab value="account">アカウント</Tab>
-          <Tab value="notification">通知</Tab>
-          <Tab value="display">表示</Tab>
-          <Tab value="danger">危険な操作</Tab>
-        </TabList>
-        <TabPanel value="account">
-          <AccountPanel />
-        </TabPanel>
-        <TabPanel value="notification">
-          <NotificationPanel />
-        </TabPanel>
-        <TabPanel value="display">
-          <DisplayPanel />
-        </TabPanel>
-        <TabPanel value="danger">
-          <DangerPanel />
-        </TabPanel>
-      </Tabs>
-    </Stack>
+    <div className="flex gap-12">
+      <aside className="sticky top-6 hidden h-fit w-44 shrink-0 md:block">
+        <TableOfContents label="設定の項目" items={sections} />
+      </aside>
+      <Stack gap="xl" className="max-w-[560px] min-w-0 flex-1">
+        <Stack gap="xs">
+          <Heading level={1} size="xl">
+            設定
+          </Heading>
+          <Text variant="muted">プロフィール、通知、表示、セキュリティの設定です。</Text>
+        </Stack>
+        <ProfileSection />
+        <NotificationSection />
+        <DisplaySection />
+        <SecuritySection />
+        <DataSection />
+      </Stack>
+    </div>
   );
 }
 
@@ -196,7 +323,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '設定の画面の見本です。タブで項目を分け、保存するとトーストで知らせ、アカウントの削除は確認のダイアログを挟みます。',
+          '設定の画面の見本です。1 枚のページに節を並べ、左の目次で節へ飛びます。節ごとに保存するとトーストで知らせ、アカウントの削除は確認のダイアログを挟みます。',
       },
     },
   },
@@ -208,7 +335,7 @@ type Story = StoryObj<typeof meta>;
 export const Settings: Story = {
   name: '設定',
   render: (_args, { globals }) => (
-    <SamplePage density={densityOf(globals)} width="sm">
+    <SamplePage density={densityOf(globals)} width="lg">
       <ToastProvider>
         <SettingsScreen />
       </ToastProvider>

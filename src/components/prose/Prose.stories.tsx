@@ -27,7 +27,7 @@ const meta = {
           '</Prose>',
           '```',
           '',
-          '- 変換した HTML は、Prose の子の `div` に `dangerouslySetInnerHTML` で入れます。Prose は HTML の文字列を受け取る props を持ちません。入れた文字列はスクリプトも含めてそのまま動くので、ビルド時に自分で変換した HTML だけを入れ、利用者が書いた文や外から取ってきた文をエスケープせずに入れないでください。子の `div` に入れると、Prose の中の HTML の前後に React の要素を並べることもできます。',
+          '- 変換した HTML は、Prose の子の `div` に `dangerouslySetInnerHTML` で入れます。Prose は HTML の文字列を受け取る props を持ちません。入れた文字列はスクリプトも含めてそのまま動くので、ビルド時に自分で変換した HTML だけを入れ、利用者が書いた文や外から取ってきた文をエスケープせずに入れないでください。子の `div` に入れると、Prose の中の HTML の前後に React の要素を並べることもできます。HTML を入れる `div` はクラスも `role` も付けない素の `div` にします。素の `div` なら、部品をはさんでいくつ並べても、中に同じ余白が付きます。',
           '- 想定する要素は、GFM（remark-gfm）で変換したときに出るものです: `h1`〜`h6`・`p`・`a`・`strong`・`em`・`del`・`code`・`br`・`ul`・`ol`・`li`・チェックリスト（`input type="checkbox" disabled`）・`blockquote`・`table`（列の寄せは `align` 属性）・`img`・`hr`・脚注（`data-footnote-ref`・`data-footnotes`・`data-footnote-backref`）。Markdown の中に書いた `kbd`・`mark` にも見た目が付きます。',
           '- 複数行のコードは、Shiki（`createCssVariablesTheme`）と `@shikijs/transformers` で色分けした `pre.shiki` を想定します。強調行・差分・フォーカス・語の強調も CodeBlock と同じ見た目になります。',
           '- 部品の既定の見た目を当てます。引用は左のグレーの線、区切り線は幅いっぱいの細い線、表は行のあいだの横線、コードはグレーの面、リンクは Primary の青い文字です。見た目を変えたいときは、Prose で変えずに部品を直接使います（Prose は見た目を選ぶ props を持ちません）。',
@@ -187,5 +187,47 @@ export const WithComponents: Story = {
     // 見出しの後ろの余白が付く
     const paragraph = root?.querySelector('h2 + p');
     await expect(paragraph && getComputedStyle(paragraph).marginTop).not.toBe('0px');
+  },
+};
+
+// HTML を入れた div を部品で挟んでも、それぞれの div の中に余白が付く。クラスを付けたレイアウトの div の中には付けない
+const splitHtml = {
+  before: '<h2>前半</h2><p>変換した HTML の段落です。</p><p>2 つ目の段落です。</p>',
+  after: '<h2>後半</h2><p>部品のあとの HTML も、同じ余白で並びます。</p>',
+};
+
+export const SplitHtml: Story = {
+  name: 'HTML のあいだに部品を挟む',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'HTML を入れた子の `div` を、部品をはさんでいくつ並べても、それぞれの中に同じ余白が付きます。クラスや `role` を付けた `div`（並べ方を決めるレイアウトの箱など）の中の並びには、余白を付けません。',
+      },
+    },
+  },
+  render: () => (
+    <Prose as="article" className="max-w-[720px]">
+      <div dangerouslySetInnerHTML={{ __html: splitHtml.before }} />
+      <Blockquote>あいだに置いた部品です。</Blockquote>
+      <div dangerouslySetInnerHTML={{ __html: splitHtml.after }} />
+      <div className="flex gap-2" data-testid="layout">
+        <Text>横に並べた 1 つ目</Text>
+        <Text>横に並べた 2 つ目</Text>
+      </div>
+    </Prose>
+  ),
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('[data-prose]');
+    const margin = (selector: string) => {
+      const element = root?.querySelector(selector);
+      return element ? getComputedStyle(element).marginTop : undefined;
+    };
+    // 1 つ目と 2 つ目の HTML の div の中に、見出しの後ろと段落のあいだの余白が付く
+    await expect(margin(':scope > div:first-child > p + p')).not.toBe('0px');
+    await expect(margin(':scope > blockquote + div > h2 + p')).not.toBe('0px');
+    // クラスを付けたレイアウトの div の中の 2 つ目には付けない
+    await expect(margin('[data-testid="layout"] > :nth-child(2)')).toBe('0px');
   },
 };

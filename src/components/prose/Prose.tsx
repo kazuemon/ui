@@ -35,7 +35,7 @@ import { useScrollTabStops } from '../../internal/use-scrollable';
 //
 // 要素のあいだの余白（軸 70。値は tokens の --prose-*。マウスでは見出しと区切り線の上を広く、指では詰める）
 //   後ろの要素の上（margin-top）にだけ付ける。最初の要素の上と最後の要素の下には付かない
-//   並びの入れ物は、根（HTML を子の div 1 つに入れたときは、その div）・blockquote・li
+//   並びの入れ物は、根と、HTML を入れた子の div（子の div が 1 つだけのときと、クラスも role も持たない素の div。素の div はいくつあってもよい）・blockquote・li
 //   詳細度で選ぶ: 要素のあいだ（block）< 段落と段落（paragraph）< 画像だけの段落の上下（block）
 //     見出しの後ろ（heading-N-after）< 見出しの上（前が見出しでないとき。heading-N-before）
 //     区切り線の上下（divider。見出しの後ろの区切り線は見出しの後ろの余白）
@@ -44,30 +44,30 @@ import { useScrollTabStops } from '../../internal/use-scrollable';
 const s = inlineStyles();
 
 const flow = [
-  '[:is(&,&>div:only-child)>*+*]:mt-(--prose-block-gap)',
-  '[:is(&,&>div:only-child)>p+p]:mt-(--prose-paragraph-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>*+*]:mt-(--prose-block-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>p+p]:mt-(--prose-paragraph-gap)',
   // 画像だけの段落は、段落ではなく画像として上下を空ける（見出しと区切り線の隣は、それぞれの規則）
-  '[:is(&,&>div:only-child)>:not(hr,h1,h2,h3,h4,h5,h6)+p:has(>img:only-child)]:mt-(--prose-block-gap)',
-  '[:is(&,&>div:only-child)>p:has(>img:only-child)+:not(hr,h1,h2,h3,h4,h5,h6)]:mt-(--prose-block-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(hr,h1,h2,h3,h4,h5,h6)+p:has(>img:only-child)]:mt-(--prose-block-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>p:has(>img:only-child)+:not(hr,h1,h2,h3,h4,h5,h6)]:mt-(--prose-block-gap)',
   // 見出しの上（前が見出しでないとき）と、見出しのすぐ後ろ
-  '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+h1]:mt-(--prose-heading-1-before) [:is(&,&>div:only-child)>h1+*]:mt-(--prose-heading-1-after)',
-  '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+h2]:mt-(--prose-heading-2-before) [:is(&,&>div:only-child)>h2+*]:mt-(--prose-heading-2-after)',
-  '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+h3]:mt-(--prose-heading-3-before) [:is(&,&>div:only-child)>h3+*]:mt-(--prose-heading-3-after)',
-  '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+:is(h4,h5,h6)]:mt-(--prose-heading-4-before) [:is(&,&>div:only-child)>:is(h4,h5,h6)+*]:mt-(--prose-heading-4-after)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(h1,h2,h3,h4,h5,h6)+h1]:mt-(--prose-heading-1-before) [:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h1+*]:mt-(--prose-heading-1-after)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(h1,h2,h3,h4,h5,h6)+h2]:mt-(--prose-heading-2-before) [:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h2+*]:mt-(--prose-heading-2-after)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(h1,h2,h3,h4,h5,h6)+h3]:mt-(--prose-heading-3-before) [:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h3+*]:mt-(--prose-heading-3-after)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(h1,h2,h3,h4,h5,h6)+:is(h4,h5,h6)]:mt-(--prose-heading-4-before) [:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:is(h4,h5,h6)+*]:mt-(--prose-heading-4-after)',
   // 見出しのすぐ後ろが段落でないとき（軸 72）。リストは --spacing（4px）、
   //   引用・コード・表・画像だけの段落は --prose-heading-block-extra（マウス 12px・指 0）だけ、見出しの後ろの余白に足す
-  '[:is(&,&>div:only-child)>h1+:is(ul,ol)]:mt-[calc(var(--prose-heading-1-after)+var(--spacing))]',
-  '[:is(&,&>div:only-child)>h1+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-block-extra))]',
-  '[:is(&,&>div:only-child)>h2+:is(ul,ol)]:mt-[calc(var(--prose-heading-2-after)+var(--spacing))]',
-  '[:is(&,&>div:only-child)>h2+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-block-extra))]',
-  '[:is(&,&>div:only-child)>h3+:is(ul,ol)]:mt-[calc(var(--prose-heading-3-after)+var(--spacing))]',
-  '[:is(&,&>div:only-child)>h3+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-block-extra))]',
-  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(ul,ol)]:mt-[calc(var(--prose-heading-4-after)+var(--spacing))]',
-  '[:is(&,&>div:only-child)>:is(h4,h5,h6)+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h1+:is(ul,ol)]:mt-[calc(var(--prose-heading-1-after)+var(--spacing))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h1+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-1-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h2+:is(ul,ol)]:mt-[calc(var(--prose-heading-2-after)+var(--spacing))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h2+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-2-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h3+:is(ul,ol)]:mt-[calc(var(--prose-heading-3-after)+var(--spacing))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>h3+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-3-after)+var(--prose-heading-block-extra))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:is(h4,h5,h6)+:is(ul,ol)]:mt-[calc(var(--prose-heading-4-after)+var(--spacing))]',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:is(h4,h5,h6)+:is(blockquote,pre,table,figure,p:has(>img:only-child))]:mt-[calc(var(--prose-heading-4-after)+var(--prose-heading-block-extra))]',
   // 区切り線の上下
-  '[:is(&,&>div:only-child)>:not(h1,h2,h3,h4,h5,h6)+hr]:mt-(--prose-divider-gap) [:is(&,&>div:only-child)>hr+*]:mt-(--prose-divider-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>:not(h1,h2,h3,h4,h5,h6)+hr]:mt-(--prose-divider-gap) [:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>hr+*]:mt-(--prose-divider-gap)',
   // 脚注の一覧: 区切り線と同じだけ空ける。線などの区切りは付けない（見た目を付けるのは利用者）
-  '[:is(&,&>div:only-child)>*+[data-footnotes]]:mt-(--prose-divider-gap)',
+  '[:is(&,&>div:is(:only-child,:not([data-slot],[class],[role])))>*+[data-footnotes]]:mt-(--prose-divider-gap)',
   // 引用の中の段落のあいだ
   '[&_blockquote>*+*]:mt-(--prose-paragraph-gap)',
   // リストの項目の中の段落・コード・表などのあいだ（ゆるいリストの段落と同じ）。入れ子のリストの上はリストの規則
