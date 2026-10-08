@@ -162,13 +162,13 @@ function Post({
           </div>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button variant="underline">
+          <Button variant="underline" size="sm">
             <Icon icon={ChatCircleIcon} /> 返信
           </Button>
-          <Toggle variant="underline" color="primary" defaultPressed={liked}>
+          <Toggle variant="underline" size="sm" color="primary" defaultPressed={liked}>
             <Icon icon={HeartIcon} /> いいね <NumberFormat value={likes} />
           </Toggle>
-          <Button variant="underline">
+          <Button variant="underline" size="sm">
             <Icon icon={ShareNetworkIcon} /> 共有
           </Button>
         </div>
