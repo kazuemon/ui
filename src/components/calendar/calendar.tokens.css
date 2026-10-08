@@ -6,6 +6,8 @@
   /* 月を送るとき、その場でふわっと入れ替える長さ（monthTransition="fade"）
      浮かぶ面が閉じる長さと同じく、時間の尺度（100・200・250ms）の速いと普通のあいだなので ms で置く */
   --calendar-month-fade-duration: 150ms;
+  /* 月を 2 つ並べるとき（numberOfMonths={2}）の、月と月のあいだ */
+  --calendar-months-gap: calc(var(--spacing) * 6);
   /* 日ごとの印（renderDayContent）。日のボタンの下の中央に置き、印を持つ日がある月はすべての日の数字を上へずらす */
   --calendar-day-content-bottom: calc(var(--spacing) * 1.75);
   /* 印の文字はキャプションより小さい。文字には密度で変わらない尺度がない（役割の文字は密度で変わる）ので px で置く */
