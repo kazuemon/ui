@@ -32,7 +32,7 @@ import { Tag } from '../components/tag/Tag';
 import { Text } from '../components/text/Text';
 import { TimePicker } from '../components/time-picker/TimePicker';
 import { Timeline, TimelineItem } from '../components/timeline/Timeline';
-import { Temporal } from '../internal/date/plain-date';
+import { Temporal } from '../index';
 import {
   AccountItems,
   DemoNavbar,
