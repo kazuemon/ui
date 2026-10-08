@@ -23,6 +23,7 @@
 @import '../components/description-list/description-list.tokens.css';
 @import '../components/dialog/dialog.tokens.css';
 @import '../components/dropzone/dropzone.tokens.css';
+@import '../components/editable/editable.tokens.css';
 @import '../components/embed/embed.tokens.css';
 @import '../components/file-tree/file-tree.tokens.css';
 @import '../components/gallery/gallery.tokens.css';

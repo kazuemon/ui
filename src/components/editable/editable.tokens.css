@@ -1,0 +1,5 @@
+:root {
+  /* Editable: 文字のとき（押すと書き換えられる）の、文字の後ろの鉛筆
+     ふだんの濃さ（editIndicator="subtle"）。載せると濃くする */
+  --editable-cue-icon-subtle-opacity: 0.5;
+}

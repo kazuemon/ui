@@ -903,6 +903,15 @@ export {
   type MaskFieldValueDetails,
 } from './components/mask-field/MaskField';
 export {
+  Editable,
+  type EditableBaseProps,
+  type EditableBlurBehavior,
+  EditableControl,
+  type EditableControlProps,
+  type EditableEditIndicator,
+  type EditableProps,
+} from './components/editable/Editable';
+export {
   NumberField,
   type NumberFieldBaseProps,
   NumberFieldControl,

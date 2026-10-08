@@ -157,7 +157,7 @@
 - [x] DateRangePicker
 - [x] CheckboxGroup
 - [x] MaskField
-- [ ] Editable
+- [x] Editable
 - [ ] FileInput
 
 ### 通知

@@ -25,6 +25,7 @@ import {
   EyeSlashIcon,
   InfoIcon,
   ListIcon,
+  PencilSimpleIcon,
   WarningCircleIcon,
   WarningIcon,
   XIcon,
@@ -154,6 +155,12 @@ const entries: Entry[] = [
     regular: <CheckMarkIcon />,
     bold: <CheckMarkIcon standalone />,
     use: 'CodeBlock のコピーしたあとの印',
+  },
+  {
+    name: 'PencilSimpleIcon',
+    regular: <PencilSimpleIcon />,
+    bold: <PencilSimpleIcon standalone />,
+    use: 'Editable の、書き換えられることを示す印',
   },
   {
     name: 'WarningCircleIcon',
