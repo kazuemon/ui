@@ -135,10 +135,12 @@ function useHistory(initial: string) {
 /** 画面が広いか（本文とプレビューを並べるか、タブで切り替えるか） */
 function useWide() {
   const query = '(min-width: 1024px)';
-  const [wide, setWide] = useState(() => window.matchMedia(query).matches);
+  // サーバーでは幅が分からないので、狭い画面として描き、ブラウザで測ってから切り替える
+  const [wide, setWide] = useState(false);
   useEffect(() => {
     const media = window.matchMedia(query);
     const update = () => setWide(media.matches);
+    update();
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);

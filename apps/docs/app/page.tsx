@@ -21,8 +21,8 @@ const REPOSITORY = 'https://github.com/kazuemon/ui';
 const PRINCIPLES = 'https://github.com/kazuemon/ui/blob/main/design/principles.md';
 const ADR = 'https://github.com/kazuemon/ui/blob/main/design/adr/README.md';
 
-// トップページから見本への動線に出す 3 つ（記事・サインイン・ダッシュボード。画面の種類が伝わる組み合わせ）
-const FEATURED_EXAMPLE_SLUGS = ['article', 'sign-in', 'dashboard'];
+// トップページから見本への動線に出す 3 つ（記事・新規登録・ダッシュボード。画面の種類が伝わる組み合わせ）
+const FEATURED_EXAMPLE_SLUGS = ['article', 'sign-up', 'dashboard'];
 const featuredExamples = FEATURED_EXAMPLE_SLUGS.map((slug) =>
   examples.find((example) => example.slug === slug)
 ).filter((example) => example !== undefined);
