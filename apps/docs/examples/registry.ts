@@ -11,7 +11,7 @@ import { example as museum } from './museum';
 import { example as pricing } from './pricing';
 import { example as profile } from './profile';
 import { example as reservation } from './reservation';
-import { signUp } from './sign-in';
+import { signUp } from './sign-up';
 import { example as settings } from './settings';
 import { example as sns } from './sns';
 import { example as tasks } from './tasks';

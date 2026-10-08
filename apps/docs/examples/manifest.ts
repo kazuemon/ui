@@ -78,7 +78,7 @@ export const examples: ExampleSummary[] = [
   {
     slug: 'list',
     title: '一覧',
-    description: 'メンバーを管理する画面の一覧。数の要約・絞り込みの帯・表から、行の詳細を開く',
+    description: 'メンバーを管理する画面の一覧。行から詳細を開く',
     highlights: ['DataTable', 'Toolbar'],
     components: [
       'SearchField',
@@ -179,7 +179,7 @@ export const examples: ExampleSummary[] = [
     slug: 'tournament',
     title: '大会プラットフォーム',
     description:
-      '大会の管理画面。Sidebar でグループを選び、行を押すと Inspector で試合の詳細と経過を見る。シードは引いて並べ替える',
+      '大会の管理画面。左の列（Sidebar）でステージ＞リーグ＞グループを選び、行を押すと横のパネル（Inspector）で試合の詳細と経過を見ます。シードは引いて並べ替えます。',
     highlights: ['Sidebar', 'Inspector', 'Sortable'],
     components: [
       'DataTable',
@@ -200,19 +200,9 @@ export const examples: ExampleSummary[] = [
   {
     slug: 'works',
     title: '作品集',
-    description:
-      '注目の作品・制作の様子・分野で絞り込める作品の一覧を並べた、ポートフォリオのページ',
+    description: '注目の作品・制作の様子・分野で絞り込める作品の一覧を並べた、個人の作品集',
     highlights: ['Carousel', 'Masonry'],
-    components: [
-      'Thumbnails',
-      'Video',
-      'AspectRatio',
-      'ToggleGroup',
-      'Chip',
-      'Card',
-      'Grid',
-      'Time',
-    ],
+    components: ['Thumbnails', 'Video', 'AspectRatio', 'ToggleGroup', 'Card', 'Grid', 'Time'],
   },
   {
     slug: 'editor',
