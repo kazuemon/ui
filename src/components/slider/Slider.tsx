@@ -49,8 +49,9 @@ const slider = tv({
       'not-data-disabled:data-dragging:[--slider-fill:color-mix(in_oklab,var(--slider-own),var(--color-fg)_var(--slider-fill-press-darken))]',
     ],
     track: [
-      'relative h-(--slider-track-height) w-full rounded-pill bg-(color:--slider-ground)',
-      'transition-[background-color] duration-(--duration-field) ease-press motion-reduce:transition-none',
+      // 動かすのは background-color ではなく --slider-track-fill（theme.css で登録した変数 — ADR-0112）
+      'relative h-(--slider-track-height) w-full rounded-pill bg-(color:--slider-track-fill) [--slider-track-fill:var(--slider-ground)]',
+      '[transition-property:--slider-track-fill] duration-(--duration-field) ease-press motion-reduce:transition-none',
     ],
     indicator: 'rounded-pill bg-(color:--slider-fill) data-disabled:opacity-(--disabled-opacity)',
     thumb: [

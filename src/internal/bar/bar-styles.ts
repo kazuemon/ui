@@ -28,8 +28,9 @@ export const barStyles = tv({
     track:
       'relative col-span-full h-(--bar-height) overflow-hidden rounded-pill bg-(color:--bar-track)',
     indicator: [
-      'absolute inset-y-0 rounded-pill bg-(color:--bar-fill)',
-      'transition-[width,background-color] duration-(--duration-normal) ease-press motion-reduce:transition-none',
+      // 動かすのは background-color ではなく --bar-indicator-fill（theme.css で登録した変数 — ADR-0112）
+      'absolute inset-y-0 rounded-pill bg-(color:--bar-indicator-fill) [--bar-indicator-fill:var(--bar-fill)]',
+      '[transition-property:width,--bar-indicator-fill] duration-(--duration-normal) ease-press motion-reduce:transition-none',
     ],
     caption:
       'col-span-full text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',

@@ -73,7 +73,8 @@ export type NavbarTransparentVariant = 'plain' | 'scrim' | 'frosted' | 'text-sha
 const navbar = tv({
   slots: {
     root: [
-      '@container/navbar w-full bg-bg text-fg',
+      // 塗りは --navbar-bg に置き、透かす・透かさないの切り替えで動かすのはこの変数（theme.css で登録した変数 — ADR-0112）
+      '@container/navbar w-full bg-(color:--navbar-bg) text-fg [--navbar-bg:var(--color-bg)]',
       'border-b-(length:--border-width-thin) border-line',
     ],
     inner: 'flex h-(--navbar-height) items-center gap-(--navbar-gap)',
@@ -113,7 +114,7 @@ const navbar = tv({
       sticky: true,
       stickyBackdrop: 'blur',
       class: {
-        root: 'bg-(--navbar-backdrop-bg) backdrop-blur-(--navbar-backdrop-blur)',
+        root: 'backdrop-blur-(--navbar-backdrop-blur) [--navbar-bg:var(--navbar-backdrop-bg)]',
       },
     },
     // いちばん上では透かす（data-scrolled がないあいだ）
@@ -123,7 +124,7 @@ const navbar = tv({
       class: {
         root: [
           'not-data-scrolled:border-transparent not-data-scrolled:shadow-none',
-          '[transition:background-color_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press),translate_var(--duration-normal)_var(--ease-press)]',
+          '[transition:--navbar-bg_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press),translate_var(--duration-normal)_var(--ease-press)]',
         ],
       },
     },
@@ -132,14 +133,14 @@ const navbar = tv({
       sticky: true,
       stickyBackdrop: 'transparent-until-scroll',
       transparentVariant: ['plain', 'text-shadow'],
-      class: { root: 'not-data-scrolled:bg-transparent' },
+      class: { root: 'not-data-scrolled:[--navbar-bg:transparent]' },
     },
     {
       sticky: true,
       stickyBackdrop: 'transparent-until-scroll',
       transparentVariant: 'scrim',
       class: {
-        root: 'not-data-scrolled:bg-transparent not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border',
+        root: 'not-data-scrolled:bg-(image:--navbar-scrim) not-data-scrolled:bg-origin-border not-data-scrolled:[--navbar-bg:transparent]',
         inner: '[:not([data-scrolled])>&]:[--color-fg-muted:var(--navbar-scrim-fg-muted)]',
       },
     },
@@ -148,7 +149,7 @@ const navbar = tv({
       stickyBackdrop: 'transparent-until-scroll',
       transparentVariant: 'frosted',
       class: {
-        root: 'not-data-scrolled:bg-(color:--navbar-frosted-bg) not-data-scrolled:backdrop-blur-(--navbar-frosted-blur)',
+        root: 'not-data-scrolled:backdrop-blur-(--navbar-frosted-blur) not-data-scrolled:[--navbar-bg:var(--navbar-frosted-bg)]',
       },
     },
     {
@@ -195,7 +196,7 @@ const navbar = tv({
         root: [
           'translate-y-[calc(var(--navbar-follow-offset,0px)*-1)]',
           'data-hidden:-translate-y-[calc(100%+var(--navbar-hide-shadow-room))]',
-          '[transition:translate_var(--duration-normal)_var(--ease-press),background-color_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press)]',
+          '[transition:translate_var(--duration-normal)_var(--ease-press),--navbar-bg_var(--duration-normal)_var(--ease-press),border-color_var(--duration-normal)_var(--ease-press),box-shadow_var(--duration-normal)_var(--ease-press)]',
           'data-following:transition-none motion-reduce:transition-none',
         ],
       },

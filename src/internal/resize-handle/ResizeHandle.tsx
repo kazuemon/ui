@@ -30,12 +30,13 @@ const styles = tv({
   slots: {
     handle: [
       'group/resize-handle absolute z-3 w-(--resize-handle-hit) cursor-col-resize touch-none outline-none',
-      "before:absolute before:inset-y-(--resize-handle-line-inset) before:start-1/2 before:w-(--border-width-thick) before:-translate-x-1/2 before:bg-(color:--resize-handle-rest) before:content-[''] rtl:before:translate-x-1/2",
-      'before:[transition:background-color_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      'hover:before:bg-(color:--color-line-strong)',
-      'focus-visible:before:bg-(color:--color-primary)',
+      "before:absolute before:inset-y-(--resize-handle-line-inset) before:start-1/2 before:w-(--border-width-thick) before:-translate-x-1/2 before:bg-(color:--resize-handle-line) before:content-[''] before:[--resize-handle-line:var(--resize-handle-rest)] rtl:before:translate-x-1/2",
+      // 動かすのは background-color ではなく --resize-handle-line（theme.css で登録した変数 — ADR-0112）
+      'before:[transition:--resize-handle-line_var(--duration-fast)_var(--ease-press)] motion-reduce:before:[transition:none]',
+      'hover:before:[--resize-handle-line:var(--color-line-strong)]',
+      'focus-visible:before:[--resize-handle-line:var(--color-primary)]',
       // 押したとき（動かす前）から、動かしているあいだの色にする
-      'active:before:bg-(color:--color-line-strong) data-resizing:before:bg-(color:--color-line-strong)',
+      'active:before:[--resize-handle-line:var(--color-line-strong)] data-resizing:before:[--resize-handle-line:var(--color-line-strong)]',
     ],
     grip: 'pointer-events-none absolute start-1/2 top-1/2 h-(--resize-handle-grip-height) w-(--spacing) -translate-1/2 rounded-pill bg-(color:--color-line-strong)',
   },

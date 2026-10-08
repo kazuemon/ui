@@ -127,7 +127,7 @@ export function GalleryControls({
           className={[
             'absolute flex h-(--spacing-control) items-center justify-center px-3 text-body-sm text-(color:--image-zoom-caption-color)',
             // 点と数は Carousel と同じ部品（internal/position-indicator.tsx）。色は、明るい面でも暗い面でも見えるよう文字の色から作る
-            '[--position-dot-color:color-mix(in_oklab,currentColor_30%,transparent)] [--position-dot-current-color:currentColor]',
+            '[--position-dot-color:color-mix(in_oklab,var(--image-zoom-caption-color)_30%,transparent)] [--position-dot-current-color:var(--image-zoom-caption-color)]',
             '[--position-count-current-color:currentColor] [--position-count-total-color:currentColor] [--position-count-current-weight:var(--font-weight-normal)] [--position-count-display:inline]',
           ].join(' ')}
           style={indicatorStyle}

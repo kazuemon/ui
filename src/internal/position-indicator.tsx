@@ -13,9 +13,10 @@ const styles = tv({
     dots: 'flex items-center gap-(--carousel-dot-gap)',
     dot: [
       'h-(--carousel-dot-size) w-(--carousel-dot-size) shrink-0 rounded-pill',
-      'bg-[color:var(--position-dot-color,var(--color-line-strong))]',
-      'data-current:w-(--carousel-dot-current-width) data-current:bg-[color:var(--position-dot-current-color,var(--color-neutral-strong))]',
-      'transition-[width,background-color] duration-(--duration-normal) ease-(--ease-press) motion-reduce:transition-none',
+      // 動かすのは background-color ではなく --position-dot-fill（theme.css で登録した変数 — ADR-0112）。色に currentColor は渡さない（補間できない）
+      'bg-(color:--position-dot-fill) [--position-dot-fill:var(--position-dot-color,var(--color-line-strong))]',
+      'data-current:w-(--carousel-dot-current-width) data-current:[--position-dot-fill:var(--position-dot-current-color,var(--color-neutral-strong))]',
+      '[transition-property:width,--position-dot-fill] duration-(--duration-normal) ease-(--ease-press) motion-reduce:transition-none',
     ],
     // 並べ方は --position-count-display で差し替えられる（inline にすると、間は gap ではなく文字の空白になる。Gallery）
     count:
