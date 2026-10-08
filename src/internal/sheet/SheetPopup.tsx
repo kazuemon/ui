@@ -16,6 +16,7 @@ import type { OverlayRole } from '../overlay/overlay-role-context';
 
 import type { DensityScope } from '../density-scope';
 import { SheetCloseButton, SheetHeader } from './SheetHeader';
+import { MoreCueScroll } from './MoreCueScroll';
 import { SheetMoreCue } from './SheetMoreCue';
 import { overlayTitleLeading, sheetDescriptionClass, sheetTitleClass } from './sheet-styles';
 import { useMoreCues } from './use-more-cues';
@@ -253,19 +254,17 @@ export function SheetPopup({
                 </BaseDrawer.Description>
               )}
             </SheetHeader>
-            {/* 続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
-            <SheetMoreCue
-              edge="top"
-              sheet
-              sheetMoreCue="divider-always-shadow"
-              divider="scrollable"
-            />
-            {/* 中身。スクロールする。下に操作がないときは、下端の余白に端末の安全領域の分を空ける */}
-            <BaseDrawer.Content
-              ref={cues}
-              data-slot="sheet-content"
-              className={[
-                'min-h-0 flex-1 overflow-y-auto overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
+            {/* 中身。スクロールする（ScrollArea と同じ枠。スクロールする要素は Base UI の Drawer.Content）
+                  下に操作がないときは、下端の余白に端末の安全領域の分を空ける
+                続きの印: 上の区切り線は、中身がスクロールできるときだけ出す。下の区切り線は、下に操作があり、下の影が出ているあいだ出す */}
+            <MoreCueScroll
+              focusable="auto"
+              viewportRef={cues}
+              viewportSlot="sheet-content"
+              viewportRender={<BaseDrawer.Content />}
+              className="min-h-0 flex-1"
+              viewportClassName={[
+                'overscroll-contain px-(--sheet-padding-x) pt-(--sheet-padding-x)',
                 footer == null &&
                   !footerInContent &&
                   (top
@@ -274,17 +273,27 @@ export function SheetPopup({
               ]
                 .filter(Boolean)
                 .join(' ')}
+              before={
+                <SheetMoreCue
+                  edge="top"
+                  sheet
+                  sheetMoreCue="divider-always-shadow"
+                  divider="scrollable"
+                />
+              }
+              after={
+                !footerInContent && (
+                  <SheetMoreCue
+                    edge="bottom"
+                    sheet
+                    sheetMoreCue="divider-always-shadow"
+                    divider={footer != null ? 'shadow' : undefined}
+                  />
+                )
+              }
             >
               <OverlayActionsContext value={actions.value}>{children}</OverlayActionsContext>
-            </BaseDrawer.Content>
-            {!footerInContent && (
-              <SheetMoreCue
-                edge="bottom"
-                sheet
-                sheetMoreCue="divider-always-shadow"
-                divider={footer != null ? 'shadow' : undefined}
-              />
-            )}
+            </MoreCueScroll>
             {footer != null && (
               <div
                 data-slot="sheet-footer"

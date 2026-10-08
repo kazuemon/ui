@@ -2,12 +2,13 @@
 
 import type { ComponentProps, CSSProperties, ReactNode, Ref, UIEventHandler } from 'react';
 
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 import { ScrollFrame } from '../../internal/ScrollFrame';
 
 // スクロールする枠 — 軸 93。中身と見た目は internal/ScrollFrame.tsx・internal/scroll-area-styles.ts
 //   （部品の中でスクロールさせる場所（TagsInput の欄・Autocomplete の候補）とも共有する）
 
-export type ScrollAreaScrollbar = 'scroll' | 'always';
+export type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 /** つまみを出す向き。both は縦横、vertical は縦だけ、horizontal は横だけ */
 export type ScrollAreaOrientation = 'both' | 'vertical' | 'horizontal';

@@ -14,6 +14,10 @@ import { flushSync } from 'react-dom';
 //   隠したパネルは visibility: hidden にする。Base UI の矢印キーと文字の検索は見えない項目を飛ばすので、
 //   項目は同じ一覧に登録したままでよい（入れ子の MenuSubmenu は、親のパネルの中にいたまま、子のパネルを舞台へ portal で描く）
 
+// 舞台を入れた、スクロールする一覧（Menu の MoreCueScroll の Viewport。舞台との間に ScrollArea の中身の箱が挟まる）
+const scrollerOf = (stage: HTMLElement | null | undefined) =>
+  stage?.closest<HTMLElement>('[data-slot=menu-list]') ?? null;
+
 export interface MenuSlideEntry {
   /** 入れ子のメニュー（MenuSubmenu）ごとの id */
   id: string;
@@ -87,7 +91,7 @@ export function useMenuSlideState(fixed: boolean): MenuSlideState {
         if (!target) return;
         // ページは動かさず、一覧の中だけで見える位置に出す
         target.focus({ preventScroll: true });
-        const list = stage?.parentElement;
+        const list = scrollerOf(stage);
         if (!list) return;
         const rect = target.getBoundingClientRect();
         const view = list.getBoundingClientRect();
@@ -103,7 +107,7 @@ export function useMenuSlideState(fixed: boolean): MenuSlideState {
         setAnimated(true);
         setSlots((current) => [...current.slice(0, depth - 1), entry]);
       });
-      stage?.parentElement?.scrollTo({ top: 0 });
+      scrollerOf(stage)?.scrollTo({ top: 0 });
       const panel = stage?.querySelector<HTMLElement>(byId('data-panel-id', entry.id));
       focusIn(focus === 'first' ? panel?.querySelector<HTMLElement>(FIRST_ITEM) : panel);
     },
@@ -123,7 +127,7 @@ export function useMenuSlideState(fixed: boolean): MenuSlideState {
       setAnimated(true);
       setSlots(path.slice(0, -1));
     });
-    stage?.parentElement?.scrollTo({ top: 0 });
+    scrollerOf(stage)?.scrollTo({ top: 0 });
     const trigger = stage?.querySelector<HTMLElement>(byId('data-submenu-id', top.id));
     focusIn(trigger);
   }, [path, stage, focusIn]);

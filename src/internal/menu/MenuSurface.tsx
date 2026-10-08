@@ -19,6 +19,7 @@ import {
   readTokenLength,
 } from '../overlay/popup-styles';
 import { SheetCloseButton, SheetHeader } from '../sheet/SheetHeader';
+import { MoreCueScroll } from '../sheet/MoreCueScroll';
 import { SheetMoreCue } from '../sheet/SheetMoreCue';
 import { overlayTitleLeading, sheetCloseButtonClass, sheetTitleClass } from '../sheet/sheet-styles';
 import { useMoreCues } from '../sheet/use-more-cues';
@@ -147,6 +148,7 @@ export function MenuSurface({
     backName,
     submenuSheet,
     closeOnSwipe,
+    popoverScrollbar,
     closeAll,
   } = useMenuContext();
   const { className: popupClassName, ref: userPopupRef, ...restPopupProps } = popupProps ?? {};
@@ -323,10 +325,15 @@ export function MenuSurface({
               </SheetHeader>
             </div>
           )}
-          <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue="divider-always-shadow" />
-          <div
-            ref={cues}
-            data-slot="menu-list"
+          {/* 一覧。スクロールするのは一覧を包む枠（MoreCueScroll）。続きの印は枠の上下に置く */}
+          <MoreCueScroll
+            scrollbar={sheet ? 'scroll' : popoverScrollbar}
+            viewportRef={cues}
+            viewportSlot="menu-list"
+            before={<SheetMoreCue edge="top" sheet={sheet} sheetMoreCue="divider-always-shadow" />}
+            after={
+              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue="divider-always-shadow" />
+            }
             // resizable（入れ子があって fixed）: つまみの高さを測るまでは、一覧の高さを親のメニューの高さに固定する
             //   （縮むのは許すので、シートの上限は超えない）。測ったあとは、シートの高さ（つまみの段）の残りを一覧が埋める
             //   swipeOnly は測る前後で高さが変わらないので、このゲートは要らない
@@ -335,8 +342,9 @@ export function MenuSurface({
                 ? { flex: `0 1 ${slide.rootHeight}px` }
                 : undefined
             }
-            className={[
-              'min-h-0 flex-1 overflow-y-auto overscroll-contain',
+            className="min-h-0 flex-1"
+            viewportClassName={[
+              'overscroll-contain',
               // fit・fixed では、余白はパネルが持つ（滑るときに余白ごと動かすため）
               !sliding && 'p-(--menu-popup-padding)',
               sheet &&
@@ -356,8 +364,7 @@ export function MenuSurface({
                 children
               )}
             </MenuParentSurface>
-          </div>
-          <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue="divider-always-shadow" />
+          </MoreCueScroll>
         </BaseMenu.Popup>
       </BaseMenu.Positioner>
     </BaseMenu.Portal>

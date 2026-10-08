@@ -27,8 +27,11 @@ import { useWrapIndent } from './use-wrap-indent';
 //   写せなかったとき（軸 176）は、印を変えずに淡い赤の吹き出しで知らせる（CopyButton の吹き出しと同じ面）
 // 言語のラベル（language — 軸 441）: 帯に置く。題がなくても、ラベルがあれば帯を出す
 //   既定は題の前に、文字の色を 12% 混ぜた淡い丸い面を敷く（D）。題の後ろ（languagePlacement="end"）と、文字だけ（hideLanguageBackground）も選べる
-// 最大の高さ（maxHeight）: 超えた分は ScrollFrame の中でスクロールさせ、続きがある端に内側の影を落とす（原則1）
+// スクロール: 横にはみ出した分も、最大の高さ（maxHeight）を超えた分も、ScrollFrame の中でスクロールさせる
 //   縦と横のどちらのスクロールも枠が受け持つので、pre は overflow: visible にし、pre の Tab の止まりを外す（枠が止まる）
+//   最大の高さを超えた分は、続きがある端に内側の影を落とす（原則1）
+//   外枠は動かさず、枠の中で中身だけがスクロールする（表は外観ごと動くが、コードは帯とコピーのボタンを残す — 軸 582）
+//   横にあふれたときも、続きがある左右の端に内側の影を落とし、つまみは載せたとき・スクロール中に出す
 // 折り返し（wrap — 軸 442）: 横にスクロールさせず、長い行を折り返す。続きの行は、その行のもとの字下げ（行頭の空白）と同じだけ下げる
 //   行頭の空白の桁数は use-wrap-indent が行ごとに --cb-line-indent へ書く。字下げのない行の続きは行の頭にそろう
 const codeBlock = tv({
@@ -36,11 +39,8 @@ const codeBlock = tv({
     root: [
       '[--cb-head-h:calc(var(--spacing-control)+var(--spacing)*2)]',
       'group/code-block relative flex min-w-0 flex-col',
-      // 横のスクロールバーが場所を取るとき（data-scrollbar）は、下の角を丸めない。丸めると、スクロールバーの端が角で切られてなじまない
-      //   重ねて出るスクロールバー（macOS の既定など）は場所を取らないので、角は丸いまま
-      'data-scrollbar:rounded-b-none',
-      // 最大の高さ: スクロールは枠（ScrollFrame）が受け持つ
-      '[&[data-max-height]_pre]:overflow-visible',
+      // スクロールは枠（ScrollFrame）が受け持つ。Prose と共有する本文の見た目（overflow-x-auto）より優先する
+      '[&_pre]:overflow-visible!',
       ...codeBlockStyles.surface,
       // 題がなくボタンを浮かせるときは、pre をボタンと上下 4px の高さまで伸ばし、行を縦の中央に置く（1 行でもボタンの上下がそろう）
       '[&[data-copy]:not([data-titled])_pre]:min-h-[calc(var(--spacing-control)+var(--spacing)*2)] [&[data-copy]:not([data-titled])_pre]:content-center',
@@ -58,6 +58,8 @@ const codeBlock = tv({
     language:
       'shrink-0 font-mono text-(length:--text-body-sm-fine) leading-(--leading-label) text-(color:--cb-muted)',
     body: ['min-w-0', ...codeBlockStyles.body],
+    // スクロールする要素（ScrollFrame の Viewport）。外枠が overflow: clip なので、フォーカスの線を内側に引く（pre が止まり先だったときと同じ）
+    scrollViewport: '[--focus-ring-offset:calc(var(--focus-ring-width)*-1)]',
     copy: [
       // 最大の高さのスクロールのつまみ（z-2）より上に置く
       'absolute z-3 inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
@@ -272,16 +274,9 @@ export function CodeBlock({
   const { copied, failed, copy } = useCopy(2000);
   useWrapIndent(bodyRef, wrap);
 
-  // スクロールできる pre だけを Tab で止まるようにする（Shiki は pre にいつも tabindex="0" を付ける）
-  // 判定は表・Prose と同じ internal/use-scrollable。中身（html・children）が変わると pre が入れ替わるので、描くたびに探し直す
-  // ついでに、横のスクロールバーが場所を取っているか（pre の高さと中身の高さの差）を、外枠の data-scrollbar に書く
-  useScrollTabStops(bodyRef, 'pre', (pre) => {
-    const root = pre.closest('[data-slot="code-block"]');
-    if (pre.offsetHeight - pre.clientHeight > 0) root?.setAttribute('data-scrollbar', '');
-    else root?.removeAttribute('data-scrollbar');
-    // 最大の高さがあるときは、枠（ScrollFrame）がスクロールしてキーボードで止まるので、pre は止まらない
-    if (scrollsInFrame) pre.removeAttribute('tabindex');
-  });
+  // スクロールは枠（ScrollFrame）が受け持ち、スクロールできるときは枠が Tab で止まる。pre は止まらない
+  // （Shiki は pre にいつも tabindex="0" を付ける。中身が変わると pre が入れ替わるので、描くたびに外し直す）
+  useScrollTabStops(bodyRef, 'pre', (pre) => pre.removeAttribute('tabindex'));
 
   const start = typeof lineNumbers === 'number' ? lineNumbers - 1 : undefined;
   const hasTitle = title != null && title !== false;
@@ -340,13 +335,16 @@ export function CodeBlock({
           ) : null}
         </figcaption>
       ) : null}
-      {scrollsInFrame ? (
-        <ScrollFrame slot="code-block-scroll" className="max-h-(--cb-max-h)">
-          {body}
-        </ScrollFrame>
-      ) : (
-        body
-      )}
+      <ScrollFrame
+        slot="code-block-scroll"
+        className={scrollsInFrame ? 'max-h-(--cb-max-h)' : undefined}
+        viewportClassName={styles.scrollViewport()}
+        // 折り返すときは、中身を枠の幅に収める（Base UI の既定の min-width: fit-content だと、折り返す前の幅に広がる）
+        contentStyle={wrap ? { minWidth: 0 } : undefined}
+        orientation={scrollsInFrame ? 'both' : 'horizontal'}
+      >
+        {body}
+      </ScrollFrame>
       {hideCopyButton ? null : (
         // 写せなかったとき（軸 176）は、淡い赤の吹き出しで知らせる。濃い地の上では、ボタンの中では伝わらないため
         <CopyErrorTooltip open={failed} text={copyErrorText}>

@@ -154,6 +154,7 @@ const meta = {
     groupLabelStyle: 'label',
     showGroupSeparator: false,
     popoverMaxHeight: 'screen',
+    popoverScrollbar: 'scroll',
     loading: false,
     loadingBehavior: 'non-blocking',
     loadingIndicator: 'spinner',
@@ -200,6 +201,7 @@ const meta = {
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
     showGroupSeparator: { control: 'boolean' },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
+    popoverScrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: behaviors },
     loadingIndicator: { control: 'inline-radio', options: indicators },
@@ -322,7 +324,7 @@ export const Open: Story = {
   name: '開いた状態',
   args: { defaultValue: '市' },
   parameters: {
-    controls: { include: ['popoverMaxHeight', 'color'] },
+    controls: { include: ['popoverMaxHeight', 'popoverScrollbar', 'color'] },
     docs: {
       description: {
         story:

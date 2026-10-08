@@ -29,6 +29,7 @@ import {
 } from '../../internal/overlay/overlay-props';
 import { type OverlayRole, OverlayRoleContext } from '../../internal/overlay/overlay-role-context';
 import { SheetCloseButton, SheetHeader } from '../../internal/sheet/SheetHeader';
+import { MoreCueScroll } from '../../internal/sheet/MoreCueScroll';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import {
   overlayTitleLeading,
@@ -395,40 +396,48 @@ function CenteredDialog({
                   </BaseDialog.Description>
                 )}
               </SheetHeader>
-              {scrollContent && (
-                <SheetMoreCue
-                  edge="top"
-                  sheet
-                  sheetMoreCue="divider-always-shadow"
-                  divider="scrollable"
-                />
-              )}
-              {children != null && (
-                <div
-                  ref={scrollContent ? cues : undefined}
-                  data-slot="dialog-content"
-                  className={[
-                    'px-(--dialog-padding) pt-2',
-                    // 角は面の角に合わせて丸める（貼り付けた DialogActions の面が、面の下の角からはみ出さないように）
-                    scrollContent &&
-                      'min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]',
-                    // content: 下の余白は、下の操作の帯（actions・DialogActions）か、なければ中身が持つ
-                    scrollContent && actions == null && !slot.placed && 'pb-(--dialog-padding)',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
-                </div>
-              )}
-              {scrollContent && !slot.placed && (
-                <SheetMoreCue
-                  edge="bottom"
-                  sheet
-                  sheetMoreCue="divider-always-shadow"
-                  divider={actions != null ? 'shadow' : undefined}
-                />
-              )}
+              {children != null &&
+                (scrollContent ? (
+                  // 中身だけをスクロールさせる。ScrollArea と同じ枠。続きの印は枠の上下に置く
+                  //   角は面の角に合わせて丸める（貼り付けた DialogActions の面が、面の下の角からはみ出さないように）
+                  <MoreCueScroll
+                    focusable="auto"
+                    viewportRef={cues}
+                    viewportSlot="dialog-content"
+                    className="min-h-0 flex-1 rounded-b-[calc(var(--radius-card)-var(--border-width-thin))]"
+                    viewportClassName={[
+                      'overscroll-contain px-(--dialog-padding) pt-2',
+                      // 下の余白は、下の操作の帯（actions・DialogActions）か、なければ中身が持つ
+                      actions == null && !slot.placed && 'pb-(--dialog-padding)',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    before={
+                      <SheetMoreCue
+                        edge="top"
+                        sheet
+                        sheetMoreCue="divider-always-shadow"
+                        divider="scrollable"
+                      />
+                    }
+                    after={
+                      !slot.placed && (
+                        <SheetMoreCue
+                          edge="bottom"
+                          sheet
+                          sheetMoreCue="divider-always-shadow"
+                          divider={actions != null ? 'shadow' : undefined}
+                        />
+                      )
+                    }
+                  >
+                    <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
+                  </MoreCueScroll>
+                ) : (
+                  <div data-slot="dialog-content" className="px-(--dialog-padding) pt-2">
+                    <OverlayActionsContext value={slot.value}>{children}</OverlayActionsContext>
+                  </div>
+                ))}
               {actions != null && (
                 <div
                   data-slot="dialog-footer"

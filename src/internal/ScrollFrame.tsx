@@ -4,16 +4,19 @@ import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import {
   type ComponentProps,
   type CSSProperties,
+  type MouseEvent,
+  type ReactElement,
   type ReactNode,
   type Ref,
   useCallback,
 } from 'react';
 
-import { scrollAreaStyles } from './scroll-area-styles';
+import { type ScrollAreaScrollbar, scrollAreaStyles } from './scroll-area-styles';
 import { SheetMoreCue } from './sheet/SheetMoreCue';
 import { useMergedRefs } from './use-merged-refs';
 import { useMoreCues } from './sheet/use-more-cues';
 import { useInlineCues } from './use-inline-cues';
+import { useKeyboardScroller } from './use-keyboard-scroller';
 
 // スクロールする枠の中身（軸 93）。ScrollArea 部品と、部品の中でスクロールさせる場所が共有する
 //   ScrollArea: そのまま使う（枠はキーボードで止まり、上下左右の影と両向きのつまみを出す）
@@ -45,9 +48,11 @@ export interface ScrollFrameProps {
   /**
    * 枠をキーボードの止まり先にするか。欄や面の中に置くときは false にして、
    * その中にもう1つの止まり先を作らない（中の要素へ移ったときは、ブラウザが見える位置へ送る）
+   * auto は、ブラウザのスクロールする箱と同じく、あふれていて中に Tab で止まれるものがないときだけ止まる
+   * （シートや Dialog の中身。開いた直後のフォーカスは変えない — use-keyboard-scroller）
    * @default true
    */
-  focusable?: boolean;
+  focusable?: boolean | 'auto';
   /**
    * 続きがある端に、内側の影を落とすか
    * @default true
@@ -74,11 +79,43 @@ export interface ScrollFrameProps {
    * つまみの出し方。scroll は枠に載せたとき・スクロール中・キーボードで止まったときだけ、always はいつも
    * @default 'scroll'
    */
-  scrollbar?: 'scroll' | 'always';
+  scrollbar?: ScrollAreaScrollbar;
   /** 枠の名前。付けると、枠は名前付きの領域（region）になる */
   label?: string;
   /** スクロールする要素を受け取る（影の計算のほかに要るとき）。付いたときとはずれたときに呼ばれる */
   onViewport?: (element: HTMLDivElement | null) => void;
+  /**
+   * スクロールする要素（Viewport）の印（data-slot）。部品の中身の印（sheet-content など）をそのまま残すときに渡す
+   * @default 'scroll-area-viewport'
+   */
+  viewportSlot?: string;
+  /** スクロールする要素を、別の部品（Base UI の Drawer.Content など）で描く */
+  viewportRender?: ReactElement;
+  /** 枠の中、スクロールする要素の前と後ろに置くもの（続きの印 SheetMoreCue など。枠に書く --cue-* を読める） */
+  before?: ReactNode;
+  after?: ReactNode;
+}
+
+// フォーカスを受ける要素（tabindex が負のものも含む。押すとフォーカスを受けるもの）
+const FOCUSABLE =
+  'a[href],button,input:not([type="hidden"]),select,textarea,summary,iframe,[tabindex],[contenteditable]:not([contenteditable="false"])';
+
+/**
+ * 止まり先にしない枠（focusable={false}）を押したとき、枠そのものにフォーカスを渡さない。
+ * 枠には tabIndex=-1 を置くので、そのままでは押すと枠がフォーカスを受け、欄（Combobox の打つ欄）や
+ * 面（Embed の押せる面）からフォーカスが抜ける。押した先がフォーカスできる要素でなければ、ブラウザが
+ * フォーカスできない箇所を押したときと同じく、枠の外のいちばん近いフォーカスできる要素へ渡す
+ * （いまのフォーカスがすでにその中にあれば動かさない）。押す操作（click）は止めない
+ */
+function keepFocusOffViewport(event: MouseEvent<HTMLDivElement>) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  const viewport = event.currentTarget;
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest(FOCUSABLE) !== viewport) return;
+  event.preventDefault();
+  const outer = viewport.parentElement?.closest<HTMLElement>(FOCUSABLE);
+  const active = viewport.ownerDocument.activeElement;
+  if (outer && !(active && outer.contains(active))) outer.focus({ preventScroll: true });
 }
 
 export function ScrollFrame({
@@ -102,6 +139,10 @@ export function ScrollFrame({
   scrollbar = 'scroll',
   label,
   onViewport,
+  viewportSlot = 'scroll-area-viewport',
+  viewportRender,
+  before,
+  after,
 }: ScrollFrameProps) {
   const styles = scrollAreaStyles({ scrollbar });
   const { className: ownContentClassName, ...contentRest } = contentProps ?? {};
@@ -122,8 +163,10 @@ export function ScrollFrame({
     },
     [moreCues, inlineCues, edgeShadow, inlineEdges, onViewport]
   );
-  // 内部の ref（影の計算）と、使う側が渡した ref をつなぐ（ADR-0250）
-  const viewportRef = useMergedRefs(setViewport, ownViewportRef);
+  // focusable="auto": あふれていて中に止まり先がないときだけ止まる
+  const keyboard = useKeyboardScroller(focusable === 'auto');
+  // 内部の ref（影の計算・止まり先の判定）と、使う側が渡した ref をつなぐ（ADR-0250）
+  const viewportRef = useMergedRefs(setViewport, keyboard.ref, ownViewportRef);
   return (
     <BaseScrollArea.Root
       ref={ref}
@@ -132,12 +175,22 @@ export function ScrollFrame({
       data-slot={slot}
       className={styles.root({ className })}
     >
+      {before}
       <BaseScrollArea.Viewport
         {...viewportRest}
+        onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
+          viewportRest.onMouseDown?.(event);
+          if (focusable === false) keepFocusOffViewport(event);
+        }}
         ref={viewportRef}
-        // 止まり先にしないときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
-        {...(focusable ? {} : { tabIndex: -1 })}
-        data-slot="scroll-area-viewport"
+        render={viewportRender}
+        // 止まり先にしないとき・auto のときだけ tabIndex を置く（渡すと、スクロールできるとき止まる Base UI の既定を消してしまう）
+        {...(focusable === true
+          ? {}
+          : { tabIndex: focusable === 'auto' && keyboard.stop ? 0 : -1 })}
+        data-slot={viewportSlot}
+        // つまみを出す条件（キーボードで止まったとき）が読む印。data-slot は部品が変えることがあるので別に置く
+        data-scroll-viewport=""
         className={styles.viewport({
           className: [viewportClassName, ownViewportClassName].filter(Boolean).join(' '),
         })}
@@ -151,6 +204,7 @@ export function ScrollFrame({
           {children}
         </BaseScrollArea.Content>
       </BaseScrollArea.Viewport>
+      {after}
       {edgeShadow && (
         <div className={styles.edges()}>
           {/* 上下の端の影。Select・シートと同じ部品で描く */}
@@ -181,6 +235,7 @@ export function ScrollFrame({
       )}
       {orientation !== 'horizontal' && (
         <BaseScrollArea.Scrollbar
+          data-slot="scroll-area-scrollbar"
           orientation="vertical"
           className={styles.scrollbar({ className: scrollbarClassName })}
         >
@@ -189,6 +244,7 @@ export function ScrollFrame({
       )}
       {orientation !== 'vertical' && (
         <BaseScrollArea.Scrollbar
+          data-slot="scroll-area-scrollbar"
           orientation="horizontal"
           className={styles.scrollbar({ className: scrollbarClassName })}
         >

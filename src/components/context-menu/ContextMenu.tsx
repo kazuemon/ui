@@ -1,5 +1,6 @@
 'use client';
 
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 import { ContextMenu as BaseContextMenu } from '@base-ui/react/context-menu';
 import type { ReactElement, ReactNode } from 'react';
 
@@ -104,6 +105,12 @@ export interface ContextMenuProps {
    */
   closeOnSwipe?: boolean;
   /**
+   * 浮かべたときに、一覧が長くてスクロールするときのつまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。シートでは、スクロール中だけ出します
+   * @default 'scroll'
+   */
+  popoverScrollbar?: ScrollAreaScrollbar;
+  /**
    * シートの閉じる × の読み上げの名前
    * @default '閉じる'
    */
@@ -166,6 +173,7 @@ export function ContextMenu({
   groupLabelStyle = 'label',
   submenuSheet = 'fixed',
   closeOnSwipe = false,
+  popoverScrollbar = 'scroll',
   closeName,
   backName,
   highlightArea = false,
@@ -193,6 +201,7 @@ export function ContextMenu({
     groupLabelStyle,
     submenuSheet,
     closeOnSwipe,
+    popoverScrollbar,
     closeName,
     backName,
   });

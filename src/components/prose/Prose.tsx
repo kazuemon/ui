@@ -159,7 +159,9 @@ const scrollers =
 
 /**
  * 記事の本文。Markdown などを変換した素の HTML に、読む部品と同じ見た目と、要素のあいだの余白を付けます。
- * 部品（Heading・Text・List・CodeBlock・Table など）を手で並べたときも、同じ余白が付きます
+ * 部品（Heading・Text・List・CodeBlock・Table など）を手で並べたときも、同じ余白が付きます。
+ * 素の表と pre は、あふれた分をブラウザのスクロールで送ります。続きの影やマウスで引っぱる動きを付けるには、
+ * MDX の components で table を Table に、pre を CodeBlock に差し替えます
  */
 export function Prose({ as: Tag = 'div', className, ref, ...props }: ProseProps) {
   const rootRef = useRef<HTMLElement | null>(null);

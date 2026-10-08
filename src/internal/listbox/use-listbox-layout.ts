@@ -48,19 +48,15 @@ export function useListboxLayout({
   const loadingRowRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<SheetMetrics | null>(null);
   // 上下に続きがあることの印の濃さ（--cue-top・--cue-bottom、0〜1）。スクロールした量に合わせて濃くし、急に出さない
-  // 印の左右の位置（--cue-left・--cue-right）: シートでは端から描き（内側の余白の分だけ外へ出す）、
-  // スクロールバーがあるときはその手前で止める。スクロールと高さの変化のたびに、要素の style に直接書く
+  // 一覧の枠（ListboxScroll）に、スクロールと高さの変化のたびに style で直接書く
+  // 印の左右は枠の端まで（枠が面の左右の余白の分だけ外へ広がっているので、印を外へ出し直さない。つまみは幅を取らない）
   const updateCues = useCallback(() => {
     const list = listRef.current;
-    const popup = list?.parentElement;
-    if (!list || !popup) return;
+    const frame = list?.parentElement;
+    if (!list || !frame) return;
     const rest = Math.max(0, list.scrollHeight - list.scrollTop - list.clientHeight);
-    popup.style.setProperty('--cue-top', cueStrength(list.scrollTop));
-    popup.style.setProperty('--cue-bottom', cueStrength(rest));
-    const scrollbar = list.offsetWidth - list.clientWidth;
-    const bleed = 'calc(var(--spacing) * -1)';
-    popup.style.setProperty('--cue-left', bleed);
-    popup.style.setProperty('--cue-right', scrollbar > 0 ? `${scrollbar}px` : bleed);
+    frame.style.setProperty('--cue-top', cueStrength(list.scrollTop));
+    frame.style.setProperty('--cue-bottom', cueStrength(rest));
   }, []);
   const observer = useRef<ResizeObserver | null>(null);
   // いま開いている浮かぶ部分。画面の大きさが変わったときに測り直すため
