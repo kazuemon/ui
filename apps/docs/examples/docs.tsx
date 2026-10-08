@@ -254,7 +254,11 @@ function DocsScreen({
             kazuemon/ui
           </a>
         }
-        actions={<Button variant="outline">GitHub</Button>}
+        actions={
+          <Link href="https://github.com/kazuemon/ui" variant="outline">
+            GitHub
+          </Link>
+        }
       >
         <NavigationMenu>
           <NavigationMenuLink href="#docs" current>
