@@ -278,7 +278,15 @@ export function SignUpScreen({
       {step === 1 && <CodeStep email={email} reply={reply} onDone={() => setStep(2)} />}
       {step === 2 && <ProfileStep onDone={() => setStep(3)} />}
       {done && (
-        <Notice status="success" title="登録が終わりました">
+        <Notice
+          status="success"
+          title="登録が終わりました"
+          actions={
+            <Link href="#new-post" variant="button" color="primary">
+              はじめての投稿をする
+            </Link>
+          }
+        >
           ようこそ。さっそく、はじめての投稿をしてみましょう。
         </Notice>
       )}

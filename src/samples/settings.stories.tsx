@@ -93,17 +93,26 @@ function SaveBar() {
 function ProfileSection() {
   return (
     <Section id="profile" title="プロフィール" lead="ほかの人に表示される情報です。">
-      <Stack direction="horizontal" gap="md" align="center">
-        <Avatar name="かずえもん" size="lg" />
-        <div className="min-w-0 flex-1">
-          <Dropzone
-            label="プロフィール画像"
-            caption="JPEG・PNG、5MB まで"
-            accept="image/png,image/jpeg"
-            maxSize={5 * 1000 * 1000}
-          />
-        </div>
-      </Stack>
+      {/* 今の画像を箱の中に置き、箱のどこを押しても（落としても）替えられるようにする */}
+      <Dropzone
+        label="プロフィール画像"
+        caption="JPEG・PNG、5MB まで"
+        accept="image/png,image/jpeg"
+        maxSize={5 * 1000 * 1000}
+        variant="dashed"
+        // 中身は 1 行で収まるので、箱の最低の高さ（既定の中身の分）は外す
+        className="[--dropzone-min-height:0px]"
+      >
+        <Stack direction="horizontal" gap="md" align="center" className="w-full">
+          <Avatar name="かずえもん" size="xl" />
+          <Stack gap="xs" className="min-w-0 text-start">
+            <Text weight="bold">画像を替える</Text>
+            <Text size="sm" variant="muted">
+              ここに画像を落とすか、押して選びます
+            </Text>
+          </Stack>
+        </Stack>
+      </Dropzone>
       <TextField label="表示名" defaultValue="かずえもん" />
       <TextField
         label="ユーザー名"
