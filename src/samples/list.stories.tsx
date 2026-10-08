@@ -22,7 +22,6 @@ import { DescriptionItem, DescriptionList } from '../components/description-list
 import { Dialog } from '../components/dialog/Dialog';
 import { Heading } from '../components/heading/Heading';
 import { Icon } from '../components/icon/Icon';
-import { Link } from '../components/link/Link';
 import { Menu } from '../components/menu/Menu';
 import { MenuItem, MenuSeparator } from '../components/menu/MenuItem';
 import { NumberFormat } from '../components/number-format/NumberFormat';
@@ -128,7 +127,8 @@ const COLUMNS = 6;
 function StatusBadge({ status }: { status: Status }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <Badge color={statusColor[status]} accessibleName={statusLabel[status]} />
+      {/* 隣に同じ文字があるので、点には名前を付けない（二重に読まれる） */}
+      <Badge color={statusColor[status]} />
       <span>{statusLabel[status]}</span>
     </span>
   );
@@ -158,15 +158,9 @@ function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
             <div className="flex items-center gap-3">
               <Avatar name={member.name} size="sm" />
               <div className="flex min-w-0 flex-col">
-                <Link
-                  href={`#member-${member.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onOpen();
-                  }}
-                >
+                <Button variant="underline" onClick={onOpen}>
                   {member.name}
-                </Link>
+                </Button>
                 <Text as="span" size="sm" variant="subtle">
                   {member.email}
                 </Text>
@@ -200,7 +194,7 @@ function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
               title={member.name}
               trigger={
                 <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
-                  <DotsThreeIcon />
+                  <Icon icon={DotsThreeIcon} standalone />
                 </Button>
               }
             >
@@ -230,6 +224,16 @@ function ListPage({ state }: { state: ListState }) {
       (m.name + m.email).toLowerCase().includes(query.toLowerCase())
   );
   const busy = state === 'loading';
+  // 見本の全体では 12 ページぶんある想定。絞り込むと件数が減るので、ページ数もそれに合わせて減らす
+  const pageCount = Math.max(1, Math.ceil((shown.length / members.length) * 12));
+
+  // 絞り込みが変わったら、ページを先頭に戻す（レンダー中に直接更新する。effect にすると 2 度描画になる）
+  const filterKey = `${query}\0${status}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setPage(1);
+  }
   const count = (s: Status) => all.filter((m) => m.status === s).length;
   const statusName = statusItems.find((item) => item.value === status)?.label;
 
@@ -351,7 +355,7 @@ function ListPage({ state }: { state: ListState }) {
         </TableBody>
       </DataTable>
 
-      {state === 'normal' && <Pagination page={page} count={12} onPageChange={setPage} />}
+      {state === 'normal' && <Pagination page={page} count={pageCount} onPageChange={setPage} />}
 
       <Dialog
         presentation="auto"

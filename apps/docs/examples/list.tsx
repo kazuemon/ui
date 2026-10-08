@@ -21,7 +21,6 @@ import {
   Dialog,
   Heading,
   Icon,
-  Link,
   Menu,
   MenuItem,
   MenuSeparator,
@@ -144,7 +143,8 @@ const COLUMNS = 6;
 function StatusBadge({ status }: { status: Status }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <Badge color={statusColor[status]} accessibleName={statusLabel[status]} />
+      {/* 隣に同じ文字があるので、点には名前を付けない（二重に読まれる） */}
+      <Badge color={statusColor[status]} />
       <span>{statusLabel[status]}</span>
     </span>
   );
@@ -174,15 +174,9 @@ function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
             <div className="flex items-center gap-3">
               <Avatar name={member.name} size="sm" />
               <div className="flex min-w-0 flex-col">
-                <Link
-                  href={`#member-${member.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onOpen();
-                  }}
-                >
+                <Button variant="underline" onClick={onOpen}>
                   {member.name}
-                </Link>
+                </Button>
                 <Text as="span" size="sm" variant="subtle">
                   {member.email}
                 </Text>
@@ -216,7 +210,7 @@ function MemberRow({ member, onOpen }: { member: Member; onOpen: () => void }) {
               title={member.name}
               trigger={
                 <Button iconOnly variant="outline" aria-label={`${member.name} の操作`}>
-                  <DotsThreeIcon />
+                  <Icon icon={DotsThreeIcon} standalone />
                 </Button>
               }
             >
