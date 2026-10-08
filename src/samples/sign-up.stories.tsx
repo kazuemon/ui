@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { SamplePage, densityOf } from './SamplePage';
-import { type ServerReply, SignUpScreen } from './sign-in-parts';
+import { type ServerReply, SignUpScreen } from './sign-up-parts';
 
 // 見本のページ: 新規登録。アカウント → 確認コード → プロフィールの 3 段を、検証のエラー、送信中、サーバーの返事ごと操作して確かめる
 
@@ -71,6 +71,8 @@ export const SignUp: Story = {
       await userEvent.click(canvas.getByRole('checkbox', { name: '利用規約に同意する' }));
       await userEvent.click(canvas.getByRole('button', { name: '次へ' }));
       await waitFor(() => expect(current()).toHaveTextContent('確認コード'), afterReply);
+      // 前の段の欄は消えるので、新しい段の最初の欄へフォーカスが移る
+      await waitFor(() => expect(canvas.getAllByRole('textbox')[0]).toHaveFocus());
     });
 
     await step('6 桁に満たないコードはエラー、6 桁で次の段に進む', async () => {
@@ -86,6 +88,9 @@ export const SignUp: Story = {
       await userEvent.click(canvas.getByRole('button', { name: '登録を終える' }));
       // 知らせは現れる動きを持つので、見えきるまで待つ
       await waitFor(() => expect(canvas.getByText('登録が終わりました')).toBeVisible(), afterReply);
+      await expect(
+        canvas.getByText('登録が終わりました').closest('[data-slot="notice"]')
+      ).toHaveFocus();
     });
   },
 };

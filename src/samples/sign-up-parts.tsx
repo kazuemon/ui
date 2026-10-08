@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { Button } from '../components/button/Button';
 import { Checkbox } from '../components/checkbox/Checkbox';
@@ -192,15 +192,9 @@ function CodeStep({
         </Button>
         <Text size="sm" variant="muted">
           メールが届かないときは、
-          <Link
-            href="#resend"
-            onClick={(event) => {
-              event.preventDefault();
-              setResent(true);
-            }}
-          >
+          <Button variant="underline" size="sm" onClick={() => setResent(true)}>
             コードを送り直す
-          </Link>
+          </Button>
           か、迷惑メールのフォルダを確かめてください。
         </Text>
       </Stack>
@@ -249,6 +243,19 @@ export function SignUpScreen({
   const [step, setStep] = useState(0);
   const [email, setEmail] = useState('');
   const done = step >= steps.length;
+  // 段が変わったら、新しい段の最初の欄へ（終わったら完了の知らせへ）フォーカスを移す。前の段の欄は消えるので、移さないと body に落ちる
+  //   開いた直後（最初の描画）は動かさない
+  const stepRef = useRef<HTMLDivElement>(null);
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const shown = useRef(false);
+  useEffect(() => {
+    if (!shown.current) {
+      shown.current = true;
+      return;
+    }
+    if (step >= steps.length) noticeRef.current?.focus();
+    else stepRef.current?.querySelector<HTMLElement>('input, textarea, select')?.focus();
+  }, [step]);
 
   return (
     <AuthLayout
@@ -265,20 +272,24 @@ export function SignUpScreen({
           <StepperStep key={label} label={label} />
         ))}
       </Stepper>
-      {step === 0 && (
-        <AccountStep
-          reply={reply}
-          showErrorSummary={showErrorSummary}
-          onDone={(next) => {
-            setEmail(next);
-            setStep(1);
-          }}
-        />
-      )}
-      {step === 1 && <CodeStep email={email} reply={reply} onDone={() => setStep(2)} />}
-      {step === 2 && <ProfileStep onDone={() => setStep(3)} />}
+      <div ref={stepRef} className="contents">
+        {step === 0 && (
+          <AccountStep
+            reply={reply}
+            showErrorSummary={showErrorSummary}
+            onDone={(next) => {
+              setEmail(next);
+              setStep(1);
+            }}
+          />
+        )}
+        {step === 1 && <CodeStep email={email} reply={reply} onDone={() => setStep(2)} />}
+        {step === 2 && <ProfileStep onDone={() => setStep(3)} />}
+      </div>
       {done && (
         <Notice
+          ref={noticeRef}
+          tabIndex={-1}
           status="success"
           title="登録が終わりました"
           actions={
