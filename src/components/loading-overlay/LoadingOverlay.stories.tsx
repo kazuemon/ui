@@ -213,9 +213,16 @@ export const Flicker: Story = {
   render: (args) => <Toggle {...args} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // 幕が一度でも描かれたかを見張る（消える動きのあとに残っていないだけでは、出なかったことにならない）
+    let appeared = false;
+    const observer = new MutationObserver(() => {
+      if (canvasElement.querySelector('[data-slot="loading-overlay-veil"]')) appeared = true;
+    });
+    observer.observe(canvasElement, { childList: true, subtree: true });
     await userEvent.click(canvas.getByRole('button', { name: '切り替える' }));
     await userEvent.click(canvas.getByRole('button', { name: '切り替える' }));
     await new Promise((resolve) => setTimeout(resolve, 700));
-    await expect(canvasElement.querySelector('[data-slot="loading-overlay-veil"]')).toBeNull();
+    observer.disconnect();
+    await expect(appeared).toBe(false);
   },
 };
