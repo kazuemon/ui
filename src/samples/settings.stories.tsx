@@ -7,7 +7,7 @@ import { Button } from '../components/button/Button';
 import { Checkbox } from '../components/checkbox/Checkbox';
 import { CheckboxGroup } from '../components/checkbox/CheckboxGroup';
 import { Combobox } from '../components/combobox/Combobox';
-import { Dropzone } from '../components/dropzone/Dropzone';
+import { Dropzone, type DropzoneRejection } from '../components/dropzone/Dropzone';
 import { Fieldset } from '../components/fieldset/Fieldset';
 import { Heading } from '../components/heading/Heading';
 import { MaskField } from '../components/mask-field/MaskField';
@@ -90,7 +90,16 @@ function SaveBar() {
   );
 }
 
+// 受け付けなかった画像の理由。種類と大きさのほかは、まとめて使えないとだけ伝える
+function rejectionText(rejections: DropzoneRejection[]) {
+  const reason = rejections[0]?.reason;
+  if (reason === 'accept') return 'JPEG か PNG の画像を選んでください';
+  if (reason === 'maxSize') return '5MB までの画像を選んでください';
+  return 'この画像は使えません';
+}
+
 function ProfileSection() {
+  const [imageError, setImageError] = useState<string>();
   return (
     <Section id="profile" title="プロフィール" lead="ほかの人に表示される情報です。">
       {/* 今の画像を箱の中に置き、箱のどこを押しても（落としても）替えられるようにする */}
@@ -100,6 +109,12 @@ function ProfileSection() {
         accept="image/png,image/jpeg"
         maxSize={5 * 1000 * 1000}
         variant="dashed"
+        // 種類や大きさが合わない画像は、理由を欄の下に出す。合う画像を選び直したら消す
+        errorText={imageError}
+        onFilesRejected={(rejections) => setImageError(rejectionText(rejections))}
+        onValueChange={(files) => {
+          if (files.length > 0) setImageError(undefined);
+        }}
         // 中身は 1 行で収まるので、箱の最低の高さ（既定の中身の分）は外す
         className="[--dropzone-min-height:0px]"
       >

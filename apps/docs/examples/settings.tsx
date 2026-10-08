@@ -10,6 +10,7 @@ import {
   CheckboxGroup,
   Combobox,
   Dropzone,
+  type DropzoneRejection,
   Fieldset,
   Heading,
   MaskField,
@@ -105,7 +106,16 @@ function SaveBar() {
   );
 }
 
+// 受け付けなかった画像の理由。種類と大きさのほかは、まとめて使えないとだけ伝える
+function rejectionText(rejections: DropzoneRejection[]) {
+  const reason = rejections[0]?.reason;
+  if (reason === 'accept') return 'JPEG か PNG の画像を選んでください';
+  if (reason === 'maxSize') return '5MB までの画像を選んでください';
+  return 'この画像は使えません';
+}
+
 function ProfileSection({ captionPlacement }: { captionPlacement: CaptionPlacement }) {
+  const [imageError, setImageError] = useState<string>();
   return (
     <Section id="profile" title="プロフィール" lead="ほかの人に表示される情報です。">
       {/* 今の画像を箱の中に置き、箱のどこを押しても（落としても）替えられるようにする */}
@@ -116,6 +126,12 @@ function ProfileSection({ captionPlacement }: { captionPlacement: CaptionPlaceme
         accept="image/png,image/jpeg"
         maxSize={5 * 1000 * 1000}
         variant="dashed"
+        // 種類や大きさが合わない画像は、理由を欄の下に出す。合う画像を選び直したら消す
+        errorText={imageError}
+        onFilesRejected={(rejections) => setImageError(rejectionText(rejections))}
+        onValueChange={(files) => {
+          if (files.length > 0) setImageError(undefined);
+        }}
         // 中身は 1 行で収まるので、箱の最低の高さ（既定の中身の分）は外す
         className="[--dropzone-min-height:0px]"
       >
