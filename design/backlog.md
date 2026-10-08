@@ -195,7 +195,6 @@
 2026-09-19 に作りました。決定は [ADR-0133](./adr/0133-calendar-foundation.md)〜[ADR-0142](./adr/0142-calendar-month-motion.md) です。
 
 - 年と月を直接選ぶ機能は決めていません。月の名前を Select 2 つに替える案や、月の一覧に切り替える案があります。数を打ち込む形にするなら、NumberField を作ったあとで検討します
-- DateRangePicker（期間を選ぶ形）は作っていません。カレンダーを 2 か月並べて見せるかも、そのときに決めます（[ADR-0133](./adr/0133-calendar-foundation.md)）。1 日を選ぶ DatePicker は 2026-09-30 に作りました（下の DatePicker の節）
 - Calendar は 7 マス分の決まった幅で、置いた列の幅に広がりません。予約の見本では、下の時刻のボタンの並び（列の幅いっぱい）と右端がそろいません。時刻のボタンを Calendar の幅に合わせると狭くなりすぎるので、見本では合わせていません。Calendar を列の幅に広げる指定（マスを広げる）を持たせるかは決めていません（2026-09-29、見本のページの点検）
 - 今日の印（下線の位置と形）を見直します。日ごとの印のない月でも、下線を数字のすぐ下に寄せるかを含めます（[ADR-0447](./adr/0447-calendar-day-content.md)。2026-10-01、ユーザーの指示）
 - `renderDayContent` の印を読み上げるかは決めていません。いまは見た目だけで、読み上げません
@@ -358,6 +357,59 @@
 - 指（タッチ）では開きません。長押しで開く案を決めていません
 - Card の `size="sm"` に当たる余白の段がありません
 - `nested` のときの画像の角の計算が、Card と別です
+
+### CommandPalette
+
+2026-10-08 に作りました。決定は [ADR-0496](./adr/0496-command-palette-position.md)〜[ADR-0498](./adr/0498-command-palette-key-hints.md) です。
+
+- 待っているあいだの形（候補を非同期で読み込むときの印）を決めていません
+- 候補を非同期で渡す形（外で検索する）と、入れ子のページ（候補を選ぶと次の候補の一覧へ進む）は作っていません
+- 検索欄の位置の生の値（画面の高さの 12%）と、シートの高さ（85% 固定）は、トークンや props にしていません
+- 下の帯のキー操作の案内は、検索欄の説明に結ばず、帯の文として読ませています。この形でよいかは、読み上げソフトで確かめていません
+- 最初の候補に印を当てる `autoHighlight="always"` は、軸にせず決めました。変えたくなったときは見直します
+
+### Popconfirm
+
+2026-10-08 に作りました。決定は [ADR-0499](./adr/0499-popconfirm-actions.md)〜[ADR-0501](./adr/0501-popconfirm-focus.md) です。
+
+- シートで出すときのボタンの並べ方は、浮かべるときと同じです。シートに合う並べ方があるかは決めていません
+- `onAction` が失敗したあとの知らせ方を決めていません。いまは面を閉じずに残し、知らせは `onAction` の中で出します
+- 入力で確かめる形（打った文字が合うときだけ実行できる）は、Popconfirm では作りません。AlertDialog を使います
+
+### Editable
+
+2026-10-08 に作りました。決定は [ADR-0509](./adr/0509-editable-cue.md)〜[ADR-0511](./adr/0511-editable-commit.md) です。
+
+- 周りの文字の大きさに従う形（見出しの中で使う形）を決めていません
+- 確定を拒む形（検証に通らないときは確定しない）を決めていません
+- ダブルクリックで書き換えを始める形を決めていません
+- 読み取り専用の文字の色を決めていません
+- 周りの文字と左端をそろえるか（欄の余白の分だけ右にずれる）は決めていません
+- 長い値を折り返す形を決めていません（いまは 1 行では … で切ります）
+- 複数行のときの、待っている印の位置を決めていません
+- 読み込み中の円と鉛筆のあいだを分けるかは決めていません
+
+### FileInput
+
+2026-10-08 に作りました。決定は [ADR-0506](./adr/0506-file-input-look.md)〜[ADR-0508](./adr/0508-file-input-drop.md) です。
+
+- 幅が 300px 前後のとき、`multipleDisplay="first"` の先頭の名前が数文字まで切れます
+- `multipleDisplay="below"` の欄の下の Chip の列と、Field の下の文（ヘルプテキスト・エラー）のあいだの間を決めていません
+- 長い名前を切るとき、拡張子を残す中間省略にするかは決めていません
+- 保存済みのファイル（`name`・`size`・`url` だけを持つもの）の出し方と、初期値の入口を決めていません
+- 実機のタップと、読み上げソフトでの確かめをしていません
+- `size="sm"` の見た目を確かめていません
+
+### LoadingOverlay
+
+2026-10-08 に作りました。決定は [ADR-0512](./adr/0512-loading-overlay-content.md)〜[ADR-0514](./adr/0514-loading-overlay-timing.md) です。
+
+- 縦に長い領域では、円が領域の真ん中にあって画面の外になることがあります。見えている範囲に貼り付ける（sticky）形は決めていません
+- `delay` のあいだ（幕が出る前）に、同じボタンを二重に押せます。この間を止めるかは決めていません
+- `fullscreen` のときのフォーカス・スクロール・描く場所（portal）を決めていません
+- 文言を小さい面に載せるか（円の下ではなく、面の上に出すか）は決めていません
+- 円の大きさの段を props にするかは決めていません（いまはトークンで変えます）
+- 出入りの長さの props の名前（`enterDuration`・`exitDuration`）は、props.md の語彙にありません
 
 ### 浮かぶ面（Popover・Tooltip・Picker・PreviewCard・NavigationMenu）
 
@@ -594,11 +646,24 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - `variant`（`'field'`・`'button'`）は、見た目だけでなく打てるかどうかも変える props です。[原則 18](./principles.md#18-働きで部品を選び見た目は別に選ぶ)（働きで部品を選び、見た目は別に選ぶ）に照らすと、働きが変わるので別の名前がよいかは決めていません
 - 「今日」（[ADR-0376](./adr/0376-date-picker-today-button.md)）以外のボタンがカレンダーの下の行に増えたとき、どう並べるかは決めていません
-- DateRangePicker（2 か月を並べて期間を選ぶ形）は作っていません。[ADR-0133](./adr/0133-calendar-foundation.md) からの未決事項です
 - 面を開いたとき、フォーカスを面の中へ移します（`trapFocus`）。TimePicker（下）は移しません。意図して分けていますが、理由をまだ書き残していません
 - 面を持つ入力欄（DatePicker・TimePicker）に、重なる部品が持つ props（`sheetDetent`・`dismissible`・`onOpenChangeComplete`）を持たせるかは決めていません（[ADR-0251](./adr/0251-overlay-base-ui-props.md)）。いまはどちらも持たず、シートの高さは画面いっぱい、外を押すと閉じます（原則にない判断の候補）
 - 面の読み上げの名前を何から取るかは、原則で決めていません（原則にない判断の候補）。いまは DatePicker・TimePicker とも欄のラベル（`label`・`accessibleName`）から取り、組み立て（`DatePickerControl`・`TimePickerControl`）で Field にラベルがないときは開く口の名前（`triggerName`）にしています。TimePicker の 1 列の一覧（listbox）の名前は、面と同じ文を二度読ませないよう開く口の名前にしています
 - 組み立て（`DatePickerControl`・`TimePickerControl`）では、開いているあいだ欄をフォーカス中と同じ見た目に保つクラスが付きません。DatePicker・TimePicker は、包む Field に付けています。本体の側に持たせるかは決めていません
+
+### DateRangePicker
+
+2026-10-08 に作りました。決定は [ADR-0502](./adr/0502-date-range-picker-months.md)〜[ADR-0505](./adr/0505-date-range-picker-separator.md) です。
+
+- 欄を 2 つに分ける形（開始と終了を別の欄にする `split`）は、ユーザーの指示で backlog に回しました。作った形のコードは main に残していません。見た目は ADR-0503 の比較画像にあります
+- `navPlacement="end"` と 2 か月を組み合わせたときの見た目は決めていません
+- 狭い幅で、欄の日付が切れます。区切りが入りきらないためで、狭いところではボタン（`variant="button"`）を使う想定です。欄を縦に積む形は決めていません
+- 終わりだけ打ったときの扱い（始まりが空のまま、終わりだけが入る）を決めていません
+- 「適用」ボタンで確定する形（選んでいる途中は欄に反映しない）を決めていません
+- 選んでいる期間の候補（`presets`）に印を付けるかは決めていません。いまは、カレンダーの帯で分かるため付けていません
+- 前後が逆のとき（終わりが始まりより前）の文を決めていません
+- フォームに送る値は、ISO 8601 の期間 1 つにするか、2 つの `name` にするかを決めていません
+- 面の props（`sheetDetent`・`dismissible`）を持たせるかは決めていません（DatePicker・TimePicker と同じ未決です）
 
 ### TimePicker
 
@@ -625,6 +690,16 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 
 - RadioGroup・CheckboxGroup の横並びで、列の数を指定する `columns`（案: `columns?: 2 | 3 | 4`）を足すかは決めていません。`itemWidth="equal"` の列の数は、いまは入れ物の幅で決まります（[ADR-0392](./adr/0392-choice-group-item-width.md)）
 - ラベル付きの Divider で、ラベルを左に寄せる形は決めていません。いまは真ん中だけです（[ADR-0393](./adr/0393-divider-label.md)）
+
+### 第 2 波の props の名前（語彙にないもの）
+
+ユーザーに確かめ中です。決まったら `props.md` に足すか、名前を直します。
+
+- CommandPalette: `moveHintLabel`・`runHintLabel`・`closeHintLabel`、`size` の段の幅（480px・560px・640px）
+- LoadingOverlay: `delay`・`minDuration`・`enterDuration`・`exitDuration`、`variant` の値
+- Editable: `editIndicator`・`blurBehavior`・`showActions`
+- FileInput: `multipleDisplay`・`droppable`・`buttonText`
+- DateRangePicker: `separator`・`numberOfMonths`・`presets`
 
 ### 書き方（2026-10 の全体監査で残したもの）
 
