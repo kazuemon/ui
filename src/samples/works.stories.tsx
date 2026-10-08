@@ -5,7 +5,6 @@ import { AspectRatio } from '../components/aspect-ratio/AspectRatio';
 import { Button } from '../components/button/Button';
 import { Card, CardBody, CardImage, CardTitle } from '../components/card/Card';
 import { Carousel } from '../components/carousel/Carousel';
-import { Chip } from '../components/chip/Chip';
 import { Grid } from '../components/grid/Grid';
 import { Heading } from '../components/heading/Heading';
 import { Image } from '../components/image/Image';
@@ -94,29 +93,17 @@ function WorkList() {
           ))}
         </ToggleGroup>
       </div>
-      {selected.length > 0 && (
-        // 効いている絞り込み。× で 1 つずつ外せる
-        <div className="flex flex-wrap items-center gap-2">
-          <Text as="span" size="sm" variant="subtle">
-            絞り込み:
-          </Text>
-          {selected.map((value) => (
-            <Chip
-              key={value}
-              removeName={`${labelOf(value as WorkCategory)} の絞り込みを外す`}
-              onRemove={() => setSelected((current) => current.filter((item) => item !== value))}
-            >
-              {labelOf(value as WorkCategory)}
-            </Chip>
-          ))}
+      {/* 押した分野の Toggle が絞り込みの状態を見せるので、ここは件数と、まとめて外す操作だけにする */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Text size="sm" variant="subtle" aria-live="polite">
+          {shown.length} 件の作品
+        </Text>
+        {selected.length > 0 && (
           <Button variant="underline" size="sm" onClick={() => setSelected([])}>
             すべて外す
           </Button>
-        </div>
-      )}
-      <Text size="sm" variant="subtle" aria-live="polite">
-        {shown.length} 件の作品
-      </Text>
+        )}
+      </div>
       <Masonry minColumnWidth={220}>
         {shown.map((work) => (
           <Card key={work.slug} href={`#works/${work.slug}`}>
@@ -211,7 +198,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '作品集（ポートフォリオ）の見本です。注目の作品は Carousel と Thumbnails で送り、制作の様子は Video と AspectRatio で比をそろえて並べます。作品の一覧は Masonry にカードを積み、分野の Toggle で絞り込みます。効いている絞り込みは Chip で見せ、× で外せます。ほかの活動は Grid にカードを並べます。',
+          '作品集（ポートフォリオ）の見本です。注目の作品は Carousel と Thumbnails で送り、制作の様子は Video と AspectRatio で比をそろえて並べます。作品の一覧は Masonry にカードを積み、分野の Toggle で絞り込みます。絞り込みは「すべて外す」でまとめて外せます。ほかの活動は Grid にカードを並べます。',
       },
     },
   },

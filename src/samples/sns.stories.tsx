@@ -2,7 +2,7 @@ import { ChatCircleIcon, DotsThreeIcon, HeartIcon, ShareNetworkIcon } from '@pho
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useEffect, useState } from 'react';
 
-import { OverlayClose } from '..';
+import { OverlayClose } from '../index';
 import { Avatar } from '../components/avatar/Avatar';
 import { AvatarGroup } from '../components/avatar-group/AvatarGroup';
 import { Badge } from '../components/badge/Badge';
@@ -69,7 +69,7 @@ function ProfileLink({ person }: { person: Person }) {
             <div className="flex items-center gap-3">
               <Avatar name={person.name} size="lg" />
               <div className="flex min-w-0 flex-col">
-                <Text as="span" className="font-bold">
+                <Text as="span" weight="bold">
                   {person.name}
                 </Text>
                 <Text as="span" size="sm" variant="subtle">
@@ -115,7 +115,7 @@ function Post({
       <Avatar name={person.name} className="self-center" />
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Text as="span" className="font-bold">
+          <Text as="span" weight="bold">
             <ProfileLink person={person} />
           </Text>
           <Text as="span" size="sm" variant="subtle" className="truncate">
@@ -325,7 +325,7 @@ function SnsScreen() {
           <div className="flex min-w-0 items-center gap-3">
             <Avatar name={taro.name} />
             <div className="flex min-w-0 flex-col">
-              <Text as="span" className="font-bold">
+              <Text as="span" weight="bold">
                 <ProfileLink person={taro} />
               </Text>
               <Text as="span" size="sm" variant="subtle">
