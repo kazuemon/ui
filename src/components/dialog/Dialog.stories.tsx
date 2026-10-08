@@ -469,6 +469,13 @@ export const WithFormSheet: Story = {
     );
     note.blur();
     content.scrollTop = 0;
+    // 撮る前に、スクロールで出したつまみが消えきるのを待つ（消える途中で撮ると画像が揺れる）
+    await waitFor(() => expect(dialog.querySelector('[data-scrolling]')).toBeNull());
+    await waitFor(() => {
+      for (const bar of dialog.querySelectorAll('[data-slot="scroll-area-scrollbar"]')) {
+        expect(getComputedStyle(bar).opacity).toBe('0');
+      }
+    });
   },
 };
 

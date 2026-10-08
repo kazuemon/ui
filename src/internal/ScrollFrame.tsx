@@ -235,6 +235,7 @@ export function ScrollFrame({
       )}
       {orientation !== 'horizontal' && (
         <BaseScrollArea.Scrollbar
+          data-slot="scroll-area-scrollbar"
           orientation="vertical"
           className={styles.scrollbar({ className: scrollbarClassName })}
         >
@@ -243,6 +244,7 @@ export function ScrollFrame({
       )}
       {orientation !== 'vertical' && (
         <BaseScrollArea.Scrollbar
+          data-slot="scroll-area-scrollbar"
           orientation="horizontal"
           className={styles.scrollbar({ className: scrollbarClassName })}
         >
