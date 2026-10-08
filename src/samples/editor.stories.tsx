@@ -298,8 +298,8 @@ function EditorScreen() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2">
-        <Text weight="bold">かずえもん.dev</Text>
-        <Menubar accessibleName="エディタのメニュー">
+        <Text weight="bold">Kakuz</Text>
+        <Menubar accessibleName="Kakuz のメニュー">
           <MenubarMenu label="ファイル">
             <MenuItem shortcut="Ctrl+N">新しい記事</MenuItem>
             <MenuSubmenu
