@@ -58,9 +58,11 @@ export const SignUp: Story = {
 
     await step('空のまま進むと、欄ごとにエラーを出す', async () => {
       await userEvent.click(canvas.getByRole('button', { name: '次へ' }));
-      await expect(await canvas.findByText('メールアドレスを入力してください')).toBeVisible();
-      await expect(canvas.getByText('パスワードを入力してください')).toBeVisible();
-      await expect(canvas.getByText('同意が必要です')).toBeVisible();
+      await waitFor(() =>
+        expect(canvas.getByText('メールアドレスを入力してください')).toBeVisible()
+      );
+      await waitFor(() => expect(canvas.getByText('パスワードを入力してください')).toBeVisible());
+      await waitFor(() => expect(canvas.getByText('同意が必要です')).toBeVisible());
     });
 
     await step('正しく入れると、送信中のあと確認コードの段に進む', async () => {
@@ -73,7 +75,7 @@ export const SignUp: Story = {
 
     await step('6 桁に満たないコードはエラー、6 桁で次の段に進む', async () => {
       await userEvent.click(canvas.getByRole('button', { name: '確認する' }));
-      await expect(await canvas.findByText('6 桁のコードを入力してください')).toBeVisible();
+      await waitFor(() => expect(canvas.getByText('6 桁のコードを入力してください')).toBeVisible());
       await userEvent.type(canvas.getAllByRole('textbox')[0], '123456');
       await userEvent.click(canvas.getByRole('button', { name: '確認する' }));
       await waitFor(() => expect(current()).toHaveTextContent('プロフィール'), afterReply);
@@ -83,7 +85,7 @@ export const SignUp: Story = {
       await userEvent.type(canvas.getByLabelText('表示名'), 'かずえもん');
       await userEvent.click(canvas.getByRole('button', { name: '登録を終える' }));
       // 知らせは現れる動きを持つので、見えきるまで待つ
-      await waitFor(() => expect(canvas.getByText('登録が終わりました')).toBeVisible());
+      await waitFor(() => expect(canvas.getByText('登録が終わりました')).toBeVisible(), afterReply);
     });
   },
 };
