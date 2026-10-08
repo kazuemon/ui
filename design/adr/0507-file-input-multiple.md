@@ -55,7 +55,7 @@ C は、1 回目の返事を受けて「欄に件数＋欄の下に Chip の列�
 
 反映なし。
 
-決めた時点のコミットは `81ae2e5e` です。
+決めた時点のコミットは `81ae2e5e` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 81ae2e5e && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 

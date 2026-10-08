@@ -51,7 +51,7 @@ CommandPalette は、キーボードで使う面です。↑↓ で移る・Ente
 
 反映なし。案内の文言の props 名は、props.md の語彙にないため backlog に確認中として残しました。
 
-決めた時点のコミットは `7087a764` です。
+決めた時点のコミットは `7087a764` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 7087a764 && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 

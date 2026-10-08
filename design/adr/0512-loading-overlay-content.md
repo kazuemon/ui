@@ -48,7 +48,7 @@ LoadingOverlay は、カードや表などの領域に幕を重ねて、読み�
 
 反映なし。原則 14 の、面の真ん中の大きな円の文に収まります。
 
-決めた時点のコミットは `9fa2eb24` です。
+決めた時点のコミットは `9fa2eb24` です。PR #164 を squash でマージしたので、このコミットは main にはありません。`git fetch origin pull/164/head` のあとで `git checkout 9fa2eb24 && pnpm storybook` を流すと、決めたときの部品のまま比較を開けます。
 
 ## 比較画像
 
