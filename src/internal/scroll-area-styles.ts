@@ -11,6 +11,9 @@ import { tv } from './tv';
 //   つまみは見えている形がそのまま押せる範囲。帯（Scrollbar）は押せず、帯の上を押すと下の中身に届く
 //   つまみそのものに載せると、枠の内側へ太くなる（膨らんだ姿がそのままつかめる範囲）。つかんで動かすあいだも太いまま
 //   キーボードでは、スクロールできるときだけ枠（Viewport）に Tab で止まり、矢印キーでスクロールする。フォーカスの線は focusRing
+/** つまみの出し方。scroll は載せたとき・スクロール中・キーボードで止まったときだけ、always はいつも */
+export type ScrollAreaScrollbar = 'scroll' | 'always';
+
 export const scrollAreaStyles = tv({
   slots: {
     root: [
@@ -54,7 +57,7 @@ export const scrollAreaStyles = tv({
       scroll: {
         scrollbar: [
           'opacity-0 data-hovering:opacity-100 data-scrolling:opacity-100 data-scrolling:duration-0',
-          'group-has-[[data-slot=scroll-area-viewport]:focus-visible]/scroll-area:opacity-100',
+          'group-has-[[data-scroll-viewport]:focus-visible]/scroll-area:opacity-100',
           // ストーリーの hover の固定（pseudo-states）でも出す
           'group-hover/scroll-area:opacity-100',
         ],

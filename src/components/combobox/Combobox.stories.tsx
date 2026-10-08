@@ -164,7 +164,7 @@ const meta = {
     groupLabelStyle: 'label',
     showGroupSeparator: false,
     hideCaretOnDisabled: false,
-    popoverMoreCue: 'shadow',
+    popoverScrollbar: 'scroll',
     popoverMaxHeight: 'screen',
     loading: false,
     loadingBehavior: 'non-blocking',
@@ -203,7 +203,7 @@ const meta = {
     groupLabelStyle: { control: 'inline-radio', options: ['label', 'caption'] },
     showGroupSeparator: { control: 'boolean' },
     hideCaretOnDisabled: { control: 'boolean' },
-    popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
+    popoverScrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: behaviors },
@@ -389,13 +389,63 @@ export const Grouped: Story = {
   },
 };
 
+export const PressBetweenOptions: Story = {
+  name: '選択肢のあいだを押す',
+  args: {
+    label: '都道府県',
+    items: prefectures,
+    placeholder: '都道府県を打って探す',
+  },
+  parameters: {
+    controls: { include: [] },
+    docs: {
+      description: {
+        story:
+          '一覧の上下の余白や、まとまりの見出しを押しても、フォーカスは欄に残ります。そのまま打って絞り込んだり、矢印キーで選んだりできます。',
+      },
+    },
+  },
+  render: (args, { viewMode }) => (
+    <PopoverFrame>
+      {(container) => (
+        <Combobox
+          {...args}
+          defaultOpen={openOnLoad(viewMode)}
+          portalContainer={container}
+          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+        />
+      )}
+    </PopoverFrame>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    const input = canvas.getByRole('combobox');
+    await userEvent.click(input);
+    // まとまりの見出しを押す
+    const heading = await page.findByText('関東');
+    await userEvent.click(heading);
+    await expect(input).toHaveFocus();
+    // 一覧の余白（スクロールする枠そのもの）を押す
+    const viewport = heading.closest<HTMLElement>('[data-scroll-viewport]')!;
+    await userEvent.pointer({ keys: '[MouseLeft]', target: viewport });
+    await expect(input).toHaveFocus();
+    // 欄に残っているので、矢印キーで選択肢に印が付く
+    await userEvent.keyboard('{ArrowDown}');
+    await waitFor(() =>
+      expect(
+        page.getAllByRole('option').some((option) => option.hasAttribute('data-highlighted'))
+      ).toBe(true)
+    );
+  },
+};
+
 // Show code: 枠（PopoverFrame）の中身は出ないので、使い方を source.code に手で書く
 export const Open: Story = {
   tags: ['visual'],
   name: '開いた状態',
   args: { defaultValue: 'ward-3' },
   parameters: {
-    controls: { include: ['popoverMaxHeight', 'popoverMoreCue', 'color'] },
+    controls: { include: ['popoverMaxHeight', 'popoverScrollbar', 'color'] },
     docs: {
       description: {
         story:
@@ -419,8 +469,8 @@ export const Open: Story = {
     <PopoverFrame>
       {(container) => (
         <Combobox
-          // 高さの上限と影の指定を変えたときは、測り直すために描き直す
-          key={`${args.popoverMaxHeight}-${args.popoverMoreCue}-${args.color}`}
+          // 高さの上限を変えたときは、測り直すために描き直す
+          key={`${args.popoverMaxHeight}-${args.color}`}
           {...args}
           defaultOpen={openOnLoad(viewMode)}
           portalContainer={container}

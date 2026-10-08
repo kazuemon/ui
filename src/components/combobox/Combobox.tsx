@@ -76,10 +76,10 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { useLoadingAnnouncement } from '../../internal/listbox/use-loading-announcement';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
@@ -100,6 +100,7 @@ import { DISMISS_REASONS, ESCAPE_REASONS } from '../../internal/overlay/close-re
 import type { AddonShape } from '../field-addon/field-addon-context';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import type { LoadingIndicator } from '../loading/Loading';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 /**
  * シートのときの、打つ欄の置き場所
@@ -348,10 +349,11 @@ export interface ComboboxControlProps<Value = string, Multiple extends boolean =
    */
   sheetMoreCue?: SheetMoreCueKind;
   /**
-   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
-   * @default 'shadow'
+   * 浮かぶ選択肢が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
    */
-  popoverMoreCue?: 'none' | 'shadow';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
@@ -490,7 +492,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   sheetCloseText = '完了',
   sheetDetent: sheetDetentProp,
   sheetMoreCue = 'divider-always-shadow',
-  popoverMoreCue = 'shadow',
+  popoverScrollbar = 'scroll',
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
@@ -578,7 +580,6 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
   // 浮かぶ選択肢の寸法（高さの上限・続きの印）
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
   // ソフトウェアキーボードが隠している高さ。シートは、その分だけ持ち上げて見えている範囲に収める
   const keyboardInset = useKeyboardInset(sheet);
@@ -636,7 +637,7 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
     ...positionerRest
   } = positionerProps ?? {};
   const { className: inputClassName, ...inputRest } = inputProps ?? {};
-  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   // 面の要素。シートの中の打つ欄（initialFocus）を、この面の中から探す
   const popupElementRef = useRef<HTMLDivElement>(null);
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef, popupElementRef);
@@ -1001,39 +1002,43 @@ export function ComboboxControl<Value = string, Multiple extends boolean = false
             )}
             {/* 当たる選択肢がないときの行。読み上げにも知らせる箱なので、文がなくても要素は残す */}
             <ComboboxEmpty>{emptyText && !loading ? emptyText : null}</ComboboxEmpty>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
             {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                     シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す */}
-            <BaseCombobox.List
-              ref={listRef}
-              aria-describedby={sheet ? sheetListDescribedBy : fieldDescribedBy}
-              onScroll={sheet || popoverCue ? updateCues : undefined}
-              className={listboxList({
-                presentation: listPresentation,
-                loadingRow,
-                className: 'data-empty:py-0',
-              })}
+            <ListboxScroll
+              presentation={listPresentation}
+              loadingRow={loadingRow}
+              viewportRef={listRef}
+              onScroll={updateCues}
+              scrollbar={sheet ? 'scroll' : popoverScrollbar}
+              viewportClassName="has-data-empty:py-0"
+              before={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+              after={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
             >
-              {grouped
-                ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
-                    <ComboboxGroupSection
-                      key={index}
-                      group={group}
-                      separator={showGroupSeparator && index > 0}
-                      labelStyle={groupLabelStyle}
-                    >
-                      {(item) => <ComboboxOption key={item.value} item={item} />}
-                    </ComboboxGroupSection>
-                  )
-                : (item: ListboxItem<ListboxValue>) => (
-                    <ComboboxOption key={item.value} item={item} />
-                  )}
-            </BaseCombobox.List>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
+              <BaseCombobox.List aria-describedby={sheet ? sheetListDescribedBy : fieldDescribedBy}>
+                {grouped
+                  ? (group: NormalizedListboxGroup<ListboxValue>, index: number) => (
+                      <ComboboxGroupSection
+                        key={index}
+                        group={group}
+                        separator={showGroupSeparator && index > 0}
+                        labelStyle={groupLabelStyle}
+                      >
+                        {(item) => <ComboboxOption key={item.value} item={item} />}
+                      </ComboboxGroupSection>
+                    )
+                  : (item: ListboxItem<ListboxValue>) => (
+                      <ComboboxOption key={item.value} item={item} />
+                    )}
+              </BaseCombobox.List>
+            </ListboxScroll>
             {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042） */}
             {loadingRow && (
               <ListboxLoadingRow

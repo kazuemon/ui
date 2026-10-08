@@ -58,7 +58,6 @@ import { popupSideOffset } from '../../internal/listbox/listbox-measure';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
-  listboxList,
   type ListboxPresentation,
   listboxPopup,
 } from '../../internal/listbox/listbox-styles';
@@ -74,6 +73,7 @@ import { SelectGroupSection, SelectOption } from './SelectOption';
 import { SheetFieldTitle } from '../../internal/sheet/SheetFieldTitle';
 import { sheetBackdropClass } from '../../internal/sheet/sheet-styles';
 import { useSheetMessages } from '../../internal/sheet/use-sheet-messages';
+import { ListboxScroll } from '../../internal/listbox/ListboxScroll';
 import { useListboxLayout } from '../../internal/listbox/use-listbox-layout';
 import { type SheetDetent, useSheetDrag } from '../../internal/sheet/use-sheet-drag';
 import { usePortalContainer } from '../../internal/ui-config';
@@ -86,6 +86,7 @@ import {
   type InputFieldProps,
   splitFieldProps,
 } from '../../internal/field/input-field-props';
+import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 
 export type { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 export type { SheetDetent } from '../../internal/sheet/use-sheet-drag';
@@ -233,10 +234,11 @@ export interface SelectControlProps<Value = string, Multiple extends boolean = f
    */
   sheetMoreCue?: SheetMoreCueKind;
   /**
-   * 浮かぶ選択肢で、上下に続きがあることを内側の影で見せるか。none は見せません
-   * @default 'shadow'
+   * 浮かぶ選択肢が長くてスクロールするときの、つまみの出し方。scroll は一覧に載せたときとスクロール中だけ、
+   * always はいつも出します（ScrollArea の scrollbar と同じ）。続きがある端には、どちらも内側の影を出します
+   * @default 'scroll'
    */
-  popoverMoreCue?: 'none' | 'shadow';
+  popoverScrollbar?: ScrollAreaScrollbar;
   /**
    * 浮かぶ選択肢の高さの上限
    * none: 画面の端まで伸ばす。screen: 画面の高さの半分（項目の数の上限は --select-popup-max-rows）で、最後の項目を半分見せる
@@ -386,7 +388,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
   presentation,
   sheetDetent = 'half',
   sheetMoreCue = 'divider-always-shadow',
-  popoverMoreCue = 'shadow',
+  popoverScrollbar = 'scroll',
   popoverMaxHeight = 'screen',
   loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
@@ -457,7 +459,6 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
 
   // 選択肢の一覧の見た目（src/internal/listbox）に渡す出し方
   const listPresentation: ListboxPresentation = sheet ? 'sheet' : 'popover';
-  const popoverCue = !sheet && popoverMoreCue === 'shadow';
   const popoverFit = !sheet && popoverMaxHeight === 'screen';
   const { headerRef, listRef, loadingRowRef, metrics, updateCues, measure, observeCues } =
     useListboxLayout({
@@ -564,7 +565,7 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
     keyboardShrink: 0,
     sheetDetent: 'half',
   } as const;
-  const popupOwnRef = sheet ? measure : popoverCue || popoverFit ? observeCues : undefined;
+  const popupOwnRef = sheet ? measure : observeCues;
   const popupRef = useMergedRefs<HTMLDivElement>(popupOwnRef, popupUserRef);
 
   const trigger = (
@@ -760,33 +761,41 @@ export function SelectControl<Value = string, Multiple extends boolean = false>(
                 />
               </SheetHeader>
             )}
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
             {/* 一覧の説明（design/adr/0044）: ヘルプテキスト → 欄のエラー → 警告
                   シートは見出しの文を、浮かぶ選択肢は本体の上下の文（本体の説明と同じ）を指す
-                  選択肢に付く文（note）は、その選択肢の説明にあるので入れない */}
-            <BaseSelect.List
-              ref={listRef}
-              aria-describedby={sheet ? sheetListDescribedBy : messageIds}
-              onScroll={sheet || popoverCue ? updateCues : undefined}
-              className={listboxList({ presentation: listPresentation, loadingRow })}
+                  選択肢に付く文（note）は、その選択肢の説明にあるので入れない
+                スクロールするのは一覧を包む枠（ListboxScroll）。続きの印は枠の上下に置く */}
+            <ListboxScroll
+              presentation={listPresentation}
+              loadingRow={loadingRow}
+              viewportRef={listRef}
+              onScroll={updateCues}
+              scrollbar={sheet ? 'scroll' : popoverScrollbar}
+              before={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="top" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
+              after={
+                (long || !sheet) && (
+                  <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
+                )
+              }
             >
-              {isGroupedItems(shownItems)
-                ? shownItems.map((group, index) => (
-                    <SelectGroupSection
-                      // 見出しは文字とは限らないので、並びの番号を key にする
-                      key={index}
-                      group={group}
-                      separator={showGroupSeparator && index > 0}
-                      labelStyle={groupLabelStyle}
-                    />
-                  ))
-                : shownItems.map((item) => <SelectOption key={item.value} item={item} />)}
-            </BaseSelect.List>
-            {(long || popoverCue) && (
-              <SheetMoreCue edge="bottom" sheet={sheet} sheetMoreCue={sheetMoreCue} />
-            )}
+              <BaseSelect.List aria-describedby={sheet ? sheetListDescribedBy : messageIds}>
+                {isGroupedItems(shownItems)
+                  ? shownItems.map((group, index) => (
+                      <SelectGroupSection
+                        // 見出しは文字とは限らないので、並びの番号を key にする
+                        key={index}
+                        group={group}
+                        separator={showGroupSeparator && index > 0}
+                        labelStyle={groupLabelStyle}
+                      />
+                    ))
+                  : shownItems.map((item) => <SelectOption key={item.value} item={item} />)}
+              </BaseSelect.List>
+            </ListboxScroll>
             {/* 止めずに読み込んでいるあいだ、選択肢の最後に出す行（design/adr/0042）
                   読み上げは本体のそばの status の箱（select-status）が知らせるので、この行は role の箱にしない（二重に読まないため） */}
             {loadingRow && (

@@ -3,6 +3,7 @@
 import { createContext, use } from 'react';
 
 import type { DensityScope } from '../density-scope';
+import type { ScrollAreaScrollbar } from '../scroll-area-styles';
 import type { GroupLabelStyle } from '../listbox/listbox-styles';
 
 /** 面を本体のどちら側に出すか */
@@ -53,6 +54,8 @@ export interface MenuContextValue {
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;
+  /** 浮かべたときの、一覧のつまみの出し方（Menu の popoverScrollbar） */
+  popoverScrollbar: ScrollAreaScrollbar;
   closeName?: string;
   backName?: string;
   closeAll: () => void;

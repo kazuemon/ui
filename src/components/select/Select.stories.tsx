@@ -136,7 +136,7 @@ const meta = {
     presentation: 'auto',
     sheetDetent: 'half',
     sheetMoreCue: 'divider-always-shadow',
-    popoverMoreCue: 'shadow',
+    popoverScrollbar: 'scroll',
     popoverMaxHeight: 'screen',
     loading: false,
     loadingBehavior: 'non-blocking',
@@ -172,7 +172,7 @@ const meta = {
       control: 'select',
       options: ['shadow', 'divider', 'divider-always', 'divider-shadow', 'divider-always-shadow'],
     },
-    popoverMoreCue: { control: 'inline-radio', options: ['shadow', 'none'] },
+    popoverScrollbar: { control: 'inline-radio', options: ['scroll', 'always'] },
     popoverMaxHeight: { control: 'inline-radio', options: ['screen', 'none'] },
     loading: { control: 'boolean' },
     loadingBehavior: { control: 'inline-radio', options: behaviors },
@@ -232,11 +232,11 @@ export const Open: Story = {
   tags: ['visual'],
   name: '開いた状態',
   parameters: {
-    controls: { include: ['popoverMaxHeight', 'popoverMoreCue', 'addonShape'] },
+    controls: { include: ['popoverMaxHeight', 'popoverScrollbar', 'addonShape'] },
     docs: {
       description: {
         story:
-          '本体の下に浮かべた選択肢です。`popoverMaxHeight="screen"`（既定）では画面の高さの半分までに収め、最後の項目を半分だけ見せて、続きがあることを示します。上下に続きがあるときは、内側に影を出します（`popoverMoreCue`）。',
+          '本体の下に浮かべた選択肢です。`popoverMaxHeight="screen"`（既定）では画面の高さの半分までに収め、最後の項目を半分だけ見せて、続きがあることを示します。上下に続きがあるときは、内側に影を出します。長いときのつまみは、一覧に載せたときとスクロール中に出ます（`popoverScrollbar="always"` でいつも出します）。',
       },
       source: sourceCode(
         wardsSource,
@@ -248,9 +248,8 @@ export const Open: Story = {
           items={wards}
           defaultValue="ward-3"
           presentation="popover"
-          // 画面の高さの半分までに収め、上下に続きがあれば内側に影を出す（どちらも既定）
+          // 画面の高さの半分までに収める（既定）。上下に続きがあれば内側に影を出す
           popoverMaxHeight="screen"
-          popoverMoreCue="shadow"
         />
         `
       ),
@@ -260,8 +259,8 @@ export const Open: Story = {
     <PopoverFrame>
       {(container) => (
         <Select
-          // 高さの上限と影の指定を変えたときは、測り直すために描き直す
-          key={`${args.popoverMaxHeight}-${args.popoverMoreCue}`}
+          // 高さの上限を変えたときは、測り直すために描き直す
+          key={args.popoverMaxHeight}
           {...args}
           presentation="popover"
           defaultValue="ward-3"

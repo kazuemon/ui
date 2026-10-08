@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, fn, waitFor } from 'storybook/test';
 
 import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from './Table';
+import { Button } from '../button/Button';
 import { Code } from '../code/Code';
 import { DensityPair, Gallery, Specimen } from '../../stories/story-parts';
 
@@ -52,12 +53,19 @@ const meta = {
           '- 列の寄せは `align`（`start`・`center`・`end`）です。数字の列は `end` にし、見出しのセルと本文のセルで同じ値をそろえて渡します。',
           '- セルの縦の寄せは `verticalAlign`（`top`（既定）・`middle`・`bottom`）です。`Table`・`TableRow`・`TableCell` のどこにでも書け、内側の指定が勝ちます。',
           '- 文字はパソコンで 16px、スマホで 14px です。記事の中でも、スマホでは 14px になります。',
-          '- 本文の幅より広いときは、表だけが横にスクロールします。スクロールできるときは、Tab で表に移り、矢印キーで横に動かせます。名前は `caption` か `accessibleName` で付けます。',
+          '- 本文の幅より広いときは、表が外枠ごと横にスクロールします。続きのある端には内側の影が出て、マウスを載せるとつまみが出ます。スクロールできるときは、Tab で表に移り、矢印キーで横に動かせます。名前は `caption` か `accessibleName` で付けます。',
+          '- マウスでは、セルの余白や罫線から引っぱって表を横に動かせます。文字の上から引っぱると文字の選択に、ボタンやリンクの上では押す操作になります。`dragToScroll={false}` で切れます。',
+          '- `maxHeight` を渡すと縦にもスクロールし、見出しの行が上に貼り付きます。',
         ].join('\n'),
       },
     },
   },
-  args: { variant: 'lines', showColumnDivider: false, accessibleName: '部品の高さ' },
+  args: {
+    variant: 'lines',
+    showColumnDivider: false,
+    dragToScroll: true,
+    accessibleName: '部品の高さ',
+  },
   argTypes: {
     variant: { control: 'inline-radio', options: ['lines', 'framed', 'banded'] },
     showColumnDivider: { control: 'boolean' },
@@ -65,6 +73,7 @@ const meta = {
     textSize: { control: 'inline-radio', options: ['md', 'sm'] },
     showStripes: { control: 'boolean' },
     hideRowDivider: { control: 'boolean' },
+    dragToScroll: { control: 'boolean' },
     caption: { control: 'text' },
   },
   render: (args) => (
@@ -308,5 +317,162 @@ export const Accessibility: Story = {
     const table = canvas.getByRole('table', { name: '部品の高さ' });
     await expect(table).toBeInTheDocument();
     await expect(canvas.getAllByRole('columnheader')).toHaveLength(3);
+  },
+};
+
+const wideColumns = ['日付', 'タイトル', 'カテゴリ', '文字数', '閲覧数', 'いいね', '操作'];
+
+const WideTable = ({
+  onAction,
+  ...props
+}: Parameters<typeof Table>[0] & { onAction?: () => void }) => (
+  <Table variant="framed" {...props}>
+    <TableHead>
+      <TableRow>
+        {wideColumns.map((label) => (
+          <TableHeader key={label}>{label}</TableHeader>
+        ))}
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {[
+        ['2026-09-17', 'ポートフォリオを作り直しました', 'Design', '3200', '1204', '48'],
+        ['2026-09-24', '表を横に送る', 'Note', '1800', '512', '12'],
+      ].map((row) => (
+        <TableRow key={row[0]}>
+          {row.map((value) => (
+            <TableCell key={value}>{value}</TableCell>
+          ))}
+          <TableCell>
+            <Button size="sm" variant="outline" onClick={onAction}>
+              編集
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+);
+
+// 合成の pointer イベントを、画面の点 (x, y) にある要素へ送る。buttons は押しているボタン（既定は離すとき 0、ほかは左）
+function pointer(
+  type: string,
+  x: number,
+  y: number,
+  target?: Element | null,
+  buttons = type === 'pointerup' ? 0 : 1
+) {
+  const element = target ?? document.elementFromPoint(x, y);
+  element?.dispatchEvent(
+    new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons,
+      clientX: x,
+      clientY: y,
+    })
+  );
+  return element;
+}
+
+/** セルの右下の角の近く（余白で、文字のない場所） */
+function blankPointOf(cell: Element) {
+  const rect = cell.getBoundingClientRect();
+  return { x: rect.right - 3, y: rect.bottom - 3 };
+}
+
+// 表の中の「編集」ボタンが押されたか
+const onEdit = fn();
+
+export const DragToScroll: Story = {
+  name: 'マウスで引っぱる',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'はみ出して横にスクロールできる表は、マウスで引っぱって動かせます。文字の上から引っぱると文字を選び、ボタンの上では押す操作になります。セルの余白や罫線から引っぱったときだけ表が動きます。`dragToScroll={false}` で切れます。',
+      },
+    },
+  },
+  render: () => (
+    <div className="flex w-[20rem] flex-col gap-6">
+      <WideTable accessibleName="引っぱれる表" onAction={onEdit} />
+      <WideTable accessibleName="引っぱれない表" dragToScroll={false} />
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    onEdit.mockClear();
+    const viewportOf = (name: string) => canvas.getByRole('region', { name }) as HTMLElement;
+    const draggable = await waitFor(() => viewportOf('引っぱれる表'));
+    const fixed = viewportOf('引っぱれない表');
+    // 包みは、スクロールできるときだけ Tab で止まる
+    await expect(draggable).toHaveAttribute('tabindex', '0');
+
+    // 余白から引っぱると、表が横に動く
+    const cell = draggable.querySelector('tbody td')!;
+    const start = blankPointOf(cell);
+    const clicks = fn();
+    draggable.addEventListener('click', clicks);
+    const target = pointer('pointerdown', start.x, start.y);
+    pointer('pointermove', start.x - 40, start.y, target);
+    pointer('pointermove', start.x - 120, start.y, target);
+    pointer('pointerup', start.x - 120, start.y, target);
+    await expect(draggable.scrollLeft).toBeGreaterThan(100);
+    // 動かしたあとの click は届かない
+    target?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await expect(clicks).not.toHaveBeenCalled();
+    draggable.removeEventListener('click', clicks);
+
+    // ボタンの上から引っぱっても動かず、ボタンは押せる
+    draggable.scrollLeft = draggable.scrollWidth;
+    const before = draggable.scrollLeft;
+    const button = canvas.getAllByRole('button', { name: '編集' })[0];
+    const rect = button.getBoundingClientRect();
+    const onButton = pointer('pointerdown', rect.left + 4, rect.top + 4, button);
+    pointer('pointermove', rect.left + 120, rect.top + 4, onButton);
+    pointer('pointerup', rect.left + 120, rect.top + 4, onButton);
+    await expect(draggable.scrollLeft).toBe(before);
+    button.click();
+    await expect(onEdit).toHaveBeenCalledTimes(1);
+
+    // 文字の上から引っぱると、文字の選択を優先して動かさない
+    draggable.scrollLeft = 0;
+    const text = draggable.querySelector('tbody td')!.firstChild!;
+    const range = document.createRange();
+    range.setStart(text, 2);
+    range.setEnd(text, 3);
+    const glyph = range.getBoundingClientRect();
+    const onText = pointer('pointerdown', glyph.left + 2, glyph.top + glyph.height / 2);
+    pointer('pointermove', glyph.left - 100, glyph.top + glyph.height / 2, onText);
+    pointer('pointerup', glyph.left - 100, glyph.top + glyph.height / 2, onText);
+    await expect(draggable.scrollLeft).toBe(0);
+
+    // 余白で押して表の外で離した（pointerup が表に届かない）あとも、引っぱりは残らない
+    draggable.scrollLeft = 0;
+    const stray = blankPointOf(draggable.querySelector('tbody td')!);
+    const strayTarget = pointer('pointerdown', stray.x, stray.y);
+    pointer('pointermove', stray.x, stray.y + 400, strayTarget);
+    pointer('pointerup', stray.x, stray.y + 400, document.body);
+    // ボタンを押さずに横へ動かしても、表は動かない
+    pointer('pointermove', stray.x - 120, stray.y, strayTarget, 0);
+    await expect(draggable.scrollLeft).toBe(0);
+    await expect(draggable.getAttribute('data-drag-scroll')).not.toBe('dragging');
+    // 離したことが伝わらなくても（buttons が 0 の move が来たら）片づける
+    const lost = pointer('pointerdown', stray.x, stray.y);
+    pointer('pointermove', stray.x - 120, stray.y, lost, 0);
+    await expect(draggable.scrollLeft).toBe(0);
+
+    // dragToScroll={false} では、余白から引っぱっても動かない
+    const fixedStart = blankPointOf(fixed.querySelector('tbody td')!);
+    const onFixed = pointer('pointerdown', fixedStart.x, fixedStart.y);
+    pointer('pointermove', fixedStart.x - 120, fixedStart.y, onFixed);
+    pointer('pointerup', fixedStart.x - 120, fixedStart.y, onFixed);
+    await expect(fixed.scrollLeft).toBe(0);
   },
 };

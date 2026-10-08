@@ -167,10 +167,14 @@ export const Accessibility: Story = {
       await expect(writeText).toHaveBeenCalledTimes(1);
       const text = writeText.mock.calls[0]?.[0] ?? '';
       await expect(text.startsWith("import { createHighlighter } from 'shiki';")).toBe(true);
-      // 横にはみ出す pre だけが Tab で止まる
+      // 横にはみ出すときは、スクロールの枠が Tab で止まる（pre は止まらない）
       await waitFor(() =>
-        expect(canvasElement.querySelector('pre')).toHaveAttribute('tabindex', '0')
+        expect(canvasElement.querySelector('[data-slot="scroll-area-viewport"]')).toHaveAttribute(
+          'tabindex',
+          '0'
+        )
       );
+      await expect(canvasElement.querySelector('pre')).not.toHaveAttribute('tabindex');
     } finally {
       if (original) Object.defineProperty(navigator, 'clipboard', original);
       else Reflect.deleteProperty(navigator, 'clipboard');

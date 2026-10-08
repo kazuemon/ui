@@ -44,11 +44,8 @@ const dataTable = tv({
       '[&_td[align=right]]:whitespace-nowrap',
       // 見出しの行は、縦にスクロールする枠の上に貼り付く（枠の高さに上限がないときは動かない）
       //   下を通る本文を隠すため、見出しには面を置く（lines は地と同じ白、framed・banded はグレーの面。banded の帯の角の外は塗らない）
-      '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1',
-      // 貼り付いた見出しの下の影。スクロールした量（--cue-top）に合わせて濃くする
-      "[&_thead_th]:after:pointer-events-none [&_thead_th]:after:absolute [&_thead_th]:after:inset-x-0 [&_thead_th]:after:top-full [&_thead_th]:after:h-3 [&_thead_th]:after:content-['']",
-      '[&_thead_th]:after:bg-linear-to-b [&_thead_th]:after:from-(color:--color-sheet-edge-shadow) [&_thead_th]:after:to-transparent',
-      '[&_thead_th]:after:opacity-[var(--cue-top,0)]',
+      //   貼り付いた見出しの下の影は、スクロールした量（--cue-top）に合わせて濃くする
+      ...tableStyles.stickyHead,
       // 読み直しのあいだの本文の濃さ
       '[&_tbody]:transition-opacity [&_tbody]:duration-(--duration-loading) motion-reduce:[&_tbody]:transition-none',
       'data-refreshing:[&_tbody]:opacity-(--data-table-refreshing-opacity)',

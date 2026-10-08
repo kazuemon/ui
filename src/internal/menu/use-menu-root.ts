@@ -1,5 +1,6 @@
 'use client';
 
+import type { ScrollAreaScrollbar } from '../scroll-area-styles';
 import { type ReactNode, useState } from 'react';
 
 import { useDensityScope } from '../density-scope';
@@ -33,6 +34,7 @@ export interface MenuRootOptions {
   groupLabelStyle: MenuGroupLabelStyle;
   submenuSheet: MenuSubmenuSheet;
   closeOnSwipe: boolean;
+  popoverScrollbar: ScrollAreaScrollbar;
   closeName?: string;
   backName?: string;
 }
@@ -58,6 +60,7 @@ export function useMenuRoot<T extends HTMLElement = HTMLButtonElement>({
   groupLabelStyle,
   submenuSheet,
   closeOnSwipe,
+  popoverScrollbar,
   closeName,
   backName,
 }: MenuRootOptions) {
@@ -83,6 +86,7 @@ export function useMenuRoot<T extends HTMLElement = HTMLButtonElement>({
     groupLabelStyle,
     submenuSheet,
     closeOnSwipe,
+    popoverScrollbar,
     closeName,
     backName,
     closeAll: close,
