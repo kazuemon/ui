@@ -642,6 +642,18 @@ export {
   type DropzoneVariant,
 } from './components/dropzone/Dropzone';
 export {
+  FileInput,
+  type FileInputBaseProps,
+  FileInputControl,
+  type FileInputControlProps,
+  type FileInputMultipleDisplay,
+  type FileInputProps,
+  type FileInputRejection,
+  type FileInputRejectReason,
+  type FileInputValidateFile,
+  type FileInputVariant,
+} from './components/file-input/FileInput';
+export {
   type DropzoneFileEntry,
   DropzoneFileList,
   type DropzoneFileListProps,

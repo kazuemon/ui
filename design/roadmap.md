@@ -158,7 +158,7 @@
 - [x] CheckboxGroup
 - [x] MaskField
 - [x] Editable
-- [ ] FileInput
+- [x] FileInput
 
 ### 通知
 
