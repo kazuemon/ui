@@ -74,13 +74,16 @@ const chipRemove = tv({
     // sm だけ、Chip の size が丸・アイコンの大きさを直に差し替える（--chip-remove-*-override）
     '[--chip-remove-size:var(--chip-remove-size-override,calc(var(--chip-height)_-_var(--spacing)_*_3))]',
     '[--chip-remove-icon:var(--chip-remove-icon-override,min(var(--spacing-icon),var(--chip-remove-size)))]',
-    'relative inline-flex size-(--chip-remove-size) shrink-0 cursor-pointer items-center justify-center rounded-pill bg-transparent p-0 text-current',
+    'relative inline-flex size-(--chip-remove-size) shrink-0 cursor-pointer items-center justify-center rounded-pill p-0 text-current',
     '[&>svg]:size-[var(--chip-remove-icon,var(--spacing-icon))]',
     ...focusRing,
-    '[transition:background-color_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    // 動かすのは background-color ではなく --flat-bg（theme.css で登録した変数 — ADR-0112）
+    //   currentColor は登録した変数の中で補間できないので、チップの文字の色（--chip-fg・--chip-color-fg）を混ぜる。色は --color-flat-* と同じ
+    'bg-(color:--flat-bg) [--chip-remove-ink:var(--chip-fg,var(--chip-color-fg,var(--color-fg)))] [--flat-bg:transparent]',
+    '[transition:--flat-bg_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
-    'not-disabled:not-data-disabled:hover:bg-(--color-flat-hover)',
-    'not-disabled:not-data-disabled:active:bg-[color-mix(in_oklab,currentColor_var(--flat-press-mix),transparent)]',
+    'not-disabled:not-data-disabled:hover:[--flat-bg:color-mix(in_oklab,var(--chip-remove-ink)_var(--flat-hover-mix),transparent)]',
+    'not-disabled:not-data-disabled:active:[--flat-bg:color-mix(in_oklab,var(--chip-remove-ink)_var(--flat-press-mix),transparent)]',
     'disabled:cursor-not-allowed data-disabled:cursor-not-allowed',
   ],
 });

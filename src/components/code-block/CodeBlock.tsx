@@ -74,7 +74,7 @@ const codeBlock = tv({
       // 平らな要素（原則3）: 文字の色を淡く重ね、押下で沈む。地の塗りは残すので、背景の画像として重ねる
       'hover:[background-image:linear-gradient(var(--color-flat-hover),var(--color-flat-hover))]',
       'active:translate-y-(--flat-press-depth) active:[background-image:linear-gradient(var(--color-flat-press),var(--color-flat-press))]',
-      '[transition:background-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
+      '[transition:translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
       ...focusRing,
       // 外枠が overflow: clip なので、フォーカスの線を内側に引く
       'focus-visible:[outline-offset:calc(var(--focus-ring-width)*-1)]',

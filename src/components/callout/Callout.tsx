@@ -36,9 +36,10 @@ const callout = tv({
       // 押せる範囲と塗り: 帯の上下と、囲みの左右の端まで
       'before:absolute before:-inset-x-(--spacing-control-x) before:inset-y-0 before:-z-1 before:rounded-control',
       'data-panel-open:before:rounded-b-none',
-      'before:[transition:background-color_var(--duration-field)_var(--ease-press)] motion-reduce:before:[transition:none]',
-      // 塗りは hover だけ。囲みの文字の色を混ぜる
-      'hover:before:bg-[color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-hover-mix),transparent)]',
+      // 塗りは hover だけ。囲みの文字の色を混ぜる。動かすのは background-color ではなく --callout-row-fill（theme.css で登録した変数 — ADR-0112）
+      'before:bg-(color:--callout-row-fill) before:[--callout-row-fill:transparent]',
+      'before:[transition:--callout-row-fill_var(--duration-field)_var(--ease-press)] motion-reduce:before:[transition:none]',
+      'hover:before:[--callout-row-fill:color-mix(in_oklab,var(--notice-fg)_var(--callout-row-fill-hover-mix),transparent)]',
       'focus-visible:before:[outline:var(--focus-ring-width)_solid_var(--color-focus-ring)] focus-visible:before:[outline-offset:calc(var(--focus-ring-width)*-1)]',
     ],
     title: 'min-w-0 font-bold text-(color:--notice-title-color)',

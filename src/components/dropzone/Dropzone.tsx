@@ -63,8 +63,9 @@ const dropzoneBox = tv({
   base: [
     'group/dropzone relative flex w-full flex-col items-center overflow-hidden rounded-control',
     'min-h-(--dropzone-min-height)',
-    'border-(length:--border-width-thick) border-(color:--dropzone-border-color) bg-(color:--dropzone-bg)',
-    '[transition-property:background-color,border-color] duration-(--duration-field) ease-press motion-reduce:transition-none',
+    // 塗りは --dropzone-fill に置き、background-color ではなくその変数を動かす（theme.css で登録した変数 — ADR-0112）
+    'border-(length:--border-width-thick) border-(color:--dropzone-border-color) bg-(color:--dropzone-fill) [--dropzone-fill:var(--dropzone-bg)]',
+    '[transition-property:--dropzone-fill,border-color] duration-(--duration-field) ease-press motion-reduce:transition-none',
     // hover（原則3）: フォーカス中は変えない。:hover は input が覆っていても箱の祖先として効く
     'hover:not-focus-within:[--dropzone-bg:var(--dropzone-bg-hover)]',
     // フォーカス（原則2）: マウスでの押下でも枠線を変える。外側の線はキーボードのときだけ（has-focus-visible）
@@ -72,12 +73,12 @@ const dropzoneBox = tv({
     '[outline-width:0px] [outline-offset:var(--focus-ring-offset)] [outline-color:transparent] [outline-style:solid]',
     'has-[:focus-visible]:[outline-width:var(--focus-ring-width)] has-[:focus-visible]:[outline-color:var(--color-focus-ring)]',
     // ファイルを上に持ってきた（ADR-0331）: 受け付けるときは color の面＋線、受け付けないときはいつも危険の面＋線
-    'data-[drag=accept]:border-(color:--dropzone-drag-accept-border) data-[drag=accept]:bg-(color:--dropzone-drag-accept-bg)',
-    'data-[drag=reject]:border-(color:--color-fg-danger) data-[drag=reject]:bg-(color:--color-danger-subtle)',
+    'data-[drag=accept]:border-(color:--dropzone-drag-accept-border) data-[drag=accept]:[--dropzone-fill:var(--dropzone-drag-accept-bg)]',
+    'data-[drag=reject]:border-(color:--color-fg-danger) data-[drag=reject]:[--dropzone-fill:var(--color-danger-subtle)]',
     // エラー（原則2）: 押せない・読み取り専用のときは優先しない（原則13）
-    'data-invalid:not-data-disabled:border-(color:--color-fg-danger) data-invalid:not-data-disabled:bg-(color:--color-danger-subtle)',
+    'data-invalid:not-data-disabled:border-(color:--color-fg-danger) data-invalid:not-data-disabled:[--dropzone-fill:var(--color-danger-subtle)]',
     // 押せない・読み取り専用・送信中（原則13・Slider と同じ useChoiceLock）: 浮かず、塗り・枠線・文字を薄くする。variant によらず同じ見た目
-    'data-disabled:cursor-not-allowed data-disabled:border-(color:--color-line) data-disabled:bg-(color:--color-field-disabled)',
+    'data-disabled:cursor-not-allowed data-disabled:border-(color:--color-line) data-disabled:[--dropzone-fill:var(--color-field-disabled)]',
     'data-disabled:hover:[--dropzone-bg:var(--color-field-disabled)]',
   ],
   variants: {

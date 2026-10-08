@@ -110,7 +110,8 @@ const styles = tv({
       'rounded-[calc(var(--radius-control)-var(--navigation-menu-padding))] px-[calc(var(--spacing-control-x)-var(--navigation-menu-padding))] py-2',
       'bg-(color:--navigation-menu-link-bg) [--navigation-menu-link-bg:transparent]',
       'hover:[--navigation-menu-link-bg:var(--color-field)] focus-visible:[--navigation-menu-link-bg:var(--color-field)]',
-      'transition-[background-color] duration-(--duration-press) ease-(--ease-press) motion-reduce:[transition:none]',
+      // 動かすのは background-color ではなく --navigation-menu-link-bg（theme.css で登録した変数 — ADR-0112）
+      '[transition-property:--navigation-menu-link-bg] duration-(--duration-press) ease-(--ease-press) motion-reduce:[transition:none]',
       ...focusRing,
     ],
     // 前のアイコン。題の 1 行目と縦の中央をそろえる（箱が 1 行より高いときは、行の上にそろえる）

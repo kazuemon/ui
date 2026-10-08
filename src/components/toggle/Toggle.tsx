@@ -27,7 +27,8 @@ const toggle = tv({
     'bg-(color:--toggle-bg) text-(color:--toggle-fg)',
     '[--toggle-bg:var(--color-neutral)] [--toggle-border-color:transparent] [--toggle-fg:var(--toggle-off-fg)]',
     ...focusRing,
-    '[transition:background-color_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),opacity_var(--duration-loading)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
+    // 動かすのは background-color ではなく --toggle-bg（theme.css で登録した変数 — ADR-0112）
+    '[transition:--toggle-bg_var(--duration-press)_var(--ease-press),color_var(--duration-press)_var(--ease-press),border-color_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),opacity_var(--duration-loading)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press),outline-offset_var(--focus-ring-duration)_var(--ease-press)]',
     'motion-reduce:[transition:none]',
     // OFF: 平らな押すものと同じ hover・押下（原則3・design/adr/0027）
     'not-data-pressed:not-[:disabled,[data-disabled]]:hover:[--toggle-bg:var(--toggle-off-hover-bg)]',

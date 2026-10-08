@@ -276,6 +276,17 @@
  *   --switch-row-fill: 行全体を押せるトグルの行の塗り（hover・押下）
  *   --collapsible-row-fill: Collapsible の行の塗り（hover・開いている）
  *   --card-fill: 押せるカードの面（hover）
+ *   --toggle-bg: Toggle の塗り（OFF・ON・hover・押下・押せない）
+ *   --slider-track-fill: Slider のトラックの地（hover）
+ *   --navigation-menu-link-bg: NavigationMenu の面の中の行き先（hover・フォーカス）
+ *   --dropzone-fill: Dropzone の面（hover・ドラッグ中・エラー・押せない）
+ *   --sortable-item-fill: Sortable の項目の面（項目のどこでもつかめるときの hover・持ち上げ・入る場所）
+ *   --resize-handle-line: 幅を変えるつまみの線（hover・フォーカス・動かしているあいだ）
+ *   --callout-row-fill: 畳める Callout の見出しの行（hover）
+ *   --navbar-bg: Navbar の面（スクロールで透かす・透かさない）
+ *   --bar-indicator-fill: Progress・Meter の塗り（Meter の範囲の色）
+ *   --position-dot-fill: Carousel・Gallery の位置の点（いまの点）
+ *   平らな要素の hover・押下の色は currentColor を混ぜるが、登録した変数の中では補間できないので、要素の文字の色の変数を混ぜる
  */
 @property --button-bg {
   syntax: '<color>';
@@ -313,6 +324,56 @@
   initial-value: transparent;
 }
 @property --card-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --toggle-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --slider-track-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --navigation-menu-link-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --dropzone-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --sortable-item-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --resize-handle-line {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --callout-row-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --navbar-bg {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --bar-indicator-fill {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --position-dot-fill {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;

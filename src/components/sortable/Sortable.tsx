@@ -60,13 +60,14 @@ const sortable = tv({
       'text-(length:--text-control) leading-(--leading-control) text-fg',
       // 末尾の移動の操作（SortableMoveActions）は、末尾のつまみがあればその手前に、なければ項目の端に接して置く
       '[--sortable-actions-end:calc(var(--spacing-control-x)*-1)] has-[>*>[data-slot=sortable-handle][data-placement=end]:not([hidden])]:[--sortable-actions-end:0px]',
-      'bg-(color:--sortable-item-bg) [box-shadow:var(--sortable-item-shadow)]',
+      // 塗りは --sortable-item-fill に置く。hover で動かすのは background-color ではなくこの変数（theme.css で登録した変数 — ADR-0112）
+      'bg-(color:--sortable-item-fill) [box-shadow:var(--sortable-item-shadow)] [--sortable-item-fill:var(--sortable-item-bg)]',
       // 入る場所: 中身を消し（場所は残す）、点線の枠だけを見せる。線は寸法を変えないよう内側の outline で描く
       'data-drag-source:[box-shadow:none] data-drag-source:[outline-style:dashed]',
       'data-drag-source:[outline-width:var(--border-width-medium)] data-drag-source:[outline-color:var(--color-line-strong)]',
       'data-drag-source:[outline-offset:calc(var(--border-width-medium)*-1)]',
       // 持ち上げた項目: 白い面・細い輪郭・濃く近い影で、少しだけ大きく。出るときに、置いてあった見た目から持ち上がる
-      'data-dragging:z-1 data-dragging:cursor-grabbing data-dragging:bg-(color:--color-surface)',
+      'data-dragging:z-1 data-dragging:cursor-grabbing data-dragging:[--sortable-item-fill:var(--color-surface)]',
       'data-dragging:scale-(--sortable-lifted-scale) data-dragging:[box-shadow:var(--sortable-lifted-shadow)]',
       'data-dragging:[transition:scale_var(--duration-press)_var(--ease-press),box-shadow_var(--duration-press)_var(--ease-press)]',
       'data-dragging:starting:scale-100 data-dragging:starting:[box-shadow:var(--sortable-item-shadow)]',
@@ -154,8 +155,8 @@ const sortable = tv({
     },
     // 入る場所の塗り（ADR-0339）。outline は点線の枠だけ（既定。地が透ける）、filled は入力欄の塗りの上に点線の枠
     dragSourceVariant: {
-      outline: { item: 'data-drag-source:bg-transparent' },
-      filled: { item: 'data-drag-source:bg-field' },
+      outline: { item: 'data-drag-source:[--sortable-item-fill:transparent]' },
+      filled: { item: 'data-drag-source:[--sortable-item-fill:var(--color-field)]' },
     },
     // 表の行のつまみ。行の端に重ねず、置かれたセル（取っ手の列）の中に、部品の高さで置く
     row: {
@@ -188,8 +189,8 @@ const sortable = tv({
       item: {
         row: 'cursor-grab data-disabled:cursor-default',
         item: [
-          'cursor-grab [transition:background-color_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
-          'not-data-disabled:not-data-drag-source:not-data-dragging:hover:bg-(color:--sortable-item-hover-bg)',
+          'cursor-grab [transition:--sortable-item-fill_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
+          'not-data-disabled:not-data-drag-source:not-data-dragging:hover:[--sortable-item-fill:var(--sortable-item-hover-bg)]',
           'data-disabled:cursor-default',
         ],
       },
