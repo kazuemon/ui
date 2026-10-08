@@ -3,7 +3,7 @@
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { formatFileSize } from './dropzone-utils';
+import { formatFileSize } from '../../internal/dropzone-utils';
 import { Button } from '../button/Button';
 import { Link } from '../link/Link';
 import { Progress } from '../progress/Progress';

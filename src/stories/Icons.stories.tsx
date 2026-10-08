@@ -26,6 +26,7 @@ import {
   InfoIcon,
   ListIcon,
   PencilSimpleIcon,
+  UploadIcon,
   WarningCircleIcon,
   WarningIcon,
   XIcon,
@@ -161,6 +162,12 @@ const entries: Entry[] = [
     regular: <PencilSimpleIcon />,
     bold: <PencilSimpleIcon standalone />,
     use: 'Editable の、書き換えられることを示す印',
+  },
+  {
+    name: 'UploadIcon',
+    regular: <UploadIcon />,
+    bold: <UploadIcon standalone />,
+    use: 'Dropzone の案内と、FileInput の欄の印',
   },
   {
     name: 'WarningCircleIcon',

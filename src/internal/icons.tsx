@@ -345,3 +345,12 @@ export const XLogoIcon = (props: IconProps) => (
     <line x1="200" y1="200" x2="56" y2="56" />
   </Icon>
 );
+
+// 上向きの矢印とトレイ（Phosphor の UploadSimple）。Dropzone の案内と、FileInput の欄に置く
+export const UploadIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <line x1="128" y1="48" x2="128" y2="160" />
+    <polyline points="80 96 128 48 176 96" />
+    <polyline points="48 152 48 200 208 200 208 152" />
+  </Icon>
+);

@@ -15,7 +15,6 @@ import {
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { UploadIcon } from './dropzone-icons';
 import {
   type DropzoneRejection,
   type DropzoneValidateFile,
@@ -24,7 +23,8 @@ import {
   formatAccept,
   formatFileSize,
   syncInputFiles,
-} from './dropzone-utils';
+} from '../../internal/dropzone-utils';
+import { UploadIcon } from '../../internal/icons';
 import { Button } from '../button/Button';
 import type { ChoiceColor } from '../../internal/choice/choice-styles';
 import {
@@ -49,7 +49,7 @@ export type {
   DropzoneRejectReason,
   DropzoneRejection,
   DropzoneValidateFile,
-} from './dropzone-utils';
+} from '../../internal/dropzone-utils';
 
 // ファイルを落として選ぶ場所。入力欄の仲間（原則8）だが、値は文字ではなくファイルの一覧なので、
 //   Slider・Switch と同じく読み取り専用と Form の送信中は「押せないときと同じ見た目」（useChoiceLock）にする。
@@ -314,7 +314,10 @@ export function DropzoneControl({
       <div aria-hidden className={dropzoneContent()}>
         {children ?? (
           <>
-            <UploadIcon className="size-(--dropzone-icon-size) shrink-0 text-fg-muted group-data-disabled/dropzone:text-(color:--color-on-field-disabled)" />
+            <UploadIcon
+              standalone
+              className="size-(--dropzone-icon-size) shrink-0 text-fg-muted group-data-disabled/dropzone:text-(color:--color-on-field-disabled)"
+            />
             <div className="flex flex-col gap-1">
               <p className="font-bold text-fg group-data-disabled/dropzone:text-(color:--color-on-field-disabled)">
                 ここにファイルをドラッグ、またはクリックして選択
