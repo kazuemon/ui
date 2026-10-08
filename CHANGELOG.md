@@ -5,50 +5,46 @@
 
 ### ⚠ BREAKING CHANGES
 
-* Select・Combobox・TagsInput の popoverMoreCue を外しました。影を消す指定（'none'）はなくなり、続きがある端にはいつも内側の影を出します。
-* useToast が知らせの一覧を購読せず、呼んだ部品を描き直さないようにする ([#159](https://github.com/kazuemon/ui/issues/159))
+* Select・Combobox・TagsInput の popoverMoreCue を外しました。影を消す指定（'none'）はなくなり、続きがある端にはいつも内側の影を出します。つまみをいつも出すときは、新しい popoverScrollbar に "always" を渡します ([#162](https://github.com/kazuemon/ui/issues/162)) ([a01a4ad](https://github.com/kazuemon/ui/commit/a01a4ad626f478ac1b0b3e897d5a587ad3bcbd52))
+* useToast は知らせの一覧（toasts）を返さなくなりました。一覧は新しい useToasts で読みます。useToast を呼んだ部品は、知らせが出入りしても描き直されません ([#159](https://github.com/kazuemon/ui/issues/159)) ([b8b2e57](https://github.com/kazuemon/ui/commit/b8b2e57b50f59f05e0c2547fec231202af8b0002))
+
+### 新しいコンポーネント
+
+* CommandPalette: 打って探し、その場で実行する面。⌘K などで開く ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* ContextMenu: 右クリック・長押しで、ポインタの位置に開く操作の一覧 ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e), [072dced](https://github.com/kazuemon/ui/commit/072dcede1f741c90f2785ed5b76e0afd147a91a3), [adbd88d](https://github.com/kazuemon/ui/commit/adbd88dd8595453e105d7a4924e94a73d79fb55f))
+* DateRangePicker: 期間（始まりと終わりの日）を選ぶ欄 ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* Editable: ふだんは文字として見え、押すとその場で書き換えられる欄 ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* FileInput: フォームの 1 行に収まる、ファイルを選ぶ欄 ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* LoadingOverlay: 領域の上に重ねて読み込み中を示し、下の操作を止める幕 ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* Menubar: アプリの上に並ぶ、メニューの帯 ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e), [b0ff049](https://github.com/kazuemon/ui/commit/b0ff049d6686925de8ee95d0cc44648028b69f5a), [5bd38c0](https://github.com/kazuemon/ui/commit/5bd38c0f7095a02acffaccf8675c8bcee8c1053b))
+* NavigationMenu: Navbar の帯から、行き先の一覧を下に開くメニュー ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e), [e122851](https://github.com/kazuemon/ui/commit/e122851d2c63b95fca52d27684564afb859cc899), [e5579ad](https://github.com/kazuemon/ui/commit/e5579ad13f5d3be45afa4b1d9c71a91bef61a061))
+* Popconfirm: ボタンのそばに出る、小さな確かめの面 ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* PreviewCard: リンクに載せる・フォーカスすると出る、行き先のプレビュー。画像の置き方は Card と同じ cardVariant で選ぶ ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e), [6a36f3b](https://github.com/kazuemon/ui/commit/6a36f3b688854fe29f0d4dc97acb2d7e9d918798), [bdf907f](https://github.com/kazuemon/ui/commit/bdf907f963f1ea950a9e4739b88f05423ffbadd0))
+* Toolbar: ボタン・トグル・欄を 1 本に並べ、矢印キーで移る帯 ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e), [7239964](https://github.com/kazuemon/ui/commit/72399642a238836bdabfea82a1d5be1b5c4ac077), [41b98d0](https://github.com/kazuemon/ui/commit/41b98d0ef03fa5bcd8bafcfa796d4fc699f2973f))
+
 
 ### 新しくできること
 
-* CommandPalette・Popconfirm・DateRangePicker・FileInput・Editable・LoadingOverlay を足す（ADR-0496〜0514） ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
-* ContextMenu を足す（軸 531・532 の比較つき） ([072dced](https://github.com/kazuemon/ui/commit/072dcede1f741c90f2785ed5b76e0afd147a91a3))
-* ContextMenu・Menubar・Toolbar・NavigationMenu・PreviewCard を足す（ADR-0476〜0491） ([#161](https://github.com/kazuemon/ui/issues/161)) ([c2e151a](https://github.com/kazuemon/ui/commit/c2e151aac497e89f1fbbdc5b3355c0d9e7176e3e))
-* Menu の項目に iconVariant を足し、NavigationMenuLink と箱を共有する ([a85d64d](https://github.com/kazuemon/ui/commit/a85d64d50024d4e730f5a71a40813ba81c063d4f))
-* Menubar を足す（軸 541〜543 の比較つき） ([b0ff049](https://github.com/kazuemon/ui/commit/b0ff049d6686925de8ee95d0cc44648028b69f5a))
-* NavigationMenu を足す（軸 561〜564 の比較つき） ([e122851](https://github.com/kazuemon/ui/commit/e122851d2c63b95fca52d27684564afb859cc899))
-* PreviewCard を足す（軸 571・572 の比較つき） ([6a36f3b](https://github.com/kazuemon/ui/commit/6a36f3b688854fe29f0d4dc97acb2d7e9d918798))
-* Table は外観ごと横にスクロールし、マウスで引っぱって動かせる。CodeBlock の横のスクロールも ScrollArea の見た目にする（軸 582） ([4d986c6](https://github.com/kazuemon/ui/commit/4d986c6a4c8d9f936bdc3c107250b80a6742579f))
+* Calendar に、月を 2 つ並べる numberOfMonths を足す ([#164](https://github.com/kazuemon/ui/issues/164)) ([d9987c0](https://github.com/kazuemon/ui/commit/d9987c0c51959f7fc40ae2144c6ec32f408b529e))
+* Menu の項目に、アイコンを箱に入れる iconVariant を足す。止まった行では箱を 1 段濃いグレーにする ([a85d64d](https://github.com/kazuemon/ui/commit/a85d64d50024d4e730f5a71a40813ba81c063d4f), [aa0b29c](https://github.com/kazuemon/ui/commit/aa0b29cce15aac73e18442c56522afad27f3c5e2))
+* Table は外観ごと横にスクロールし、マウスで引っぱって動かせる。CodeBlock の横のスクロールも ScrollArea の見た目にする ([#162](https://github.com/kazuemon/ui/issues/162)) ([4d986c6](https://github.com/kazuemon/ui/commit/4d986c6a4c8d9f936bdc3c107250b80a6742579f), [c35b1b7](https://github.com/kazuemon/ui/commit/c35b1b7beae8ad23ce65efa2219be5cb4cf8fe98), [344d5f6](https://github.com/kazuemon/ui/commit/344d5f69941363be08a68dd77fab1946e41e13cb))
 * Toggle と ToggleGroup に size を足す ([#163](https://github.com/kazuemon/ui/issues/163)) ([7c8ea8e](https://github.com/kazuemon/ui/commit/7c8ea8e046b887d7ad50ef429df591c14307f51a))
-* Toolbar を足す（軸 551〜554 の比較つき） ([7239964](https://github.com/kazuemon/ui/commit/72399642a238836bdabfea82a1d5be1b5c4ac077))
 
 
 ### 直したこと
 
+* hover などで色が移り変わるとき、終わりに元の色が一瞬見えてちらつくのを、Slider・Toggle・Dropzone・Chip・Navbar・Progress など 13 か所で直す ([#168](https://github.com/kazuemon/ui/issues/168)) ([37a3e88](https://github.com/kazuemon/ui/commit/37a3e88afca2670e3276d0b9db63eb6ac883f949))
 * Inspector の autoFocus が、開いた直後の描き直しで取りやめられないようにする ([#157](https://github.com/kazuemon/ui/issues/157)) ([19b08ca](https://github.com/kazuemon/ui/commit/19b08cadb4ea94028bb61053ad64dd76369ac14c))
-* Menu の modal を既定値を置かずに Base UI へ渡し、Menubar の中で警告を出さないようにする ([fb25b0a](https://github.com/kazuemon/ui/commit/fb25b0a50c3283d701c39c555e71910566c30540))
 * Toast の残り時間の線が、面の角丸からはみ出さないようにする ([#155](https://github.com/kazuemon/ui/issues/155)) ([af4a477](https://github.com/kazuemon/ui/commit/af4a4777ad8ee1bcc4fedcfe45e895789917c94e))
-* useToast が知らせの一覧を購読せず、呼んだ部品を描き直さないようにする ([#159](https://github.com/kazuemon/ui/issues/159)) ([b8b2e57](https://github.com/kazuemon/ui/commit/b8b2e57b50f59f05e0c2547fec231202af8b0002))
-* ホバー時にちらつく問題の修正をパーツ全体で統一適用 ([#168](https://github.com/kazuemon/ui/issues/168)) ([37a3e88](https://github.com/kazuemon/ui/commit/37a3e88afca2670e3276d0b9db63eb6ac883f949))
-* 浮かぶ一覧の余白や見出しを押しても、フォーカスが欄から抜けないようにする ([e9bf4e4](https://github.com/kazuemon/ui/commit/e9bf4e471e1c32ece3c751271c3d0549fc89f3ac))
-* 表の外で離したとき、表を引っぱる動きが残らないようにする ([344d5f6](https://github.com/kazuemon/ui/commit/344d5f69941363be08a68dd77fab1946e41e13cb))
+* 浮かぶ一覧の余白や見出しを押しても、フォーカスが欄から抜けないようにする ([#162](https://github.com/kazuemon/ui/issues/162)) ([e9bf4e4](https://github.com/kazuemon/ui/commit/e9bf4e471e1c32ece3c751271c3d0549fc89f3ac))
 
 
 ### 見た目
 
-* Autocomplete の一覧をほかの選択肢と同じ枠で描き、つまみの型を ScrollAreaScrollbar にそろえる ([9c5af6a](https://github.com/kazuemon/ui/commit/9c5af6a216aed98fc87e8f6ccd6c188d8824e9e2))
-* Avatar に tile を足し、Tag・Chip の四角いアバターの置き方を決める（ADR-0474・0475） ([#160](https://github.com/kazuemon/ui/issues/160)) ([c7d4d6f](https://github.com/kazuemon/ui/commit/c7d4d6fba4099d828bcc40590f66dd9697484431))
-* ContextMenu に軸 531・532 の決定を反映する（ADR-0476・0477） ([adbd88d](https://github.com/kazuemon/ui/commit/adbd88dd8595453e105d7a4924e94a73d79fb55f))
-* Menubar に軸 541〜543 の決定を反映する（ADR-0478〜0480） ([5bd38c0](https://github.com/kazuemon/ui/commit/5bd38c0f7095a02acffaccf8675c8bcee8c1053b))
-* NavigationMenu に軸 561〜564 の決定を反映する（ADR-0485〜0488） ([e5579ad](https://github.com/kazuemon/ui/commit/e5579ad13f5d3be45afa4b1d9c71a91bef61a061))
-* PreviewCard に軸 571・572 の決定を反映し、画像の置き方を Card と同じ cardVariant にする（ADR-0489・0490） ([bdf907f](https://github.com/kazuemon/ui/commit/bdf907f963f1ea950a9e4739b88f05423ffbadd0))
-* Select・Combobox・TagsInput の popoverMoreCue を外し、popoverScrollbar を足す（軸 580） ([a01a4ad](https://github.com/kazuemon/ui/commit/a01a4ad626f478ac1b0b3e897d5a587ad3bcbd52))
-* Toolbar に軸 551〜554 の決定を反映する（ADR-0481〜0484） ([41b98d0](https://github.com/kazuemon/ui/commit/41b98d0ef03fa5bcd8bafcfa796d4fc699f2973f))
-* 止まった行のアイコンの箱の比較（軸 565） ([0ec855d](https://github.com/kazuemon/ui/commit/0ec855d50415280b8904267fabe204b7b021fe59))
-* 止まった行のアイコンの箱を 1 段濃いグレーにする（ADR-0491） ([aa0b29c](https://github.com/kazuemon/ui/commit/aa0b29cce15aac73e18442c56522afad27f3c5e2))
-* 浮かぶ一覧とシート・Dialog の中身のスクロールを ScrollArea のつまみにそろえる（軸 580・581） ([5d589e2](https://github.com/kazuemon/ui/commit/5d589e2a83e591855dfb4d55da48f48e0d85d093))
-* 表とコードの横のスクロールを ScrollFrame で包み、続きの見せ方の比較を足す（軸 582） ([c35b1b7](https://github.com/kazuemon/ui/commit/c35b1b7beae8ad23ce65efa2219be5cb4cf8fe98))
+* Autocomplete の一覧をほかの選択肢と同じ枠で描き、つまみの型を ScrollAreaScrollbar にそろえる ([#162](https://github.com/kazuemon/ui/issues/162)) ([9c5af6a](https://github.com/kazuemon/ui/commit/9c5af6a216aed98fc87e8f6ccd6c188d8824e9e2))
+* Avatar に tile を足し、Tag・Chip の四角いアバターの置き方を決める ([#160](https://github.com/kazuemon/ui/issues/160)) ([c7d4d6f](https://github.com/kazuemon/ui/commit/c7d4d6fba4099d828bcc40590f66dd9697484431))
+* 浮かぶ一覧とシート・Dialog の中身のスクロールを ScrollArea のつまみにそろえる ([#162](https://github.com/kazuemon/ui/issues/162)) ([5d589e2](https://github.com/kazuemon/ui/commit/5d589e2a83e591855dfb4d55da48f48e0d85d093))
 * 見本を 1 見本 1 ページにまとめ直し、使っていなかった部品を入れる ([#165](https://github.com/kazuemon/ui/issues/165)) ([5c1ecc0](https://github.com/kazuemon/ui/commit/5c1ecc0c2b5cf3ccfaa239e4c04aec75ca3b2b55))
-* 軸 580・581 の比較ストーリーを置く ([fea855f](https://github.com/kazuemon/ui/commit/fea855ffde40f8f66612db0acf01f5da6b834e05))
 
 ## [0.3.0](https://github.com/kazuemon/ui/compare/v0.2.0...v0.3.0) (2026-10-04)
 
