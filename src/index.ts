@@ -78,6 +78,7 @@ export {
   type ToggleIconOnlyProps,
   type ToggleProps,
   type ToggleShape,
+  type ToggleSize,
   type ToggleVariant,
 } from './components/toggle/Toggle';
 export {

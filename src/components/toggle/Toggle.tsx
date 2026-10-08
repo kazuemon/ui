@@ -88,8 +88,18 @@ const toggle = tv({
         'not-data-pressed:data-disabled:no-underline not-data-pressed:data-disabled:[--toggle-bg:transparent]',
       ],
     },
+    // 大きさの段。Button の size と同じ値（sm は密度の寸法を、自分の中だけ小さい段に差し替える。密度では変えない）
+    //   アイコンだけのトグルの正方形も --spacing-control を読むので、一緒に小さくなる
+    size: {
+      md: '',
+      sm: [
+        '[--spacing-control:var(--spacing-control-sm)]',
+        '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
+        '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
+      ],
+    },
   },
-  defaultVariants: { color: 'neutral', variant: 'filled' },
+  defaultVariants: { color: 'neutral', variant: 'filled', size: 'md' },
 });
 
 // アイコンだけのトグル（iconOnly）: 部品の高さの正方形。square（既定）は文字のトグルと同じ角、circle は丸（Button と同じ考え。軸268で決定）
@@ -106,6 +116,9 @@ export type ToggleColor = NonNullable<VariantProps<typeof toggle>['color']>;
 
 /** ON の塗りの強さ（underline は OFF も塗りのない形にする） */
 export type ToggleVariant = NonNullable<VariantProps<typeof toggle>['variant']>;
+
+/** 大きさの段（Button の size と同じ） */
+export type ToggleSize = NonNullable<VariantProps<typeof toggle>['size']>;
 
 interface ToggleBaseProps extends Omit<ComponentProps<'button'>, 'color' | 'value' | 'onChange'> {
   /** 押しているか（制御） */
@@ -138,6 +151,13 @@ interface ToggleBaseProps extends Omit<ComponentProps<'button'>, 'color' | 'valu
    * @default 'filled'
    */
   variant?: ToggleVariant;
+  /**
+   * 大きさ。sm は表の行や小さな面の中に置く、一段小さいトグルです（Button の size と同じ段）。
+   * 指で操作するときも同じ大きさで、押せる高さ（44px）より低くなります。指で押すことが多い画面の主な操作には md を使います。
+   * ToggleGroup の中では、指定しなければ ToggleGroup の size になります
+   * @default 'md'
+   */
+  size?: ToggleSize;
   /** トグルそのもの（button）に付きます */
   className?: string;
 }
@@ -179,6 +199,7 @@ export function Toggle(props: ToggleProps): ReactElement;
 export function Toggle({
   color,
   variant,
+  size,
   className,
   iconOnly = false,
   shape = 'square',
@@ -199,6 +220,7 @@ export function Toggle({
       className={toggle({
         color: color ?? group?.color,
         variant: variant ?? group?.variant,
+        size: size ?? group?.size,
         className: [iconOnly && iconOnlyClass[shape], className],
       })}
       {...props}
