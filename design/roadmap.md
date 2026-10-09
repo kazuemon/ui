@@ -191,7 +191,7 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [x] Popconfirm
 - [ ] ActionBar
 - [ ] Mentions
-- [ ] Cascader
+- [x] Cascader
 - [ ] TreeSelect
 - [ ] Transfer
 
