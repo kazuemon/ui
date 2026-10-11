@@ -860,7 +860,6 @@ export {
   TreeSelectControl,
   type TreeSelectControlProps,
   type TreeSelectItem,
-  type TreeSelectMultipleDisplay,
   type TreeSelectMultipleValue,
   type TreeSelectPathVariant,
   type TreeSelectProps,

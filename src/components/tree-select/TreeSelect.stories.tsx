@@ -66,9 +66,10 @@ const meta = {
           '入れ子になった選択肢を、木をたどって選ぶ欄です。欄の形は Select と同じで、押すと木の面が開きます。',
           '',
           '- 木は `items` に `{ value, label }` で渡し、入れ子の行は `children` に入れます。選べない行には `disabled` を付けます（親に付けると中もすべて選べません）。',
-          '- 1 つ選ぶ形では、行を押すと選んで閉じます。欄には親からのパス（「デザイン / 原則」）を出します。親と区切りは一段淡く出し、本文と同じ色にするときは `pathVariant="default"` です。名前だけにするときは `valueDisplay="last"` です。',
+          '- 1 つ選ぶ形では、行を押すと選んで閉じます。欄には親からのパス（「デザイン / 原則」）を出します。親と区切りは一段淡く出し、本文と同じ色にするときは `pathVariant="default"` です。名前だけにするときは `valueDisplay="last"` です。親と子のあいだの区切りは `separator`（既定は「/」。アイコンも渡せ、`null` で区切りません）です。',
           '- 親の行も選べます。開け閉めは左の印を押すか、→・← で行います。葉だけを選ばせるときは `parentSelectable={false}` にし、親の行は押すと開け閉めだけをします。',
-          '- `multiple` を付けると、行の頭にチェックボックスが出ます。親を選ぶと中もすべて選び、一部だけ選んでいるときは横線の印になります。押しても面は閉じません。',
+          '- `multiple` を付けると、行の頭にチェックボックスが出ます。親を選ぶと中もすべて選び、一部だけ選んでいるときは横線の印になります。押しても面は閉じません。欄には選んだ行をチップで並べ、チップは既定で名前だけです（`valueDisplay="path"` でパスにできます）。',
+          '- 欄の中身をすべて差し替えるときは、Select と同じ `renderValue` に、値から中身を作る関数を渡します。',
           '- 複数選ぶ形の値は、既定では葉（子のない行）だけを並べます。`multipleValue="parents"` で、中をすべて選んだ親を親の値 1 つに畳みます。`"all"` は親と葉の両方です。',
           '- 面の中は ↑↓ で行を移り、→ で開いて中へ、← で閉じて親へ移ります。Enter・Space で選びます。文字を打つと、その文字で始まる行へ移ります。',
           '- 開いたときは、選んだ行の祖先を開いて、選んだ行にフォーカスを置きます。はじめに開く行は `defaultExpanded` でも決められます。',
@@ -83,9 +84,7 @@ const meta = {
     items: docTree,
     multiple: false,
     color: 'neutral',
-    valueDisplay: 'path',
     pathVariant: 'muted',
-    multipleDisplay: 'chips',
     multipleValue: 'leaves',
     parentSelectable: true,
     clearable: false,
@@ -103,9 +102,13 @@ const meta = {
       options: colors,
       table: { defaultValue: { summary: "'neutral'" } },
     },
-    valueDisplay: { control: 'inline-radio', options: ['path', 'last'] },
+    valueDisplay: {
+      control: 'inline-radio',
+      options: ['path', 'last'],
+      table: { defaultValue: { summary: "multiple ? 'last' : 'path'" } },
+    },
     pathVariant: { control: 'inline-radio', options: ['muted', 'default'] },
-    multipleDisplay: { control: 'inline-radio', options: ['chips', 'text'] },
+    separator: { control: 'text' },
     multipleValue: { control: 'inline-radio', options: ['leaves', 'parents', 'all'] },
     presentation: { control: 'inline-radio', options: ['auto', 'popover', 'sheet'] },
     items: { control: false },
@@ -169,7 +172,7 @@ export const OpenMultiple: Story = {
   tags: ['visual'],
   name: '開いた状態（複数選ぶ）',
   parameters: {
-    controls: { include: ['color', 'multipleDisplay', 'multipleValue'] },
+    controls: { include: ['color', 'valueDisplay', 'multipleValue'] },
     docs: {
       description: {
         story:
@@ -214,7 +217,7 @@ export const Colors: Story = {
     <div className="flex flex-wrap gap-6">
       {colors.map((color) => (
         <div key={color} className="flex flex-col gap-6">
-          <PopoverFrame height="h-[22rem]">
+          <PopoverFrame height="h-[28rem]">
             {(container) => (
               <TreeSelect
                 {...single(args)}
@@ -236,7 +239,6 @@ export const Colors: Story = {
                 label={`${color}（複数）`}
                 color={color}
                 multiple
-                multipleDisplay="text"
                 defaultValue={['principles', 'tokens']}
                 defaultExpanded={['design']}
                 presentation="popover"
@@ -319,7 +321,8 @@ export const PickOne: Story = {
   play: async ({ canvas, args, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);
     const button = canvas.getByRole('button', { name: /置き場所/ });
-    await expect(button).toHaveAccessibleName('置き場所 デザイン / 原則');
+    // 区切りは読み上げでは読まない
+    await expect(button).toHaveAccessibleName('置き場所 デザイン 原則');
     await userEvent.click(button);
     const tree = await body.findByRole('tree', { name: '置き場所' });
     const selected = within(tree).getByRole('treeitem', { selected: true });
@@ -341,7 +344,7 @@ export const PickOne: Story = {
     await expect(args.onValueChange).toHaveBeenLastCalledWith('overlays');
     await waitFor(() => expect(body.queryByRole('tree')).not.toBeInTheDocument());
     await expect(button).toHaveFocus();
-    await expect(button).toHaveAccessibleName('置き場所 部品 / 重なる面');
+    await expect(button).toHaveAccessibleName('置き場所 部品 重なる面');
     const hidden = canvasElement.querySelector<HTMLInputElement>('input[name="place"]');
     await expect(hidden?.value).toBe('overlays');
     // 印を押すと開け閉めだけをする（選ばない）

@@ -3,6 +3,7 @@
 import { Field as BaseField } from '@base-ui/react/field';
 import {
   type ComponentProps,
+  Fragment,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -24,7 +25,11 @@ import {
   valuesOf,
 } from './tree-select-items';
 import { TreeSelectPanel } from './TreeSelectPanel';
-import { ComboboxTriggerChips } from '../../internal/combobox-base/ComboboxChips';
+import { Chip } from '../chip/Chip';
+import {
+  comboboxChipClass,
+  comboboxTriggerChipsClass,
+} from '../../internal/combobox-base/combobox-control-styles';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
@@ -51,7 +56,7 @@ export type { TreeSelectItem, TreeSelectMultipleValue } from './tree-select-item
 //   面は欄の下に浮かべ、指で操作していて画面が狭いときはシートにする（DatePicker・TimePicker と同じ PickerOverlay — 原則16）
 //   1 つ選ぶ形: 行を押すと選んで閉じる。親の行を選べるか（parentSelectable）は軸 645
 //   複数選ぶ形（multiple）: 行の頭にチェックボックス。親を選ぶと中もすべて入り、一部なら中間の印。外に渡す値の畳み方（multipleValue）は軸 646
-//   欄に出す文: 1 つ選ぶ形は valueDisplay（軸 643。既定はパスで、親と区切りは一段淡く — pathVariant）、複数選ぶ形は multipleDisplay（軸 644）
+//   欄に出す文: valueDisplay・pathVariant・separator（軸 643。既定はパスで、親と区切りは一段淡く）。複数選ぶ形はチップで、既定は名前だけ（軸 644）。renderValue で差し替えられる
 //   値を消す ×（clearable）は Select と同じ形（欄の右端に重ねる）
 //   読み取り専用・押せない・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
 
@@ -61,17 +66,11 @@ export type TreeSelectValueDisplay = 'path' | 'last';
 /** パスの親と区切りの文字の色。muted は一段淡く（選んだ行の名前が先に目に入る）、default は本文と同じ色 */
 export type TreeSelectPathVariant = 'muted' | 'default';
 
-/** 複数選ぶ形の、欄に出す文。chips は選んだ行をチップで並べ（欄が伸びる）、text は名前を「、」でつないで 1 行に収めます */
-export type TreeSelectMultipleDisplay = 'chips' | 'text';
-
 /** TreeSelect の値の型。単数では `Value | null`、`multiple` では `Value[]` です */
 export type TreeSelectValue<
   Value extends ListboxValue = string,
   Multiple extends boolean = false,
 > = Multiple extends true ? Value[] : Value | null;
-
-// パスの区切り。文字の前後に空きを取る（Breadcrumb の区切りと同じ向き）
-const PATH_SEPARATOR = ' / ';
 
 /** TreeSelect の本体（TreeSelectControl）の props。ラベル・キャプション・状態の文は、包む Field に渡します */
 export interface TreeSelectControlProps<
@@ -104,9 +103,9 @@ export interface TreeSelectControlProps<
    */
   parentSelectable?: boolean;
   /**
-   * 1 つ選ぶ形の、欄に出す文。path は親からのパス、last は選んだ行の名前だけです。
+   * 欄に出す文。path は親からのパス、last は選んだ行の名前だけです。複数選ぶ形では、チップの文に効きます。
    * 長いときは親の側から省きます
-   * @default 'path'
+   * @default multiple ? 'last' : 'path'
    */
   valueDisplay?: TreeSelectValueDisplay;
   /**
@@ -115,10 +114,16 @@ export interface TreeSelectControlProps<
    */
   pathVariant?: TreeSelectPathVariant;
   /**
-   * 複数選ぶ形の、欄に出す文。chips は選んだ行をチップで並べ（欄の高さが伸びます）、text は名前を「、」でつないで 1 行に収めます
-   * @default 'chips'
+   * valueDisplay="path" のときの、親と子のあいだの区切り。文字のほかアイコンも渡せます。読み上げでは読みません。
+   * null では区切らずに続けて書きます
+   * @default '/'
    */
-  multipleDisplay?: TreeSelectMultipleDisplay;
+  separator?: ReactNode;
+  /**
+   * 欄に出す、選んだ値の見せ方。値があるときだけ呼びます（空のときは placeholder）。
+   * 書くと valueDisplay・pathVariant・separator は使わず、複数選ぶ形のチップも出しません
+   */
+  renderValue?: (value: TreeSelectValue<Value, Multiple>) => ReactNode;
   /** はじめに開いている親の行の値（非制御）。書かないときは、選んだ値の祖先を開きます */
   defaultExpanded?: Value[];
   /** 開いている親の行の値（制御） */
@@ -225,9 +230,10 @@ export function TreeSelectControl<
   onValueChange,
   multipleValue = 'leaves',
   parentSelectable = true,
-  valueDisplay = 'path',
+  valueDisplay: valueDisplayProp,
   pathVariant = 'muted',
-  multipleDisplay = 'chips',
+  separator = '/',
+  renderValue,
   defaultExpanded,
   expanded: expandedProp,
   onExpandedChange,
@@ -252,6 +258,8 @@ export function TreeSelectControl<
   // 本体はボタンなので、ラベルを <label> にしない
   useFieldControlKind({ nativeLabel: false });
   const multiple = multipleProp ?? false;
+  // 複数選ぶ形のチップは、既定では名前だけ（パスはチップに収まりにくいため — 軸 644）
+  const valueDisplay = valueDisplayProp ?? (multiple ? 'last' : 'path');
   const disabled = field?.disabled ?? false;
   const blocking = field?.blocking ?? false;
   const index = useMemo(() => indexTree(items as TreeSelectItem<ListboxValue>[]), [items]);
@@ -362,7 +370,17 @@ export function TreeSelectControl<
             multiple={multiple}
             valueDisplay={valueDisplay}
             pathVariant={pathVariant}
-            multipleDisplay={multipleDisplay}
+            separator={separator}
+            renderValue={
+              renderValue
+                ? () =>
+                    renderValue(
+                      (multiple
+                        ? shownNodes.map((node) => node.value)
+                        : (shownNodes[0]?.value ?? null)) as TreeSelectValue<Value, Multiple>
+                    )
+                : undefined
+            }
             placeholder={placeholder}
             readOnly={readOnly}
             color={color}
@@ -428,7 +446,8 @@ interface TreeSelectButtonProps {
   multiple: boolean;
   valueDisplay: TreeSelectValueDisplay;
   pathVariant: TreeSelectPathVariant;
-  multipleDisplay: TreeSelectMultipleDisplay;
+  separator: ReactNode;
+  renderValue: (() => ReactNode) | undefined;
   placeholder: string;
   readOnly: boolean;
   color: ListboxColor;
@@ -445,7 +464,8 @@ function TreeSelectButton({
   multiple,
   valueDisplay,
   pathVariant,
-  multipleDisplay,
+  separator,
+  renderValue,
   placeholder,
   readOnly,
   color,
@@ -459,7 +479,8 @@ function TreeSelectButton({
   const valueId = useId();
   const blocking = field?.blocking ?? false;
   const disabled = field?.disabled ?? false;
-  const chips = multiple && multipleDisplay === 'chips' && nodes.length > 0;
+  // 複数選ぶ形は、チップが折り返して欄が伸びる
+  const chips = multiple && nodes.length > 0;
   const formValues = nodes.map((node) => String(node.value));
   return (
     <BaseField.Control
@@ -498,7 +519,8 @@ function TreeSelectButton({
                   multiple={multiple}
                   valueDisplay={valueDisplay}
                   pathVariant={pathVariant}
-                  multipleDisplay={multipleDisplay}
+                  separator={separator}
+                  renderValue={renderValue}
                   placeholder={placeholder}
                   color={color}
                   disabled={disabled || blocking}
@@ -552,12 +574,15 @@ function TreeSelectButton({
 }
 
 // 欄に出す文。値がないときは見本の文字
+//   1 つ選ぶ形は文で、複数選ぶ形はチップで出す（軸 644）。どちらも valueDisplay・pathVariant・separator に従う
+//   renderValue を渡したときは、値があるときの中身をそれで差し替える（Select と同じ）
 function TreeSelectValueText({
   nodes,
   multiple,
   valueDisplay,
   pathVariant,
-  multipleDisplay,
+  separator,
+  renderValue,
   placeholder,
   color,
   disabled,
@@ -566,46 +591,80 @@ function TreeSelectValueText({
   multiple: boolean;
   valueDisplay: TreeSelectValueDisplay;
   pathVariant: TreeSelectPathVariant;
-  multipleDisplay: TreeSelectMultipleDisplay;
+  separator: ReactNode;
+  renderValue: (() => ReactNode) | undefined;
   placeholder: string;
   color: ListboxColor;
   disabled: boolean;
 }): ReactNode {
   if (nodes.length === 0)
     return <span className="min-w-0 truncate text-(color:--field-placeholder)">{placeholder}</span>;
-  if (multiple) {
-    if (multipleDisplay === 'chips')
-      return (
-        <ComboboxTriggerChips
-          values={nodes.map((node) => node.value)}
-          labelOf={new Map(nodes.map((node) => [node.value, node.label]))}
+  if (renderValue) return renderValue();
+  const path = (node: TreeNode) => (
+    <TreeSelectPath
+      node={node}
+      valueDisplay={valueDisplay}
+      separator={separator}
+      // 押せない欄では淡くしない（押せない文字の色より親だけ濃く見えるため）
+      muted={pathVariant === 'muted' && !disabled}
+    />
+  );
+  if (!multiple) return path(nodes[0]);
+  // チップの × は置かない（欄そのものがボタンなので、外すのは面の中で行う。Combobox の押して開く欄と同じ）
+  return (
+    <span className={comboboxTriggerChipsClass}>
+      {nodes.map((node) => (
+        <Chip
+          key={String(node.value)}
           color={color}
-          chipSize="md"
+          size="md"
           disabled={disabled}
-        />
-      );
-    return <span className="min-w-0 truncate">{nodes.map((node) => node.label).join('、')}</span>;
-  }
-  const [node] = nodes as [TreeNode];
+          className={comboboxChipClass}
+        >
+          {path(node)}
+        </Chip>
+      ))}
+    </span>
+  );
+}
+
+// 選んだ行の文。path は親からのパスで、長いときは親の側から省き、選んだ行の名前を残す
+//   親と区切りは muted で一段淡くする（軸 643）。区切りは読み上げでは読まない（Cascader と同じ）
+function TreeSelectPath({
+  node,
+  valueDisplay,
+  separator,
+  muted,
+}: {
+  node: TreeNode;
+  valueDisplay: TreeSelectValueDisplay;
+  separator: ReactNode;
+  muted: boolean;
+}) {
   const parents = valueDisplay === 'last' ? [] : ancestorsOf(node);
   if (parents.length === 0) return <span className="min-w-0 truncate">{node.label}</span>;
-  // パス。長いときは親の側から省き、選んだ行の名前を残す
-  //   親と区切りは pathVariant で淡くする（軸 643）。押せない欄では淡くしない（押せない文字の色より親だけ濃く見えるため）
+  const mark =
+    separator == null || separator === '' ? null : (
+      <>
+        {' '}
+        <span aria-hidden data-slot="tree-select-separator" className="mx-[0.3em]">
+          {separator}
+        </span>{' '}
+      </>
+    );
   return (
-    <span className="flex min-w-0">
+    <span className="flex min-w-0 items-baseline">
       <span
         data-slot="tree-select-path"
-        className={cn('min-w-0 truncate', pathVariant === 'muted' && !disabled && 'text-fg-muted')}
+        className={cn('min-w-0 truncate whitespace-pre', muted && 'text-fg-muted')}
       >
-        {parents.map((parent) => parent.label).join(PATH_SEPARATOR)}
-      </span>
-      <span
-        className={cn(
-          'shrink-0 whitespace-pre',
-          pathVariant === 'muted' && !disabled && 'text-fg-muted'
-        )}
-      >
-        {PATH_SEPARATOR}
+        {parents.map((parent, index) => (
+          <Fragment key={String(parent.value)}>
+            {index > 0 && mark}
+            {parent.label}
+          </Fragment>
+        ))}
+        {mark}
       </span>
       <span className="max-w-full shrink-0 truncate">{node.label}</span>
     </span>
