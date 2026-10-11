@@ -189,7 +189,7 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [x] Sortable
 - [ ] Kanban
 - [x] Popconfirm
-- [ ] ActionBar
+- [x] ActionBar
 - [ ] Mentions
 - [ ] Cascader
 - [ ] TreeSelect

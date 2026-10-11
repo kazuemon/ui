@@ -10,6 +10,15 @@ export {
   type AccordionVariant,
 } from './components/accordion/Accordion';
 export {
+  ActionBar,
+  ActionBarButton,
+  type ActionBarButtonProps,
+  type ActionBarButtonStatus,
+  type ActionBarNarrowDisplay,
+  type ActionBarProps,
+  type ActionBarVariant,
+} from './components/action-bar/ActionBar';
+export {
   Affix,
   type AffixPosition,
   type AffixProps,
