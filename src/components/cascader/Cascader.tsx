@@ -7,7 +7,7 @@ import { type CascaderItem, type CascaderValueItem, itemsOnPath } from './cascad
 import {
   type CascaderParentSelect,
   CascaderPanel,
-  type CascaderSheetNavigation,
+  type CascaderSheetHeight,
 } from './CascaderPanel';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
@@ -29,7 +29,7 @@ import { cn } from '../../internal/tv';
 import { useControlled } from '../../internal/use-controlled';
 
 export type { CascaderItem, CascaderValueItem } from './cascader-items';
-export type { CascaderParentSelect, CascaderSheetNavigation } from './CascaderPanel';
+export type { CascaderParentSelect, CascaderSheetHeight } from './CascaderPanel';
 
 // 段をたどって選ぶ欄。親を選ぶと次の段が開き、最後の段（子のない選択肢）まで行くと決まる
 //   欄は Select と同じ形のボタン（押すと開く。右端に ▼）。値は段ごとの value の並び（道筋）
@@ -124,11 +124,17 @@ export interface CascaderControlProps<Value extends CascaderValueItem = string> 
   /** 浮かぶ面の位置を決める要素（Positioner）に広げる props。className は部品のクラスに重ねます */
   positionerProps?: PositionerProps;
   /**
-   * シートで前の段へ戻る手段。back は段の上に「‹ 親の名前」の行を置きます。
-   * tabs は上に段ごとのタブ（選んだ選択肢の名前。まだ選んでいない段は placeholder）を並べ、押すとその段へ戻ります
-   * @default 'back'
+   * 浮かべる形で、まだ開いていない段の空の列を出さないか。既定では、開いたときから木のいちばん深い段の数だけ列を並べ、
+   * 段が増減しても面の幅を変えません（どこまで深く選ぶかも分かります）。true では、開いた段の数に合わせて面が伸び縮みします
+   * @default false
    */
-  sheetNavigation?: CascaderSheetNavigation;
+  hideEmptyColumns?: boolean;
+  /**
+   * シートの高さ（比べている途中。決まったら既定の形に畳んで外します）。
+   * root は 1 段目の高さのまま、grow は長い段へ進むと伸ばして縮めない、tallest は木のいちばん長い段に合わせる、fit はいまの段に合わせて伸び縮みする
+   * @default 'root'
+   */
+  sheetHeight?: CascaderSheetHeight;
   /**
    * 段に選ぶものがないとき（children が空の配列）に出す文
    * @default '選択肢がありません'
@@ -207,7 +213,8 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
   portalContainer,
   popupProps,
   positionerProps,
-  sheetNavigation = 'back',
+  hideEmptyColumns = false,
+  sheetHeight = 'root',
   emptyText = '選択肢がありません',
   closeName = '閉じる',
   backName = '戻る',
@@ -307,8 +314,8 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
         backName={backName}
         parentHintText={parentHintText}
         autoFocus={openedByUser}
-        sheetNavigation={sheetNavigation}
-        placeholder={placeholder}
+        hideEmptyColumns={hideEmptyColumns}
+        sheetHeight={sheetHeight}
       />
     </div>
   );

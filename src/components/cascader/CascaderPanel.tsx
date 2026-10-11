@@ -4,6 +4,7 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -26,6 +27,7 @@ import { MoreCueScroll } from '../../internal/sheet/MoreCueScroll';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import { useMoreCues } from '../../internal/sheet/use-more-cues';
 import { cn, tv } from '../../internal/tv';
+import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 
 // 開いた面の中身。段（列）ごとに、選択肢の一覧（listbox）を 1 つずつ置く
 //   浮かべる形: 段を左から横に並べ、段のあいだに細い区切り線を引く。段ごとに縦にスクロールする
@@ -39,8 +41,11 @@ import { cn, tv } from '../../internal/tv';
 /** 途中の段（親）で決められるか。none は最後の段だけ、row は次の段の先頭に親そのものを選ぶ行を置く */
 export type CascaderParentSelect = 'none' | 'row';
 
-/** シートで前の段へ戻る手段。back は段の上に「‹ 親の名前」の行、tabs は上に段ごとのタブ（選んだ名前）を並べる */
-export type CascaderSheetNavigation = 'back' | 'tabs';
+/**
+ * シートの高さ（比べている途中の切り替え。決まったら畳む）。root は 1 段目の高さのまま（Menu の入れ子の fixed）、
+ * grow は長い段へ進むと伸ばし、縮めない、tallest は木のいちばん長い段に合わせて開いたときから決める、fit はいまの段に合わせて伸び縮みする（Menu の fit）
+ */
+export type CascaderSheetHeight = 'root' | 'grow' | 'tallest' | 'fit';
 
 /** 段の中の 1 行。parentRow は、次の段の先頭に置く「親そのものを選ぶ」行（parentSelect="row"） */
 interface Row<Value extends CascaderValueItem> {
@@ -84,11 +89,13 @@ const columnViewport =
   'max-h-[min(var(--available-height,100vh),calc(var(--spacing-control)*var(--cascader-column-max-rows)+var(--spacing)*2))] p-(--spacing)';
 
 // シートのパネル（Menu の入れ子のシートと同じ動き。src/internal/menu/MenuSlide.tsx）
+//   高さは Menu の入れ子のシートの既定（submenuSheet="fixed"）と同じく、1 段目の高さのまま変えない。
+//   パネルはどれも舞台いっぱいに重ね、1 段目より長い段はパネルの中でスクロールし、短い段は下が空く
 type SlidePosition = 'current' | 'before' | 'after';
 const panelPosition: Record<SlidePosition, string> = {
-  current: 'relative visible translate-x-0',
-  before: 'absolute inset-x-0 top-0 invisible -translate-x-full rtl:translate-x-full',
-  after: 'absolute inset-x-0 top-0 invisible translate-x-full rtl:-translate-x-full',
+  current: 'visible translate-x-0',
+  before: 'invisible -translate-x-full rtl:translate-x-full',
+  after: 'invisible translate-x-full rtl:-translate-x-full',
 };
 const panelMotion: Record<SlidePosition, string> = {
   current:
@@ -99,19 +106,12 @@ const panelMotion: Record<SlidePosition, string> = {
     'motion-safe:[transition:translate_var(--duration-sheet)_var(--ease-sheet),visibility_0s_linear_var(--duration-sheet)]',
 };
 // シートの段の上の、親へ戻る行。行の高さと左の余白は項目と同じで、文字はラベルと同じ太字
-//   段が長くても見えるよう、面の中身の上端に貼り付ける（下の項目が透けないよう面の色を敷く）。貼り付く位置は中身の上の余白を打ち消した上端
+//   段が長くても見えるよう、スクロールする一覧の外（パネルの上端）に置く
 const backRow = [
   'flex min-h-(--spacing-control) w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius-control)-var(--spacing))] px-[calc(var(--spacing-control-x)-var(--spacing))] text-start font-bold text-fg-muted outline-none select-none',
   'hover:bg-field focus-visible:bg-field',
 ].join(' ');
-const backRowWrap = 'sticky top-[calc(var(--sheet-padding-x)*-1)] z-1 bg-surface pt-(--spacing)';
-
-// シートの上に並べる段のタブ（sheetNavigation="tabs"）。文字は戻る行と同じ太字で、いまの段は本文の色と下線
-const tabButton = [
-  'relative flex min-h-(--spacing-control) max-w-[12em] shrink-0 cursor-pointer items-center rounded-[calc(var(--radius-control)-var(--spacing))] px-[calc(var(--spacing-control-x)-var(--spacing))] font-bold text-fg-muted outline-none select-none',
-  'hover:bg-field focus-visible:bg-field',
-  'aria-[current=true]:text-fg aria-[current=true]:after:absolute aria-[current=true]:after:inset-x-[calc(var(--spacing-control-x)-var(--spacing))] aria-[current=true]:after:bottom-0 aria-[current=true]:after:h-(--border-width-thick) aria-[current=true]:after:rounded-full aria-[current=true]:after:bg-current',
-].join(' ');
+const backRowWrap = 'shrink-0 px-(--spacing) pt-(--spacing)';
 
 const OPTION = '[role="option"]';
 // openOnHover: 載せてから開くまで（Menu の入れ子と同じ程度）と、次の段へ向かって動いているときに止まってから開くまで
@@ -152,10 +152,9 @@ export interface CascaderPanelProps<Value extends CascaderValueItem> {
   parentHintText: string;
   /** 開いた直後に、いまの道筋の最後の項目へフォーカスを移すか */
   autoFocus: boolean;
-  /** シートで前の段へ戻る手段 */
-  sheetNavigation: CascaderSheetNavigation;
-  /** sheetNavigation="tabs" で、まだ選んでいない段のタブの文字 */
-  placeholder: string;
+  /** まだ開いていない段の空の列を出さないか（浮かべる形）。true では、段の数に合わせて面が伸び縮みする */
+  hideEmptyColumns?: boolean;
+  sheetHeight?: CascaderSheetHeight;
 }
 
 export function CascaderPanel<Value extends CascaderValueItem>({
@@ -173,8 +172,8 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   backName,
   parentHintText,
   autoFocus,
-  sheetNavigation,
-  placeholder,
+  hideEmptyColumns = false,
+  sheetHeight = 'root',
 }: CascaderPanelProps<Value>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
@@ -185,6 +184,55 @@ export function CascaderPanel<Value extends CascaderValueItem>({
     Math.max(0, Math.min(columns.length - 1, activePath.length - 1))
   );
   const [animated, setAnimated] = useState(false);
+  // シートの舞台の高さ。段ごとの中身の高さ（戻る行を含む）を測り、sheetHeight で決める
+  //   root: 1 段目のまま（Menu の入れ子のシートの fixed と同じ）。長い段はパネルの中でスクロールする
+  const [panelHeights, setPanelHeights] = useState<Record<number, number>>({});
+  const reportHeight = useCallback(
+    (depth: number, height: number) =>
+      setPanelHeights((current) =>
+        current[depth] === height ? current : { ...current, [depth]: height }
+      ),
+    []
+  );
+  const [grownHeight, setGrownHeight] = useState(0);
+  const levelHeight = panelHeights[level];
+  useIsomorphicLayoutEffect(() => {
+    if (levelHeight != null) setGrownHeight((current) => Math.max(current, levelHeight));
+  }, [levelHeight]);
+  // 木のいちばん長い段の行の数（親を選ぶ行を含む）。行はどれも 1 行の高さ
+  const tallestRows = useMemo(() => {
+    let most = items.length;
+    const walk = (list: CascaderItem<Value>[]) => {
+      for (const item of list) {
+        if (!item.children) continue;
+        most = Math.max(most, item.children.length + (parentSelect === 'row' ? 1 : 0));
+        walk(item.children);
+      }
+    };
+    walk(items);
+    return most;
+  }, [items, parentSelect]);
+  const stageHeight: number | string | undefined =
+    sheetHeight === 'tallest'
+      ? // 上の余白・戻る行・行・下の余白
+        `calc(var(--spacing) * 2 + var(--spacing-control) * ${tallestRows + 1})`
+      : sheetHeight === 'grow'
+        ? grownHeight || undefined
+        : sheetHeight === 'fit'
+          ? levelHeight
+          : panelHeights[0];
+
+  // 浮かべる形は、開いたときから木のいちばん深い段の数だけ列を置く（まだ開いていない段は空の列）
+  //   段が増減しても面の幅が変わらず（右端でもずれない）、どこまで深く選ぶかも開いたときに分かる
+  const treeDepth = useMemo(() => {
+    const depthOf = (list: CascaderItem<Value>[]): number =>
+      list.reduce(
+        (most, item) => Math.max(most, item.children ? 1 + depthOf(item.children) : 1),
+        0
+      );
+    return depthOf(items);
+  }, [items]);
+
   const hoverTimer = useRef<number | null>(null);
   // 待っている行（段:行）と、前にポインターがあった点（openOnHover）
   const hoverKey = useRef<string | null>(null);
@@ -234,9 +282,12 @@ export function CascaderPanel<Value extends CascaderValueItem>({
 
   // 項目を、段（シートでは面の中身）の中だけで見える位置へ送る（ページは動かさない）。center は真ん中へ
   const reveal = (target: HTMLElement, center = false) => {
-    const scroller = target.closest<HTMLElement>(
-      '[data-slot="cascader-column"], [data-slot="sheet-content"]'
-    );
+    // いちばん近い、実際にスクロールできる枠（段・シートのパネル・シートの中身）
+    const selector =
+      '[data-slot="cascader-column"], [data-slot="cascader-sheet-panel"], [data-slot="sheet-content"]';
+    let scroller = target.closest<HTMLElement>(selector);
+    while (scroller && scroller.scrollHeight <= scroller.clientHeight + 1)
+      scroller = scroller.parentElement?.closest<HTMLElement>(selector) ?? null;
     if (!scroller) return;
     const rect = target.getBoundingClientRect();
     const view = scroller.getBoundingClientRect();
@@ -514,69 +565,49 @@ export function CascaderPanel<Value extends CascaderValueItem>({
       <div
         ref={rootRef}
         data-slot="cascader-panel"
-        // 項目の文字を見出しの文字にそろえる（Select のシートと同じ）。行の塗りは面の端から --spacing 内側
-        className="relative -mx-[calc(var(--sheet-padding-x)-var(--spacing))] -mt-(--sheet-padding-x) overflow-clip"
+        // 面の端まで広げ、パネルの中の左右の余白（--spacing）で、項目の文字を見出しの文字にそろえる（Select のシートと同じ）
+        //   上下は中身の余白を打ち消し、パネルの中でスクロールするときも続きの影が面の中身の端に来るようにする
+        className={cn(
+          'relative -mx-(--sheet-padding-x) -mt-(--sheet-padding-x) overflow-clip',
+          animated && 'motion-safe:[transition:height_var(--duration-sheet)_var(--ease-sheet)]'
+        )}
+        style={stageHeight != null ? { height: stageHeight } : undefined}
       >
         {hint}
-        {sheetNavigation === 'tabs' && (
-          <div className={backRowWrap}>
-            <div data-slot="cascader-tabs" className="flex overflow-x-auto">
-              {columns.map((_, depth) => (
-                <button
-                  key={depth}
-                  type="button"
-                  tabIndex={-1}
-                  aria-current={depth === level || undefined}
-                  className={tabButton}
-                  onClick={() =>
-                    depth !== level &&
-                    moveTo(activePath, depth, currentIndex(depth, rowsOf(depth)), depth)
-                  }
-                >
-                  <span className="truncate">
-                    {itemsOnPath(items, activePath)[depth]?.label ?? placeholder}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         {columns.map((_, depth) => {
           const position: SlidePosition =
             depth === level ? 'current' : depth < level ? 'before' : 'after';
           return (
-            <div
+            <SheetPanel
               // 段ごとに同じ要素を保つ（親が替わっても作り直さず、外から滑り込ませる）
               key={depth}
-              data-panel-depth={depth}
-              data-position={position}
-              tabIndex={-1}
-              className={cn(
-                'w-full outline-none',
-                // 上の余白は、戻る行・タブ（貼り付く）の中に持たせる。戻る行のない 1 段目は段に持たせる
-                depth === 0 && sheetNavigation === 'back' && 'pt-(--spacing)',
-                panelPosition[position],
-                animated && panelMotion[position]
-              )}
+              depth={depth}
+              position={position}
+              animated={animated}
+              onHeight={reportHeight}
+              head={
+                depth > 0 ? (
+                  <div data-slot="cascader-sheet-head" className={backRowWrap}>
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      data-slot="cascader-back"
+                      className={backRow}
+                      onClick={() => back(depth)}
+                    >
+                      <CaretLeftIcon className="size-(--spacing-icon) shrink-0 rtl:-scale-x-100" />
+                      <span className="min-w-0 flex-1 truncate">
+                        {pathItems[depth - 1]?.label}
+                        {/* 名前は見える文から始める（WCAG 2.5.3） */}
+                        <span className="sr-only">（{backName}）</span>
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div data-slot="cascader-sheet-head" className="h-(--spacing) shrink-0" />
+                )
+              }
             >
-              {depth > 0 && sheetNavigation === 'back' && (
-                <div className={backRowWrap}>
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    data-slot="cascader-back"
-                    className={backRow}
-                    onClick={() => back(depth)}
-                  >
-                    <CaretLeftIcon className="size-(--spacing-icon) shrink-0 rtl:-scale-x-100" />
-                    <span className="min-w-0 flex-1 truncate">
-                      {pathItems[depth - 1]?.label}
-                      {/* 名前は見える文から始める（WCAG 2.5.3） */}
-                      <span className="sr-only">（{backName}）</span>
-                    </span>
-                  </button>
-                </div>
-              )}
               <div
                 role="listbox"
                 aria-label={columnName(depth)}
@@ -586,7 +617,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
               >
                 {renderRows(depth)}
               </div>
-            </div>
+            </SheetPanel>
           );
         })}
       </div>
@@ -611,6 +642,11 @@ export function CascaderPanel<Value extends CascaderValueItem>({
           {renderRows(depth)}
         </CascaderColumn>
       ))}
+      {/* まだ開いていない段の場所も、はじめから空の列として置く（hideEmptyColumns で出さない） */}
+      {!hideEmptyColumns &&
+        Array.from({ length: Math.max(0, treeDepth - columns.length) }, (_, i) => (
+          <div key={`empty-${i}`} aria-hidden className={cn(columnFrame, columnDivider)} />
+        ))}
     </div>
   );
 }
@@ -650,5 +686,64 @@ function CascaderColumn({
         {children}
       </div>
     </MoreCueScroll>
+  );
+}
+
+// シートの 1 段。舞台いっぱいに重ね、長い段はこの中でスクロールする（つまみと続きの影は浮かぶ選択肢と同じ）
+function SheetPanel({
+  depth,
+  position,
+  animated,
+  onHeight,
+  head,
+  children,
+}: {
+  depth: number;
+  position: SlidePosition;
+  animated: boolean;
+  /** 中身（一覧の上のものと一覧）の高さを知らせる。舞台の高さを決めるのに使う */
+  onHeight: (depth: number, height: number) => void;
+  /** 一覧の上に置くもの（親へ戻る行。1 段目は上の余白） */
+  head: ReactNode;
+  children: ReactNode;
+}) {
+  const cues = useMoreCues();
+  const [content, setContent] = useState<HTMLDivElement | null>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  useIsomorphicLayoutEffect(() => {
+    if (!content) return undefined;
+    const read = () => onHeight(depth, content.offsetHeight + (headRef.current?.offsetHeight ?? 0));
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [content, depth, onHeight]);
+  return (
+    <div
+      data-panel-depth={depth}
+      data-position={position}
+      tabIndex={-1}
+      className={cn(
+        'absolute inset-0 flex flex-col outline-none',
+        panelPosition[position],
+        animated && panelMotion[position]
+      )}
+    >
+      <div ref={headRef} className="flex shrink-0 flex-col">
+        {head}
+      </div>
+      <MoreCueScroll
+        className="min-h-0 flex-1"
+        viewportRef={cues}
+        viewportSlot="cascader-sheet-panel"
+        viewportClassName="h-full"
+        before={<SheetMoreCue edge="top" sheet={false} sheetMoreCue="shadow" />}
+        after={<SheetMoreCue edge="bottom" sheet={false} sheetMoreCue="shadow" />}
+      >
+        <div ref={setContent} className="px-(--spacing) pb-(--spacing)">
+          {children}
+        </div>
+      </MoreCueScroll>
+    </div>
   );
 }

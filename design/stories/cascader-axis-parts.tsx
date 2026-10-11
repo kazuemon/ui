@@ -19,11 +19,13 @@ export function OpenPanel({
   defaultValue = [],
   openOnHover = false,
   parentSelect = 'none',
+  hideEmptyColumns,
 }: {
   items: CascaderItem[];
   defaultValue?: string[];
   openOnHover?: boolean;
   parentSelect?: CascaderProps['parentSelect'];
+  hideEmptyColumns?: boolean;
 }) {
   const [value, setValue] = useState<string[]>(defaultValue);
   const [activePath, setActivePath] = useState<string[]>(defaultValue);
@@ -52,8 +54,7 @@ export function OpenPanel({
           backName="戻る"
           parentHintText="次の段があります"
           autoFocus={false}
-          sheetNavigation="back"
-          placeholder="選んでください"
+          hideEmptyColumns={hideEmptyColumns}
         />
       </div>
       <p className="text-xs text-fg-subtle">
@@ -76,43 +77,45 @@ export function OpenPanel({
 export function SheetSpecimen({
   items,
   defaultValue = [],
-  sheetNavigation,
+  sheetHeight,
 }: {
   items: CascaderItem[];
   defaultValue?: string[];
-  sheetNavigation: CascaderProps['sheetNavigation'] & string;
+  sheetHeight?: CascaderProps['sheetHeight'];
 }) {
   const [value, setValue] = useState<string[]>(defaultValue);
   const [activePath, setActivePath] = useState<string[]>(defaultValue);
   return (
-    <div
-      data-density="coarse"
-      className="flex h-[30rem] w-[22rem] flex-col overflow-clip rounded-t-card border border-surface-line bg-surface text-input shadow-sheet [--spacing-icon:var(--spacing-icon-input)]"
-      style={selectedTokens('neutral')}
-    >
-      <p className={`${sheetTitleClass} px-(--sheet-padding-x) py-3`}>お届け先</p>
+    // 画面の代わりの枠の下端に置き、高さの変化が上端の動きで見えるようにする
+    <div className="flex h-[30rem] w-[22rem] flex-col justify-end">
       <div
-        data-slot="sheet-content"
-        className="min-h-0 flex-1 overflow-y-auto border-t border-surface-line px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-(--sheet-padding-x)"
+        data-density="coarse"
+        className="flex max-h-full min-h-0 flex-col overflow-clip rounded-t-card border border-surface-line bg-surface text-input shadow-sheet [--spacing-icon:var(--spacing-icon-input)]"
+        style={selectedTokens('neutral')}
       >
-        <CascaderPanel<string>
-          items={items}
-          value={value}
-          activePath={activePath}
-          onActivePathChange={setActivePath}
-          onPick={(path) => setValue(path)}
-          sheet
-          rootName="お届け先"
-          openOnHover={false}
-          parentSelect="none"
-          parentRowLabel={(item) => `${item.label} のすべて`}
-          emptyText="選択肢がありません"
-          backName="戻る"
-          parentHintText="次の段があります"
-          autoFocus={false}
-          sheetNavigation={sheetNavigation}
-          placeholder="選んでください"
-        />
+        <p className={`${sheetTitleClass} px-(--sheet-padding-x) py-3`}>お届け先</p>
+        <div
+          data-slot="sheet-content"
+          className="min-h-0 flex-1 overflow-y-auto border-t border-surface-line px-(--sheet-padding-x) pt-(--sheet-padding-x) pb-(--sheet-padding-x)"
+        >
+          <CascaderPanel<string>
+            items={items}
+            value={value}
+            activePath={activePath}
+            onActivePathChange={setActivePath}
+            onPick={(path) => setValue(path)}
+            sheet
+            rootName="お届け先"
+            openOnHover={false}
+            parentSelect="none"
+            parentRowLabel={(item) => `${item.label} のすべて`}
+            emptyText="選択肢がありません"
+            backName="戻る"
+            parentHintText="次の段があります"
+            autoFocus={false}
+            sheetHeight={sheetHeight}
+          />
+        </div>
       </div>
     </div>
   );

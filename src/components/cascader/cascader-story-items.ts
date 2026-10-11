@@ -104,3 +104,26 @@ export const categories: CascaderItem[] = [
     ],
   },
 ];
+
+/** 1 段目が短く、次の段が長い木（シートの高さを比べる） */
+export const shortRoot: CascaderItem[] = [
+  {
+    label: '野菜',
+    value: 'vegetable',
+    children: leaves('vegetable', [
+      'キャベツ',
+      'にんじん',
+      'たまねぎ',
+      'じゃがいも',
+      'トマト',
+      'きゅうり',
+      'なす',
+      'ピーマン',
+      'ほうれん草',
+      'ブロッコリー',
+      'だいこん',
+      'かぼちゃ',
+    ]),
+  },
+  { label: '果物', value: 'fruit', children: leaves('fruit', ['りんご', 'みかん', 'ぶどう']) },
+];
