@@ -4,7 +4,9 @@ import {
   Children,
   type CSSProperties,
   type KeyboardEvent,
+  Fragment,
   type MouseEvent,
+  type ReactElement,
   type ReactNode,
   createContext,
   isValidElement,
@@ -25,7 +27,7 @@ import { DotsThreeVerticalIcon, XIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { tv } from '../../internal/tv';
 import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
-import { useActionBarFit } from './use-action-bar-fit';
+import { type ActionBarButtonNarrowPlacement, useActionBarFit } from './use-action-bar-fit';
 
 // ActionBar: 一覧の項目を選んでいるあいだだけ、置いた場所の下に浮かぶ操作の帯
 //   DataTable の上の帯に並べる件数と操作（ADR-0349）とは別の部品。表の上の帯がない一覧（カード・行の一覧・Gallery）や、
@@ -42,7 +44,10 @@ import { useActionBarFit } from './use-action-bar-fit';
 //     center は中身の幅で真ん中。指で操作していて画面が狭いときは、左右の余白を残して幅いっぱい（Toast と同じ判定 — 原則16）
 //     docked は浮かべず、置いた場所の下の端に幅いっぱいで着ける（角なし・シートと同じ上向きの影）
 //   中身: [選択を外す ×] [件数の文] … [操作] [⋮ その他]。全体が Toolbar（Tab で 1 回止まり、中は矢印キーで移る）
-//   入りきらないとき（軸 654）: narrowDisplay。menu は後ろの操作から ⋮ のメニューに畳む（メニューは指で狭いとシートになる）
+//   入りきらないとき（軸 654）: 操作ごとの narrowPlacement（Navbar の行き先の narrowPlacement と同じ考え）で決める
+//     既定（bar）の操作は畳まず、帯を折り返して次の行へ送る。icon-only は文字を外してよい操作、menu は ⋮ に畳んでよい操作
+//     順は、icon-only の文字を外す → menu を後ろから畳む → それでも入らなければ折り返す（use-action-bar-fit.ts）
+//     ⋮ のメニューは、指で狭いとシートになる
 //   読み上げ: 件数の文は、いつも置いてある知らせの箱（role="status"）が 1 回だけ読む（原則15）。帯の名前もその箱から取る
 //     帯の中の見える文は、二度読ませないよう読み上げから外す
 //   Esc: 帯の中にフォーカスがあるとき、選択を外す（onClear）。帯が消えたら、帯に入る前にいた場所へフォーカスを戻す
@@ -77,12 +82,13 @@ const actionBar = tv({
       'data-ending-style:scale-(--action-bar-from-scale) data-starting-style:scale-(--action-bar-from-scale)',
       'motion-reduce:[transition:none]',
     ],
-    toolbar: 'flex-nowrap',
+    // 入りきらないときの最後の手は折り返し。件数の行と操作の行に分かれ、操作の行の中でも折り返す
+    toolbar: 'flex-wrap',
     lead: 'flex min-w-0 shrink-0 items-center gap-(--button-group-gap)',
     // 件数の文。見える文は読み上げから外す（知らせの箱が読む）
     label:
       'min-w-0 truncate ps-(--spacing-control-x) text-(length:--text-control) leading-(--leading-control) font-bold',
-    actions: 'ms-auto flex min-w-0 items-center gap-(--button-group-gap)',
+    actions: 'ms-auto flex min-w-0 flex-wrap items-center gap-(--button-group-gap)',
     // 測るための見えない並び。帯の操作と同じ間で、文字のボタン・アイコンだけのボタン・⋮ を並べる
     measure:
       'pointer-events-none invisible absolute start-0 bottom-0 flex w-max gap-(--button-group-gap)',
@@ -140,11 +146,6 @@ const actionBar = tv({
       true: { label: 'ps-1' },
       false: {},
     },
-    wrap: {
-      // 入りきらないとき、件数の文の行と操作の行に分ける
-      true: { toolbar: 'flex-wrap', actions: 'flex-wrap' },
-      false: {},
-    },
   },
 });
 
@@ -157,17 +158,18 @@ export type ActionBarPlacement = 'full' | 'center' | 'docked';
 /** 出入りの動き。fade-up は 8px 下から浮かぶ、slide は下の端から滑る、scale は小さい姿から広がる、none は動かさない */
 export type ActionBarMotion = 'fade-up' | 'slide' | 'scale' | 'none';
 
-/** 入りきらないときの並べ方。menu は後ろの操作からメニューに畳み、icon-only はまず文字を外してアイコンだけにし（それでも入らなければ畳む）、wrap は次の行へ折り返す */
-export type ActionBarNarrowDisplay = 'menu' | 'icon-only' | 'wrap';
+export type { ActionBarButtonNarrowPlacement };
 
 /** 操作の状態。danger は、削除など取り消せない操作 */
 export type ActionBarButtonStatus = 'danger';
 
-type ItemMode = 'bar' | 'bar-icon' | 'menu' | 'measure' | 'measure-icon';
+type ItemMode = 'bar' | 'menu' | 'measure' | 'measure-icon';
 interface ItemContext {
   mode: ItemMode;
-  index: number;
-  visible: number;
+  /** 文字を外しているか（bar） */
+  icon: boolean;
+  /** ⋮ に畳んでいるか */
+  folded: boolean;
 }
 const ActionBarItemContext = createContext<ItemContext | null>(null);
 
@@ -210,12 +212,6 @@ export interface ActionBarProps {
    */
   closeOnEscape?: boolean;
   /**
-   * 操作が帯に入りきらないときの並べ方。menu は後ろの操作から ⋮ のメニューに畳み、icon-only はまず文字を外してアイコンだけにし、
-   * それでも入らなければ畳みます。wrap は、件数の文の行と操作の行に分けて折り返します
-   * @default 'menu'
-   */
-  narrowDisplay?: ActionBarNarrowDisplay;
-  /**
    * 畳んだ操作を開く ⋮ のボタンの読み上げの名前。メニューをシートで出すときの題にもなります
    * @default 'その他の操作'
    */
@@ -224,7 +220,10 @@ export interface ActionBarProps {
   className?: string;
   /** 帯の面に付けるスタイル */
   style?: CSSProperties;
-  /** 操作（ActionBarButton）。並べた順に左から置き、入りきらないときは後ろから畳みます */
+  /**
+   * 操作（ActionBarButton）。並べた順に左から置きます。入りきらないときの扱いは、操作ごとの narrowPlacement で決まります
+   * （icon-only の文字を外す → menu の操作を後ろから ⋮ に畳む → それでも入らなければ折り返す）
+   */
   children?: ReactNode;
 }
 
@@ -241,7 +240,6 @@ export function ActionBar({
   onClear,
   clearName = '選択を外す',
   closeOnEscape = true,
-  narrowDisplay = 'menu',
   moreName = 'その他の操作',
   className,
   style,
@@ -259,17 +257,19 @@ export function ActionBar({
   const narrow = useSheetPresentation(undefined);
   const status = useTransitionStatus(open, barRef, { appear: false });
   const mounted = status !== 'closed';
-  const items = Children.toArray(children).filter(isValidElement);
+  const items = flattenItems(children);
+  const placements = items.map(
+    (item) => (item.props as ActionBarButtonProps).narrowPlacement ?? 'bar'
+  );
   const fit = useActionBarFit(
     { ruler: rulerRef, lead: leadRef, measure: measureRef },
-    { count: items.length, narrowDisplay, active: mounted }
+    { placements, active: mounted }
   );
   const s = actionBar({
     variant,
     placement,
     motion,
     clearable: onClear != null,
-    wrap: narrowDisplay === 'wrap',
   });
 
   // 帯の高さを空きに渡す
@@ -300,10 +300,13 @@ export function ActionBar({
     onClear();
   };
 
-  const folded = narrowDisplay !== 'wrap' && fit.visible < items.length;
+  const folded = fit.folded.some(Boolean);
   const itemsIn = (mode: ItemMode) =>
     items.map((item, index) => (
-      <ActionBarItemContext key={item.key ?? index} value={{ mode, index, visible: fit.visible }}>
+      <ActionBarItemContext
+        key={`${String(item.key)}-${index}`}
+        value={{ mode, icon: fit.icon[index] ?? false, folded: fit.folded[index] ?? false }}
+      >
         {item}
       </ActionBarItemContext>
     ));
@@ -355,7 +358,7 @@ export function ActionBar({
                   </span>
                 </div>
                 <div className={s.actions()}>
-                  {itemsIn(fit.mode === 'icon' ? 'bar-icon' : 'bar')}
+                  {itemsIn('bar')}
                   {folded && (
                     <Menu
                       title={moreName}
@@ -375,15 +378,13 @@ export function ActionBar({
                 </div>
               </Toolbar>
               {/* 測るための見えない並び。帯の操作と同じ大きさで、文字の形・アイコンだけの形・⋮ を並べる */}
-              {narrowDisplay !== 'wrap' && (
-                <div ref={measureRef} aria-hidden inert className={s.measure()}>
-                  {itemsIn('measure')}
-                  {narrowDisplay === 'icon-only' && itemsIn('measure-icon')}
-                  <Button variant="underline" iconOnly aria-label="" data-fit="more" tabIndex={-1}>
-                    <DotsThreeVerticalIcon standalone />
-                  </Button>
-                </div>
-              )}
+              <div ref={measureRef} aria-hidden inert className={s.measure()}>
+                {itemsIn('measure')}
+                {itemsIn('measure-icon')}
+                <Button variant="underline" iconOnly aria-label="" data-fit="more" tabIndex={-1}>
+                  <DotsThreeVerticalIcon standalone />
+                </Button>
+              </div>
             </div>
           </div>
         </>
@@ -395,7 +396,7 @@ export function ActionBar({
 export interface ActionBarButtonProps {
   /** 操作の文字（「複製」「削除」） */
   children: string;
-  /** 文字の前に置くアイコン（`<Icon icon={CopyIcon} />`）。narrowDisplay="icon-only" で文字を外したときは、これだけを出します */
+  /** 文字の前に置くアイコン（`<Icon icon={CopyIcon} />`）。narrowPlacement="icon-only" で文字を外したときは、これだけを出します */
   icon?: ReactNode;
   /** 押したときの処理 */
   onClick?: (event: MouseEvent<HTMLElement>) => void;
@@ -404,8 +405,24 @@ export interface ActionBarButtonProps {
    * @default false
    */
   disabled?: boolean;
+  /**
+   * 帯に入りきらないときの扱い。bar は帯に残し、入らなければ帯を折り返して次の行へ送ります。
+   * icon-only は、まず文字を外してアイコンだけにします（アイコンだけで意味が伝わる操作に。名前は読み上げで伝わります）。
+   * menu は、⋮ のメニューに畳みます（たまにしか使わない操作に）。
+   * 先に icon-only の文字を外し、それでも入らなければ menu の操作を後ろから畳み、それでも入らなければ折り返します
+   * @default 'bar'
+   */
+  narrowPlacement?: ActionBarButtonNarrowPlacement;
   /** 削除など、取り消せない操作の状態。danger は文字を危険の色にします（帯の上では、帯の面で読める淡い赤） */
   status?: ActionBarButtonStatus;
+}
+
+/** 操作の並び。Fragment で包んだ操作も、1 つずつの操作として数える */
+function flattenItems(children: ReactNode): ReactElement[] {
+  return Children.toArray(children).flatMap((child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) return [];
+    return child.type === Fragment ? flattenItems(child.props.children) : [child];
+  });
 }
 
 /** アイコンだけで置くときは、単体の太い線にする（Icon の standalone） */
@@ -427,15 +444,14 @@ export function ActionBarButton({
 }: ActionBarButtonProps) {
   const context = use(ActionBarItemContext);
   if (!context) return null;
-  const { mode, index, visible } = context;
   const color = status === 'danger' ? 'danger' : 'neutral';
-  switch (mode) {
+  switch (context.mode) {
     case 'menu':
-      return index < visible ? null : (
+      return context.folded ? (
         <MenuItem icon={icon} status={status} disabled={disabled} onClick={onClick}>
           {children}
         </MenuItem>
-      );
+      ) : null;
     case 'measure':
       return (
         <Button variant="underline" color={color} data-fit="label" tabIndex={-1}>
@@ -460,9 +476,9 @@ export function ActionBarButton({
           {children}
         </Button>
       );
-    case 'bar-icon':
-      if (index >= visible) return null;
-      return icon ? (
+    default:
+      if (context.folded) return null;
+      return context.icon && icon ? (
         <ToolbarButton
           iconOnly
           aria-label={children}
@@ -473,13 +489,6 @@ export function ActionBarButton({
           {standaloneIcon(icon)}
         </ToolbarButton>
       ) : (
-        <ToolbarButton color={color} disabled={disabled} onClick={onClick}>
-          {children}
-        </ToolbarButton>
-      );
-    default:
-      if (index >= visible) return null;
-      return (
         <ToolbarButton color={color} disabled={disabled} onClick={onClick}>
           {icon}
           {children}

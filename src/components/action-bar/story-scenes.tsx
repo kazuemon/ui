@@ -8,7 +8,7 @@ import { Icon } from '../icon/Icon';
 import {
   ActionBar,
   ActionBarButton,
-  type ActionBarNarrowDisplay,
+  type ActionBarButtonNarrowPlacement,
   type ActionBarProps,
 } from './ActionBar';
 
@@ -36,8 +36,8 @@ export interface SelectableListSceneProps {
   rows?: number;
   /** 操作の数。two は複製・削除、many は複製・書き出す・移動・削除 */
   actions?: 'two' | 'many';
-  /** ActionBar の narrowDisplay */
-  narrowDisplay?: ActionBarNarrowDisplay;
+  /** 操作ごとの narrowPlacement（並べた順。two は複製・削除、many は複製・書き出す・移動・削除）。書かないときは bar */
+  placements?: ActionBarButtonNarrowPlacement[];
   /** 操作にアイコンを付けるか */
   icons?: boolean;
   /** 選択を外すボタン（×）を置くか */
@@ -60,7 +60,7 @@ export function SelectableListScene({
   defaultSelected = [1, 2],
   rows = 12,
   actions = 'two',
-  narrowDisplay,
+  placements = [],
   icons = false,
   clearable = true,
   height = 360,
@@ -120,17 +120,27 @@ export function SelectableListScene({
         open={selected.size > 0}
         label={`${selected.size} 件を選択中`}
         onClear={clearable ? clear : undefined}
-        narrowDisplay={narrowDisplay}
         {...barProps}
       >
-        <ActionBarButton icon={icon(CopyIcon)}>複製</ActionBarButton>
+        <ActionBarButton icon={icon(CopyIcon)} narrowPlacement={placements[0]}>
+          複製
+        </ActionBarButton>
         {actions === 'many' && (
-          <ActionBarButton icon={icon(DownloadSimpleIcon)}>書き出す</ActionBarButton>
+          <ActionBarButton icon={icon(DownloadSimpleIcon)} narrowPlacement={placements[1]}>
+            書き出す
+          </ActionBarButton>
         )}
         {actions === 'many' && (
-          <ActionBarButton icon={icon(FolderSimpleIcon)}>移動</ActionBarButton>
+          <ActionBarButton icon={icon(FolderSimpleIcon)} narrowPlacement={placements[2]}>
+            移動
+          </ActionBarButton>
         )}
-        <ActionBarButton icon={icon(TrashIcon)} status="danger" onClick={remove}>
+        <ActionBarButton
+          icon={icon(TrashIcon)}
+          status="danger"
+          narrowPlacement={placements[actions === 'many' ? 3 : 1]}
+          onClick={remove}
+        >
           削除
         </ActionBarButton>
       </ActionBar>

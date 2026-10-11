@@ -4,10 +4,13 @@ import { type RefObject, useState } from 'react';
 
 import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 
-/** 帯に操作をどう並べるか。label は文字のまま、icon はアイコンだけ。visible 個めまでを帯に置き、残りはメニューに畳む */
+/** 入りきらないときの、操作ごとの扱い。bar は帯に残して折り返し、icon-only はまず文字を外し、menu は ⋮ のメニューに畳む */
+export type ActionBarButtonNarrowPlacement = 'bar' | 'icon-only' | 'menu';
+
+/** 帯に操作をどう並べるか。icon は文字を外した操作、folded は ⋮ に畳んだ操作（どちらも並べた順の添え字ごと） */
 export interface ActionBarFit {
-  mode: 'label' | 'icon';
-  visible: number;
+  icon: boolean[];
+  folded: boolean[];
 }
 
 interface Refs {
@@ -22,40 +25,38 @@ interface Refs {
 const widths = (root: HTMLElement, kind: string) =>
   Array.from(root.querySelectorAll<HTMLElement>(`[data-fit="${kind}"]`), (el) => el.offsetWidth);
 
-/** 先頭から k 個を並べ、残りをメニューに畳んだときに入る、いちばん大きい k */
-function fold(items: number[], gap: number, more: number, room: number) {
-  let used = more;
-  let count = 0;
-  for (const width of items) {
-    if (used + gap + width > room) break;
-    used += gap + width;
-    count++;
-  }
-  return count;
-}
+const none = (count: number): ActionBarFit => ({
+  icon: Array<boolean>(count).fill(false),
+  folded: Array<boolean>(count).fill(false),
+});
 
-const total = (items: number[], gap: number) =>
-  items.reduce((sum, width) => sum + width, 0) + gap * Math.max(0, items.length - 1);
+const same = (a: ActionBarFit, b: ActionBarFit) =>
+  a.icon.length === b.icon.length &&
+  a.icon.every((v, i) => v === b.icon[i] && a.folded[i] === b.folded[i]);
 
 /**
- * 操作が帯に入りきるかを測り、入りきらないときの並べ方を決める
- *   menu: 入らない分を後ろからメニューに畳む。icon-only: まず文字を外してアイコンだけにし、それでも入らなければ畳む
- *   wrap: 測らない（CSS で次の行へ折り返す）
+ * 操作が帯に入りきるかを測り、入りきらないときの並べ方を決める。順は次のとおり
+ *   1. 入りきれば、そのまま並べる
+ *   2. icon-only の操作の文字を外す（まとめて）
+ *   3. menu の操作を、後ろから 1 つずつ ⋮ のメニューに畳む
+ *   4. それでも入らなければ、残った操作を次の行へ折り返す（CSS の flex-wrap）
  */
 export function useActionBarFit(
   refs: Refs,
-  { count, narrowDisplay, active }: { count: number; narrowDisplay: string; active: boolean }
+  { placements, active }: { placements: ActionBarButtonNarrowPlacement[]; active: boolean }
 ): ActionBarFit {
-  const [fit, setFit] = useState<ActionBarFit>({ mode: 'label', visible: count });
+  const count = placements.length;
+  const key = placements.join(',');
+  const [fit, setFit] = useState<ActionBarFit>(() => none(count));
 
   useIsomorphicLayoutEffect(() => {
     const ruler = refs.ruler.current;
     const lead = refs.lead.current;
     const measure = refs.measure.current;
-    if (!active || narrowDisplay === 'wrap' || !ruler || !lead || !measure) {
-      setFit((prev) =>
-        prev.mode === 'label' && prev.visible === count ? prev : { mode: 'label', visible: count }
-      );
+    const kinds = key ? (key.split(',') as ActionBarButtonNarrowPlacement[]) : [];
+    if (!active || !ruler || !lead || !measure) {
+      const empty = none(kinds.length);
+      setFit((prev) => (same(prev, empty) ? prev : empty));
       return undefined;
     }
     const update = () => {
@@ -68,14 +69,30 @@ export function useActionBarFit(
       const labels = widths(measure, 'label');
       const icons = widths(measure, 'icon');
       const more = measure.querySelector<HTMLElement>('[data-fit="more"]')?.offsetWidth ?? 0;
-      let next: ActionBarFit;
-      if (total(labels, gap) <= actionsRoom) next = { mode: 'label', visible: labels.length };
-      else if (narrowDisplay === 'icon-only' && total(icons, gap) <= actionsRoom)
-        next = { mode: 'icon', visible: icons.length };
-      else if (narrowDisplay === 'icon-only')
-        next = { mode: 'icon', visible: fold(icons, gap, more, actionsRoom) };
-      else next = { mode: 'label', visible: fold(labels, gap, more, actionsRoom) };
-      setFit((prev) => (prev.mode === next.mode && prev.visible === next.visible ? prev : next));
+      const next = none(kinds.length);
+      const used = () => {
+        let total = 0;
+        let shown = 0;
+        next.folded.forEach((folded, i) => {
+          if (folded) return;
+          total += next.icon[i] ? (icons[i] ?? 0) : (labels[i] ?? 0);
+          shown++;
+        });
+        if (next.folded.some(Boolean)) {
+          total += more;
+          shown++;
+        }
+        return total + gap * Math.max(0, shown - 1);
+      };
+      if (used() > actionsRoom) {
+        kinds.forEach((kind, i) => {
+          if (kind === 'icon-only') next.icon[i] = true;
+        });
+        for (let i = kinds.length - 1; i >= 0 && used() > actionsRoom; i--) {
+          if (kinds[i] === 'menu') next.folded[i] = true;
+        }
+      }
+      setFit((prev) => (same(prev, next) ? prev : next));
     };
     update();
     const observer = new ResizeObserver(update);
@@ -83,7 +100,7 @@ export function useActionBarFit(
     observer.observe(lead);
     observer.observe(measure);
     return () => observer.disconnect();
-  }, [active, count, narrowDisplay, refs.lead, refs.measure, refs.ruler]);
+  }, [active, key, refs.lead, refs.measure, refs.ruler]);
 
-  return fit;
+  return fit.icon.length === count ? fit : none(count);
 }

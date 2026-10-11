@@ -26,7 +26,8 @@ const meta = {
           '- 出入りの動きは `motion` で選びます。`fade-up`（既定）は 8px 下から浮かび、`slide` は下の端から滑り、`scale` は小さい姿から広がり、`none` は動かしません。',
           '- 操作は `ActionBarButton` で並べます。削除のような取り消せない操作は `status="danger"` にします。',
           '- `onClear` を渡すと、左に選択を外す × のボタンを置きます。帯の中にフォーカスがあるときは Esc でも外せます（`closeOnEscape`）。帯が消えると、帯に入る前にいた場所へフォーカスが戻ります。',
-          '- 操作が入りきらないときは、後ろの操作から ⋮ のメニューに畳みます（`narrowDisplay="menu"`）。`icon-only` はまず文字を外してアイコンだけにし、`wrap` は件数の行と操作の行に分けます。',
+          '- 操作が帯に入りきらないときの扱いは、操作ごとに `narrowPlacement` で決めます。何も書かない操作（`bar`）は畳まずに帯に残し、入らなければ帯を折り返して件数の行と操作の行に分けます。アイコンだけで意味が伝わる操作は `icon-only` にすると、まず文字を外します。たまにしか使わない操作は `menu` にすると、⋮ のメニューに畳みます。',
+          '- 入りきらないときは、`icon-only` の文字を外す → `menu` の操作を後ろから ⋮ に畳む → それでも入らなければ折り返す、の順に試します。',
           '- `center` でも、指で操作していて画面が狭いときは、左右の余白を残して幅いっぱいに広がります。',
           '',
           '表（DataTable）の上に検索などの帯があり、そこに件数と操作を並べられるときは、ActionBar を使わずに帯の右に並べます。ActionBar は、上に帯のない一覧（カードや行の一覧）や、長い一覧で上の帯がスクロールで見えなくなる画面で使います。',
@@ -41,7 +42,6 @@ const meta = {
     placement: 'full',
     motion: 'fade-up',
     closeOnEscape: true,
-    narrowDisplay: 'menu',
   },
   argTypes: {
     variant: {
@@ -58,11 +58,6 @@ const meta = {
       control: 'inline-radio',
       options: ['fade-up', 'slide', 'scale', 'none'],
       table: { defaultValue: { summary: "'fade-up'" } },
-    },
-    narrowDisplay: {
-      control: 'inline-radio',
-      options: ['menu', 'icon-only', 'wrap'],
-      table: { defaultValue: { summary: "'menu'" } },
     },
     clearName: { table: { defaultValue: { summary: "'選択を外す'" } } },
     moreName: { table: { defaultValue: { summary: "'その他の操作'" } } },
@@ -85,7 +80,6 @@ export const Playground: Story = {
   },
   render: (args) => (
     <SelectableListScene
-      narrowDisplay={args.narrowDisplay}
       barProps={{ variant: args.variant, placement: args.placement, motion: args.motion }}
     />
   ),
@@ -191,20 +185,39 @@ export const Placements: Story = {
   ),
 };
 
-export const NarrowDisplays: Story = {
+// 操作ごとの扱い（narrowPlacement）を混ぜた見本を、幅を変えて並べる
+const mixedActions = (
+  <>
+    <ActionBarButton icon={<Icon icon={CopyIcon} />} narrowPlacement="icon-only">
+      複製
+    </ActionBarButton>
+    <ActionBarButton icon={<Icon icon={DownloadSimpleIcon} />} narrowPlacement="menu">
+      書き出す
+    </ActionBarButton>
+    <ActionBarButton icon={<Icon icon={TrashIcon} />} status="danger">
+      削除
+    </ActionBarButton>
+  </>
+);
+
+export const NarrowPlacements: Story = {
   tags: ['visual'],
   name: '入りきらないとき',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '複製は `icon-only`、書き出すは `menu`、削除は書かない（`bar`）。幅が狭くなるにつれて、複製の文字を外し、書き出すを ⋮ に畳み、それでも入らないと削除を次の行へ折り返します。',
+      },
+    },
+  },
   render: () => (
-    <Gallery columnWidth="27rem">
-      {(['menu', 'icon-only', 'wrap'] as const).map((narrowDisplay) => (
-        <Specimen key={narrowDisplay} label={narrowDisplay}>
-          <Frame width={380} height={220}>
-            <ActionBar open label="12 件を選択中" onClear={() => {}} narrowDisplay={narrowDisplay}>
-              <ActionBarButton icon={<Icon icon={CopyIcon} />}>複製</ActionBarButton>
-              <ActionBarButton icon={<Icon icon={DownloadSimpleIcon} />}>書き出す</ActionBarButton>
-              <ActionBarButton icon={<Icon icon={TrashIcon} />} status="danger">
-                削除
-              </ActionBarButton>
+    <Gallery columnWidth="34rem">
+      {[520, 420, 330, 260].map((width) => (
+        <Specimen key={width} label={`${width}px`}>
+          <Frame width={width} height={200}>
+            <ActionBar open label="12 件を選択中" onClear={() => {}}>
+              {mixedActions}
             </ActionBar>
           </Frame>
         </Specimen>
