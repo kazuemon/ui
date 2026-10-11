@@ -14,7 +14,7 @@ const meta = {
     layout: 'fullscreen',
     pseudo: statePseudo({ hover: 'a', focusVisible: 'a' }),
   },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -98,6 +98,10 @@ export const Candidates: Story = {
         );
       }}
     >
+      <p>
+        決定:
+        現行版（名前だけがリンク）にする。札にほかの操作を足したい場面もありうるため。札全体をリンクにする形（A）は持たない。
+      </p>
       <p>
         送ったあとのファイル（吹き出しの中）を開くとき、どこを押せるようにするかを決めます。どちらも新しいタブで開きます。
       </p>
