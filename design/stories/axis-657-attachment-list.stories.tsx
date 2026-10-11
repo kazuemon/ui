@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/657 添えたファイルの並べ方',
   id: 'design-review-657-attachment-list',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current,A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -103,6 +103,10 @@ export const Candidates: Story = {
         );
       }}
     >
+      <p>
+        決定: 現行版（折り返す）を既定にし、指定したとき（wrap={'{false}'}）は A（1
+        行のまま横にスクロール）にする。
+      </p>
       <p>
         Composer に札を横に並べて、並びきらないときにどうするかを決めます。灰色の面が Composer
         の代わりです。右下の角を引くと幅を変えられます。
