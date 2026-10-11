@@ -28,6 +28,14 @@ export {
   type MediaFit,
 } from './components/aspect-ratio/AspectRatio';
 export {
+  Attachment,
+  type AttachmentImageDisplay,
+  type AttachmentLinkArea,
+  type AttachmentProgressIndicator,
+  type AttachmentProps,
+} from './components/attachment/Attachment';
+export { AttachmentList, type AttachmentListProps } from './components/attachment/AttachmentList';
+export {
   Autocomplete,
   type AutocompleteBaseProps,
   AutocompleteControl,

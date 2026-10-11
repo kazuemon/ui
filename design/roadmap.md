@@ -201,5 +201,5 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [ ] MessageList
 - [ ] Bubble
 - [ ] TypingIndicator
-- [ ] Attachment
+- [x] Attachment
 - [ ] StreamingText

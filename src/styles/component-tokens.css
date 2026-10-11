@@ -1,6 +1,7 @@
 /* 部品の層のトークン（部品の中だけで使う。名前も値も予告なく変える — design/adr/0076）
    値は使う部品のそばの *.tokens.css に置き、ここで全部を読む。足したら一覧にも足す（component-tokens.test.ts が確かめる） */
 @import '../components/affix/affix.tokens.css';
+@import '../components/attachment/attachment.tokens.css';
 @import '../components/avatar-group/avatar-group.tokens.css';
 @import '../components/avatar/avatar.tokens.css';
 @import '../components/bleed/bleed.tokens.css';
