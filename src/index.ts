@@ -855,6 +855,19 @@ export {
   type TreeRowWidth,
 } from './components/tree/Tree';
 export {
+  TreeSelect,
+  type TreeSelectBaseProps,
+  TreeSelectControl,
+  type TreeSelectControlProps,
+  type TreeSelectItem,
+  type TreeSelectMultipleDisplay,
+  type TreeSelectMultipleValue,
+  type TreeSelectPathVariant,
+  type TreeSelectProps,
+  type TreeSelectValue,
+  type TreeSelectValueDisplay,
+} from './components/tree-select/TreeSelect';
+export {
   TextField,
   type TextFieldBaseProps,
   TextFieldControl,

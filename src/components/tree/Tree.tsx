@@ -185,7 +185,7 @@ interface TreeAnnouncement {
 }
 
 /** 型あたりの状態。text は打っている途中の語、time は最後に打った時刻 */
-interface Typeahead {
+export interface Typeahead {
   text: string;
   time: number;
 }
@@ -216,7 +216,7 @@ function rowText(row: HTMLElement) {
  * 同じ文字を続けて打ったときは、その文字で始まる行を順に送る
  * 見えている行（visibleRows）だけが相手なので、開いていない枝の中は当たらない
  */
-function typeaheadTarget(
+export function typeaheadTarget(
   rows: HTMLElement[],
   index: number,
   key: string,

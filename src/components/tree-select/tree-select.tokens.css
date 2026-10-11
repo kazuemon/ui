@@ -1,0 +1,5 @@
+:root {
+  /* TreeSelect — 欄は Select、面の中の木は Tree（--tree-*）、行の手応えと選んだ印は選択肢の一覧（--select-*）と同じ
+     max-rows: 浮かべた面の高さの上限（行の数）。最後の行を半分だけ見せ、続きがあることを示す（TimePicker と同じ考え） */
+  --tree-select-max-rows: 8.5;
+}
