@@ -74,12 +74,15 @@ export const Playground: Story = {
     docs: {
       description: {
         story:
-          '行を選ぶと帯が出ます。× か Esc で選択を外すと消え、削除を押すと選んだ行が消えます。',
+          '行を選ぶと帯が出ます。× か Esc で選択を外すと消え、削除を押すと選んだ行が消えます。複製は `icon-only`、書き出す・移動は `menu` にしてあるので、幅が狭いと複製の文字が外れ、書き出す・移動が ⋮ に畳まれます。',
       },
     },
   },
   render: (args) => (
     <SelectableListScene
+      actions="many"
+      icons
+      placements={['icon-only', 'menu', 'menu']}
       barProps={{ variant: args.variant, placement: args.placement, motion: args.motion }}
     />
   ),

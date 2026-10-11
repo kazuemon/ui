@@ -63,7 +63,8 @@ const actionBar = tv({
       'motion-reduce:[transition:none]',
     ],
     // 帯の基準。高さ 0 で置いた場所の下の端に貼り付き、帯はここから上へ描く
-    anchor: 'sticky bottom-0 z-30 h-0',
+    //   重なりの順は、貼り付けた Navbar と同じ z-10。浮かぶ面（⋮ のメニュー・シート）も z-10 で body の最後に描かれるので、帯より上に出る
+    anchor: 'sticky bottom-0 z-10 h-0',
     // 帯がいちばん広がったときの中身の幅を測る定規（見えない）
     ruler: 'invisible absolute inset-x-(--action-bar-inset) bottom-0 h-0 px-(--action-bar-padding)',
     bar: [
@@ -128,7 +129,11 @@ const actionBar = tv({
       docked: {
         spacer: '[--action-bar-inset:0px]',
         anchor: '[--action-bar-inset:0px]',
-        bar: '[--action-bar-radius:0px] [--action-bar-shadow:var(--shadow-sheet)]',
+        // 輪郭は上の線だけ（下と左右は置いた場所の端に着くので引かない）
+        bar: [
+          '[--action-bar-radius:0px] [--action-bar-shadow:var(--shadow-sheet)]',
+          '[box-shadow:var(--action-bar-shadow),inset_0_var(--border-width-thin)_0_0_var(--action-bar-line)]',
+        ],
       },
     },
     // 出入りの動き（軸 653）。fade-up は :root の既定のまま
