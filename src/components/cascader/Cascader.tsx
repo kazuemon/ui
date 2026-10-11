@@ -72,14 +72,14 @@ export interface CascaderControlProps<Value extends CascaderValueItem = string> 
   /** 欄に出す選んだ値の見せ方。値があるときだけ、段ごとの選択肢を渡して呼びます。書くと valueDisplay・separator は使いません */
   renderValue?: (items: CascaderItem<Value>[]) => ReactNode;
   /**
-   * 親に載せたとき（マウス）に次の段を開くか。false では、親を押すか → キーで開きます。指で操作するときと、シートでは押して開きます
-   * @default false
+   * 親にマウスを載せて少し待つと、次の段を開くか（Menu の入れ子と同じ）。開いている次の段へ斜めに動かすあいだは、途中でかすめた親では開きません。
+   * 開いた直後や段が増えた直後は、ポインターが動くまで開きません。false では、親を押すか → キーで開きます。指で操作するときと、シートではいつも押して開きます
+   * @default true
    */
   openOnHover?: boolean;
   /**
-   * 途中の段（親）で決められるか。none は最後の段まで行かないと決まりません。
-   * click は親を押すとその段で決まり、面は閉じずに次の段が開きます（続けて選ぶと値が深くなります）。
-   * row は次の段の先頭に、親そのものを選ぶ行（parentRowLabel）を置きます
+   * 途中の段（親）で決められるか。none は最後の段まで行かないと決まりません（親を押すと次の段が開くだけです）。
+   * row は次の段の先頭に、親そのものを選ぶ行（parentRowLabel。「東京都 のすべて」）を置きます
    * @default 'none'
    */
   parentSelect?: CascaderParentSelect;
@@ -194,7 +194,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
   valueDisplay = 'path',
   separator = '/',
   renderValue,
-  openOnHover = false,
+  openOnHover = true,
   parentSelect = 'none',
   parentRowLabel = defaultParentRowLabel,
   color = 'neutral',
@@ -240,9 +240,9 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
     onOpenChange?.(next);
   };
 
-  const pick = (path: Value[], close: boolean) => {
+  const pick = (path: Value[]) => {
     changeValue(path);
-    if (close) changeOpen(false);
+    changeOpen(false);
   };
 
   const selectedItems = itemsOnPath(items, value);

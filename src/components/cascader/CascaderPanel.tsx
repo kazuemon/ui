@@ -2,6 +2,7 @@
 
 import {
   type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   useEffect,
   useId,
@@ -35,8 +36,8 @@ import { cn, tv } from '../../internal/tv';
 //   親の行の右端に ›（入れ子のメニューの › と同じ）
 // フォーカスは項目そのものに移す（項目は tabIndex を持ち、段ごとに 1 つだけ Tab で止まる）
 
-/** 途中の段（親）で決められるか。none は最後の段だけ、click は親を押すと決まる、row は次の段の先頭に親を選ぶ行を置く */
-export type CascaderParentSelect = 'none' | 'click' | 'row';
+/** 途中の段（親）で決められるか。none は最後の段だけ、row は次の段の先頭に親そのものを選ぶ行を置く */
+export type CascaderParentSelect = 'none' | 'row';
 
 /** シートで前の段へ戻る手段。back は段の上に「‹ 親の名前」の行、tabs は上に段ごとのタブ（選んだ名前）を並べる */
 export type CascaderSheetNavigation = 'back' | 'tabs';
@@ -113,7 +114,22 @@ const tabButton = [
 ].join(' ');
 
 const OPTION = '[role="option"]';
+// openOnHover: 載せてから開くまで（Menu の入れ子と同じ程度）と、次の段へ向かって動いているときに止まってから開くまで
 const HOVER_DELAY = 100;
+const AIM_DELAY = 300;
+
+type Point = { x: number; y: number };
+// 点 p が三角 abc の中か（辺の上を含む）
+function inTriangle(p: Point, a: Point, b: Point, c: Point) {
+  const side = (p1: Point, p2: Point, p3: Point) =>
+    (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+  const d1 = side(p, a, b);
+  const d2 = side(p, b, c);
+  const d3 = side(p, c, a);
+  const negative = d1 < 0 || d2 < 0 || d3 < 0;
+  const positive = d1 > 0 || d2 > 0 || d3 > 0;
+  return !(negative && positive);
+}
 
 export interface CascaderPanelProps<Value extends CascaderValueItem> {
   items: CascaderItem<Value>[];
@@ -122,8 +138,8 @@ export interface CascaderPanelProps<Value extends CascaderValueItem> {
   /** いまたどっている道筋。開いたときは値から始まる */
   activePath: Value[];
   onActivePathChange: (path: Value[]) => void;
-  /** 道筋で決める。close は面を閉じるか（parentSelect="click" の親は閉じない） */
-  onPick: (path: Value[], close: boolean) => void;
+  /** 道筋で決める（面を閉じる） */
+  onPick: (path: Value[]) => void;
   sheet: boolean;
   /** 1 段目の一覧の読み上げの名前（欄のラベル） */
   rootName: string;
@@ -170,6 +186,9 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   );
   const [animated, setAnimated] = useState(false);
   const hoverTimer = useRef<number | null>(null);
+  // 待っている行（段:行）と、前にポインターがあった点（openOnHover）
+  const hoverKey = useRef<string | null>(null);
+  const lastPoint = useRef<Point | null>(null);
   useEffect(
     () => () => {
       if (hoverTimer.current != null) window.clearTimeout(hoverTimer.current);
@@ -305,16 +324,14 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   const activate = (depth: number, row: Row<Value>, focus: 'option' | 'panel') => {
     if (row.item.disabled && !row.parentRow) return;
     if (row.parentRow) {
-      onPick(row.path, true);
+      onPick(row.path);
       return;
     }
     if (isParent(row.item)) {
-      // 親を押すと決まる形では、決めてから次の段を開く（面は閉じない）
-      if (parentSelect === 'click') onPick([...activePath.slice(0, depth), row.item.value], false);
       enter(depth, row, focus);
       return;
     }
-    onPick([...activePath.slice(0, depth), row.item.value], true);
+    onPick([...activePath.slice(0, depth), row.item.value]);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>, depth: number) => {
@@ -373,24 +390,62 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   };
 
   // openOnHover: マウスを載せて少し待つと、その行をたどる（親なら次の段が開く。葉なら先の段を閉じる）
-  const onRowPointerEnter = (
-    event: { pointerType: string },
+  //   Menu の入れ子（Base UI の hover の待ちと、斜めの通り道）と同じ考え方で、段が勝手に替わらないようにする
+  //   - 実際にポインターが動いたときだけ数える（pointerenter は使わない）。開いた直後や、段が増えて面が広がり・ずれた直後に
+  //     止まったポインターの下へ来た行では開かない
+  //   - いま開いている次の段へ向かって斜めに動いているあいだは、途中でかすめた行を開かない。止まったら（AIM_DELAY）開く
+  const onRowPointerMove = (
+    event: ReactPointerEvent<HTMLDivElement>,
     depth: number,
     rows: Row<Value>[],
     index: number
   ) => {
     if (!openOnHover || sheet || event.pointerType !== 'mouse') return;
-    if (hoverTimer.current != null) window.clearTimeout(hoverTimer.current);
+    const point = { x: event.clientX, y: event.clientY };
+    const previous = lastPoint.current;
+    lastPoint.current = point;
+    if (!previous || (previous.x === point.x && previous.y === point.y)) return;
     const row = rows[index];
-    if (row.item.disabled && !row.parentRow) return;
-    hoverTimer.current = window.setTimeout(() => {
-      hoverTimer.current = null;
-      traceRow(depth, rows, index);
-    }, HOVER_DELAY);
+    const key = `${depth}:${index}`;
+    const traced = row.parentRow
+      ? activePath.length === depth
+      : activePath[depth] === row.item.value && activePath.length >= depth + 1;
+    if (traced || (row.item.disabled && !row.parentRow)) {
+      clearHover();
+      return;
+    }
+    const aiming = aimsAtNextColumn(depth, previous, point);
+    // 同じ行で待っているあいだは待ち直さない（動き続けても開ける）。次の段へ向かっているあいだは、止まるまで待ち直す
+    if (hoverKey.current === key && !aiming) return;
+    clearHover();
+    hoverKey.current = key;
+    hoverTimer.current = window.setTimeout(
+      () => {
+        hoverTimer.current = null;
+        hoverKey.current = null;
+        traceRow(depth, rows, index);
+      },
+      aiming ? AIM_DELAY : HOVER_DELAY
+    );
   };
-  const onRowPointerLeave = () => {
+  const clearHover = () => {
     if (hoverTimer.current != null) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = null;
+    hoverKey.current = null;
+  };
+
+  // 前の点から今の点への動きが、いま開いている次の段（depth + 1）の手前の辺へ向かう三角の中か
+  const aimsAtNextColumn = (depth: number, from: Point, to: Point) => {
+    const next = rootRef.current
+      ?.querySelector(`[data-depth="${depth + 1}"]`)
+      ?.closest<HTMLElement>('[data-slot="cascader-column"]');
+    if (!next) return false;
+    const rect = next.getBoundingClientRect();
+    // 次の段は右（RTL では左）にある。手前の辺の上下の角と、前の点で三角を作る
+    const edge = rect.left >= from.x ? rect.left : rect.right;
+    const toward = edge >= from.x ? to.x >= from.x : to.x <= from.x;
+    if (!toward) return false;
+    return inTriangle(to, from, { x: edge, y: rect.top }, { x: edge, y: rect.bottom });
   };
 
   const renderRows = (depth: number) => {
@@ -404,7 +459,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
       );
     return rows.map((row, index) => {
       const parent = !row.parentRow && isParent(row.item);
-      const selected = samePath(row.path, value) && (!parent || parentSelect === 'click');
+      const selected = samePath(row.path, value) && !parent;
       // 読み上げの「選択済み」は、決まった値の道筋にある行（段ごとの選択）
       const onValuePath = row.parentRow
         ? samePath(row.path, value)
@@ -427,8 +482,8 @@ export function CascaderPanel<Value extends CascaderValueItem>({
           data-parent-row={row.parentRow || undefined}
           className={optionSlots.root()}
           onClick={(event) => activate(depth, row, event.detail === 0 ? 'option' : 'panel')}
-          onPointerEnter={(event) => onRowPointerEnter(event, depth, rows, index)}
-          onPointerLeave={onRowPointerLeave}
+          onPointerMove={(event) => onRowPointerMove(event, depth, rows, index)}
+          onPointerLeave={clearHover}
         >
           <span className={optionSlots.label()}>{row.label}</span>
           {selected && (

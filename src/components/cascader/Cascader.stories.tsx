@@ -71,6 +71,7 @@ const meta = {
           '- 選択肢は `items` に木で渡します。`children` を持つ選択肢は次の段を開く親、持たないものは選ぶと決まる葉です。選べない選択肢には `disabled` を付けます。',
           '- 値は 1 段目から順に、段ごとの `value` を並べた配列です（`["tokyo", "shibuya"]`）。`defaultValue` か、`value`・`onValueChange` で持ちます。`name` を渡すと、フォームには段ごとの値を同じ名前で送ります。',
           '- 浮かべる形では段を横に並べます。いまたどっている親はグレーの塗り、選んだ値は Select の選んだ項目と同じ印です。',
+          '- マウスでは、親に載せて少し待つと次の段が開きます（Menu の入れ子と同じ）。開いた次の段へ斜めに動かすあいだは、途中でかすめた親では開きません。押して開く形にするときは `openOnHover={false}` にします。',
           '- キーボードでは、↑↓ で段の中を移り、→ で次の段へ入り、← で前の段へ戻ります。Enter で決めます。文字を打つと、その文字で始まる選択肢へ移ります。',
           '- 欄に出す文は `valueDisplay` で、道筋をすべて（`path`、既定）か、最後の段だけ（`last`）から選びます。区切りは `separator` です。',
           '- 途中の段で決められるようにするときは `parentSelect` を使います。',
@@ -85,7 +86,7 @@ const meta = {
     placeholder: '選んでください',
     valueDisplay: 'path',
     parentSelect: 'none',
-    openOnHover: false,
+    openOnHover: true,
     color: 'neutral',
   },
   argTypes: {
@@ -97,7 +98,7 @@ const meta = {
     },
     parentSelect: {
       control: 'inline-radio',
-      options: ['none', 'click', 'row'],
+      options: ['none', 'row'],
       table: { defaultValue: { summary: "'none'" } },
     },
     color: {
@@ -434,7 +435,7 @@ export const ParentRow: Story = {
     docs: {
       description: {
         story:
-          '`parentSelect="row"` では、次の段の先頭に親そのものを選ぶ行を置きます。文字は `parentRowLabel` で変えます。`click` では、親を押すとその段で決まり、面は閉じずに次の段が開きます。',
+          '`parentSelect="row"` では、次の段の先頭に親そのものを選ぶ行を置きます。文字は `parentRowLabel` で変えます。',
       },
     },
   },

@@ -9,7 +9,7 @@ const meta = {
   title: 'Design Review/647 Cascader の次の段を開くきっかけ',
   id: 'design-review-647-cascader-expand',
   parameters: { layout: 'fullscreen' },
-  args: { pick: 'current' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -46,7 +46,7 @@ const candidates: Candidate[] = [
     id: 'A',
     name: '載せて開く',
     intent:
-      'マウスを親に載せて 100ms 待つと次の段が開く（Menu の入れ子と同じ）。押す手間が減るが、右の段へ動かす途中でほかの親をかすめると段が替わる。指とシートでは押して開く',
+      'マウスを親に載せて 100ms 待つと次の段が開く（Menu の入れ子と同じ）。ポインターが動いたときだけ数え、次の段へ斜めに向かうあいだは、かすめた親で開かない（止まって 300ms で開く）。指とシートでは押して開く',
     spec: [
       ['開くきっかけ', '載せて 100ms・押す・→'],
       ['載せたとき', '次の段が替わる'],
@@ -88,6 +88,11 @@ export const Axis: Story = {
       }}
     >
       <p>
+        決定: A（載せて開く）を既定にし、現行版（押して開く）も openOnHover={'{false}'}{' '}
+        で選べるようにする。載せて開く形は Menu
+        の入れ子と同じ考え方で直した。ポインターが実際に動いたときだけ開き（開いた直後や、段が増えて面がずれた直後に、止まったポインターの下へ来た行では開かない）、開いている次の段へ斜めに向かうあいだは、かすめた行で開かない（止まったら開く）。右端で開いたときの形は「右端で開く」のストーリーで試せる。
+      </p>
+      <p>
         浮かべる形で、親の次の段をいつ開くかを決めます。指で操作するとき・シートでは、どちらの案でも押して開きます。
       </p>
       <p>
@@ -95,5 +100,24 @@ export const Axis: Story = {
         で選べるようにすることです。段が横に並ぶ部品では、右の段へマウスを動かす途中で別の親をかすめやすく、載せて開くと段が勝手に替わって見失いやすいためです。
       </p>
     </Comparison>
+  ),
+};
+
+// 右端で開くと、段が増えるたびに面が左へずれる（画面の端に当たった分だけずらす）。止まったポインターの下へ別の行が来ても開かないことを試す
+export const RightEdge: Story = {
+  name: '右端で開く',
+  render: () => (
+    <div className="flex min-h-[32rem] flex-col gap-10 bg-bg p-6 text-fg">
+      <p className="max-w-[68ch] text-sm text-fg-muted">
+        画面の右端に置いた欄です。段が増えると、面が画面に収まるよう左へずれます。上は載せて開く（既定）、下は押して開く（openOnHover=
+        {'{false}'}）です。
+      </p>
+      <div className="flex justify-end">
+        <FieldTrial items={categories} label="載せて開く（既定）" />
+      </div>
+      <div className="flex justify-end">
+        <FieldTrial items={categories} label="押して開く" openOnHover={false} />
+      </div>
+    </div>
   ),
 };

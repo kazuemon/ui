@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/648 Cascader を途中の段で決める',
   id: 'design-review-648-cascader-parent-select',
   parameters: { layout: 'fullscreen' },
-  args: { pick: 'current' },
+  args: { pick: 'current,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -29,9 +29,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<{ pick: string }>;
 
-const parentSelect: Record<string, NonNullable<CascaderProps['parentSelect']>> = {
+// A（親を押すと決まる）は部品から外した。比較のときの動く見本は、決める前のコミット 01fb37d7 にある
+const parentSelect: Record<string, NonNullable<CascaderProps['parentSelect']> | undefined> = {
   current: 'none',
-  A: 'click',
+  A: undefined,
   B: 'row',
 };
 
@@ -88,6 +89,12 @@ export const Axis: Story = {
       columns={columns}
       renderCell={(column, candidate) => {
         const mode = parentSelect[candidate.id];
+        if (!mode)
+          return (
+            <p className="max-w-60 text-xs leading-5 text-fg-subtle">
+              部品から外しました（比べたときの見本はコミット 01fb37d7）
+            </p>
+          );
         if (column.label.includes('2 段'))
           return (
             <OpenPanel
@@ -101,6 +108,11 @@ export const Axis: Story = {
         return <FieldTrial items={categories} label="カテゴリ" parentSelect={mode} />;
       }}
     >
+      <p>
+        決定: 既定は現行版（最後の段だけで決まる）。親を選べるようにするときは
+        B（次の段の先頭に「〇〇 のすべて」の行）を parentSelect=&quot;row&quot;
+        で選ぶ。A（親を押すと決まる）は外した。
+      </p>
       <p>
         「東京都のどこでも」「本ならなんでも」のように、途中の段で決めたいときの形を決めます。どの案も、使う側が
         parentSelect で選べるようにし、ここでは既定と、選べる形に残すものを決めます。
