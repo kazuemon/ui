@@ -38,7 +38,9 @@ import { useActionBarFit } from './use-action-bar-fit';
 //     primary の上では危険の赤が読めないので、危険の操作も白い文字にする
 //     帯の中で --color-fg・--color-fg-danger を差し替えるので、面の値は差し替えない役割（--color-danger など）から取る（循環させない）
 //     帯の中では本文の色・危険の前景・フォーカスの線を帯の色に差し替えるので、ToolbarButton などをそのまま置ける（原則2: 濃い面の上の線は文字の色）
-//   幅（軸 652）: --action-bar-width。指で操作していて画面が狭いときは、左右の余白を残して幅いっぱい（Toast と同じ判定 — 原則16）
+//   幅と寄せ（軸 652）: placement。full（既定）は置いた場所の幅いっぱい（左右に inset を残す）で、件数は左・操作は右
+//     center は中身の幅で真ん中。指で操作していて画面が狭いときは、左右の余白を残して幅いっぱい（Toast と同じ判定 — 原則16）
+//     docked は浮かべず、置いた場所の下の端に幅いっぱいで着ける（角なし・シートと同じ上向きの影）
 //   中身: [選択を外す ×] [件数の文] … [操作] [⋮ その他]。全体が Toolbar（Tab で 1 回止まり、中は矢印キーで移る）
 //   入りきらないとき（軸 654）: narrowDisplay。menu は後ろの操作から ⋮ のメニューに畳む（メニューは指で狭いとシートになる）
 //   読み上げ: 件数の文は、いつも置いてある知らせの箱（role="status"）が 1 回だけ読む（原則15）。帯の名前もその箱から取る
@@ -60,8 +62,7 @@ const actionBar = tv({
     ruler: 'invisible absolute inset-x-(--action-bar-inset) bottom-0 h-0 px-(--action-bar-padding)',
     bar: [
       'absolute inset-x-(--action-bar-inset) bottom-[calc(var(--action-bar-inset)+env(safe-area-inset-bottom))]',
-      'ms-(--action-bar-margin-start) me-(--action-bar-margin-end) w-(--action-bar-width) max-w-[calc(100%-var(--action-bar-inset)*2)]',
-      'data-narrow:mx-0 data-narrow:w-auto',
+      'max-w-[calc(100%-var(--action-bar-inset)*2)]',
       'rounded-(--action-bar-radius) bg-(--action-bar-bg) p-(--action-bar-padding) text-(--action-bar-fg)',
       '[box-shadow:var(--action-bar-shadow),inset_0_0_0_var(--border-width-thin)_var(--action-bar-line)]',
       // 帯の中の部品は、本文の色・危険の前景・フォーカスの線を帯の色で読む
@@ -113,6 +114,16 @@ const actionBar = tv({
         ],
       },
     },
+    // 幅と寄せ（軸 652）
+    placement: {
+      full: {},
+      center: { bar: 'mx-auto w-fit data-narrow:mx-0 data-narrow:w-auto' },
+      docked: {
+        spacer: '[--action-bar-inset:0px]',
+        anchor: '[--action-bar-inset:0px]',
+        bar: '[--action-bar-radius:0px] [--action-bar-shadow:var(--shadow-sheet)]',
+      },
+    },
     // label の前に × があるときは、文の左の余白を詰める（× のボタンの余白で足りる。× のフォーカスの線が文字にかからない分だけ空ける）
     clearable: {
       true: { label: 'ps-1' },
@@ -128,6 +139,9 @@ const actionBar = tv({
 
 /** 帯の面。surface は白い面に細い輪郭、neutral-strong は濃いグレー、primary-subtle は淡い青、primary は青の面 */
 export type ActionBarVariant = 'surface' | 'neutral-strong' | 'primary-subtle' | 'primary';
+
+/** 帯の幅と寄せ。full は置いた場所の幅いっぱい、center は中身の幅で真ん中、docked は下の端に幅いっぱいで着ける */
+export type ActionBarPlacement = 'full' | 'center' | 'docked';
 
 /** 入りきらないときの並べ方。menu は後ろの操作からメニューに畳み、icon-only はまず文字を外してアイコンだけにし（それでも入らなければ畳む）、wrap は次の行へ折り返す */
 export type ActionBarNarrowDisplay = 'menu' | 'icon-only' | 'wrap';
@@ -158,6 +172,13 @@ export interface ActionBarProps {
    * @default 'surface'
    */
   variant?: ActionBarVariant;
+  /**
+   * 帯の幅と寄せ。full は置いた場所の幅いっぱい（左右に余白を残す）で、件数を左、操作を右に置きます。
+   * center は中身の幅で真ん中に浮かべ、指で操作していて画面が狭いときは幅いっぱいにします。
+   * docked は浮かべずに、置いた場所の下の端へ幅いっぱいで着けます（角なし）
+   * @default 'full'
+   */
+  placement?: ActionBarPlacement;
   /**
    * 選択を外すボタンの読み上げの名前
    * @default '選択を外す'
@@ -195,6 +216,7 @@ export function ActionBar({
   open,
   label,
   variant = 'surface',
+  placement = 'full',
   onClear,
   clearName = '選択を外す',
   closeOnEscape = true,
@@ -223,6 +245,7 @@ export function ActionBar({
   );
   const s = actionBar({
     variant,
+    placement,
     clearable: onClear != null,
     wrap: narrowDisplay === 'wrap',
   });

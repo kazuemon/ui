@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ListCell, scrollableDecorator } from './action-bar-axis-parts';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import type { ActionBarPlacement } from '../../src/components/action-bar/ActionBar';
 
 // 軸 652: ActionBar の帯の幅と寄せ
 const meta = {
@@ -9,23 +10,24 @@ const meta = {
   id: 'design-review-652-action-bar-width',
   parameters: { layout: 'fullscreen' },
   decorators: [scrollableDecorator],
-  args: { pick: '' },
+  args: { pick: 'A,current,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['', 'current', 'A', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
 export default meta;
 type Story = StoryObj<{ pick: string }>;
 
-const floating = {
-  '--action-bar-inset': 'calc(var(--spacing) * 4)',
-  '--action-bar-radius': 'var(--radius-card)',
-  '--action-bar-shadow': 'var(--shadow-overlay)',
-} as const;
+// 決めたあと、幅と寄せは部品の placement になった。行ごとに placement を渡す（B の右寄せは採らずに消した）
+const placements: Record<string, ActionBarPlacement> = {
+  現行版: 'center',
+  A: 'full',
+  C: 'docked',
+};
 
 const candidates: Candidate[] = [
   {
@@ -38,12 +40,6 @@ const candidates: Candidate[] = [
       ['寄せ', '真ん中'],
       ['端からの距離', '16px'],
     ],
-    tokens: {
-      ...floating,
-      '--action-bar-width': 'fit-content',
-      '--action-bar-margin-start': 'auto',
-      '--action-bar-margin-end': 'auto',
-    },
   },
   {
     id: 'A',
@@ -55,29 +51,6 @@ const candidates: Candidate[] = [
       ['寄せ', '件数は左・操作は右'],
       ['端からの距離', '16px'],
     ],
-    tokens: {
-      ...floating,
-      '--action-bar-width': 'auto',
-      '--action-bar-margin-start': '0px',
-      '--action-bar-margin-end': '0px',
-    },
-  },
-  {
-    id: 'B',
-    name: '中身に合わせて右寄せ',
-    intent:
-      '中身の幅で右下に置く（トーストと同じ場所）。左の一覧を隠さないが、右下に出すトーストと重なる',
-    spec: [
-      ['幅', '中身に合わせる'],
-      ['寄せ', '右'],
-      ['端からの距離', '16px'],
-    ],
-    tokens: {
-      ...floating,
-      '--action-bar-width': 'fit-content',
-      '--action-bar-margin-start': 'auto',
-      '--action-bar-margin-end': '0px',
-    },
   },
   {
     id: 'C',
@@ -89,14 +62,6 @@ const candidates: Candidate[] = [
       ['寄せ', '件数は左・操作は右'],
       ['端からの距離', '0（角なし・シートの影）'],
     ],
-    tokens: {
-      '--action-bar-inset': '0px',
-      '--action-bar-radius': '0px',
-      '--action-bar-shadow': 'var(--shadow-sheet)',
-      '--action-bar-width': 'auto',
-      '--action-bar-margin-start': '0px',
-      '--action-bar-margin-end': '0px',
-    },
   },
 ];
 
@@ -117,16 +82,26 @@ export const Candidates: Story = {
       pick={pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(column) =>
-        column.label.startsWith('広い') ? (
-          <ListCell width="640px" />
+      renderCell={(column, candidate) => {
+        const barProps = {
+          placement: placements[candidate.id],
+          variant: 'neutral-strong' as const,
+        };
+        return column.label.startsWith('広い') ? (
+          <ListCell width="640px" barProps={barProps} />
         ) : (
-          <ListCell width="360px" actions="many" />
-        )
-      }
+          <ListCell width="360px" actions="many" barProps={barProps} />
+        );
+      }}
     >
       <p>
-        帯をどの幅で、置いた場所のどこに寄せるかを選びます。面（濃いグレー）と中の並びはどの案も同じです。
+        決定: A（横いっぱい）を既定にし、現行版（中身の幅で真ん中）と C（下の端に着ける）も
+        placement
+        で選べる（full・center・docked）。B（右寄せ）は採らない。「領域によりそうですが、基本は
+        A、選択肢として現行とCも選べる、でよさそう」
+      </p>
+      <p>
+        帯をどの幅で、置いた場所のどこに寄せるかを選びます。面と中の並びはどの案も同じです（比べたときの濃いグレーの面のまま見せています）。
         指で操作していて画面が狭いときは、どの案でも左右の余白を残して幅いっぱいにします（トーストと同じ判定）。
       </p>
       <p>

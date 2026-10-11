@@ -22,10 +22,11 @@ const meta = {
           '- 一覧のすぐ後ろ（一覧と同じ親の中）に置きます。一覧をスクロールしているあいだは置いた場所の下の端に貼り付き、一覧の終わりまでスクロールすると一覧の下に収まるので、最後の行が帯に隠れたままになりません。',
           '- `open` には「1 件以上選んでいるか」を渡し、`label` に件数の文（「2 件を選択中」）を渡します。件数の文は変わるたびに読み上げでも知らせます。',
           '- 面は `variant` で選びます。`surface`（既定）は白い面に影と細い輪郭、`neutral-strong` は濃いグレー、`primary-subtle` は淡い青、`primary` は青の面です。`primary` の上では危険の赤が読めないので、削除も白い文字になります。',
+          '- 幅と寄せは `placement` で選びます。`full`（既定）は置いた場所の幅いっぱいで、件数を左、操作を右に置きます。`center` は中身の幅で真ん中に浮かべ、`docked` は浮かべずに下の端へ着けます。',
           '- 操作は `ActionBarButton` で並べます。削除のような取り消せない操作は `status="danger"` にします。',
           '- `onClear` を渡すと、左に選択を外す × のボタンを置きます。帯の中にフォーカスがあるときは Esc でも外せます（`closeOnEscape`）。帯が消えると、帯に入る前にいた場所へフォーカスが戻ります。',
           '- 操作が入りきらないときは、後ろの操作から ⋮ のメニューに畳みます（`narrowDisplay="menu"`）。`icon-only` はまず文字を外してアイコンだけにし、`wrap` は件数の行と操作の行に分けます。',
-          '- 指で操作していて画面が狭いときは、左右の余白を残して幅いっぱいに広がります。',
+          '- `center` でも、指で操作していて画面が狭いときは、左右の余白を残して幅いっぱいに広がります。',
           '',
           '表（DataTable）の上に検索などの帯があり、そこに件数と操作を並べられるときは、ActionBar を使わずに帯の右に並べます。ActionBar は、上に帯のない一覧（カードや行の一覧）や、長い一覧で上の帯がスクロールで見えなくなる画面で使います。',
         ].join('\n'),
@@ -36,6 +37,7 @@ const meta = {
     open: true,
     label: '2 件を選択中',
     variant: 'surface',
+    placement: 'full',
     closeOnEscape: true,
     narrowDisplay: 'menu',
   },
@@ -44,6 +46,11 @@ const meta = {
       control: 'inline-radio',
       options: ['surface', 'neutral-strong', 'primary-subtle', 'primary'],
       table: { defaultValue: { summary: "'surface'" } },
+    },
+    placement: {
+      control: 'inline-radio',
+      options: ['full', 'center', 'docked'],
+      table: { defaultValue: { summary: "'full'" } },
     },
     narrowDisplay: {
       control: 'inline-radio',
@@ -70,7 +77,10 @@ export const Playground: Story = {
     },
   },
   render: (args) => (
-    <SelectableListScene narrowDisplay={args.narrowDisplay} barProps={{ variant: args.variant }} />
+    <SelectableListScene
+      narrowDisplay={args.narrowDisplay}
+      barProps={{ variant: args.variant, placement: args.placement }}
+    />
   ),
 };
 
@@ -154,6 +164,20 @@ export const Variants: Story = {
               <ActionBarButton status="danger">削除</ActionBarButton>
             </ActionBar>
           </Frame>
+        </Specimen>
+      ))}
+    </Gallery>
+  ),
+};
+
+export const Placements: Story = {
+  tags: ['visual'],
+  name: '幅と寄せ',
+  render: () => (
+    <Gallery columnWidth="34rem">
+      {(['full', 'center', 'docked'] as const).map((placement) => (
+        <Specimen key={placement} label={placement}>
+          <Frame width={520}>{bar({ placement })}</Frame>
         </Specimen>
       ))}
     </Gallery>

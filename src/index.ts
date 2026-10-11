@@ -15,6 +15,7 @@ export {
   type ActionBarButtonProps,
   type ActionBarButtonStatus,
   type ActionBarNarrowDisplay,
+  type ActionBarPlacement,
   type ActionBarProps,
   type ActionBarVariant,
 } from './components/action-bar/ActionBar';
