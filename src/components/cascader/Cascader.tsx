@@ -65,7 +65,8 @@ export interface CascaderControlProps<Value extends CascaderValueItem = string> 
    */
   valueDisplay?: CascaderValueDisplay;
   /**
-   * valueDisplay="path" のときの、段のあいだの区切り。読み上げでは読みません。null では区切らずに続けて書きます（「東京都渋谷区」）
+   * valueDisplay="path" のときの、段のあいだの区切り。文字のほか、`<Icon icon={CaretRightIcon} />` のようなアイコンも渡せます。
+   * 色は淡いグレーで、文字の縦の中央にそろえます。読み上げでは読みません。null では区切らずに続けて書きます（「東京都渋谷区」）
    * @default '/'
    */
   separator?: ReactNode;
@@ -268,7 +269,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
               <span
                 aria-hidden
                 data-slot="cascader-separator"
-                className="mx-[0.3em] shrink-0 text-fg-subtle"
+                className="mx-[0.3em] flex shrink-0 items-center self-center text-fg-subtle"
               >
                 {separator}
               </span>{' '}

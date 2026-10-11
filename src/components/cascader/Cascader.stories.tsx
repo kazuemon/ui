@@ -1,3 +1,4 @@
+import { CaretRightIcon } from '@phosphor-icons/react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ReactNode, useState } from 'react';
 // userEvent は play の引数ではなく storybook/test から読む
@@ -5,6 +6,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { Cascader, type CascaderProps } from './Cascader';
 import { categories, regions } from './cascader-story-items';
+import { Icon } from '../icon/Icon';
 import { DensityPair, Matrix, PhoneFrame } from '../../stories/story-parts';
 import {
   enabledControl,
@@ -73,7 +75,7 @@ const meta = {
           '- 浮かべる形では段を横に並べます。いまたどっている親はグレーの塗り、選んだ値は Select の選んだ項目と同じ印です。',
           '- マウスでは、親に載せて少し待つと次の段が開きます（Menu の入れ子と同じ）。開いた次の段へ斜めに動かすあいだは、途中でかすめた親では開きません。押して開く形にするときは `openOnHover={false}` にします。',
           '- キーボードでは、↑↓ で段の中を移り、→ で次の段へ入り、← で前の段へ戻ります。Enter で決めます。文字を打つと、その文字で始まる選択肢へ移ります。',
-          '- 欄に出す文は `valueDisplay` で、道筋をすべて（`path`、既定）か、最後の段だけ（`last`）から選びます。区切りは `separator` です。',
+          '- 欄に出す文は `valueDisplay` で、道筋をすべて（`path`、既定）か、最後の段だけ（`last`）から選びます。区切りは `separator` で、文字のほかアイコンも渡せます。`null` では区切らずに続けて書きます。',
           '- 途中の段で決められるようにするときは `parentSelect` を使います。',
           '- 指で操作していて画面が狭いときは、画面の下から出すシートにします（`presentation`）。シートでは段を 1 つずつ出し、親を押すと次の段が右から滑り込みます。上の行で前の段へ戻ります。',
         ].join('\n'),
@@ -258,6 +260,12 @@ export const ValueDisplay: Story = {
       <Cascader {...args} caption="道筋をすべて（path・既定）" />
       <Cascader {...args} valueDisplay="last" caption="最後の段だけ（last）" />
       <Cascader {...args} separator="›" caption="区切りを › にする（separator）" />
+      <Cascader
+        {...args}
+        separator={<Icon icon={CaretRightIcon} />}
+        caption="区切りにアイコンを渡す（separator）"
+      />
+      <Cascader {...args} separator={null} caption="区切らない（separator={null}）" />
       <div className="w-48">
         <Cascader {...args} caption="狭い欄では前の段から縮める" />
       </div>
