@@ -42,10 +42,10 @@ import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-
 export type CascaderParentSelect = 'none' | 'row';
 
 /**
- * シートの高さ（比べている途中の切り替え。決まったら畳む）。root は 1 段目の高さのまま（Menu の入れ子の fixed）、
- * grow は長い段へ進むと伸ばし、縮めない、tallest は木のいちばん長い段に合わせて開いたときから決める、fit はいまの段に合わせて伸び縮みする（Menu の fit）
+ * シートで段を進むときの高さ（Menu の submenuSheet に寄せた値）。tallest は開いたときから木のいちばん長い段に合わせて変えない、
+ * fixed は 1 段目の高さのまま（Menu の fixed）、fit はいまの段に合わせて伸び縮みする（Menu の fit）
  */
-export type CascaderSheetHeight = 'root' | 'grow' | 'tallest' | 'fit';
+export type CascaderLevelSheet = 'tallest' | 'fixed' | 'fit';
 
 /** 段の中の 1 行。parentRow は、次の段の先頭に置く「親そのものを選ぶ」行（parentSelect="row"） */
 interface Row<Value extends CascaderValueItem> {
@@ -154,7 +154,7 @@ export interface CascaderPanelProps<Value extends CascaderValueItem> {
   autoFocus: boolean;
   /** まだ開いていない段の空の列を出さないか（浮かべる形）。true では、段の数に合わせて面が伸び縮みする */
   hideEmptyColumns?: boolean;
-  sheetHeight?: CascaderSheetHeight;
+  levelSheet?: CascaderLevelSheet;
 }
 
 export function CascaderPanel<Value extends CascaderValueItem>({
@@ -173,7 +173,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   parentHintText,
   autoFocus,
   hideEmptyColumns = false,
-  sheetHeight = 'root',
+  levelSheet = 'tallest',
 }: CascaderPanelProps<Value>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
@@ -184,8 +184,11 @@ export function CascaderPanel<Value extends CascaderValueItem>({
     Math.max(0, Math.min(columns.length - 1, activePath.length - 1))
   );
   const [animated, setAnimated] = useState(false);
-  // シートの舞台の高さ。段ごとの中身の高さ（戻る行を含む）を測り、sheetHeight で決める
-  //   root: 1 段目のまま（Menu の入れ子のシートの fixed と同じ）。長い段はパネルの中でスクロールする
+  // シートの舞台の高さ。段ごとの中身の高さ（戻る行を含む）を測り、levelSheet で決める
+  //   tallest: 開いたときから木のいちばん長い段の高さ。段を進んでも戻っても変えない（深い段ほど長くなりやすく、ずれを起こさない）
+  //   fixed: 1 段目のまま（Menu の入れ子のシートの fixed と同じ）。長い段はパネルの中でスクロールする
+  //   fit: いまの段の高さ（Menu の fit と同じ）。高さはシートと同じ長さで動かす
+  //   どれも画面の上限を超えると、シートの中身ごとスクロールする
   const [panelHeights, setPanelHeights] = useState<Record<number, number>>({});
   const reportHeight = useCallback(
     (depth: number, height: number) =>
@@ -194,11 +197,6 @@ export function CascaderPanel<Value extends CascaderValueItem>({
       ),
     []
   );
-  const [grownHeight, setGrownHeight] = useState(0);
-  const levelHeight = panelHeights[level];
-  useIsomorphicLayoutEffect(() => {
-    if (levelHeight != null) setGrownHeight((current) => Math.max(current, levelHeight));
-  }, [levelHeight]);
   // 木のいちばん長い段の行の数（親を選ぶ行を含む）。行はどれも 1 行の高さ
   const tallestRows = useMemo(() => {
     let most = items.length;
@@ -212,15 +210,38 @@ export function CascaderPanel<Value extends CascaderValueItem>({
     walk(items);
     return most;
   }, [items, parentSelect]);
+  // 舞台の高さの上限: シートが画面の上限まで伸びたときに、中身（見出しの下）に残る高さ
+  //   上限で止め、長い段はパネルの中でスクロールさせる（戻る行が流れて隠れない。シートの中身と二重にスクロールしない）
+  const [stageMax, setStageMax] = useState<number | null>(null);
+  useIsomorphicLayoutEffect(() => {
+    if (!sheet) return undefined;
+    const scroller = rootRef.current?.closest<HTMLElement>('[data-slot="sheet-content"]');
+    const popup = scroller?.closest<HTMLElement>('[role="dialog"]');
+    if (!scroller || !popup) return undefined;
+    const read = () => {
+      const max = getComputedStyle(popup).maxHeight;
+      const screen = popup.parentElement?.offsetHeight ?? window.innerHeight;
+      const limit = max.endsWith('%')
+        ? (parseFloat(max) / 100) * screen
+        : max === 'none'
+          ? screen
+          : parseFloat(max);
+      // 見出しなど中身の外の高さと、中身の下の余白（上の余白は舞台が打ち消している）
+      const outside = popup.offsetHeight - scroller.clientHeight;
+      const bottom = parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
+      setStageMax(Math.max(0, Math.floor(limit - outside - bottom)));
+    };
+    read();
+    window.addEventListener('resize', read);
+    return () => window.removeEventListener('resize', read);
+  }, [sheet]);
   const stageHeight: number | string | undefined =
-    sheetHeight === 'tallest'
+    levelSheet === 'tallest'
       ? // 上の余白・戻る行・行・下の余白
         `calc(var(--spacing) * 2 + var(--spacing-control) * ${tallestRows + 1})`
-      : sheetHeight === 'grow'
-        ? grownHeight || undefined
-        : sheetHeight === 'fit'
-          ? levelHeight
-          : panelHeights[0];
+      : levelSheet === 'fit'
+        ? panelHeights[level]
+        : panelHeights[0];
 
   // 浮かべる形は、開いたときから木のいちばん深い段の数だけ列を置く（まだ開いていない段は空の列）
   //   段が増減しても面の幅が変わらず（右端でもずれない）、どこまで深く選ぶかも開いたときに分かる
@@ -305,6 +326,17 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   // 開いた直後: 段ごとに、たどっている行（選んだ値）が見える位置へ送る。
   // 押して開いたときは、いまの道筋の最後の段の、Tab が止まる行へフォーカスを移す
   useEffect(() => {
+    // シートは高さの上限（stageMax）を決めて描き直したあとに送る
+    if (!sheet) {
+      openReveal();
+      return undefined;
+    }
+    const frame = requestAnimationFrame(() => openReveal());
+    return () => cancelAnimationFrame(frame);
+    // 開いたときだけ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const openReveal = () => {
     columns.forEach((_, depth) => {
       // シートで見えているのは 1 段だけ
       if (sheet && depth !== level) return;
@@ -314,9 +346,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
     if (!autoFocus) return;
     const depth = sheet ? level : Math.min(columns.length - 1, Math.max(0, activePath.length - 1));
     focusOption(optionAt(depth, currentIndex(depth, rowsOf(depth))));
-    // 開いたときだけ
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
   // 道筋を変えて描き直してから、フォーカスを移す
   const moveTo = (path: Value[], depth: number, index: number, nextLevel?: number) => {
@@ -571,7 +601,11 @@ export function CascaderPanel<Value extends CascaderValueItem>({
           'relative -mx-(--sheet-padding-x) -mt-(--sheet-padding-x) overflow-clip',
           animated && 'motion-safe:[transition:height_var(--duration-sheet)_var(--ease-sheet)]'
         )}
-        style={stageHeight != null ? { height: stageHeight } : undefined}
+        style={
+          stageHeight != null
+            ? { height: stageHeight, maxHeight: stageMax ?? undefined }
+            : undefined
+        }
       >
         {hint}
         {columns.map((_, depth) => {

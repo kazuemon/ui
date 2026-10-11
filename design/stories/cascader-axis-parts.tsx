@@ -77,11 +77,11 @@ export function OpenPanel({
 export function SheetSpecimen({
   items,
   defaultValue = [],
-  sheetHeight,
+  levelSheet,
 }: {
   items: CascaderItem[];
   defaultValue?: string[];
-  sheetHeight?: CascaderProps['sheetHeight'];
+  levelSheet?: CascaderProps['levelSheet'];
 }) {
   const [value, setValue] = useState<string[]>(defaultValue);
   const [activePath, setActivePath] = useState<string[]>(defaultValue);
@@ -89,6 +89,8 @@ export function SheetSpecimen({
     // 画面の代わりの枠の下端に置き、高さの変化が上端の動きで見えるようにする
     <div className="flex h-[30rem] w-[22rem] flex-col justify-end">
       <div
+        role="dialog"
+        aria-label="お届け先"
         data-density="coarse"
         className="flex max-h-full min-h-0 flex-col overflow-clip rounded-t-card border border-surface-line bg-surface text-input shadow-sheet [--spacing-icon:var(--spacing-icon-input)]"
         style={selectedTokens('neutral')}
@@ -113,7 +115,7 @@ export function SheetSpecimen({
             backName="戻る"
             parentHintText="次の段があります"
             autoFocus={false}
-            sheetHeight={sheetHeight}
+            levelSheet={levelSheet}
           />
         </div>
       </div>

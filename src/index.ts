@@ -146,9 +146,9 @@ export {
   CascaderControl,
   type CascaderControlProps,
   type CascaderItem,
+  type CascaderLevelSheet,
   type CascaderParentSelect,
   type CascaderProps,
-  type CascaderSheetHeight,
   type CascaderValueDisplay,
   type CascaderValueItem,
 } from './components/cascader/Cascader';

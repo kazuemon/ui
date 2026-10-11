@@ -122,10 +122,11 @@ export const Axis: Story = {
 };
 
 // 650 の続き: シートの高さ。1 段目が短く、次の段が長い木で、1 段目の高さのまま（Menu の入れ子の fixed と同じ）だと、
-//   長い段が狭い高さの中でスクロールして窮屈に見える。候補は sheetHeight（比べている途中の切り替え。決まったら畳む）で作る
-const heights: Record<string, NonNullable<CascaderProps['sheetHeight']>> = {
-  current: 'root',
-  A: 'grow',
+//   長い段が狭い高さの中でスクロールして窮屈に見える。決定: B を既定にし、現行版（fixed）・C（fit）も levelSheet で選べる。A は外した
+//   （比べたときの動く見本は、決める前のコミット 8d5ae5d5 にある）
+const heights: Record<string, NonNullable<CascaderProps['levelSheet']> | undefined> = {
+  current: 'fixed',
+  A: undefined,
   B: 'tallest',
   C: 'fit',
 };
@@ -138,7 +139,7 @@ const heightCandidates: Candidate[] = [
       '開いたときの 1 段目の高さを保ち、長い段はその中でスクロールする。高さは跳ねないが、1 段目が短い木では、長い段が狭い中に押し込まれる',
     spec: [
       ['長い段へ進む', '高さはそのまま、中でスクロール'],
-      ['props', "sheetHeight='root'"],
+      ['props', "levelSheet='fixed'"],
     ],
   },
   {
@@ -149,18 +150,18 @@ const heightCandidates: Candidate[] = [
     spec: [
       ['長い段へ進む', '伸ばす'],
       ['短い段へ進む・戻る', 'そのまま'],
-      ['props', "sheetHeight='grow'"],
+      ['props', '（外した）'],
     ],
   },
   {
     id: 'B',
-    name: '木のいちばん長い段に合わせて開く（おすすめ）',
+    name: '木のいちばん長い段に合わせて開く',
     intent:
       '開いたときから、木の中でいちばん長い段が収まる高さにする（画面の上限まで）。段を進んでも戻っても高さは一度も変わらない。短い段では下が空く',
     spec: [
       ['開いたとき', 'いちばん長い段の高さ'],
       ['段を移る', '変わらない'],
-      ['props', "sheetHeight='tallest'"],
+      ['props', "levelSheet='tallest'（既定）"],
     ],
   },
   {
@@ -170,7 +171,7 @@ const heightCandidates: Candidate[] = [
       '段ごとに中身の高さへ伸び縮みする（動きはシートと同じ長さ）。空きもスクロールも最小だが、段を移るたびにシートの上端が動く',
     spec: [
       ['段を移る', '伸び縮みする'],
-      ['props', "sheetHeight='fit'"],
+      ['props', "levelSheet='fit'"],
     ],
   },
 ];
@@ -198,7 +199,7 @@ const longSubmenu = [
 
 export const Height: Story = {
   name: 'シートの高さ',
-  args: { pick: '' },
+  args: { pick: 'B,current,C' },
   render: ({ pick }) => (
     <Comparison
       index={650}
@@ -208,10 +209,16 @@ export const Height: Story = {
       columns={heightColumns}
       renderCell={(column, candidate) => {
         const mode = heights[candidate.id];
+        if (mode === undefined)
+          return (
+            <p className="max-w-60 text-xs leading-5 text-fg-subtle">
+              部品から外しました（比べたときの見本はコミット 8d5ae5d5）
+            </p>
+          );
         if (column.label.startsWith('1 段目'))
-          return <SheetSpecimen items={shortRoot} sheetHeight={mode} />;
+          return <SheetSpecimen items={shortRoot} levelSheet={mode} />;
         if (column.label.startsWith('住所'))
-          return <SheetSpecimen items={regions} sheetHeight={mode} />;
+          return <SheetSpecimen items={regions} levelSheet={mode} />;
         return (
           <PhoneFrame>
             {(frame) => (
@@ -219,7 +226,7 @@ export const Height: Story = {
                 label="食材"
                 items={shortRoot}
                 presentation="sheet"
-                sheetHeight={mode}
+                levelSheet={mode}
                 portalContainer={frame}
               />
             )}
@@ -227,6 +234,12 @@ export const Height: Story = {
         );
       }}
     >
+      <p>
+        決定:
+        B（開いたときから木のいちばん長い段に合わせる）を既定にする。深い段ほど選択肢が増えることが多く、ほかの形ではずれが多くなるため。Menu
+        と同じ動きにもできるよう、現行版（levelSheet=&quot;fixed&quot;）と
+        C（levelSheet=&quot;fit&quot;）も選べる。A は外した。Menu に B の形を足すかは未決。
+      </p>
       <p>
         1 段目が短く、次の段が長い木で、シートの高さをどうするかを決めます。Menu
         の入れ子のシート（既定の fixed）も、いまの Cascader（現行版）と同じく 1

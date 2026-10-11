@@ -4,11 +4,7 @@ import { Field as BaseField } from '@base-ui/react/field';
 import { Fragment, type ReactNode, type Ref, useId, useState } from 'react';
 
 import { type CascaderItem, type CascaderValueItem, itemsOnPath } from './cascader-items';
-import {
-  type CascaderParentSelect,
-  CascaderPanel,
-  type CascaderSheetHeight,
-} from './CascaderPanel';
+import { type CascaderParentSelect, CascaderPanel, type CascaderLevelSheet } from './CascaderPanel';
 import { Field, useFieldControlKind, useFieldState } from '../../internal/field/Field';
 import { controlBox } from '../../internal/field/field-styles';
 import { type FieldNamed, splitFieldProps } from '../../internal/field/input-field-props';
@@ -29,7 +25,7 @@ import { cn } from '../../internal/tv';
 import { useControlled } from '../../internal/use-controlled';
 
 export type { CascaderItem, CascaderValueItem } from './cascader-items';
-export type { CascaderParentSelect, CascaderSheetHeight } from './CascaderPanel';
+export type { CascaderLevelSheet, CascaderParentSelect } from './CascaderPanel';
 
 // 段をたどって選ぶ欄。親を選ぶと次の段が開き、最後の段（子のない選択肢）まで行くと決まる
 //   欄は Select と同じ形のボタン（押すと開く。右端に ▼）。値は段ごとの value の並び（道筋）
@@ -130,11 +126,12 @@ export interface CascaderControlProps<Value extends CascaderValueItem = string> 
    */
   hideEmptyColumns?: boolean;
   /**
-   * シートの高さ（比べている途中。決まったら既定の形に畳んで外します）。
-   * root は 1 段目の高さのまま、grow は長い段へ進むと伸ばして縮めない、tallest は木のいちばん長い段に合わせる、fit はいまの段に合わせて伸び縮みする
-   * @default 'root'
+   * シートで段を進むときの高さ。tallest は開いたときから木のいちばん長い段が収まる高さにし、段を進んでも戻っても変えません。
+   * fixed は 1 段目の高さのまま（Menu の submenuSheet="fixed" と同じ。長い段はその中でスクロール）、
+   * fit はいまの段の高さに合わせて伸び縮みします（Menu の submenuSheet="fit" と同じ）。どれも画面の上限で止まります
+   * @default 'tallest'
    */
-  sheetHeight?: CascaderSheetHeight;
+  levelSheet?: CascaderLevelSheet;
   /**
    * 段に選ぶものがないとき（children が空の配列）に出す文
    * @default '選択肢がありません'
@@ -214,7 +211,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
   popupProps,
   positionerProps,
   hideEmptyColumns = false,
-  sheetHeight = 'root',
+  levelSheet = 'tallest',
   emptyText = '選択肢がありません',
   closeName = '閉じる',
   backName = '戻る',
@@ -315,7 +312,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
         parentHintText={parentHintText}
         autoFocus={openedByUser}
         hideEmptyColumns={hideEmptyColumns}
-        sheetHeight={sheetHeight}
+        levelSheet={levelSheet}
       />
     </div>
   );
