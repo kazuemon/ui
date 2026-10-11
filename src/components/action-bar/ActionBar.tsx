@@ -46,7 +46,8 @@ import { useActionBarFit } from './use-action-bar-fit';
 //   読み上げ: 件数の文は、いつも置いてある知らせの箱（role="status"）が 1 回だけ読む（原則15）。帯の名前もその箱から取る
 //     帯の中の見える文は、二度読ませないよう読み上げから外す
 //   Esc: 帯の中にフォーカスがあるとき、選択を外す（onClear）。帯が消えたら、帯に入る前にいた場所へフォーカスを戻す
-//   動き（軸 653）: 下の端から滑って出る（重なる面は出てくる元の側から — 原則14）。動きを減らす設定ではすぐに出す
+//   動き（軸 653）: motion。fade-up（既定）は浮かぶ面と同じく 8px 下から濃さと一緒に浮かぶ。slide は下の端の外から滑って出る、
+//     scale は少し小さい姿から広がる、none は動かさない。どれも消えるときは出るときより短い。動きを減らす設定ではすぐに出す（原則14）
 const actionBar = tv({
   slots: {
     // 一覧の下の空き。帯が出ているあいだ、帯の高さ＋上下の inset だけ伸びる
@@ -124,6 +125,16 @@ const actionBar = tv({
         bar: '[--action-bar-radius:0px] [--action-bar-shadow:var(--shadow-sheet)]',
       },
     },
+    // 出入りの動き（軸 653）。fade-up は :root の既定のまま
+    motion: {
+      'fade-up': {},
+      slide: { bar: '[--action-bar-from-shift:calc(100%+var(--action-bar-inset))]' },
+      scale: { bar: '[--action-bar-from-scale:0.9] [--action-bar-from-shift:0px]' },
+      none: {
+        spacer: '[--action-bar-duration-enter:0ms] [--action-bar-duration-exit:0ms]',
+        bar: '[--action-bar-duration-enter:0ms] [--action-bar-duration-exit:0ms] [--action-bar-from-opacity:1] [--action-bar-from-shift:0px]',
+      },
+    },
     // label の前に × があるときは、文の左の余白を詰める（× のボタンの余白で足りる。× のフォーカスの線が文字にかからない分だけ空ける）
     clearable: {
       true: { label: 'ps-1' },
@@ -142,6 +153,9 @@ export type ActionBarVariant = 'surface' | 'neutral-strong' | 'primary-subtle' |
 
 /** 帯の幅と寄せ。full は置いた場所の幅いっぱい、center は中身の幅で真ん中、docked は下の端に幅いっぱいで着ける */
 export type ActionBarPlacement = 'full' | 'center' | 'docked';
+
+/** 出入りの動き。fade-up は 8px 下から浮かぶ、slide は下の端から滑る、scale は小さい姿から広がる、none は動かさない */
+export type ActionBarMotion = 'fade-up' | 'slide' | 'scale' | 'none';
 
 /** 入りきらないときの並べ方。menu は後ろの操作からメニューに畳み、icon-only はまず文字を外してアイコンだけにし（それでも入らなければ畳む）、wrap は次の行へ折り返す */
 export type ActionBarNarrowDisplay = 'menu' | 'icon-only' | 'wrap';
@@ -180,6 +194,12 @@ export interface ActionBarProps {
    */
   placement?: ActionBarPlacement;
   /**
+   * 出入りの動き。fade-up はメニューと同じく 8px 下から濃さと一緒に浮かび、slide は下の端の外から滑って出ます。
+   * scale は少し小さい姿から広がり、none は動かさずにすぐ出します。動きを減らす設定では、どれもすぐに出します
+   * @default 'fade-up'
+   */
+  motion?: ActionBarMotion;
+  /**
    * 選択を外すボタンの読み上げの名前
    * @default '選択を外す'
    */
@@ -217,6 +237,7 @@ export function ActionBar({
   label,
   variant = 'surface',
   placement = 'full',
+  motion = 'fade-up',
   onClear,
   clearName = '選択を外す',
   closeOnEscape = true,
@@ -246,6 +267,7 @@ export function ActionBar({
   const s = actionBar({
     variant,
     placement,
+    motion,
     clearable: onClear != null,
     wrap: narrowDisplay === 'wrap',
   });

@@ -23,6 +23,7 @@ const meta = {
           '- `open` には「1 件以上選んでいるか」を渡し、`label` に件数の文（「2 件を選択中」）を渡します。件数の文は変わるたびに読み上げでも知らせます。',
           '- 面は `variant` で選びます。`surface`（既定）は白い面に影と細い輪郭、`neutral-strong` は濃いグレー、`primary-subtle` は淡い青、`primary` は青の面です。`primary` の上では危険の赤が読めないので、削除も白い文字になります。',
           '- 幅と寄せは `placement` で選びます。`full`（既定）は置いた場所の幅いっぱいで、件数を左、操作を右に置きます。`center` は中身の幅で真ん中に浮かべ、`docked` は浮かべずに下の端へ着けます。',
+          '- 出入りの動きは `motion` で選びます。`fade-up`（既定）は 8px 下から浮かび、`slide` は下の端から滑り、`scale` は小さい姿から広がり、`none` は動かしません。',
           '- 操作は `ActionBarButton` で並べます。削除のような取り消せない操作は `status="danger"` にします。',
           '- `onClear` を渡すと、左に選択を外す × のボタンを置きます。帯の中にフォーカスがあるときは Esc でも外せます（`closeOnEscape`）。帯が消えると、帯に入る前にいた場所へフォーカスが戻ります。',
           '- 操作が入りきらないときは、後ろの操作から ⋮ のメニューに畳みます（`narrowDisplay="menu"`）。`icon-only` はまず文字を外してアイコンだけにし、`wrap` は件数の行と操作の行に分けます。',
@@ -38,6 +39,7 @@ const meta = {
     label: '2 件を選択中',
     variant: 'surface',
     placement: 'full',
+    motion: 'fade-up',
     closeOnEscape: true,
     narrowDisplay: 'menu',
   },
@@ -51,6 +53,11 @@ const meta = {
       control: 'inline-radio',
       options: ['full', 'center', 'docked'],
       table: { defaultValue: { summary: "'full'" } },
+    },
+    motion: {
+      control: 'inline-radio',
+      options: ['fade-up', 'slide', 'scale', 'none'],
+      table: { defaultValue: { summary: "'fade-up'" } },
     },
     narrowDisplay: {
       control: 'inline-radio',
@@ -79,7 +86,7 @@ export const Playground: Story = {
   render: (args) => (
     <SelectableListScene
       narrowDisplay={args.narrowDisplay}
-      barProps={{ variant: args.variant, placement: args.placement }}
+      barProps={{ variant: args.variant, placement: args.placement, motion: args.motion }}
     />
   ),
 };

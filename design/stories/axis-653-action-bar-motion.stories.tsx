@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ListCell, scrollableDecorator } from './action-bar-axis-parts';
 import { type Candidate, type Column, Comparison } from './Comparison';
+import type { ActionBarMotion } from '../../src/components/action-bar/ActionBar';
 
 // 軸 653: ActionBar の出入りの動き
 const meta = {
@@ -9,7 +10,7 @@ const meta = {
   id: 'design-review-653-action-bar-motion',
   parameters: { layout: 'fullscreen' },
   decorators: [scrollableDecorator],
-  args: { pick: '' },
+  args: { pick: 'A,current,B,C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -21,10 +22,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<{ pick: string }>;
 
-const durations = {
-  '--action-bar-duration-enter': 'var(--duration-slow)',
-  '--action-bar-duration-exit': 'var(--popup-duration-out)',
-} as const;
+// 決めたあと、動きは部品の motion になった。行ごとに motion を渡す
+const motions: Record<string, ActionBarMotion> = {
+  現行版: 'slide',
+  A: 'fade-up',
+  B: 'scale',
+  C: 'none',
+};
 
 const candidates: Candidate[] = [
   {
@@ -36,12 +40,6 @@ const candidates: Candidate[] = [
       ['出はじめ', '帯の高さ＋16px 下・濃さ 0'],
       ['長さ', '出る 250ms・消える 150ms'],
     ],
-    tokens: {
-      ...durations,
-      '--action-bar-from-shift': 'calc(100% + var(--action-bar-inset))',
-      '--action-bar-from-scale': '1',
-      '--action-bar-from-opacity': '0',
-    },
   },
   {
     id: 'A',
@@ -52,12 +50,6 @@ const candidates: Candidate[] = [
       ['出はじめ', '8px 下・濃さ 0'],
       ['長さ', '出る 250ms・消える 150ms'],
     ],
-    tokens: {
-      ...durations,
-      '--action-bar-from-shift': 'var(--popup-shift)',
-      '--action-bar-from-scale': '1',
-      '--action-bar-from-opacity': '0',
-    },
   },
   {
     id: 'B',
@@ -67,12 +59,6 @@ const candidates: Candidate[] = [
       ['出はじめ', '大きさ 90%・濃さ 0'],
       ['長さ', '出る 250ms・消える 150ms'],
     ],
-    tokens: {
-      ...durations,
-      '--action-bar-from-shift': '0px',
-      '--action-bar-from-scale': '0.9',
-      '--action-bar-from-opacity': '0',
-    },
   },
   {
     id: 'C',
@@ -82,13 +68,6 @@ const candidates: Candidate[] = [
       ['出はじめ', 'なし'],
       ['長さ', '0'],
     ],
-    tokens: {
-      '--action-bar-duration-enter': '0ms',
-      '--action-bar-duration-exit': '0ms',
-      '--action-bar-from-shift': '0px',
-      '--action-bar-from-scale': '1',
-      '--action-bar-from-opacity': '1',
-    },
   },
 ];
 
@@ -109,6 +88,7 @@ export const Candidates: Story = {
       renderCell={(column, candidate) => (
         <ListCell
           defaultSelected={[]}
+          barProps={{ motion: motions[candidate.id], variant: 'neutral-strong' }}
           style={
             column.label === '4 倍の長さ' && candidate.id !== 'C'
               ? {
@@ -120,6 +100,11 @@ export const Candidates: Story = {
         />
       )}
     >
+      <p>
+        決定: A（8px
+        下から浮かぶ）を既定にし、現行版（下の端から滑る）・B（広がる）・C（動かさない）も motion
+        で選べる（fade-up・slide・scale・none）。「デフォルトはA、他も選べるでよさそう」
+      </p>
       <p>
         行を選んだとき（帯が出る）と、すべて外したとき（帯が消える）の動きを選びます。どの案も、一覧の下の空きは帯と同じ長さで伸び縮みし、消えるときは出るときより短くします。動きを減らす設定では、どの案でもすぐに出します。
       </p>
