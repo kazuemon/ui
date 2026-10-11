@@ -29,7 +29,7 @@ const meta = {
           '- 送っている途中: `progress`（0〜100。終わりが分からないときは `null`）を渡します。出し方は `progressIndicator`（`bar` が既定。`ring`・`edge`）で選びます。',
           '- 失敗: `errorText` を渡します。大きさの代わりに文が出て、`onRetry` を渡すともう一度送るボタンが出ます。',
           '- 送ったあと: `file` を外して `url` を渡します。新しいタブで開くリンクになります。押せる範囲は `linkArea`（`name` が既定。`card` は札全体）で選びます。',
-          '- 画像は、左の四角に縮小画像を出します（`imageDisplay="thumbnail"`）。画像だけの正方形（`tile`）や、アイコンのまま（`icon`）も選べます。',
+          '- 画像も、既定ではほかのファイルと同じアイコンです（`imageDisplay="icon"`）。縮小画像を見せたいときは、左の四角に縮小画像（`thumbnail`）か、画像だけの正方形（`tile`）を選びます。正方形の大きさは `--attachment-tile-size` で変えられます。',
           '- 一覧の行として並べるときは DropzoneFileList を使います。',
         ].join('\n'),
       },
@@ -39,7 +39,7 @@ const meta = {
     name: 'portfolio.pdf',
     size: 1_240_000,
     progressIndicator: 'bar',
-    imageDisplay: 'thumbnail',
+    imageDisplay: 'icon',
     linkArea: 'name',
     onRemove: fn(),
   },
@@ -53,8 +53,8 @@ const meta = {
     },
     imageDisplay: {
       control: 'inline-radio',
-      options: ['thumbnail', 'tile', 'icon'],
-      table: { defaultValue: { summary: "'thumbnail'" } },
+      options: ['icon', 'thumbnail', 'tile'],
+      table: { defaultValue: { summary: "'icon'" } },
     },
     linkArea: {
       control: 'inline-radio',
@@ -101,6 +101,19 @@ export const States: Story = {
       <Specimen label="送ったあと（外せない）">
         <Attachment name="portfolio.pdf" size={1_240_000} url="#portfolio.pdf" />
         <Attachment name="cover.svg" size={38_000} url={savedPhotoUrl} type="image/svg+xml" />
+      </Specimen>
+      <Specimen label="画像の出し方（thumbnail・tile）">
+        <Attachment file={photoFile()} size={38_000} imageDisplay="thumbnail" onRemove={() => {}} />
+        <div className="flex gap-2">
+          <Attachment file={photoFile()} size={38_000} imageDisplay="tile" onRemove={() => {}} />
+          <Attachment
+            file={photoFile()}
+            size={38_000}
+            imageDisplay="tile"
+            progress={60}
+            onRemove={() => {}}
+          />
+        </div>
       </Specimen>
       <Specimen label="外すボタンのフォーカス（キーボード）">
         <div data-preview="focus">

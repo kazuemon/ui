@@ -30,7 +30,7 @@ import { Progress } from '../progress/Progress';
 //   送っている途中: progress（0〜100。null は終わりが分からない）。進み具合を出し、外す（取り消す）ボタンは残す
 //   失敗: errorText。線を危険の色にし、大きさの代わりに文を出す。もう一度送る（onRetry）と外すを並べる
 //   送ったあと: url。開けるリンクにする（linkArea。名前だけか、札全体か）
-// 左の四角: 画像なら縮小画像（imageDisplay="thumbnail"）、画像でなければファイルのアイコン、失敗は丸の「!」（原則6: 形でも見分ける）
+// 左の四角: ファイルのアイコン（既定）。画像の縮小画像は使う側が選んだときだけ出す（imageDisplay）。失敗は丸の「!」（原則6: 形でも見分ける）
 const attachment = tv({
   slots: {
     base: [
@@ -99,8 +99,8 @@ const tile = tv({
 /** 進み具合の出し方。bar は名前の下の細い帯、ring は左の四角を囲む円、edge は札の下端に沿う線です */
 export type AttachmentProgressIndicator = 'bar' | 'ring' | 'edge';
 
-/** 画像の出し方。thumbnail は札の左の四角に縮小画像、tile は画像だけの正方形、icon は縮小画像を出さずアイコンのままです */
-export type AttachmentImageDisplay = 'thumbnail' | 'tile' | 'icon';
+/** 画像の出し方。icon は縮小画像を出さずアイコンのまま、thumbnail は札の左の四角に縮小画像、tile は画像だけの正方形です */
+export type AttachmentImageDisplay = 'icon' | 'thumbnail' | 'tile';
 
 /** 送ったあと（url があるとき）に押して開ける範囲。name は名前の文字だけ、card は札全体です */
 export type AttachmentLinkArea = 'name' | 'card';
@@ -144,9 +144,11 @@ export interface AttachmentProps extends Omit<ComponentProps<'div'>, 'children' 
    */
   progressIndicator?: AttachmentProgressIndicator;
   /**
-   * 画像の出し方。thumbnail は札の左の四角に縮小画像を出します。tile は画像だけの正方形にし、名前は読み上げにだけ出します
-   * （失敗したときは札に戻します）。icon は縮小画像を出さず、ほかのファイルと同じアイコンです
-   * @default 'thumbnail'
+   * 画像の出し方。icon は縮小画像を出さず、ほかのファイルと同じアイコンです。
+   * 縮小画像を出すと、選んだ画像を画面に読み込むので、出すかどうかは使う側が決めます。
+   * thumbnail は札の左の四角に縮小画像を出します。tile は画像だけの正方形にし、名前は読み上げにだけ出します
+   * （失敗したときは札に戻します。正方形の大きさは --attachment-tile-size で変えられます）
+   * @default 'icon'
    */
   imageDisplay?: AttachmentImageDisplay;
   /**
@@ -176,7 +178,7 @@ export function Attachment({
   onRetry,
   retryName,
   progressIndicator = 'bar',
-  imageDisplay = 'thumbnail',
+  imageDisplay = 'icon',
   linkArea = 'name',
   className,
   ...props

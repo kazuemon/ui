@@ -21,7 +21,7 @@ const meta = {
   title: 'Design Review/656 添えた画像の形',
   id: 'design-review-656-attachment-image',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -179,6 +179,11 @@ export const Candidates: Story = {
         );
       }}
     >
+      <p>
+        決定:
+        C（縮小画像を出さない）を既定にする。縮小画像を出すかは使う人による（アップロード後の扱いなど）ので、使う側が明示したときだけ、現行版（左の四角に縮小画像）と
+        A（画像だけの正方形）にできる（imageDisplay）。B（80px）は選択肢に持たず、正方形の大きさのトークン（--attachment-tile-size）の上書きで表す。
+      </p>
       <p>
         画像を添えたときの形を決めます。画像でないファイルは、どの案も同じ札です。送っている途中の画像の正方形は、下端に線を引きます。
       </p>
