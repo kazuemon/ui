@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { type Candidate, type Column, Comparison } from './Comparison';
-import { Attachment, type AttachmentLinkArea } from '../../src/components/attachment/Attachment';
+import { Attachment } from '../../src/components/attachment/Attachment';
 import { savedPhotoUrl } from '../../src/components/attachment/attachment-story-fixtures';
 import { AttachmentList } from '../../src/components/attachment/AttachmentList';
 import { statePseudo } from '../../src/stories/story-states';
@@ -19,14 +19,12 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A'],
+      options: ['', 'current'],
     },
   },
 } satisfies Meta<{ pick: string }>;
 export default meta;
 type Story = StoryObj<{ pick: string }>;
-
-const areaOf: Record<string, AttachmentLinkArea> = { 現行版: 'name', A: 'card' };
 
 const candidates: Candidate[] = [
   {
@@ -38,17 +36,6 @@ const candidates: Candidate[] = [
       ['linkArea', 'name'],
       ['印', '名前の淡い下線。載せると濃く'],
       ['押せる範囲', '名前の文字の行'],
-    ],
-  },
-  {
-    id: 'A',
-    name: '札全体がリンク',
-    intent:
-      '札のどこを押しても開く。チャットの添付として押しやすく、指でも外しにくい。名前に下線は引かず、載せたときに札を淡く敷く。フォーカスの線は札の輪郭に出る。外すボタンは札の上に重ねて残す',
-    spec: [
-      ['linkArea', 'card'],
-      ['印', 'ふだんなし。載せると面を淡く敷く'],
-      ['押せる範囲', '札全体（線の内側）'],
     ],
   },
 ];
@@ -69,8 +56,7 @@ export const Candidates: Story = {
       pick={pick}
       candidates={candidates}
       columns={columns}
-      renderCell={(column, candidate) => {
-        const linkArea = areaOf[candidate.id];
+      renderCell={(column) => {
         const removable = column.label === '外せる';
         return (
           <div className="flex w-[264px] flex-col gap-2 rounded-card bg-primary-subtle p-3">
@@ -79,7 +65,6 @@ export const Candidates: Story = {
                 name="portfolio.pdf"
                 size={1_240_000}
                 url="https://example.com/portfolio.pdf"
-                linkArea={linkArea}
                 onRemove={removable ? () => {} : undefined}
               />
               {column.preview ? null : (
@@ -88,7 +73,6 @@ export const Candidates: Story = {
                   size={38_000}
                   url={savedPhotoUrl}
                   type="image/svg+xml"
-                  linkArea={linkArea}
                   onRemove={removable ? () => {} : undefined}
                 />
               )}
@@ -100,7 +84,8 @@ export const Candidates: Story = {
     >
       <p>
         決定:
-        現行版（名前だけがリンク）にする。札にほかの操作を足したい場面もありうるため。札全体をリンクにする形（A）は持たない。
+        現行版（名前だけがリンク）にする。札にほかの操作を足したい場面もありうるため。札全体をリンクにする形（A）は持たない。A
+        は部品から外したので、比べた行は決めた時点のコミット 84b0e6c3 で開ける。
       </p>
       <p>
         送ったあとのファイル（吹き出しの中）を開くとき、どこを押せるようにするかを決めます。どちらも新しいタブで開きます。

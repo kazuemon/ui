@@ -29,7 +29,7 @@ import { Progress } from '../progress/Progress';
 //   送る前: file だけ。大きさを出し、外せる（onRemove）
 //   送っている途中: progress（0〜100。null は終わりが分からない）。進み具合を出し、外す（取り消す）ボタンは残す
 //   失敗: errorText。線を危険の色にし、大きさの代わりに文を出す。もう一度送る（onRetry）と外すを並べる
-//   送ったあと: url。開けるリンクにする（linkArea。名前だけか、札全体か）
+//   送ったあと: url。名前の文字を、新しいタブで開くリンクにする（札にほかの操作を足せるよう、札全体はリンクにしない）
 // 左の四角: ファイルのアイコン（既定）。画像の縮小画像は使う側が選んだときだけ出す（imageDisplay）。失敗は丸の「!」（原則6: 形でも見分ける）
 const attachment = tv({
   slots: {
@@ -52,24 +52,6 @@ const attachment = tv({
     // 札の下端に沿う進み具合（progressIndicator="edge"・tile）。札の角で切る
     edge: 'pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]',
   },
-  variants: {
-    // 札全体を押せるリンクにする（linkArea="card"）。名前のリンクを札いっぱいに広げ、フォーカスの線は札の輪郭に出す
-    //   hover で面を淡く敷き、押すと濃く敷いて沈む（原則3: 平らな押すもの）。中のボタンはリンクの上に置く
-    cardLink: {
-      true: {
-        base: [
-          ...focusRingForCardAction,
-          // 動かすのは background-color ではなく登録した変数 --flat-bg（ADR-0112。Chip の消すボタンと同じ）
-          'bg-(color:--flat-bg) [--flat-bg:var(--color-surface)]',
-          'has-[[data-slot=card-action]:hover]:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-hover-mix),var(--color-surface))]',
-          'has-[[data-slot=card-action]:active]:[--flat-bg:color-mix(in_oklab,var(--color-fg)_var(--flat-press-mix),var(--color-surface))]',
-          'has-[[data-slot=card-action]:active]:translate-y-(--flat-press-depth)',
-          '[transition:--flat-bg_var(--duration-press)_var(--ease-press),translate_var(--duration-press)_var(--ease-press),outline-color_var(--focus-ring-duration)_var(--ease-press)] motion-reduce:[transition:none]',
-        ],
-        actions: 'relative z-2',
-      },
-    },
-  },
 });
 
 // 画像だけの正方形（imageDisplay="tile"）。名前は読み上げにだけ出す
@@ -85,7 +67,8 @@ const tile = tv({
     ],
   },
   variants: {
-    cardLink: {
+    // 送ったあとの画像はリンク（tileAnchor）。フォーカスの線は正方形の輪郭に出す
+    linked: {
       true: {
         base: [
           ...focusRingForCardAction,
@@ -101,9 +84,6 @@ export type AttachmentProgressIndicator = 'bar' | 'ring' | 'edge';
 
 /** 画像の出し方。icon は縮小画像を出さずアイコンのまま、thumbnail は札の左の四角に縮小画像、tile は画像だけの正方形です */
 export type AttachmentImageDisplay = 'icon' | 'thumbnail' | 'tile';
-
-/** 送ったあと（url があるとき）に押して開ける範囲。name は名前の文字だけ、card は札全体です */
-export type AttachmentLinkArea = 'name' | 'card';
 
 export interface AttachmentProps extends Omit<ComponentProps<'div'>, 'children' | 'color'> {
   /** 添えたファイル（いま選んだもの）。書かないときは、name・size・url・type で書いた送ったあとのファイルとして出します */
@@ -151,12 +131,6 @@ export interface AttachmentProps extends Omit<ComponentProps<'div'>, 'children' 
    * @default 'icon'
    */
   imageDisplay?: AttachmentImageDisplay;
-  /**
-   * 送ったあと（url があるとき）に押して開ける範囲。name は名前の文字を下線のリンクにし、card は札全体を押せるようにします。
-   * どちらも新しいタブで開きます
-   * @default 'name'
-   */
-  linkArea?: AttachmentLinkArea;
   /** 札そのもの（いちばん外の要素）に付きます */
   className?: string;
 }
@@ -179,7 +153,6 @@ export function Attachment({
   retryName,
   progressIndicator = 'bar',
   imageDisplay = 'icon',
-  linkArea = 'name',
   className,
   ...props
 }: AttachmentProps) {
@@ -190,7 +163,6 @@ export function Attachment({
   const uploading = !failed && progress !== undefined;
   const linked = !failed && !uploading && url != null;
   const isImage = entryIsImage(entry) && (file != null || url != null);
-  const cardLink = linked && linkArea === 'card';
   const removeLabel = removeName ?? defaultRemoveName(entry);
   const progressLabel = `${name} の進み具合`;
   const percent = progress == null ? null : Math.min(100, Math.max(0, progress));
@@ -210,7 +182,7 @@ export function Attachment({
       </Button>
     ) : null;
 
-  // 名前の文字のリンク（linkArea="name"）。DropzoneFileList の保存済みの名前と同じ形（↗ は付けない）
+  // 名前の文字のリンク。DropzoneFileList の保存済みの名前と同じ形（↗ は付けない）
   const nameLink = (
     <Link
       href={url}
@@ -222,9 +194,9 @@ export function Attachment({
       {name}
     </Link>
   );
-  // 札全体のリンク（linkArea="card"・tile）。札いっぱいの見えないリンクを置き、フォーカスの線は札の輪郭に出す
-  //   （Card の押すカードと同じ data-slot と線 — focusRingForCardAction）。名前の文字はリンクの中の読み上げの文
-  const cardAnchor = (
+  // 画像だけの正方形（tile）のリンク。名前の文字がないので、正方形いっぱいの見えないリンクを置き、フォーカスの線は正方形の輪郭に出す
+  //   （Card の押すカードと同じ data-slot と線 — focusRingForCardAction）。名前はリンクの中の読み上げの文
+  const tileAnchor = (
     <a
       href={url}
       target="_blank"
@@ -255,7 +227,7 @@ export function Attachment({
 
   // 画像だけの正方形
   if (isImage && imageDisplay === 'tile' && !failed) {
-    const t = tile({ cardLink: linked });
+    const t = tile({ linked });
     return (
       <div
         data-slot="attachment"
@@ -264,14 +236,14 @@ export function Attachment({
         {...props}
       >
         <Thumbnail entry={entry} iconClassName="size-(--spacing-icon)" />
-        {linked ? cardAnchor : <span className="sr-only">{name}</span>}
+        {linked ? tileAnchor : <span className="sr-only">{name}</span>}
         {onRemove && <span className={t.remove()}>{removeButton(true)}</span>}
         {uploading && edgeProgress}
       </div>
     );
   }
 
-  const s = attachment({ cardLink });
+  const s = attachment();
   const showRing = uploading && progressIndicator === 'ring';
   return (
     <div
@@ -294,10 +266,7 @@ export function Attachment({
         {showRing && <AttachmentProgressRing value={percent} label={progressLabel} />}
       </span>
       <span className={s.body()}>
-        {/* 札全体のリンクでは、名前は見せるだけ（読み上げはリンクの中の文が担う） */}
-        <span className={s.name()} aria-hidden={cardLink || undefined}>
-          {linked && !cardLink ? nameLink : name}
-        </span>
+        <span className={s.name()}>{linked ? nameLink : name}</span>
         {failed ? (
           <span className={s.error()}>{errorText}</span>
         ) : uploading && progressIndicator === 'bar' ? (
@@ -343,7 +312,6 @@ export function Attachment({
         </span>
       )}
       {uploading && progressIndicator === 'edge' && edgeProgress}
-      {cardLink && cardAnchor}
     </div>
   );
 }

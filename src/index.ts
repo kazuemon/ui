@@ -30,7 +30,6 @@ export {
 export {
   Attachment,
   type AttachmentImageDisplay,
-  type AttachmentLinkArea,
   type AttachmentProgressIndicator,
   type AttachmentProps,
 } from './components/attachment/Attachment';

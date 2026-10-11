@@ -28,7 +28,7 @@ const meta = {
           '- 送る前: `file` だけを渡します。名前と大きさを出し、`onRemove` を渡すと外すボタンが出ます。',
           '- 送っている途中: `progress`（0〜100。終わりが分からないときは `null`）を渡します。出し方は `progressIndicator`（`bar` が既定。`ring`・`edge`）で選びます。',
           '- 失敗: `errorText` を渡します。大きさの代わりに文が出て、`onRetry` を渡すともう一度送るボタンが出ます。',
-          '- 送ったあと: `file` を外して `url` を渡します。新しいタブで開くリンクになります。押せる範囲は `linkArea`（`name` が既定。`card` は札全体）で選びます。',
+          '- 送ったあと: `file` を外して `url` を渡します。名前が新しいタブで開くリンクになります（画像だけの正方形では、画像がリンクです）。',
           '- 画像も、既定ではほかのファイルと同じアイコンです（`imageDisplay="icon"`）。縮小画像を見せたいときは、左の四角に縮小画像（`thumbnail`）か、画像だけの正方形（`tile`）を選びます。正方形の大きさは `--attachment-tile-size` で変えられます。',
           '- 一覧の行として並べるときは DropzoneFileList を使います。',
         ].join('\n'),
@@ -40,7 +40,6 @@ const meta = {
     size: 1_240_000,
     progressIndicator: 'bar',
     imageDisplay: 'icon',
-    linkArea: 'name',
     onRemove: fn(),
   },
   argTypes: {
@@ -55,11 +54,6 @@ const meta = {
       control: 'inline-radio',
       options: ['icon', 'thumbnail', 'tile'],
       table: { defaultValue: { summary: "'icon'" } },
-    },
-    linkArea: {
-      control: 'inline-radio',
-      options: ['name', 'card'],
-      table: { defaultValue: { summary: "'name'" } },
     },
   },
 } satisfies Meta<typeof Attachment>;
@@ -250,7 +244,13 @@ export const Accessibility: Story = {
         onRemove={args.onRemove}
       />
       <Attachment name="resume.pdf" size={820_000} url="#resume.pdf" />
-      <Attachment name="memo.pdf" size={820_000} url="#memo.pdf" linkArea="card" />
+      <Attachment
+        name="cover.svg"
+        size={38_000}
+        url={savedPhotoUrl}
+        type="image/svg+xml"
+        imageDisplay="tile"
+      />
     </AttachmentList>
   ),
   play: async ({ canvas, args }) => {
@@ -264,14 +264,14 @@ export const Accessibility: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'もう一度送る: big.zip' }));
     await expect(args.onRetry).toHaveBeenCalledTimes(1);
     await expect(canvas.getByText('送れませんでした')).toBeVisible();
-    // 送ったあとは新しいタブで開くリンク。札全体のリンクも、名前で読まれる
+    // 送ったあとは新しいタブで開くリンク。画像だけの正方形のリンクも、名前で読まれる
     await expect(canvas.getByRole('link', { name: /resume\.pdf/ })).toHaveAttribute(
       'target',
       '_blank'
     );
-    await expect(canvas.getByRole('link', { name: /memo\.pdf/ })).toHaveAttribute(
-      'href',
-      '#memo.pdf'
+    await expect(canvas.getByRole('link', { name: /cover\.svg/ })).toHaveAttribute(
+      'target',
+      '_blank'
     );
   },
 };
