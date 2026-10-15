@@ -1,10 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
-import type { TreeSelectMultipleValue } from '../../src/components/tree-select/TreeSelect';
-import { type Candidate, type Column, Comparison } from './Comparison';
-import { OpenFrame, scrollableDecorator } from './tree-select-axis-parts';
+import { type Candidate, Comparison } from './Comparison';
+import {
+  couponTree,
+  labelTree,
+  notifyTree,
+  orgTree,
+} from '../../src/components/tree-select/tree-select-samples';
+import { scrollableDecorator } from './tree-select-axis-parts';
+import { pointColumns, PointRules, type Scene, sceneCell } from './tree-select-point-scenes';
 
-// 軸 646: TreeSelect（複数選ぶ形）で、親を選んだときに外へ渡す値
+// 軸 646: TreeSelect（複数選ぶ形）で、親の行をどう扱うか（「親もほかの行と同じ点」のルール）
+//   それより前の候補（値の渡し方・親そのものを選ぶ形）は、このストーリーに置き換えた（コミットに残っている）
 const meta = {
   title: 'Design Review/646 TreeSelect の複数の値',
   id: 'design-review-646-tree-select-multiple-value',
@@ -15,94 +23,179 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B'],
+      options: ['', '現行版', 'A', 'B', 'C', 'D'],
     },
   },
 } satisfies Meta<{ pick: string }>;
 export default meta;
 type Story = StoryObj<{ pick: string }>;
 
-const multipleValue: Record<string, TreeSelectMultipleValue> = {
-  現行版: 'leaves',
-  A: 'parents',
-  B: 'all',
+const orgScene: Scene = {
+  testId: 'scope-org',
+  items: orgTree,
+  label: 'お知らせの宛先',
+  scopeNote: '（今後の課も含む）',
+  props: {
+    multiple: true,
+    parentPoint: 'scope',
+    defaultValue: ['sales'],
+    defaultExpanded: ['sales', 'sales-east'],
+  },
+};
+
+const scenes: Record<string, Scene> = {
+  // 直前の案（参考）: 親の行は開け閉めだけ。開いた子の先頭の「〇〇 そのもの」の行で親を選ぶ
+  現行版: {
+    items: labelTree,
+    label: '記事のカテゴリ',
+    props: {
+      multiple: true,
+      parentSelect: 'row',
+      defaultValue: ['dev', 'frontend'],
+      defaultExpanded: ['dev', 'design'],
+    },
+  },
+  A: {
+    items: notifyTree,
+    label: '受け取る通知',
+    props: {
+      multiple: true,
+      parentPoint: 'none',
+      defaultValue: ['release', 'maintenance', 'login'],
+      defaultExpanded: ['news', 'account'],
+    },
+  },
+  B: {
+    items: labelTree,
+    label: '記事のカテゴリ',
+    props: {
+      multiple: true,
+      parentPoint: 'label',
+      defaultValue: ['dev', 'frontend'],
+      defaultExpanded: ['dev', 'design'],
+    },
+  },
+  C: orgScene,
+  D: {
+    items: couponTree,
+    label: 'クーポンの対象商品',
+    scopeNote: '（今後追加される商品も対象）',
+    props: {
+      multiple: true,
+      parentPoint: 'scope',
+      defaultValue: ['stationery', 'mug'],
+      defaultExpanded: ['stationery'],
+    },
+  },
 };
 
 const candidates: Candidate[] = [
   {
     id: '現行版',
-    name: '葉だけ',
+    name: '子の先頭の行で親を選ぶ（直前の案・参考）',
     intent:
-      '親を選んでも、外に渡すのは中の葉（子のない行）だけ。値の数え方が木の形によらず、受け取る側は葉の一覧として扱える。欄のチップも葉が並ぶ',
+      '記事のカテゴリ。親の行は開け閉めだけで、開いた子の先頭の「開発 そのもの」の行で親のカテゴリを付ける。比べるために残した直前の案',
     spec: [
-      ['「入力」を選ぶと', '["select","combobox","tree-select"]'],
-      ['欄', '葉のチップ 3 つ'],
-      ['あとで子が増えたら', '増えた子は入らない'],
+      ['props', 'parentSelect="row"'],
+      ['親の値', '子の先頭の特別な行'],
     ],
   },
   {
     id: 'A',
-    name: '親に畳む',
+    name: 'none: 親は選べない',
     intent:
-      '中をすべて選んだ親は、親の値 1 つにまとめて渡す。欄も「入力」のチップ 1 つで短い。「この分類ぜんぶ」という意味で受け取れる',
+      '受け取る通知。箱は個々の通知だけ。「お知らせ」などの親は印も左の余白もなく、どこを押しても開け閉め。親の中で選んでいると、名前の右に点',
     spec: [
-      ['「入力」を選ぶと', '["inputs"]'],
-      ['欄', '親のチップ 1 つ'],
-      ['あとで子が増えたら', '親を選んだ人には入る'],
+      ['props', 'parentPoint="none"'],
+      ['値', '通知の並び'],
     ],
   },
   {
     id: 'B',
-    name: '親も葉も',
+    name: 'label: 親も独立した項目',
     intent:
-      '中をすべて選んだ親と、その中の葉を、両方とも渡す。どちらの値で絞る側にも合うが、値が多くなり、欄も長い',
+      '記事のカテゴリ。「開発」そのものも、中の「フロントエンド」も、別々のカテゴリとして付ける。親を選んでも子は変わらない。親の中で選んでいると、名前の右に点',
     spec: [
-      ['「入力」を選ぶと', '["inputs","select","combobox","tree-select"]'],
-      ['欄', '親と葉のチップ 4 つ'],
-      ['あとで子が増えたら', '値によって違う'],
+      ['props', 'parentPoint="label"'],
+      ['値', 'カテゴリの並び'],
+    ],
+  },
+  {
+    id: 'C',
+    name: 'scope: 親が子を覆う',
+    intent:
+      'お知らせの宛先（部署の木）。「営業本部」を入れると、今後できる課も含めて本部が宛先になり、配下は「含まれる」見た目（塗らない箱に淡いチェック）。含まれる課を押すと、個別の宛先に切り替わる。親の箱は空になり、名前の右に点',
+    spec: [
+      ['props', 'parentPoint="scope"'],
+      ['値', '選んだ点だけ（親なら親 1 つ）'],
+      ['含まれる見た目', '塗らない箱に淡いチェック'],
+    ],
+  },
+  {
+    id: 'D',
+    name: 'scope: クーポンの対象商品',
+    intent:
+      '「文具」を入れると、今後追加される文具も対象。雑貨は「マグカップ」だけを個別に選んでいる（雑貨の箱は空で、名前の右に点）。雑貨の残りを全部入れても、雑貨の箱は空のまま',
+    spec: [
+      ['props', 'parentPoint="scope"'],
+      ['値', '["stationery","mug"] から'],
     ],
   },
 ];
 
-const columns: Column[] = [
-  {
-    label: '開いた面と渡す値',
-    note: '「入力」「デザイン」などの親の行を押してみてください。下に、外へ渡す値が出ます',
-  },
-];
-
-export const Candidates: Story = {
-  name: '候補',
+export const Points: Story = {
+  name: '候補（親もほかの行と同じ点）',
   render: ({ pick }) => (
     <Comparison
       index={646}
-      axis="TreeSelect の複数の値"
+      axis="TreeSelect の親の行（複数選ぶ形）"
       pick={pick}
       candidates={candidates}
-      columns={columns}
-      renderCell={(_, candidate) => (
-        <OpenFrame
-          height="h-[37rem]"
-          showValue
-          props={{
-            multiple: true,
-            multipleValue: multipleValue[candidate.id],
-            defaultValue: ['inputs'],
-            defaultExpanded: ['components', 'inputs'],
-          }}
-        />
-      )}
+      columns={pointColumns}
+      renderCell={(column, candidate) => sceneCell(column, scenes[candidate.id], 'h-[32rem]')}
     >
+      <PointRules />
       <p>
-        複数選ぶ形で、親を選んだとき（中をすべて選んだとき）に、外へ渡す値をどうまとめるかを選びます。面の中の印（親はチェック、一部なら横線）はどの案も同じです。どの案でも、受け取った値に親が入っていれば、その中をすべて選んだものとして読みます。
-      </p>
-      <p>
-        選べない行（「比較の軸」）は親を押しても変わらないので、「デザイン」を押しても中がすべてそろわず、親には畳まれません。
-      </p>
-      <p>
-        おすすめは現行版（葉だけ）を既定にし、A（親に畳む）を選べるようにする形です。受け取る側が木の形を知らなくても扱え、値の意味が選んだ時点で決まります。分類ごと選ぶ意味を残したい場面（あとで増えた記事も含めたい絞り込み）では
-        A を使います。B は値が重なって扱いにくいので、作らなくてもよいと考えています。
+        scope の行（C）で、「営業本部」を外して入れ直す → 「東日本営業部」の「第一課」を押す →
+        値が「第二課・西日本営業部」の個別の並びに変わり、「営業本部」の箱は空になる →
+        「第一課」を入れ直しても「東日本営業部」の箱は空のまま → 「東日本営業部」の名前の右に点 →
+        空の「営業本部」の箱を押すと本部 1 つに戻る、の順に試せます。現行版（1
+        行目）は、直前の案（子の先頭の「〇〇 そのもの」の行）を比べるために残したものです。
       </p>
     </Comparison>
   ),
+  // scope の切り替え: 親を入れる → 含まれる子を押す → 値が兄弟の個別の並びになり、親は空で点 → 全部入れても親は空 → 空の親を押すと親 1 つ
+  play: async ({ canvasElement }) => {
+    const frame = within(canvasElement).getByTestId('scope-org');
+    const tree = within(frame);
+    const valueOf = () => frame.querySelector('code')?.textContent;
+    const row = async (name: string) => (await tree.findAllByRole('treeitem', { name }))[0];
+    const dotOf = (element: HTMLElement) =>
+      element.querySelector(':scope > [data-slot="tree-select-dot"]');
+
+    const sales = await row('営業本部');
+    await expect(sales).toHaveAttribute('aria-checked', 'true');
+    // 入っている親を押すと、親も配下も外れる。もう一度押すと親 1 つ
+    await userEvent.click(sales);
+    await waitFor(() => expect(valueOf()).toBe('[]'));
+    await userEvent.click(sales);
+    await waitFor(() => expect(valueOf()).toBe('["sales"]'));
+    // 含まれる子を押すと、個別の選択に切り替わる（押した子は外れ、道筋の兄弟が入る）。親の箱は空（− にしない）
+    await userEvent.click(await row('第一課'));
+    await waitFor(() => expect(valueOf()).toBe('["sales-east-2","sales-west"]'));
+    await expect(sales).toHaveAttribute('aria-checked', 'false');
+    // 子を全部入れても、親にはまとめない。親の箱は空のまま
+    await userEvent.click(await row('第一課'));
+    await waitFor(() => expect(valueOf()).toBe('["sales-east-1","sales-east-2","sales-west"]'));
+    const east = await row('東日本営業部');
+    await expect(east).toHaveAttribute('aria-checked', 'false');
+    // 配下に選んだ行がある親には、開いていても名前の右に点が出る（読み上げは補足の説明）。閉じても残る
+    await waitFor(() => expect(dotOf(east)).not.toBeNull());
+    await expect(east).toHaveAttribute('aria-description', '配下に選択あり');
+    await userEvent.click(east.querySelector('[data-slot="tree-select-caret"]') as HTMLElement);
+    await waitFor(() => expect(dotOf(east)).not.toBeNull());
+    // 空の親の箱を押すと、親を選ぶ（個別の子は親にまとまる）
+    await userEvent.click(sales);
+    await waitFor(() => expect(valueOf()).toBe('["sales"]'));
+  },
 };

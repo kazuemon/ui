@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import type { ListboxValue } from '../../internal/listbox/use-listbox-option';
 
 // TreeSelect の木の形と、選んだ値の計算（DOM を読まない）
-//   複数選ぶ形は、選んだ葉の集まりを中で持ち、親の箱（チェック・中間）と、外に渡す値（multipleValue）はそこから出す
+//   複数選ぶ形（parentSelect="none"）は、選んだ葉の集まりを中で持ち、親の箱（チェック・中間）と、外に渡す値（葉だけ — 軸 646）はそこから出す
+//   親そのものを選ぶ形（parentSelect="self"）は、行ごとに自分の値だけを入れ替える（親の箱は子と連動しない。Gmail のラベル）
 //   押せない行は、親の箱を押しても変えない（選んだまま・選ばないままを保つ）
 
 /** TreeSelect の 1 行。子（children）を渡すと、開け閉めできる行になります */
@@ -21,10 +22,11 @@ export interface TreeSelectItem<Value extends ListboxValue = string> {
 }
 
 /**
- * 複数選ぶ形で、外に渡す値。親の中をすべて選んだときにどうまとめるか
- * leaves: 葉（子のない行）だけを並べる。parents: 中をすべて選んだ親は、親の値 1 つに畳む。all: 親と葉の両方を並べる
+ * 親の行の選び方。none は、1 つ選ぶ形では親の行を押すと開け閉めだけをし、複数選ぶ形では親の箱で中をすべて選ぶ（値は葉だけ）。
+ * self は、親の行そのもので親の値を選ぶ（開け閉めは山形）。複数選ぶ形では、親の箱は中と連動せず、親自身の値だけが入る。
+ * row は、親の行は開け閉めだけにし、開いた子の先頭に置く行（parentRowLabel）で親の値を選ぶ（Cascader の row と同じ考え方）
  */
-export type TreeSelectMultipleValue = 'leaves' | 'parents' | 'all';
+export type TreeSelectParentSelect = 'none' | 'self' | 'row';
 
 export interface TreeNode {
   value: ListboxValue;
@@ -40,6 +42,10 @@ export interface TreeNode {
   leaves: ListboxValue[];
   /** 中の葉のうち、選べるもの */
   enabledLeaves: ListboxValue[];
+  /** 渡された行そのもの */
+  item: TreeSelectItem<ListboxValue>;
+  /** 親そのものを選ぶ行（parentSelect="row"）のとき、その親。値は親と同じ */
+  selfOf?: TreeNode;
 }
 
 export interface TreeIndex {
@@ -63,6 +69,7 @@ export function indexTree(items: readonly TreeSelectItem<ListboxValue>[]): TreeI
     parent: TreeNode | null
   ): TreeNode => {
     const node: TreeNode = {
+      item,
       value: item.value,
       label: item.label,
       icon: item.icon,
@@ -97,12 +104,20 @@ export function ancestorsOf(node: TreeNode): TreeNode[] {
 }
 
 /** 開いている行の中だけを、上から順に並べる（キーボードで移る順） */
-export function visibleNodes(index: TreeIndex, expanded: ReadonlySet<ListboxValue>): TreeNode[] {
+export function visibleNodes(
+  index: TreeIndex,
+  expanded: ReadonlySet<ListboxValue>,
+  /** 開いた親の子の先頭に置く行（parentSelect="row" の、親そのものを選ぶ行） */
+  selfRowOf?: (node: TreeNode) => TreeNode | undefined
+): TreeNode[] {
   const list: TreeNode[] = [];
   const walk = (nodes: TreeNode[]) => {
     for (const node of nodes) {
       list.push(node);
-      if (isParent(node) && expanded.has(node.value)) walk(node.children);
+      if (!isParent(node) || !expanded.has(node.value)) continue;
+      const selfRow = selfRowOf?.(node);
+      if (selfRow) list.push(selfRow);
+      walk(node.children);
     }
   };
   walk(index.roots);
@@ -143,26 +158,75 @@ export function toggleLeaves(node: TreeNode, leaves: ReadonlySet<ListboxValue>):
   return next;
 }
 
-/** 葉の集まりを、外に渡す値の並び（木の順）に直す */
-export function valuesOf(
+/** 葉の集まりを、外に渡す値の並び（木の順の葉だけ）に直す */
+export function leafValuesOf(index: TreeIndex, leaves: ReadonlySet<ListboxValue>): ListboxValue[] {
+  return index.order
+    .filter((node) => !isParent(node) && leaves.has(node.value))
+    .map((node) => node.value);
+}
+
+/** 親そのものを選ぶ形（parentSelect="self"）で、行の値を入れ替えた次の値（木の順）。木にない値は捨てる */
+export function toggleSelf(
   index: TreeIndex,
-  leaves: ReadonlySet<ListboxValue>,
-  multipleValue: TreeSelectMultipleValue
+  values: readonly ListboxValue[],
+  node: TreeNode
 ): ListboxValue[] {
-  const full = (node: TreeNode) => checkStateOf(node, leaves) === 'checked';
-  if (multipleValue === 'leaves')
-    return index.order
-      .filter((node) => !isParent(node) && leaves.has(node.value))
-      .map((n) => n.value);
-  if (multipleValue === 'all') return index.order.filter(full).map((node) => node.value);
-  // parents: 中をすべて選んだ親は親の値 1 つにし、中には降りない
-  const list: ListboxValue[] = [];
-  const walk = (nodes: TreeNode[]) => {
-    for (const node of nodes) {
-      if (full(node)) list.push(node.value);
-      else if (isParent(node)) walk(node.children);
+  const next = new Set(values);
+  if (next.has(node.value)) next.delete(node.value);
+  else next.add(node.value);
+  return index.order.filter((item) => next.has(item.value)).map((item) => item.value);
+}
+
+/**
+ * 親もほかの行と同じ点として選ぶ形（軸 645・646 の比較中の仮の props。統合のときに parentSelect にそろえる）
+ *   none: 親は選べない（ただのまとまり）。label: 親も独立した項目。scope: 親が子を覆う（複数選ぶ形で意味がある）
+ */
+export type TreeSelectParentPoint = 'none' | 'label' | 'scope';
+
+/** item が node の配下（子・孫）か */
+export function isUnder(item: TreeNode, node: TreeNode) {
+  for (let current = item.parent; current; current = current.parent) {
+    if (current === node) return true;
+  }
+  return false;
+}
+
+/** 選んだ値に入っている、いちばん近い祖先（自分は含まない）。scope の形で、その行を覆っている親 */
+export function coveringAncestor(
+  node: TreeNode,
+  values: ReadonlySet<ListboxValue>
+): TreeNode | null {
+  for (let current = node.parent; current; current = current.parent) {
+    if (values.has(current.value)) return current;
+  }
+  return null;
+}
+
+/**
+ * scope の形（複数選ぶ形）で、行の印を押したときの次の値（木の順）
+ *   入っている行: 自分と配下を外す
+ *   覆われている行: 覆っている親を外し、親から押した行までの道筋の各段で、道筋以外の兄弟を個別に入れる（押した行は外れる）
+ *   それ以外: 自分を入れ、配下の個別の値は自分にまとめる（子を全部入れても、自動では親にまとめない）
+ */
+export function pressScope(
+  index: TreeIndex,
+  values: readonly ListboxValue[],
+  node: TreeNode
+): ListboxValue[] {
+  const set = new Set(values);
+  const cover = coveringAncestor(node, set);
+  if (set.has(node.value)) {
+    set.delete(node.value);
+    for (const item of index.order) if (isUnder(item, node)) set.delete(item.value);
+  } else if (cover) {
+    set.delete(cover.value);
+    for (let step: TreeNode | null = node; step && step !== cover; step = step.parent) {
+      for (const sibling of step.parent?.children ?? [])
+        if (sibling !== step && !sibling.disabled) set.add(sibling.value);
     }
-  };
-  walk(index.roots);
-  return list;
+  } else {
+    set.add(node.value);
+    for (const item of index.order) if (isUnder(item, node)) set.delete(item.value);
+  }
+  return index.order.filter((item) => set.has(item.value)).map((item) => item.value);
 }
