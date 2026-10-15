@@ -78,6 +78,7 @@
 @import '../components/toolbar/toolbar.tokens.css';
 @import '../components/tooltip/tooltip.tokens.css';
 @import '../components/transition/transition.tokens.css';
+@import '../components/tree-select/tree-select.tokens.css';
 @import '../components/tree/tree.tokens.css';
 @import '../components/video/video.tokens.css';
 @import '../internal/bar/bar.tokens.css';

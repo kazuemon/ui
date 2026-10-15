@@ -192,7 +192,7 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [ ] ActionBar
 - [ ] Mentions
 - [ ] Cascader
-- [ ] TreeSelect
+- [x] TreeSelect
 - [ ] Transfer
 
 ### チャット
