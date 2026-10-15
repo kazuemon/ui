@@ -48,7 +48,7 @@ export const docTree: TreeSelectItem[] = [
 ];
 
 // 親を選ぶことに意味がある木（parentSelect の見本。文言は架空）
-//   orgTree: 通知の宛先・閲覧の範囲を選ぶ部署の木。「営業本部 のすべて」（本部全体）か、1 つの課かを選ぶ（1 つ選ぶ形）
+//   orgTree: お知らせの宛先を選ぶ部署の木（parentSelect="scope"）。本部を選ぶと、あとからできる課も宛先に入る
 //     課の名前は部ごとに重なる（「第一課」）。欄のパスで、どの部の課かを見分ける
 export const orgTree: TreeSelectItem[] = [
   {
@@ -99,8 +99,7 @@ export const orgTree: TreeSelectItem[] = [
   },
 ];
 
-//   labelTree: 記事に付けるカテゴリの木（Gmail のラベルのように、親のカテゴリそのものも記事に付けられる。複数選ぶ形）
-//   一括の形（parentSelect="none"）では「開発」を選ぶと、中のカテゴリをすべて付ける意味になる
+//   labelTree: 記事に付けるカテゴリの木（parentSelect="label"。親のカテゴリそのものも記事に付けられる。複数選ぶ形）
 export const labelTree: TreeSelectItem[] = [
   {
     value: 'dev',
@@ -130,7 +129,7 @@ export const labelTree: TreeSelectItem[] = [
   { value: 'diary', label: '日記' },
 ];
 
-//   folderTree: 保存先のフォルダの木。中にフォルダがあっても、そのフォルダ自体に保存できる（1 つ選ぶ形）
+//   folderTree: 保存先のフォルダの木（parentSelect="label"）。中にフォルダがあっても、そのフォルダ自体に保存できる（1 つ選ぶ形）
 export const folderTree: TreeSelectItem[] = [
   {
     value: 'docs',
@@ -172,7 +171,7 @@ export const folderTree: TreeSelectItem[] = [
   { value: 'shared', label: '共有（閲覧のみ）', disabled: true },
 ];
 
-//   notifyTree: 受け取る通知の種類（複数選ぶ形）。親の箱で、その種類の通知をまとめて受け取る
+//   notifyTree: 受け取る通知の種類（parentSelect="none"。親はただのまとまりで、選ぶのは個々の通知。複数選ぶ形）
 export const notifyTree: TreeSelectItem[] = [
   {
     value: 'news',
@@ -200,65 +199,4 @@ export const notifyTree: TreeSelectItem[] = [
     ],
   },
   { value: 'weekly', label: '週のまとめ' },
-];
-
-//   stationTree: 乗車駅（1 つ選ぶ形）。路線には乗れないので、選べるのは駅だけ。乗り換え駅は複数の路線に出る（値は路線ごとに分ける）
-export const stationTree: TreeSelectItem[] = [
-  {
-    value: 'kaihin',
-    label: '海浜線',
-    children: [
-      { value: 'kaihin-minatomachi', label: '港町' },
-      { value: 'kaihin-shiomidai', label: '汐見台' },
-      { value: 'kaihin-hamakaze', label: '浜風公園' },
-      { value: 'kaihin-chuo', label: '中央' },
-    ],
-  },
-  {
-    value: 'kyuryo',
-    label: '丘陵線',
-    children: [
-      { value: 'kyuryo-chuo', label: '中央' },
-      { value: 'kyuryo-wakaba', label: '若葉台' },
-      { value: 'kyuryo-sakura', label: '桜ヶ丘' },
-    ],
-  },
-  {
-    value: 'kanjo',
-    label: 'みなと環状線',
-    children: [
-      { value: 'kanjo-minatomachi', label: '港町' },
-      { value: 'kanjo-shiyakusho', label: '市役所前' },
-      { value: 'kanjo-chuo', label: '中央' },
-    ],
-  },
-];
-
-//   couponTree: クーポンの対象商品（複数選ぶ形）。「文具 全体」は今後追加される文具も対象、一括は今ある文具の商品だけ
-export const couponTree: TreeSelectItem[] = [
-  {
-    value: 'stationery',
-    label: '文具',
-    children: [
-      { value: 'note-a5', label: 'ノート A5' },
-      { value: 'gel-pen', label: 'ゲルインクペン' },
-      { value: 'masking-tape', label: 'マスキングテープ' },
-    ],
-  },
-  {
-    value: 'goods',
-    label: '雑貨',
-    children: [
-      { value: 'mug', label: 'マグカップ' },
-      { value: 'tote', label: 'トートバッグ' },
-    ],
-  },
-  {
-    value: 'food',
-    label: '食品',
-    children: [
-      { value: 'drip-coffee', label: 'ドリップコーヒー' },
-      { value: 'baked-sweets', label: '焼き菓子の詰め合わせ' },
-    ],
-  },
 ];

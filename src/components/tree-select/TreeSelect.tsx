@@ -17,26 +17,13 @@ import { FieldAddonButton } from '../field-addon/FieldAddon';
 import {
   ancestorsOf,
   indexTree,
-  isParent,
-  checkStateOf,
-  leafSetOf,
-  leafValuesOf,
   pressScope,
-  toggleLeaves,
   toggleSelf,
   type TreeNode,
   type TreeSelectItem,
-  type TreeSelectParentPoint,
   type TreeSelectParentSelect,
 } from './tree-select-items';
-import { DrillPanel, SearchPanel } from './TreeSelectAlternatives';
-import { TreeSelectRulePanel, type TreeSelectSelectedIndicator } from './TreeSelectRulePanel';
-import {
-  type TreeSelectItemIndicator,
-  type TreeSelectLayout,
-  TreeSelectPanel,
-  type TreeSelectPanelProps,
-} from './TreeSelectPanel';
+import { TreeSelectPanel, type TreeSelectSelectedIndicator } from './TreeSelectPanel';
 import { Chip } from '../chip/Chip';
 import {
   comboboxChipClass,
@@ -62,22 +49,21 @@ import {
 import { cn } from '../../internal/tv';
 import { useControlled } from '../../internal/use-controlled';
 
-export type {
-  TreeSelectItem,
-  TreeSelectParentPoint,
-  TreeSelectParentSelect,
-} from './tree-select-items';
-export type { TreeSelectItemIndicator, TreeSelectLayout } from './TreeSelectPanel';
-export type { TreeSelectSelectedIndicator } from './TreeSelectRulePanel';
+export type { TreeSelectItem, TreeSelectParentSelect } from './tree-select-items';
+export type { TreeSelectSelectedIndicator } from './TreeSelectPanel';
 
 // 木をたどって選ぶ欄。欄は Select と同じ形（押すと開くボタン・右端の ▼）、開いた面の中は Tree と同じ行・字下げ・案内線
 //   面は欄の下に浮かべ、指で操作していて画面が狭いときはシートにする（DatePicker・TimePicker と同じ PickerOverlay — 原則16）
-//   1 つ選ぶ形: 行を押すと選んで閉じる。親の行は既定では開け閉めだけで、parentSelect="self" で親そのものを選べる（軸 645）
-//   複数選ぶ形（multiple）: 行の頭にチェックボックス。親を選ぶと中もすべて入り、一部なら中間の印。外に渡す値は葉だけ（軸 646）
-//     parentSelect="self" では、親の箱は中と連動せず、親自身の値が入る（Gmail のラベル）
+//   親もほかの行と同じ 1 つの点。選べる行は左に印（1 つ選ぶ形は丸、複数選ぶ形は箱）、子を持つ行は右端の正方形で開け閉め（軸 645・646）
+//     親の選び方は parentSelect: none（既定）は親を選べない、label は親も独立した項目、scope は親が配下を覆う（複数選ぶ形）
+//   1 つ選ぶ形: 行を押すと選んで閉じる。選んだ行の面は selectedIndicator
+//   複数選ぶ形（multiple）: 押しても閉じない。値は選んだ点の並び
 //   欄に出す文: valueDisplay・pathVariant・separator（軸 643。既定はパスで、親と区切りは一段淡く）。複数選ぶ形はチップで、既定は名前だけ（軸 644）。renderValue で差し替えられる
 //   値を消す ×（clearable）は Select と同じ形（欄の右端に重ねる）
 //   読み取り専用・押せない・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
+
+// 画面の端に当たったときの避け方。横には逃がさない（面は --available-height で縮み、中でスクロールする）
+const DROPDOWN_AVOIDANCE = { side: 'flip', align: 'shift', fallbackAxisSide: 'none' } as const;
 
 /** 欄に出す文。path は親からのパス（「デザイン / 原則」）、last は選んだ行の名前だけ（Cascader と同じ値） */
 export type TreeSelectValueDisplay = 'path' | 'last';
@@ -99,7 +85,7 @@ export interface TreeSelectControlProps<
   /** 木の行。`{ value, label }` に、入れ子の行を `children` で渡します。選べない行には `disabled`、頭のアイコンは `icon` です */
   items: TreeSelectItem<Value>[];
   /**
-   * 複数選べるようにします。行の頭にチェックボックスを出し、親を選ぶと中もすべて選びます。値は配列になります
+   * 複数選べるようにします。選べる行の頭にチェックボックスを出し、押しても面は閉じません。値は配列になります
    * @default false
    */
   multiple?: Multiple;
@@ -110,22 +96,16 @@ export interface TreeSelectControlProps<
   /** 値が変わるときに、次の値を渡して呼びます */
   onValueChange?: (value: TreeSelectValue<Value, Multiple>) => void;
   /**
-   * 親の行（子を持つ行）の選び方。none は、1 つ選ぶ形では親の行を押すと開け閉めだけをし、葉だけを選べます。
-   * 複数選ぶ形の none は、親の箱で中をすべて選び、外に渡す値は葉（子のない行）だけです。親の値を受け取ったときは、その中をすべて選んだものとして読みます。
-   * self は、親そのものを値として選べます。行を押すと選び、開け閉めは左の印か →・← で行います。複数選ぶ形では、親の箱は中と連動せず、親自身の値だけが入ります。
-   * row は、親の行は開け閉めだけにし、開いた子の先頭に置く行（parentRowLabel）で親の値を選びます。複数選ぶ形では、中の行とは連動しません
+   * 親の行（子を持つ行）の選び方。none は親を選べず、親の行はどこを押しても開け閉めします。
+   * label は親も独立した項目で、親を選んでも中の行は変わりません。
+   * scope は親が中を覆います（複数選ぶ形）。親を選ぶと値は親 1 つになり、中の行は「含まれる」見た目になります。
+   * 含まれる行を押すと、親を外して残りを個別に選びます。中を全部選んでも親にはまとめません。1 つ選ぶ形では label と同じです
    * @default 'none'
    */
   parentSelect?: TreeSelectParentSelect;
   /**
-   * parentSelect="row" のときの、親そのものを選ぶ行の文字
-   * @default multiple ? (item) => `${item.label} そのもの` : (item) => `${item.label} のすべて`
-   */
-  parentRowLabel?: (item: TreeSelectItem<Value>) => string;
-  /**
    * 欄に出す文。path は親からのパス、last は選んだ行の名前だけです。複数選ぶ形では、チップの文に効きます。
-   * 長いときは親の側から省きます
-   * @default multiple ? 'last' : 'path'
+   * 長いときは親の側から省きます。書かないときは、1 つ選ぶ形では path、複数選ぶ形では last です
    */
   valueDisplay?: TreeSelectValueDisplay;
   /**
@@ -145,27 +125,7 @@ export interface TreeSelectControlProps<
    */
   renderValue?: (value: TreeSelectValue<Value, Multiple>) => ReactNode;
   /**
-   * 1 つ選ぶ形の、選べる行の印。check は選んだ行の右端にチェック、radio は選べる行の頭にラジオの丸、
-   * hover-check は指している選べる行の右端に薄いチェックを出します
-   * @default 'check'
-   */
-  itemIndicator?: TreeSelectItemIndicator;
-  /**
-   * 1 つ選ぶ形の、面の形（軸 645 の比較中）。tree は木、split は行の本体で選び右端のボタンで開け閉めする形、
-   * drill は 1 段ずつ進む形、search は検索を主にした形、band は左の帯で選び名前で開く形、flat は開け閉めをなくした形です（band・flat は複数選ぶ形にも効きます）
-   * @default 'tree'
-   */
-  layout?: TreeSelectLayout;
-  /**
-   * 親もほかの行と同じ点として選ぶ形（軸 645・646 の比較中の仮の props。統合のときに parentSelect にそろえる）。
-   * 渡すと、選べる行は左に印（1 つ選ぶ形は丸、複数選ぶ形は箱）を持ち、子を持つ行は右端の正方形だけで開け閉めします。
-   * none は親を選べない（印なし。行のどこを押しても開け閉め）、label は親も独立した項目、
-   * scope は親が子を覆う（複数選ぶ形。親を選ぶと値は親 1 つになり、配下は「含まれる」見た目。1 つ選ぶ形では label と同じ）
-   */
-  parentPoint?: TreeSelectParentPoint;
-  /**
-   * 1 つ選ぶ形の、選んだ行の見せ方（parentPoint を渡したときの面）。fill は Select と同じ淡い面と文字の色、
-   * text は面を敷かず、丸と太字だけで示します（Tree の currentIndicator="text" と同じ考え方）
+   * 1 つ選ぶ形の、選んだ行の見せ方。fill は Select と同じ淡い面と文字の色、text は面を敷かず、丸と太字だけで示します
    * @default 'fill'
    */
   selectedIndicator?: TreeSelectSelectedIndicator;
@@ -176,7 +136,7 @@ export interface TreeSelectControlProps<
   /** 親の行の開閉が変わるときに、開いている行の値を渡して呼びます */
   onExpandedChange?: (expanded: Value[]) => void;
   /**
-   * 選んだ行の印（面・文字・チェック・チェックボックス）の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーです（原則6）
+   * 選んだ行の印（面・文字・丸・チェックボックス・配下に選択がある点）の色。primary・secondary は利用者が選ぶ色、neutral は色を持たないグレーです（原則6）
    * @default 'neutral'
    */
   color?: ListboxColor;
@@ -196,8 +156,7 @@ export interface TreeSelectControlProps<
    */
   clearable?: boolean;
   /**
-   * 消すボタンの読み上げの名前
-   * @default multiple ? '選んだ項目をすべて消去' : '選んだ項目を消去'
+   * 消すボタンの読み上げの名前。書かないときは「選んだ項目を消去」、複数選ぶ形では「選んだ項目をすべて消去」です
    */
   clearName?: string;
   /** 面が開いているか（制御） */
@@ -274,11 +233,7 @@ export function TreeSelectControl<
   defaultValue,
   onValueChange,
   parentSelect = 'none',
-  itemIndicator = 'check',
-  layout = 'tree',
-  parentPoint,
   selectedIndicator = 'fill',
-  parentRowLabel,
   valueDisplay: valueDisplayProp,
   pathVariant = 'muted',
   separator = '/',
@@ -324,20 +279,9 @@ export function TreeSelectControl<
     () => (Array.isArray(current) ? current : current == null ? [] : [current]),
     [current]
   );
-  // 複数選ぶ形で、親の箱が中と連動するか（parentSelect="none"）。連動するときは、選んだ葉の集まりから箱と値を出す
-  // 親もほかの行と同じ点として選ぶ形（parentPoint — 軸 645・646 の比較中）
-  const ruleMode = parentPoint !== undefined;
-  const cascade = multiple && parentSelect === 'none' && !ruleMode;
-  const checkedLeaves = useMemo(() => leafSetOf(index, values), [index, values]);
   const selfSet = useMemo(() => new Set(values), [values]);
-  const checkState = (node: TreeNode) =>
-    cascade
-      ? checkStateOf(node, checkedLeaves)
-      : selfSet.has(node.value)
-        ? ('checked' as const)
-        : ('unchecked' as const);
-  // 欄に出す行とフォームに送る値。中と連動する形は、受け取った値を葉だけにそろえる（親の値は中の葉として読む）
-  const shownNodes = (cascade ? leafValuesOf(index, checkedLeaves) : values)
+  // 欄に出す行とフォームに送る値（木にない値は捨てる）
+  const shownNodes = values
     .map((value) => index.byValue.get(value))
     .filter((node): node is TreeNode => node != null);
 
@@ -347,13 +291,7 @@ export function TreeSelectControl<
     () =>
       (defaultExpanded as ListboxValue[] | undefined) ??
       Array.from(
-        new Set(
-          shownNodes.flatMap((node) => [
-            ...ancestorsOf(node).map((parent) => parent.value),
-            // 親そのものを選ぶ行で選んだ親は、その行が見えるよう親も開く
-            ...(parentSelect === 'row' && !ruleMode && isParent(node) ? [node.value] : []),
-          ])
-        )
+        new Set(shownNodes.flatMap((node) => ancestorsOf(node).map((parent) => parent.value)))
       ),
     onExpandedChange as ((next: ListboxValue[]) => void) | undefined
   );
@@ -377,17 +315,16 @@ export function TreeSelectControl<
     onOpenChange?.(next);
   };
 
+  // 行を選んだとき。1 つ選ぶ形は選んで閉じる。複数選ぶ形は、scope なら覆う・切り分ける、ほかは自分だけを入れ替える
   const pick = (node: TreeNode) => {
-    if (multiple) {
-      changeValue(
-        cascade
-          ? leafValuesOf(index, toggleLeaves(node, checkedLeaves))
-          : toggleSelf(index, values, node)
-      );
+    if (!multiple) {
+      changeValue(node.value);
+      changeOpen(false);
       return;
     }
-    changeValue(node.value);
-    changeOpen(false);
+    changeValue(
+      parentSelect === 'scope' ? pressScope(index, values, node) : toggleSelf(index, values, node)
+    );
   };
 
   const hasValue = values.length > 0;
@@ -395,79 +332,20 @@ export function TreeSelectControl<
   const label = field?.label ?? field?.accessibleName;
   const treeName = typeof label === 'string' ? label : (field?.accessibleName ?? '選択肢');
 
-  const treeProps: TreeSelectPanelProps = {
-    index,
-    multiple,
-    selected: multiple ? null : (values[0] ?? null),
-    checkState,
-    itemIndicator,
-    parentRowLabel: (node) =>
-      parentRowLabel
-        ? parentRowLabel(node.item as TreeSelectItem<Value>)
-        : multiple
-          ? `${node.label} そのもの`
-          : `${node.label} のすべて`,
-    expanded,
-    onExpandedChange: changeExpanded,
-    onPick: pick,
-    parentSelect,
-    color,
-    label: treeName,
-    autoFocus: openedByUser,
-    sheet,
-  };
-  // 面の形（軸 645 の比較中。1 つ選ぶ形だけ）
-  //   帯の形（band・flat）は複数選ぶ形にも効く
-  const shape = multiple && layout !== 'band' && layout !== 'flat' ? 'tree' : layout;
-  // 親もほかの行と同じ点として選ぶ形の操作。1 つ選ぶ形は選んで閉じる。複数選ぶ形は、scope なら覆う・切り分ける、ほかは自分だけを入れ替える
-  const pickPoint = (node: TreeNode) => {
-    if (!multiple) {
-      changeValue(node.value);
-      changeOpen(false);
-      return;
-    }
-    changeValue(
-      parentPoint === 'scope' ? pressScope(index, values, node) : toggleSelf(index, values, node)
-    );
-  };
-  const panel = ruleMode ? (
-    <TreeSelectRulePanel
+  const panel = (
+    <TreeSelectPanel
       index={index}
       multiple={multiple}
-      parentPoint={parentPoint}
+      parentSelect={parentSelect}
       values={selfSet}
       expanded={expanded}
       onExpandedChange={changeExpanded}
-      onPick={pickPoint}
+      onPick={pick}
       color={color}
       label={treeName}
       autoFocus={openedByUser}
       sheet={sheet}
       selectedIndicator={selectedIndicator}
-    />
-  ) : shape === 'drill' ? (
-    <DrillPanel
-      index={index}
-      selected={treeProps.selected}
-      onPick={pick}
-      label={treeName}
-      autoFocus={openedByUser}
-    />
-  ) : shape === 'search' ? (
-    <SearchPanel
-      index={index}
-      selected={treeProps.selected}
-      onPick={pick}
-      label={treeName}
-      autoFocus={openedByUser}
-      treeProps={treeProps}
-    />
-  ) : (
-    <TreeSelectPanel
-      {...treeProps}
-      split={shape === 'split'}
-      band={shape === 'band'}
-      flat={shape === 'flat'}
     />
   );
 
@@ -481,7 +359,11 @@ export function TreeSelectControl<
       title={label ?? treeName}
       presentation={presentation}
       portalContainer={portalContainer}
-      positionerProps={positionerProps}
+      // 上か下にだけ出し、どちらにも収まらないときは面の中でスクロールする（Select・Cascader と同じ）
+      positionerProps={{
+        ...positionerProps,
+        collisionAvoidance: positionerProps?.collisionAvoidance ?? DROPDOWN_AVOIDANCE,
+      }}
       popupProps={{
         ...restPopupProps,
         className: popupClassName,

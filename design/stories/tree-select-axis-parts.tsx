@@ -56,7 +56,7 @@ export function OpenFrame({
   scopeNote,
   testId,
 }: {
-  /** 渡した値の親を「〇〇 全体」と読み、この文を添える（parentPoint="scope"。例:「（今後の課も含む）」） */
+  /** 渡した値の親を「〇〇 全体」と読み、この文を添える（parentSelect="scope"。例:「（今後の課も含む）」） */
   scopeNote?: string;
   /** play で枠を探すための data-testid */
   testId?: string;

@@ -4,7 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { TreeSelect, type TreeSelectProps } from './TreeSelect';
-import { docTree, labelTree, orgTree } from './tree-select-samples';
+import { docTree, folderTree, labelTree, notifyTree, orgTree } from './tree-select-samples';
 import { DensityPair, Matrix } from '../../stories/story-parts';
 import {
   enabledControl,
@@ -67,13 +67,18 @@ const meta = {
           '',
           '- 木は `items` に `{ value, label }` で渡し、入れ子の行は `children` に入れます。選べない行には `disabled` を付けます（親に付けると中もすべて選べません）。',
           '- 1 つ選ぶ形では、行を押すと選んで閉じます。欄には親からのパス（「デザイン / 原則」）を出します。親と区切りは一段淡く出し、本文と同じ色にするときは `pathVariant="default"` です。名前だけにするときは `valueDisplay="last"` です。親と子のあいだの区切りは `separator`（既定は「/」。アイコンも渡せ、`null` で区切りません）です。',
-          '- 1 つ選ぶ形では、親の行（子を持つ行）は押すと開け閉めだけをし、葉を選びます。親そのものも選ばせるときは `parentSelect="self"` にします。このときは行を押すと選び、開け閉めは左の印か →・← で行います。印の押せる範囲は行の高さいっぱいの正方形で、載せると塗りで範囲が分かります。`parentSelect="row"` では、親の行は開け閉めだけにし、開いた子の先頭に置く「〇〇 のすべて」の行（`parentRowLabel`）で親を選びます。',
-          '- `multiple` を付けると、行の頭にチェックボックスが出ます。親を選ぶと中もすべて選び、一部だけ選んでいるときは横線の印になります。押しても面は閉じません。欄には選んだ行をチップで並べ、チップは既定で名前だけです（`valueDisplay="path"` でパスにできます）。',
+          '- 選べる行は、頭に印が付きます。1 つ選ぶ形は丸、複数選ぶ形（`multiple`）はチェックボックスです。子を持つ行は、右端の山形の正方形を押すと開け閉めし、それより左を押すと選びます。',
+          '- 1 つ選ぶ形では、行を押すと選んで閉じます。選んだ行は淡い面と太字で示します。面を敷かず丸と太字だけにするときは `selectedIndicator="text"` です。',
+          '- 親の行（子を持つ行）の選び方は `parentSelect` で決めます。',
+          '  - `none`（既定）: 親は選べないまとまりです。印も左の余白もなく、行のどこを押しても開け閉めします。',
+          '  - `label`: 親もほかの行と同じ 1 つの項目です。親を選んでも中の行は変わりません（フォルダ、記事のカテゴリなど）。',
+          '  - `scope`（複数選ぶ形）: 親が中を覆います。親を選ぶと値は親 1 つになり、中の行は「含まれる」見た目（塗らない箱に淡いチェック）になります。あとから増えた中の行も含めたいとき（部署の宛先、クーポンの対象商品など）に使います。含まれる行を押すと、親を外して残りを個別に選びます。中を全部選んでも親にはまとめません。1 つ選ぶ形では `label` と同じです。',
+          '- 親の印は、親そのものを選んでいるかだけを表します。中に選んだ行がある親には、名前の右に点が付きます（読み上げでは「配下に選択あり」と補います）。',
+          '- 複数選ぶ形では、押しても面は閉じません。値は選んだ行の並びです。欄には選んだ行をチップで並べ、チップは既定で名前だけです（`valueDisplay="path"` でパスにできます）。',
           '- 欄の中身をすべて差し替えるときは、Select と同じ `renderValue` に、値から中身を作る関数を渡します。',
-          '- 複数選ぶ形の値は、葉（子のない行）だけを並べます。親の値を渡したときは、その中をすべて選んだものとして読みます。`parentSelect="self"` では、親の箱は中と連動せず、親自身の値だけが入ります（Gmail のラベルのような使い方）。',
-          '- 面の中は ↑↓ で行を移り、→ で開いて中へ、← で閉じて親へ移ります。Enter・Space で選びます。文字を打つと、その文字で始まる行へ移ります。',
+          '- 面の中は ↑↓ で行を移り、→ で開いて中へ、← で閉じて親へ移ります。Home・End で端へ移ります。Enter・Space で選びます（選べない親では開け閉め）。文字を打つと、その文字で始まる行へ移ります。',
           '- 開いたときは、選んだ行の祖先を開いて、選んだ行にフォーカスを置きます。はじめに開く行は `defaultExpanded` でも決められます。',
-          '- 出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。',
+          '- 面は欄の上か下に出し、どちらにも収まらないときは面の中でスクロールします。出し方は `presentation` で決めます。既定の `auto` は、指で操作していて画面が狭いときだけ、画面の下から出るシートにします。',
           '- `name` を渡すと、フォームには値を文字で送ります。`multiple` では同じ名前で複数送ります。',
         ].join('\n'),
       },
@@ -86,6 +91,7 @@ const meta = {
     color: 'neutral',
     pathVariant: 'muted',
     parentSelect: 'none',
+    selectedIndicator: 'fill',
     clearable: false,
     disabled: false,
     readOnly: false,
@@ -104,11 +110,12 @@ const meta = {
     valueDisplay: {
       control: 'inline-radio',
       options: ['path', 'last'],
-      table: { defaultValue: { summary: "multiple ? 'last' : 'path'" } },
+      table: { defaultValue: { summary: "'path'（multiple では 'last'）" } },
     },
     pathVariant: { control: 'inline-radio', options: ['muted', 'default'] },
     separator: { control: 'text' },
-    parentSelect: { control: 'inline-radio', options: ['none', 'self', 'row'] },
+    parentSelect: { control: 'inline-radio', options: ['none', 'label', 'scope'] },
+    selectedIndicator: { control: 'inline-radio', options: ['fill', 'text'] },
     presentation: { control: 'inline-radio', options: ['auto', 'popover', 'sheet'] },
     items: { control: false },
     value: { control: false },
@@ -139,11 +146,13 @@ export const Open: Story = {
   tags: ['visual'],
   name: '開いた状態（1 つ選ぶ）',
   parameters: {
-    controls: { include: ['color', 'valueDisplay', 'pathVariant', 'parentSelect'] },
+    controls: {
+      include: ['color', 'valueDisplay', 'pathVariant', 'parentSelect', 'selectedIndicator'],
+    },
     docs: {
       description: {
         story:
-          '選んだ行は、選択肢と同じ淡い面・太字・チェックで示します。行の形と字下げ、案内線は Tree と同じです。',
+          '選べる行の頭に丸が付き、選んだ行は淡い面と太字で示します。親の行は選べないまとまりで、中に選んだ行があると名前の右に点が付きます。行の形と字下げ、案内線は Tree と同じです。',
       },
       source: sourceCode(`
         <TreeSelect label="置き場所" items={items} defaultValue="principles" />
@@ -175,7 +184,7 @@ export const OpenMultiple: Story = {
     docs: {
       description: {
         story:
-          '行の頭にチェックボックスが出ます。親を選ぶと中もすべて選び、一部だけ選んでいる親は横線の印です。',
+          '選べる行の頭にチェックボックスが出ます。既定の `parentSelect="none"` では親は選べないまとまりで、中に選んだ行がある親は名前の右に点が付きます。',
       },
       source: sourceCode(`
         <TreeSelect label="置き場所" items={items} multiple defaultValue={['principles', 'tokens', 'inputs']} />
@@ -208,7 +217,7 @@ export const Colors: Story = {
     docs: {
       description: {
         story:
-          '`color` は、選んだ行の面・文字・チェックと、チェックボックスの色です。指定しないときはグレーです。',
+          '`color` は、選んだ行の面・文字・丸と、チェックボックス、中に選択がある点の色です。指定しないときはグレーです。',
       },
     },
   },
@@ -367,144 +376,130 @@ export const PickOne: Story = {
   },
 };
 
-export const PickParent: Story = {
-  name: '親そのものを選ぶ',
-  args: {
-    onValueChange: fn(),
-    label: '通知の宛先',
-    items: orgTree,
-    parentSelect: 'self',
-    defaultValue: 'sales-east-1',
-  },
-  parameters: {
-    controls: { disable: true },
-    docs: {
-      description: {
-        story:
-          '`parentSelect="self"` では、親の行を押すと親そのものを選びます。開け閉めは左の印か →・← で行います。印の押せる範囲は行の高さいっぱいで、載せると範囲に塗りが出ます。',
-      },
-    },
-  },
-  decorators: [
-    (Story) => (
-      <div className="max-w-xs">
-        <Story />
-      </div>
-    ),
-  ],
-  play: async ({ canvas, args, canvasElement }) => {
-    const body = within(canvasElement.ownerDocument.body);
-    await userEvent.click(canvas.getByRole('button', { name: /通知の宛先/ }));
-    const tree = await body.findByRole('tree', { name: '通知の宛先' });
-    // 印を押すと開け閉めだけ
-    const dev = within(tree).getByRole('treeitem', { name: '開発本部' });
-    await userEvent.click(dev.querySelector<HTMLElement>('[data-slot="tree-select-caret"]')!);
-    await expect(dev).toHaveAttribute('aria-expanded', 'true');
-    await expect(args.onValueChange).not.toHaveBeenCalled();
-    // 行を押すと親そのもの（本部全体）を選ぶ
-    await userEvent.click(dev);
-    await expect(args.onValueChange).toHaveBeenLastCalledWith('dev');
-    await expect(canvas.getByRole('button', { name: /通知の宛先/ })).toHaveAccessibleName(
-      '通知の宛先 開発本部'
-    );
-  },
-};
-
-export const PickParentRow: Story = {
-  name: '子の先頭の行で親を選ぶ',
-  args: { onValueChange: fn(), label: '通知の宛先', items: orgTree, parentSelect: 'row' },
-  parameters: {
-    controls: { disable: true },
-    docs: {
-      description: {
-        story:
-          '`parentSelect="row"` では、親の行は押すと開け閉めだけをします。開いた子の先頭の「〇〇 のすべて」の行で、親そのものを選びます。',
-      },
-    },
-  },
-  decorators: [
-    (Story) => (
-      <div className="max-w-xs">
-        <Story />
-      </div>
-    ),
-  ],
-  play: async ({ canvas, args, canvasElement }) => {
-    const body = within(canvasElement.ownerDocument.body);
-    await userEvent.click(canvas.getByRole('button', { name: /通知の宛先/ }));
-    const tree = await body.findByRole('tree', { name: '通知の宛先' });
-    const sales = within(tree).getByRole('treeitem', { name: '営業本部' });
-    await userEvent.click(sales);
-    await expect(sales).toHaveAttribute('aria-expanded', 'true');
-    await expect(args.onValueChange).not.toHaveBeenCalled();
-    await userEvent.click(await within(tree).findByRole('treeitem', { name: '営業本部 のすべて' }));
-    await expect(args.onValueChange).toHaveBeenLastCalledWith('sales');
-    await waitFor(() => expect(body.queryByRole('tree')).not.toBeInTheDocument());
-    // 開き直すと、選んだのは「のすべて」の行で、親の行は選んだ見た目にならない
-    await userEvent.click(canvas.getByRole('button', { name: /通知の宛先/ }));
-    const reopened = await body.findByRole('tree');
-    await expect(
-      within(reopened).getByRole('treeitem', { name: '営業本部 のすべて' })
-    ).toHaveAttribute('aria-selected', 'true');
-    await expect(within(reopened).getByRole('treeitem', { name: '営業本部' })).toHaveAttribute(
-      'aria-selected',
-      'false'
-    );
-  },
-};
-
 export const OpenParentSelect: Story = {
   tags: ['visual'],
-  name: '開いた状態（親そのものを選ぶ）',
+  name: '開いた状態（親の選び方）',
   parameters: {
     controls: { include: ['color'] },
-    // 「開発本部」の印に載せた見た目（押せる範囲の塗り）を固定する
-    pseudo: {
-      rootSelector: 'body',
-      hover: [
-        '[data-caret-preview] [data-slot="tree-select-tree"] > li:nth-child(2) > [role="treeitem"] [data-slot="tree-select-caret"]',
-      ],
-    },
     docs: {
       description: {
         story:
-          '`parentSelect="self"` の面です。「開発本部」の行は、開閉の印に載せたときの見た目（押せる範囲の塗り）で描いています。',
+          '左は `parentSelect="label"`（1 つ選ぶ形。親の「プロジェクト」を選んでいる）、中は `selectedIndicator="text"` で面を敷かない形、右は `parentSelect="scope"`（複数選ぶ形。「営業本部」を選び、中の行は「含まれる」見た目）です。',
       },
       source: sourceCode(`
-        <TreeSelect label="通知の宛先" items={departments} parentSelect="self" defaultValue="sales" />
+        <TreeSelect label="保存先" items={folders} parentSelect="label" defaultValue="projects" />
+        <TreeSelect label="保存先" items={folders} parentSelect="label" selectedIndicator="text" defaultValue="projects" />
+        <TreeSelect label="お知らせの宛先" items={departments} multiple parentSelect="scope" defaultValue={['sales']} />
       `),
     },
   },
   render: (args, { viewMode }) => (
-    <PopoverFrame>
-      {(container) => (
-        <TreeSelect
-          {...single(args)}
-          label="通知の宛先"
-          items={orgTree}
-          parentSelect="self"
-          defaultValue="sales"
-          defaultExpanded={['sales']}
-          presentation="popover"
-          defaultOpen={openOnLoad(viewMode)}
-          portalContainer={container}
-          popupProps={{ 'data-caret-preview': '' } as never}
-          positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
-        />
-      )}
-    </PopoverFrame>
+    <div className="flex flex-wrap gap-6">
+      {(['fill', 'text'] as const).map((indicator) => (
+        <PopoverFrame key={indicator}>
+          {(container) => (
+            <TreeSelect
+              {...single(args)}
+              label={indicator === 'fill' ? '保存先' : '保存先（面なし）'}
+              items={folderTree}
+              multiple={false}
+              parentSelect="label"
+              selectedIndicator={indicator}
+              defaultValue="projects"
+              defaultExpanded={['docs']}
+              presentation="popover"
+              defaultOpen={openOnLoad(viewMode)}
+              portalContainer={container}
+              positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+            />
+          )}
+        </PopoverFrame>
+      ))}
+      <PopoverFrame>
+        {(container) => (
+          <TreeSelect
+            {...many(args)}
+            label="お知らせの宛先"
+            items={orgTree}
+            multiple
+            parentSelect="scope"
+            defaultValue={['sales']}
+            defaultExpanded={['sales', 'sales-east']}
+            presentation="popover"
+            defaultOpen={openOnLoad(viewMode)}
+            portalContainer={container}
+            positionerProps={{ collisionAvoidance: { side: 'none', align: 'none' } }}
+          />
+        )}
+      </PopoverFrame>
+    </div>
   ),
 };
 
-export const PickMany: Story = {
-  name: '複数選ぶ',
-  args: { onValueChange: fn(), name: 'places', multiple: true, defaultValue: ['principles'] },
+export const PickParent: Story = {
+  name: '親も選ぶ',
+  args: {
+    onValueChange: fn(),
+    label: '保存先',
+    items: folderTree,
+    parentSelect: 'label',
+    defaultValue: 'minutes',
+  },
   parameters: {
     controls: { disable: true },
     docs: {
       description: {
         story:
-          '親を選ぶと中もすべて選び、一部だけ選んでいる親は中間の状態（読み上げでは「一部選択」）になります。選んでも面は閉じません。',
+          '`parentSelect="label"` では、親の行もほかの行と同じように頭に丸が付き、押すと親そのものを選びます。開け閉めは右端の正方形か →・← で行います。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: /保存先/ }));
+    const tree = await body.findByRole('tree', { name: '保存先' });
+    // 中に選んだ行がある親には点が付き、読み上げでは補足の説明になる
+    const docs = within(tree).getByRole('treeitem', { name: 'ドキュメント' });
+    await expect(docs).toHaveAttribute('aria-description', '配下に選択あり');
+    await expect(docs.querySelector('[data-slot="tree-select-dot"]')).not.toBeNull();
+    // 右端の正方形は開け閉めだけ
+    const photos = within(tree).getByRole('treeitem', { name: '写真' });
+    await userEvent.click(photos.querySelector<HTMLElement>('[data-slot="tree-select-caret"]')!);
+    await expect(photos).toHaveAttribute('aria-expanded', 'true');
+    await expect(args.onValueChange).not.toHaveBeenCalled();
+    // 行を押すと親そのものを選んで閉じる
+    await userEvent.click(photos);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith('photos');
+    await waitFor(() => expect(body.queryByRole('tree')).not.toBeInTheDocument());
+    await expect(canvas.getByRole('button', { name: /保存先/ })).toHaveAccessibleName(
+      '保存先 写真'
+    );
+  },
+};
+
+export const PickMany: Story = {
+  name: '複数選ぶ',
+  args: {
+    onValueChange: fn(),
+    name: 'notices',
+    label: '受け取る通知',
+    items: notifyTree,
+    multiple: true,
+    defaultValue: ['release'],
+  },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '既定の `parentSelect="none"` では、親の行は選べないまとまりで、押すと開け閉めします。選んでも面は閉じません。',
       },
     },
   },
@@ -517,45 +512,39 @@ export const PickMany: Story = {
   ],
   play: async ({ canvas, args, canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);
-    await userEvent.click(canvas.getByRole('button', { name: /置き場所/ }));
-    const tree = await body.findByRole('tree', { name: '置き場所' });
+    await userEvent.click(canvas.getByRole('button', { name: /受け取る通知/ }));
+    const tree = await body.findByRole('tree', { name: '受け取る通知' });
     await expect(tree).toHaveAttribute('aria-multiselectable', 'true');
-    const design = within(tree).getByRole('treeitem', { name: 'デザイン' });
-    await expect(design).toHaveAttribute('aria-checked', 'mixed');
-    // 親を選ぶと、選べる中の行をすべて選ぶ（選べない「比較の軸」は変えない）
-    await userEvent.click(design);
-    await expect(args.onValueChange).toHaveBeenLastCalledWith(['principles', 'tokens', 'adr']);
-    await expect(design).toHaveAttribute('aria-checked', 'mixed');
-    await expect(within(tree).getByRole('treeitem', { name: 'トークン' })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
-    // もう一度押すと外す
-    await userEvent.click(design);
-    await expect(args.onValueChange).toHaveBeenLastCalledWith([]);
-    // Space でも切り替える。面は閉じない
-    await userEvent.click(within(tree).getByRole('treeitem', { name: '変更履歴' }));
-    await expect(args.onValueChange).toHaveBeenLastCalledWith(['changelog']);
+    // 親は印を持たず、押すと開け閉めだけ
+    const account = within(tree).getByRole('treeitem', { name: 'アカウント' });
+    await expect(account).not.toHaveAttribute('aria-checked');
+    await expect(account.querySelector('[data-slot="tree-select-box"]')).toBeNull();
+    await userEvent.click(account);
+    await expect(account).toHaveAttribute('aria-expanded', 'true');
+    await expect(args.onValueChange).not.toHaveBeenCalled();
+    // 子を押すと入れ替える。Space でも切り替える。面は閉じない
+    await userEvent.click(await within(tree).findByRole('treeitem', { name: '支払い' }));
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['release', 'billing']);
+    await expect(account).toHaveAttribute('aria-description', '配下に選択あり');
     await userEvent.keyboard(' ');
-    await expect(args.onValueChange).toHaveBeenLastCalledWith([]);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['release']);
     await userEvent.keyboard(' ');
-    await expect(args.onValueChange).toHaveBeenLastCalledWith(['changelog']);
     await expect(body.getByRole('tree')).toBeInTheDocument();
     const sent = Array.from(
-      canvasElement.querySelectorAll<HTMLInputElement>('input[name="places"]')
+      canvasElement.querySelectorAll<HTMLInputElement>('input[name="notices"]')
     ).map((input) => input.value);
-    await expect(sent).toEqual(['changelog']);
+    await expect(sent).toEqual(['release', 'billing']);
   },
 };
 
-export const PickManySelf: Story = {
-  name: '親そのものを複数選ぶ',
+export const PickManyLabel: Story = {
+  name: '親も複数選ぶ',
   args: {
     onValueChange: fn(),
     label: '記事のカテゴリ',
     items: labelTree,
     multiple: true,
-    parentSelect: 'self',
+    parentSelect: 'label',
     defaultValue: [],
   },
   parameters: {
@@ -563,7 +552,7 @@ export const PickManySelf: Story = {
     docs: {
       description: {
         story:
-          '`multiple` と `parentSelect="self"` では、親の箱は中と連動しません。親を押すと親自身の値だけが入り、中の行は変わりません。',
+          '`multiple` と `parentSelect="label"` では、親も独立した項目です。親を選んでも中の行は変わらず、中を選んでも親は変わりません。',
       },
     },
   },
@@ -589,6 +578,82 @@ export const PickManySelf: Story = {
     await userEvent.click(frontend);
     await expect(args.onValueChange).toHaveBeenLastCalledWith(['dev', 'frontend']);
     await expect(dev).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(dev);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['frontend']);
+    await expect(frontend).toHaveAttribute('aria-checked', 'true');
+  },
+};
+
+export const PickScope: Story = {
+  name: '親で中を覆う',
+  args: {
+    onValueChange: fn(),
+    label: 'お知らせの宛先',
+    items: orgTree,
+    multiple: true,
+    parentSelect: 'scope',
+    defaultValue: ['sales'],
+    defaultExpanded: ['sales', 'sales-east'],
+  },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`parentSelect="scope"` では、親を選ぶと値は親 1 つになり、中の行は「含まれる」見た目になります（あとから増えた課も宛先に入ります）。含まれる行を押すと、親を外して残りを個別に選びます。中を全部選んでも親にはまとめず、親の箱を押すと親 1 つに戻ります。',
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, args, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('button', { name: /お知らせの宛先/ }));
+    const tree = await body.findByRole('tree', { name: 'お知らせの宛先' });
+    const row = async (name: string) => (await within(tree).findAllByRole('treeitem', { name }))[0];
+    const dotOf = (element: HTMLElement) =>
+      element.querySelector(':scope > [data-slot="tree-select-dot"]');
+
+    const sales = await row('営業本部');
+    await expect(sales).toHaveAttribute('aria-checked', 'true');
+    // 中の行は「含まれる」（読み上げでは選んだ範囲に入っている）
+    const first = await row('第一課');
+    await expect(first).toHaveAttribute('data-included', '');
+    await expect(first).toHaveAttribute('aria-checked', 'true');
+    // 入っている親を押すと、親も中も外れる。もう一度押すと親 1 つ
+    await userEvent.click(sales);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith([]);
+    await userEvent.click(sales);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['sales']);
+    // 含まれる行を押すと、個別の選択に切り替わる（押した行は外れ、道筋の兄弟が入る）。親の箱は空（− にしない）
+    await userEvent.click(await row('第一課'));
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['sales-east-2', 'sales-west']);
+    await expect(sales).toHaveAttribute('aria-checked', 'false');
+    // 中を全部選んでも、親にはまとめない
+    await userEvent.click(await row('第一課'));
+    await expect(args.onValueChange).toHaveBeenLastCalledWith([
+      'sales-east-1',
+      'sales-east-2',
+      'sales-west',
+    ]);
+    const east = await row('東日本営業部');
+    await expect(east).toHaveAttribute('aria-checked', 'false');
+    // 中に選んだ行がある親には、開いていても閉じていても点が付く
+    await waitFor(() => expect(dotOf(east)).not.toBeNull());
+    await expect(east).toHaveAttribute('aria-description', '配下に選択あり');
+    await userEvent.click(east.querySelector<HTMLElement>('[data-slot="tree-select-caret"]')!);
+    await waitFor(() => expect(dotOf(east)).not.toBeNull());
+    // 空の親の箱を押すと、親を選ぶ（個別の行は親にまとまる）
+    await userEvent.click(sales);
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(['sales']);
+    await expect(canvas.getByRole('button', { name: /お知らせの宛先/ })).toHaveAccessibleName(
+      'お知らせの宛先 営業本部'
+    );
   },
 };
 
