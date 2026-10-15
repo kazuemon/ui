@@ -112,7 +112,7 @@
 - [x] Meter
 - [x] Carousel
 - [x] Thumbnails
-- [ ] Indicator
+- [x] Indicator（Badge の重ね方と置き場所で足りるので、部品にしない）
 - [ ] BarList
 - [ ] Sparkline・グラフの見た目
 - [ ] タイムテーブル
