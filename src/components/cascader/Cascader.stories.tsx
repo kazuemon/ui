@@ -376,6 +376,60 @@ export const Pointer: Story = {
   },
 };
 
+// 画面の下寄りで開いたとき。面の高さは開いたときから木のいちばん長い段に合わせるので、段をたどっても変わらない
+//   欄の下には面がまるごとは収まらない高さだけ空けるので、空きの広い上に開き、閉じるまで上のまま
+const keepsSidePlay: Story['play'] = async ({ canvas, canvasElement }) => {
+  const page = within(canvasElement.ownerDocument.body);
+  const trigger = canvas.getByRole('button', { name: /カテゴリ/ });
+  await userEvent.click(trigger);
+  const dialog = await page.findByRole('dialog', { name: 'カテゴリ' });
+  const positioner = dialog.parentElement!;
+  const side = () => positioner.getAttribute('data-side');
+  const box = () => dialog.getBoundingClientRect();
+  await waitFor(() => expect(positioner.style.opacity).not.toBe('0'));
+  // 開く動き（滑り）が終わってから測る
+  await waitFor(() => expect(dialog).not.toHaveAttribute('data-starting-style'));
+  await waitFor(() => expect(dialog.getAnimations()).toHaveLength(0));
+  // 下に収まらないので、空きの広い上に開く（面の下端は欄の上）
+  await expect(side()).toBe('top');
+  await expect(box().bottom).toBeLessThanOrEqual(trigger.getBoundingClientRect().top);
+  const before = { top: Math.round(box().top), height: Math.round(box().height) };
+  // 雑貨（短い段）から文房具（長い段）へたどっても、面の高さと上端は変わらない
+  await userEvent.click(within(dialog).getByRole('option', { name: '文房具' }));
+  await within(dialog).findByRole('option', { name: '筆記具' });
+  await expect({ top: Math.round(box().top), height: Math.round(box().height) }).toEqual(before);
+  await userEvent.click(within(dialog).getByRole('option', { name: '筆記具' }));
+  await within(dialog).findByRole('option', { name: '万年筆' });
+  await expect({ top: Math.round(box().top), height: Math.round(box().height) }).toEqual(before);
+  await expect(side()).toBe('top');
+};
+
+export const KeepsSide: Story = {
+  name: '段をたどっても面の高さと向きを変えない',
+  tags: ['!autodocs'],
+  args: {
+    items: categories,
+    label: 'カテゴリ',
+    parentSelect: 'row',
+    defaultValue: ['goods', 'mug'],
+  },
+  decorators: [
+    (Story: () => ReactNode) => (
+      <div className="fixed inset-x-4 bottom-[176px] max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+  play: keepsSidePlay,
+};
+
+// hideEmptyColumns でも、列の数が変わるだけで、高さと向きは変わらない
+export const KeepsSideHideEmptyColumns: Story = {
+  ...KeepsSide,
+  name: '段をたどっても面の高さと向きを変えない（hideEmptyColumns）',
+  args: { ...KeepsSide.args, hideEmptyColumns: true },
+};
+
 export const LockedStaysClosed: Story = {
   name: '押せない・読み取り専用では開かない',
   decorators: narrow,

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -81,12 +82,14 @@ const option = tv({
 });
 const optionSlots = option();
 
-// 段（浮かべる形）。幅は中身の長さで伸び、上限で切る。高さの上限は項目の数（最後の項目を半分見せる）と、画面の空き
+// 段（浮かべる形）。幅は中身の長さで伸び、上限で切る
+//   高さは開いたときから木のいちばん長い段の行の数（--cascader-column-rows）に合わせ、段をたどっても変えない（シートの tallest と同じ）
+//   上限は項目の数（最後の項目を半分見せる）と、画面の空き。高さが開く前から決まるので、上下の向きも開いたときの 1 回で決まる
 const columnFrame =
   'min-w-(--cascader-column-min-width) max-w-(--cascader-column-max-width) shrink-0';
 const columnDivider = 'border-s-(length:--border-width-thin) border-surface-line';
 const columnViewport =
-  'max-h-[min(var(--available-height,100vh),calc(var(--spacing-control)*var(--cascader-column-max-rows)+var(--spacing)*2))] p-(--spacing)';
+  'h-[min(var(--available-height,100vh),calc(var(--spacing-control)*min(var(--cascader-column-max-rows),var(--cascader-column-rows))+var(--spacing)*2))] p-(--spacing)';
 
 // シートのパネル（Menu の入れ子のシートと同じ動き。src/internal/menu/MenuSlide.tsx）
 //   高さは Menu の入れ子のシートの既定（submenuSheet="fixed"）と同じく、1 段目の高さのまま変えない。
@@ -197,7 +200,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
       ),
     []
   );
-  // 木のいちばん長い段の行の数（親を選ぶ行を含む）。行はどれも 1 行の高さ
+  // 木のいちばん長い段の行の数（親を選ぶ行を含む）。行はどれも 1 行の高さ。シートの tallest と、浮かべる形の列の高さに使う
   const tallestRows = useMemo(() => {
     let most = items.length;
     const walk = (list: CascaderItem<Value>[]) => {
@@ -663,6 +666,7 @@ export function CascaderPanel<Value extends CascaderValueItem>({
       ref={rootRef}
       data-slot="cascader-panel"
       className="flex max-w-(--available-width) overflow-x-auto"
+      style={{ '--cascader-column-rows': tallestRows } as CSSProperties}
     >
       {hint}
       {columns.map((_, depth) => (

@@ -33,6 +33,11 @@ export type { CascaderLevelSheet, CascaderParentSelect } from './CascaderPanel';
 //   指で操作していて画面が狭いときは、画面の下から出すシートにし、1 段ずつ滑らせて進む（原則16）
 //   開いているあいだ、欄はフォーカス中と同じ見た目を保つ（pickerOpenLook）
 
+// 画面の端に当たったときの避け方。横には逃がさない（列は --available-height で縮み、中でスクロールする）
+//   上下は、下に面がまるごと収まるなら下、収まらなければ空きの広い方（Base UI の flip の既定。どちらにも収まらないときは
+//   はみ出しの少ない方を選ぶ）。列の高さは開いたときから木のいちばん長い段に合わせるので、向きは開いたときの 1 回で決まる
+const DROPDOWN_AVOIDANCE = { side: 'flip', align: 'shift', fallbackAxisSide: 'none' } as const;
+
 /** 欄に出す文。path は道筋をすべて（「東京都 / 渋谷区」）、last は最後の段だけ（「渋谷区」） */
 export type CascaderValueDisplay = 'path' | 'last';
 
@@ -325,7 +330,11 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
       presentation={presentation}
       portalContainer={portalContainer}
       popupProps={popupProps}
-      positionerProps={positionerProps}
+      // 上か下にだけ出し、どちらにも収まらないときは列の中でスクロールする（Select・Combobox の一覧と同じ）
+      positionerProps={{
+        ...positionerProps,
+        collisionAvoidance: positionerProps?.collisionAvoidance ?? DROPDOWN_AVOIDANCE,
+      }}
       popoverClassName="overflow-clip"
       panel={panel}
       closeName={closeName}
