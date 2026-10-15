@@ -4,7 +4,7 @@ import { useRender } from '@base-ui/react/use-render';
 import { type ComponentProps, type ReactElement, type ReactNode, useRef } from 'react';
 
 import { tv } from '../../internal/tv';
-import { useTransitionStatus } from './use-transition-status';
+import { useTransitionStatus } from '../../internal/use-transition-status';
 import { type TransitionPreset, useUIConfig } from '../../internal/ui-config';
 
 // 利用者の中身に付ける出入りの動き。浮かぶ面（popup-styles.ts）と同じ仕組み（data-starting-style・data-ending-style）で動かす

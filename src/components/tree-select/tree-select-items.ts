@@ -130,31 +130,65 @@ export function coveringAncestor(
   return null;
 }
 
+/** 選んだ値で、その行が選ばれているか（自分が入っているか、親に覆われている） */
+function isIncluded(node: TreeNode, values: ReadonlySet<ListboxValue>) {
+  return values.has(node.value) || coveringAncestor(node, values) !== null;
+}
+
 /**
  * parentSelect="scope"（複数選ぶ形）で、行の印を押したときの次の値（木の順）
  *   入っている行: 自分と配下を外す
  *   覆われている行: 覆っている親を外し、親から押した行までの道筋の各段で、道筋以外の兄弟を個別に入れる（押した行は外れる）
  *   それ以外: 自分を入れ、配下の個別の値は自分にまとめる（子を全部入れても、自動では親にまとめない）
+ *     配下に選んでいない押せない行があるときは、親で覆わず、押せる行だけを入れる。入れるものがもうなければ、押せる行を外す
+ *   どの場合も、押せない行は押す前の状態（選んだまま・選ばないまま）を保つ
  */
 export function pressScope(
   index: TreeIndex,
   values: readonly ListboxValue[],
   node: TreeNode
 ): ListboxValue[] {
+  const before = new Set(values);
   const set = new Set(values);
+  const release = (target: TreeNode) => {
+    set.delete(target.value);
+    for (const item of index.order) if (isUnder(item, target)) set.delete(item.value);
+  };
   const cover = coveringAncestor(node, set);
   if (set.has(node.value)) {
-    set.delete(node.value);
-    for (const item of index.order) if (isUnder(item, node)) set.delete(item.value);
+    release(node);
   } else if (cover) {
     set.delete(cover.value);
     for (let step: TreeNode | null = node; step && step !== cover; step = step.parent) {
       for (const sibling of step.parent?.children ?? [])
-        if (sibling !== step && !sibling.disabled) set.add(sibling.value);
+        if (sibling !== step) set.add(sibling.value);
     }
   } else {
-    set.add(node.value);
-    for (const item of index.order) if (isUnder(item, node)) set.delete(item.value);
+    // 配下に、選んでいない押せない行があるか（あれば親で覆えない）
+    const blocked = (target: TreeNode) =>
+      index.order.some(
+        (item) => item.disabled && isUnder(item, target) && !isIncluded(item, before)
+      );
+    const fill = (target: TreeNode) => {
+      if (target.disabled) return;
+      if (!blocked(target)) {
+        release(target);
+        set.add(target.value);
+        return;
+      }
+      for (const child of target.children) fill(child);
+    };
+    fill(node);
+    const changed = index.order.some(
+      (item) => !item.disabled && isIncluded(item, set) !== isIncluded(item, before)
+    );
+    if (!changed) release(node);
+  }
+  // 押せない行が外れたら、個別に入れ直す（上から順に。入れた行が配下を覆う）
+  for (const item of index.order) {
+    if (!item.disabled || !isIncluded(item, before) || isIncluded(item, set)) continue;
+    release(item);
+    set.add(item.value);
   }
   return index.order.filter((item) => set.has(item.value)).map((item) => item.value);
 }

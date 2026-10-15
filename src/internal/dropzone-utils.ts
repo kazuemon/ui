@@ -1,4 +1,6 @@
-// Dropzone と FileInput の判定（accept・multiple・大きさ・数の上限）。DOM を読まない純粋な関数だけを置く
+// Dropzone と FileInput の判定（accept・multiple・大きさ・数の上限）と、DropzoneFileList と Attachment が共有する
+// ファイルの項目（名前・大きさ・画像かどうか・外すボタンの名前）。DOM を読まない純粋な関数だけを置く
+import type { ReactNode } from 'react';
 
 /**
  * ファイルを受け付けなかった理由。accept: 種類が違う、maxSize: 大きすぎる、maxFiles: 数の上限を超えた、
@@ -159,4 +161,44 @@ export function formatAccept(accept: string): string {
       return /^[a-z0-9]+$/.test(name) ? name.toUpperCase() : pattern;
     });
   return [...new Set(names)].join('、');
+}
+
+/**
+ * DropzoneFileList の1項目。いま選んだファイルは file を、保存済みのファイル（サーバーにあるもの）は file を書かずに name・size・url を渡す
+ */
+export interface DropzoneFileEntry {
+  /** いま選んだファイル。書かない項目は保存済みのファイルとして、url があれば名前を下線のリンクにする */
+  file?: File;
+  /** 名前。書かないときは file の名前 */
+  name?: string;
+  /** 大きさ（バイト）。書かないときは file の大きさ。どちらもないときは大きさを出さない */
+  size?: number;
+  /** 保存済みのファイルの URL。名前のリンクの行き先になり、thumbnail では画像として出す */
+  url?: string;
+  /** ファイルの種類（MIME タイプ）。thumbnail で画像として出すかを決める。書かないときは file の種類、なければ url の拡張子（data URL なら種類）で決める */
+  type?: string;
+  /**
+   * 名前に小さく添える文（「保存済み」、保存した日時など）。list では大きさの後ろに、thumbnail では左上の札に出す。
+   * 渡さないときは何も添えない
+   */
+  caption?: ReactNode;
+  /** アップロードの進み具合（0〜100）。渡さないときは進み具合の行を出さない */
+  progress?: number;
+  /** そのファイルだけの失敗（アップロードの失敗など）。渡すと名前の下に赤い文字で出す */
+  errorText?: ReactNode;
+}
+
+export const entryName = (entry: DropzoneFileEntry) => entry.name ?? entry.file?.name ?? '';
+export const entrySize = (entry: DropzoneFileEntry) => entry.size ?? entry.file?.size;
+const IMAGE_EXTENSION = /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#]|$)/i;
+export const entryIsImage = (entry: DropzoneFileEntry) => {
+  const type = entry.type ?? entry.file?.type;
+  if (type) return type.startsWith('image/');
+  return (
+    entry.url != null && (entry.url.startsWith('data:image/') || IMAGE_EXTENSION.test(entry.url))
+  );
+};
+
+export function defaultRemoveName(entry: DropzoneFileEntry) {
+  return `${entry.file ? '外す' : '削除'}: ${entryName(entry)}`;
 }

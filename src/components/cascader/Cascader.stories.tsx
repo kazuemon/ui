@@ -514,3 +514,77 @@ export const ParentRow: Story = {
     );
   },
 };
+
+const fruits = [
+  {
+    label: 'Apple',
+    value: 'apple',
+    children: [{ label: 'Fuji', value: 'fuji' }],
+  },
+  {
+    label: 'Apricot',
+    value: 'apricot',
+    children: [{ label: 'Harcot', value: 'harcot' }],
+  },
+  { label: 'Banana', value: 'banana' },
+];
+
+function ControlledOpenScene(args: CascaderProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <button type="button" onClick={() => setOpen(true)}>
+        外から開く
+      </button>
+      <Cascader
+        {...args}
+        label="果物"
+        items={fruits}
+        openOnHover={false}
+        open={open}
+        onOpenChange={setOpen}
+        inputRef={(element) => {
+          if (element) element.dataset.inputRef = '';
+        }}
+      />
+    </div>
+  );
+}
+
+export const ControlledOpen: Story = {
+  name: '外から開く・文字で移る',
+  decorators: narrow,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`open` を外から渡して開いても、たどる段は決まっている値から始まります。続けて打った文字は 1 語として探します。',
+      },
+    },
+  },
+  render: (args) => <ControlledOpenScene {...args} />,
+  play: async ({ canvas, canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    // inputRef は検証に使う input に届く
+    await expect(canvasElement.querySelector('input[data-input-ref]')).not.toBeNull();
+    await userEvent.click(canvas.getByRole('button', { name: /^果物/ }));
+    const dialog = await page.findByRole('dialog', { name: '果物' });
+    const root = within(dialog).getByRole('listbox', { name: '果物' });
+    await waitFor(() => expect(within(root).getByRole('option', { name: 'Apple' })).toHaveFocus());
+    // 続けて打った「apr」は 1 語として探す（a で次の Apricot、p・r で Apricot のまま）
+    await userEvent.keyboard('apr');
+    await expect(within(root).getByRole('option', { name: 'Apricot' })).toHaveFocus();
+    await expect(
+      within(within(dialog).getByRole('listbox', { name: 'Apricot' })).getByRole('option', {
+        name: 'Harcot',
+      })
+    ).toBeVisible();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(page.queryByRole('dialog')).toBeNull());
+    // 外から開き直すと、たどった Apricot の段は残らない
+    await userEvent.click(canvas.getByRole('button', { name: '外から開く' }));
+    const again = await page.findByRole('dialog', { name: '果物' });
+    await expect(within(again).queryByRole('listbox', { name: 'Apricot' })).toBeNull();
+    await userEvent.keyboard('{Escape}');
+  },
+};

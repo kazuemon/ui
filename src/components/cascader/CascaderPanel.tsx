@@ -27,6 +27,7 @@ import { listboxEmptyClass } from '../../internal/listbox/listbox-styles';
 import { MoreCueScroll } from '../../internal/sheet/MoreCueScroll';
 import { SheetMoreCue } from '../../internal/sheet/SheetMoreCue';
 import { useMoreCues } from '../../internal/sheet/use-more-cues';
+import { type Typeahead, typeaheadTarget } from '../../internal/tree-typeahead';
 import { cn, tv } from '../../internal/tv';
 import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
 
@@ -261,6 +262,8 @@ export function CascaderPanel<Value extends CascaderValueItem>({
   // 待っている行（段:行）と、前にポインターがあった点（openOnHover）
   const hoverKey = useRef<string | null>(null);
   const lastPoint = useRef<Point | null>(null);
+  // 型あたりで打っている途中の語
+  const typeahead = useRef<Typeahead>({ text: '', time: 0 });
   useEffect(
     () => () => {
       if (hoverTimer.current != null) window.clearTimeout(hoverTimer.current);
@@ -456,17 +459,13 @@ export function CascaderPanel<Value extends CascaderValueItem>({
         activate(depth, row, 'option');
         return;
       default: {
-        // 文字を打つと、その文字で始まる次の行へ
+        // 文字を打つと、その文字で始まる行へ（続けて打った文字は 1 語にまとめる。Tree・TreeSelect と同じ）
         if (event.key.length !== 1 || event.ctrlKey || event.metaKey || event.altKey) return;
-        const key = event.key.toLocaleLowerCase();
-        for (let step = 1; step <= rows.length; step += 1) {
-          const candidate = (index + step) % rows.length;
-          if (rows[candidate].label.toLocaleLowerCase().startsWith(key)) {
-            next = candidate;
-            break;
-          }
-        }
-        if (next === null) return;
+        const target = typeaheadTarget(rows, index, event.key, typeahead.current, (item) =>
+          item.label.toLowerCase()
+        );
+        if (!target) return;
+        next = rows.indexOf(target);
       }
     }
     event.preventDefault();

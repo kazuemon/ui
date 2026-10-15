@@ -1,10 +1,8 @@
 'use client';
 
 import {
-  Children,
   type CSSProperties,
   type KeyboardEvent,
-  Fragment,
   type MouseEvent,
   type ReactElement,
   type ReactNode,
@@ -22,7 +20,8 @@ import { Icon } from '../icon/Icon';
 import { Menu } from '../menu/Menu';
 import { MenuItem } from '../menu/MenuItem';
 import { Toolbar, ToolbarButton } from '../toolbar/Toolbar';
-import { useTransitionStatus } from '../transition/use-transition-status';
+import { flattenChildren } from '../../internal/link-parts';
+import { useTransitionStatus } from '../../internal/use-transition-status';
 import { DotsThreeVerticalIcon, XIcon } from '../../internal/icons';
 import { useSheetPresentation } from '../../internal/sheet/use-narrow-screen';
 import { tv } from '../../internal/tv';
@@ -257,6 +256,7 @@ export function ActionBar({
   // 帯に入る前にフォーカスがあった場所。帯が消えるときに戻す
   const returnRef = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuPopupRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
   const statusId = useId();
   const narrow = useSheetPresentation(undefined);
@@ -288,11 +288,13 @@ export function ActionBar({
     return () => observer.disconnect();
   }, [mounted]);
 
-  // 帯が消えはじめたとき、フォーカスが帯の中にあれば、帯に入る前の場所へ戻す
+  // 帯が消えはじめたとき、フォーカスが帯の中か ⋮ のメニュー（帯の外の portal に出る）の中にあれば、帯に入る前の場所へ戻す
+  //   メニューの項目で選択を消したときも、メニューが閉じて ⋮ へ戻ったあと帯ごと消え、body に落ちないようにする
   useIsomorphicLayoutEffect(() => {
     if (status !== 'ending') return;
     const bar = barRef.current;
-    if (!bar || !bar.contains(document.activeElement)) return;
+    const active = document.activeElement;
+    if (!bar || !(bar.contains(active) || menuPopupRef.current?.contains(active))) return;
     const target = returnRef.current;
     if (target?.isConnected) target.focus({ preventScroll: true });
     else (document.activeElement as HTMLElement | null)?.blur();
@@ -343,9 +345,12 @@ export function ActionBar({
               data-starting-style={barStatus === 'starting' ? '' : undefined}
               data-ending-style={barStatus === 'ending' ? '' : undefined}
               // 帯に外から入ったとき、入る前の場所を控える
+              //   ⋮ のメニュー（portal）からの戻りも React の木では帯の中を通るので、メニューから来たものは数えない
               onFocus={(event) => {
                 const from = event.relatedTarget as HTMLElement | null;
-                if (from && !event.currentTarget.contains(from)) returnRef.current = from;
+                if (!from || event.currentTarget.contains(from)) return;
+                if (menuPopupRef.current?.contains(from)) return;
+                returnRef.current = from;
               }}
               onKeyDown={onKeyDown}
               className={s.bar({ className })}
@@ -371,6 +376,7 @@ export function ActionBar({
                       align="end"
                       open={menuOpen}
                       onOpenChange={setMenuOpen}
+                      popupProps={{ ref: menuPopupRef }}
                       trigger={
                         <ToolbarButton iconOnly aria-label={moreName}>
                           <DotsThreeVerticalIcon standalone />
@@ -424,10 +430,7 @@ export interface ActionBarButtonProps {
 
 /** 操作の並び。Fragment で包んだ操作も、1 つずつの操作として数える */
 function flattenItems(children: ReactNode): ReactElement[] {
-  return Children.toArray(children).flatMap((child) => {
-    if (!isValidElement<{ children?: ReactNode }>(child)) return [];
-    return child.type === Fragment ? flattenItems(child.props.children) : [child];
-  });
+  return flattenChildren(children).filter((child) => isValidElement(child));
 }
 
 /** アイコンだけで置くときは、単体の太い線にする（Icon の standalone） */

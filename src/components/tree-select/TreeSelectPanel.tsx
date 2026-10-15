@@ -3,11 +3,9 @@
 import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible';
 import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
-import { typeaheadTarget, type Typeahead } from '../tree/Tree';
 import {
   coveringAncestor,
   isParent,
-  isUnder,
   type TreeIndex,
   type TreeNode,
   type TreeSelectParentSelect,
@@ -16,6 +14,7 @@ import {
 import { CheckboxMark } from '../../internal/choice/CheckboxMark';
 import { choiceSize, choiceStyles } from '../../internal/choice/choice-styles';
 import { CaretRightIcon } from '../../internal/icons';
+import { type Typeahead, typeaheadTarget } from '../../internal/tree-typeahead';
 import type { ListboxColor } from '../../internal/listbox/listbox-colors';
 import type { ListboxValue } from '../../internal/listbox/use-listbox-option';
 import { ScrollFrame } from '../../internal/ScrollFrame';
@@ -164,8 +163,18 @@ export function TreeSelectPanel({
     return 'unchecked';
   };
   // 親の配下に、選んでいるものがあるか
-  const hasInside = (node: TreeNode) =>
-    index.order.some((item) => values.has(item.value) && isUnder(item, node));
+  //   選んだ値の祖先を 1 回だけ集めて引く
+  const holders = useMemo(() => {
+    const set = new Set<ListboxValue>();
+    for (const value of values) {
+      for (let current = index.byValue.get(value)?.parent; current; current = current.parent) {
+        if (set.has(current.value)) break;
+        set.add(current.value);
+      }
+    }
+    return set;
+  }, [index, values]);
+  const hasInside = (node: TreeNode) => holders.has(node.value);
 
   // Tab で止まる行（roving tabindex）。最初に選んだ見えている行、なければ最初の行
   const [active, setActive] = useState<string | null>(() => {

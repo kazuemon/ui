@@ -12,7 +12,6 @@ import {
   useState,
 } from 'react';
 
-import { selectClearButton, selectClearField, selectClearTrigger } from '../select/Select';
 import { FieldAddonButton } from '../field-addon/FieldAddon';
 import {
   ancestorsOf,
@@ -39,9 +38,18 @@ import {
   selectedTokens,
 } from '../../internal/listbox/listbox-colors';
 import type { ListboxFieldProps } from '../../internal/listbox/listbox-field-props';
+import {
+  selectClearButton,
+  selectClearField,
+  selectClearTrigger,
+} from '../../internal/listbox/select-clear-styles';
 import type { ListboxValue } from '../../internal/listbox/use-listbox-option';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
-import { PickerOverlay, pickerOpenLook } from '../../internal/picker/PickerOverlay';
+import {
+  PICKER_DROPDOWN_AVOIDANCE,
+  PickerOverlay,
+  pickerOpenLook,
+} from '../../internal/picker/PickerOverlay';
 import {
   type OverlayPresentation,
   useSheetPresentation,
@@ -61,9 +69,6 @@ export type { TreeSelectSelectedIndicator } from './TreeSelectPanel';
 //   欄に出す文: valueDisplay・pathVariant・separator（軸 643。既定はパスで、親と区切りは一段淡く）。複数選ぶ形はチップで、既定は名前だけ（軸 644）。renderValue で差し替えられる
 //   値を消す ×（clearable）は Select と同じ形（欄の右端に重ねる）
 //   読み取り専用・押せない・待っているあいだ止める欄・Form の送信中は開かない（値を変える操作なので — ADR-0168）
-
-// 画面の端に当たったときの避け方。横には逃がさない（面は --available-height で縮み、中でスクロールする）
-const DROPDOWN_AVOIDANCE = { side: 'flip', align: 'shift', fallbackAxisSide: 'none' } as const;
 
 /** 欄に出す文。path は親からのパス（「デザイン / 原則」）、last は選んだ行の名前だけ（Cascader と同じ値） */
 export type TreeSelectValueDisplay = 'path' | 'last';
@@ -362,7 +367,7 @@ export function TreeSelectControl<
       // 上か下にだけ出し、どちらにも収まらないときは面の中でスクロールする（Select・Cascader と同じ）
       positionerProps={{
         ...positionerProps,
-        collisionAvoidance: positionerProps?.collisionAvoidance ?? DROPDOWN_AVOIDANCE,
+        collisionAvoidance: positionerProps?.collisionAvoidance ?? PICKER_DROPDOWN_AVOIDANCE,
       }}
       popupProps={{
         ...restPopupProps,
@@ -495,6 +500,8 @@ function TreeSelectButton({
   const formValues = nodes.map((node) => String(node.value));
   return (
     <BaseField.Control
+      // 利用者の inputRef は、Field.Control が自分の ref とまとめて controlProps.ref に入れる
+      ref={inputRef}
       value={formValues.join(',')}
       disabled={disabled}
       render={(controlProps) => (
@@ -551,14 +558,7 @@ function TreeSelectButton({
           )}
           {/* 検証に使う input（Base UI の Field.Control が持つ）。1 つ選ぶ形は、これがフォームに送る値も持つ */}
           <input
-            ref={(element) => {
-              const ref = controlProps.ref;
-              if (typeof ref === 'function') ref(element);
-              else if (ref) (ref as { current: HTMLInputElement | null }).current = element;
-              if (typeof inputRef === 'function') inputRef(element);
-              else if (inputRef)
-                (inputRef as { current: HTMLInputElement | null }).current = element;
-            }}
+            ref={controlProps.ref}
             type="hidden"
             // Base UI の Field.Control は、Field.Root の name を render の props に入れる（型の HTMLProps には無い）
             name={multiple ? undefined : (controlProps as { name?: string }).name}
@@ -568,6 +568,7 @@ function TreeSelectButton({
           />
           {/* 複数選ぶ形は、同じ名前で 1 つずつ送る（Select の multiple と同じ） */}
           {multiple &&
+            (controlProps as { name?: string }).name != null &&
             formValues.map((value) => (
               <input
                 key={value}

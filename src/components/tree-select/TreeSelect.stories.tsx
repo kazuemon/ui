@@ -672,3 +672,46 @@ export const LockedStaysClosed: Story = {
     await expect(body.queryByRole('tree')).not.toBeInTheDocument();
   },
 };
+
+// 開いたときに決めた上下の向きは、枝を開いて面が伸びても閉じるまで変えない（伸びた分は面の中でスクロールする）
+export const KeepsSide: Story = {
+  name: '枝を開いても面の向きを変えない',
+  tags: ['!autodocs'],
+  args: { label: '置き場所' },
+  parameters: { controls: { disable: true } },
+  decorators: [
+    (Story) => (
+      <div className="fixed inset-x-4 bottom-[240px] max-w-xs">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole('button', { name: /置き場所/ });
+    await userEvent.click(trigger);
+    const tree = await body.findByRole('tree', { name: '置き場所' });
+    const dialog = tree.closest<HTMLElement>('[role="dialog"]')!;
+    const positioner = dialog.parentElement!;
+    const side = () => positioner.getAttribute('data-side');
+    await waitFor(() => expect(positioner.style.opacity).not.toBe('0'));
+    // 開く動きが終わってから測る
+    await waitFor(() => expect(dialog).not.toHaveAttribute('data-starting-style'));
+    await waitFor(() => expect(dialog.getAnimations()).toHaveLength(0));
+    // 閉じた木は下に収まるので、下に開く
+    await expect(side()).toBe('bottom');
+    // 枝を開いて、下の空きより長くなっても、向きは下のまま（面は欄の下から離れない）
+    await userEvent.click(within(tree).getByRole('treeitem', { name: '部品' }));
+    await userEvent.click(await within(tree).findByRole('treeitem', { name: '入力' }));
+    await within(tree).findByRole('treeitem', { name: 'TreeSelect' });
+    await userEvent.click(within(tree).getByRole('treeitem', { name: '重なる面' }));
+    await within(tree).findByRole('treeitem', { name: 'Drawer' });
+    await expect(side()).toBe('bottom');
+    await expect(dialog.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      trigger.getBoundingClientRect().bottom
+    );
+    await expect(dialog.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      canvasElement.ownerDocument.documentElement.clientHeight
+    );
+  },
+};

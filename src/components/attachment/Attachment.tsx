@@ -2,22 +2,21 @@
 
 import type { ComponentProps, ReactNode } from 'react';
 
-import { ArrowClockwiseIcon } from './ArrowClockwiseIcon';
 import { AttachmentProgressRing } from './AttachmentProgressRing';
-import { formatFileSize } from '../../internal/dropzone-utils';
-import { focusRingForCardAction } from '../../internal/focus-styles';
-import { FileIcon, WarningCircleIcon, XIcon } from '../../internal/icons';
-import { textLinkSizeReset } from '../../internal/reading/text-link';
-import { tv } from '../../internal/tv';
-import { Button } from '../button/Button';
 import {
-  type DropzoneFileEntry,
   defaultRemoveName,
+  type DropzoneFileEntry,
   entryIsImage,
   entryName,
   entrySize,
-  Thumbnail,
-} from '../dropzone/DropzoneFileList';
+  formatFileSize,
+} from '../../internal/dropzone-utils';
+import { FileThumbnail } from '../../internal/FileThumbnail';
+import { focusRingForCardAction } from '../../internal/focus-styles';
+import { ArrowClockwiseIcon, FileIcon, WarningCircleIcon, XIcon } from '../../internal/icons';
+import { textLinkSizeReset } from '../../internal/reading/text-link';
+import { tv } from '../../internal/tv';
+import { Button } from '../button/Button';
 import { Link } from '../link/Link';
 import { Progress } from '../progress/Progress';
 
@@ -106,15 +105,15 @@ export interface AttachmentProps extends Omit<ComponentProps<'div'>, 'children' 
   /** 外すボタンを押したときに呼びます。渡さないと外すボタンを出しません（送ったあとの吹き出しの中など） */
   onRemove?: () => void;
   /**
-   * 外すボタンの読み上げの名前
-   * @default いま選んだものは「外す: {名前}」、送ったあとのものは「削除: {名前}」
+   * 外すボタンの読み上げの名前。渡さないときは、いま選んだもの（file を渡したもの）は「外す: {名前}」、
+   * 送ったあとのものは「削除: {名前}」です
    */
   removeName?: string;
   /** もう一度送るボタンを押したときに呼びます。失敗したとき（errorText）だけボタンを出します */
   onRetry?: () => void;
   /**
    * もう一度送るボタンの読み上げの名前
-   * @default 「もう一度送る: {名前}」
+   * @default `もう一度送る: ${name}`
    */
   retryName?: string;
   /**
@@ -235,7 +234,7 @@ export function Attachment({
         className={t.base({ className })}
         {...props}
       >
-        <Thumbnail entry={entry} iconClassName="size-(--spacing-icon)" />
+        <FileThumbnail entry={entry} iconClassName="size-(--spacing-icon)" />
         {linked ? tileAnchor : <span className="sr-only">{name}</span>}
         {onRemove && <span className={t.remove()}>{removeButton(true)}</span>}
         {uploading && edgeProgress}
@@ -259,7 +258,7 @@ export function Attachment({
             <WarningCircleIcon />
           </span>
         ) : isImage && imageDisplay !== 'icon' ? (
-          <Thumbnail entry={entry} iconClassName="size-(--spacing-icon)" />
+          <FileThumbnail entry={entry} iconClassName="size-(--spacing-icon)" />
         ) : (
           <FileIcon />
         )}
@@ -305,7 +304,7 @@ export function Attachment({
               aria-label={retryName ?? `もう一度送る: ${name}`}
               onClick={onRetry}
             >
-              <ArrowClockwiseIcon />
+              <ArrowClockwiseIcon standalone />
             </Button>
           )}
           {removeButton()}

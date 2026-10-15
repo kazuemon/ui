@@ -16,7 +16,11 @@ import {
 } from '../../internal/listbox/listbox-colors';
 import type { ListboxFieldProps } from '../../internal/listbox/listbox-field-props';
 import type { PopupProps, PositionerProps } from '../../internal/overlay/overlay-props';
-import { PickerOverlay, pickerOpenLook } from '../../internal/picker/PickerOverlay';
+import {
+  PICKER_DROPDOWN_AVOIDANCE,
+  PickerOverlay,
+  pickerOpenLook,
+} from '../../internal/picker/PickerOverlay';
 import {
   type OverlayPresentation,
   useSheetPresentation,
@@ -33,10 +37,8 @@ export type { CascaderLevelSheet, CascaderParentSelect } from './CascaderPanel';
 //   指で操作していて画面が狭いときは、画面の下から出すシートにし、1 段ずつ滑らせて進む（原則16）
 //   開いているあいだ、欄はフォーカス中と同じ見た目を保つ（pickerOpenLook）
 
-// 画面の端に当たったときの避け方。横には逃がさない（列は --available-height で縮み、中でスクロールする）
-//   上下は、下に面がまるごと収まるなら下、収まらなければ空きの広い方（Base UI の flip の既定。どちらにも収まらないときは
-//   はみ出しの少ない方を選ぶ）。列の高さは開いたときから木のいちばん長い段に合わせるので、向きは開いたときの 1 回で決まる
-const DROPDOWN_AVOIDANCE = { side: 'flip', align: 'shift', fallbackAxisSide: 'none' } as const;
+// 画面の端に当たったときの避け方は PICKER_DROPDOWN_AVOIDANCE（横には逃がさない。列は --available-height で縮み、中でスクロールする）
+//   列の高さは開いたときから木のいちばん長い段に合わせるので、向きは開いたときの 1 回で決まる
 
 /** 欄に出す文。path は道筋をすべて（「東京都 / 渋谷区」）、last は最後の段だけ（「渋谷区」） */
 export type CascaderValueDisplay = 'path' | 'last';
@@ -242,9 +244,14 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
   const [openedByUser, setOpenedByUser] = useState(false);
   // いまたどっている道筋。開くたびに、決まっている値から始める
   const [activePath, setActivePath] = useState<Value[]>(value);
+  // 開いたとき（制御の open でも）に、たどっている道筋を決まっている値へ戻す
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setActivePath(value);
+  }
   const changeOpen = (next: boolean) => {
     if (next && locked) return;
-    if (next) setActivePath(value);
     setOpenedByUser(next);
     setOpenState(next);
     onOpenChange?.(next);
@@ -333,7 +340,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
       // 上か下にだけ出し、どちらにも収まらないときは列の中でスクロールする（Select・Combobox の一覧と同じ）
       positionerProps={{
         ...positionerProps,
-        collisionAvoidance: positionerProps?.collisionAvoidance ?? DROPDOWN_AVOIDANCE,
+        collisionAvoidance: positionerProps?.collisionAvoidance ?? PICKER_DROPDOWN_AVOIDANCE,
       }}
       popoverClassName="overflow-clip"
       panel={panel}
@@ -343,6 +350,8 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
     >
       {(renderTrigger) => (
         <BaseField.Control
+          // 利用者の inputRef は、Field.Control が自分の ref とまとめて controlProps.ref に入れる
+          ref={inputRef}
           value={value.map(String).join('/')}
           disabled={field?.disabled}
           render={(controlProps) => (
@@ -359,6 +368,7 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
                   aria-required={field?.required || undefined}
                   aria-disabled={blocking || undefined}
                   aria-readonly={readOnly || undefined}
+                  aria-busy={field?.loading || undefined}
                   disabled={field?.disabled}
                   data-slot="control"
                   data-field-readonly={readOnly || undefined}
@@ -395,28 +405,24 @@ export function CascaderControl<Value extends CascaderValueItem = string>({
               )}
               {/* 検証とフォーカスのための input（Field につなぐ）。送る値は段ごとの input に置く */}
               <input
-                ref={(element) => {
-                  const ref = controlProps.ref;
-                  if (typeof ref === 'function') ref(element);
-                  else if (ref) (ref as { current: HTMLInputElement | null }).current = element;
-                  if (typeof inputRef === 'function') inputRef(element);
-                  else if (inputRef) inputRef.current = element;
-                }}
+                ref={controlProps.ref}
                 type="hidden"
                 value={value.map(String).join('/')}
                 disabled={field?.disabled}
               />
-              {value.map((segment, index) => (
-                <input
-                  key={index}
-                  type="hidden"
-                  // Base UI の Field.Control は、Field.Root の name を render の props に入れる（型の HTMLProps には無い）
-                  name={(controlProps as { name?: string }).name}
-                  form={form}
-                  value={String(segment)}
-                  disabled={field?.disabled}
-                />
-              ))}
+              {/* name がないときはフォームに送らないので、段ごとの input も描かない */}
+              {(controlProps as { name?: string }).name != null &&
+                value.map((segment, index) => (
+                  <input
+                    key={index}
+                    type="hidden"
+                    // Base UI の Field.Control は、Field.Root の name を render の props に入れる（型の HTMLProps には無い）
+                    name={(controlProps as { name?: string }).name}
+                    form={form}
+                    value={String(segment)}
+                    disabled={field?.disabled}
+                  />
+                ))}
             </>
           )}
         />

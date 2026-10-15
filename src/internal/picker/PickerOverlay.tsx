@@ -32,7 +32,7 @@ import { useMergedRefs } from '../use-merged-refs';
 //   面（Portal）は欄の外に置く。Portal は裏を止めない面で見えない span（フォーカスの番人）を置き場に足すため、欄の中に置かない
 //   開く口の後ろに Base UI が置くフォーカスの番人は、FieldAddon の側で「最後の子」から外して数える（右端の角と線を保つ）
 // 開いているあいだ、欄はフォーカス中と同じ見た目を保つ（pickerOpenLook。Select の開いているあいだと同じ）
-// 上下の向きは開いたときに決め、閉じるまで変えない（useOpenedSide）。中身の高さが操作で変わっても（Cascader の段を開く、
+// 上下の向きは開いたときに決め、閉じる動きが終わるまで変えない（useOpenedSide）。中身の高さが操作で変わっても（Cascader の段を開く、
 //   カレンダーの週の数が変わる）面が上下に跳ねないよう、収まらない分は --available-height で面の中に収める
 // 指で操作していて画面が狭いときは、画面の下から出すシート（Drawer）にする — 原則16。Popover と同じ判定
 //   シートは開く口を持たない形（開閉を外から決める）で置き、開く口は押すと開くだけのボタンにする。閉じたら開く口へフォーカスを戻す
@@ -60,6 +60,17 @@ export function PickerTriggerButton({
   return <FieldAddonButton {...props} disabled={disabled || field?.blocking || undefined} />;
 }
 
+/**
+ * 一覧のように下へ伸びる面（TreeSelect・Cascader）の、画面の端に当たったときの避け方。横には逃がさない
+ *   面は --available-height で縮み、中でスクロールする。上下は、下に収まるなら下、収まらなければ空きの広い方（Base UI の flip の既定）
+ *   PickerOverlay の既定（DatePicker・TimePicker）は横への逃げを Base UI に任せるので、これとは分けて持つ
+ */
+export const PICKER_DROPDOWN_AVOIDANCE = {
+  side: 'flip',
+  align: 'shift',
+  fallbackAxisSide: 'none',
+} as const;
+
 /** 開く口に付ける props。浮かべる形では Base UI の Trigger が、シートでは部品が付ける */
 type TriggerElement = ReactElement<ComponentProps<'button'> & { ref?: Ref<HTMLButtonElement> }>;
 
@@ -67,13 +78,14 @@ type PhysicalSide = 'top' | 'bottom' | 'left' | 'right';
 const PHYSICAL_SIDES: readonly string[] = ['top', 'bottom', 'left', 'right'];
 
 /**
- * 開いたときに Base UI が選んだ向きを読み、閉じるまで保つ。
+ * 開いたときに Base UI が選んだ向きを読み、閉じる動きが終わるまで保つ（閉じる途中で反転しない）。
  * Positioner は位置が決まるまで opacity: 0 を持つので、それが外れたときの data-side を開いたときの向きとする
+ * 閉じる動きが終わったら reset を呼ぶ。浮かべる形でなくなったとき（シートに変わった）は、すぐに外す
  */
-function useOpenedSide(open: boolean) {
+function useOpenedSide(open: boolean, floating: boolean) {
   const [positioner, setPositioner] = useState<HTMLElement | null>(null);
   const [side, setSide] = useState<PhysicalSide | null>(null);
-  if (!open && side !== null) setSide(null);
+  if (!floating && side !== null) setSide(null);
   useIsomorphicLayoutEffect(() => {
     if (!open || !positioner || side !== null) return undefined;
     const read = () => {
@@ -86,7 +98,7 @@ function useOpenedSide(open: boolean) {
     observer.observe(positioner, { attributes: true, attributeFilter: ['style', 'data-side'] });
     return () => observer.disconnect();
   }, [open, positioner, side]);
-  return { positionerRef: setPositioner, side };
+  return { positionerRef: setPositioner, side, reset: () => setSide(null) };
 }
 
 export interface PickerOverlayProps {
@@ -158,7 +170,7 @@ export function PickerOverlay({
     collisionAvoidance = { side: 'flip', align: 'shift' },
     ...restPositionerProps
   } = positionerProps ?? {};
-  const opened = useOpenedSide(open && !sheet);
+  const opened = useOpenedSide(open && !sheet, !sheet);
   const positionerRef = useMergedRefs<HTMLDivElement>(opened.positionerRef, userPositionerRef);
   // 反転する設定のときは、開いたときの向きを閉じるまで保つ（中身が伸び縮みしても跳ねない）
   const lockedSide = (collisionAvoidance.side ?? 'flip') === 'flip' ? opened.side : null;
@@ -197,6 +209,10 @@ export function PickerOverlay({
     <BasePopover.Root
       open={open}
       onOpenChange={(next) => onOpenChange(next)}
+      // 閉じる動きが終わってから、開いたときの向きの固定を外す
+      onOpenChangeComplete={(next) => {
+        if (!next) opened.reset();
+      }}
       modal={trapFocus ? 'trap-focus' : false}
     >
       {children(renderTrigger)}

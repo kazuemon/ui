@@ -284,3 +284,32 @@ export const Handlers: Story = {
     await expect(args.onClear).toHaveBeenCalledTimes(2);
   },
 };
+
+export const FocusFromMenu: Story = {
+  name: '⋮ のメニューから選択を消したとき',
+  parameters: {
+    docs: {
+      description: {
+        story: '⋮ に畳んだ操作で選択を消したときも、帯に入る前にいた場所へフォーカスが戻ります。',
+      },
+    },
+  },
+  render: () => (
+    <SelectableListScene defaultSelected={[]} width="16rem" placements={['menu', 'menu']} />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole('checkbox', { name: '見積書（10 月分）' }));
+    const toolbar = await canvas.findByRole('toolbar', { name: '1 件を選択中' });
+    // 一覧の最後のチェックボックスから Tab で帯へ入り、⋮ のメニューの削除を押す
+    canvas.getByRole('checkbox', { name: '家計簿 2026' }).focus();
+    await userEvent.tab();
+    await userEvent.click(await within(toolbar).findByRole('button', { name: 'その他の操作' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: '削除' }));
+    await waitFor(() => expect(canvas.queryByRole('toolbar')).toBeNull());
+    await waitFor(() =>
+      expect(canvas.getByRole('checkbox', { name: '家計簿 2026' })).toHaveFocus()
+    );
+  },
+};

@@ -1,14 +1,8 @@
 'use client';
 
-import {
-  Children,
-  type ComponentProps,
-  Fragment,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
+import { type ComponentProps, isValidElement, type ReactElement, type ReactNode } from 'react';
 
+import { flattenChildren } from '../../internal/link-parts';
 import { tv } from '../../internal/tv';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 
@@ -28,16 +22,9 @@ const list = tv({
 });
 
 // Fragment で包んで渡された札も、1 つずつ項目にする
-//   key は包んだ Fragment の key を前に付け、兄弟の項目とぶつからないようにする
-function flatItems(children: ReactNode, prefix = ''): [key: string, element: ReactElement][] {
-  return Children.toArray(children).flatMap((child): [string, ReactElement][] => {
-    if (!isValidElement(child)) return [];
-    const key = `${prefix}${String(child.key)}`;
-    if (child.type === Fragment) {
-      return flatItems((child.props as { children?: ReactNode }).children, `${key}/`);
-    }
-    return [[key, child]];
-  });
+//   key は包んだ Fragment の key を前に付け、兄弟の項目とぶつからないようにする（flattenChildren）
+function flatItems(children: ReactNode): ReactElement[] {
+  return flattenChildren(children).filter((child) => isValidElement(child));
 }
 
 export interface AttachmentListProps extends Omit<ComponentProps<'ul'>, 'children'> {
@@ -65,8 +52,8 @@ export function AttachmentList({
   if (items.length === 0) return null;
   const ul = (
     <ul data-slot="attachment-list" className={list({ wrap, className })} {...props}>
-      {items.map(([key, child]) => (
-        <li key={key} className="flex max-w-full min-w-0">
+      {items.map((child) => (
+        <li key={child.key} className="flex max-w-full min-w-0">
           {child}
         </li>
       ))}
