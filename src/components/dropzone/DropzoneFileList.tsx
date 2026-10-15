@@ -103,10 +103,10 @@ export interface DropzoneFileListProps extends Omit<ComponentProps<'ul'>, 'child
   className?: string;
 }
 
-const entryName = (entry: DropzoneFileEntry) => entry.name ?? entry.file?.name ?? '';
-const entrySize = (entry: DropzoneFileEntry) => entry.size ?? entry.file?.size;
+export const entryName = (entry: DropzoneFileEntry) => entry.name ?? entry.file?.name ?? '';
+export const entrySize = (entry: DropzoneFileEntry) => entry.size ?? entry.file?.size;
 const IMAGE_EXTENSION = /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#]|$)/i;
-const entryIsImage = (entry: DropzoneFileEntry) => {
+export const entryIsImage = (entry: DropzoneFileEntry) => {
   const type = entry.type ?? entry.file?.type;
   if (type) return type.startsWith('image/');
   return (
@@ -114,7 +114,7 @@ const entryIsImage = (entry: DropzoneFileEntry) => {
   );
 };
 
-function defaultRemoveName(entry: DropzoneFileEntry) {
+export function defaultRemoveName(entry: DropzoneFileEntry) {
   return `${entry.file ? '外す' : '削除'}: ${entryName(entry)}`;
 }
 
@@ -141,8 +141,15 @@ function EntryName({ entry }: { entry: DropzoneFileEntry }) {
 /**
  * thumbnail のタイルに置く画像。保存済みのものは url をそのまま使い、いま選んだものはブラウザの中だけの URL（createObjectURL）を、
  * file が変わるたびに作り直す。保存済みの url の画像が読めないときは、画像でないファイルと同じアイコンにする
+ * Attachment も縮小画像に使う（iconClassName でアイコンの大きさを差し替える）
  */
-function Thumbnail({ entry }: { entry: DropzoneFileEntry }) {
+export function Thumbnail({
+  entry,
+  iconClassName = 'size-(--icon-size-lg)',
+}: {
+  entry: DropzoneFileEntry;
+  iconClassName?: string;
+}) {
   const { file, url: savedUrl } = entry;
   // 読めなかった url を覚える。url が変われば、もう一度画像として読む
   const [failedUrl, setFailedUrl] = useState<string>();
@@ -174,7 +181,7 @@ function Thumbnail({ entry }: { entry: DropzoneFileEntry }) {
   if (!isImage) {
     return (
       <div className="flex flex-1 items-center justify-center text-fg-muted">
-        <FileIcon className="size-(--icon-size-lg)" />
+        <FileIcon className={iconClassName} />
       </div>
     );
   }
