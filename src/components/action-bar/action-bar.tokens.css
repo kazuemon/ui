@@ -1,0 +1,26 @@
+:root {
+  /* ActionBar（項目を選んでいるあいだだけ、下に浮かぶ操作の帯）
+     ページの上に重なるレイヤーなので、影は浮かぶ面と同じ。角は自分で場所を占める面の角（カード）
+     面の色（軸 651。既定は白い面）: bg は帯の塗り、fg は帯の上の文字・アイコン・フォーカスの線、danger-fg は危険な操作の文字、disabled-fg は押せない操作の文字
+       帯の中では、本文の色（--color-fg）と危険の前景（--color-fg-danger）をこの値に差し替える。部品はそのまま置ける
+     line: 面の輪郭（白い面を白い地に浮かせるとき）。shadow: 面の影
+     inset: 置いた場所の端（下・左右）からの距離。padding: 面の内側の余白
+     幅と寄せは部品の placement（軸 652）で選ぶ。docked は inset を 0 にし、角をなくして上向きの影にする
+     from-*: 出はじめ・消えたあとの姿（下へのずれ・大きさ・濃さ）。既定は fade-up（浮かぶ面と同じく 8px 下から濃さと一緒に）。ほかの形は部品の motion が差し替える。duration-*: 出るとき・消えるときの長さ */
+  /* 既定の面（variant="surface"）: 白い面に、浮かぶ面と同じ影と細い輪郭。ほかの面は部品の variant が差し替える
+     帯の中では --color-fg・--color-fg-danger をこの値に差し替えるので、ここ（:root）で役割の色に解いておく */
+  --action-bar-bg: var(--color-surface);
+  --action-bar-fg: var(--color-fg);
+  --action-bar-danger-fg: var(--color-fg-danger);
+  --action-bar-disabled-fg: var(--color-on-neutral-disabled);
+  --action-bar-line: var(--color-surface-line);
+  --action-bar-shadow: var(--shadow-overlay);
+  --action-bar-radius: var(--radius-card);
+  --action-bar-inset: calc(var(--spacing) * 4);
+  --action-bar-padding: calc(var(--spacing) * 2);
+  --action-bar-from-shift: var(--popup-shift);
+  --action-bar-from-scale: 1;
+  --action-bar-from-opacity: 0;
+  --action-bar-duration-enter: var(--duration-slow);
+  --action-bar-duration-exit: var(--popup-duration-out);
+}

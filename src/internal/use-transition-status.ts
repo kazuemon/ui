@@ -2,7 +2,7 @@
 
 import { type RefObject, useRef, useState } from 'react';
 
-import { useIsomorphicLayoutEffect } from '../../internal/use-isomorphic-layout-effect';
+import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
 // 出入りの状態。Base UI の重なる部品と同じ段を、公開の API にないので小さく持つ
 //   starting: 描いた直後。data-starting-style を付けて出はじめの姿にし、次のフレームで外して動かす

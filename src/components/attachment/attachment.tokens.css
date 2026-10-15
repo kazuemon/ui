@@ -1,0 +1,13 @@
+:root {
+  /* Attachment（添えたファイルの小さい札。Composer や吹き出しの中に横に並べる）
+     width: 札の幅。名前が長いときは … で切る
+     preview-size: 札の左の、アイコン・縮小画像・進み具合の円を入れる四角
+     padding: 札の内側の余白。四角の角は、札の角から余白を引いた同心の角にする（原則5）
+     tile-size: imageDisplay="tile" の画像の正方形。既定は札の高さで、大きく見せたいときは使う側が上書きする */
+  --attachment-width: calc(var(--spacing) * 60); /* 240px */
+  --attachment-preview-size: calc(var(--spacing) * 10); /* 40px */
+  --attachment-padding: calc(var(--spacing) * 1.5); /* 6px */
+  --attachment-tile-size: calc(
+    var(--attachment-preview-size) + var(--attachment-padding) * 2 + var(--border-width-thin) * 2
+  ); /* 54px（札の高さにそろえる） */
+}

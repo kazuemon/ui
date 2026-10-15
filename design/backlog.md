@@ -310,6 +310,7 @@
 
 - Menu の項目のアイコンは一段淡い色のままで、選択肢（文字の色）と色がそろいません。そろえるかは決めていません（[ADR-0465](./adr/0465-listbox-item-icon.md)）
 - `MenuCheckboxItem`・`MenuRadioItem` は、選んだ行に面を敷きません（Select の選んだ項目は面を敷きます）
+- 入れ子のシートの高さに、Cascader と同じ「いちばん長い段に合わせる」形を足すかは決めていません。いまは Menu の既定（固定）と fit だけです（[ADR-0522](./adr/0522-cascader-sheet-navigation.md)）
 
 ### ContextMenu
 
@@ -647,6 +648,7 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - `variant`（`'field'`・`'button'`）は、見た目だけでなく打てるかどうかも変える props です。[原則 18](./principles.md#18-働きで部品を選び見た目は別に選ぶ)（働きで部品を選び、見た目は別に選ぶ）に照らすと、働きが変わるので別の名前がよいかは決めていません
 - 「今日」（[ADR-0376](./adr/0376-date-picker-today-button.md)）以外のボタンがカレンダーの下の行に増えたとき、どう並べるかは決めていません
 - 面を開いたとき、フォーカスを面の中へ移します（`trapFocus`）。TimePicker（下）は移しません。意図して分けていますが、理由をまだ書き残していません
+- 5 週の月と 6 週の月を行き来すると、上向きに開いた面の上の端が 1 行分動きます（向きは開いたときのまま変わりません）。いつも 6 週分の高さにするかは決めていません（2026-10-16、Cascader の面の向きを直したときに気づきました）
 - 面を持つ入力欄（DatePicker・TimePicker）に、重なる部品が持つ props（`sheetDetent`・`dismissible`・`onOpenChangeComplete`）を持たせるかは決めていません（[ADR-0251](./adr/0251-overlay-base-ui-props.md)）。いまはどちらも持たず、シートの高さは画面いっぱい、外を押すと閉じます（原則にない判断の候補）
 - 面の読み上げの名前を何から取るかは、原則で決めていません（原則にない判断の候補）。いまは DatePicker・TimePicker とも欄のラベル（`label`・`accessibleName`）から取り、組み立て（`DatePickerControl`・`TimePickerControl`）で Field にラベルがないときは開く口の名前（`triggerName`）にしています。TimePicker の 1 列の一覧（listbox）の名前は、面と同じ文を二度読ませないよう開く口の名前にしています
 - 組み立て（`DatePickerControl`・`TimePickerControl`）では、開いているあいだ欄をフォーカス中と同じ見た目に保つクラスが付きません。DatePicker・TimePicker は、包む Field に付けています。本体の側に持たせるかは決めていません
@@ -707,6 +709,26 @@ props の名前と渡し方は [`design/props.md`](./props.md)・[ADR-0235](./ad
 - DatePicker・TimePicker の面（PickerOverlay）は、部品が決める `initialFocus` のあとに `popupProps` を広げるので、型にない props で上書きできます。TimePicker のストーリーは `popupProps={{ initialFocus: false } as never}` でそれに頼っています。部品の値をあとに書き、複数の面を同時に開くストーリーは別の形（`autoFocus` に当たる props か、1 つずつ撮る）で表すかを決めます
 - 開いた面を枠の中に描く `PopoverFrame` と、Docs では閉じて描く `openOnLoad` が、Select・Combobox・Autocomplete・TagsInput・DatePicker・TimePicker・Dialog・Popover・Menu などのストーリーに同じ中身で書かれています。`src/stories/story-parts.tsx`・`story-states.ts` に移すかを決めます
 - `src/internal/use-client.test.ts` のブラウザ専用の依存の一覧（`CLIENT_PACKAGES`）は手書きで、package.json の dependencies と突き合わせていません。依存を足したときに見直す注意を書くか、サーバーで動く依存を除いた残りを client とみなす形にするかを決めます
+
+### TreeSelect
+
+2026-10-16 に作りました。決定は [ADR-0515](./adr/0515-tree-select-value-text.md)〜[ADR-0518](./adr/0518-tree-select-multiple-value.md) です。
+
+- `parentSelect="scope"` で親に「含まれる」子は、読み上げでは自分で入れたチェックと同じく「チェック済み」と読まれ、区別できません。補足の説明を足すかは決めていません
+- 上向きに開いたあと枝を開くと、面の上の端が動きます。縦に開いていく一覧なので、いまは高さを固定していません
+
+### Cascader
+
+2026-10-16 に作りました。決定は [ADR-0519](./adr/0519-cascader-expand.md)〜[ADR-0522](./adr/0522-cascader-sheet-navigation.md) です。
+
+- 載せて開くまでの待ち（100ms）と、斜めに動かすときの猶予は、Menu の入れ子と同じ値で、props にしていません。変えたい場面が出たら決めます
+- `parentSelect` の値は、Cascader が `'none' | 'row'`、TreeSelect が `'none' | 'label' | 'scope'` で、名前は同じでも値の言葉が違います。Cascader の「〇〇 のすべて」は TreeSelect の scope に近い意味です。そろえるかは決めていません
+
+### ActionBar
+
+2026-10-16 に作りました。決定は [ADR-0523](./adr/0523-action-bar-surface.md)〜[ADR-0526](./adr/0526-action-bar-narrow.md) です。
+
+- ⋮ のメニューは、帯の重なりを Navbar と同じ段にして帯の上に出しています。ほかの貼り付く帯との重なりの順を一覧にするかは決めていません
 
 ## レシピの案
 

@@ -20,6 +20,7 @@ import type { FieldLoadingBehavior } from '../../internal/field/Field';
 import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon, CaretRightIcon } from '../../internal/icons';
 import { newTabNaming, opensNewTab, withRenderOverrides } from '../../internal/link-parts';
+import { type Typeahead, typeaheadTarget } from '../../internal/tree-typeahead';
 import { tv } from '../../internal/tv';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { Spinner } from '../loading/Loading';
@@ -184,15 +185,6 @@ interface TreeAnnouncement {
   count: number;
 }
 
-/** 型あたりの状態。text は打っている途中の語、time は最後に打った時刻 */
-interface Typeahead {
-  text: string;
-  time: number;
-}
-
-// 続けて打った文字を 1 語にまとめる時間。これより間が空いたら、打ち直しとみなす（木の標準のふるまい）
-const TYPEAHEAD_RESET = 1000;
-
 const TreeContext = createContext<TreeContextValue | null>(null);
 
 /** いま見えている行を、上から順に集める。閉じている並びと、閉じている途中の並びの中は数えない */
@@ -202,41 +194,6 @@ function visibleRows(root: HTMLElement | null): HTMLElement[] {
     (row) =>
       !row.closest('[data-slot="tree-group"][hidden], [data-slot="tree-group"][data-ending-style]')
   );
-}
-
-/** 行の文字。アイコンや印は読まず、文字の部分だけを見る */
-function rowText(row: HTMLElement) {
-  const label = row.querySelector<HTMLElement>('[data-slot="tree-label"]');
-  return (label?.textContent ?? row.textContent ?? '').trim().toLowerCase();
-}
-
-/**
- * 型あたり（文字を打つと、その文字で始まる行へ移る）。木の標準のふるまい
- * 続けて打った文字は 1 語にまとめ、間が空いたら打ち直しとみなす
- * 同じ文字を続けて打ったときは、その文字で始まる行を順に送る
- * 見えている行（visibleRows）だけが相手なので、開いていない枝の中は当たらない
- */
-function typeaheadTarget(
-  rows: HTMLElement[],
-  index: number,
-  key: string,
-  state: Typeahead
-): HTMLElement | undefined {
-  const now = Date.now();
-  const char = key.toLowerCase();
-  const fresh = now - state.time > TYPEAHEAD_RESET;
-  state.text = fresh ? char : state.text + char;
-  state.time = now;
-  // 同じ文字を続けて打ったときは 1 文字として扱い、次の行へ送る。ほかは、いまの行から見て最初に当たる行へ
-  const first = state.text.slice(0, 1);
-  const repeated = state.text.length > 1 && state.text === first.repeat(state.text.length);
-  const text = repeated ? first : state.text;
-  const from = repeated || fresh || state.text.length === 1 ? index + 1 : index;
-  for (let step = 0; step < rows.length; step += 1) {
-    const row = rows[(from + step + rows.length) % rows.length];
-    if (row && rowText(row).startsWith(text)) return row;
-  }
-  return undefined;
 }
 
 export interface TreeProps extends Omit<ComponentProps<'ul'>, 'color'> {

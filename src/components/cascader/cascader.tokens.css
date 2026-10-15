@@ -1,0 +1,8 @@
+:root {
+  /* Cascader の浮かぶ面（段を横に並べる形）。面・項目は浮かぶ選択肢（Select）と同じ
+     column-min-width・column-max-width: 1 段の幅。中身の長さで伸び、上限を超える文字は切る
+     column-max-rows: 1 段の高さの上限（項目の数）。Select の浮かぶ選択肢と同じく、最後の項目を半分見せる */
+  --cascader-column-min-width: calc(var(--spacing) * 40);
+  --cascader-column-max-width: calc(var(--spacing) * 64);
+  --cascader-column-max-rows: 8.5;
+}

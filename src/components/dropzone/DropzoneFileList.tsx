@@ -1,9 +1,16 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from 'react';
+import type { ComponentProps } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
-import { formatFileSize } from '../../internal/dropzone-utils';
+import {
+  defaultRemoveName,
+  type DropzoneFileEntry,
+  entryName,
+  entrySize,
+  formatFileSize,
+} from '../../internal/dropzone-utils';
+import { FileThumbnail } from '../../internal/FileThumbnail';
 import { Button } from '../button/Button';
 import { Link } from '../link/Link';
 import { Progress } from '../progress/Progress';
@@ -54,32 +61,9 @@ const tile = tv({
   },
 });
 
-export type DropzoneFileListVariant = NonNullable<VariantProps<typeof row>['variant']>;
+export type { DropzoneFileEntry };
 
-/**
- * DropzoneFileList の1項目。いま選んだファイルは file を、保存済みのファイル（サーバーにあるもの）は file を書かずに name・size・url を渡す
- */
-export interface DropzoneFileEntry {
-  /** いま選んだファイル。書かない項目は保存済みのファイルとして、url があれば名前を下線のリンクにする */
-  file?: File;
-  /** 名前。書かないときは file の名前 */
-  name?: string;
-  /** 大きさ（バイト）。書かないときは file の大きさ。どちらもないときは大きさを出さない */
-  size?: number;
-  /** 保存済みのファイルの URL。名前のリンクの行き先になり、thumbnail では画像として出す */
-  url?: string;
-  /** ファイルの種類（MIME タイプ）。thumbnail で画像として出すかを決める。書かないときは file の種類、なければ url の拡張子（data URL なら種類）で決める */
-  type?: string;
-  /**
-   * 名前に小さく添える文（「保存済み」、保存した日時など）。list では大きさの後ろに、thumbnail では左上の札に出す。
-   * 渡さないときは何も添えない
-   */
-  caption?: ReactNode;
-  /** アップロードの進み具合（0〜100）。渡さないときは進み具合の行を出さない */
-  progress?: number;
-  /** そのファイルだけの失敗（アップロードの失敗など）。渡すと名前の下に赤い文字で出す */
-  errorText?: ReactNode;
-}
+export type DropzoneFileListVariant = NonNullable<VariantProps<typeof row>['variant']>;
 
 export interface DropzoneFileListProps extends Omit<ComponentProps<'ul'>, 'children' | 'color'> {
   /** 並べるファイル */
@@ -103,21 +87,6 @@ export interface DropzoneFileListProps extends Omit<ComponentProps<'ul'>, 'child
   className?: string;
 }
 
-const entryName = (entry: DropzoneFileEntry) => entry.name ?? entry.file?.name ?? '';
-const entrySize = (entry: DropzoneFileEntry) => entry.size ?? entry.file?.size;
-const IMAGE_EXTENSION = /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#]|$)/i;
-const entryIsImage = (entry: DropzoneFileEntry) => {
-  const type = entry.type ?? entry.file?.type;
-  if (type) return type.startsWith('image/');
-  return (
-    entry.url != null && (entry.url.startsWith('data:image/') || IMAGE_EXTENSION.test(entry.url))
-  );
-};
-
-function defaultRemoveName(entry: DropzoneFileEntry) {
-  return `${entry.file ? '外す' : '削除'}: ${entryName(entry)}`;
-}
-
 /**
  * 項目の名前。保存済みで url があれば文字のリンク（Link）にする（新しいタブで開く）
  * 色と大きさは周りの名前の文字のまま。行の中で見分けは下線だけで足りるので、↗ は付けない
@@ -136,49 +105,6 @@ function EntryName({ entry }: { entry: DropzoneFileEntry }) {
       {name}
     </Link>
   );
-}
-
-/**
- * thumbnail のタイルに置く画像。保存済みのものは url をそのまま使い、いま選んだものはブラウザの中だけの URL（createObjectURL）を、
- * file が変わるたびに作り直す。保存済みの url の画像が読めないときは、画像でないファイルと同じアイコンにする
- */
-function Thumbnail({ entry }: { entry: DropzoneFileEntry }) {
-  const { file, url: savedUrl } = entry;
-  // 読めなかった url を覚える。url が変われば、もう一度画像として読む
-  const [failedUrl, setFailedUrl] = useState<string>();
-  const failed = !file && savedUrl != null && failedUrl === savedUrl;
-  const isImage = entryIsImage(entry) && (file != null || savedUrl != null) && !failed;
-  const imgRef = useRef<HTMLImageElement>(null);
-  // URL は描画の途中ではなく effect の中で作り、同じ effect の片付けで解放する（描画が中断されても URL が残らない）。
-  // setState はせず、img に直接渡す
-  useEffect(() => {
-    const img = imgRef.current;
-    if (!img || !isImage || !file) return undefined;
-    const url = URL.createObjectURL(file);
-    img.src = url;
-    return () => {
-      img.removeAttribute('src');
-      URL.revokeObjectURL(url);
-    };
-  }, [file, isImage]);
-  if (isImage && !file) {
-    return (
-      <img
-        src={savedUrl}
-        alt=""
-        className="size-full object-cover"
-        onError={() => setFailedUrl(savedUrl)}
-      />
-    );
-  }
-  if (!isImage) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-fg-muted">
-        <FileIcon className="size-(--icon-size-lg)" />
-      </div>
-    );
-  }
-  return <img ref={imgRef} alt="" className="size-full object-cover" />;
 }
 
 /**
@@ -257,7 +183,7 @@ export function DropzoneFileList({
                 data-invalid={errorText ? '' : undefined}
                 data-saved={saved}
               >
-                <Thumbnail entry={entry} />
+                <FileThumbnail entry={entry} />
                 {caption != null && (
                   <span className={t.mark()}>
                     <span className={t.markText()}>{caption}</span>

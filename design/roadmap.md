@@ -112,7 +112,7 @@
 - [x] Meter
 - [x] Carousel
 - [x] Thumbnails
-- [ ] Indicator
+- [x] Indicator（Badge の重ね方と置き場所で足りるので、部品にしない）
 - [ ] BarList
 - [ ] Sparkline・グラフの見た目
 - [ ] タイムテーブル
@@ -189,10 +189,10 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [x] Sortable
 - [ ] Kanban
 - [x] Popconfirm
-- [ ] ActionBar
+- [x] ActionBar
 - [ ] Mentions
-- [ ] Cascader
-- [ ] TreeSelect
+- [x] Cascader
+- [x] TreeSelect
 - [ ] Transfer
 
 ### チャット
@@ -201,5 +201,5 @@ Web アプリで使うものです。実装の重い部品（DataTable・Virtual
 - [ ] MessageList
 - [ ] Bubble
 - [ ] TypingIndicator
-- [ ] Attachment
+- [x] Attachment
 - [ ] StreamingText

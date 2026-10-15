@@ -10,6 +10,17 @@ export {
   type AccordionVariant,
 } from './components/accordion/Accordion';
 export {
+  ActionBar,
+  ActionBarButton,
+  type ActionBarButtonProps,
+  type ActionBarButtonStatus,
+  type ActionBarButtonNarrowPlacement,
+  type ActionBarMotion,
+  type ActionBarPlacement,
+  type ActionBarProps,
+  type ActionBarVariant,
+} from './components/action-bar/ActionBar';
+export {
   Affix,
   type AffixPosition,
   type AffixProps,
@@ -27,6 +38,13 @@ export {
   type AspectRatioProps,
   type MediaFit,
 } from './components/aspect-ratio/AspectRatio';
+export {
+  Attachment,
+  type AttachmentImageDisplay,
+  type AttachmentProgressIndicator,
+  type AttachmentProps,
+} from './components/attachment/Attachment';
+export { AttachmentList, type AttachmentListProps } from './components/attachment/AttachmentList';
 export {
   Autocomplete,
   type AutocompleteBaseProps,
@@ -140,6 +158,18 @@ export {
   type CarouselSlidesPerView,
   type CarouselThumbnailsPlacement,
 } from './components/carousel/Carousel';
+export {
+  Cascader,
+  type CascaderBaseProps,
+  CascaderControl,
+  type CascaderControlProps,
+  type CascaderItem,
+  type CascaderLevelSheet,
+  type CascaderParentSelect,
+  type CascaderProps,
+  type CascaderValueDisplay,
+  type CascaderValueItem,
+} from './components/cascader/Cascader';
 export {
   Checkbox,
   type CheckboxProps,
@@ -854,6 +884,19 @@ export {
   type TreeProps,
   type TreeRowWidth,
 } from './components/tree/Tree';
+export {
+  TreeSelect,
+  type TreeSelectBaseProps,
+  TreeSelectControl,
+  type TreeSelectControlProps,
+  type TreeSelectItem,
+  type TreeSelectParentSelect,
+  type TreeSelectPathVariant,
+  type TreeSelectProps,
+  type TreeSelectSelectedIndicator,
+  type TreeSelectValue,
+  type TreeSelectValueDisplay,
+} from './components/tree-select/TreeSelect';
 export {
   TextField,
   type TextFieldBaseProps,

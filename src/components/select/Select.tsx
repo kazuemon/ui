@@ -55,6 +55,11 @@ import type {
   ListboxValueOf,
 } from '../../internal/listbox/use-listbox-option';
 import { popupSideOffset } from '../../internal/listbox/listbox-measure';
+import {
+  selectClearButton,
+  selectClearField,
+  selectClearTrigger,
+} from '../../internal/listbox/select-clear-styles';
 import { ListboxLoadingRow } from '../../internal/listbox/ListboxLoadingRow';
 import {
   type GroupLabelStyle,
@@ -331,24 +336,6 @@ export type SelectBaseProps<Value = string, Multiple extends boolean = false> = 
 export type SelectProps<Value = string, Multiple extends boolean = false> = FieldNamed<
   SelectBaseProps<Value, Multiple>
 >;
-
-// 消すボタン（clearable）。本体（ボタン）と × を包み、× を本体の上に重ねる
-//   幅（--select-clear-width）は suffix のボタンと同じ（左右の余白＋アイコン）。中のアイコンは入力欄の大きさ
-//   × は右端に置き、本体は × の分の場所を空ける。▼ は × の左へずれる（Combobox と同じ）
-//   × に hover しているあいだは、欄の塗りを通常に戻す（× だけが濃くなる。開く場所と消す場所の境目を見せる）
-const selectClearField = [
-  'relative w-full min-w-0 [--spacing-icon:var(--spacing-icon-input)]',
-  '[--select-clear-width:calc(var(--spacing-control-x)*2+var(--spacing-icon-input))]',
-].join(' ');
-const selectClearTrigger = [
-  'pe-[calc(var(--spacing-control-x)-var(--field-border-width)+var(--select-clear-width))]',
-  '[[data-slot=select-field]:has(>[data-select-clear]:enabled:hover)>&]:not-focus-within:[--control-bg:var(--color-field)]',
-].join(' ');
-const selectClearButton = [
-  'absolute! inset-y-(--field-border-width) m-0! border-0! [--addon-inset:0px]',
-  'end-(--field-border-width)',
-  '[border-start-end-radius:var(--addon-radius)]! [border-end-end-radius:var(--addon-radius)]!',
-].join(' ');
 
 // 選んだ値の前のアイコン（軸 523）。大きさ・色は選択肢のアイコンと同じ（文字の 1.25 倍・文字の色）
 const selectValueIcon = 'flex shrink-0 [&>svg]:size-[1.25em]';

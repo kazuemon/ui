@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 
 import {
+  ArrowClockwiseIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowUDownLeftIcon,
@@ -168,6 +169,12 @@ const entries: Entry[] = [
     regular: <UploadIcon />,
     bold: <UploadIcon standalone />,
     use: 'Dropzone の案内と、FileInput の欄の印',
+  },
+  {
+    name: 'ArrowClockwiseIcon',
+    regular: <ArrowClockwiseIcon />,
+    bold: <ArrowClockwiseIcon standalone />,
+    use: 'Attachment の、もう一度送るボタン',
   },
   {
     name: 'WarningCircleIcon',

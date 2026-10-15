@@ -354,3 +354,11 @@ export const UploadIcon = (props: IconProps) => (
     <polyline points="48 152 48 200 208 200 208 152" />
   </Icon>
 );
+
+// 時計回りの矢印（Phosphor の ArrowClockwise）。Attachment の「もう一度送る」ボタンに置く
+export const ArrowClockwiseIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <polyline points="184 104 232 104 232 56" />
+    <path d="M188.4,192a88,88,0,1,1,1.83-126.23L232,104" />
+  </Icon>
+);
