@@ -141,6 +141,18 @@ export {
   type CarouselThumbnailsPlacement,
 } from './components/carousel/Carousel';
 export {
+  Cascader,
+  type CascaderBaseProps,
+  CascaderControl,
+  type CascaderControlProps,
+  type CascaderItem,
+  type CascaderLevelSheet,
+  type CascaderParentSelect,
+  type CascaderProps,
+  type CascaderValueDisplay,
+  type CascaderValueItem,
+} from './components/cascader/Cascader';
+export {
   Checkbox,
   type CheckboxProps,
   type ChoiceColor,
