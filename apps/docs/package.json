@@ -16,7 +16,7 @@
     "@kazuemon/ui": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-table": "^9.2.4",
-    "next": "^16.3.5",
+    "next": "^16.4.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
