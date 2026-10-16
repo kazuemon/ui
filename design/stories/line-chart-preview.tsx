@@ -69,7 +69,11 @@ export function LineChartPreview({
         legend={shown.length > 1 ? <ChartLegend items={shown} /> : undefined}
         table={
           showTable ? (
-            <Table accessibleName="週ごとの閲覧数" size="sm">
+            <Table
+              accessibleName="週ごとの閲覧数"
+              size="sm"
+              maxHeight="var(--chart-table-max-height, none)"
+            >
               <TableHead>
                 <TableRow>
                   <TableHeader>週</TableHeader>
