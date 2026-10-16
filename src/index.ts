@@ -181,6 +181,8 @@ export {
   ChartFrame,
   type ChartFrameProps,
   type ChartFrameView,
+  type ChartFrameViewToggle,
+  type ChartFrameViewToggleSize,
 } from './components/chart/ChartFrame';
 export { type ChartMarkerType } from './components/chart/ChartMarker';
 export {

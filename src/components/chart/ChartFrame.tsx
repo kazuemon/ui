@@ -9,8 +9,11 @@ import { SegmentedControl, SegmentedControlItem } from '../segmented-control/Seg
 // グラフの枠。題・説明・凡例を置き、グラフを描く場所の高さを決める。グラフそのものはライブラリが描く（レシピ）
 // 面は持たない（ページと同じレイヤー。原則1）。カードに載せたいときは Card と組み合わせる
 // 描く場所には、目盛りの文字の大きさ（キャプション）と等幅の数字を敷く。ライブラリの SVG の文字はこれを継ぐ
-// 表で見る形（table）を渡すと、題の行の右に「グラフ・表」の切り替えを置く。数値を表でも読めるようにする（原則6）
-//   切り替えの文言は部品そのものの操作なので既定を持ち、chartLabel・tableLabel で差し替えられる（原則20）
+// 表で見る形（table）を渡すと、題の行の右に切り替えを置く。数値を表でも読めるようにする（原則6）— ADR-0539
+//   segmented: 「グラフ・表」の SegmentedControl。既定。いまどちらの形かがいつも分かる
+//     大きさは viewToggleSize。既定は sm（ボタンの小と同じ高さ・文字）。ふつうの大きさでは題より目立ち、グラフの上が重い
+//   button: もう一方の形へ移る下線のボタン（「表で見る」）。グラフの上がいちばん軽い。場所は同じ題の行の右
+//   切り替えの文言は部品そのものの操作なので既定を持ち、差し替えられる（原則20）
 const chartFrame = tv({
   slots: {
     root: 'm-0 flex min-w-0 flex-col gap-(--chart-frame-gap)',
@@ -19,14 +22,32 @@ const chartFrame = tv({
     title:
       'text-(length:--text-label) leading-(--leading-label) [font-weight:var(--font-weight-heading)] text-fg',
     description: 'm-0 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
+    // 小さな切り替え: ボタンの小（Button の size="sm"）と同じ寸法のトークンを、切り替えの中だけ差し替える
+    toggle: 'shrink-0',
     plot: [
       'relative h-(--chart-height) w-full min-w-0',
       'text-(length:--text-caption) leading-(--leading-caption) tabular-nums',
     ],
   },
+  variants: {
+    viewToggleSize: {
+      sm: {
+        toggle: [
+          '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-control:var(--spacing-control-sm)]',
+          '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
+        ],
+      },
+      md: {},
+    },
+  },
+  defaultVariants: { viewToggleSize: 'sm' },
 });
 
 export type ChartFrameView = 'chart' | 'table';
+/** 切り替えの形。segmented は「グラフ・表」の切り替え、button はもう一方の形へ移る下線のボタン */
+export type ChartFrameViewToggle = 'segmented' | 'button';
+/** 切り替えの大きさ。sm はボタンの小と同じ、md はほかの欄と同じ */
+export type ChartFrameViewToggleSize = 'sm' | 'md';
 
 export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'children' | 'title'> {
   /** 題。グラフの上の見出しの行に出て、グラフの名前として読まれます */
@@ -49,15 +70,41 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
    */
   height?: number | string;
   /**
-   * 切り替えの「グラフ」の文字
+   * 切り替えの形。segmented は「グラフ・表」の切り替え、button はもう一方の形へ移る下線のボタン（「表で見る」）です。
+   * どちらも題の行の右に置きます
+   * @default 'segmented'
+   */
+  viewToggle?: ChartFrameViewToggle;
+  /**
+   * 切り替えの大きさ。sm はボタンの小と同じ、md はほかの欄と同じです
+   * @default 'sm'
+   */
+  viewToggleSize?: ChartFrameViewToggleSize;
+  /**
+   * 切り替え（segmented）の「グラフ」の文字
    * @default 'グラフ'
    */
   chartLabel?: string;
   /**
-   * 切り替えの「表」の文字
+   * 切り替え（segmented）の「表」の文字
    * @default '表'
    */
   tableLabel?: string;
+  /**
+   * 切り替え（segmented）の読み上げの名前
+   * @default '表示'
+   */
+  viewToggleName?: string;
+  /**
+   * ボタン（button）で、グラフを見ているときの文字
+   * @default '表で見る'
+   */
+  showTableLabel?: string;
+  /**
+   * ボタン（button）で、表を見ているときの文字
+   * @default 'グラフで見る'
+   */
+  showChartLabel?: string;
   /** いちばん外の要素に付きます */
   className?: string;
 }
@@ -73,13 +120,18 @@ export function ChartFrame({
   table,
   defaultView = 'chart',
   height,
+  viewToggle = 'segmented',
+  viewToggleSize = 'sm',
   chartLabel = 'グラフ',
   tableLabel = '表',
+  showTableLabel = '表で見る',
+  showChartLabel = 'グラフで見る',
+  viewToggleName = '表示',
   className,
   style,
   ...props
 }: ChartFrameProps) {
-  const styles = chartFrame();
+  const styles = chartFrame({ viewToggleSize });
   const titleId = useId();
   const [view, setView] = useState<ChartFrameView>(table ? defaultView : 'chart');
   const showTable = table != null && view === 'table';
@@ -110,34 +162,27 @@ export function ChartFrame({
             {description != null ? <p className={styles.description()}>{description}</p> : null}
           </div>
           {table != null ? (
-            // 軸 667 の比較用: --chart-toggle-header で題の行の切り替えを出し入れする
-            <div className="[display:var(--chart-toggle-header,block)]">
-              <SegmentedControl<ChartFrameView>
-                accessibleName="表示"
-                value={view}
-                onValueChange={setView}
-              >
-                <SegmentedControlItem value="chart">{chartLabel}</SegmentedControlItem>
-                <SegmentedControlItem value="table">{tableLabel}</SegmentedControlItem>
-              </SegmentedControl>
+            <div className={styles.toggle()} data-view-toggle={viewToggle}>
+              {viewToggle === 'button' ? (
+                <Button variant="underline" onClick={() => setView(showTable ? 'chart' : 'table')}>
+                  {showTable ? showChartLabel : showTableLabel}
+                </Button>
+              ) : (
+                <SegmentedControl<ChartFrameView>
+                  accessibleName={viewToggleName}
+                  value={view}
+                  onValueChange={setView}
+                >
+                  <SegmentedControlItem value="chart">{chartLabel}</SegmentedControlItem>
+                  <SegmentedControlItem value="table">{tableLabel}</SegmentedControlItem>
+                </SegmentedControl>
+              )}
             </div>
           ) : null}
         </div>
       ) : null}
       {legend != null && !showTable ? legend : null}
       {showTable ? table : <div className={styles.plot()}>{children}</div>}
-      {table != null ? (
-        // 軸 667 の比較用: グラフの下に、もう一方の形へ移るボタンを置く案（--chart-toggle-footer）
-        <div className="[display:var(--chart-toggle-footer,none)] justify-end">
-          <Button
-            variant="underline"
-            size="sm"
-            onClick={() => setView(showTable ? 'chart' : 'table')}
-          >
-            {showTable ? 'グラフで見る' : '表で見る'}
-          </Button>
-        </div>
-      ) : null}
     </figure>
   );
 }
