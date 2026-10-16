@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/659 グラフの系列の色',
   id: 'design-review-659-chart-series-colors',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A2' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -373,6 +373,10 @@ export const Candidates: Story = {
           }
         }}
       >
+        <p>
+          決定（ADR-0531）: A2（A の色で、並び順を直した 8 色）にする。青は、いまある blue-500
+          と明度・彩度が同じなので、新しく作らずそれを使う。
+        </p>
         <p>
           グラフの系列（東京・大阪 …）に当てる色を決めます。blue・pink・green
           のような名前の付いた色の並びを作り、グラフは決まった順でそこから色を取ります。同じ色の名前を、あとでボタンやタグの色（`color`）にも使えるようにします。成功・警告・危険の色は意味を持つので、系列には使いません。
