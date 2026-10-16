@@ -196,7 +196,8 @@ export function ChartAxisLabel({
 }
 
 // 基準の線（目標・平均）に添える名前。線そのものはライブラリが --color-chart-reference で引く
-//   plain: 線の上に、淡い本文の色の文字を右寄せで置く
+//   plain: 線の上に、淡い本文の色の文字を置く
+// 文字は線の左端から置く。右端には線の端の名前（ChartLineLabel）が並ぶので、重ならないようにする
 //   halo: 線に重ねて置き、文字の周りを面の色で縁取って線を切る
 const chartReferenceLabel = tv({
   base: 'text-(length:--text-caption) font-medium',
@@ -213,7 +214,7 @@ const chartReferenceLabel = tv({
 export type ChartReferenceLabelVariant = 'plain' | 'halo';
 
 export interface ChartReferenceLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' | 'y'> {
-  /** 基準の線の右端の横の位置（SVG の座標）。文字はここで終わります */
+  /** 基準の線の左端の横の位置（SVG の座標）。文字はここから右へ置きます */
   x?: number | string;
   /** 基準の線の縦の位置（SVG の座標） */
   y?: number | string;
@@ -246,8 +247,9 @@ export function ChartReferenceLabel({
       data-variant={variant}
       x={x}
       y={y}
+      dx={variant === 'plain' ? 0 : 8}
       dy={variant === 'plain' ? -6 : 0}
-      textAnchor="end"
+      textAnchor="start"
       dominantBaseline={variant === 'plain' ? 'auto' : 'central'}
       className={chartReferenceLabel({ variant, className })}
       {...props}

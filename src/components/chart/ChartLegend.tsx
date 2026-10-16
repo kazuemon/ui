@@ -29,27 +29,28 @@ const chartLegend = tv({
     value: 'text-fg-muted tabular-nums',
   },
   variants: {
-    hidden: { true: {}, false: {} },
-    hiddenVariant: {
-      ring: {},
-      faded: {},
-      strike: {},
-    },
+    hidden: { true: '', false: '' },
+    hiddenVariant: { ring: '', faded: '', strike: '' },
   },
+  // slot ごとの compound は class: { slot: … } の形で書く（slot 名を直に書くと効かない）
   compoundVariants: [
     {
       hidden: true,
       hiddenVariant: 'ring',
-      marker:
-        'bg-transparent shadow-[inset_0_0_0_var(--border-width-medium)_var(--chart-marker-color)]',
-      label: 'text-fg-subtle',
+      class: {
+        marker:
+          'bg-transparent shadow-[inset_0_0_0_var(--border-width-medium)_var(--chart-marker-color)]',
+        label: 'text-fg-subtle',
+      },
     },
-    { hidden: true, hiddenVariant: 'faded', button: 'opacity-(--disabled-opacity)' },
+    { hidden: true, hiddenVariant: 'faded', class: { button: 'opacity-(--disabled-opacity)' } },
     {
       hidden: true,
       hiddenVariant: 'strike',
-      marker: '[--chart-marker-color:var(--color-line-strong)]',
-      label: 'text-fg-subtle line-through',
+      class: {
+        marker: '[--chart-marker-color:var(--color-line-strong)]',
+        label: 'text-fg-subtle line-through',
+      },
     },
   ],
   defaultVariants: { hidden: false, hiddenVariant: 'ring' },
@@ -108,15 +109,17 @@ export function ChartLegend({
 }: ChartLegendProps) {
   const styles = chartLegend({ hiddenVariant });
   const content = (item: ChartLegendItem, i: number) => {
+    // 消した見た目は compoundVariants なので、項目ごとに hidden を渡して作り直す（slot に渡しても compound は効かない）
     const hidden = onHiddenChange != null && item.hidden === true;
+    const itemStyles = chartLegend({ hiddenVariant, hidden });
     return (
       <>
         <span
           aria-hidden
-          className={chartMarker({ markerType, className: styles.marker({ hidden }) })}
+          className={chartMarker({ markerType, className: itemStyles.marker() })}
           style={{ '--chart-marker-color': seriesColor(item.color, i) } as CSSProperties}
         />
-        <span className={styles.label({ hidden })}>{item.label}</span>
+        <span className={itemStyles.label()}>{item.label}</span>
         {item.value != null ? <span className={styles.value()}>{item.value}</span> : null}
       </>
     );
@@ -134,7 +137,7 @@ export function ChartLegend({
           {onHiddenChange ? (
             <ChartLegendButton
               hidden={item.hidden === true}
-              className={styles.button({ hidden: item.hidden === true })}
+              className={chartLegend({ hiddenVariant, hidden: item.hidden === true }).button()}
               onToggle={() => onHiddenChange(i, item.hidden !== true)}
             >
               {content(item, i)}

@@ -58,6 +58,7 @@ export interface WeeklyViews {
 /** 見本の Controls で切り替える見た目。どれも省くと既定の形になる */
 export interface LineChartLook extends Pick<
   ChartFrameProps,
+  | 'height'
   | 'titleSize'
   | 'legendPlacement'
   | 'legendAlign'
@@ -91,6 +92,8 @@ export interface LineChartLook extends Pick<
   /** 凡例を押して系列を出し入れできるようにする */
   legendToggle?: boolean;
   legendHiddenVariant?: ChartLegendHiddenVariant;
+  /** はじめから消しておく系列（見本で、消した見た目を並べるため） */
+  defaultHidden?: readonly SeriesKey[];
 }
 
 // 系列の色は、系列について回る。絞り込みで系列が減っても色を付け直さない
@@ -99,7 +102,7 @@ const series = [
   { key: 'docs', label: 'ドキュメント', color: 'var(--color-series-2)' },
   { key: 'storybook', label: 'Storybook', color: 'var(--color-series-3)' },
 ] as const;
-type SeriesKey = (typeof series)[number]['key'];
+export type SeriesKey = (typeof series)[number]['key'];
 
 const target = 2000;
 const labelOf = (key: unknown) => series.find((s) => s.key === key)?.label ?? String(key);
@@ -140,11 +143,13 @@ export function PageViewsLineChart({
     referenceLabel,
     legendToggle = false,
     legendHiddenVariant,
+    defaultHidden = [],
     ...frameLook
   } = look;
   const last = data.length - 1;
+  const yAxisWidth = axisTitles === 'vertical' ? 68 : 48;
   // 凡例で消した系列。消しても色は付け直さない
-  const [hidden, setHidden] = useState<ReadonlySet<SeriesKey>>(new Set());
+  const [hidden, setHidden] = useState<ReadonlySet<SeriesKey>>(() => new Set(defaultHidden));
   const toggleSeries = (index: number, hide: boolean) => {
     const next = new Set(hidden);
     if (hide) next.add(series[index].key);
@@ -209,10 +214,11 @@ export function PageViewsLineChart({
       </ChartAxisLabel>
     );
   };
+  // 基準の名前は、線の左端（縦の目盛りの幅のすぐ右）から置く
   const referenceName = ({ viewBox }: LabelProps) => {
     const box = viewBox as CartesianViewBox;
     return (
-      <ChartReferenceLabel x={(box.x ?? 0) + (box.width ?? 0)} y={box.y} variant={referenceLabel}>
+      <ChartReferenceLabel x={yAxisWidth} y={box.y} variant={referenceLabel}>
         目標 {formatViews(target)}
       </ChartReferenceLabel>
     );
@@ -292,7 +298,7 @@ export function PageViewsLineChart({
             tick={tick}
             tickLine={false}
             axisLine={false}
-            width={axisTitles === 'vertical' ? 68 : 48}
+            width={yAxisWidth}
             tickFormatter={formatViews}
             domain={yTicks === 'auto' ? ['auto', 'auto'] : [0, 'auto']}
             tickCount={yTicks === 'few' ? 3 : 5}
