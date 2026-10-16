@@ -13,7 +13,7 @@ const meta = {
   title: 'Design Review/660 Sparkline の既定',
   id: 'design-review-660-sparkline-defaults',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -156,6 +156,10 @@ export const Candidates: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0532）: A を既定にする（水色の線と、最後の点）。塗り（B）は `variant="area"`
+        で選べる。BarList の既定の色も同じく水色にする。
+      </p>
       <p>
         Sparkline
         を何も指定せずに置いたときの見た目を決めます。色（`color`）・線の下の塗り（`variant`）・最後の点（`showEndPoint`）の

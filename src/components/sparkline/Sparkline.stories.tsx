@@ -5,7 +5,7 @@ import { Sparkline } from './Sparkline';
 import { Gallery, Specimen } from '../../stories/story-parts';
 
 const weekly = [4, 6, 5, 8, 7, 9, 12, 10, 13, 15, 14, 18];
-const colors = ['neutral', 'brand', 'primary', 'secondary', 'success', 'danger'] as const;
+const colors = ['brand', 'neutral', 'primary', 'secondary', 'success', 'danger'] as const;
 
 const meta = {
   title: 'Components/Sparkline',
@@ -18,8 +18,8 @@ const meta = {
           '軸も目盛りもない小さな折れ線です。数字の横や表のセルに置き、増え方・減り方の形だけを見せます。押せません。',
           '',
           '- `data` に値を左から順に渡します。縦の範囲は値の最小から最大までで、`min`・`max` で固定できます（0 から描くなら `min={0}`）。',
-          '- `variant="area"` で線の下を淡く塗ります。`showEndPoint` で最後の値に点を置きます。',
-          '- `color` で線の色を選びます。既定は濃いグレーです。`brand` は水色です。',
+          '- `variant="area"` で線の下を淡く塗ります。最後の値には点を置きます。消すときは `showEndPoint={false}` を渡します。',
+          '- `color` で線の色を選びます。既定は `brand`（水色）で、ほかのグラフの 1 番目の系列と同じ色です。目立たせたくないときは `neutral`（濃いグレー）を選びます。',
           '- 大きさは周りの文字に合わせて伸び縮みします。変えるときは `className` に `w-*`・`h-*` を書きます。',
           '- 値は読み上げません。数字はそばの文字で伝えます。形にも意味があるときは `accessibleName` で名前を付けると、1 枚の絵として読まれます。',
         ].join('\n'),
@@ -47,18 +47,18 @@ export const Variations: Story = {
         </Specimen>
       ))}
       <Specimen label="area">
-        <Sparkline {...args} color="brand" variant="area" />
+        <Sparkline {...args} variant="area" />
       </Specimen>
-      <Specimen label="showEndPoint">
-        <Sparkline {...args} color="brand" showEndPoint />
+      <Specimen label="showEndPoint={false}">
+        <Sparkline {...args} showEndPoint={false} />
       </Specimen>
       <Specimen label="min={0}">
-        <Sparkline {...args} color="brand" variant="area" min={0} />
+        <Sparkline {...args} variant="area" min={0} />
       </Specimen>
       <Specimen label="値が 1 つ・みな同じ">
         <span className="flex gap-3">
-          <Sparkline data={[5]} color="brand" />
-          <Sparkline data={[3, 3, 3]} color="brand" />
+          <Sparkline data={[5]} />
+          <Sparkline data={[3, 3, 3]} />
         </span>
       </Specimen>
     </Gallery>
@@ -71,15 +71,15 @@ export const InText: Story = {
   render: (args) => (
     <div className="flex flex-col gap-3 text-fg">
       <p className="text-sm">
-        今週の閲覧 2,520 <Sparkline {...args} color="brand" />
+        今週の閲覧 2,520 <Sparkline {...args} />
       </p>
       <p className="text-body">
-        今週の閲覧 2,520 <Sparkline {...args} color="brand" />
+        今週の閲覧 2,520 <Sparkline {...args} />
       </p>
       <p className="text-2xl font-bold">
-        2,520 <Sparkline {...args} color="brand" />
+        2,520 <Sparkline {...args} />
       </p>
-      <Sparkline {...args} color="brand" variant="area" className="h-16 w-full" />
+      <Sparkline {...args} variant="area" className="h-16 w-full" />
     </div>
   ),
 };

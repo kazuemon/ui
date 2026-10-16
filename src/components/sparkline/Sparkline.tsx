@@ -5,8 +5,9 @@ import { tv } from '../../internal/tv';
 
 // 軸も目盛りもない小さな折れ線。数字の横や表のセルに置き、増え方・減り方の形だけを見せる
 // 押さないので hover も影もない。ページと同じレイヤー（原則1）
-// 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（Meter と同じ）
+// 色は利用者が選ぶ（原則6）。指定しないときは brand（ADR-0532）。グラフの仲間なので、系列の 1 番の色にそろえる
 //   brand はグラフの系列の 1 番（水色）。面用の水色（--color-brand）は白地で細い線に使えないので、系列の色を当てる（ADR-0531）
+// 最後の点は既定で置く（ADR-0532）。線の右端が「いま」の値で、そばの数字と結びつく
 // 線はグラフの線と同じ 2px（--border-width-thick）
 // 線は 100×100 の座標で描き、SVG を箱いっぱいに伸ばす。線の太さは伸ばしても変えない（vector-effect）
 //   最後の点は伸ばすと楕円になるので、SVG ではなく箱の上に重ねた丸で描く
@@ -34,7 +35,7 @@ const sparkline = tv({
       danger: { root: '[--sparkline-color:var(--color-danger)]' },
     },
   },
-  defaultVariants: { color: 'neutral' },
+  defaultVariants: { color: 'brand' },
 });
 
 /** 線の色。brand は水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー、success・danger は状態の色 */
@@ -47,7 +48,7 @@ export interface SparklineProps extends Omit<ComponentProps<'span'>, 'color' | '
   data: readonly number[];
   /**
    * 線の色
-   * @default 'neutral'
+   * @default 'brand'
    */
   color?: SparklineColor;
   /**
@@ -57,7 +58,7 @@ export interface SparklineProps extends Omit<ComponentProps<'span'>, 'color' | '
   variant?: SparklineVariant;
   /**
    * 最後の値に点を置きます。いまの値がどこかを示します
-   * @default false
+   * @default true
    */
   showEndPoint?: boolean;
   /** 縦の下端の値。渡さないときは data の最小値です。0 から描きたいときは 0 を渡します */
@@ -90,7 +91,7 @@ export function Sparkline({
   data,
   color,
   variant = 'line',
-  showEndPoint = false,
+  showEndPoint = true,
   min,
   max,
   accessibleName,

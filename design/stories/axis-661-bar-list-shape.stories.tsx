@@ -8,7 +8,7 @@ import {
 } from '../../src/components/bar-list/BarList';
 
 // 軸 661: BarList の形（名前を棒に重ねるか、名前の下に棒を置くか）と、重ねるときの棒の濃さ
-// 濃さはトークン（--bar-list-fill-mix）、形は variant で行ごとに変える。色は 660 の決定に合わせるまで brand で比べる
+// 濃さはトークン（--bar-list-fill-mix）、形は variant、below の間隔は --bar-list-below-gap・--bar-list-below-row-gap で行ごとに変える
 const meta = {
   title: 'Design Review/661 BarList の形',
   id: 'design-review-661-bar-list-shape',
@@ -18,7 +18,7 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['', 'current', 'A', 'B', 'C', 'C2', 'C3'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -30,6 +30,8 @@ const variantOf: Record<string, BarListVariant> = {
   A: 'overlay',
   B: 'overlay',
   C: 'below',
+  C2: 'below',
+  C3: 'below',
 };
 
 const candidates: Candidate[] = [
@@ -43,7 +45,11 @@ const candidates: Candidate[] = [
       ['棒の濃さ', '部品の色の 20%'],
       ['行の高さ', '32px'],
     ],
-    tokens: { '--bar-list-fill-mix': '20%' },
+    tokens: {
+      '--bar-list-fill-mix': '20%',
+      '--bar-list-below-gap': 'var(--spacing)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+    },
   },
   {
     id: 'A',
@@ -55,7 +61,11 @@ const candidates: Candidate[] = [
       ['棒の濃さ', '部品の色の 12%'],
       ['行の高さ', '32px'],
     ],
-    tokens: { '--bar-list-fill-mix': '12%' },
+    tokens: {
+      '--bar-list-fill-mix': '12%',
+      '--bar-list-below-gap': 'var(--spacing)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+    },
   },
   {
     id: 'B',
@@ -67,18 +77,59 @@ const candidates: Candidate[] = [
       ['棒の濃さ', '部品の色の 32%'],
       ['行の高さ', '32px'],
     ],
-    tokens: { '--bar-list-fill-mix': '32%' },
+    tokens: {
+      '--bar-list-fill-mix': '32%',
+      '--bar-list-below-gap': 'var(--spacing)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+    },
   },
   {
     id: 'C',
-    name: '名前の下に細い棒',
+    name: '名前の下に細い棒（前回の間隔）',
     intent:
-      '名前と値の行の下に、Meter と同じ太さの濃い棒を置く。棒は部品の色そのままで、長さの差がいちばん読みやすい。名前の上に何も重ならないが、行が 2 段になり縦に長い',
+      '前回出した間隔。名前と棒の間（8px）が行の間（6px）より広く、棒が次の行の名前と組に見える',
     spec: [
       ['variant', 'below'],
-      ['棒', '部品の色の塗り・8px'],
+      ['名前と棒の間', '8px'],
+      ['行の間', '6px'],
     ],
-    tokens: { '--bar-list-fill-mix': '20%' },
+    tokens: {
+      '--bar-list-fill-mix': '20%',
+      '--bar-list-below-gap': 'calc(var(--spacing) * 2)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 1.5)',
+    },
+  },
+  {
+    id: 'C2',
+    name: '名前の下に細い棒（名前に寄せる）',
+    intent:
+      '名前と棒の間を 4px に詰め、行の間を 12px に広げる。名前の行の上下にも余白があるので、見た目の間はおよそ 1 対 3 になり、棒が自分の名前と組に見える',
+    spec: [
+      ['variant', 'below'],
+      ['名前と棒の間', '4px'],
+      ['行の間', '12px'],
+    ],
+    tokens: {
+      '--bar-list-fill-mix': '20%',
+      '--bar-list-below-gap': 'var(--spacing)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+    },
+  },
+  {
+    id: 'C3',
+    name: '名前の下に細い棒（さらに寄せる）',
+    intent:
+      '名前と棒の間を 2px、行の間を 16px にする。組はいちばんはっきりするが、棒が名前の下端に付いて見え、一覧が縦に長くなる',
+    spec: [
+      ['variant', 'below'],
+      ['名前と棒の間', '2px'],
+      ['行の間', '16px'],
+    ],
+    tokens: {
+      '--bar-list-fill-mix': '20%',
+      '--bar-list-below-gap': 'calc(var(--spacing) * 0.5)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 4)',
+    },
   },
 ];
 
@@ -110,7 +161,6 @@ export const Candidates: Story = {
             aria-label="よく読まれた記事"
             items={articles}
             variant={variantOf[candidate.id]}
-            color="brand"
           />
         );
         switch (column.label) {
@@ -134,20 +184,19 @@ export const Candidates: Story = {
       }}
     >
       <p>
-        BarList の形を決めます。名前を淡い棒に重ねる形（現行版・A・B
-        は濃さ違い）と、名前の下に細い棒を置く形（C）です。どちらも `variant`
-        で選べるようにし、ここで決めるのは既定と、重ねる形の棒の濃さです。色は 660
-        の決定に合わせるまで、水色で比べています。
+        決定:
+        現行版（重ねる・20%）を既定にし、名前の下に棒を置く形も選べるようにする。残りは、名前の下に棒を置く形の間隔です。
       </p>
       <p>
-        おすすめは現行版（重ねる・20%）を既定にし、C
-        も選べる形です。重ねる形は行が詰まり、カードの中で「よく読まれた記事」のような短い一覧に収まります。C
-        は長さの差がいちばん読みやすいので、割合を比べたい一覧（使った言語の割合など）で選べるようにします。
+        前回の C は、名前と棒の間が行の間より広く、棒が次の行の名前と組に見えていました。C2・C3
+        は名前と棒の間を詰め、行の間を広げています。
       </p>
       <p>
-        既定にする案と、ほかに選べるようにしたい案を教えてください（例:「現行版を既定にして、C
-        も選べる」）。
+        おすすめは C2（名前と棒の間 4px、行の間 12px）です。名前の行には上下に余白があるので、4px
+        でも棒が名前に付いては見えず、行の間との差で組がはっきりします。C3
+        は組がいちばん強い一方、棒が名前に付いて見え、一覧も縦に長くなります。
       </p>
+      <p>C2・C3 のどちらがよいか（または、もっと寄せる・離すか）を教えてください。</p>
     </Comparison>
   ),
 };

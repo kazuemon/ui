@@ -10,7 +10,7 @@ const articles: BarListItem[] = [
   { label: 'ポートフォリオを作り直した', value: 420 },
   { label: 'Storybook で見た目を比べる', value: 180 },
 ];
-const colors = ['neutral', 'brand', 'primary', 'secondary'] as const;
+const colors = ['brand', 'neutral', 'primary', 'secondary'] as const;
 
 const meta = {
   title: 'Components/BarList',
@@ -25,7 +25,7 @@ const meta = {
           '- `items` に行（`label`・`value`、値の文字 `valueText`）を渡します。渡した順に上から並ぶので、多い順に見せたいときは並べ替えて渡します。',
           '- 棒の長さは、いちばん大きい値を 100% とした割合です。`max` で 100% にする値を固定できます。',
           '- `variant` で形を選びます。`overlay`（既定）は名前を淡い棒に重ね、`below` は名前の下に細い棒を置きます。',
-          '- `color` で棒の色を選びます。既定は濃いグレーです。`brand` は水色です。',
+          '- `color` で棒の色を選びます。既定は `brand`（水色）で、ほかのグラフの 1 番目の系列と同じ色です。目立たせたくないときは `neutral`（濃いグレー）を選びます。',
           '- 値は `format`（Intl.NumberFormat の指定）で整えます。行ごとに `valueText` で書くこともできます。',
           '- 一覧の名前は `aria-label` で付けます。',
         ].join('\n'),

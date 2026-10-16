@@ -10,7 +10,8 @@ import { tv } from '../../internal/tv';
 // 形は 2 つ（variant）
 //   overlay: 名前を棒の上に重ねる。棒は部品の色を透かした淡い面で、名前は本文の色のまま読める
 //   below: 名前と値の行の下に、Meter と同じ細い棒を置く。棒は部品の色の濃い塗りで、地は敷かない
-// 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（Meter と同じ）。brand はグラフの系列の 1 番（ADR-0531）
+//     棒が自分の名前と組に見えるよう、名前と棒の間を詰め、行の間を広げる
+// 色は利用者が選ぶ（原則6）。指定しないときは brand（ADR-0532、Sparkline と同じ）。brand はグラフの系列の 1 番（ADR-0531）
 // 読み上げは ul・li で、行ごとに名前と値を読む。棒は値の文字と同じことを示すので読まない（原則6: 色や長さだけで伝えない）
 const barList = tv({
   slots: {
@@ -33,7 +34,8 @@ const barList = tv({
         ],
       },
       below: {
-        item: 'gap-y-(--spacing-field-gap)',
+        root: 'gap-(--bar-list-below-row-gap)',
+        item: 'gap-y-(--bar-list-below-gap)',
         label: 'col-start-1 row-start-1',
         value: 'col-start-2 row-start-1',
         bar: 'col-span-full row-start-2 h-(--bar-list-bar-height) rounded-pill bg-(color:--bar-list-color)',
@@ -46,7 +48,7 @@ const barList = tv({
       neutral: { root: '[--bar-list-color:var(--color-neutral-strong)]' },
     },
   },
-  defaultVariants: { variant: 'overlay', color: 'neutral' },
+  defaultVariants: { variant: 'overlay', color: 'brand' },
 });
 
 /** 棒の色。brand は水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー */
@@ -78,7 +80,7 @@ export interface BarListProps extends Omit<ComponentProps<'ul'>, 'color' | 'chil
   variant?: BarListVariant;
   /**
    * 棒の色
-   * @default 'neutral'
+   * @default 'brand'
    */
   color?: BarListColor;
   /** 値を整える Intl.NumberFormat の指定。渡さないときは桁区切りだけを付けます */
