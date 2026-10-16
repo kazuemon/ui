@@ -1,5 +1,7 @@
 import type { ReactNode, SVGProps } from 'react';
 
+import type { VariantProps } from 'tailwind-variants';
+
 import { tv } from '../../internal/tv';
 
 // グラフの SVG の中に置く小さな印。ライブラリの「点を描く関数」「ラベルを描く関数」から返す
@@ -41,13 +43,26 @@ export function ChartDot({ cx, cy, color, className, style, ...props }: ChartDot
 }
 
 // 線の右端に書く系列の名前。凡例と同じことを、線のそばで伝える（4 系列までは名前を直接書く）
-// 文字はキャプションの大きさ。色は、線の色（color）を --chart-label-tint だけ --chart-label-base に混ぜる（軸 666 の比較用）
+// 文字はキャプションの大きさ。色は variant で選ぶ（ADR-0538）
+//   tinted: 線の色に本文の濃紺を混ぜて濃くした色。既定。色相で線と結びつき、系列の 8 色どれでも小さな文字の 4.5:1 を満たす
+//   series: 線と同じ色。結びつきはいちばん強いが、白地で 3:1 ほどなので、文字としては薄い
+//   body・muted: 本文の色・淡い本文の色。線とは位置だけで結びつける
 const chartLineLabel = tv({
-  base: [
-    'translate-x-(--chart-label-gap) text-(length:--text-caption) font-medium',
-    '[fill:color-mix(in_oklab,var(--chart-line-color,var(--chart-label-base))_var(--chart-label-tint),var(--chart-label-base))]',
-  ],
+  base: 'translate-x-(--chart-label-gap) text-(length:--text-caption) font-medium',
+  variants: {
+    variant: {
+      tinted:
+        '[fill:color-mix(in_oklab,var(--chart-line-color,var(--color-fg))_var(--chart-label-tint),var(--color-fg))]',
+      series: '[fill:var(--chart-line-color,var(--color-fg-muted))]',
+      body: 'fill-fg',
+      muted: 'fill-fg-muted',
+    },
+  },
+  defaultVariants: { variant: 'tinted' },
 });
+
+/** 線の端の名前の色。tinted は線の色を濃くした色、series は線と同じ色、body は本文の色、muted は淡い本文の色 */
+export type ChartLineLabelVariant = NonNullable<VariantProps<typeof chartLineLabel>['variant']>;
 
 export interface ChartLineLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' | 'y'> {
   /** 線の端の横の位置（SVG の座標）。文字はここから --chart-label-gap だけ右に置きます */
@@ -58,6 +73,11 @@ export interface ChartLineLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' 
   children: ReactNode;
   /** 線の色（CSS の色）。線に渡した色と同じものを渡します */
   color?: string;
+  /**
+   * 文字の色。tinted は線の色を濃くした色、series は線と同じ色（文字としては薄い）、body は本文の色、muted は淡い本文の色
+   * @default 'tinted'
+   */
+  variant?: ChartLineLabelVariant;
   /** いちばん外の要素に付きます */
   className?: string;
 }
@@ -70,6 +90,7 @@ export function ChartLineLabel({
   y,
   children,
   color,
+  variant = 'tinted',
   className,
   style,
   ...props
@@ -81,7 +102,8 @@ export function ChartLineLabel({
       x={x}
       y={y}
       dominantBaseline="central"
-      className={chartLineLabel({ className })}
+      data-variant={variant}
+      className={chartLineLabel({ variant, className })}
       style={{ ...style, ['--chart-line-color' as string]: color }}
       {...props}
     >

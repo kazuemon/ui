@@ -3,6 +3,7 @@
 import { type ComponentProps, type CSSProperties, type ReactNode, useId, useState } from 'react';
 
 import { tv } from '../../internal/tv';
+import { Button } from '../button/Button';
 import { SegmentedControl, SegmentedControlItem } from '../segmented-control/SegmentedControl';
 
 // グラフの枠。題・説明・凡例を置き、グラフを描く場所の高さを決める。グラフそのものはライブラリが描く（レシピ）
@@ -109,19 +110,34 @@ export function ChartFrame({
             {description != null ? <p className={styles.description()}>{description}</p> : null}
           </div>
           {table != null ? (
-            <SegmentedControl<ChartFrameView>
-              accessibleName="表示"
-              value={view}
-              onValueChange={setView}
-            >
-              <SegmentedControlItem value="chart">{chartLabel}</SegmentedControlItem>
-              <SegmentedControlItem value="table">{tableLabel}</SegmentedControlItem>
-            </SegmentedControl>
+            // 軸 667 の比較用: --chart-toggle-header で題の行の切り替えを出し入れする
+            <div className="[display:var(--chart-toggle-header,block)]">
+              <SegmentedControl<ChartFrameView>
+                accessibleName="表示"
+                value={view}
+                onValueChange={setView}
+              >
+                <SegmentedControlItem value="chart">{chartLabel}</SegmentedControlItem>
+                <SegmentedControlItem value="table">{tableLabel}</SegmentedControlItem>
+              </SegmentedControl>
+            </div>
           ) : null}
         </div>
       ) : null}
       {legend != null && !showTable ? legend : null}
       {showTable ? table : <div className={styles.plot()}>{children}</div>}
+      {table != null ? (
+        // 軸 667 の比較用: グラフの下に、もう一方の形へ移るボタンを置く案（--chart-toggle-footer）
+        <div className="[display:var(--chart-toggle-footer,none)] justify-end">
+          <Button
+            variant="underline"
+            size="sm"
+            onClick={() => setView(showTable ? 'chart' : 'table')}
+          >
+            {showTable ? 'グラフで見る' : '表で見る'}
+          </Button>
+        </div>
+      ) : null}
     </figure>
   );
 }

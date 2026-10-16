@@ -193,6 +193,7 @@ export {
   type ChartDotProps,
   ChartLineLabel,
   type ChartLineLabelProps,
+  type ChartLineLabelVariant,
 } from './components/chart/ChartMarks';
 export {
   ChartTooltip,

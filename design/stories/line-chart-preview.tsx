@@ -13,6 +13,14 @@ import { ChartFrame } from '../../src/components/chart/ChartFrame';
 import { ChartLegend } from '../../src/components/chart/ChartLegend';
 import { ChartDot, ChartLineLabel } from '../../src/components/chart/ChartMarks';
 import { ChartTooltip } from '../../src/components/chart/ChartTooltip';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../src/components/table/Table';
 
 // 線グラフの軸（663〜）の比較で共有する見本。Recipes/LineChart と同じ組み方で、hover した状態を固定して描ける
 // 軸が決まったら、比較のストーリーと一緒に消す
@@ -38,7 +46,12 @@ export function LineChartPreview({
   activeIndex,
   seriesCount = 3,
   height = 220,
+  showTable = false,
+  defaultView,
 }: {
+  defaultView?: 'chart' | 'table';
+  /** 表で見る形を渡す（「グラフ・表」の切り替えが出る） */
+  showTable?: boolean;
   /** hover した状態を固定する位置。渡さないときは hover していない */
   activeIndex?: number;
   seriesCount?: 1 | 2 | 3;
@@ -52,7 +65,36 @@ export function LineChartPreview({
         title="週ごとの閲覧数"
         description="直近 12 週"
         height={height}
+        defaultView={defaultView}
         legend={shown.length > 1 ? <ChartLegend items={shown} /> : undefined}
+        table={
+          showTable ? (
+            <Table accessibleName="週ごとの閲覧数" size="sm">
+              <TableHead>
+                <TableRow>
+                  <TableHeader>週</TableHeader>
+                  {shown.map((s) => (
+                    <TableHeader key={s.key} align="end">
+                      {s.label}
+                    </TableHeader>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.map((row) => (
+                  <TableRow key={row.week}>
+                    <TableCell>{row.week}</TableCell>
+                    {shown.map((s) => (
+                      <TableCell key={s.key} align="end">
+                        {formatViews(row[s.key])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : undefined
+        }
       >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 88, bottom: 0, left: 0 }}>
