@@ -21,6 +21,8 @@
   --chart-tooltip-padding-y: calc(var(--spacing) * 2);
   --chart-tooltip-row-gap: var(--spacing);
   --chart-tooltip-min-width: calc(var(--spacing) * 36);
-  --chart-dot-radius: 4px;
+  --chart-dot-radius: 5px;
   --chart-label-gap: calc(var(--spacing) * 2);
+  --chart-label-base: var(--color-fg-muted);
+  --chart-label-tint: 0%;
 }

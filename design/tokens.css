@@ -231,11 +231,11 @@
      grid: 値を読むための横の線。線より淡くし、系列の線を邪魔しない
      axis: 0 や下端の基準の線
      tick: 目盛りの文字。キャプションと同じ淡さ（白地 4.5）
-     cursor: hover で値の位置を示す縦の線 */
+     cursor: hover で値の位置を示す縦の線。位置の補助なので、下端の軸と同じ淡さ（ADR-0537） */
   --color-chart-grid: var(--palette-gray-200);
   --color-chart-axis: var(--palette-gray-300);
   --color-chart-tick: var(--color-fg-subtle);
-  --color-chart-cursor: var(--palette-gray-500);
+  --color-chart-cursor: var(--palette-gray-300);
 
   /* 押せないとき（原則 1）。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す

@@ -78,7 +78,6 @@ export function LineChartPreview({
               cursor={{
                 stroke: 'var(--color-chart-cursor)',
                 strokeWidth: 1,
-                strokeDasharray: 'var(--chart-cursor-dash, none)',
               }}
               isAnimationActive={false}
               content={({ active, payload, label }) =>
@@ -110,7 +109,7 @@ export function LineChartPreview({
                   dataKey={s.key}
                   content={(props) =>
                     props.index === last ? (
-                      <ChartLineLabel x={props.x} y={props.y}>
+                      <ChartLineLabel x={props.x} y={props.y} color={s.color}>
                         {s.label}
                       </ChartLineLabel>
                     ) : null

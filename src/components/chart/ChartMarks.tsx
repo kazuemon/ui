@@ -41,9 +41,12 @@ export function ChartDot({ cx, cy, color, className, style, ...props }: ChartDot
 }
 
 // 線の右端に書く系列の名前。凡例と同じことを、線のそばで伝える（4 系列までは名前を直接書く）
-// 文字はキャプションの大きさ。色は淡い文字（系列の色は白地で 3:1 ほどなので、小さい文字には使わない）
+// 文字はキャプションの大きさ。色は、線の色（color）を --chart-label-tint だけ --chart-label-base に混ぜる（軸 666 の比較用）
 const chartLineLabel = tv({
-  base: 'translate-x-(--chart-label-gap) fill-fg-muted text-(length:--text-caption) font-medium',
+  base: [
+    'translate-x-(--chart-label-gap) text-(length:--text-caption) font-medium',
+    '[fill:color-mix(in_oklab,var(--chart-line-color,var(--chart-label-base))_var(--chart-label-tint),var(--chart-label-base))]',
+  ],
 });
 
 export interface ChartLineLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' | 'y'> {
@@ -53,6 +56,8 @@ export interface ChartLineLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' 
   y?: number | string;
   /** 系列の名前 */
   children: ReactNode;
+  /** 線の色（CSS の色）。線に渡した色と同じものを渡します */
+  color?: string;
   /** いちばん外の要素に付きます */
   className?: string;
 }
@@ -60,7 +65,15 @@ export interface ChartLineLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' 
 /**
  * 線の右端に書く系列の名前です。グラフの SVG の中に置きます。右に名前の入る余白を空けておきます
  */
-export function ChartLineLabel({ x, y, children, className, ...props }: ChartLineLabelProps) {
+export function ChartLineLabel({
+  x,
+  y,
+  children,
+  color,
+  className,
+  style,
+  ...props
+}: ChartLineLabelProps) {
   if (x == null || y == null) return null;
   return (
     <text
@@ -69,6 +82,7 @@ export function ChartLineLabel({ x, y, children, className, ...props }: ChartLin
       y={y}
       dominantBaseline="central"
       className={chartLineLabel({ className })}
+      style={{ ...style, ['--chart-line-color' as string]: color }}
       {...props}
     >
       {children}

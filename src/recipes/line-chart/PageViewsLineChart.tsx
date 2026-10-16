@@ -131,7 +131,7 @@ export function PageViewsLineChart({ data }: { data: WeeklyViews[] }) {
                 dataKey={s.key}
                 content={(props) =>
                   props.index === last ? (
-                    <ChartLineLabel x={props.x} y={props.y}>
+                    <ChartLineLabel x={props.x} y={props.y} color={s.color}>
                       {s.label}
                     </ChartLineLabel>
                   ) : null
