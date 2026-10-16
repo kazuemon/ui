@@ -1,7 +1,7 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 
 import { tv } from '../../internal/tv';
-import { chartMarker, seriesColor } from './ChartMarker';
+import { chartMarker, type ChartMarkerType, seriesColor } from './ChartMarker';
 
 // hover した位置の値を見せるカード。グラフのライブラリが hover の判定と置き場所を持ち、この部品は中身の見た目だけを持つ
 //   Recharts なら <Tooltip content={...}> に渡す。出す・出さないもライブラリが決める
@@ -41,6 +41,11 @@ export interface ChartTooltipProps extends Omit<ComponentProps<'div'>, 'children
   title?: ReactNode;
   /** 行。上から順に並べます */
   items: readonly ChartTooltipItem[];
+  /**
+   * 色の印の形。dot は丸、dash は短い線（線グラフ向き）、square は角の丸い四角（棒・円のグラフ向き）
+   * @default 'dot'
+   */
+  markerType?: ChartMarkerType;
   /** いちばん外の要素に付きます */
   className?: string;
 }
@@ -48,17 +53,28 @@ export interface ChartTooltipProps extends Omit<ComponentProps<'div'>, 'children
 /**
  * hover した位置の値を見せるカードです。グラフのライブラリの、hover で出す中身として渡します
  */
-export function ChartTooltip({ title, items, className, ...props }: ChartTooltipProps) {
+export function ChartTooltip({
+  title,
+  items,
+  markerType = 'dot',
+  className,
+  ...props
+}: ChartTooltipProps) {
   const styles = chartTooltip();
   return (
-    <div data-slot="chart-tooltip" className={styles.root({ className })} {...props}>
+    <div
+      data-slot="chart-tooltip"
+      data-marker-type={markerType}
+      className={styles.root({ className })}
+      {...props}
+    >
       {title != null ? <div className={styles.title()}>{title}</div> : null}
       <ul className={styles.list()}>
         {items.map((item, i) => (
           <li key={i} className={styles.row()}>
             <span
               aria-hidden
-              className={chartMarker()}
+              className={chartMarker({ markerType })}
               style={{ '--chart-marker-color': seriesColor(item.color, i) } as CSSProperties}
             />
             <span className={styles.label()}>{item.label}</span>

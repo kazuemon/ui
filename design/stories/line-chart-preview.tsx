@@ -75,7 +75,11 @@ export function LineChartPreview({
             <Tooltip
               defaultIndex={activeIndex}
               active={activeIndex != null ? true : undefined}
-              cursor={{ stroke: 'var(--color-chart-cursor)', strokeWidth: 1 }}
+              cursor={{
+                stroke: 'var(--color-chart-cursor)',
+                strokeWidth: 1,
+                strokeDasharray: 'var(--chart-cursor-dash, none)',
+              }}
               isAnimationActive={false}
               content={({ active, payload, label }) =>
                 active && payload?.length ? (

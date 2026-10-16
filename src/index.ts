@@ -182,6 +182,7 @@ export {
   type ChartFrameProps,
   type ChartFrameView,
 } from './components/chart/ChartFrame';
+export { type ChartMarkerType } from './components/chart/ChartMarker';
 export {
   ChartLegend,
   type ChartLegendItem,
