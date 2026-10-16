@@ -23,7 +23,7 @@ const sparkline = tv({
     line: 'fill-none stroke-current [stroke-width:var(--border-width-thick)] [stroke-linecap:round] [stroke-linejoin:round]',
     area: 'fill-current stroke-none opacity-(--sparkline-area-opacity)',
     endPoint:
-      'absolute size-(--sparkline-end-point-size) -translate-1/2 rounded-full bg-current ring-2 ring-surface',
+      'absolute size-(--sparkline-end-point-size) -translate-1/2 rounded-full bg-current ring-(length:--border-width-thick) ring-surface',
   },
   variants: {
     color: {
@@ -38,13 +38,13 @@ const sparkline = tv({
   defaultVariants: { color: 'brand' },
 });
 
-/** 線の色。brand は水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー、success・danger は状態の色 */
+/** 線の色。brand はグラフの系列の 1 番の水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー、success・danger は状態の色 */
 export type SparklineColor = NonNullable<VariantProps<typeof sparkline>['color']>;
 /** 見た目の型。line は線だけ、area は線の下を淡く塗る */
 export type SparklineVariant = 'line' | 'area';
 
 export interface SparklineProps extends Omit<ComponentProps<'span'>, 'color' | 'children'> {
-  /** 値の並び。左から順に描きます。2 つ以上で線になり、1 つなら点だけです */
+  /** 値の並び。左から順に描きます。2 つ以上で線になり、1 つなら点だけです。NaN などの欠けた値のところでは線を切ります */
   data: readonly number[];
   /**
    * 線の色
@@ -57,10 +57,11 @@ export interface SparklineProps extends Omit<ComponentProps<'span'>, 'color' | '
    */
   variant?: SparklineVariant;
   /**
-   * 最後の値に点を置きます。いまの値がどこかを示します
-   * @default true
+   * 最後の値の点を出さないようにします。点は、いまの値がどこかを示します。
+   * 値が 1 つのときは、線が引けないので点を出します
+   * @default false
    */
-  showEndPoint?: boolean;
+  hideEndPoint?: boolean;
   /** 縦の下端の値。渡さないときは data の最小値です。0 から描きたいときは 0 を渡します */
   min?: number;
   /** 縦の上端の値。渡さないときは data の最大値です */
@@ -73,16 +74,44 @@ export interface SparklineProps extends Omit<ComponentProps<'span'>, 'color' | '
   className?: string;
 }
 
-/** 値を 100×100 の座標に置く。上が大きい値 */
+interface Point {
+  x: number;
+  y: number;
+}
+
+/** 値を 100×100 の座標に置く。上が大きい値。数でない値（NaN・Infinity）は欠けた値として null にする */
 function toPoints(data: readonly number[], min: number, max: number) {
   const span = max - min;
   const last = data.length - 1;
-  return data.map((value, i) => ({
-    x: last > 0 ? (i / last) * 100 : 50,
-    // 値がみな同じときは、真ん中に横線を引く
-    y: span > 0 ? 100 - ((Math.min(Math.max(value, min), max) - min) / span) * 100 : 50,
-  }));
+  return data.map((value, i): Point | null =>
+    Number.isFinite(value)
+      ? {
+          x: last > 0 ? (i / last) * 100 : 50,
+          // 値がみな同じときは、真ん中に横線を引く
+          y: span > 0 ? 100 - ((Math.min(Math.max(value, min), max) - min) / span) * 100 : 50,
+        }
+      : null
+  );
 }
+
+/** 欠けた値のところで線を切り、つながった区間ごとに分ける */
+function toSegments(points: readonly (Point | null)[]) {
+  const segments: Point[][] = [];
+  let current: Point[] = [];
+  for (const point of points) {
+    if (point) {
+      current.push(point);
+    } else if (current.length > 0) {
+      segments.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) segments.push(current);
+  return segments;
+}
+
+const toPath = (segment: readonly Point[]) =>
+  segment.map(({ x, y }, i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join(' ');
 
 /**
  * 軸のない小さな折れ線です。数字の横や表のセルに置き、増え方・減り方の形を見せます
@@ -91,7 +120,7 @@ export function Sparkline({
   data,
   color,
   variant = 'line',
-  showEndPoint = true,
+  hideEndPoint = false,
   min,
   max,
   accessibleName,
@@ -99,11 +128,22 @@ export function Sparkline({
   ...props
 }: SparklineProps) {
   const styles = sparkline({ color });
-  const values = data.filter(Number.isFinite);
-  const lower = min ?? Math.min(...values);
-  const upper = max ?? Math.max(...values);
-  const points = values.length > 0 ? toPoints(values, lower, upper) : [];
-  const line = points.map(({ x, y }, i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join(' ');
+  // 最小・最大は引数に展開せずに数える（長い並びでも引数の上限を超えない）
+  let lowest = Infinity;
+  let highest = -Infinity;
+  let count = 0;
+  for (const value of data) {
+    if (!Number.isFinite(value)) continue;
+    lowest = Math.min(lowest, value);
+    highest = Math.max(highest, value);
+    count += 1;
+  }
+  const points = count > 0 ? toPoints(data, min ?? lowest, max ?? highest) : [];
+  const segments = toSegments(points);
+  const line = segments.map(toPath).join(' ');
+  // 点は最後の値に置く。最後の値が欠けていれば置かない（[5, NaN] でも先頭に点を置かない）
+  // 値が 1 つだけなら、線が引けないので hideEndPoint でもその点を出す
+  const single = data.length === 1;
   const end = points.at(-1);
   const a11y = accessibleName
     ? ({ role: 'img', 'aria-label': accessibleName } as const)
@@ -116,7 +156,7 @@ export function Sparkline({
       {...a11y}
       {...props}
     >
-      {points.length > 1 ? (
+      {segments.some((segment) => segment.length > 1) ? (
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
@@ -126,7 +166,11 @@ export function Sparkline({
         >
           {variant === 'area' ? (
             <path
-              d={`${line} L100 100 L0 100 Z`}
+              d={segments
+                .map(
+                  (segment) => `${toPath(segment)} L${segment.at(-1)?.x} 100 L${segment[0].x} 100 Z`
+                )
+                .join(' ')}
               className={styles.area()}
               data-slot="sparkline-area"
             />
@@ -134,7 +178,7 @@ export function Sparkline({
           <path d={line} vectorEffect="non-scaling-stroke" className={styles.line()} />
         </svg>
       ) : null}
-      {end && (showEndPoint || points.length === 1) ? (
+      {end && (!hideEndPoint || single) ? (
         <span
           data-slot="sparkline-end-point"
           className={styles.endPoint()}

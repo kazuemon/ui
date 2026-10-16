@@ -18,8 +18,8 @@ const meta = {
           '軸も目盛りもない小さな折れ線です。数字の横や表のセルに置き、増え方・減り方の形だけを見せます。押せません。',
           '',
           '- `data` に値を左から順に渡します。縦の範囲は値の最小から最大までで、`min`・`max` で固定できます（0 から描くなら `min={0}`）。',
-          '- `variant="area"` で線の下を淡く塗ります。最後の値には点を置きます。消すときは `showEndPoint={false}` を渡します。',
-          '- `color` で線の色を選びます。既定は `brand`（水色）で、ほかのグラフの 1 番目の系列と同じ色です。目立たせたくないときは `neutral`（濃いグレー）を選びます。',
+          '- `variant="area"` で線の下を淡く塗ります。最後の値には点を置きます。消すときは `hideEndPoint` を渡します。',
+          '- `color` で線の色を選びます。既定は `brand`（グラフの系列の 1 番目の水色）です。目立たせたくないときは `neutral`（濃いグレー）を選びます。',
           '- 大きさは周りの文字に合わせて伸び縮みします。変えるときは `className` に `w-*`・`h-*` を書きます。',
           '- 値は読み上げません。数字はそばの文字で伝えます。形にも意味があるときは `accessibleName` で名前を付けると、1 枚の絵として読まれます。',
         ].join('\n'),
@@ -49,8 +49,8 @@ export const Variations: Story = {
       <Specimen label="area">
         <Sparkline {...args} variant="area" />
       </Specimen>
-      <Specimen label="showEndPoint={false}">
-        <Sparkline {...args} showEndPoint={false} />
+      <Specimen label="hideEndPoint">
+        <Sparkline {...args} hideEndPoint />
       </Specimen>
       <Specimen label="min={0}">
         <Sparkline {...args} variant="area" min={0} />
@@ -61,8 +61,20 @@ export const Variations: Story = {
           <Sparkline data={[3, 3, 3]} />
         </span>
       </Specimen>
+      <Specimen label="欠けた値">
+        <span className="flex gap-3">
+          <Sparkline data={[4, 6, 5, Number.NaN, 7, 9, 12]} />
+          <Sparkline data={[4, 6, 5, 8, 7, Number.NaN]} variant="area" />
+          <Sparkline data-testid="trailing-missing" data={[5, Number.NaN]} />
+        </span>
+      </Specimen>
     </Gallery>
   ),
+  play: async ({ canvas }) => {
+    // 最後の値が欠けていれば、手前の値に点を置かない
+    const trailing = canvas.getByTestId('trailing-missing');
+    await expect(trailing.querySelector('[data-slot="sparkline-end-point"]')).toBeNull();
+  },
 };
 
 export const InText: Story = {

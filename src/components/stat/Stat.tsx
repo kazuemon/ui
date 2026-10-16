@@ -244,12 +244,14 @@ export function Stat({
   className,
   ...props
 }: StatProps) {
+  // false（`cond && <Sparkline />`）も、読み込み中も、グラフの場所を作らない
+  const hasChart = chart != null && chart !== false && !loading;
   const styles = stat({
     trend: trend ?? trendFromIndicator[deltaIndicator],
     align,
     size,
     fill: deltaFill,
-    chart: chart != null,
+    chart: hasChart,
     chartPlacement,
   });
   const DeltaIcon = indicatorIcons[deltaIndicator];
@@ -290,11 +292,11 @@ export function Stat({
           )}
         </div>
         {caption == null ? null : <p className={styles.caption()}>{caption}</p>}
-        {chart == null || loading ? null : (
+        {hasChart ? (
           <div className={styles.chart()} data-slot="stat-chart">
             {chart}
           </div>
-        )}
+        ) : null}
       </dd>
     </dl>
   );

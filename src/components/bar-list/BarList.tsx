@@ -9,7 +9,7 @@ import { tv } from '../../internal/tv';
 // 棒の長さは、いちばん大きい値（または max）を 100% とした割合
 // 形は 2 つ（variant）
 //   overlay: 名前を棒の上に重ねる。棒は部品の色を透かした淡い面で、名前は本文の色のまま読める
-//   below: 名前と値の行の下に、Meter と同じ細い棒を置く。棒は部品の色の濃い塗りで、地は敷かない
+//   below: 名前と値の行の下に、Meter の md と同じ太さの細い棒を置く。棒は部品の色の濃い塗りで、地は敷かない
 //     棒が自分の名前と組に見えるよう、名前と棒の間を詰め、行の間を広げる
 // 色は利用者が選ぶ（原則6）。指定しないときは brand（ADR-0532、Sparkline と同じ）。brand はグラフの系列の 1 番（ADR-0531）
 // 読み上げは ul・li で、行ごとに名前と値を読む。棒は値の文字と同じことを示すので読まない（原則6: 色や長さだけで伝えない）
@@ -38,7 +38,7 @@ const barList = tv({
         item: 'gap-y-(--bar-list-below-gap)',
         label: 'col-start-1 row-start-1',
         value: 'col-start-2 row-start-1',
-        bar: 'col-span-full row-start-2 h-(--bar-list-bar-height) rounded-pill bg-(color:--bar-list-color)',
+        bar: 'col-span-full row-start-2 h-(--bar-height-md) rounded-pill bg-(color:--bar-list-color)',
       },
     },
     color: {
@@ -51,7 +51,7 @@ const barList = tv({
   defaultVariants: { variant: 'overlay', color: 'brand' },
 });
 
-/** 棒の色。brand は水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー */
+/** 棒の色。brand はグラフの系列の 1 番の水色、primary・secondary は利用者が選ぶ色、neutral は濃いグレー */
 export type BarListColor = NonNullable<VariantProps<typeof barList>['color']>;
 /** 見た目の型。overlay は名前を棒に重ね、below は名前の下に細い棒を置く */
 export type BarListVariant = NonNullable<VariantProps<typeof barList>['variant']>;
@@ -60,7 +60,7 @@ export type BarListVariant = NonNullable<VariantProps<typeof barList>['variant']
 export interface BarListItem {
   /** 行の名前 */
   label: ReactNode;
-  /** 行の値。棒の長さになります。0 より小さい値は 0 として描きます */
+  /** 行の値。棒の長さになります。0 より小さい値の棒は長さ 0 で描き、値の文字はそのまま出します */
   value: number;
   /** 行の右に出す値の文字（「1.2 万」など）。書かないときは format で整えた値です */
   valueText?: string;
@@ -109,7 +109,8 @@ export function BarList({
   const upper = max ?? Math.max(0, ...items.map((item) => clamp(item.value)));
   const formatter = new Intl.NumberFormat(locale, format);
   return (
-    <ul data-slot="bar-list" className={styles.root({ className })} {...props}>
+    // list-style: none の ul を Safari が一覧として読むよう、role="list" を明示する
+    <ul data-slot="bar-list" role="list" className={styles.root({ className })} {...props}>
       {items.map((item, i) => {
         const ratio = upper > 0 ? Math.min(clamp(item.value) / upper, 1) : 0;
         return (
@@ -122,7 +123,7 @@ export function BarList({
             />
             <span className={styles.label()}>{item.label}</span>
             <span className={styles.value()}>
-              {item.valueText ?? formatter.format(clamp(item.value))}
+              {item.valueText ?? (Number.isFinite(item.value) ? formatter.format(item.value) : '—')}
             </span>
           </li>
         );

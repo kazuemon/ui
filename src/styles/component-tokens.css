@@ -5,8 +5,8 @@
 @import '../components/attachment/attachment.tokens.css';
 @import '../components/avatar-group/avatar-group.tokens.css';
 @import '../components/avatar/avatar.tokens.css';
-@import '../components/bleed/bleed.tokens.css';
 @import '../components/bar-list/bar-list.tokens.css';
+@import '../components/bleed/bleed.tokens.css';
 @import '../components/breadcrumb/breadcrumb.tokens.css';
 @import '../components/button-group/button-group.tokens.css';
 @import '../components/button/button.tokens.css';
