@@ -56,11 +56,7 @@ export function LineChartPreview({
       >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 88, bottom: 0, left: 0 }}>
-            <CartesianGrid
-              vertical={false}
-              stroke="var(--color-chart-grid)"
-              strokeDasharray="var(--chart-grid-dash)"
-            />
+            <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" />
             <XAxis
               dataKey="week"
               tick={tick}

@@ -84,11 +84,7 @@ export function PageViewsLineChart({ data }: { data: WeeklyViews[] }) {
       <ResponsiveContainer width="100%" height="100%">
         {/* 右は、線の端の名前が入る分を空ける */}
         <LineChart data={data} margin={{ top: 8, right: 88, bottom: 0, left: 0 }}>
-          <CartesianGrid
-            vertical={false}
-            stroke="var(--color-chart-grid)"
-            strokeDasharray="var(--chart-grid-dash)"
-          />
+          <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" />
           <XAxis
             dataKey="week"
             tick={tick}
