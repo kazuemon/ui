@@ -22,6 +22,14 @@
   --chart-tooltip-padding-y: calc(var(--spacing) * 2);
   --chart-tooltip-row-gap: var(--spacing);
   --chart-tooltip-min-width: calc(var(--spacing) * 36);
+  --chart-tooltip-text: var(--text-caption);
+  --chart-tooltip-leading: var(--leading-caption);
+  --chart-tooltip-title-color: var(--color-fg);
+  --chart-tooltip-title-weight: 500;
+  --chart-tooltip-title-gap: var(--spacing);
+  --chart-tooltip-title-pad: 0px;
+  --chart-tooltip-divider: 0px;
+  --chart-tooltip-value-weight: 500;
   --chart-dot-radius: 5px;
   --chart-label-gap: calc(var(--spacing) * 2);
   --chart-label-tint: 70%;

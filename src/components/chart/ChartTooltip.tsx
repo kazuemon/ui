@@ -13,13 +13,18 @@ const chartTooltip = tv({
     root: [
       'pointer-events-none min-w-(--chart-tooltip-min-width) rounded-control border-(length:--border-width-thin) border-surface-line bg-surface',
       'px-(--chart-tooltip-padding-x) py-(--chart-tooltip-padding-y) [box-shadow:var(--shadow-tooltip)]',
-      'text-(length:--text-caption) leading-(--leading-caption) text-fg',
+      'text-(length:--chart-tooltip-text) leading-(--chart-tooltip-leading) text-fg',
     ],
-    title: 'mb-(--chart-tooltip-row-gap) font-medium text-fg',
+    // 軸 669 の比較用: 題の色・太さ、題の下の区切り線、値の太さ、文字の大きさを --chart-tooltip-* で変える
+    title: [
+      'mb-(--chart-tooltip-title-gap) border-b-(length:--chart-tooltip-divider) border-line pb-(--chart-tooltip-title-pad)',
+      '[font-weight:var(--chart-tooltip-title-weight)] text-(color:--chart-tooltip-title-color)',
+    ],
     list: 'm-0 grid list-none grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-(--chart-tooltip-row-gap) p-0',
     row: 'col-span-full grid grid-cols-subgrid items-center',
     label: 'min-w-0 truncate text-fg-muted',
-    value: 'text-end font-medium whitespace-nowrap tabular-nums',
+    value:
+      'text-end [font-weight:var(--chart-tooltip-value-weight)] whitespace-nowrap tabular-nums',
   },
 });
 
