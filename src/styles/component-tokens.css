@@ -6,6 +6,7 @@
 @import '../components/avatar-group/avatar-group.tokens.css';
 @import '../components/avatar/avatar.tokens.css';
 @import '../components/bleed/bleed.tokens.css';
+@import '../components/bar-list/bar-list.tokens.css';
 @import '../components/breadcrumb/breadcrumb.tokens.css';
 @import '../components/button-group/button-group.tokens.css';
 @import '../components/button/button.tokens.css';
@@ -61,6 +62,7 @@
 @import '../components/skip-link/skip-link.tokens.css';
 @import '../components/slider/slider.tokens.css';
 @import '../components/sortable/sortable.tokens.css';
+@import '../components/sparkline/sparkline.tokens.css';
 @import '../components/spoiler/spoiler.tokens.css';
 @import '../components/stack/stack.tokens.css';
 @import '../components/stat/stat.tokens.css';
