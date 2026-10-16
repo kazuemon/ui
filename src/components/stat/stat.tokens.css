@@ -19,11 +19,11 @@
      chart-gap: 数字とグラフの横のあいだ
      chart-offset: グラフの上のあいだ（下に置くとき、キャプションから離す）
      chart-width・chart-height: グラフの大きさ（Sparkline の大きさに渡す） */
-  --stat-chart-areas: 'value chart' 'caption chart';
-  --stat-chart-columns: minmax(0, 1fr) auto;
-  --stat-chart-align: center;
-  --stat-chart-gap: calc(var(--spacing) * 4);
-  --stat-chart-offset: 0px;
-  --stat-chart-width: calc(var(--spacing) * 28);
-  --stat-chart-height: calc(var(--spacing) * 10);
+  --stat-chart-areas: 'value' 'caption' 'chart';
+  --stat-chart-columns: minmax(0, 1fr);
+  --stat-chart-align: stretch;
+  --stat-chart-gap: 0px;
+  --stat-chart-offset: calc(var(--spacing) * 3);
+  --stat-chart-width: 100%;
+  --stat-chart-height: calc(var(--spacing) * 12);
 }

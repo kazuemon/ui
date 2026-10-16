@@ -10,7 +10,7 @@ const meta = {
   title: 'Design Review/662 Stat のグラフの場所',
   id: 'design-review-662-stat-chart',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'C,B' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -176,6 +176,10 @@ export const Candidates: Story = {
         }
       }}
     >
+      <p>
+        決定（ADR-0534）:
+        C（下に幅いっぱい）を既定にし、B（数字とキャプションの右）も選べるようにする。
+      </p>
       <p>
         Stat に、数字の推移を見せるグラフ（Sparkline など）を添える場所を決めます。`chart`
         に渡したものを、Stat
