@@ -8,7 +8,7 @@ import { tv } from '../../internal/tv';
 // 並び順は部品が決めない（原則20）。渡した順に上から並べる。多い順に見せたいときは、使う側が並べ替えて渡す
 // 棒の長さは、いちばん大きい値（または max）を 100% とした割合
 // 形は 2 つ（variant）
-//   overlay: 名前を棒の上に重ねる。棒は部品の色を地に淡く混ぜた面で、名前は本文の色のまま読める
+//   overlay: 名前を棒の上に重ねる。棒は部品の色を透かした淡い面で、名前は本文の色のまま読める
 //   below: 名前と値の行の下に、Meter と同じ細い棒を置く。棒は部品の色の濃い塗りで、地は敷かない
 // 色は利用者が選ぶ（原則6）。指定しないときは濃いグレー（Meter と同じ）。brand はグラフの系列の 1 番（ADR-0531）
 // 読み上げは ul・li で、行ごとに名前と値を読む。棒は値の文字と同じことを示すので読まない（原則6: 色や長さだけで伝えない）
@@ -29,7 +29,7 @@ const barList = tv({
         value: 'col-start-2 row-start-1',
         bar: [
           'col-start-1 row-start-1 h-full self-stretch rounded-md',
-          'bg-[color-mix(in_oklab,var(--bar-list-color)_var(--bar-list-fill-mix),var(--color-surface))]',
+          'bg-[color-mix(in_oklab,var(--bar-list-color)_var(--bar-list-fill-mix),transparent)]',
         ],
       },
       below: {
