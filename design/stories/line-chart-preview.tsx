@@ -49,7 +49,11 @@ export function LineChartPreview({
   showTable = false,
   defaultView,
   width = 560,
+  curve = 'linear',
+  lineWidth = 'var(--border-width-thick)',
 }: {
+  curve?: 'linear' | 'monotone' | 'step';
+  lineWidth?: string;
   width?: number;
   defaultView?: 'chart' | 'table';
   /** 表で見る形を渡す（「グラフ・表」の切り替えが出る） */
@@ -146,7 +150,8 @@ export function LineChartPreview({
                 key={s.key}
                 dataKey={s.key}
                 stroke={s.color}
-                strokeWidth="var(--border-width-thick)"
+                type={curve}
+                strokeWidth={lineWidth}
                 dot={false}
                 activeDot={(props) => (
                   <ChartDot key={props.key} cx={props.cx} cy={props.cy} color={s.color} />
