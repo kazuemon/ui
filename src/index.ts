@@ -180,6 +180,7 @@ export {
 export {
   ChartFrame,
   type ChartFrameProps,
+  type ChartFrameTableHeight,
   type ChartFrameView,
   type ChartFrameViewToggle,
   type ChartFrameViewToggleSize,

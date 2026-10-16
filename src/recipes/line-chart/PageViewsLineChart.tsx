@@ -55,7 +55,7 @@ export function PageViewsLineChart({ data }: { data: WeeklyViews[] }) {
       description="直近 12 週"
       legend={<ChartLegend items={series} />}
       table={
-        <Table accessibleName="週ごとの閲覧数">
+        <Table accessibleName="週ごとの閲覧数" maxHeight="var(--chart-table-max-height)">
           <TableHead>
             <TableRow>
               <TableHeader>週</TableHeader>

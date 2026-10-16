@@ -1,6 +1,13 @@
 'use client';
 
-import { type ComponentProps, type CSSProperties, type ReactNode, useId, useState } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
 import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
@@ -14,6 +21,12 @@ import { SegmentedControl, SegmentedControlItem } from '../segmented-control/Seg
 //     大きさは viewToggleSize。既定は sm（ボタンの小と同じ高さ・文字）。ふつうの大きさでは題より目立ち、グラフの上が重い
 //   button: もう一方の形へ移る下線のボタン（「表で見る」）。グラフの上がいちばん軽い。場所は同じ題の行の右
 //   切り替えの文言は部品そのものの操作なので既定を持ち、差し替えられる（原則20）
+// 表の高さ（tableHeight）— ADR-0540
+//   chart: 既定。グラフのときの凡例とグラフを合わせた高さにそろえ、切り替えても枠の高さを変えない（下の内容が跳ねない）
+//     切り替える直前に凡例とグラフの高さを測り、表の場所の最低の高さと --chart-table-max-height にする
+//     Table に maxHeight="var(--chart-table-max-height)" を渡すと、あふれた行は表の中でスクロールし、見出しの行が貼り付く
+//     はじめから表を見せるときは測れないので、凡例の 1 行 + 間 + グラフの高さで見積もる
+//   auto: 表は行の数だけ伸びる
 const chartFrame = tv({
   slots: {
     root: 'm-0 flex min-w-0 flex-col gap-(--chart-frame-gap)',
@@ -24,6 +37,8 @@ const chartFrame = tv({
     description: 'm-0 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
     // 小さな切り替え: ボタンの小（Button の size="sm"）と同じ寸法のトークンを、切り替えの中だけ差し替える
     toggle: 'shrink-0',
+    body: 'flex min-w-0 flex-col gap-(--chart-frame-gap)',
+    tableArea: 'min-h-(--chart-table-max-height) min-w-0',
     plot: [
       'relative h-(--chart-height) w-full min-w-0',
       'text-(length:--text-caption) leading-(--leading-caption) tabular-nums',
@@ -48,6 +63,8 @@ export type ChartFrameView = 'chart' | 'table';
 export type ChartFrameViewToggle = 'segmented' | 'button';
 /** 切り替えの大きさ。sm はボタンの小と同じ、md はほかの欄と同じ */
 export type ChartFrameViewToggleSize = 'sm' | 'md';
+/** 表の高さ。chart はグラフのときと同じ高さにそろえ、auto は行の数だけ伸びる */
+export type ChartFrameTableHeight = 'chart' | 'auto';
 
 export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'children' | 'title'> {
   /** 題。グラフの上の見出しの行に出て、グラフの名前として読まれます */
@@ -69,6 +86,13 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
    * @default 240
    */
   height?: number | string;
+  /**
+   * 表の高さ。chart はグラフのときの凡例とグラフを合わせた高さにそろえ、切り替えても枠の高さが変わりません。
+   * Table に maxHeight="var(--chart-table-max-height)" を渡すと、あふれた行は表の中でスクロールし、見出しの行が貼り付きます。
+   * auto は行の数だけ伸びます
+   * @default 'chart'
+   */
+  tableHeight?: ChartFrameTableHeight;
   /**
    * 切り替えの形。segmented は「グラフ・表」の切り替え、button はもう一方の形へ移る下線のボタン（「表で見る」）です。
    * どちらも題の行の右に置きます
@@ -120,6 +144,7 @@ export function ChartFrame({
   table,
   defaultView = 'chart',
   height,
+  tableHeight = 'chart',
   viewToggle = 'segmented',
   viewToggleSize = 'sm',
   chartLabel = 'グラフ',
@@ -134,21 +159,33 @@ export function ChartFrame({
   const styles = chartFrame({ viewToggleSize });
   const titleId = useId();
   const [view, setView] = useState<ChartFrameView>(table ? defaultView : 'chart');
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState<number | null>(null);
   const showTable = table != null && view === 'table';
   const hasHeader = title != null || description != null || table != null;
+  const changeView = (next: ChartFrameView) => {
+    // 表へ移る直前に、凡例とグラフを合わせた高さを測る（凡例が折り返しても合う）
+    if (next === 'table' && bodyRef.current) setMeasured(bodyRef.current.offsetHeight);
+    setView(next);
+  };
+  const tableMaxHeight =
+    tableHeight !== 'chart' || table == null
+      ? undefined
+      : measured != null
+        ? `${measured}px`
+        : legend != null
+          ? 'calc(var(--leading-label) + var(--chart-frame-gap) + var(--chart-height))'
+          : 'var(--chart-height)';
+  const rootStyle: CSSProperties & Record<`--${string}`, string> = { ...style };
+  if (height != null)
+    rootStyle['--chart-height'] = typeof height === 'number' ? `${height}px` : height;
+  if (tableMaxHeight) rootStyle['--chart-table-max-height'] = tableMaxHeight;
   return (
     <figure
       data-slot="chart-frame"
       aria-labelledby={title != null ? titleId : undefined}
       className={styles.root({ className })}
-      style={
-        height != null
-          ? ({
-              ...style,
-              '--chart-height': typeof height === 'number' ? `${height}px` : height,
-            } as CSSProperties)
-          : style
-      }
+      style={rootStyle}
       {...props}
     >
       {hasHeader ? (
@@ -164,14 +201,17 @@ export function ChartFrame({
           {table != null ? (
             <div className={styles.toggle()} data-view-toggle={viewToggle}>
               {viewToggle === 'button' ? (
-                <Button variant="underline" onClick={() => setView(showTable ? 'chart' : 'table')}>
+                <Button
+                  variant="underline"
+                  onClick={() => changeView(showTable ? 'chart' : 'table')}
+                >
                   {showTable ? showChartLabel : showTableLabel}
                 </Button>
               ) : (
                 <SegmentedControl<ChartFrameView>
                   accessibleName={viewToggleName}
                   value={view}
-                  onValueChange={setView}
+                  onValueChange={changeView}
                 >
                   <SegmentedControlItem value="chart">{chartLabel}</SegmentedControlItem>
                   <SegmentedControlItem value="table">{tableLabel}</SegmentedControlItem>
@@ -181,8 +221,16 @@ export function ChartFrame({
           ) : null}
         </div>
       ) : null}
-      {legend != null && !showTable ? legend : null}
-      {showTable ? table : <div className={styles.plot()}>{children}</div>}
+      {showTable ? (
+        <div data-slot="chart-frame-table" className={styles.tableArea()}>
+          {table}
+        </div>
+      ) : (
+        <div ref={bodyRef} className={styles.body()}>
+          {legend}
+          <div className={styles.plot()}>{children}</div>
+        </div>
+      )}
     </figure>
   );
 }

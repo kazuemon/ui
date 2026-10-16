@@ -72,7 +72,7 @@ export function LineChartPreview({
             <Table
               accessibleName="週ごとの閲覧数"
               size="sm"
-              maxHeight="var(--chart-table-max-height, none)"
+              maxHeight="var(--chart-table-max-height)"
             >
               <TableHead>
                 <TableRow>
