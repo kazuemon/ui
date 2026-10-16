@@ -11,6 +11,9 @@ import {
 
 import { tv } from '../../internal/tv';
 import { Button } from '../button/Button';
+import { Spinner } from '../loading/Loading';
+import { Skeleton } from '../skeleton/Skeleton';
+import { StatusPanel } from '../status-panel/StatusPanel';
 import { SegmentedControl, SegmentedControlItem } from '../segmented-control/SegmentedControl';
 
 // グラフの枠。題・説明・凡例を置き、グラフを描く場所の高さを決める。グラフそのものはライブラリが描く（レシピ）
@@ -27,13 +30,16 @@ import { SegmentedControl, SegmentedControlItem } from '../segmented-control/Seg
 //     Table に maxHeight="var(--chart-table-max-height)" を渡すと、あふれた行は表の中でスクロールし、見出しの行が貼り付く
 //     はじめから表を見せるときは測れないので、凡例の 1 行 + 間 + グラフの高さで見積もる
 //   auto: 表は行の数だけ伸びる
+// 題の大きさ（titleSize。軸 679 で決める）: sm は Stat のラベルと同じ、md・lg は見出しの段
+// 読み込み中（loading）とデータがないとき（empty）は、グラフを描く場所に代わりのものを置き、凡例と切り替えを隠す
+//   loadingIndicator（軸 677 で決める）: skeleton は描く場所を Skeleton で埋め、spinner は真ん中に回る円、grid は淡いグリッドの線と文字
+//   emptyVariant（軸 676 で決める）: text は真ん中に淡い文字、panel は StatusPanel の小、grid は淡いグリッドの線の上に文字
 const chartFrame = tv({
   slots: {
     root: 'm-0 flex min-w-0 flex-col gap-(--chart-frame-gap)',
     header: 'flex items-start justify-between gap-3',
     heading: 'flex min-w-0 flex-col gap-0.5',
-    title:
-      'text-(length:--text-label) leading-(--leading-label) [font-weight:var(--font-weight-heading)] text-fg',
+    title: '[font-weight:var(--font-weight-heading)] text-fg',
     description: 'm-0 text-(length:--text-caption) leading-(--leading-caption) text-fg-muted',
     // 小さな切り替え: ボタンの小（Button の size="sm"）と同じ寸法のトークンを、切り替えの中だけ差し替える
     toggle: 'shrink-0',
@@ -44,8 +50,24 @@ const chartFrame = tv({
       'relative h-(--chart-height) w-full min-w-0',
       'text-(length:--text-caption) leading-(--leading-caption) tabular-nums',
     ],
+    // 読み込み中・データなしの中身。描く場所と同じ高さに置く
+    placeholder: [
+      'relative flex h-(--chart-height) w-full min-w-0 items-center justify-center',
+      'text-(length:--text-body-sm) leading-(--leading-body-sm) text-fg-muted',
+    ],
+    // 淡いグリッドの線（grid の形）: グリッドと同じ色の横線を、描く場所の高さを 4 つに割って引く
+    placeholderGrid: [
+      'pointer-events-none absolute inset-0',
+      'bg-[repeating-linear-gradient(to_bottom,var(--color-chart-grid)_0,var(--color-chart-grid)_1px,transparent_1px,transparent_calc((100%-1px)/4))]',
+    ],
+    placeholderText: 'relative bg-surface px-2',
   },
   variants: {
+    titleSize: {
+      sm: { title: 'text-(length:--text-label) leading-(--leading-label)' },
+      md: { title: 'text-(length:--text-heading-md) leading-(--leading-heading-md)' },
+      lg: { title: 'text-(length:--text-heading-lg) leading-(--leading-heading-lg)' },
+    },
     // 凡例の場所と寄せ（ADR-0542）。既定はグラフの下の中央で、図の注記のように添える。上下は legendPlacement で置く順を変える
     legendAlign: {
       center: { legend: 'justify-center' },
@@ -61,7 +83,7 @@ const chartFrame = tv({
       md: {},
     },
   },
-  defaultVariants: { legendAlign: 'center', viewToggleSize: 'sm' },
+  defaultVariants: { titleSize: 'sm', legendAlign: 'center', viewToggleSize: 'sm' },
 });
 
 export type ChartFrameView = 'chart' | 'table';
@@ -73,12 +95,23 @@ export type ChartFrameViewToggleSize = 'sm' | 'md';
 export type ChartFrameLegendPlacement = 'bottom' | 'top';
 /** 凡例の横の寄せ */
 export type ChartFrameLegendAlign = 'center' | 'start';
+/** 題の大きさ。sm は Stat のラベルと同じ、md・lg は見出しの段 */
+export type ChartFrameTitleSize = 'sm' | 'md' | 'lg';
+/** 読み込み中の印。skeleton は描く場所を埋め、spinner は回る円、grid は淡いグリッドと文字 */
+export type ChartFrameLoadingIndicator = 'skeleton' | 'spinner' | 'grid';
+/** データがないときの見せ方。text は淡い文字、panel は StatusPanel、grid は淡いグリッドの上に文字 */
+export type ChartFrameEmptyVariant = 'text' | 'panel' | 'grid';
 /** 表の高さ。chart はグラフのときと同じ高さにそろえ、auto は行の数だけ伸びる */
 export type ChartFrameTableHeight = 'chart' | 'auto';
 
 export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'children' | 'title'> {
   /** 題。グラフの上の見出しの行に出て、グラフの名前として読まれます */
   title?: ReactNode;
+  /**
+   * 題の大きさ。sm は Stat のラベルと同じ、md・lg は見出しの段です
+   * @default 'sm'
+   */
+  titleSize?: ChartFrameTitleSize;
   /** 題の下に添える説明（期間・単位など） */
   description?: ReactNode;
   /** 凡例。ChartLegend を渡します */
@@ -106,6 +139,36 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
    * @default 240
    */
   height?: number | string;
+  /**
+   * 読み込み中にします。グラフを描く場所に読み込み中の印を置き、凡例と切り替えを隠します
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * 読み込み中の印。skeleton は描く場所を Skeleton で埋め、spinner は真ん中に回る円、grid は淡いグリッドの線と文字です
+   * @default 'skeleton'
+   */
+  loadingIndicator?: ChartFrameLoadingIndicator;
+  /**
+   * 読み込み中の文字。spinner では読み上げだけ、grid では画面にも出ます
+   * @default '読み込んでいます'
+   */
+  loadingText?: string;
+  /**
+   * データがないことを示します。グラフを描く場所に emptyText を置き、凡例と切り替えを隠します
+   * @default false
+   */
+  empty?: boolean;
+  /**
+   * データがないときの文
+   * @default 'データがありません'
+   */
+  emptyText?: ReactNode;
+  /**
+   * データがないときの見せ方。text は真ん中に淡い文字、panel は StatusPanel の小、grid は淡いグリッドの線の上に文字です
+   * @default 'text'
+   */
+  emptyVariant?: ChartFrameEmptyVariant;
   /**
    * 表の高さ。chart はグラフのときの凡例とグラフを合わせた高さにそろえ、切り替えても枠の高さが変わりません。
    * Table に maxHeight="var(--chart-table-max-height)" を渡すと、あふれた行は表の中でスクロールし、見出しの行が貼り付きます。
@@ -158,6 +221,7 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
  */
 export function ChartFrame({
   title,
+  titleSize = 'sm',
   description,
   legend,
   legendPlacement = 'bottom',
@@ -167,6 +231,12 @@ export function ChartFrame({
   defaultView = 'chart',
   height,
   tableHeight = 'chart',
+  loading = false,
+  loadingIndicator = 'skeleton',
+  loadingText = '読み込んでいます',
+  empty = false,
+  emptyText = 'データがありません',
+  emptyVariant = 'text',
   viewToggle = 'segmented',
   viewToggleSize = 'sm',
   chartLabel = 'グラフ',
@@ -178,13 +248,15 @@ export function ChartFrame({
   style,
   ...props
 }: ChartFrameProps) {
-  const styles = chartFrame({ legendAlign, viewToggleSize });
+  const styles = chartFrame({ titleSize, legendAlign, viewToggleSize });
   const titleId = useId();
   const [view, setView] = useState<ChartFrameView>(table ? defaultView : 'chart');
   const bodyRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
-  const showTable = table != null && view === 'table';
-  const hasHeader = title != null || description != null || table != null;
+  const waiting = loading || empty;
+  const showTable = table != null && view === 'table' && !waiting;
+  const hasToggle = table != null && !waiting;
+  const hasHeader = title != null || description != null || hasToggle;
   // 読み上げは見た目の順（原則15）。CSS の order で動かさず、置く順を変える
   const legendNode =
     legend != null ? (
@@ -213,6 +285,7 @@ export function ChartFrame({
     <figure
       data-slot="chart-frame"
       aria-labelledby={title != null ? titleId : undefined}
+      aria-busy={loading || undefined}
       className={styles.root({ className })}
       style={rootStyle}
       {...props}
@@ -227,7 +300,7 @@ export function ChartFrame({
             ) : null}
             {description != null ? <p className={styles.description()}>{description}</p> : null}
           </div>
-          {table != null ? (
+          {hasToggle ? (
             <div className={styles.toggle()} data-view-toggle={viewToggle}>
               {viewToggle === 'button' ? (
                 <Button
@@ -250,7 +323,42 @@ export function ChartFrame({
           ) : null}
         </div>
       ) : null}
-      {showTable ? (
+      {waiting ? (
+        <div
+          data-slot="chart-frame-placeholder"
+          data-state={loading ? 'loading' : 'empty'}
+          className={styles.placeholder()}
+        >
+          {loading ? (
+            loadingIndicator === 'spinner' ? (
+              <Spinner size="lg" accessibleName={loadingText} />
+            ) : loadingIndicator === 'grid' ? (
+              <>
+                <span aria-hidden className={styles.placeholderGrid()} />
+                <span role="status" className={styles.placeholderText()}>
+                  {loadingText}
+                </span>
+              </>
+            ) : (
+              <>
+                <Skeleton variant="block" radius="card" className="absolute inset-0 size-full" />
+                <span role="status" className="sr-only">
+                  {loadingText}
+                </span>
+              </>
+            )
+          ) : emptyVariant === 'panel' ? (
+            <StatusPanel size="sm" title={emptyText} headingLevel={3} />
+          ) : (
+            <>
+              {emptyVariant === 'grid' ? (
+                <span aria-hidden className={styles.placeholderGrid()} />
+              ) : null}
+              <span className={styles.placeholderText()}>{emptyText}</span>
+            </>
+          )}
+        </div>
+      ) : showTable ? (
         <div data-slot="chart-frame-table" className={styles.tableArea()}>
           {table}
         </div>

@@ -1,7 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 
-import { PageViewsLineChart, type WeeklyViews } from './line-chart/PageViewsLineChart';
+import {
+  type LineChartLook,
+  PageViewsLineChart,
+  type WeeklyViews,
+} from './line-chart/PageViewsLineChart';
 import recipeSource from './line-chart/PageViewsLineChart.tsx?raw';
 import { sourceCode } from '../stories/story-states';
 
@@ -47,16 +51,152 @@ const meta = {
           '',
           '- `recharts` は、使う側で入れます（このライブラリの依存には入っていません）。版が変わると API が変わることがあるので、写したら型を確かめてください。',
           '- 色は、トークンを CSS 変数のまま Recharts の props に渡します。系列は `var(--color-series-1)` から順に、グリッドは `var(--color-chart-grid)`、軸の線は `var(--color-chart-axis)`、目盛りの文字は `var(--color-chart-tick)`、hover の縦の線は `var(--color-chart-cursor)` です。',
-          '- 線の太さは `var(--border-width-thick)` です。',
+          '- 線は折れ線（`type="linear"`）、太さは `var(--border-width-thick)` が既定です。点の少ないデータでなめらかに見せたいときは `type="monotone"`（値を行き過ぎない曲線）、線が多く重なるときは `var(--border-width-medium)` に細くします。',
+          '- グリッドは、横の淡い実線（`CartesianGrid` の `vertical={false}`）が既定です。破線にするときは `strokeDasharray="2 4"`、引かないときは `CartesianGrid` を置きません。',
           '- `ChartFrame` は、題・説明・凡例と、グラフを描く場所を作ります。描く場所の高さは `height` で変えます。Recharts の `ResponsiveContainer` を描く場所いっぱいに広げます。',
           '- 系列が 2 つ以上なら、凡例（`ChartLegend`）をいつも置きます。4 系列までは、線の右端に名前（`ChartLineLabel`）も書きます。右の余白（`margin.right`）に名前の入る幅を空けます。',
           '- hover のカードは、`Tooltip` の `content` に `ChartTooltip` を返します。印の色は payload の `color` をそのまま渡します。hover した点は、`activeDot` に `ChartDot` を返します。',
-          '- 同じ値を表で見る形（`table`）を渡すと、題の行に「グラフ・表」の切り替えが出ます。',
+          '- 同じ値を表で見る形（`table`）を渡すと、題の行の右に「グラフ・表」の切り替えが出ます。表は、グラフのときの凡例とグラフを合わせた高さにそろい、切り替えても枠の高さが変わりません（`tableHeight="chart"`）。そのために `Table` の `maxHeight` に `var(--chart-table-max-height)` を渡します。',
+          '- 選べる形（色の印・凡例の場所・切り替え・hover のカード・線の端の名前・線の形・グリッド）は、Controls で切り替えて見られます。見本の `look` は Controls のための口なので、写すときは使う形を直接書いてください。',
         ].join('\n'),
       },
     },
   },
-} satisfies Meta;
+  args: {
+    state: 'data',
+    titleSize: 'sm',
+    loadingIndicator: 'skeleton',
+    emptyVariant: 'text',
+    axisTitles: 'none',
+    yTicks: 'zero',
+    dots: 'none',
+    referenceLine: 'none',
+    referenceLabel: 'plain',
+    legendToggle: false,
+    legendHiddenVariant: 'ring',
+    markerType: 'dot',
+    legendPlacement: 'bottom',
+    legendAlign: 'center',
+    viewToggle: 'segmented',
+    viewToggleSize: 'sm',
+    tableHeight: 'chart',
+    tooltipVariant: 'value',
+    tooltipSize: 'sm',
+    lineLabelVariant: 'tinted',
+    showLineLabels: true,
+    curve: 'linear',
+    grid: 'solid',
+  },
+  argTypes: {
+    state: {
+      name: '状態',
+      control: 'inline-radio',
+      options: ['data', 'loading', 'empty'],
+    },
+    titleSize: {
+      name: '題の大きさ（titleSize）',
+      control: 'inline-radio',
+      options: ['sm', 'md', 'lg'],
+    },
+    loadingIndicator: {
+      name: '読み込み中の印（loadingIndicator）',
+      control: 'inline-radio',
+      options: ['skeleton', 'spinner', 'grid'],
+    },
+    emptyVariant: {
+      name: 'データなしの見せ方（emptyVariant）',
+      control: 'inline-radio',
+      options: ['text', 'panel', 'grid'],
+    },
+    axisTitles: {
+      name: '軸の名前（ChartAxisLabel）',
+      control: 'inline-radio',
+      options: ['none', 'top', 'vertical'],
+    },
+    yTicks: {
+      name: '縦の目盛り（YAxis の domain・tickCount）',
+      control: 'inline-radio',
+      options: ['zero', 'auto', 'few'],
+    },
+    dots: {
+      name: '線の上の点（Line の dot）',
+      control: 'inline-radio',
+      options: ['none', 'all', 'last'],
+    },
+    referenceLine: {
+      name: '基準の線（ReferenceLine）',
+      control: 'inline-radio',
+      options: ['none', 'dashed', 'solid'],
+    },
+    referenceLabel: {
+      name: '基準の名前（ChartReferenceLabel の variant）',
+      control: 'inline-radio',
+      options: ['plain', 'halo'],
+    },
+    legendToggle: { name: '凡例で系列を出し入れ（onHiddenChange）', control: 'boolean' },
+    legendHiddenVariant: {
+      name: '消した系列の見せ方（hiddenVariant）',
+      control: 'inline-radio',
+      options: ['ring', 'faded', 'strike'],
+    },
+    markerType: {
+      name: '色の印（markerType）',
+      control: 'inline-radio',
+      options: ['dot', 'dash', 'square'],
+    },
+    legendPlacement: {
+      name: '凡例の場所（legendPlacement）',
+      control: 'inline-radio',
+      options: ['bottom', 'top'],
+    },
+    legendAlign: {
+      name: '凡例の寄せ（legendAlign）',
+      control: 'inline-radio',
+      options: ['center', 'start'],
+    },
+    viewToggle: {
+      name: '切り替えの形（viewToggle）',
+      control: 'inline-radio',
+      options: ['segmented', 'button'],
+    },
+    viewToggleSize: {
+      name: '切り替えの大きさ（viewToggleSize）',
+      control: 'inline-radio',
+      options: ['sm', 'md'],
+    },
+    tableHeight: {
+      name: '表の高さ（tableHeight）',
+      control: 'inline-radio',
+      options: ['chart', 'auto'],
+    },
+    tooltipVariant: {
+      name: 'カードの濃さ（ChartTooltip の variant）',
+      control: 'inline-radio',
+      options: ['value', 'balanced', 'divided'],
+    },
+    tooltipSize: {
+      name: 'カードの文字（ChartTooltip の size）',
+      control: 'inline-radio',
+      options: ['sm', 'md'],
+    },
+    lineLabelVariant: {
+      name: '線の端の名前の色（ChartLineLabel の variant）',
+      control: 'inline-radio',
+      options: ['tinted', 'series', 'body', 'muted'],
+    },
+    showLineLabels: { name: '線の端に名前を書く', control: 'boolean' },
+    curve: {
+      name: '線の形（Line の type）',
+      control: 'inline-radio',
+      options: ['linear', 'monotone'],
+    },
+    grid: {
+      name: 'グリッド（CartesianGrid）',
+      control: 'inline-radio',
+      options: ['solid', 'dashed', 'none'],
+    },
+  },
+} satisfies Meta<LineChartLook>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -67,9 +207,9 @@ export const PageViews: Story = {
   parameters: {
     docs: { source: sourceCode(asPublished(recipeSource)) },
   },
-  render: () => (
+  render: (args) => (
     <div className="max-w-2xl">
-      <PageViewsLineChart data={views} />
+      <PageViewsLineChart data={views} look={args} />
     </div>
   ),
   play: async ({ canvasElement }) => {

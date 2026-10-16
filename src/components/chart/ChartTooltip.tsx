@@ -11,7 +11,7 @@ import { chartMarker, type ChartMarkerType, seriesColor } from './ChartMarker';
 // 色だけで伝えない（原則6）: 行ごとに名前を書く
 // 中身の濃さは variant で選ぶ（ADR-0541）
 //   value: 題を淡い文字のふつうの太さに下げ、値を太字にする。既定。hover して見たいのは数字なので、数字が先に目に入る
-//   even: 題と値をやや太く、名前を淡くする
+//   balanced: 題と値を同じくらいの強さ（やや太い）で並べ、名前を淡くする
 //   divided: 題を太字にし、下に細い線を引いて行と分ける
 // 文字の大きさは size。sm はキャプション（既定）、md はラベルの大きさで、カードが大きくなり線を広く隠す
 const chartTooltip = tv({
@@ -30,7 +30,7 @@ const chartTooltip = tv({
   variants: {
     variant: {
       value: { title: 'font-normal text-fg-muted', value: 'font-bold' },
-      even: { title: 'font-medium text-fg', value: 'font-medium' },
+      balanced: { title: 'font-medium text-fg', value: 'font-medium' },
       divided: {
         title: [
           'mb-(--chart-tooltip-divider-gap) border-b-(length:--border-width-thin) border-line pb-(--chart-tooltip-divider-pad)',
@@ -47,7 +47,7 @@ const chartTooltip = tv({
   defaultVariants: { variant: 'value', size: 'sm' },
 });
 
-/** 中身の濃さ。value は値を太く題を淡く、even は題と値をやや太く、divided は題を太字にして下に線を引く */
+/** 中身の濃さ。value は値を太く題を淡く、balanced は題と値をやや太く、divided は題を太字にして下に線を引く */
 export type ChartTooltipVariant = NonNullable<VariantProps<typeof chartTooltip>['variant']>;
 /** 文字の大きさ。sm はキャプション、md はラベルの大きさ */
 export type ChartTooltipSize = NonNullable<VariantProps<typeof chartTooltip>['size']>;
@@ -76,7 +76,7 @@ export interface ChartTooltipProps extends Omit<ComponentProps<'div'>, 'children
    */
   markerType?: ChartMarkerType;
   /**
-   * 中身の濃さ。value は値を太く題を淡く、even は題と値をやや太く、divided は題を太字にして下に線を引きます
+   * 中身の濃さ。value は値を太く題を淡く、balanced は題と値をやや太く、divided は題を太字にして下に線を引きます
    * @default 'value'
    */
   variant?: ChartTooltipVariant;

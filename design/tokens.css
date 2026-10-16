@@ -236,6 +236,9 @@
   --color-chart-axis: var(--palette-gray-300);
   --color-chart-tick: var(--color-fg-subtle);
   --color-chart-cursor: var(--palette-gray-300);
+  --color-chart-reference: var(
+    --palette-gray-500
+  ); /* 基準の線（目標・平均）。3:1 の輪郭と同じ濃さ */
 
   /* 押せないとき（原則 1）。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す

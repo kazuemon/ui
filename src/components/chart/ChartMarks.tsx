@@ -8,11 +8,21 @@ import { tv } from '../../internal/tv';
 //   Recharts なら <Line activeDot={(p) => <ChartDot cx={p.cx} cy={p.cy} color={p.stroke} />} />
 // ライブラリが座標を計算し、この部品は見た目だけを持つ
 
-// hover した値に置く点。周りを面の色で縁取り、重なった線から浮かせる
-// 半径は CSS の r で持つ（--chart-dot-radius）
+// 値に置く点。周りを面の色で縁取り、重なった線から浮かせる
+// 半径は CSS の r で持つ。md は hover した値（--chart-dot-radius）、sm は線の上にいつも置く点（--chart-dot-sm-radius）
 const chartDot = tv({
-  base: 'fill-(--chart-dot-color) stroke-surface [stroke-width:var(--border-width-thick)] [r:var(--chart-dot-radius)]',
+  base: 'fill-(--chart-dot-color) stroke-surface [stroke-width:var(--border-width-thick)]',
+  variants: {
+    size: {
+      md: '[r:var(--chart-dot-radius)]',
+      sm: '[r:var(--chart-dot-sm-radius)]',
+    },
+  },
+  defaultVariants: { size: 'md' },
 });
+
+/** 点の大きさ。md は hover した値、sm は線の上にいつも置く点 */
+export type ChartDotSize = 'sm' | 'md';
 
 export interface ChartDotProps extends Omit<SVGProps<SVGCircleElement>, 'color' | 'r'> {
   /** 中心の横の位置（SVG の座標） */
@@ -21,21 +31,34 @@ export interface ChartDotProps extends Omit<SVGProps<SVGCircleElement>, 'color' 
   cy?: number;
   /** 点の色（CSS の色）。線に渡した色と同じものを渡します */
   color?: string;
+  /**
+   * 大きさ。md は hover した値に置く点、sm は線の上にいつも置く点です
+   * @default 'md'
+   */
+  size?: ChartDotSize;
   /** いちばん外の要素に付きます */
   className?: string;
 }
 
 /**
- * hover した値に置く点です。グラフの SVG の中に置きます
+ * 値に置く点です。グラフの SVG の中に置きます
  */
-export function ChartDot({ cx, cy, color, className, style, ...props }: ChartDotProps) {
+export function ChartDot({
+  cx,
+  cy,
+  color,
+  size = 'md',
+  className,
+  style,
+  ...props
+}: ChartDotProps) {
   if (cx == null || cy == null) return null;
   return (
     <circle
       data-slot="chart-dot"
       cx={cx}
       cy={cy}
-      className={chartDot({ className })}
+      className={chartDot({ size, className })}
       style={{ ...style, ['--chart-dot-color' as string]: color }}
       {...props}
     />
@@ -105,6 +128,128 @@ export function ChartLineLabel({
       data-variant={variant}
       className={chartLineLabel({ variant, className })}
       style={{ ...style, ['--chart-line-color' as string]: color }}
+      {...props}
+    >
+      {children}
+    </text>
+  );
+}
+
+// 軸の名前（「閲覧数」「週」）。ライブラリの軸のラベルを描く関数から返す
+// 文字は目盛りと同じキャプションの大きさで、目盛りより一段濃い淡い本文の色
+// orientation="vertical" で、縦の軸の左に 90 度回して置く（文字の縦の真ん中を x・y にそろえる）
+const chartAxisLabel = tv({
+  base: 'fill-fg-muted text-(length:--text-caption)',
+});
+
+export interface ChartAxisLabelProps extends Omit<
+  SVGProps<SVGTextElement>,
+  'x' | 'y' | 'textAnchor'
+> {
+  /** 文字を置く横の位置（SVG の座標） */
+  x?: number | string;
+  /** 文字を置く縦の位置（SVG の座標）。文字の縦の真ん中をそろえます */
+  y?: number | string;
+  /**
+   * 横の寄せ。start は x から右へ、end は x で終わり、middle は x を真ん中にします
+   * @default 'start'
+   */
+  textAnchor?: 'start' | 'middle' | 'end';
+  /**
+   * 文字の向き。vertical は左に 90 度回します（縦の軸の左に置くとき）
+   * @default 'horizontal'
+   */
+  orientation?: 'horizontal' | 'vertical';
+  /** 軸の名前 */
+  children: ReactNode;
+  /** いちばん外の要素に付きます */
+  className?: string;
+}
+
+/**
+ * 軸の名前です。グラフの SVG の中に置きます
+ */
+export function ChartAxisLabel({
+  x,
+  y,
+  textAnchor = 'start',
+  orientation = 'horizontal',
+  children,
+  className,
+  ...props
+}: ChartAxisLabelProps) {
+  if (x == null || y == null) return null;
+  return (
+    <text
+      data-slot="chart-axis-label"
+      x={x}
+      y={y}
+      textAnchor={textAnchor}
+      dominantBaseline="central"
+      transform={orientation === 'vertical' ? `rotate(-90 ${x} ${y})` : undefined}
+      className={chartAxisLabel({ className })}
+      {...props}
+    >
+      {children}
+    </text>
+  );
+}
+
+// 基準の線（目標・平均）に添える名前。線そのものはライブラリが --color-chart-reference で引く
+//   plain: 線の上に、淡い本文の色の文字を右寄せで置く
+//   halo: 線に重ねて置き、文字の周りを面の色で縁取って線を切る
+const chartReferenceLabel = tv({
+  base: 'text-(length:--text-caption) font-medium',
+  variants: {
+    variant: {
+      plain: 'fill-fg-muted',
+      halo: 'fill-fg-muted stroke-surface [stroke-width:var(--chart-reference-halo)] [paint-order:stroke] [stroke-linejoin:round]',
+    },
+  },
+  defaultVariants: { variant: 'plain' },
+});
+
+/** 基準の線の名前の置き方。plain は線の上に、halo は線に重ねて縁取る */
+export type ChartReferenceLabelVariant = 'plain' | 'halo';
+
+export interface ChartReferenceLabelProps extends Omit<SVGProps<SVGTextElement>, 'x' | 'y'> {
+  /** 基準の線の右端の横の位置（SVG の座標）。文字はここで終わります */
+  x?: number | string;
+  /** 基準の線の縦の位置（SVG の座標） */
+  y?: number | string;
+  /**
+   * 置き方。plain は線の上に、halo は線に重ねて文字の周りを縁取ります
+   * @default 'plain'
+   */
+  variant?: ChartReferenceLabelVariant;
+  /** 基準の名前（「目標 2,000」など） */
+  children: ReactNode;
+  /** いちばん外の要素に付きます */
+  className?: string;
+}
+
+/**
+ * 基準の線（目標・平均）に添える名前です。グラフの SVG の中に置きます
+ */
+export function ChartReferenceLabel({
+  x,
+  y,
+  variant = 'plain',
+  children,
+  className,
+  ...props
+}: ChartReferenceLabelProps) {
+  if (x == null || y == null) return null;
+  return (
+    <text
+      data-slot="chart-reference-label"
+      data-variant={variant}
+      x={x}
+      y={y}
+      dy={variant === 'plain' ? -6 : 0}
+      textAnchor="end"
+      dominantBaseline={variant === 'plain' ? 'auto' : 'central'}
+      className={chartReferenceLabel({ variant, className })}
       {...props}
     >
       {children}

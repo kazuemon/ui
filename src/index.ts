@@ -179,10 +179,13 @@ export {
 } from './components/cascader/Cascader';
 export {
   ChartFrame,
+  type ChartFrameEmptyVariant,
   type ChartFrameLegendAlign,
   type ChartFrameLegendPlacement,
+  type ChartFrameLoadingIndicator,
   type ChartFrameProps,
   type ChartFrameTableHeight,
+  type ChartFrameTitleSize,
   type ChartFrameView,
   type ChartFrameViewToggle,
   type ChartFrameViewToggleSize,
@@ -190,15 +193,22 @@ export {
 export { type ChartMarkerType } from './components/chart/ChartMarker';
 export {
   ChartLegend,
+  type ChartLegendHiddenVariant,
   type ChartLegendItem,
   type ChartLegendProps,
 } from './components/chart/ChartLegend';
 export {
+  ChartAxisLabel,
+  type ChartAxisLabelProps,
   ChartDot,
   type ChartDotProps,
+  type ChartDotSize,
   ChartLineLabel,
   type ChartLineLabelProps,
   type ChartLineLabelVariant,
+  ChartReferenceLabel,
+  type ChartReferenceLabelProps,
+  type ChartReferenceLabelVariant,
 } from './components/chart/ChartMarks';
 export {
   ChartTooltip,
