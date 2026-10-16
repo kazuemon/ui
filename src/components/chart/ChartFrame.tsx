@@ -38,6 +38,7 @@ const chartFrame = tv({
     // 小さな切り替え: ボタンの小（Button の size="sm"）と同じ寸法のトークンを、切り替えの中だけ差し替える
     toggle: 'shrink-0',
     body: 'flex min-w-0 flex-col gap-(--chart-frame-gap)',
+    legend: 'flex min-w-0',
     tableArea: 'min-h-(--chart-table-max-height) min-w-0',
     plot: [
       'relative h-(--chart-height) w-full min-w-0',
@@ -45,6 +46,11 @@ const chartFrame = tv({
     ],
   },
   variants: {
+    // 凡例の場所と寄せ（ADR-0542）。既定はグラフの下の中央で、図の注記のように添える。上下は legendPlacement で置く順を変える
+    legendAlign: {
+      center: { legend: 'justify-center' },
+      start: { legend: 'justify-start' },
+    },
     viewToggleSize: {
       sm: {
         toggle: [
@@ -55,7 +61,7 @@ const chartFrame = tv({
       md: {},
     },
   },
-  defaultVariants: { viewToggleSize: 'sm' },
+  defaultVariants: { legendAlign: 'center', viewToggleSize: 'sm' },
 });
 
 export type ChartFrameView = 'chart' | 'table';
@@ -63,6 +69,10 @@ export type ChartFrameView = 'chart' | 'table';
 export type ChartFrameViewToggle = 'segmented' | 'button';
 /** 切り替えの大きさ。sm はボタンの小と同じ、md はほかの欄と同じ */
 export type ChartFrameViewToggleSize = 'sm' | 'md';
+/** 凡例の場所。bottom はグラフの下、top は題の下（グラフの上） */
+export type ChartFrameLegendPlacement = 'bottom' | 'top';
+/** 凡例の横の寄せ */
+export type ChartFrameLegendAlign = 'center' | 'start';
 /** 表の高さ。chart はグラフのときと同じ高さにそろえ、auto は行の数だけ伸びる */
 export type ChartFrameTableHeight = 'chart' | 'auto';
 
@@ -71,8 +81,18 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
   title?: ReactNode;
   /** 題の下に添える説明（期間・単位など） */
   description?: ReactNode;
-  /** 凡例。ChartLegend を渡します。題の下、グラフの上に置きます */
+  /** 凡例。ChartLegend を渡します */
   legend?: ReactNode;
+  /**
+   * 凡例の場所。bottom はグラフの下、top は題の下（グラフの上）です
+   * @default 'bottom'
+   */
+  legendPlacement?: ChartFrameLegendPlacement;
+  /**
+   * 凡例の横の寄せ
+   * @default 'center'
+   */
+  legendAlign?: ChartFrameLegendAlign;
   /** グラフ。ライブラリのグラフを、描く場所いっぱいに広げて渡します（Recharts なら ResponsiveContainer） */
   children: ReactNode;
   /** 同じ値を表で見る形（Table）。渡すと、題の行の右に「グラフ・表」の切り替えを置きます */
@@ -140,6 +160,8 @@ export function ChartFrame({
   title,
   description,
   legend,
+  legendPlacement = 'bottom',
+  legendAlign = 'center',
   children,
   table,
   defaultView = 'chart',
@@ -156,13 +178,20 @@ export function ChartFrame({
   style,
   ...props
 }: ChartFrameProps) {
-  const styles = chartFrame({ viewToggleSize });
+  const styles = chartFrame({ legendAlign, viewToggleSize });
   const titleId = useId();
   const [view, setView] = useState<ChartFrameView>(table ? defaultView : 'chart');
   const bodyRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
   const showTable = table != null && view === 'table';
   const hasHeader = title != null || description != null || table != null;
+  // 読み上げは見た目の順（原則15）。CSS の order で動かさず、置く順を変える
+  const legendNode =
+    legend != null ? (
+      <div data-slot="chart-frame-legend" className={styles.legend()}>
+        {legend}
+      </div>
+    ) : null;
   const changeView = (next: ChartFrameView) => {
     // 表へ移る直前に、凡例とグラフを合わせた高さを測る（凡例が折り返しても合う）
     if (next === 'table' && bodyRef.current) setMeasured(bodyRef.current.offsetHeight);
@@ -227,13 +256,9 @@ export function ChartFrame({
         </div>
       ) : (
         <div ref={bodyRef} className={styles.body()}>
-          {/* 軸 670 の比較用: --chart-legend-order・--chart-legend-justify で凡例の場所を変える */}
-          {legend != null ? (
-            <div className="[order:var(--chart-legend-order,0)] flex [justify-content:var(--chart-legend-justify,flex-start)]">
-              {legend}
-            </div>
-          ) : null}
+          {legendPlacement === 'top' ? legendNode : null}
           <div className={styles.plot()}>{children}</div>
+          {legendPlacement === 'bottom' ? legendNode : null}
         </div>
       )}
     </figure>

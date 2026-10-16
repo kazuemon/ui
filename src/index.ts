@@ -179,6 +179,8 @@ export {
 } from './components/cascader/Cascader';
 export {
   ChartFrame,
+  type ChartFrameLegendAlign,
+  type ChartFrameLegendPlacement,
   type ChartFrameProps,
   type ChartFrameTableHeight,
   type ChartFrameView,
