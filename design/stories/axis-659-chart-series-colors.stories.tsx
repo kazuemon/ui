@@ -12,7 +12,7 @@ const meta = {
     pick: {
       description: '採用した案（ADR の比較画像用）',
       control: 'inline-radio',
-      options: ['', 'current', 'A', 'B', 'C'],
+      options: ['', 'current', 'A', 'A2', 'B', 'C'],
     },
   },
 } satisfies Meta<{ pick: string }>;
@@ -50,6 +50,16 @@ const seriesOf: Record<string, Series[]> = {
     ['teal', '#0aa39c'],
     ['blue', '#285cc2'],
     ['yellow', '#ae9203'],
+  ],
+  A2: [
+    ['sky', '#009edf'],
+    ['pink', '#f53273'],
+    ['orange', '#d36d02'],
+    ['teal', '#04a19b'],
+    ['blue', '#4c87f8'],
+    ['green', '#01a84d'],
+    ['purple', '#9e6de7'],
+    ['yellow', '#a58a07'],
   ],
   C: [
     ['sky', '#388fc0'],
@@ -94,6 +104,20 @@ const candidates: Candidate[] = [
     tokens: tokensOf('A'),
   },
   {
+    id: 'A2',
+    name: 'A の色で、並び順を直した 8 色',
+    intent:
+      '色は A と同じ。A の順では、3 番の紫が 1 番の水色と、4 番の緑が 2 番のピンクと、D 型（赤と緑が近く見える型）でほぼ同じに見える。折れ線や凡例では離れた番号の色も同時に並ぶので、先頭の 4 色はどの 2 色を比べても見分けられる順に並べ直した',
+    spec: [
+      ['色の数', '8'],
+      ['明度（OKLCH L）', '0.64 でそろえる'],
+      ['先頭 4 色のどの 2 色でも', '色覚の型 8.1 以上（A は 3.2）'],
+      ['隣どうしの差', '色覚の型 8.6・ふつう 16.9'],
+      ['白地との比', 'すべて 3:1 以上'],
+    ],
+    tokens: tokensOf('A2'),
+  },
+  {
     id: 'B',
     name: '明度に段差を付けた 8 色',
     intent:
@@ -126,6 +150,7 @@ const candidates: Candidate[] = [
 const columns: Column[] = [
   { label: '並び', note: '上が色、下が白黒にしたとき（明度のそろい方）' },
   { label: '折れ線', note: '4 系列' },
+  { label: '折れ線（D 型で見たとき）', note: '赤と緑が近く見える型のシミュレーション' },
   { label: '積み上げの棒', note: '5 系列' },
   { label: '小さなグラフ', note: 'Sparkline と BarList。1 系列は 1 番の色' },
 ];
@@ -313,43 +338,68 @@ function SmallCharts() {
 export const Candidates: Story = {
   name: '系列の色',
   render: ({ pick }) => (
-    <Comparison
-      index={659}
-      axis="グラフの系列の色"
-      pick={pick}
-      candidates={candidates}
-      columns={columns}
-      renderCell={(column, candidate) => {
-        switch (column.label) {
-          case '並び':
-            return <Swatches id={candidate.id} />;
-          case '折れ線':
-            return <LineChart />;
-          case '積み上げの棒':
-            return <StackedBars />;
-          default:
-            return <SmallCharts />;
-        }
-      }}
-    >
-      <p>
-        グラフの系列（東京・大阪 …）に当てる色を決めます。blue・pink・green
-        のような名前の付いた色の並びを作り、グラフは決まった順でそこから色を取ります。同じ色の名前を、あとでボタンやタグの色（`color`）にも使えるようにします。成功・警告・危険の色は意味を持つので、系列には使いません。
-      </p>
-      <p>
-        どの案も、隣どうしの色が色覚の型によらず見分けられるか、白地で 3:1
-        以上あるかを測って通しています（現行版だけが落ちます）。9
-        系列目以降は色を作らず、「その他」にまとめる前提です。
-      </p>
-      <p>
-        おすすめは A（明度をそろえた 8 色）です。ブランドの水色とピンクをそのまま 1・2
-        番に使え、どの系列も同じ重さで見えるので、「整然」と「人懐っこい」の両方に合います。B
-        は白黒で刷っても読めますが、紫・青が重く沈みます。C は静かですが、ブランドの色から離れます。
-      </p>
-      <p>
-        既定にする案と、ほかに選べるようにしたい案（たとえば「A を既定にして、C
-        も選べる」）を教えてください。
-      </p>
-    </Comparison>
+    <>
+      {/* D 型のシミュレーション（Machado ほか 2009、強さ 1.0）。feColorMatrix は線形の RGB で計算する */}
+      <svg width={0} height={0} className="absolute" aria-hidden>
+        <filter id="deutan" colorInterpolationFilters="linearRGB">
+          <feColorMatrix
+            type="matrix"
+            values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"
+          />
+        </filter>
+      </svg>
+      <Comparison
+        index={659}
+        axis="グラフの系列の色"
+        pick={pick}
+        candidates={candidates}
+        columns={columns}
+        renderCell={(column, candidate) => {
+          switch (column.label) {
+            case '並び':
+              return <Swatches id={candidate.id} />;
+            case '折れ線':
+              return <LineChart />;
+            case '折れ線（D 型で見たとき）':
+              return (
+                <div style={{ filter: 'url(#deutan)' }}>
+                  <LineChart />
+                </div>
+              );
+            case '積み上げの棒':
+              return <StackedBars />;
+            default:
+              return <SmallCharts />;
+          }
+        }}
+      >
+        <p>
+          グラフの系列（東京・大阪 …）に当てる色を決めます。blue・pink・green
+          のような名前の付いた色の並びを作り、グラフは決まった順でそこから色を取ります。同じ色の名前を、あとでボタンやタグの色（`color`）にも使えるようにします。成功・警告・危険の色は意味を持つので、系列には使いません。
+        </p>
+        <p>
+          どの案も、隣どうしの色が色覚の型によらず見分けられるか、白地で 3:1
+          以上あるかを測って通しています（現行版だけが落ちます）。9
+          系列目以降は色を作らず、「その他」にまとめる前提です。
+        </p>
+        <p>
+          おすすめは A（明度をそろえた 8 色）です。ブランドの水色とピンクをそのまま 1・2
+          番に使え、どの系列も同じ重さで見えるので、「整然」と「人懐っこい」の両方に合います。B
+          は白黒で刷っても読めますが、紫・青が重く沈みます。C
+          は静かですが、ブランドの色から離れます。
+        </p>
+        <p>
+          A2 は A と同じ色で、並び順だけを直したものです。A の順では、折れ線の 1 番と 3
+          番（水色と紫）が、D 型で見るとほぼ同じ線になります。先頭の 4 色までは、どの 2
+          色でも見分けられます。5
+          色を超えると、明度をそろえた並びではどの順でも見分けにくい組が出るので、凡例・線の端のラベル・hover
+          の数値を色と一緒に出す前提にします。
+        </p>
+        <p>
+          既定にする案と、ほかに選べるようにしたい案（たとえば「A2 を既定にして、C
+          も選べる」）を教えてください。
+        </p>
+      </Comparison>
+    </>
   ),
 };
