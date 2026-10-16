@@ -1,0 +1,26 @@
+:root {
+  /* Chart（グラフの枠・凡例・hover の数値のカード・点・線の端の名前）
+     グラフそのものはライブラリが描く。ここは部品が描く部分の値
+     height: 描く場所の既定の高さ。height で変えられる
+     frame-gap: 見出し・凡例・描く場所のあいだ
+     marker-*: 凡例とカードの色の印の大きさと角。MeterGroup の凡例と同じ丸
+     legend-gap-x・legend-gap-y: 凡例の項目のあいだ
+     tooltip-*: hover の数値のカード。面は Tooltip と同じ白・細い輪郭・小さく淡い影
+     dot-radius: hover した値に置く点の半径。周りを面の色で縁取り、線から浮かせる
+     label-gap: 線の端に書く名前と、線の端のあいだ
+     grid-dash: グリッドの線の破線の刻み（stroke-dasharray）。none で実線。レシピが Recharts の strokeDasharray に渡す */
+  --chart-height: calc(var(--spacing) * 60); /* 240px */
+  --chart-frame-gap: calc(var(--spacing) * 3);
+  --chart-marker-width: calc(var(--spacing) * 2.5);
+  --chart-marker-height: calc(var(--spacing) * 2.5);
+  --chart-marker-radius: var(--radius-pill);
+  --chart-legend-gap-x: calc(var(--spacing) * 4);
+  --chart-legend-gap-y: var(--spacing);
+  --chart-tooltip-padding-x: calc(var(--spacing) * 3);
+  --chart-tooltip-padding-y: calc(var(--spacing) * 2);
+  --chart-tooltip-row-gap: var(--spacing);
+  --chart-tooltip-min-width: calc(var(--spacing) * 36);
+  --chart-dot-radius: 4px;
+  --chart-label-gap: calc(var(--spacing) * 2);
+  --chart-grid-dash: none;
+}

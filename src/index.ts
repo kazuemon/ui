@@ -178,6 +178,27 @@ export {
   type CascaderValueItem,
 } from './components/cascader/Cascader';
 export {
+  ChartFrame,
+  type ChartFrameProps,
+  type ChartFrameView,
+} from './components/chart/ChartFrame';
+export {
+  ChartLegend,
+  type ChartLegendItem,
+  type ChartLegendProps,
+} from './components/chart/ChartLegend';
+export {
+  ChartDot,
+  type ChartDotProps,
+  ChartLineLabel,
+  type ChartLineLabelProps,
+} from './components/chart/ChartMarks';
+export {
+  ChartTooltip,
+  type ChartTooltipItem,
+  type ChartTooltipProps,
+} from './components/chart/ChartTooltip';
+export {
   Checkbox,
   type CheckboxProps,
   type ChoiceColor,
