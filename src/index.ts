@@ -758,6 +758,7 @@ export {
 export {
   Stat,
   type StatAlign,
+  type StatChartPlacement,
   type StatDeltaIndicator,
   type StatProps,
   type StatSize,
