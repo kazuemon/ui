@@ -17,6 +17,9 @@ import { Skeleton } from '../skeleton/Skeleton';
 //   値がまだなく loading も渡さないときは、部品は何も足さない。使う側が「—」などを value に入れる
 //   ラベル・単位・キャプションは読み込む前から分かっているので、そのまま出す。増減は数字と一緒に届くので、読み込むまで出さない（原則にない判断）
 //   読み込み中であることは、数字の場所に読み上げだけの文（loadingText）を置いて知らせる
+// グラフ（chart）: Sparkline などを数字のそばに添える。dd の中に置き、数字・キャプションと格子で並べる（軸 662）
+//   置き場所は --stat-chart-areas、グラフの大きさは --stat-chart-width・--stat-chart-height（Sparkline の大きさに渡す）
+//   読み込み中は数字と同じく届いていないので出さない（原則にない判断）
 
 const stat = tv({
   slots: {
@@ -38,6 +41,10 @@ const stat = tv({
     ],
     icon: 'size-[1.25em] shrink-0',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
+    chart: [
+      'flex min-w-0 justify-end [align-self:var(--stat-chart-align)] [grid-area:chart]',
+      '[--sparkline-height:var(--stat-chart-height)] [--sparkline-width:var(--stat-chart-width)]',
+    ],
   },
   variants: {
     trend: {
@@ -79,6 +86,15 @@ const stat = tv({
         root: '[--stat-value-leading:var(--leading-body)] [--stat-value-text:var(--text-body)]',
       },
     },
+    // グラフを添えるときは、数字・キャプション・グラフを格子で並べる
+    chart: {
+      true: {
+        body: 'grid grid-cols-(--stat-chart-columns) gap-x-(--stat-chart-gap) gap-y-(--stat-chart-row-gap) [grid-template-areas:var(--stat-chart-areas)]',
+        valueRow: '[grid-area:value]',
+        caption: '[grid-area:caption]',
+      },
+      false: {},
+    },
     // 増減を、trend の淡い面（pill）に載せる
     fill: {
       true: {
@@ -87,7 +103,7 @@ const stat = tv({
       false: {},
     },
   },
-  defaultVariants: { trend: 'neutral', align: 'start', size: '2xl', fill: false },
+  defaultVariants: { trend: 'neutral', align: 'start', size: '2xl', fill: false, chart: false },
 });
 
 /** 増減の印の向き。up は上向き、down は下向き、flat は横棒の矢印になります */
@@ -169,6 +185,11 @@ export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
    * @default '読み込んでいます'
    */
   loadingText?: string;
+  /**
+   * 数字のそばに添えるグラフ（Sparkline など）。数字と同じことを形で見せる飾りなので、
+   * 読み上げの名前は付けず、数字とキャプションで伝えます
+   */
+  chart?: ReactNode;
   /** 根の要素（dl）に付きます */
   className?: string;
 }
@@ -191,6 +212,7 @@ export function Stat({
   deltaFill,
   loading = false,
   loadingText = '読み込んでいます',
+  chart,
   className,
   ...props
 }: StatProps) {
@@ -199,6 +221,7 @@ export function Stat({
     align,
     size,
     fill: deltaFill,
+    chart: chart != null,
   });
   const DeltaIcon = indicatorIcons[deltaIndicator];
   return (
@@ -238,6 +261,11 @@ export function Stat({
           )}
         </div>
         {caption == null ? null : <p className={styles.caption()}>{caption}</p>}
+        {chart == null || loading ? null : (
+          <div className={styles.chart()} data-slot="stat-chart">
+            {chart}
+          </div>
+        )}
       </dd>
     </dl>
   );
