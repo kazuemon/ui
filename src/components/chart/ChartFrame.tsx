@@ -227,7 +227,12 @@ export function ChartFrame({
         </div>
       ) : (
         <div ref={bodyRef} className={styles.body()}>
-          {legend}
+          {/* 軸 670 の比較用: --chart-legend-order・--chart-legend-justify で凡例の場所を変える */}
+          {legend != null ? (
+            <div className="[order:var(--chart-legend-order,0)] flex [justify-content:var(--chart-legend-justify,flex-start)]">
+              {legend}
+            </div>
+          ) : null}
           <div className={styles.plot()}>{children}</div>
         </div>
       )}

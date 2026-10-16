@@ -48,7 +48,9 @@ export function LineChartPreview({
   height = 220,
   showTable = false,
   defaultView,
+  width = 560,
 }: {
+  width?: number;
   defaultView?: 'chart' | 'table';
   /** 表で見る形を渡す（「グラフ・表」の切り替えが出る） */
   showTable?: boolean;
@@ -60,7 +62,7 @@ export function LineChartPreview({
   const shown = series.slice(0, seriesCount);
   const last = data.length - 1;
   return (
-    <div className="w-[560px]">
+    <div style={{ width }}>
       <ChartFrame
         title="週ごとの閲覧数"
         description="直近 12 週"
