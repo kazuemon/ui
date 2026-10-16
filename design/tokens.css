@@ -57,6 +57,14 @@
   --palette-gray-500: #939596; /* 白地 3.01。3:1 の輪郭 */
   --palette-mint-50: #e2f4f1;
 
+  /* 名前の付いた色（ADR-0531）: sky-500・pink-500・blue-500 と同じ明度（OKLCH L 0.64）・彩度 0.18 で、色相だけを変えた値
+     （出せない色は彩度を下げる）。グラフの系列に当て、状態の色の代わりに使う。白地はどれも 3:1 以上 */
+  --palette-orange-500: #d36d02; /* 白地 3.52 */
+  --palette-mint-500: #04a19b; /* 白地 3.19。mint-50 と同じ色相 */
+  --palette-green-500: #01a84d; /* 白地 3.13。success-500 とは別の色（意味を持たない） */
+  --palette-purple-500: #9e6de7; /* 白地 3.62 */
+  --palette-yellow-500: #a58a07; /* 白地 3.37。黄色は明度 0.64 では黄土になる */
+
   --palette-ink-900: #1f2f37;
   --palette-ink-700: #525c60;
   --palette-ink-500: #6e787d; /* 白地 4.5 */
@@ -206,6 +214,18 @@
   --color-on-danger: var(--palette-white); /* 6.71 */
   --color-fg-danger: var(--palette-red-700); /* 白地 6.71。淡い面の上 5.93 */
   --color-danger-subtle: var(--palette-red-75);
+
+  /* グラフの系列（ADR-0531）。系列はこの順で色を取り、9 系列目からは「その他」にまとめる
+     先頭の 4 色は、色覚の型（P 型・D 型）によらず、どの 2 色を比べても見分けられる順。5 色目からは凡例やラベルと一緒に使う
+     色は系列について回る。絞り込みで系列が減っても、残った系列の色は変えない */
+  --color-series-1: var(--palette-sky-500);
+  --color-series-2: var(--palette-pink-500);
+  --color-series-3: var(--palette-orange-500);
+  --color-series-4: var(--palette-mint-500);
+  --color-series-5: var(--palette-blue-500);
+  --color-series-6: var(--palette-green-500);
+  --color-series-7: var(--palette-purple-500);
+  --color-series-8: var(--palette-yellow-500);
 
   /* 押せないとき（原則 1）。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す

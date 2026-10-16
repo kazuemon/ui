@@ -17,6 +17,11 @@ import { Skeleton } from '../skeleton/Skeleton';
 //   値がまだなく loading も渡さないときは、部品は何も足さない。使う側が「—」などを value に入れる
 //   ラベル・単位・キャプションは読み込む前から分かっているので、そのまま出す。増減は数字と一緒に届くので、読み込むまで出さない（原則にない判断）
 //   読み込み中であることは、数字の場所に読み上げだけの文（loadingText）を置いて知らせる
+// グラフ（chart）: Sparkline などを数字のそばに添える。dd の中に置き、数字・キャプションと格子で並べる（ADR-0534）
+//   既定はキャプションの下に幅いっぱい（bottom）。横幅を取り合わないので、狭いカードでも数字と増減が 1 行に収まる
+//   end は数字とキャプションの右に置き、縦は真ん中。縦を詰めたいときに選ぶ
+//   グラフの大きさは Sparkline の大きさ（--sparkline-width・--sparkline-height）に渡す
+//   読み込み中は数字と同じく届いていないので出さない（原則にない判断）
 
 const stat = tv({
   slots: {
@@ -38,6 +43,7 @@ const stat = tv({
     ],
     icon: 'size-[1.25em] shrink-0',
     caption: 'text-(length:--text-caption) leading-(--leading-caption) text-fg-subtle',
+    chart: 'flex min-w-0 justify-end [grid-area:chart]',
   },
   variants: {
     trend: {
@@ -79,6 +85,28 @@ const stat = tv({
         root: '[--stat-value-leading:var(--leading-body)] [--stat-value-text:var(--text-body)]',
       },
     },
+    // グラフを添えるときは、数字・キャプション・グラフを格子で並べる
+    chart: {
+      true: {
+        // 寄せ方（align）で縮まないよう、グラフを添えるときは dd を Stat の幅いっぱいにする
+        body: 'grid self-stretch',
+        valueRow: '[grid-area:value]',
+        caption: '[grid-area:caption]',
+      },
+      false: {},
+    },
+    chartPlacement: {
+      bottom: {
+        body: "grid-cols-[minmax(0,1fr)] [grid-template-areas:'value'_'caption'_'chart']",
+        chart:
+          'mt-(--stat-chart-offset) [--sparkline-height:var(--stat-chart-height)] [--sparkline-width:100%]',
+      },
+      end: {
+        body: "grid-cols-[minmax(0,1fr)_auto] gap-x-(--stat-chart-gap) [grid-template-areas:'value_chart'_'caption_chart']",
+        chart:
+          'self-center [--sparkline-height:var(--stat-chart-end-height)] [--sparkline-width:var(--stat-chart-end-width)]',
+      },
+    },
     // 増減を、trend の淡い面（pill）に載せる
     fill: {
       true: {
@@ -87,7 +115,14 @@ const stat = tv({
       false: {},
     },
   },
-  defaultVariants: { trend: 'neutral', align: 'start', size: '2xl', fill: false },
+  defaultVariants: {
+    trend: 'neutral',
+    align: 'start',
+    size: '2xl',
+    fill: false,
+    chart: false,
+    chartPlacement: 'bottom',
+  },
 });
 
 /** 増減の印の向き。up は上向き、down は下向き、flat は横棒の矢印になります */
@@ -96,6 +131,8 @@ export type StatDeltaIndicator = 'up' | 'down' | 'flat';
 export type StatTrend = NonNullable<VariantProps<typeof stat>['trend']>;
 /** 中身の寄せ方 */
 export type StatAlign = NonNullable<VariantProps<typeof stat>['align']>;
+/** グラフの置き場所。bottom はキャプションの下に幅いっぱい、end は数字とキャプションの右 */
+export type StatChartPlacement = NonNullable<VariantProps<typeof stat>['chartPlacement']>;
 /** 数字の大きさ（文字の尺度の段） */
 export type StatSize = NonNullable<VariantProps<typeof stat>['size']>;
 
@@ -169,6 +206,17 @@ export interface StatProps extends Omit<ComponentProps<'dl'>, 'children'> {
    * @default '読み込んでいます'
    */
   loadingText?: string;
+  /**
+   * 数字のそばに添えるグラフ（Sparkline など）。数字と同じことを形で見せる飾りなので、
+   * 読み上げの名前は付けず、数字とキャプションで伝えます
+   */
+  chart?: ReactNode;
+  /**
+   * グラフの置き場所。bottom はキャプションの下に幅いっぱい、end は数字とキャプションの右に置きます。
+   * 縦を詰めたいときは end にします
+   * @default 'bottom'
+   */
+  chartPlacement?: StatChartPlacement;
   /** 根の要素（dl）に付きます */
   className?: string;
 }
@@ -191,14 +239,20 @@ export function Stat({
   deltaFill,
   loading = false,
   loadingText = '読み込んでいます',
+  chart,
+  chartPlacement,
   className,
   ...props
 }: StatProps) {
+  // false（`cond && <Sparkline />`）も、読み込み中も、グラフの場所を作らない
+  const hasChart = chart != null && chart !== false && !loading;
   const styles = stat({
     trend: trend ?? trendFromIndicator[deltaIndicator],
     align,
     size,
     fill: deltaFill,
+    chart: hasChart,
+    chartPlacement,
   });
   const DeltaIcon = indicatorIcons[deltaIndicator];
   return (
@@ -238,6 +292,11 @@ export function Stat({
           )}
         </div>
         {caption == null ? null : <p className={styles.caption()}>{caption}</p>}
+        {hasChart ? (
+          <div className={styles.chart()} data-slot="stat-chart">
+            {chart}
+          </div>
+        ) : null}
       </dd>
     </dl>
   );

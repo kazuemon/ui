@@ -3,6 +3,7 @@ import { expect } from 'storybook/test';
 
 import { Stat } from './Stat';
 import { NumberFormat } from '../number-format/NumberFormat';
+import { Sparkline } from '../sparkline/Sparkline';
 import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import type { MatrixColumn } from '../../stories/story-states';
 
@@ -16,6 +17,8 @@ interface TrendColumn extends MatrixColumn {
 }
 
 const trendColumns: TrendColumn[] = trends.map((trend) => ({ label: trend, trend }));
+
+const weekly = [4, 6, 5, 8, 7, 9, 12, 10, 13, 15, 14, 18];
 
 const meta = {
   title: 'Components/Stat',
@@ -37,6 +40,7 @@ const meta = {
           '- `deltaFill` を `true` にすると、増減を色に合わせた淡い面（pill）に載せます。数字から切り離して読ませたいときに使います。',
           '- `size` で数字の大きさを選びます。数字をいくつも並べるときは小さい段にします。',
           '- `align` で寄せ方を選びます。カードに載せたいときは Card と組み合わせます。',
+          '- `chart` に Sparkline などを渡すと、数字の推移を添えられます。既定ではキャプションの下に幅いっぱいで置き、`chartPlacement="end"` で数字とキャプションの右に置きます。グラフは飾りとして扱うので、数字とキャプションで伝わるように書きます。読み込み中は出ません。',
           '- 数字を読み込んでいるあいだは `loading` にします。数字の場所に読み込み中の帯が出て、増減は読み込むまで出ません。ラベル・単位・キャプションはそのまま出ます。読み上げでは数字の代わりに `loadingText`（既定は「読み込んでいます」）を読みます。',
           '- 読み込みではなく値がないとき（集計していない、など）は、`value` に「—」などを入れます。',
         ].join('\n'),
@@ -379,6 +383,74 @@ export const Loading: Story = {
     await expect(loading.querySelector('dd')).toHaveTextContent('読み込んでいます');
     await expect(loading.querySelector('[data-slot="stat-delta"]')).toBeNull();
     await expect(canvas.getAllByText('読み込んでいます')[0]).toHaveClass('sr-only');
+  },
+};
+
+export const Chart: Story = {
+  tags: ['visual'],
+  name: 'グラフを添える',
+  render: () => (
+    <Gallery columnWidth="17.5rem">
+      {(['bottom', 'end'] as const).flatMap((placement) => [
+        <Specimen key={`${placement}-wide`} label={`chartPlacement="${placement}"`}>
+          <div className="w-[280px]">
+            <Stat
+              label="今週の閲覧"
+              value="2,520"
+              delta="12%"
+              deltaIndicator="up"
+              caption="先週比"
+              chart={<Sparkline data={weekly} />}
+              chartPlacement={placement}
+            />
+          </div>
+        </Specimen>,
+        <Specimen key={`${placement}-narrow`} label={`${placement} · 狭い幅 · lg`}>
+          <div className="w-[200px]">
+            <Stat
+              label="平均の読了時間"
+              value="3:12"
+              delta="8%"
+              deltaIndicator="down"
+              caption="先週比"
+              size="lg"
+              chart={<Sparkline data={[...weekly].reverse()} />}
+              chartPlacement={placement}
+            />
+          </div>
+        </Specimen>,
+      ])}
+      <Specimen label='align="center"'>
+        <Stat
+          label="今週の閲覧"
+          value="2,520"
+          caption="先週比"
+          align="center"
+          chart={<Sparkline data={weekly} variant="area" />}
+        />
+      </Specimen>
+      <Specimen label="loading">
+        <Stat
+          label="今週の閲覧"
+          value="2,520"
+          caption="先週比"
+          loading
+          chart={<Sparkline data={weekly} />}
+        />
+      </Specimen>
+    </Gallery>
+  ),
+  play: async ({ canvasElement }) => {
+    const stats = canvasElement.querySelectorAll('dl[data-slot="stat"]');
+    // グラフは dd の中に置き、名前のない Sparkline は読まない
+    const chart = stats[0].querySelector('dd [data-slot="stat-chart"]');
+    await expect(chart).not.toBeNull();
+    await expect(chart?.querySelector('[data-slot="sparkline"]')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+    // 読み込み中はグラフを出さない
+    await expect(stats[stats.length - 1].querySelector('[data-slot="stat-chart"]')).toBeNull();
   },
 };
 

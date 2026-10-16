@@ -1,0 +1,12 @@
+:root {
+  /* Sparkline（文の中や数字の横に置く、軸のない小さな折れ線）
+     width・height: 既定の大きさ。文字の大きさに合わせて伸び縮みするよう em で持つ。className で上書きできる
+     vertical-align: 文の中に置いたときの縦の位置。下端を文字の下（ディセンダーのあたり）に、上端を文字の上にそろえる
+     area-opacity: 線の下を塗る形（variant="area"）の、塗りの濃さ
+     end-point-size: 最後の値に置く点の大きさ */
+  --sparkline-width: 6em;
+  --sparkline-height: 1.25em;
+  --sparkline-vertical-align: -0.25em;
+  --sparkline-area-opacity: 0.16;
+  --sparkline-end-point-size: calc(var(--spacing) * 1.5);
+}

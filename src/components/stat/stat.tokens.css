@@ -13,4 +13,12 @@
   /* 読み込み中（loading。軸 431）: 数字の場所に Skeleton の文字の行を 1 本置く（太さ・角は文字の行のまま）。行の高さは数字と同じなので、読み込んでも跳ばない
      loading-width: 帯の長さ（数字の文字の大きさが基準） */
   --stat-loading-width: 3em;
+  /* グラフ（chart。ADR-0534）
+     chart-offset・chart-height: キャプションの下に置く形（bottom）の、上のあいだとグラフの高さ。幅は Stat いっぱい
+     chart-gap・chart-end-width・chart-end-height: 右に置く形（end）の、文字とのあいだとグラフの大きさ */
+  --stat-chart-offset: calc(var(--spacing) * 3);
+  --stat-chart-height: calc(var(--spacing) * 12);
+  --stat-chart-gap: calc(var(--spacing) * 4);
+  --stat-chart-end-width: calc(var(--spacing) * 28);
+  --stat-chart-end-height: calc(var(--spacing) * 10);
 }

@@ -64,6 +64,13 @@ export {
 } from './components/avatar-group/AvatarGroup';
 export { Badge, type BadgePlacement, type BadgeProps } from './components/badge/Badge';
 export {
+  BarList,
+  type BarListColor,
+  type BarListItem,
+  type BarListProps,
+  type BarListVariant,
+} from './components/bar-list/BarList';
+export {
   Blockquote,
   type BlockquoteColor,
   type BlockquoteProps,
@@ -732,6 +739,12 @@ export {
   type SkeletonVariant,
 } from './components/skeleton/Skeleton';
 export { SkipLink, type SkipLinkProps } from './components/skip-link/SkipLink';
+export {
+  Sparkline,
+  type SparklineColor,
+  type SparklineProps,
+  type SparklineVariant,
+} from './components/sparkline/Sparkline';
 export { Spoiler, type SpoilerProps, type SpoilerVariant } from './components/spoiler/Spoiler';
 export {
   Stack,
@@ -745,6 +758,7 @@ export {
 export {
   Stat,
   type StatAlign,
+  type StatChartPlacement,
   type StatDeltaIndicator,
   type StatProps,
   type StatSize,
