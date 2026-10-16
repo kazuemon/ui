@@ -13,7 +13,7 @@ const meta = {
   title: 'Design Review/661 BarList の形',
   id: 'design-review-661-bar-list-shape',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current,C3' },
   argTypes: {
     pick: {
       description: '採用した案（ADR の比較画像用）',
@@ -47,8 +47,8 @@ const candidates: Candidate[] = [
     ],
     tokens: {
       '--bar-list-fill-mix': '20%',
-      '--bar-list-below-gap': 'var(--spacing)',
-      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+      '--bar-list-below-gap': 'calc(var(--spacing) * 0.5)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 4)',
     },
   },
   {
@@ -63,8 +63,8 @@ const candidates: Candidate[] = [
     ],
     tokens: {
       '--bar-list-fill-mix': '12%',
-      '--bar-list-below-gap': 'var(--spacing)',
-      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+      '--bar-list-below-gap': 'calc(var(--spacing) * 0.5)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 4)',
     },
   },
   {
@@ -79,8 +79,8 @@ const candidates: Candidate[] = [
     ],
     tokens: {
       '--bar-list-fill-mix': '32%',
-      '--bar-list-below-gap': 'var(--spacing)',
-      '--bar-list-below-row-gap': 'calc(var(--spacing) * 3)',
+      '--bar-list-below-gap': 'calc(var(--spacing) * 0.5)',
+      '--bar-list-below-row-gap': 'calc(var(--spacing) * 4)',
     },
   },
   {
@@ -184,8 +184,9 @@ export const Candidates: Story = {
       }}
     >
       <p>
-        決定:
-        現行版（重ねる・20%）を既定にし、名前の下に棒を置く形も選べるようにする。残りは、名前の下に棒を置く形の間隔です。
+        決定（ADR-0533）:
+        現行版（重ねる・20%）を既定にし、名前の下に棒を置く形（`variant="below"`）も選べるようにする。below
+        の間隔は C3（名前と棒の間 2px、行の間 16px）にする。
       </p>
       <p>
         前回の C は、名前と棒の間が行の間より広く、棒が次の行の名前と組に見えていました。C2・C3
