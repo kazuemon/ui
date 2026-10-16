@@ -202,6 +202,8 @@ export {
   ChartTooltip,
   type ChartTooltipItem,
   type ChartTooltipProps,
+  type ChartTooltipSize,
+  type ChartTooltipVariant,
 } from './components/chart/ChartTooltip';
 export {
   Checkbox,
