@@ -23,7 +23,11 @@ import {
   readTokenLength,
 } from '../../internal/overlay/popup-styles';
 import { cn, tv } from '../../internal/tv';
-import { TOOLTIP_TRIGGER, type TooltipTriggerMarkProps } from '../../internal/tooltip-trigger';
+import {
+  claimLongPress,
+  TOOLTIP_TRIGGER,
+  type TooltipTriggerMarkProps,
+} from '../../internal/tooltip-trigger';
 import { useMergedRefs } from '../../internal/use-merged-refs';
 import { usePortalContainer } from '../../internal/ui-config';
 
@@ -261,9 +265,14 @@ export function Tooltip({
   //   ほかの場所に触れたら閉じる。端末の長押しのメニューと文字の選択は、本体の上では出さない
   const press = useRef<{ x: number; y: number; timer: number } | null>(null);
   const [longPressed, setLongPressed] = useState(false);
+  // 長押しの時間が来たか。longPressed は描き直すまで変わらないので、そのあいだに届く contextmenu はこちらで見る
+  //   指を離したとき・その contextmenu を受けたとき・閉じたときに下ろす（あとのマウスやキーボードの contextmenu を長押しとして扱わない）
+  //   長押しで出したまま、もう一度長押ししたとき（longPressed が変わらず描き直さない）も、これで下りる
+  const pressFired = useRef(false);
   const cancelPress = () => {
     if (press.current) window.clearTimeout(press.current.timer);
     press.current = null;
+    pressFired.current = false;
   };
   useEffect(
     () => () => {
@@ -275,6 +284,7 @@ export function Tooltip({
     if (!longPressed) return undefined;
     const onPointerDown = (event: PointerEvent) => {
       if (event.target instanceof Node && anchorRef.current?.contains(event.target)) return;
+      pressFired.current = false;
       setLongPressed(false);
       changeOpenRef.current(false);
     };
@@ -289,7 +299,10 @@ export function Tooltip({
       onOpenChange={(next, details) => {
         // 長押しで出したあいだは、本体の押下（指を離したときの click）では閉じない
         if (!next && longPressed && details.reason === 'trigger-press') return;
-        if (!next) setLongPressed(false);
+        if (!next) {
+          pressFired.current = false;
+          setLongPressed(false);
+        }
         changeOpen(next);
       }}
       onOpenChangeComplete={onOpenChangeComplete}
@@ -308,6 +321,7 @@ export function Tooltip({
           cancelPress();
           const timer = window.setTimeout(() => {
             press.current = null;
+            pressFired.current = true;
             setLongPressed(true);
             changeOpen(true);
           }, longPressDelay);
@@ -320,10 +334,26 @@ export function Tooltip({
             cancelPress();
           }
         }}
+        // 本体の上の指の長押しは Tooltip のもの。外の ContextMenu では開かないよう印を付ける（同じ 500ms で、どちらも開いてしまうため）
+        //   伝播は止めない。止めているとき（disabled）は印を付けない。マウスの右クリックには付けない
+        onTouchStart={(event) => {
+          if (!disabled) claimLongPress(event.nativeEvent);
+        }}
         onPointerUp={cancelPress}
         onPointerCancel={cancelPress}
         onContextMenu={(event) => {
-          if (longPressed || press.current) event.preventDefault();
+          // 指の長押しで端末が出す contextmenu。Tooltip が長押しを受けているあいだは、外の ContextMenu で開かない
+          //   マウスの右クリックとキーボード（Shift+F10 など）は、長押しで出したあいだも止めない
+          //   指かどうかを読めない（PointerEvent でない）ブラウザでは、長押しのあいだのものを指とみなす
+          const native = event.nativeEvent;
+          if (typeof PointerEvent !== 'undefined' && native instanceof PointerEvent) {
+            if (native.pointerType !== 'touch') return;
+          }
+          if (longPressed || press.current || pressFired.current) {
+            event.preventDefault();
+            claimLongPress(event.nativeEvent);
+            pressFired.current = false;
+          }
         }}
         onClickCapture={(event) => {
           if (!longPressed) return;

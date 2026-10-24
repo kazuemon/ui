@@ -20,15 +20,21 @@ import type {
   PositionerProps,
 } from '../../internal/overlay/overlay-props';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
+import { isLongPressClaimed } from '../../internal/tooltip-trigger';
 
 // 範囲の中の portal（Menu・Popover の面）から、React の木を伝って届いたイベントは、Base UI に渡さない。
 // Base UI の Trigger は target が範囲の DOM の中かを見ないので、面の右クリック・長押しでも開いてしまう。
 // 止めるのは、開く入口の contextmenu と touchstart だけ（move・end・cancel は長押しを取りやめるだけ）。
 // stopPropagation も preventDefault もしないので、面自身や外側の ContextMenu の扱いは変わらない
+// 範囲の中の Tooltip の本体での指の長押しも、Tooltip が受けるので開かない（吹き出しと一覧が同時に開かないため）
 function ignoreOutsideDom(
   event: SyntheticEvent<HTMLElement> & { preventBaseUIHandler?: () => void }
 ) {
-  if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) {
+  if (
+    !(event.target instanceof Node) ||
+    !event.currentTarget.contains(event.target) ||
+    isLongPressClaimed(event.nativeEvent)
+  ) {
     event.preventBaseUIHandler?.();
   }
 }

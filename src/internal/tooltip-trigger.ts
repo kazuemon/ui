@@ -13,3 +13,17 @@ export interface TooltipTriggerMarkProps {
   /** Tooltip の本体であることの印（内部用）。値は本体の説明に結ぶ id の並び */
   [TOOLTIP_TRIGGER]?: string;
 }
+
+// 本体の上の指の長押しを Tooltip が受けた印（外の ContextMenu が、同じ長押しで重ねて開かないため）
+//   伝播は止めない（祖先の touchstart を使う部品の邪魔をしない）。ContextMenu は印の付いたイベントでは開かない
+const claimedLongPress = new WeakSet<Event>();
+
+/** このイベントの長押しを Tooltip が受けたと印を付ける */
+export function claimLongPress(event: Event) {
+  claimedLongPress.add(event);
+}
+
+/** Tooltip が受けた長押しのイベントか */
+export function isLongPressClaimed(event: Event) {
+  return claimedLongPress.has(event);
+}
