@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps } from 'react';
-import { expect } from 'storybook/test';
+import { expect, within } from 'storybook/test';
 
 import { CaretRightIcon, InfoIcon } from '../../internal/icons';
 import { Link } from './Link';
 import { Text } from '../text/Text';
-import { Gallery, Matrix, Specimen } from '../../stories/story-parts';
+import { DensityPair, Gallery, Matrix, Specimen } from '../../stories/story-parts';
 import { pressColumns, sourceCode, statePseudo } from '../../stories/story-states';
 
 const variants = ['text', 'outline', 'button', 'underline'] as const;
@@ -435,6 +435,66 @@ export const ButtonLook: Story = {
       </Link>
     </div>
   ),
+};
+
+export const Sizes: Story = {
+  name: '大きさ',
+  tags: ['visual'],
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          '`size="sm"` は高さ・文字・左右の余白・アイコンを一段小さくします（Button の `size` と同じ寸法）。入力方式では変わらず、指で操作するときも同じ大きさです。ボタンの見た目（`button`・`underline`）と枠線のリンク（`outline`）で効き、文字のリンクには効きません。',
+      },
+      source: sourceCode(`
+        <Link variant="button" size="sm" href="#works">作品を見る</Link>
+      `),
+    },
+  },
+  render: () => (
+    <DensityPair>
+      <div className="flex flex-col gap-3">
+        {(['md', 'sm'] as const).map((size) => (
+          <div key={size} className="flex flex-wrap items-center gap-3">
+            <Link variant="button" size={size} color="primary" href="#works">
+              作品を見る
+            </Link>
+            <Link variant="outline" size={size} href="#works">
+              More
+              <CaretRightIcon />
+            </Link>
+            <Link variant="underline" size={size} href="#works">
+              一覧に戻る
+            </Link>
+            <Link variant="button" size={size} href="#works" aria-label="詳しく">
+              <InfoIcon standalone />
+            </Link>
+          </div>
+        ))}
+      </div>
+    </DensityPair>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // size は Button に届く。sm は密度によらず 36px、md は密度のまま（マウス 40px・指 44px）
+    const heights = canvas
+      .getAllByRole('link', { name: '作品を見る' })
+      .map((a) => a.getBoundingClientRect().height);
+    await expect(heights).toHaveLength(4);
+    await expect(heights[1]).toBe(36);
+    await expect(heights[3]).toBe(36);
+    await expect(heights[0]).toBeGreaterThan(36);
+    await expect(heights[2]).toBeGreaterThan(heights[1]);
+    // 枠線のリンクにも効く
+    const outline = canvas.getAllByRole('link', { name: 'More' });
+    await expect(outline[1].getBoundingClientRect().height).toBe(36);
+    // 下線のリンクと、アイコンだけのリンク（sm は 36px の正方形）にも効く
+    const underline = canvas.getAllByRole('link', { name: '一覧に戻る' });
+    await expect(underline[1].getBoundingClientRect().height).toBe(36);
+    const iconOnly = canvas.getAllByRole('link', { name: '詳しく' })[1].getBoundingClientRect();
+    await expect([iconOnly.width, iconOnly.height]).toEqual([36, 36]);
+  },
 };
 
 // Show code: render の JSX をそのまま出す（dynamic。meta の source.type）
