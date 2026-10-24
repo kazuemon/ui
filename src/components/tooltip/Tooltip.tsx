@@ -107,6 +107,11 @@ export interface TooltipProps {
    * @default false
    */
   defaultOpen?: boolean;
+  /**
+   * 本体を押すと閉じるか。false にすると、押しても閉じません。押すと文を変える本体（コピーして「コピーしました」を出すなど）で、押した瞬間に閉じて開き直すちらつきを防ぎます
+   * @default true
+   */
+  closeOnClick?: boolean;
   /** 出る・消えるが変わるときに、次の値を渡して呼びます */
   onOpenChange?: (open: boolean) => void;
   /** 出入りの動きが終わったあとに、次の値を渡して呼びます */
@@ -198,6 +203,7 @@ export function Tooltip({
   longPressSide = 'top',
   open: openProp,
   defaultOpen = false,
+  closeOnClick = true,
   onOpenChange,
   onOpenChangeComplete,
   disabled,
@@ -315,6 +321,7 @@ export function Tooltip({
         render={children}
         {...{ [TOOLTIP_TRIGGER]: triggerMark }}
         delay={delay}
+        closeOnClick={closeOnClick}
         style={{ WebkitTouchCallout: 'none' }}
         onPointerDown={(event) => {
           if (event.pointerType !== 'touch' || disabled) return;

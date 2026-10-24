@@ -28,6 +28,7 @@ const meta = {
           '- 長押しで出したときは、指を離しても本体を実行しません。ほかの場所に触れると閉じます。指と手で隠れないよう、上に出します（`longPressSide`。`false` で `side` のままにできます）。',
           '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。その辺に沿った寄せは `align` です。',
           '- `ContextMenu` の範囲の中に置いたときは、本体の上の指の長押しは Tooltip のものです。Tooltip だけが出て、外の `ContextMenu` は開きません（マウスの右クリックは `ContextMenu` に届きます）。',
+          '- 本体を押すと吹き出しは閉じます。押すと文を変える本体（コピーして「コピーしました」を出すなど）では、`closeOnClick={false}` にすると押しても閉じません。',
           '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
           '- ツールバーのように Tooltip が並ぶところは `TooltipProvider` で包みます。出るまでの待ち（`delay`）と消えるまでの待ち（`closeDelay`）をそろえ、1 つが出たあとは隣へマウスを移すと待たずに出します。',
           '- 並んだボタンのどれの補足かをはっきりさせたいときは、`showArrow` で本体を指す小さな矢印を出します。',
@@ -436,6 +437,36 @@ export const InContextMenu: Story = {
     // マウスの右クリックは ContextMenu に届く
     await userEvent.pointer({ keys: '[MouseRight]', target: trigger });
     await waitFor(() => expect(body.getByRole('menuitem', { name: '複製' })).toBeVisible());
+  },
+};
+
+export const KeepOpenOnClick: Story = {
+  name: '押しても閉じない',
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <div className="grid gap-12 p-12">
+      <Tooltip {...args} content="閉じる本体">
+        <Button>既定</Button>
+      </Tooltip>
+      <Tooltip {...args} content="閉じない本体" closeOnClick={false}>
+        <Button>コピー</Button>
+      </Tooltip>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // 既定: 押すと閉じる
+    await userEvent.hover(canvas.getByRole('button', { name: '既定' }));
+    await waitFor(() => expect(body.getByText('閉じる本体')).toBeVisible());
+    await userEvent.click(canvas.getByRole('button', { name: '既定' }));
+    await waitFor(() => expect(body.queryByText('閉じる本体')).toBeNull());
+    // closeOnClick={false}: 押しても閉じない
+    await userEvent.hover(canvas.getByRole('button', { name: 'コピー' }));
+    await waitFor(() => expect(body.getByText('閉じない本体')).toBeVisible());
+    await userEvent.click(canvas.getByRole('button', { name: 'コピー' }));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect(body.getByText('閉じない本体')).toBeVisible();
   },
 };
 
