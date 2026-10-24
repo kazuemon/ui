@@ -11,6 +11,8 @@ import { type ComponentProps, type ReactNode, useRef, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { ContextMenu } from './ContextMenu';
+import { Button } from '../button/Button';
+import { Menu } from '../menu/Menu';
 import {
   MenuCheckboxItem,
   MenuGroup,
@@ -423,5 +425,53 @@ export const HighlightedArea: Story = {
     await waitFor(() => expect(getComputedStyle(area).backgroundColor).not.toBe(before));
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(getComputedStyle(area).backgroundColor).toBe(before));
+  },
+};
+
+export const PortalInside: Story = {
+  name: '範囲の中の面からは開かない',
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ContextMenu
+      trigger={
+        <Area className="flex-col gap-3">
+          <span>行の余白</span>
+          <Menu title="行の操作" trigger={<Button variant="outline">⋮ 行の操作</Button>}>
+            <MenuItem>開く</MenuItem>
+          </Menu>
+        </Area>
+      }
+      presentation="popover"
+    >
+      {actions}
+    </ContextMenu>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    // 範囲の中の ⋮ のメニューを開く。面は portal で、範囲の DOM の外に描かれる
+    await userEvent.click(canvas.getByRole('button', { name: '⋮ 行の操作' }));
+    const inner = await body.findByRole('menuitem', { name: '開く' });
+    await expect(canvasElement.contains(inner)).toBe(false);
+    // 面の右クリック・長押しでは、範囲の一覧は重ねて開かない
+    rightClick(inner);
+    const { left, top } = inner.getBoundingClientRect();
+    const touch = new Touch({ identifier: 1, target: inner, clientX: left + 4, clientY: top + 4 });
+    inner.dispatchEvent(
+      new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [touch],
+        targetTouches: [touch],
+        changedTouches: [touch],
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    await expect(body.queryByRole('menuitem', { name: '名前を変える' })).toBeNull();
+    await expect(body.getAllByRole('menu')).toHaveLength(1);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(body.queryByRole('menu')).toBeNull());
+    // 範囲そのものの右クリックでは開く
+    rightClick(canvas.getByText('行の余白'));
+    await expect(await body.findByRole('menuitem', { name: '名前を変える' })).toBeInTheDocument();
   },
 };

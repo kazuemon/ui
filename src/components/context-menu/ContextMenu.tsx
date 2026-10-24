@@ -2,7 +2,7 @@
 
 import type { ScrollAreaScrollbar } from '../../internal/scroll-area-styles';
 import { ContextMenu as BaseContextMenu } from '@base-ui/react/context-menu';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode, SyntheticEvent } from 'react';
 
 import {
   type MenuColor,
@@ -20,6 +20,18 @@ import type {
   PositionerProps,
 } from '../../internal/overlay/overlay-props';
 import type { OverlayPresentation } from '../../internal/sheet/use-narrow-screen';
+
+// 範囲の中の portal（Menu・Popover の面）から、React の木を伝って届いたイベントは、Base UI に渡さない。
+// Base UI の Trigger は target が範囲の DOM の中かを見ないので、面の右クリック・長押しでも開いてしまう。
+// 止めるのは、開く入口の contextmenu と touchstart だけ（move・end・cancel は長押しを取りやめるだけ）。
+// stopPropagation も preventDefault もしないので、面自身や外側の ContextMenu の扱いは変わらない
+function ignoreOutsideDom(
+  event: SyntheticEvent<HTMLElement> & { preventBaseUIHandler?: () => void }
+) {
+  if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) {
+    event.preventBaseUIHandler?.();
+  }
+}
 
 // 印の色（Menu と同じ）は MenuSurface が context の color から作る
 export interface ContextMenuProps {
@@ -211,6 +223,8 @@ export function ContextMenu({
         ref={anchorRef}
         render={trigger}
         className={highlightArea && rootProps.open ? 'bg-field' : undefined}
+        onContextMenu={ignoreOutsideDom}
+        onTouchStart={ignoreOutsideDom}
       />
       <MenuContext value={context}>
         <MenuSurface
