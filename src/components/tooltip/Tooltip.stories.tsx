@@ -7,6 +7,8 @@ import { Tooltip, TooltipProvider } from './Tooltip';
 import { ScreenFrame } from '../../stories/story-parts';
 import { sourceCode } from '../../stories/story-states';
 import { Button } from '../button/Button';
+import { ContextMenu } from '../context-menu/ContextMenu';
+import { MenuItem } from '../menu/MenuItem';
 
 // 開いた状態のストーリーも、ドキュメントのページでは閉じて描く
 const openOnLoad = (viewMode: string) => viewMode !== 'docs';
@@ -25,6 +27,8 @@ const meta = {
           '- 指で操作する人は、長押ししないと読めません。欠かせない情報は Tooltip に置かず、押して開く Popover や、キャプションで見せます。',
           '- 長押しで出したときは、指を離しても本体を実行しません。ほかの場所に触れると閉じます。指と手で隠れないよう、上に出します（`longPressSide`。`false` で `side` のままにできます）。',
           '- `side` で出す向きを選びます（既定は下）。画面の端に当たるときは反対側に出します。その辺に沿った寄せは `align` です。',
+          '- `ContextMenu` の範囲の中に置いたときは、本体の上の指の長押しは Tooltip のものです。Tooltip だけが出て、外の `ContextMenu` は開きません（マウスの右クリックは `ContextMenu` に届きます）。',
+          '- 本体を押すと吹き出しは閉じます。押すと文を変える本体（コピーして「コピーしました」を出すなど）では、`closeOnClick={false}` にすると押しても閉じません。',
           '- 影を付けたくないときは `hideShadow` にします。細い輪郭だけで下の内容と切り分けます。',
           '- ツールバーのように Tooltip が並ぶところは `TooltipProvider` で包みます。出るまでの待ち（`delay`）と消えるまでの待ち（`closeDelay`）をそろえ、1 つが出たあとは隣へマウスを移すと待たずに出します。',
           '- 並んだボタンのどれの補足かをはっきりさせたいときは、`showArrow` で本体を指す小さな矢印を出します。',
@@ -376,6 +380,93 @@ export const Accessibility: Story = {
     // ほかの場所に触れると閉じる
     touch(canvasElement.ownerDocument.body, 'pointerdown');
     await waitFor(() => expect(body.queryByText('リンクをコピー')).toBeNull());
+  },
+};
+
+function touchStart(element: Element) {
+  const { left, top } = element.getBoundingClientRect();
+  const finger = new Touch({
+    identifier: 1,
+    target: element,
+    clientX: left + 4,
+    clientY: top + 4,
+  });
+  element.dispatchEvent(
+    new TouchEvent('touchstart', {
+      touches: [finger],
+      targetTouches: [finger],
+      changedTouches: [finger],
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+    })
+  );
+}
+
+export const InContextMenu: Story = {
+  name: 'ContextMenu の中',
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <div className="p-12">
+      <ContextMenu
+        trigger={
+          <div className="flex h-36 items-center justify-center rounded-card border border-dashed border-line-strong">
+            <Tooltip {...args}>
+              <Button>共有</Button>
+            </Tooltip>
+          </div>
+        }
+      >
+        <MenuItem>複製</MenuItem>
+      </ContextMenu>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole('button', { name: '共有' });
+    // 指の長押し: Tooltip だけが出て、外の ContextMenu は開かない
+    touch(trigger, 'pointerdown');
+    touchStart(trigger);
+    await waitFor(() => expect(body.getByText('リンクをコピー')).toBeVisible());
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect(body.queryByRole('menuitem', { name: '複製' })).toBeNull();
+    touch(trigger, 'pointerup');
+    touch(canvasElement.ownerDocument.body, 'pointerdown');
+    await waitFor(() => expect(body.queryByText('リンクをコピー')).toBeNull());
+    // マウスの右クリックは ContextMenu に届く
+    await userEvent.pointer({ keys: '[MouseRight]', target: trigger });
+    await waitFor(() => expect(body.getByRole('menuitem', { name: '複製' })).toBeVisible());
+  },
+};
+
+export const KeepOpenOnClick: Story = {
+  name: '押しても閉じない',
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <div className="grid gap-12 p-12">
+      <Tooltip {...args} content="閉じる本体">
+        <Button>既定</Button>
+      </Tooltip>
+      <Tooltip {...args} content="閉じない本体" closeOnClick={false}>
+        <Button>コピー</Button>
+      </Tooltip>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    // 既定: 押すと閉じる
+    await userEvent.hover(canvas.getByRole('button', { name: '既定' }));
+    await waitFor(() => expect(body.getByText('閉じる本体')).toBeVisible());
+    await userEvent.click(canvas.getByRole('button', { name: '既定' }));
+    await waitFor(() => expect(body.queryByText('閉じる本体')).toBeNull());
+    // closeOnClick={false}: 押しても閉じない
+    await userEvent.hover(canvas.getByRole('button', { name: 'コピー' }));
+    await waitFor(() => expect(body.getByText('閉じない本体')).toBeVisible());
+    await userEvent.click(canvas.getByRole('button', { name: 'コピー' }));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await expect(body.getByText('閉じない本体')).toBeVisible();
   },
 };
 

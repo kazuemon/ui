@@ -11,6 +11,7 @@ import {
 } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+import { controlSizeSm } from '../../internal/control-size';
 import { focusRing } from '../../internal/focus-styles';
 import { FormSubmitContext } from '../../internal/form-context';
 import { ArrowUpRightIcon } from '../../internal/icons';
@@ -126,14 +127,7 @@ const button = tv({
     // 大きさの段（軸 461）。sm は密度の寸法（高さ・左右の余白・文字・アイコン）を、自分の中だけ小さい段に差し替える
     //   密度では変えない（指でも同じ高さ。見た目の釣り合いのため、指で押せる高さを割る）
     //   中の回る円・アイコンも --spacing-icon を読むので、一緒に小さくなる。値は design/tokens.css の *-sm
-    size: {
-      md: '',
-      sm: [
-        '[--spacing-control:var(--spacing-control-sm)]',
-        '[--spacing-control-x:var(--spacing-control-x-sm)] [--spacing-icon:var(--spacing-icon-sm)]',
-        '[--leading-control:var(--leading-control-sm)] [--text-control:var(--text-control-sm)]',
-      ],
-    },
+    size: { md: '', sm: controlSizeSm },
   },
   compoundVariants: [
     {

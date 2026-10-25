@@ -11,6 +11,7 @@ import {
 import type { VariantProps } from 'tailwind-variants';
 
 import { ButtonLink, type ButtonShape } from '../button/Button';
+import { controlSizeSm } from '../../internal/control-size';
 import { focusRing } from '../../internal/focus-styles';
 import { ArrowUpRightIcon } from '../../internal/icons';
 import {
@@ -138,8 +139,16 @@ const link = tv({
     },
     // 幅いっぱいに広げたときの中身の寄せ方。枠線のリンクだけに効く（design/adr/0046）
     contentAlign: { center: '', between: '', 'center-end': '' },
+    // 大きさの段（軸 461）。枠線のリンクだけがここで持ち、button・underline は Button に渡す
+    size: { md: '', sm: '' },
   },
   compoundVariants: [
+    // 枠線のリンクは枠線のボタンと同じ寸法（design/adr/0039）なので、sm も枠線のボタンの sm と同じ差し替えにする（Button の size と同じ）
+    {
+      variant: 'outline',
+      size: 'sm',
+      class: controlSizeSm,
+    },
     { variant: 'outline', contentAlign: 'center', class: 'justify-center' },
     { variant: 'outline', contentAlign: 'between', class: 'justify-between' },
     // center-end の左の空き（アイコンと隙間の幅）は、最後のアイコンがあるときだけ部品の中で足す
@@ -191,6 +200,13 @@ export interface LinkProps extends Omit<ComponentProps<'a'>, 'color'>, VariantPr
    * @default 'text'
    */
   variant?: VariantProps<typeof link>['variant'];
+  /**
+   * 大きさ。sm は高さ・文字・左右の余白・アイコンを一段小さくします（Button の size と同じ寸法）。
+   * 枠線のリンク（outline）とボタンの見た目のリンク（button・underline）で効き、文字のリンク（text）には効きません（周りの文字のままのため）。
+   * 指で操作するときも同じ大きさで、押せる高さ（44px）より低くなります。指で押すことが多い画面の主な移動には md を使います
+   * @default 'md'
+   */
+  size?: VariantProps<typeof link>['size'];
   /**
    * キャプション（原則4）。ボタンの見た目（variant="button"・"underline"）のときだけ使えます。リンクの下に中央寄せで、小さくグレーの文字で出します。
    * 「外部のサイトに移動します」のような補足に使います。押せないときも薄くしません（原則1）。
@@ -295,7 +311,7 @@ export function Link(props: LinkProps) {
 // ボタンの見た目のリンク（variant="button"）: 見た目は Button に任せ、要素は <a>（render を渡したときはその要素）
 //   ↗・新しいタブの名前・キャプション・押せないリンクの作り方は、Button のリンクの道（ButtonLink）と同じものを使う
 //   押せないときは、色を指定していても押せないグレーのボタンと同じ見た目にする（原則7）。Button の neutral がその見た目
-//   contentAlign・leadIconPlacement は枠線のリンクのものなので、ここでは効かない
+//   size は Button の size にそのまま渡す。contentAlign・leadIconPlacement は枠線のリンクのものなので、ここでは効かない
 //   <a> の type（MIME タイプ）は使わない（Button の型でも止めている）
 function ButtonLookLink(props: LinkProps) {
   const {
@@ -309,6 +325,7 @@ function ButtonLookLink(props: LinkProps) {
     disabled,
     caption,
     shape = 'square',
+    size,
     newTabIcon,
     ref,
     children,
@@ -324,6 +341,7 @@ function ButtonLookLink(props: LinkProps) {
       disabled={disabled}
       iconOnly={isIconOnly(props)}
       shape={shape}
+      size={size}
       render={render ?? <a />}
       newTabIcon={newTabIcon}
       ref={ref}
@@ -347,6 +365,7 @@ function PlainLink(all: LinkProps) {
     disabled,
     caption: _caption,
     shape = 'circle',
+    size,
     newTabIcon,
     ref,
     children,
@@ -446,6 +465,7 @@ function PlainLink(all: LinkProps) {
         // 下線の出し方は文字のリンクだけ
         underline: outline ? undefined : underline,
         contentAlign,
+        size,
         className: [
           balance,
           iconOnly && iconOnlyOutline[shape],

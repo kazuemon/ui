@@ -360,20 +360,37 @@ export function TabList({ className, children, ref, ...props }: TabListProps) {
   const listRef = useRef<HTMLDivElement>(null);
   // 内部の ref（はじめのスクロールに使う）と、利用者が渡した ref をつなぐ（ADR-0250）
   const mergedRef = useMergedRefs(listRef, ref);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const viewportMergedRef = useMergedRefs(viewportRef, inlineCues);
 
   // はじめに選んでおいたタブが、見えている範囲の外にあるとき、その位置までスクロールして見せる
   // 動きを減らす設定では滑らせない。あとでタブを選び直したときは、Base UI のフォーカス移動でスクロールする
   useEffect(() => {
     const list = listRef.current;
+    const viewport = viewportRef.current;
     // 縦向きでは滑らせない（縦の並びは横にあふれず、外の枠まで動いてしまう）
-    if (!list || list.dataset.orientation === 'vertical') return;
+    if (!list || !viewport || list.dataset.orientation === 'vertical') return;
     const active = list.querySelector<HTMLElement>('[data-slot="tab"][data-active]');
     if (!active) return;
+    // scrollIntoView は外のページまで動かすので使わない。枠の中だけを、はみ出した分だけ動かす（nearest と同じ）
+    // 矩形どうしの差で測るので、右から左の向きでも scrollLeft の符号を気にしなくてよい
+    const box = viewport.getBoundingClientRect();
+    const tab = active.getBoundingClientRect();
+    const style = getComputedStyle(viewport);
+    const start = box.left + (parseFloat(style.scrollPaddingLeft) || 0);
+    const end = box.right - (parseFloat(style.scrollPaddingRight) || 0);
+    let delta = 0;
+    if (tab.left < start) delta = tab.left - start;
+    else if (tab.right > end) delta = Math.min(tab.right - end, tab.left - start);
+    // 枠より広いタブは、書き始めの端をそろえる（右から左の向きでは右端）
+    if (tab.width > end - start) {
+      delta = style.direction === 'rtl' ? tab.right - end : tab.left - start;
+    }
+    if (delta === 0) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    active.scrollIntoView({
+    viewport.scrollTo({
+      left: viewport.scrollLeft + delta,
       behavior: reduceMotion ? 'instant' : 'smooth',
-      inline: 'nearest',
-      block: 'nearest',
     });
   }, []);
 
@@ -383,7 +400,7 @@ export function TabList({ className, children, ref, ...props }: TabListProps) {
       className={scroll.root({ className: s.scroller({ className }) })}
     >
       {/* 枠には Tab で止まらない（スクロールはタブへのフォーカスで起こる） */}
-      <BaseScrollArea.Viewport ref={inlineCues} tabIndex={-1} className={scroll.viewport()}>
+      <BaseScrollArea.Viewport ref={viewportMergedRef} tabIndex={-1} className={scroll.viewport()}>
         <BaseScrollArea.Content className={s.content()}>
           <BaseTabs.List {...props} ref={mergedRef} data-slot="tab-list" className={s.list()}>
             <BaseTabs.Indicator data-slot="tab-indicator" className={s.indicator()} />

@@ -261,6 +261,45 @@ export const Overflow: Story = {
   },
 };
 
+export const OverflowInPage: Story = {
+  name: '縦に長いページの下',
+  parameters: {
+    controls: { include: ['color'] },
+    docs: {
+      description: {
+        story:
+          '画面の外にある並びを開いても、ページは動きません。選んでいるタブが見えない並びだけが、その中で横にスクロールします。',
+      },
+    },
+  },
+  render: (args) => (
+    <div data-testid="outer" className="h-[240px] w-[320px] overflow-y-auto" data-density="coarse">
+      <div className="h-[600px]" />
+      <Tabs color={args.color} defaultValue="お問い合わせ">
+        <TabList aria-label="プロフィール">
+          {manyTabs.map((label) => (
+            <Tab key={label} value={label}>
+              {label}
+            </Tab>
+          ))}
+        </TabList>
+      </Tabs>
+      <div className="h-[600px]" />
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const outer = canvasElement.querySelector<HTMLElement>('[data-testid="outer"]')!;
+    const list = canvas.getByRole('tablist');
+    // 並びを横にスクロールさせる祖先（ScrollArea の viewport）
+    let viewport = list.parentElement!;
+    while (getComputedStyle(viewport).overflowX === 'visible') viewport = viewport.parentElement!;
+    // 並びの中は横に動いている
+    await waitFor(() => expect(viewport.scrollLeft).toBeGreaterThan(0));
+    // 外の入れ物（ページの代わり）は動かない
+    await expect(outer.scrollTop).toBe(0);
+  },
+};
+
 export const Vertical: Story = {
   name: '縦向き',
   tags: ['visual'],
