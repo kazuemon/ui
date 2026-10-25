@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.5.0](https://github.com/kazuemon/ui/compare/v0.4.0...v0.5.0) (2026-10-25)
+
+
+### 新しくできること
+
+* ActionBar を足す（ADR-0523〜0526） ([00d19cb](https://github.com/kazuemon/ui/commit/00d19cb9ae589722a6dceb6400df8c11ed6d85ef))
+* Attachment を足す（ADR-0527〜0530） ([c27bbbb](https://github.com/kazuemon/ui/commit/c27bbbb95b5384d036e2d966a578d6291e27f874))
+* Cascader を足す（ADR-0519〜0522） ([23415cd](https://github.com/kazuemon/ui/commit/23415cd0fec46409b1d9ede1054da33ae20607d0))
+* Sparkline と BarList を足す ([e7dd070](https://github.com/kazuemon/ui/commit/e7dd070a50bba7bf1a0ed6b10633b92881e2fe1f))
+* Stat に chart と chartPlacement を足す ([0b5d26a](https://github.com/kazuemon/ui/commit/0b5d26aaaf7adf52e9d686ecfea45338cf3cfe02))
+* TreeSelect を足す（ADR-0515〜0518） ([7698388](https://github.com/kazuemon/ui/commit/7698388519272805f7f37b034e996f9a780e109d))
+* TreeSelect・Cascader・ActionBar・Attachment を足す（ADR-0515〜0530） ([#177](https://github.com/kazuemon/ui/issues/177)) ([fbc74f7](https://github.com/kazuemon/ui/commit/fbc74f7bce1eff3b769f3b72771dfe919375398e))
+* グラフの系列の色・Sparkline・BarList と、Stat のグラフを足す ([#180](https://github.com/kazuemon/ui/issues/180)) ([591cce1](https://github.com/kazuemon/ui/commit/591cce14a1b3cd3bcd35c7c3c4509e8db6c4e272))
+* グラフの系列の色（color-series-1〜8）と名前の付いた色を足す ([614c4f7](https://github.com/kazuemon/ui/commit/614c4f7514d9e01918dde0c91bdc0a8f2064dc87))
+
+
+### 直したこと
+
+* ContextMenu・Tooltip・Tabs の FB を直し、Link に size を足す ([#185](https://github.com/kazuemon/ui/issues/185)) ([4fdaf1b](https://github.com/kazuemon/ui/commit/4fdaf1bd162bc5e306a1c2a0e8f30c609a09e5d1))
+
+
+### 見た目
+
+* ActionBar の入りきらない操作は、操作ごとの narrowPlacement で決める（軸 654） ([48bf0f2](https://github.com/kazuemon/ui/commit/48bf0f257a9c73a2807c4708ed8bc0bf34831e7a))
+* ActionBar の出入りは fade-up が既定で、motion で slide・scale・none も選べる（軸 653） ([6488f30](https://github.com/kazuemon/ui/commit/6488f30f1a41b96581fc7c7385a84d73e6f9232e))
+* ActionBar の帯の幅は full が既定で、placement で center・docked も選べる（軸 652） ([578c475](https://github.com/kazuemon/ui/commit/578c475a77435c0b4ba514b6734103d08d6eaac0))
+* ActionBar の帯を浮かぶ面の下に置き、docked の輪郭を上の線だけにする ([01fc486](https://github.com/kazuemon/ui/commit/01fc486633e1b9bd5524e031c295645230b7b64d))
+* ActionBar を足し、帯の面は白い面を既定にする（軸 651） ([785c81d](https://github.com/kazuemon/ui/commit/785c81daafc0699c8532fb671090db490b464584))
+* Attachment の札全体のリンク（linkArea）を外し、画像だけの正方形だけを全体のリンクにする ([7c34c63](https://github.com/kazuemon/ui/commit/7c34c63802e1d864e22df045d65fe92e1877ba86))
+* Attachment の画像は、縮小画像を出さないのを既定にする（軸 656） ([30b505f](https://github.com/kazuemon/ui/commit/30b505fe57edbe7a9e8f11594b32e9bcae557b6b))
+* Attachment は名前だけをリンクにする（軸 658） ([c9840c4](https://github.com/kazuemon/ui/commit/c9840c4acb1059300e46616da35b7e9156274d20))
+* Attachment を足し、進み具合は名前の下の帯を既定にする（軸 655） ([84c2568](https://github.com/kazuemon/ui/commit/84c25687d5c9b0e01f5820ee7d5c6687f164a61f))
+* AttachmentList は折り返すのが既定で、指定で横にスクロールする（軸 657） ([29ebfa6](https://github.com/kazuemon/ui/commit/29ebfa63e44f7a03bc0f76d32b3af00d2327974e))
+* BarList の名前の下に棒を置く形の間隔を詰める（軸 661） ([bbbe510](https://github.com/kazuemon/ui/commit/bbbe510f845be99dcedb68b191fbfce628a60473))
+* Cascader のシートは開いたときから木のいちばん長い段の高さにし、levelSheet で fixed・fit も選べる（軸 650） ([796f83d](https://github.com/kazuemon/ui/commit/796f83d65ac8fceb3e81b23bf9b26e59f594e738))
+* Cascader の欄の文は道筋をすべてが既定で、区切りに要素も渡せるようにする（軸 649） ([75d83ba](https://github.com/kazuemon/ui/commit/75d83bac4cc77577f95304f2639ec4ad4d28ce4b))
+* Cascader の浮かべる面は開いたときから木の深さの分だけ列を置き、hideEmptyColumns で伸び縮みする形にもできる（軸 647） ([1567f21](https://github.com/kazuemon/ui/commit/1567f21b8b23cbd49d35d07780017fc210460186))
+* Cascader の面は開いた向きを閉じるまで保ち、浮かべる面も木のいちばん長い段の高さにそろえる ([7b5efd2](https://github.com/kazuemon/ui/commit/7b5efd2eb56db09334a7cc82d321a6391571e603))
+* Cascader は載せて次の段を開き（軸 647）、親で決める形は次の段の先頭の行だけにする（軸 648） ([bc3784a](https://github.com/kazuemon/ui/commit/bc3784a00ee9ba371a9b2dcea17cfab191ac5273))
+* Cascader を足し、軸 647〜650 の比較を置く ([c6f4115](https://github.com/kazuemon/ui/commit/c6f411522f04226941865450368cd5a8ec4d5fb3))
+* Sparkline と BarList の既定を水色にし、Sparkline は最後の点を置く（軸 660） ([ea79043](https://github.com/kazuemon/ui/commit/ea790430522786426a679613e16207b75ac60048))
+* Stat のグラフを、キャプションの下に幅いっぱいで置く（軸 662） ([5573e80](https://github.com/kazuemon/ui/commit/5573e80e2e3dcf58e9112994a3dff8237b981add))
+* TreeSelect の複数選ぶ形は、名前だけのチップを既定にする（軸 644） ([795feef](https://github.com/kazuemon/ui/commit/795feef09f41ea72af44185889b4b0362645bf0d))
+* TreeSelect の親はほかの行と同じ点として選び、parentSelect で none・label・scope を選べるようにする（軸 645・646） ([af751fa](https://github.com/kazuemon/ui/commit/af751fa8c263d91b4f67dc896f62edf739309a32))
+* TreeSelect を足し、欄のパスの親と区切りを一段淡くするのを既定にする（軸 643） ([1982ef2](https://github.com/kazuemon/ui/commit/1982ef2df31fc4faea7c06b21c0d65d1c9d4e73e))
+* グラフの系列の色を、明度をそろえた 8 色の A2 の順にする（軸 659） ([c34fe81](https://github.com/kazuemon/ui/commit/c34fe81b54c25834c89f0034cb41915807a88f79))
+
 ## [0.4.0](https://github.com/kazuemon/ui/compare/v0.3.0...v0.4.0) (2026-10-08)
 
 
