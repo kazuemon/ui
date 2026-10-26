@@ -202,7 +202,7 @@ importers:
         version: 0.5.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@fontsource/ibm-plex-sans-jp':
         specifier: ^5.3.0
-        version: 5.3.0
+        version: 5.3.1
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -301,7 +301,7 @@ importers:
         version: 0.5.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@fontsource/ibm-plex-sans-jp':
         specifier: ^5.3.0
-        version: 5.3.0
+        version: 5.3.1
       '@kazuemon/ui':
         specifier: workspace:*
         version: link:../..
@@ -685,8 +685,8 @@ packages:
   '@fontsource-variable/mulish@5.3.0':
     resolution: {integrity: sha512-CLh1WAcz2noJmoAun0/dsE7+0ZO6Kq/MBd+x00CcZ9dmThXqYqdhSssXGOdqb3G9YVaeGOmVkMS5yrZd1BHr9Q==}
 
-  '@fontsource/ibm-plex-sans-jp@5.3.0':
-    resolution: {integrity: sha512-Eas8EEVkh0UbITQMskrCF5Ha1L24GagNsvjMfrKwhv3KNPFRjbZAt0fLO4lSgfx4U4rHWpX5JeMDJNXF+hcguQ==}
+  '@fontsource/ibm-plex-sans-jp@5.3.1':
+    resolution: {integrity: sha512-lFejXBGcWN/htaffKJryghb/zd2WKwFKyJWJRTcRP57/HUAGEdjNHI0UtIUN8pv4A5F9hPBxZ0dY8oILd88xIA==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3800,7 +3800,7 @@ snapshots:
 
   '@fontsource-variable/mulish@5.3.0': {}
 
-  '@fontsource/ibm-plex-sans-jp@5.3.0': {}
+  '@fontsource/ibm-plex-sans-jp@5.3.1': {}
 
   '@img/colour@1.1.0':
     optional: true
