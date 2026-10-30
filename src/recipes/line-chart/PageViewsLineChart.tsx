@@ -4,7 +4,7 @@
 // 線・軸・目盛り・hover の判定は Recharts が描き、枠・凡例・hover のカード・点・軸の名前・線の端の名前は部品が描く
 // 色と線の太さは、トークンを CSS 変数のまま Recharts の props に渡す
 // look は見本の Controls で見た目を切り替えるための口。写すときは、使う形を直接書いて消してよい
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import {
   type ActiveDotProps,
   type CartesianViewBox,
@@ -20,6 +20,7 @@ import {
   type TooltipContentProps,
   type TooltipValueType as ValueType,
   XAxis,
+  type XAxisTickContentProps,
   YAxis,
 } from 'recharts';
 
@@ -120,6 +121,52 @@ const renderDot = ({ key, cx, cy, stroke }: DotItemDotProps) => (
   <ChartDot key={key ?? undefined} cx={cx} cy={cy} color={stroke} size="sm" />
 );
 
+// 横の目盛り。単位（週）を書くときは、最後の目盛りの右に続けて置く
+// 目盛りの文字は真ん中寄せなので、最後の目盛りの幅を測り、その右端から置く
+function WeekTick({
+  x,
+  y,
+  payload,
+  index,
+  visibleTicksCount,
+  unit,
+}: XAxisTickContentProps & { unit?: string }) {
+  const ref = useRef<SVGTextElement>(null);
+  const [halfWidth, setHalfWidth] = useState<number>();
+  const showUnit = unit != null && index === visibleTicksCount - 1;
+  useLayoutEffect(() => {
+    if (showUnit && ref.current) setHalfWidth(ref.current.getComputedTextLength() / 2);
+  }, [showUnit]);
+  return (
+    <g>
+      <text
+        ref={ref}
+        x={x}
+        y={y}
+        dy="0.6em"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="var(--color-chart-tick)"
+      >
+        {payload.value}
+      </text>
+      {showUnit && halfWidth != null ? (
+        <ChartAxisLabel x={Number(x) + halfWidth} y={y} dx="0.4em" dy="0.6em">
+          {unit}
+        </ChartAxisLabel>
+      ) : null}
+    </g>
+  );
+}
+
+// 値が変わったら測り直すよう、値を key にする
+const renderWeekTick = (props: XAxisTickContentProps) => (
+  <WeekTick key={String(props.payload.value)} {...props} />
+);
+const renderWeekTickWithUnit = (props: XAxisTickContentProps) => (
+  <WeekTick key={String(props.payload.value)} {...props} unit="週" />
+);
+
 export function PageViewsLineChart({
   data,
   look = {},
@@ -184,7 +231,7 @@ export function PageViewsLineChart({
       </ChartLineLabel>
     ) : null;
 
-  // 軸の名前。縦は目盛りの上に横書き（top）か、目盛りの左に 90 度回す（vertical）。横は目盛りの下の右端
+  // 軸の名前。縦は目盛りの左に 90 度回す（vertical）か、目盛りの上に横書き（top）。横は単位として最後の目盛りの右（WeekTick）
   const yTitle = ({ viewBox }: LabelProps) => {
     const box = viewBox as CartesianViewBox;
     return axisTitles === 'vertical' ? (
@@ -199,18 +246,6 @@ export function PageViewsLineChart({
     ) : (
       <ChartAxisLabel x={box.x} y={(box.y ?? 0) - 16}>
         閲覧数（回）
-      </ChartAxisLabel>
-    );
-  };
-  const xTitle = ({ viewBox }: LabelProps) => {
-    const box = viewBox as CartesianViewBox;
-    return (
-      <ChartAxisLabel
-        x={(box.x ?? 0) + (box.width ?? 0)}
-        y={(box.y ?? 0) + (box.height ?? 0) - 8}
-        textAnchor="end"
-      >
-        週
       </ChartAxisLabel>
     );
   };
@@ -268,12 +303,12 @@ export function PageViewsLineChart({
       }
     >
       <ResponsiveContainer width="100%" height="100%">
-        {/* 右は、線の端の名前が入る分を空ける。上は、縦の軸の名前（top）が入る分を空ける */}
+        {/* 右は、線の端の名前（なければ横の単位）が入る分を空ける。上は、縦の軸の名前（top）が入る分を空ける */}
         <LineChart
           data={data}
           margin={{
             top: axisTitles === 'top' ? 28 : 8,
-            right: showLineLabels ? 88 : 8,
+            right: showLineLabels ? 88 : axisTitles === 'none' ? 8 : 32,
             bottom: 0,
             left: 0,
           }}
@@ -287,12 +322,11 @@ export function PageViewsLineChart({
           ) : null}
           <XAxis
             dataKey="week"
-            tick={tick}
+            tick={axisTitles === 'none' ? renderWeekTick : renderWeekTickWithUnit}
             tickLine={false}
             tickMargin={8}
-            height={axisTitles === 'none' ? 30 : 52}
+            height={30}
             axisLine={{ stroke: 'var(--color-chart-axis)' }}
-            label={axisTitles === 'none' ? undefined : { content: xTitle }}
           />
           <YAxis
             tick={tick}
