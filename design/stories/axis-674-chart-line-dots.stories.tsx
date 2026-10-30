@@ -34,7 +34,7 @@ const candidates: LookCandidate[] = [
     intent:
       '線の右端（いまの値）にだけ点を置く。Sparkline と同じ考えで、いまの値と線の端の名前が結びつく',
     spec: [['点', '最後の値だけ・半径 3px']],
-    look: { dots: 'last' },
+    look: { dots: 'all' },
   },
 ];
 

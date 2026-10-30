@@ -30,10 +30,11 @@ import { SegmentedControl, SegmentedControlItem } from '../segmented-control/Seg
 //     Table に maxHeight="var(--chart-table-max-height)" を渡すと、あふれた行は表の中でスクロールし、見出しの行が貼り付く
 //     はじめから表を見せるときは測れないので、凡例の 1 行 + 間 + グラフの高さで見積もる
 //   auto: 表は行の数だけ伸びる
-// 題の大きさ（titleSize。軸 679 で決める）: sm は Stat のラベルと同じ、md・lg は見出しの段
+// 題の大きさ（titleSize。軸 679）: sm は Stat のラベルと同じで既定、md・lg は見出しの段
 // 読み込み中（loading）とデータがないとき（empty）は、グラフを描く場所に代わりのものを置き、凡例と切り替えを隠す
-//   loadingIndicator（軸 677 で決める）: skeleton は描く場所を Skeleton で埋め、spinner は真ん中に回る円、grid は淡いグリッドの線と文字
-//   emptyVariant（軸 676 で決める）: text は真ん中に淡い文字、panel は StatusPanel の小、grid は淡いグリッドの線の上に文字
+//   loadingIndicator（軸 677）: spinner は真ん中に回る円で既定、skeleton は描く場所を Skeleton で埋め、grid は淡いグリッドの線と文字
+//     skeleton はグラフの形をしていない四角なので既定にしない（グラフの形の Skeleton は backlog）
+//   emptyVariant（軸 676）: text は真ん中に淡い文字で既定、panel は StatusPanel の小、grid は淡いグリッドの線の上に文字
 const chartFrame = tv({
   slots: {
     root: 'm-0 flex min-w-0 flex-col gap-(--chart-frame-gap)',
@@ -145,8 +146,8 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
    */
   loading?: boolean;
   /**
-   * 読み込み中の印。skeleton は描く場所を Skeleton で埋め、spinner は真ん中に回る円、grid は淡いグリッドの線と文字です
-   * @default 'skeleton'
+   * 読み込み中の印。spinner は真ん中に回る円、skeleton は描く場所を Skeleton で埋め、grid は淡いグリッドの線と文字です
+   * @default 'spinner'
    */
   loadingIndicator?: ChartFrameLoadingIndicator;
   /**
@@ -232,7 +233,7 @@ export function ChartFrame({
   height,
   tableHeight = 'chart',
   loading = false,
-  loadingIndicator = 'skeleton',
+  loadingIndicator = 'spinner',
   loadingText = '読み込んでいます',
   empty = false,
   emptyText = 'データがありません',

@@ -80,12 +80,12 @@ export interface LineChartLook extends Pick<
   curve?: 'linear' | 'monotone';
   /** グリッドの線。solid は淡い実線、dashed は破線、none は引かない */
   grid?: 'solid' | 'dashed' | 'none';
-  /** 軸の名前。none は書かない、top は縦の名前を目盛りの上に横書き、vertical は縦の名前を 90 度回す */
+  /** 軸の名前。vertical は縦の名前を 90 度回す、top は縦の名前を目盛りの上に横書き、none は書かない */
   axisTitles?: 'none' | 'top' | 'vertical';
-  /** 縦の目盛り。zero は 0 から 5 本、auto は値に合わせた範囲、few は 0 から 3 本 */
+  /** 縦の目盛り。auto は値に合わせた範囲、zero は 0 から 5 本、few は 0 から 3 本。データに合わせて写した側で決める */
   yTicks?: 'zero' | 'auto' | 'few';
-  /** 線の上の点。none は hover したときだけ、all はすべての値、last は最後の値だけ */
-  dots?: 'none' | 'all' | 'last';
+  /** 線の上の点。none は hover したときだけ、all はすべての値 */
+  dots?: 'none' | 'all';
   /** 基準の線（目標）。none は引かない、dashed は破線、solid は実線 */
   referenceLine?: 'none' | 'dashed' | 'solid';
   referenceLabel?: ChartReferenceLabelVariant;
@@ -136,8 +136,8 @@ export function PageViewsLineChart({
     showLineLabels = true,
     curve = 'linear',
     grid = 'solid',
-    axisTitles = 'none',
-    yTicks = 'zero',
+    axisTitles = 'vertical',
+    yTicks = 'auto',
     dots = 'none',
     referenceLine = 'none',
     referenceLabel,
@@ -325,13 +325,7 @@ export function PageViewsLineChart({
               hide={hidden.has(s.key)}
               stroke={s.color}
               strokeWidth="var(--border-width-thick)"
-              dot={
-                dots === 'all'
-                  ? renderDot
-                  : dots === 'last'
-                    ? (props: DotItemDotProps) => (props.index === last ? renderDot(props) : null)
-                    : false
-              }
+              dot={dots === 'all' ? renderDot : false}
               activeDot={renderActiveDot}
               isAnimationActive={false}
             >

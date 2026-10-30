@@ -65,15 +65,15 @@ const meta = {
   args: {
     state: 'data',
     titleSize: 'sm',
-    loadingIndicator: 'skeleton',
+    loadingIndicator: 'spinner',
     emptyVariant: 'text',
-    axisTitles: 'none',
-    yTicks: 'zero',
+    axisTitles: 'vertical',
+    yTicks: 'auto',
     dots: 'none',
     referenceLine: 'none',
     referenceLabel: 'plain',
     legendToggle: false,
-    legendHiddenVariant: 'ring',
+    legendHiddenVariant: 'faded',
     markerType: 'dot',
     legendPlacement: 'bottom',
     legendAlign: 'center',
@@ -101,7 +101,7 @@ const meta = {
     loadingIndicator: {
       name: '読み込み中の印（loadingIndicator）',
       control: 'inline-radio',
-      options: ['skeleton', 'spinner', 'grid'],
+      options: ['spinner', 'skeleton', 'grid'],
     },
     emptyVariant: {
       name: 'データなしの見せ方（emptyVariant）',
@@ -111,17 +111,17 @@ const meta = {
     axisTitles: {
       name: '軸の名前（ChartAxisLabel）',
       control: 'inline-radio',
-      options: ['none', 'top', 'vertical'],
+      options: ['vertical', 'top', 'none'],
     },
     yTicks: {
       name: '縦の目盛り（YAxis の domain・tickCount）',
       control: 'inline-radio',
-      options: ['zero', 'auto', 'few'],
+      options: ['auto', 'zero', 'few'],
     },
     dots: {
       name: '線の上の点（Line の dot）',
       control: 'inline-radio',
-      options: ['none', 'all', 'last'],
+      options: ['none', 'all'],
     },
     referenceLine: {
       name: '基準の線（ReferenceLine）',
@@ -137,7 +137,7 @@ const meta = {
     legendHiddenVariant: {
       name: '消した系列の見せ方（hiddenVariant）',
       control: 'inline-radio',
-      options: ['ring', 'faded', 'strike'],
+      options: ['faded', 'ring', 'strike'],
     },
     markerType: {
       name: '色の印（markerType）',
