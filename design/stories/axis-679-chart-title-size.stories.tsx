@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/679 グラフの題の大きさ',
   id: 'design-review-679-chart-title-size',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: pickArg(['current', 'A', 'B']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

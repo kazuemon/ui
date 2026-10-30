@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/676 グラフのデータがないとき',
   id: 'design-review-676-chart-empty',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: pickArg(['A', 'B', 'C']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

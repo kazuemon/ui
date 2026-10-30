@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/673 グラフの縦の目盛り',
   id: 'design-review-673-chart-y-ticks',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: pickArg(['current', 'A', 'B']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

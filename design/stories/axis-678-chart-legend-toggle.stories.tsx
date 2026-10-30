@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/678 グラフの凡例で系列を出し入れ',
   id: 'design-review-678-chart-legend-toggle',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: pickArg(['current', 'A', 'B', 'C']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

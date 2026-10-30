@@ -8,9 +8,10 @@ import { chartMarker, type ChartMarkerType, seriesColor } from './ChartMarker';
 // グラフの凡例。色の印と系列の名前を横に並べ、入りきらなければ折り返す
 // 2 系列以上のグラフにはいつも置く（原則6: 色だけで系列を伝えない）。印は読み上げず、名前を読む
 // 見た目は MeterGroup の凡例と同じ（丸い印・ラベルの大きさ・名前は本文の色、値は淡い色）
-// onHiddenChange を渡すと、項目が系列を出し入れするボタンになる。消した系列の見せ方は hiddenVariant（軸 678 で決める）
+// onHiddenChange を渡すと、項目が系列を出し入れするボタンになる。押せることは、名前の淡い下線で見せる（下線のボタンと同じ）
+// 消した系列の見せ方は hiddenVariant（軸 678）
+//   faded: 項目全体を淡くする。既定
 //   ring: 印を色の輪にし、名前を淡くする
-//   faded: 項目全体を淡くする
 //   strike: 名前に取り消し線を引き、印をグレーにする
 const chartLegend = tv({
   slots: {
@@ -29,6 +30,13 @@ const chartLegend = tv({
     value: 'text-fg-muted tabular-nums',
   },
   variants: {
+    pressable: {
+      true: {
+        label:
+          'underline [text-decoration-color:var(--color-link-underline)] decoration-1 underline-offset-4',
+      },
+      false: '',
+    },
     hidden: { true: '', false: '' },
     hiddenVariant: { ring: '', faded: '', strike: '' },
   },
@@ -53,7 +61,7 @@ const chartLegend = tv({
       },
     },
   ],
-  defaultVariants: { hidden: false, hiddenVariant: 'ring' },
+  defaultVariants: { pressable: false, hidden: false, hiddenVariant: 'faded' },
 });
 
 /** 凡例の 1 項目 */
@@ -71,7 +79,7 @@ export interface ChartLegendItem {
   hidden?: boolean;
 }
 
-/** 消した系列の見せ方。ring は印を輪に、faded は項目全体を淡く、strike は名前に取り消し線 */
+/** 消した系列の見せ方。faded は項目全体を淡く、ring は印を輪に、strike は名前に取り消し線 */
 export type ChartLegendHiddenVariant = 'ring' | 'faded' | 'strike';
 
 export interface ChartLegendProps extends Omit<ComponentProps<'ul'>, 'children'> {
@@ -88,8 +96,8 @@ export interface ChartLegendProps extends Omit<ComponentProps<'ul'>, 'children'>
    */
   onHiddenChange?: (index: number, hidden: boolean) => void;
   /**
-   * 消した系列の見せ方。ring は印を色の輪にして名前を淡く、faded は項目全体を淡く、strike は名前に取り消し線を引きます
-   * @default 'ring'
+   * 消した系列の見せ方。faded は項目全体を淡く、ring は印を色の輪にして名前を淡く、strike は名前に取り消し線を引きます
+   * @default 'faded'
    */
   hiddenVariant?: ChartLegendHiddenVariant;
   /** いちばん外の要素に付きます */
@@ -103,15 +111,16 @@ export function ChartLegend({
   items,
   markerType = 'dot',
   onHiddenChange,
-  hiddenVariant = 'ring',
+  hiddenVariant = 'faded',
   className,
   ...props
 }: ChartLegendProps) {
   const styles = chartLegend({ hiddenVariant });
   const content = (item: ChartLegendItem, i: number) => {
     // 消した見た目は compoundVariants なので、項目ごとに hidden を渡して作り直す（slot に渡しても compound は効かない）
-    const hidden = onHiddenChange != null && item.hidden === true;
-    const itemStyles = chartLegend({ hiddenVariant, hidden });
+    const pressable = onHiddenChange != null;
+    const hidden = pressable && item.hidden === true;
+    const itemStyles = chartLegend({ hiddenVariant, pressable, hidden });
     return (
       <>
         <span

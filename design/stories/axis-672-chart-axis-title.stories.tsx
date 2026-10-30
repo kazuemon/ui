@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/672 グラフの軸の名前',
   id: 'design-review-672-chart-axis-title',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: pickArg(['current', 'A', 'B']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

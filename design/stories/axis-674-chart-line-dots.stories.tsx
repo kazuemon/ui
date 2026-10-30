@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/674 グラフの線の上の点',
   id: 'design-review-674-chart-line-dots',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'current' },
   argTypes: pickArg(['current', 'A', 'B']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

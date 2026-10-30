@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/677 グラフの読み込み中',
   id: 'design-review-677-chart-loading',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'B' },
   argTypes: pickArg(['A', 'B', 'C']),
 } satisfies Meta<{ pick: string }>;
 export default meta;

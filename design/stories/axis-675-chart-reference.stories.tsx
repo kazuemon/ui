@@ -7,7 +7,7 @@ const meta = {
   title: 'Design Review/675 グラフの基準の線',
   id: 'design-review-675-chart-reference',
   parameters: { layout: 'fullscreen' },
-  args: { pick: '' },
+  args: { pick: 'A' },
   argTypes: pickArg(['A', 'B', 'C']),
 } satisfies Meta<{ pick: string }>;
 export default meta;
