@@ -1,3 +1,5 @@
+'use client';
+
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 
 import { focusRing } from '../../internal/focus-styles';
@@ -9,14 +11,14 @@ import { chartMarker, type ChartMarkerType, seriesColor } from './ChartMarker';
 // 2 系列以上のグラフにはいつも置く（原則6: 色だけで系列を伝えない）。印は読み上げず、名前を読む
 // 見た目は MeterGroup の凡例と同じ（丸い印・ラベルの大きさ・名前は本文の色、値は淡い色）
 // onHiddenChange を渡すと、項目が系列を出し入れするボタンになる。押せることは、名前の淡い下線で見せる（下線のボタンと同じ）
-// 消した系列の見せ方は hiddenVariant（軸 678）
+// 消した系列の見せ方は hiddenVariant（ADR-0550）
 //   faded: 項目全体を淡くする。既定
 //   ring: 印を色の輪にし、名前を淡くする
 //   strike: 名前に取り消し線を引き、印をグレーにする
 const chartLegend = tv({
   slots: {
     root: [
-      'm-0 flex list-none flex-wrap gap-x-(--chart-legend-gap-x) gap-y-(--chart-legend-gap-y) p-0',
+      'm-0 flex list-none flex-wrap gap-x-(--chart-legend-gap-x) gap-y-1 p-0',
       'text-(length:--text-label) leading-(--leading-label)',
     ],
     item: 'inline-flex min-w-0 items-center gap-1.5',
@@ -25,7 +27,7 @@ const chartLegend = tv({
     button: [
       'inline-flex h-(--spacing-control-sm) min-w-0 cursor-pointer items-center gap-1.5 rounded-control px-(--spacing-control-x-sm)',
       'bg-transparent text-inherit hover:bg-(--color-flat-hover) active:translate-y-(--flat-press-depth) active:bg-(--color-flat-press)',
-      '[transition:translate_var(--duration-press)_var(--ease-press),background-color_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
+      '[transition:translate_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
       focusRing,
     ],
     marker: '',

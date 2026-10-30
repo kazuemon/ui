@@ -9,8 +9,8 @@ export const chartMarker = tv({
   variants: {
     markerType: {
       dot: 'size-(--chart-marker-dot-size) rounded-pill',
-      dash: 'h-(--chart-marker-dash-height) w-(--chart-marker-dash-width) rounded-pill',
-      square: 'size-(--chart-marker-square-size) rounded-(--chart-marker-square-radius)',
+      dash: 'h-1 w-(--chart-marker-dash-width) rounded-pill',
+      square: 'size-(--chart-marker-square-size) rounded-xs',
     },
   },
   defaultVariants: { markerType: 'dot' },
