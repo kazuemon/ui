@@ -4,7 +4,7 @@
      height: 描く場所の既定の高さ。height で変えられる
      frame-gap: 見出し・凡例・描く場所のあいだ
      marker-*: 凡例とカードの色の印の大きさ（ADR-0536）。dot は MeterGroup の凡例と同じ丸、dash は短い線、square は角の丸い四角
-     legend-gap-x・legend-gap-y: 凡例の項目のあいだ。legend-button-pad は、項目をボタンにしたときの hover の塗りの左右（外へはみ出させ、文字の位置は変えない）
+     legend-gap-x・legend-gap-y: 凡例の項目のあいだ
      tooltip-*: hover の数値のカード。面は Tooltip と同じ白・細い輪郭・小さく淡い影。divider-* は divided の題の下の線の前後
      dot-radius: hover した値に置く点の半径。周りを面の色で縁取り、線から浮かせる。dot-sm-radius は線の上にいつも置く点
      reference-halo: 基準の線の名前（halo）の、文字の周りの縁取りの太さ
@@ -19,7 +19,6 @@
   --chart-marker-square-radius: var(--radius-xs);
   --chart-legend-gap-x: calc(var(--spacing) * 4);
   --chart-legend-gap-y: var(--spacing);
-  --chart-legend-button-pad: calc(var(--spacing) * 1.5);
   --chart-tooltip-padding-x: calc(var(--spacing) * 3);
   --chart-tooltip-padding-y: calc(var(--spacing) * 2);
   --chart-tooltip-row-gap: var(--spacing);

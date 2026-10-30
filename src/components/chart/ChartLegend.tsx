@@ -20,9 +20,12 @@ const chartLegend = tv({
       'text-(length:--text-label) leading-(--leading-label)',
     ],
     item: 'inline-flex min-w-0 items-center gap-1.5',
+    // 押せるときは、下線のボタン（Button の variant="underline"・size="sm"）と同じ高さ・左右の余白・角・手応えにする
+    //   hover で文字の色を淡く敷き、押すと 1px 沈む。押せる範囲は敷いた色の広さ（原則17）
     button: [
-      '-mx-(--chart-legend-button-pad) inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm px-(--chart-legend-button-pad)',
-      'bg-transparent text-inherit hover:bg-(--color-flat-hover)',
+      'inline-flex h-(--spacing-control-sm) min-w-0 cursor-pointer items-center gap-1.5 rounded-control px-(--spacing-control-x-sm)',
+      'bg-transparent text-inherit hover:bg-(--color-flat-hover) active:translate-y-(--flat-press-depth) active:bg-(--color-flat-press)',
+      '[transition:translate_var(--duration-press)_var(--ease-press),background-color_var(--duration-press)_var(--ease-press)] motion-reduce:[transition:none]',
       focusRing,
     ],
     marker: '',
@@ -31,7 +34,9 @@ const chartLegend = tv({
   },
   variants: {
     pressable: {
+      // ボタンの左右の余白が項目のあいだになるので、あいだを詰め、外へはみ出させて文字の位置をそろえる
       true: {
+        root: '-mx-(--spacing-control-x-sm) gap-0',
         label:
           'underline [text-decoration-color:var(--color-link-underline)] decoration-1 underline-offset-4',
       },
@@ -115,7 +120,7 @@ export function ChartLegend({
   className,
   ...props
 }: ChartLegendProps) {
-  const styles = chartLegend({ hiddenVariant });
+  const styles = chartLegend({ hiddenVariant, pressable: onHiddenChange != null });
   const content = (item: ChartLegendItem, i: number) => {
     // 消した見た目は compoundVariants なので、項目ごとに hidden を渡して作り直す（slot に渡しても compound は効かない）
     const pressable = onHiddenChange != null;
@@ -146,7 +151,11 @@ export function ChartLegend({
           {onHiddenChange ? (
             <ChartLegendButton
               hidden={item.hidden === true}
-              className={chartLegend({ hiddenVariant, hidden: item.hidden === true }).button()}
+              className={chartLegend({
+                hiddenVariant,
+                pressable: true,
+                hidden: item.hidden === true,
+              }).button()}
               onToggle={() => onHiddenChange(i, item.hidden !== true)}
             >
               {content(item, i)}
