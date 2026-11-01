@@ -115,7 +115,8 @@
 - [x] Indicator（Badge の重ね方と置き場所で足りるので、部品にしない）
 - [x] BarList
 - [x] Sparkline
-- [ ] グラフの見た目（線・棒・円。系列の色は ADR-0531）
+- [x] 線グラフの見た目（ChartFrame・ChartLegend・ChartTooltip と点・文字。Recharts へのつなぎはレシピ）
+- [ ] 棒・円のグラフの見た目（系列の色は ADR-0531）
 - [ ] タイムテーブル
 - [ ] CompareSlider（Splitter も計画にあるので、同時に作れそう）
 

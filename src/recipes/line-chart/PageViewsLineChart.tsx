@@ -1,0 +1,375 @@
+'use client';
+
+// レシピ: 線グラフを Recharts（recharts 3.10.1）でつなぐ見本。利用者が自分のアプリに写して使う
+// 線・軸・目盛り・hover の判定は Recharts が描き、枠・凡例・hover のカード・点・軸の名前・線の端の名前は部品が描く
+// 色と線の太さは、トークンを CSS 変数のまま Recharts の props に渡す
+// look は見本の Controls で見た目を切り替えるための口。写すときは、使う形を直接書いて消してよい
+import { useLayoutEffect, useRef, useState } from 'react';
+import {
+  type ActiveDotProps,
+  type CartesianViewBox,
+  CartesianGrid,
+  type DotItemDotProps,
+  LabelList,
+  type LabelProps,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  type TooltipContentProps,
+  type TooltipValueType as ValueType,
+  XAxis,
+  type XAxisTickContentProps,
+  YAxis,
+} from 'recharts';
+
+import { ChartFrame, type ChartFrameProps } from '../../components/chart/ChartFrame';
+import { ChartLegend, type ChartLegendHiddenVariant } from '../../components/chart/ChartLegend';
+import { type ChartMarkerType } from '../../components/chart/ChartMarker';
+import {
+  ChartAxisLabel,
+  ChartDot,
+  ChartLineLabel,
+  type ChartLineLabelVariant,
+  ChartReferenceLabel,
+  type ChartReferenceLabelVariant,
+} from '../../components/chart/ChartMarks';
+import {
+  ChartTooltip,
+  type ChartTooltipSize,
+  type ChartTooltipVariant,
+} from '../../components/chart/ChartTooltip';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/table/Table';
+
+export interface WeeklyViews {
+  week: string;
+  blog: number;
+  docs: number;
+  storybook: number;
+}
+
+/** 見本の Controls で切り替える見た目。どれも省くと既定の形になる */
+export interface LineChartLook extends Pick<
+  ChartFrameProps,
+  | 'height'
+  | 'titleSize'
+  | 'legendPlacement'
+  | 'legendAlign'
+  | 'viewToggle'
+  | 'viewToggleSize'
+  | 'tableHeight'
+  | 'loadingIndicator'
+  | 'emptyVariant'
+> {
+  /** 見本の状態。data は値あり、loading は読み込み中、empty はデータなし */
+  state?: 'data' | 'loading' | 'empty';
+  markerType?: ChartMarkerType;
+  tooltipVariant?: ChartTooltipVariant;
+  tooltipSize?: ChartTooltipSize;
+  lineLabelVariant?: ChartLineLabelVariant;
+  /** 線の右端に名前を書くか。4 系列までは書く */
+  showLineLabels?: boolean;
+  /** 線の結び方。linear は折れ線、monotone は値を行き過ぎないなめらかな線 */
+  curve?: 'linear' | 'monotone';
+  /** グリッドの線。solid は淡い実線、dashed は破線、none は引かない */
+  grid?: 'solid' | 'dashed' | 'none';
+  /** 軸の名前。vertical は縦の名前を 90 度回す、top は縦の名前を目盛りの上に横書き、none は書かない */
+  axisTitles?: 'none' | 'top' | 'vertical';
+  /** 縦の目盛り。auto は値に合わせた範囲、zero は 0 から 5 本、few は 0 から 3 本。データに合わせて写した側で決める */
+  yTicks?: 'zero' | 'auto' | 'few';
+  /** 線の上の点。none は hover したときだけ、all はすべての値 */
+  dots?: 'none' | 'all';
+  /** 基準の線（目標）。none は引かない、dashed は破線、solid は実線 */
+  referenceLine?: 'none' | 'dashed' | 'solid';
+  referenceLabel?: ChartReferenceLabelVariant;
+  /** 凡例を押して系列を出し入れできるようにする */
+  legendToggle?: boolean;
+  legendHiddenVariant?: ChartLegendHiddenVariant;
+  /** はじめから消しておく系列（見本で、消した見た目を並べるため） */
+  defaultHidden?: readonly SeriesKey[];
+}
+
+// 系列の色は、系列について回る。絞り込みで系列が減っても色を付け直さない
+const series = [
+  { key: 'blog', label: 'ブログ', color: 'var(--color-series-1)' },
+  { key: 'docs', label: 'ドキュメント', color: 'var(--color-series-2)' },
+  { key: 'storybook', label: 'Storybook', color: 'var(--color-series-3)' },
+] as const;
+export type SeriesKey = (typeof series)[number]['key'];
+
+const target = 2000;
+const labelOf = (key: unknown) => series.find((s) => s.key === key)?.label ?? String(key);
+const formatViews = (value: number) => value.toLocaleString('ja-JP');
+
+// 目盛りの文字の色。大きさは ChartFrame が敷いたキャプションの大きさを継ぐ
+const tick = { fill: 'var(--color-chart-tick)' };
+
+// hover した点。Recharts は点の塗り（fill）に線の色を渡す
+const renderActiveDot = ({ key, cx, cy, fill }: ActiveDotProps) => (
+  <ChartDot key={key ?? undefined} cx={cx} cy={cy} color={fill} />
+);
+// 線の上にいつも置く点。Recharts は線の色を stroke に渡す
+const renderDot = ({ key, cx, cy, stroke }: DotItemDotProps) => (
+  <ChartDot key={key ?? undefined} cx={cx} cy={cy} color={stroke} size="sm" />
+);
+
+// 横の目盛り。単位（週）を書くときは、最後の目盛りの右に続けて置く
+// 目盛りの文字は真ん中寄せなので、最後の目盛りの幅を測り、その右端から置く
+function WeekTick({
+  x,
+  y,
+  payload,
+  index,
+  visibleTicksCount,
+  unit,
+}: XAxisTickContentProps & { unit?: string }) {
+  const ref = useRef<SVGTextElement>(null);
+  const [halfWidth, setHalfWidth] = useState<number>();
+  const showUnit = unit != null && index === visibleTicksCount - 1;
+  useLayoutEffect(() => {
+    if (showUnit && ref.current) setHalfWidth(ref.current.getComputedTextLength() / 2);
+  }, [showUnit]);
+  return (
+    <g>
+      <text
+        ref={ref}
+        x={x}
+        y={y}
+        dy="0.6em"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="var(--color-chart-tick)"
+      >
+        {payload.value}
+      </text>
+      {showUnit && halfWidth != null ? (
+        <ChartAxisLabel x={Number(x) + halfWidth} y={y} dx="0.4em" dy="0.6em">
+          {unit}
+        </ChartAxisLabel>
+      ) : null}
+    </g>
+  );
+}
+
+// 値が変わったら測り直すよう、値を key にする
+const renderWeekTick = (props: XAxisTickContentProps) => (
+  <WeekTick key={String(props.payload.value)} {...props} />
+);
+const renderWeekTickWithUnit = (props: XAxisTickContentProps) => (
+  <WeekTick key={String(props.payload.value)} {...props} unit="週" />
+);
+
+export function PageViewsLineChart({
+  data,
+  look = {},
+}: {
+  data: WeeklyViews[];
+  look?: LineChartLook;
+}) {
+  const {
+    state = 'data',
+    markerType,
+    tooltipVariant,
+    tooltipSize,
+    lineLabelVariant,
+    showLineLabels = true,
+    curve = 'linear',
+    grid = 'solid',
+    axisTitles = 'vertical',
+    yTicks = 'auto',
+    dots = 'none',
+    referenceLine = 'none',
+    referenceLabel,
+    legendToggle = false,
+    legendHiddenVariant,
+    defaultHidden = [],
+    ...frameLook
+  } = look;
+  const last = data.length - 1;
+  const yAxisWidth = axisTitles === 'vertical' ? 68 : 48;
+  // 凡例で消した系列。消しても色は付け直さない
+  const [hidden, setHidden] = useState<ReadonlySet<SeriesKey>>(() => new Set(defaultHidden));
+  const toggleSeries = (hide: boolean, index: number) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      if (hide) next.add(series[index].key);
+      else next.delete(series[index].key);
+      return next;
+    });
+  };
+
+  const renderTooltip = ({
+    active,
+    payload,
+    label,
+  }: TooltipContentProps<ValueType, string | number>) =>
+    active && payload?.length ? (
+      <ChartTooltip
+        title={label}
+        markerType={markerType}
+        variant={tooltipVariant}
+        size={tooltipSize}
+        items={payload.map((entry) => ({
+          label: labelOf(entry.dataKey),
+          value: formatViews(Number(entry.value)),
+          color: entry.color,
+        }))}
+      />
+    ) : null;
+
+  // 線の右端（最後の値）にだけ名前を書く
+  const endLabel = (s: (typeof series)[number]) => (props: LabelProps) =>
+    props.index === last ? (
+      <ChartLineLabel x={props.x} y={props.y} color={s.color} variant={lineLabelVariant}>
+        {s.label}
+      </ChartLineLabel>
+    ) : null;
+
+  // 軸の名前。縦は目盛りの左に 90 度回す（vertical）か、目盛りの上に横書き（top）。横は単位として最後の目盛りの右（WeekTick）
+  const yTitle = ({ viewBox }: LabelProps) => {
+    const box = viewBox as CartesianViewBox;
+    return axisTitles === 'vertical' ? (
+      <ChartAxisLabel
+        x={(box.x ?? 0) + 8}
+        y={(box.y ?? 0) + (box.height ?? 0) / 2}
+        textAnchor="middle"
+        orientation="vertical"
+      >
+        閲覧数（回）
+      </ChartAxisLabel>
+    ) : (
+      <ChartAxisLabel x={box.x} y={(box.y ?? 0) - 16}>
+        閲覧数（回）
+      </ChartAxisLabel>
+    );
+  };
+  // 基準の名前は、線の左端から置く
+  const referenceName = ({ viewBox }: LabelProps) => {
+    const box = viewBox as CartesianViewBox;
+    return (
+      <ChartReferenceLabel x={box.x} y={box.y} variant={referenceLabel}>
+        目標 {formatViews(target)}
+      </ChartReferenceLabel>
+    );
+  };
+
+  return (
+    <ChartFrame
+      title="週ごとの閲覧数"
+      description="直近 12 週"
+      loading={state === 'loading'}
+      empty={state === 'empty'}
+      legend={
+        <ChartLegend
+          items={series.map((s) => ({ ...s, hidden: hidden.has(s.key) }))}
+          markerType={markerType}
+          onHiddenChange={legendToggle ? toggleSeries : undefined}
+          hiddenVariant={legendHiddenVariant}
+        />
+      }
+      {...frameLook}
+      table={
+        // 表の高さをグラフのときにそろえる（tableHeight="chart"）ため、maxHeight に ChartFrame の値を渡す
+        <Table accessibleName="週ごとの閲覧数" maxHeight="var(--chart-table-max-height)">
+          <TableHead>
+            <TableRow>
+              <TableHeader>週</TableHeader>
+              {series.map((s) => (
+                <TableHeader key={s.key} align="end">
+                  {s.label}
+                </TableHeader>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row) => (
+              <TableRow key={row.week}>
+                <TableCell>{row.week}</TableCell>
+                {series.map((s) => (
+                  <TableCell key={s.key} align="end">
+                    {formatViews(row[s.key])}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      }
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        {/* 右は、線の端の名前（なければ横の単位）が入る分を空ける。上は、縦の軸の名前（top）が入る分を空ける */}
+        <LineChart
+          data={data}
+          margin={{
+            top: axisTitles === 'top' ? 28 : 8,
+            right: showLineLabels ? 88 : axisTitles === 'none' ? 8 : 32,
+            bottom: 0,
+            left: 0,
+          }}
+        >
+          {grid !== 'none' ? (
+            <CartesianGrid
+              vertical={false}
+              stroke="var(--color-chart-grid)"
+              strokeDasharray={grid === 'dashed' ? '2 4' : undefined}
+            />
+          ) : null}
+          <XAxis
+            dataKey="week"
+            tick={axisTitles === 'none' ? renderWeekTick : renderWeekTickWithUnit}
+            tickLine={false}
+            tickMargin={8}
+            height={30}
+            axisLine={{ stroke: 'var(--color-chart-axis)' }}
+          />
+          <YAxis
+            tick={tick}
+            tickLine={false}
+            axisLine={false}
+            width={yAxisWidth}
+            tickFormatter={formatViews}
+            domain={yTicks === 'auto' ? ['auto', 'auto'] : [0, 'auto']}
+            tickCount={yTicks === 'few' ? 3 : 5}
+            label={axisTitles === 'none' ? undefined : { content: yTitle }}
+          />
+          {referenceLine !== 'none' ? (
+            <ReferenceLine
+              y={target}
+              stroke="var(--color-chart-reference)"
+              strokeDasharray={referenceLine === 'dashed' ? '4 4' : undefined}
+              label={{ content: referenceName }}
+            />
+          ) : null}
+          <Tooltip
+            cursor={{ stroke: 'var(--color-chart-cursor)', strokeWidth: 1 }}
+            isAnimationActive={false}
+            content={renderTooltip}
+          />
+          {series.map((s) => (
+            <Line
+              key={s.key}
+              type={curve}
+              dataKey={s.key}
+              hide={hidden.has(s.key)}
+              stroke={s.color}
+              strokeWidth="var(--border-width-thick)"
+              dot={dots === 'all' ? renderDot : false}
+              activeDot={renderActiveDot}
+              isAnimationActive={false}
+            >
+              {showLineLabels ? <LabelList dataKey={s.key} content={endLabel(s)} /> : null}
+            </Line>
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </ChartFrame>
+  );
+}

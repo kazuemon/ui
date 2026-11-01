@@ -35,7 +35,7 @@
 | 名前                                                     | 意味                                                                                                                                                   |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `disabled` / `readOnly` / `required`                     | 素の HTML と同じ                                                                                                                                       |
-| `loading` / `loadingIndicator` / `loadingBehavior`       | 待っている状態、印の形（`spinner`・`bar`）、欄を止めるか（`blocking`・`non-blocking`）                                                                 |
+| `loading` / `loadingIndicator` / `loadingBehavior`       | 待っている状態、印の形（`spinner`・`bar`。グラフの枠は `spinner`・`skeleton`・`grid`）、欄を止めるか（`blocking`・`non-blocking`）                     |
 | `submitting` / `submittingBehavior`                      | Form の送信中。送信は読み込みとは別の状態なので、Form だけこの名前です                                                                                 |
 | `errorText` / `warningText` / `successText` / `infoText` | 欄の下に出す状態メッセージ。渡されていれば出します。エラーと警告は同時に出せます。真偽値は受けません                                                   |
 | `show<何>` / `hide<何>`                                  | 出す／出さないの真偽値。既定と逆の語を使います（既定で出るものは `hide<何>`、出ないものは `show<何>`）。裸の名詞（`arrow`・`closeButton`）は使いません |

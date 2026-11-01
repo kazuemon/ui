@@ -227,6 +227,19 @@
   --color-series-7: var(--palette-purple-500);
   --color-series-8: var(--palette-yellow-500);
 
+  /* グラフの軸・グリッド・十字線。グラフはライブラリ（Recharts など）で描くので、レシピがこの値をライブラリの props に渡す
+     grid: 値を読むための横の線。線より淡くし、系列の線を邪魔しない
+     axis: 0 や下端の基準の線
+     tick: 目盛りの文字。キャプションと同じ淡さ（白地 4.5）
+     cursor: hover で値の位置を示す縦の線。位置の補助なので、下端の軸と同じ淡さ（ADR-0537） */
+  --color-chart-grid: var(--palette-gray-200);
+  --color-chart-axis: var(--palette-gray-300);
+  --color-chart-tick: var(--color-fg-subtle);
+  --color-chart-cursor: var(--palette-gray-300);
+  --color-chart-reference: var(
+    --palette-gray-500
+  ); /* 基準の線（目標・平均）。3:1 の輪郭と同じ濃さ */
+
   /* 押せないとき（原則 1）。どの部品も影はなくす
      色を持つ押すもの（色のボタン・白いボタン・トグル）: 本体を --disabled-opacity に薄くし、色は残す
      入力欄: 明るいグレーの塗りに薄い文字。テーマの色を持たないので、グレーにしても失うものがない
