@@ -21,9 +21,9 @@
   --chart-tooltip-min-width: calc(var(--spacing) * 36);
   --chart-tooltip-divider-gap: calc(var(--spacing) * 2);
   --chart-tooltip-divider-pad: calc(var(--spacing) * 1.5);
-  --chart-dot-radius: 5px;
-  --chart-dot-sm-radius: 3px;
-  --chart-reference-halo: 6px;
+  --chart-dot-radius: calc(var(--spacing) * 1.25);
+  --chart-dot-sm-radius: calc(var(--spacing) * 0.75);
+  --chart-reference-halo: calc(var(--spacing) * 1.5);
   --chart-label-gap: calc(var(--spacing) * 2);
   --chart-label-tint: 70%;
 }

@@ -197,11 +197,13 @@ export function PageViewsLineChart({
   const yAxisWidth = axisTitles === 'vertical' ? 68 : 48;
   // 凡例で消した系列。消しても色は付け直さない
   const [hidden, setHidden] = useState<ReadonlySet<SeriesKey>>(() => new Set(defaultHidden));
-  const toggleSeries = (index: number, hide: boolean) => {
-    const next = new Set(hidden);
-    if (hide) next.add(series[index].key);
-    else next.delete(series[index].key);
-    setHidden(next);
+  const toggleSeries = (hide: boolean, index: number) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      if (hide) next.add(series[index].key);
+      else next.delete(series[index].key);
+      return next;
+    });
   };
 
   const renderTooltip = ({
@@ -249,11 +251,11 @@ export function PageViewsLineChart({
       </ChartAxisLabel>
     );
   };
-  // 基準の名前は、線の左端（縦の目盛りの幅のすぐ右）から置く
+  // 基準の名前は、線の左端から置く
   const referenceName = ({ viewBox }: LabelProps) => {
     const box = viewBox as CartesianViewBox;
     return (
-      <ChartReferenceLabel x={yAxisWidth} y={box.y} variant={referenceLabel}>
+      <ChartReferenceLabel x={box.x} y={box.y} variant={referenceLabel}>
         目標 {formatViews(target)}
       </ChartReferenceLabel>
     );

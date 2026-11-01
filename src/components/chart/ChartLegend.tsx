@@ -62,9 +62,10 @@ const chartLegend = tv({
     {
       hidden: true,
       hiddenVariant: 'strike',
+      // 印のグレーは、印の色を渡す style で差し替える（クラスでは style の --chart-marker-color に勝てない）
+      // 押せる印の下線は残し、取り消し線は文字と同じ色で引く（下線の淡い色のままだと見えない）
       class: {
-        marker: '[--chart-marker-color:var(--color-line-strong)]',
-        label: 'text-fg-subtle line-through',
+        label: 'text-fg-subtle [text-decoration-line:underline_line-through]! decoration-current',
       },
     },
   ],
@@ -99,9 +100,9 @@ export interface ChartLegendProps extends Omit<ComponentProps<'ul'>, 'children'>
   markerType?: ChartMarkerType;
   /**
    * 項目を押したときに呼ばれます。渡すと、項目が系列を出し入れするボタンになります。
-   * 何番目の項目か（0 から）と、押したあとに消すかを受け取ります
+   * 押したあとに消すかと、何番目の項目か（0 から）を受け取ります
    */
-  onHiddenChange?: (index: number, hidden: boolean) => void;
+  onHiddenChange?: (hidden: boolean, index: number) => void;
   /**
    * 消した系列の見せ方。faded は項目全体を淡く、ring は印を色の輪にして名前を淡く、strike は名前に取り消し線を引きます
    * @default 'faded'
@@ -123,17 +124,23 @@ export function ChartLegend({
   ...props
 }: ChartLegendProps) {
   const styles = chartLegend({ hiddenVariant, pressable: onHiddenChange != null });
-  const content = (item: ChartLegendItem, i: number) => {
-    // 消した見た目は compoundVariants なので、項目ごとに hidden を渡して作り直す（slot に渡しても compound は効かない）
-    const pressable = onHiddenChange != null;
-    const hidden = pressable && item.hidden === true;
-    const itemStyles = chartLegend({ hiddenVariant, pressable, hidden });
+  const pressable = onHiddenChange != null;
+  const content = (
+    item: ChartLegendItem,
+    i: number,
+    itemStyles: typeof styles,
+    hidden: boolean
+  ) => {
+    const markerColor =
+      hidden && hiddenVariant === 'strike'
+        ? 'var(--color-line-strong)'
+        : seriesColor(item.color, i);
     return (
       <>
         <span
           aria-hidden
           className={chartMarker({ markerType, className: itemStyles.marker() })}
-          style={{ '--chart-marker-color': seriesColor(item.color, i) } as CSSProperties}
+          style={{ '--chart-marker-color': markerColor } as CSSProperties}
         />
         <span className={itemStyles.label()}>{item.label}</span>
         {item.value != null ? <span className={styles.value()}>{item.value}</span> : null}
@@ -147,26 +154,27 @@ export function ChartLegend({
       className={styles.root({ className })}
       {...props}
     >
-      {items.map((item, i) => (
-        // 並びは系列の順で、入れ替わらない
-        <li key={i} className={styles.item()}>
-          {onHiddenChange ? (
-            <ChartLegendButton
-              hidden={item.hidden === true}
-              className={chartLegend({
-                hiddenVariant,
-                pressable: true,
-                hidden: item.hidden === true,
-              }).button()}
-              onToggle={() => onHiddenChange(i, item.hidden !== true)}
-            >
-              {content(item, i)}
-            </ChartLegendButton>
-          ) : (
-            content(item, i)
-          )}
-        </li>
-      ))}
+      {items.map((item, i) => {
+        // 消した見た目は compoundVariants なので、項目ごとに hidden を渡して作り直す（slot に渡しても compound は効かない）
+        const hidden = pressable && item.hidden === true;
+        const itemStyles = chartLegend({ hiddenVariant, pressable, hidden });
+        return (
+          // 並びは系列の順で、入れ替わらない
+          <li key={i} className={styles.item()}>
+            {onHiddenChange ? (
+              <ChartLegendButton
+                hidden={hidden}
+                className={itemStyles.button()}
+                onToggle={() => onHiddenChange(!hidden, i)}
+              >
+                {content(item, i, itemStyles, hidden)}
+              </ChartLegendButton>
+            ) : (
+              content(item, i, itemStyles, hidden)
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

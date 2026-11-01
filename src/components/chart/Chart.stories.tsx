@@ -299,7 +299,7 @@ function ToggleLegendChart(args: ChartFrameProps) {
       legend={
         <ChartLegend
           items={series.map((s, i) => ({ ...s, hidden: hidden.includes(i) }))}
-          onHiddenChange={(index, hide) =>
+          onHiddenChange={(hide, index) =>
             setHidden(hide ? [...hidden, index] : hidden.filter((i) => i !== index))
           }
         />

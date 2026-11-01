@@ -56,11 +56,10 @@ const chartFrame = tv({
       'relative flex h-(--chart-height) w-full min-w-0 items-center justify-center',
       'text-(length:--text-body-sm) leading-(--leading-body-sm) text-fg-muted',
     ],
-    // 淡いグリッドの線（grid の形）: グリッドと同じ色の横線を、描く場所の高さを 4 つに割って引く
-    placeholderGrid: [
-      'pointer-events-none absolute inset-0',
-      'bg-[repeating-linear-gradient(to_bottom,var(--color-chart-grid)_0,var(--color-chart-grid)_1px,transparent_1px,transparent_calc((100%-1px)/4))]',
-    ],
+    // 淡いグリッドの線（grid の形）: グリッドと同じ色の横線 5 本を、描く場所の上端から下端まで等しい間で並べる
+    // 線は要素で引く。グラデーションで引くと、高さが 4 で割り切れないときの線の位置が環境で 1px ずれる
+    placeholderGrid: 'pointer-events-none absolute inset-0 flex flex-col justify-between',
+    placeholderGridLine: 'h-px bg-(--color-chart-grid)',
     placeholderText: 'relative bg-surface px-2',
   },
   variants: {
@@ -207,15 +206,18 @@ export interface ChartFrameProps extends Omit<ComponentProps<'figure'>, 'childre
    * ボタン（button）で、グラフを見ているときの文字
    * @default '表で見る'
    */
-  showTableLabel?: string;
+  tableButtonLabel?: string;
   /**
    * ボタン（button）で、表を見ているときの文字
    * @default 'グラフで見る'
    */
-  showChartLabel?: string;
+  chartButtonLabel?: string;
   /** いちばん外の要素に付きます */
   className?: string;
 }
+
+// grid の形で引く横線の数（描く場所を 4 つに割る）
+const GRID_LINES = [0, 1, 2, 3, 4];
 
 /**
  * グラフの枠です。題・説明・凡例を並べ、ライブラリで描いたグラフを置く場所を作ります。表で見る形への切り替えも置けます
@@ -242,8 +244,8 @@ export function ChartFrame({
   viewToggleSize = 'sm',
   chartLabel = 'グラフ',
   tableLabel = '表',
-  showTableLabel = '表で見る',
-  showChartLabel = 'グラフで見る',
+  tableButtonLabel = '表で見る',
+  chartButtonLabel = 'グラフで見る',
   viewToggleName = '表示',
   className,
   style,
@@ -251,7 +253,7 @@ export function ChartFrame({
 }: ChartFrameProps) {
   const styles = chartFrame({ titleSize, legendAlign, viewToggleSize });
   const titleId = useId();
-  const [view, setView] = useState<ChartFrameView>(table ? defaultView : 'chart');
+  const [view, setView] = useState<ChartFrameView>(defaultView);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<number | null>(null);
   const waiting = loading || empty;
@@ -308,7 +310,7 @@ export function ChartFrame({
                   variant="underline"
                   onClick={() => changeView(showTable ? 'chart' : 'table')}
                 >
-                  {showTable ? showChartLabel : showTableLabel}
+                  {showTable ? chartButtonLabel : tableButtonLabel}
                 </Button>
               ) : (
                 <SegmentedControl<ChartFrameView>
@@ -335,7 +337,11 @@ export function ChartFrame({
               <Spinner size="lg" accessibleName={loadingText} />
             ) : loadingIndicator === 'grid' ? (
               <>
-                <span aria-hidden className={styles.placeholderGrid()} />
+                <span aria-hidden className={styles.placeholderGrid()}>
+                  {GRID_LINES.map((i) => (
+                    <span key={i} className={styles.placeholderGridLine()} />
+                  ))}
+                </span>
                 <span role="status" className={styles.placeholderText()}>
                   {loadingText}
                 </span>
@@ -353,7 +359,11 @@ export function ChartFrame({
           ) : (
             <>
               {emptyVariant === 'grid' ? (
-                <span aria-hidden className={styles.placeholderGrid()} />
+                <span aria-hidden className={styles.placeholderGrid()}>
+                  {GRID_LINES.map((i) => (
+                    <span key={i} className={styles.placeholderGridLine()} />
+                  ))}
+                </span>
               ) : null}
               <span className={styles.placeholderText()}>{emptyText}</span>
             </>

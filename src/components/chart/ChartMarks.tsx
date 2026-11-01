@@ -11,7 +11,7 @@ import { tv } from '../../internal/tv';
 // 値に置く点。周りを面の色で縁取り、重なった線から浮かせる
 // 半径は CSS の r で持つ。md は hover した値（--chart-dot-radius）、sm は線の上にいつも置く点（--chart-dot-sm-radius）
 const chartDot = tv({
-  base: 'fill-(--chart-dot-color) stroke-surface [stroke-width:var(--border-width-thick)]',
+  base: '[fill:var(--chart-dot-color,var(--color-fg-muted))] stroke-surface [stroke-width:var(--border-width-thick)]',
   variants: {
     size: {
       md: '[r:var(--chart-dot-radius)]',
@@ -186,7 +186,8 @@ export function ChartAxisLabel({
       y={y}
       textAnchor={textAnchor}
       dominantBaseline="central"
-      transform={orientation === 'vertical' ? `rotate(-90 ${x} ${y})` : undefined}
+      // SVG の transform は単位を受けないので、数に直して回す（% などの文字は横向きでだけ使える）
+      transform={orientation === 'vertical' ? `rotate(-90 ${Number(x)} ${Number(y)})` : undefined}
       className={chartAxisLabel({ className })}
       {...props}
     >
