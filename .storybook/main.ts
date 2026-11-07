@@ -23,5 +23,22 @@ const config: StorybookConfig = {
     '@storybook/addon-vitest',
   ],
   framework: '@storybook/react-vite',
+  // Docs の「Show code」は、描いた要素の名前を関数の名前（Function.name）から取る。ビルドで縮めると
+  // <b> のような名前になるので、関数とクラスの名前を残す（縮めるのは中の変数名だけになる）
+  viteFinal: (viteConfig) => {
+    const output = viteConfig.build?.rolldownOptions?.output;
+    return {
+      ...viteConfig,
+      build: {
+        ...viteConfig.build,
+        rolldownOptions: {
+          ...viteConfig.build?.rolldownOptions,
+          output: Array.isArray(output)
+            ? output.map((entry) => ({ ...entry, keepNames: true }))
+            : { ...output, keepNames: true },
+        },
+      },
+    };
+  },
 };
 export default config;
