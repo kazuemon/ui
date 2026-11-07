@@ -199,8 +199,69 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// Docs の「Show code」に、Controls の値を反映した DataTable の書き方を出す。
+// 既定の出力は描いた要素（ストーリーの中だけの OrdersTable）をそのまま出し、ビルドでは関数名が縮んで <b> になるため
+const formatProp = (name: string, value: unknown) => {
+  if (value === true) return name;
+  if (typeof value === 'string') return `${name}=${JSON.stringify(value)}`;
+  return `${name}={${JSON.stringify(value)}}`;
+};
+
+const playgroundSource = (args: Record<string, unknown>) => {
+  const props = Object.entries(args)
+    .filter(([, value]) => value !== undefined && typeof value !== 'function')
+    .map(([name, value]) => `  ${formatProp(name, value)}`);
+  return [
+    '<DataTable',
+    ...props,
+    '>',
+    '  <TableHead>',
+    '    <TableRow>',
+    '      <DataTableSelectHeader checked={all} indeterminate={some} onCheckedChange={selectAll} />',
+    '      <DataTableHeader sorted={sorted("id")} onSortClick={() => toggleSort("id")}>',
+    '        注文番号',
+    '      </DataTableHeader>',
+    '      <DataTableHeader sorted={sorted("shop")} onSortClick={() => toggleSort("shop")}>',
+    '        お店',
+    '      </DataTableHeader>',
+    '      <DataTableHeader>状態</DataTableHeader>',
+    '      <DataTableHeader align="end" sorted={sorted("amount")} onSortClick={() => toggleSort("amount")}>',
+    '        金額',
+    '      </DataTableHeader>',
+    '    </TableRow>',
+    '  </TableHead>',
+    '  <TableBody>',
+    '    {rows.map((order) => (',
+    '      <DataTableRow key={order.id} selected={isSelected(order.id)}>',
+    '        <DataTableSelectCell',
+    '          checked={isSelected(order.id)}',
+    '          accessibleName={`${order.id} を選ぶ`}',
+    '          onCheckedChange={(next) => select(order.id, next)}',
+    '        />',
+    '        <TableCell>{order.id}</TableCell>',
+    '        <TableCell>{order.shop}</TableCell>',
+    '        <TableCell>',
+    '          <Tag color={statusColor[order.status]}>{order.status}</Tag>',
+    '        </TableCell>',
+    '        <TableCell align="end">{yen(order.amount)}</TableCell>',
+    '      </DataTableRow>',
+    '    ))}',
+    '  </TableBody>',
+    '</DataTable>',
+  ].join('\n');
+};
+
 export const Playground: Story = {
   name: '基本',
+  parameters: {
+    docs: {
+      source: {
+        language: 'tsx',
+        transform: (_code: string, { args }: { args: Record<string, unknown> }) =>
+          playgroundSource(args),
+      },
+    },
+  },
 };
 
 export const Variants: Story = {
