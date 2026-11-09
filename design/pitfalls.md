@@ -7,7 +7,7 @@
 - `tv` のクラスを template literal で組み立てない。Tailwind はソースの文字を読んでクラスを作るので、組み立てたクラスは CSS に出ません。クラスは文字のまま書きます
 - `justify-[var(--x)]` はクラスとして拾われますが、CSS が作られません（`justify-content` の任意値にならない）。`[justify-content:var(--x)]` と書きます
 - tailwind-merge は、`decoration-1` の隣の `decoration-(color:…)` や、`text-fg-subtle` の隣の `text-caption` を同じ種類とみなして消します。部品の中では `text-(length:--text-caption)`・`h-(--spacing-control)` のように種類が分かる形で書きます。`@theme` に名前を足したら `twMergeConfig` にも足します
-- クラスの任意値の中では、引用符に `'` を使う（`content-['']`・`[--x:counter(list-item)_'.']`）。`'content-[""]'` と書くと、ビルドで文字列が `"…\"\"…"` に変わり、使う側の Tailwind がバックスラッシュ込みの名前で CSS を作るので当たりません。ソースから拾う Storybook では起きないので、`pnpm check:dist` で確かめます
+- クラスの任意値の中では、引用符に `'` を使う（`content-['']`・`[--x:counter(list-item)_'.']`）。`'content-[""]'` と書くと、ビルドで文字列が `"…\"\"…"` に変わり、使う側の Tailwind がバックスラッシュ込みの名前で CSS を作るので当たりません。ソースから拾う Storybook では起きないので、`pnpm build` のあとに `pnpm check:dist` で確かめます
 - `src/styles/globals.css` は、Tailwind が読む場所を `src/` と `design/stories/` に絞っています。ほかの場所にクラスを書くなら `@source` を足します
 - dev server が動いている間に作ったファイルのクラスは、拾われないことがあります。`src/styles/globals.css` を touch し、配信された CSS にクラスがあるかを確かめてから見てもらいます
 
