@@ -3,7 +3,9 @@
 //
 // 1. 'use client' が、ソースと同じファイルに残っている（ビルドで消えると、Server Components から読めなくなる）
 // 2. dist の JS が読む npm のパッケージが、dependencies か peerDependencies にある（使う側で解決できる）
-// 3. ツリーシェイクが効く: Button だけを import して Vite で束ねると、Dialog が入らない
+// 3. Tailwind が dist の JS から拾うクラス名に、エスケープされた引用符（\" \'）がない
+//    ビルドで文字列の引用符が変わると、要素に付く名前と拾われる名前がずれ、CSS が当たらない
+// 4. ツリーシェイクが効く: Button だけを import して Vite で束ねると、Dialog が入らない
 //    ファイルごとに出すこと（unbundle）と package.json の sideEffects の、両方が要る
 import {
   existsSync,
@@ -14,6 +16,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { build } from 'vite';
@@ -53,6 +56,10 @@ const packageName = (specifier) =>
 const problems = [];
 const files = walk(DIST).filter((path) => path.endsWith('.js'));
 
+// 使う側の Tailwind と同じスキャナで、dist の JS からクラス名を拾う
+const { Scanner } = createRequire(import.meta.resolve('@tailwindcss/vite'))('@tailwindcss/oxide');
+const scanner = new Scanner({ sources: [] });
+
 for (const path of files) {
   const source = readFileSync(path, 'utf8');
   const name = relative(DIST, path);
@@ -72,6 +79,16 @@ for (const path of files) {
     ...source.matchAll(/^import\s*['"]([^'"]+)['"]/gm),
     ...source.matchAll(/\bimport\(\s*['"]([^'"]+)['"]\s*\)/g),
   ];
+  for (const { candidate } of scanner.getCandidatesWithPositions({
+    content: source,
+    extension: 'js',
+  })) {
+    if (/\\["']/.test(candidate)) {
+      problems.push(
+        `${name}: ${candidate} は引用符がエスケープされたまま拾われ、CSS が当たりません（ソースでは className の中に " を書かず ' にする）`
+      );
+    }
+  }
   for (const [, specifier] of imports) {
     if (specifier.startsWith('.')) continue;
     if (!allowed.has(packageName(specifier))) {

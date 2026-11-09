@@ -46,9 +46,9 @@ const inner = tv({
     'before:bg-(--step-marker-bg) before:text-(color:--step-marker-fg)',
     'before:[box-shadow:inset_0_0_0_var(--step-marker-ring)_var(--step-marker-ring-color)]',
     'before:text-(length:--step-marker-text) before:leading-none before:font-(--font-weight-heading) before:tabular-nums',
-    'before:content-[counter(list-item)_/_""]',
+    "before:content-[counter(list-item)_/_'']",
     // 段をつなぐ線。印の下から、次の段の印の上まで
-    'after:absolute after:w-0 after:content-[""]',
+    "after:absolute after:w-0 after:content-['']",
     'after:start-[calc(var(--steps-marker-size)/2-var(--steps-line-width)/2)]',
     'after:top-[calc(var(--step-marker-top)+var(--steps-marker-size)+var(--steps-line-gap))]',
     'after:bottom-[calc(var(--step-marker-top)-var(--steps-gap)+var(--steps-line-gap))]',
