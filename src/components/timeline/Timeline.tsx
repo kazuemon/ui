@@ -69,14 +69,14 @@ const inner = tv({
     // 印の上端。1 行目（--tl-line）の中央に、印の中心をそろえる
     '[--tl-marker-top:calc((var(--tl-line)-var(--tl-own))/2)]',
     // 点。列の中央に置く
-    'before:absolute before:start-[calc(var(--tl-gutter)+(var(--tl-axis)-var(--timeline-marker-size))/2)] before:top-(--tl-marker-top) before:content-[""]',
+    "before:absolute before:start-[calc(var(--tl-gutter)+(var(--tl-axis)-var(--timeline-marker-size))/2)] before:top-(--tl-marker-top) before:content-['']",
     'before:size-(--timeline-marker-size) before:rounded-pill before:bg-(--tl-marker-bg)',
     'before:[transform:scale(var(--tl-marker-scale))]',
     // 強調したときに点の周りに出る輪。その点の色（--tl-marker-color）を薄めた色にする
     '[--tl-marker-halo-color:color-mix(in_oklab,var(--tl-marker-color)_var(--timeline-emphasis-halo-mix),transparent)]',
     'before:[box-shadow:inset_0_0_0_var(--tl-marker-ring)_var(--tl-marker-ring-color),0_0_0_var(--tl-marker-halo)_var(--tl-marker-halo-color)]',
     // 項目をつなぐ線。点の下から、次の項目の点の上まで
-    'after:absolute after:w-0 after:content-[""]',
+    "after:absolute after:w-0 after:content-['']",
     'after:start-[calc(var(--tl-gutter)+var(--tl-axis)/2-var(--timeline-line-width)/2)]',
     'after:top-[calc(var(--tl-marker-top)+var(--tl-own)+var(--timeline-line-gap))]',
     'after:bottom-[calc(var(--timeline-line-gap)-var(--timeline-gap)-var(--tl-marker-top))]',
