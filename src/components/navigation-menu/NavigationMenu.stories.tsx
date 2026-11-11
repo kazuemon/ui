@@ -500,7 +500,12 @@ export const Accessibility: Story = {
 
     // 新しいタブで開く行き先は、名前に「新しいタブで開きます」が入る
     await userEvent.click(within(nav).getByRole('button', { name: 'Blog' }));
-    const zenn = await body.findByRole('link', { name: /^Zenn\s*（新しいタブで開きます）$/ });
+    // 全部のテストを流して重いときは、面の中身が 1 秒では出ないことがあるので長めに待つ
+    const zenn = await body.findByRole(
+      'link',
+      { name: /^Zenn\s*（新しいタブで開きます）$/ },
+      { timeout: 3000 }
+    );
     await expect(zenn).toHaveAttribute('rel', 'noopener noreferrer');
 
     // Esc で閉じる

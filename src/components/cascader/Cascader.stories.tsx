@@ -309,7 +309,10 @@ export const Keyboard: Story = {
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     await expect(within(root).getByRole('option', { name: '東京都' })).toHaveFocus();
     const wards = within(dialog).getByRole('listbox', { name: '東京都' });
-    await expect(within(wards).getByRole('option', { name: '千代田区' })).toBeVisible();
+    // 次の段は描き終わる前に見ることがあるので、見えるまで待つ
+    await waitFor(() =>
+      expect(within(wards).getByRole('option', { name: '千代田区' })).toBeVisible()
+    );
     // → で次の段へ入り、← で戻る
     await userEvent.keyboard('{ArrowRight}');
     await expect(within(wards).getByRole('option', { name: '千代田区' })).toHaveFocus();
@@ -574,11 +577,13 @@ export const ControlledOpen: Story = {
     // 続けて打った「apr」は 1 語として探す（a で次の Apricot、p・r で Apricot のまま）
     await userEvent.keyboard('apr');
     await expect(within(root).getByRole('option', { name: 'Apricot' })).toHaveFocus();
-    await expect(
-      within(within(dialog).getByRole('listbox', { name: 'Apricot' })).getByRole('option', {
-        name: 'Harcot',
-      })
-    ).toBeVisible();
+    await waitFor(() =>
+      expect(
+        within(within(dialog).getByRole('listbox', { name: 'Apricot' })).getByRole('option', {
+          name: 'Harcot',
+        })
+      ).toBeVisible()
+    );
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(page.queryByRole('dialog')).toBeNull());
     // 外から開き直すと、たどった Apricot の段は残らない
