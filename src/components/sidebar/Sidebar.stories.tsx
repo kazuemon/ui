@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { createRef, type ReactNode, useState } from 'react';
+import { type ComponentProps, createRef, type ReactNode, useState } from 'react';
 
 import { Button } from '../button/Button';
 import { Text } from '../text/Text';
@@ -12,6 +12,7 @@ import {
   TournamentSwitcher,
 } from '../../stories/sidebar-story-parts';
 import { Sidebar, type SidebarProps } from './Sidebar';
+import { SidebarItem } from './SidebarItem';
 import { SidebarLayout, type SidebarLayoutProps } from './SidebarLayout';
 
 const colors = ['primary', 'secondary', 'neutral'] as const;
@@ -550,5 +551,46 @@ export const Accessibility: Story = {
     await userEvent.click(trigger);
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await expect(within(nav).getByRole('link', { name: '参加チーム' })).toBeVisible();
+  },
+};
+
+// ルーターの Link の代わり。行き先は to で受け、href は部品の外で決める
+function RouterLink({ to, ...props }: ComponentProps<'a'> & { to: string }) {
+  return <a href={to} {...props} />;
+}
+
+export const RouterLinkRender: Story = {
+  name: 'ルーターの Link を渡す',
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'ルーターの Link を `render` に渡すときは、`href` を渡さなくてもリンクの行になります。いまいる行は、ルーターの判定ではなく `current` で決めて渡します。',
+      },
+    },
+  },
+  render: (args) => (
+    <Frame
+      sidebar={
+        <Sidebar {...args}>
+          <SidebarItem label="概要" render={<RouterLink to="#overview" />} />
+          <SidebarItem label="試合" render={<RouterLink to="#matches" />} current />
+          <SidebarItem label="設定" render={<RouterLink to="#settings" />} disabled />
+        </Sidebar>
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const nav = within(canvasElement).getByRole('navigation', { name: 'メニュー' });
+    const overview = within(nav).getByRole('link', { name: '概要' });
+    await expect(overview).toHaveAttribute('href', '#overview');
+    // リンクの要素に type="button" を付けない（押せない行も同じ）
+    await expect(overview).not.toHaveAttribute('type');
+    await expect(within(nav).getByRole('link', { name: '試合' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    await expect(within(nav).getByRole('link', { name: '設定' })).not.toHaveAttribute('type');
   },
 };

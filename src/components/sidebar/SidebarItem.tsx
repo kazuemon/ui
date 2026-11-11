@@ -53,7 +53,10 @@ export interface SidebarItemProps extends Omit<
    * `target="_blank"` を足すと、右上向きの矢印（↗）が付き、読み上げに「新しいタブで開きます」が入ります
    */
   href?: string;
-  /** 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に行の見た目を重ねます */
+  /**
+   * 描く要素（Base UI の render と同じ）。Next.js の Link などを渡すと、その要素に行の見た目を重ねます。
+   * 入れ子を持たない行では、`href` を渡さなくても、渡した要素を行き先を持つリンクとして扱います（ルーターの Link の `to` など）
+   */
   render?: ReactElement;
   /**
    * いまいるページか。true のとき aria-current="page" を付け、印を出します
@@ -185,7 +188,8 @@ function ListItem({
   const hasChildren = children != null && children !== false;
   const nested = nav.depth > 0;
   const s = sidebar({ nested });
-  const asLink = !hasChildren && href != null && !disabled;
+  // 行き先は href か、渡された要素（ルーターの Link など）が持つ
+  const asLink = !hasChildren && (href != null || render != null) && !disabled;
   const mark = resolveBadge(badge, nav.collapsedBadgeShape);
   const hasMenu = menu != null && menu !== false;
   // 新しいタブで開く行（Tree・Link と同じ扱い）: ↗ を文字の後ろに付け、読み上げに「新しいタブで開きます」を足す
@@ -199,14 +203,15 @@ function ListItem({
       ...props,
       ...naming?.props,
       ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
-      type: asLink ? undefined : 'button',
+      // 渡された要素は、押せないときもリンクの要素のまま描くので、type を付けない
+      type: asLink || (render != null && !hasChildren) ? undefined : 'button',
       'aria-current': current ? ('page' as const) : undefined,
       'aria-disabled': disabled || undefined,
       'aria-expanded': hasChildren ? open : undefined,
       'aria-controls': hasChildren ? groupId : undefined,
       'data-slot': 'sidebar-item',
       'data-disabled': disabled ? '' : undefined,
-      ...(asLink && { href }),
+      ...(asLink && href != null && { href }),
       onClick: (event: MouseEvent<HTMLElement>) => {
         if (disabled) {
           event.preventDefault();
@@ -314,7 +319,8 @@ function RailItem({
   const noteId = useId();
   const hasChildren = children != null && children !== false;
   const s = sidebar();
-  const asLink = !hasChildren && href != null && !disabled;
+  // 行き先は href か、渡された要素（ルーターの Link など）が持つ
+  const asLink = !hasChildren && (href != null || render != null) && !disabled;
   const newTab = asLink && (props.target === '_blank' || opensNewTab(render));
   const naming = newTab ? newTabNaming(props, render, noteId) : null;
   const [flyoutOpen, setFlyoutOpen] = useState(false);
@@ -351,14 +357,15 @@ function RailItem({
       ...props,
       ...naming?.props,
       ...(newTab ? { rel: props.rel ?? 'noopener noreferrer' } : {}),
-      type: asLink ? undefined : 'button',
+      // 渡された要素は、押せないときもリンクの要素のまま描くので、type を付けない
+      type: asLink || (render != null && !hasChildren) ? undefined : 'button',
       'aria-current': current ? ('page' as const) : undefined,
       'aria-disabled': disabled || undefined,
       'data-slot': 'sidebar-item',
       'data-disabled': disabled ? '' : undefined,
       // 入れ子の中にいまいる行があるとき、親のアイコンに同じ印を付ける
       'data-current-branch': hasChildren && hasCurrent(children) ? '' : undefined,
-      ...(asLink && { href }),
+      ...(asLink && href != null && { href }),
       onClick: (event: MouseEvent<HTMLElement>) => {
         if (disabled) {
           event.preventDefault();
