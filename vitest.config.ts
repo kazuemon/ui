@@ -31,12 +31,13 @@ export default mergeConfig(
               provider: playwright({
                 // CSS の 1px を画像の 1px で撮る。
                 // ストーリーを描く枠（@storybook/addon-vitest の既定は 1200×900）が窓に収まらないと、
-                // Vitest が枠ごと縮めて表示する（既定の窓 1280×720 では 0.8 倍）。縮むと 1px のずれが
-                // ふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがす。窓を枠より大きく取る
+                // Vitest 4 は枠ごと縮めて表示した（既定の窓 1280×720 では 0.8 倍）。縮むと 1px のずれが
+                // ふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがす。Vitest 5 は窓より
+                // 大きい枠も縮めずに撮るが、窓は枠より大きく取っておく
                 contextOptions: {
                   deviceScaleFactor: 1,
                   // 高さは、parameters.viewport で既定より高くするストーリー（例: Pagination の secondary を足した一覧）
-                  // より大きく取る。ここより低いと、その枠ごと縮んで撮られる
+                  // より大きく取る
                   viewport: { width: 1400, height: 1300 },
                 },
                 launchOptions: {

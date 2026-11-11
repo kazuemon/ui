@@ -38,5 +38,5 @@ next-env.d.ts
 .wrangler
 
 # visual regression: the reference images (__screenshots__) are committed,
-# the actual/diff images written on failure are not
-.vitest-attachments
+# the actual/diff images written on failure (.vitest/attachments) are not
+.vitest
