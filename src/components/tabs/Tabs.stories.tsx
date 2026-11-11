@@ -461,7 +461,10 @@ export const Keyboard: Story = {
     await expect(works).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(works).toHaveAttribute('aria-selected', 'true'));
-    await expect(canvas.getByRole('tabpanel')).toHaveTextContent('作ったものの一覧です。');
+    // 前のパネルは閉じ終わるまで残るので、1 つになるまで待つ
+    await waitFor(() =>
+      expect(canvas.getByRole('tabpanel')).toHaveTextContent('作ったものの一覧です。')
+    );
     await expect(canvas.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', works.id);
 
     // Tab で中身へ移る
