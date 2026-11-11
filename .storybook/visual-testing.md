@@ -32,7 +32,7 @@ pnpm test -u     # 基準画像を撮り直す（範囲を絞れないことが�
 どれも「気づかないと、写っていないまま緑になる」ものです。
 
 1. **状態を固定するアドオンは、そのままでは効かない。** `storybook-addon-pseudo-states` は Storybook の「描き終わった」の合図（`storyRendered`）でスタイルシートを `:hover` から `.pseudo-hover` へ書き換えますが、Vitest ではその合図が出ません。セットアップで合図を出しています。さらに、状態を当てる要素を探す起点が既定で `#storybook-root` で、テスト環境にはそれが無いので `rootSelector: 'body'` を足しました。両方そろって、hover・押下・フォーカスが写ります
-2. **画面が 0.8 倍に縮む。** ストーリーを描く枠（1200×900）が窓（既定 1280×720）に収まらないと、Vitest が枠ごと縮めます。縮むと 1px のずれがふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがします。`contextOptions.viewport` を枠より大きく取りました（`browser.viewport` は provider 側で無効化されていて効きません）
+2. **画面が 0.8 倍に縮む。** ストーリーを描く枠（1200×900）が窓（既定 1280×720）に収まらないと、Vitest が枠ごと縮めます。縮むと 1px のずれがふちのぼかしになり、pixelmatch がふちのぼかしを数えないので見のがします。`contextOptions.viewport` を枠より大きく取りました（`browser.viewport` は provider 側で無効化されていて効きません）。Vitest 5 からは、窓より大きい枠も縮めずにそのままの大きさで撮ります。Vitest 4 のころの基準画像のうち、`parameters.viewport` で窓より大きい枠にした 4 枚（DateRangePicker・Masonry）は縮んだまま撮られていたので、5 に上げたときに撮り直しました
 3. **許す幅は割合で持たない。** `allowedMismatchedPixelRatio: 0.002` では、全ボタンの角を 12px から 0px にしても 4 本中 3 本が通りました。`allowedMismatchedPixels: 0` にしています
 4. **基準画像の置き場が Storybook を壊す。** 既定の置き場は `__screenshots__/Button.stories.tsx/` で、この**ディレクトリ名**が `../src/**/*.stories.tsx` に一致し、Storybook の索引作りが EISDIR で落ちて画面が真っ白になります。`screenshotDirectory` は何を渡してもテストファイルの隣に継ぎ足されるので（絶対パスも先頭の `/` が落ちる）、Storybook 側の指定を `**` から `*` に変えて、ディレクトリに降りないようにしました
 5. **`:not(:focus)` で隠す書き方は、pseudo-states で固定すると出てこない。** 「ふだんは隠れ、フォーカスしたときだけ見せる」を `not-focus:sr-only`（`:not(:focus)`）で書くと、`storybook-addon-pseudo-states` が `:not()` の中身を `:not(:focus), :not(.pseudo-focus)` に書き換えます。`.pseudo-focus` クラスを当てても `:not(:focus)` はまだ真のままなので、フォーカスした状態に固定したストーリーでも隠れたままになります。「フォーカスしたときだけ現す」ものは、`focus:` 側に見せる指定を書く形にします（SkipLink）
